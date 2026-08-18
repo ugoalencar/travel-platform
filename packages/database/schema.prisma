@@ -12,82 +12,99 @@ datasource db {
 // REGRA: USER -> AGENCY -> RESOURCE
 // Nunca: USER -> RESOURCE
 // ============================================================
+//
+// SOURCE OF TRUTH: infrastructure/migrations/*.sql (ADR-005).
+// This file is a DERIVED representation, produced by `prisma db pull`
+// against a database with 001_initial_schema.sql and
+// 002_rls_policies.sql applied, then hand-annotated only where
+// introspection cannot express something the SQL already guarantees
+// (see the onDelete note below). Do not hand-edit structural fields,
+// types, relations, or `@map`/`@@map` values here without first
+// changing the SQL and re-running introspection -- that is how this
+// file drifts out of sync with what PostgreSQL actually enforces.
+//
+// NOT representable in this file at all (SQL only):
+//   - Row-Level Security (ENABLE/FORCE RLS, CREATE POLICY, 44 policies)
+//   - current_agency_id() / current_user_id() / set_tenant_context() /
+//     clear_tenant_context()
+//   - CHECK constraints (11: non-negative amounts, date ranges, etc.)
+//   - Partial unique indexes (customers_agency_cpf_active_key,
+//     customers_agency_email_active_key -- WHERE ... AND deleted_at IS NULL)
+//   - Runtime role grants (travel_app_runtime_local, no BYPASSRLS)
+// ============================================================
 
 model Agency {
-  id        String   @id @default(uuid())
-  name      String
-  slug      String   @unique
-  cnpj      String?  @unique
-  email     String?
-  phone     String?
-  address   Json?
-  settings  Json?
-  plan      Plan     @default(FREE)
-  status    Status   @default(ACTIVE)
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  users            User[]
+  id               String            @id @default(dbgenerated("(gen_random_uuid())::text"))
+  name             String
+  slug             String            @unique
+  cnpj             String?           @unique
+  email            String?
+  phone            String?
+  address          Json?
+  settings         Json?
+  plan             Plan              @default(FREE)
+  status           Status            @default(ACTIVE)
+  createdAt        DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime          @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
   brokers          Broker[]
-  customers        Customer[]
+  commissions      Commission[]
   customerAccounts CustomerAccount[]
-  wishes           Wish[]
-  trips            Trip[]
+  customers        Customer[]
   offers           Offer[]
   proposals        Proposal[]
   sales            Sale[]
-  commissions      Commission[]
+  trips            Trip[]
+  users            User[]
+  wishes           Wish[]
 
   @@map("agencies")
 }
 
 model User {
-  id           String    @id @default(uuid())
-  agencyId     String    @map("agency_id")
+  id           String       @id @default(dbgenerated("(gen_random_uuid())::text"))
+  agencyId     String       @map("agency_id")
   email        String
   name         String
   role         UserRole
-  passwordHash String    @map("password_hash")
-  status       Status    @default(ACTIVE)
-  lastLoginAt  DateTime? @map("last_login_at")
-  createdAt    DateTime  @default(now()) @map("created_at")
-  updatedAt    DateTime  @updatedAt @map("updated_at")
+  passwordHash String       @map("password_hash")
+  status       Status       @default(ACTIVE)
+  lastLoginAt  DateTime?    @map("last_login_at") @db.Timestamptz(6)
+  createdAt    DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  commissions  Commission[]
+  proposals    Proposal[]
+  sales        Sale[]
+  agency       Agency       @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "users_agency_fk")
 
-  agency      Agency       @relation(fields: [agencyId], references: [id], onDelete: Restrict)
-  proposals   Proposal[]
-  sales       Sale[]
-  commissions Commission[]
-
-  @@unique([agencyId, email])
-  @@unique([agencyId, id])
-  @@index([agencyId])
+  @@unique([agencyId, email], map: "users_agency_email_key")
+  @@unique([agencyId, id], map: "users_agency_id_key")
+  @@index([agencyId], map: "users_agency_idx")
   @@map("users")
 }
 
 model Broker {
-  id         String   @id @default(uuid())
-  agencyId   String   @map("agency_id")
-  name       String
-  email      String
-  phone      String?
-  commission Decimal  @default(0) @db.Decimal(5, 2)
-  status     Status   @default(ACTIVE)
-  createdAt  DateTime @default(now()) @map("created_at")
-  updatedAt  DateTime @updatedAt @map("updated_at")
-
-  agency      Agency       @relation(fields: [agencyId], references: [id], onDelete: Restrict)
-  sales       Sale[]
+  id          String       @id @default(dbgenerated("(gen_random_uuid())::text"))
+  agencyId    String       @map("agency_id")
+  name        String
+  email       String
+  phone       String?
+  commission  Decimal      @default(0) @db.Decimal(5, 2)
+  status      Status       @default(ACTIVE)
+  createdAt   DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  agency      Agency       @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "brokers_agency_fk")
   commissions Commission[]
+  sales       Sale[]
 
-  @@unique([agencyId, email])
-  @@unique([agencyId, id])
-  @@index([agencyId])
+  @@unique([agencyId, email], map: "brokers_agency_email_key")
+  @@unique([agencyId, id], map: "brokers_agency_id_key")
+  @@index([agencyId], map: "brokers_agency_idx")
   @@map("brokers")
 }
 
 model Customer {
-  id        String    @id @default(uuid())
-  agencyId  String    @map("agency_id")
+  id        String           @id @default(dbgenerated("(gen_random_uuid())::text"))
+  agencyId  String           @map("agency_id")
   name      String
   email     String?
   phone     String?
@@ -95,51 +112,50 @@ model Customer {
   passport  String?
   address   Json?
   notes     String?
-  status    Status    @default(ACTIVE)
-  deletedAt DateTime? @map("deleted_at")
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
-
-  agency    Agency           @relation(fields: [agencyId], references: [id], onDelete: Restrict)
+  status    Status           @default(ACTIVE)
+  deletedAt DateTime?        @map("deleted_at") @db.Timestamptz(6)
+  createdAt DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime         @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
   account   CustomerAccount?
-  wishes    Wish[]
+  agency    Agency           @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "customers_agency_fk")
   proposals Proposal[]
   sales     Sale[]
   trips     Trip[]
+  wishes    Wish[]
 
-  // Migration 001 must enforce active-customer uniqueness with partial indexes:
+  // Migration 001 also enforces active-customer uniqueness with partial
+  // indexes not representable here:
   // (agency_id, cpf) WHERE cpf IS NOT NULL AND deleted_at IS NULL
   // (agency_id, email) WHERE email IS NOT NULL AND deleted_at IS NULL
-  @@unique([agencyId, id])
-  @@index([agencyId])
-  @@index([agencyId, cpf])
-  @@index([agencyId, email])
-  @@index([agencyId, name])
+  @@unique([agencyId, id], map: "customers_agency_id_key")
+  @@index([agencyId, cpf], map: "customers_agency_cpf_idx")
+  @@index([agencyId, email], map: "customers_agency_email_idx")
+  @@index([agencyId], map: "customers_agency_idx")
+  @@index([agencyId, name], map: "customers_agency_name_idx")
   @@map("customers")
 }
 
 model CustomerAccount {
-  id           String                @id @default(uuid())
+  id           String                @id @default(dbgenerated("(gen_random_uuid())::text"))
   agencyId     String                @map("agency_id")
   customerId   String                @map("customer_id")
   email        String
   passwordHash String                @map("password_hash")
   status       CustomerAccountStatus @default(ACTIVE)
-  lastLoginAt  DateTime?             @map("last_login_at")
-  createdAt    DateTime              @default(now()) @map("created_at")
-  updatedAt    DateTime              @updatedAt @map("updated_at")
+  lastLoginAt  DateTime?             @map("last_login_at") @db.Timestamptz(6)
+  createdAt    DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime              @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  agency       Agency                @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "customer_accounts_agency_fk")
+  customer     Customer              @relation(fields: [agencyId, customerId], references: [agencyId, id], onDelete: Restrict, map: "customer_accounts_customer_tenant_fk")
 
-  agency   Agency   @relation(fields: [agencyId], references: [id], onDelete: Restrict)
-  customer Customer @relation(fields: [agencyId, customerId], references: [agencyId, id], onDelete: Restrict)
-
-  @@unique([agencyId, email])
-  @@unique([agencyId, customerId])
-  @@index([agencyId])
+  @@unique([agencyId, customerId], map: "customer_accounts_agency_customer_key")
+  @@unique([agencyId, email], map: "customer_accounts_agency_email_key")
+  @@index([agencyId], map: "customer_accounts_agency_idx")
   @@map("customer_accounts")
 }
 
 model Wish {
-  id             String     @id @default(uuid())
+  id             String     @id @default(dbgenerated("(gen_random_uuid())::text"))
   agencyId       String     @map("agency_id")
   customerId     String     @map("customer_id")
   destination    String?
@@ -149,45 +165,43 @@ model Wish {
   travelersCount Int?       @map("travelers_count")
   notes          String?
   status         WishStatus @default(ACTIVE)
-  createdAt      DateTime   @default(now()) @map("created_at")
-  updatedAt      DateTime   @updatedAt @map("updated_at")
+  createdAt      DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime   @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  proposals      Proposal[]
+  agency         Agency     @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "wishes_agency_fk")
+  customer       Customer   @relation(fields: [agencyId, customerId], references: [agencyId, id], onDelete: Restrict, map: "wishes_customer_tenant_fk")
 
-  agency    Agency     @relation(fields: [agencyId], references: [id], onDelete: Restrict)
-  customer  Customer   @relation(fields: [agencyId, customerId], references: [agencyId, id], onDelete: Restrict)
-  proposals Proposal[]
-
-  @@unique([agencyId, id])
-  @@index([agencyId])
-  @@index([agencyId, customerId])
-  @@index([agencyId, status])
-  @@index([agencyId, startDate])
+  @@unique([agencyId, id], map: "wishes_agency_id_key")
+  @@index([agencyId, customerId], map: "wishes_agency_customer_idx")
+  @@index([agencyId], map: "wishes_agency_idx")
+  @@index([agencyId, startDate], map: "wishes_agency_start_date_idx")
+  @@index([agencyId, status], map: "wishes_agency_status_idx")
   @@map("wishes")
 }
 
 model Offer {
-  id          String      @id @default(uuid())
+  id          String      @id @default(dbgenerated("(gen_random_uuid())::text"))
   agencyId    String      @map("agency_id")
   name        String
   description String?
   price       Decimal     @db.Decimal(10, 2)
-  validFrom   DateTime?   @map("valid_from")
-  validUntil  DateTime?   @map("valid_until")
+  validFrom   DateTime?   @map("valid_from") @db.Timestamptz(6)
+  validUntil  DateTime?   @map("valid_until") @db.Timestamptz(6)
   status      OfferStatus @default(ACTIVE)
-  createdAt   DateTime    @default(now()) @map("created_at")
-  updatedAt   DateTime    @updatedAt @map("updated_at")
+  createdAt   DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime    @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  agency      Agency      @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "offers_agency_fk")
+  proposals   Proposal[]
 
-  agency    Agency     @relation(fields: [agencyId], references: [id], onDelete: Restrict)
-  proposals Proposal[]
-
-  @@unique([agencyId, id])
-  @@index([agencyId])
-  @@index([agencyId, status])
-  @@index([agencyId, validUntil])
+  @@unique([agencyId, id], map: "offers_agency_id_key")
+  @@index([agencyId], map: "offers_agency_idx")
+  @@index([agencyId, status], map: "offers_agency_status_idx")
+  @@index([agencyId, validUntil], map: "offers_agency_valid_until_idx")
   @@map("offers")
 }
 
 model Proposal {
-  id            String         @id @default(uuid())
+  id            String         @id @default(dbgenerated("(gen_random_uuid())::text"))
   agencyId      String         @map("agency_id")
   customerId    String         @map("customer_id")
   offerId       String?        @map("offer_id")
@@ -196,63 +210,71 @@ model Proposal {
   proposedPrice Decimal        @map("proposed_price") @db.Decimal(10, 2)
   discount      Decimal        @default(0) @db.Decimal(10, 2)
   total         Decimal        @db.Decimal(10, 2)
-  validUntil    DateTime?      @map("valid_until")
+  validUntil    DateTime?      @map("valid_until") @db.Timestamptz(6)
   conditions    String?
   notes         String?
   status        ProposalStatus @default(DRAFT)
-  createdAt     DateTime       @default(now()) @map("created_at")
-  updatedAt     DateTime       @updatedAt @map("updated_at")
+  createdAt     DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime       @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  agency        Agency         @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "proposals_agency_fk")
+  customer      Customer       @relation(fields: [agencyId, customerId], references: [agencyId, id], onDelete: Restrict, map: "proposals_customer_tenant_fk")
+  // offerId/wishId/userId are nullable columns: Prisma's implicit
+  // onDelete default for an OPTIONAL relation is SetNull, not Restrict
+  // (verified empirically -- see ADR-005). The database enforces
+  // RESTRICT on all three regardless of what this file says, but
+  // leaving onDelete implicit here would make this file claim
+  // behavior PostgreSQL does not actually have. Explicit and required
+  // for this file to be accurate, not just for readability.
+  offer         Offer?         @relation(fields: [agencyId, offerId], references: [agencyId, id], onDelete: Restrict, map: "proposals_offer_tenant_fk")
+  user          User?          @relation(fields: [agencyId, userId], references: [agencyId, id], onDelete: Restrict, map: "proposals_user_tenant_fk")
+  wish          Wish?          @relation(fields: [agencyId, wishId], references: [agencyId, id], onDelete: Restrict, map: "proposals_wish_tenant_fk")
+  sale          Sale?
 
-  agency   Agency   @relation(fields: [agencyId], references: [id], onDelete: Restrict)
-  customer Customer @relation(fields: [agencyId, customerId], references: [agencyId, id], onDelete: Restrict)
-  offer    Offer?   @relation(fields: [agencyId, offerId], references: [agencyId, id], onDelete: Restrict)
-  wish     Wish?    @relation(fields: [agencyId, wishId], references: [agencyId, id], onDelete: Restrict)
-  user     User?    @relation(fields: [agencyId, userId], references: [agencyId, id], onDelete: Restrict)
-  sale     Sale?
-
-  @@unique([agencyId, id])
-  @@index([agencyId])
-  @@index([agencyId, customerId])
-  @@index([agencyId, status])
-  @@index([agencyId, validUntil])
+  @@unique([agencyId, id], map: "proposals_agency_id_key")
+  @@index([agencyId, customerId], map: "proposals_agency_customer_idx")
+  @@index([agencyId], map: "proposals_agency_idx")
+  @@index([agencyId, status], map: "proposals_agency_status_idx")
+  @@index([agencyId, validUntil], map: "proposals_agency_valid_until_idx")
   @@map("proposals")
 }
 
 model Sale {
-  id         String     @id @default(uuid())
-  agencyId   String     @map("agency_id")
-  customerId String     @map("customer_id")
-  proposalId String?    @map("proposal_id")
-  brokerId   String?    @map("broker_id")
-  userId     String     @map("user_id")
-  amount     Decimal    @db.Decimal(10, 2)
-  discount   Decimal    @default(0) @db.Decimal(10, 2)
-  total      Decimal    @db.Decimal(10, 2)
-  status     SaleStatus @default(PENDING)
-  notes      String?
-  paidAt     DateTime?  @map("paid_at")
-  createdAt  DateTime   @default(now()) @map("created_at")
-  updatedAt  DateTime   @updatedAt @map("updated_at")
-
-  agency      Agency       @relation(fields: [agencyId], references: [id], onDelete: Restrict)
-  customer    Customer     @relation(fields: [agencyId, customerId], references: [agencyId, id], onDelete: Restrict)
-  proposal    Proposal?    @relation(fields: [agencyId, proposalId], references: [agencyId, id], onDelete: Restrict)
-  broker      Broker?      @relation(fields: [agencyId, brokerId], references: [agencyId, id], onDelete: Restrict)
-  user        User         @relation(fields: [agencyId, userId], references: [agencyId, id], onDelete: Restrict)
-  trip        Trip?
+  id          String       @id @default(dbgenerated("(gen_random_uuid())::text"))
+  agencyId    String       @map("agency_id")
+  customerId  String       @map("customer_id")
+  proposalId  String?      @map("proposal_id")
+  brokerId    String?      @map("broker_id")
+  userId      String       @map("user_id")
+  amount      Decimal      @db.Decimal(10, 2)
+  discount    Decimal      @default(0) @db.Decimal(10, 2)
+  total       Decimal      @db.Decimal(10, 2)
+  status      SaleStatus   @default(PENDING)
+  notes       String?
+  paidAt      DateTime?    @map("paid_at") @db.Timestamptz(6)
+  createdAt   DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
   commissions Commission[]
+  agency      Agency       @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "sales_agency_fk")
+  // proposalId/brokerId are nullable: same SetNull-by-default risk as
+  // Proposal.offer/wish/user above. Explicit onDelete: Restrict here
+  // is required for accuracy, not decorative.
+  broker      Broker?      @relation(fields: [agencyId, brokerId], references: [agencyId, id], onDelete: Restrict, map: "sales_broker_tenant_fk")
+  customer    Customer     @relation(fields: [agencyId, customerId], references: [agencyId, id], onDelete: Restrict, map: "sales_customer_tenant_fk")
+  proposal    Proposal?    @relation(fields: [agencyId, proposalId], references: [agencyId, id], onDelete: Restrict, map: "sales_proposal_tenant_fk")
+  user        User         @relation(fields: [agencyId, userId], references: [agencyId, id], onDelete: Restrict, map: "sales_user_tenant_fk")
+  trip        Trip?
 
-  @@unique([agencyId, id])
-  @@unique([agencyId, proposalId])
-  @@index([agencyId])
-  @@index([agencyId, customerId])
-  @@index([agencyId, status])
-  @@index([agencyId, createdAt])
+  @@unique([agencyId, id], map: "sales_agency_id_key")
+  @@unique([agencyId, proposalId], map: "sales_agency_proposal_key")
+  @@index([agencyId, createdAt], map: "sales_agency_created_at_idx")
+  @@index([agencyId, customerId], map: "sales_agency_customer_idx")
+  @@index([agencyId], map: "sales_agency_idx")
+  @@index([agencyId, status], map: "sales_agency_status_idx")
   @@map("sales")
 }
 
 model Commission {
-  id         String           @id @default(uuid())
+  id         String           @id @default(dbgenerated("(gen_random_uuid())::text"))
   agencyId   String           @map("agency_id")
   saleId     String           @map("sale_id")
   brokerId   String?          @map("broker_id")
@@ -260,23 +282,31 @@ model Commission {
   amount     Decimal          @db.Decimal(10, 2)
   percentage Decimal?         @db.Decimal(5, 2)
   status     CommissionStatus @default(PENDING)
-  paidAt     DateTime?        @map("paid_at")
-  createdAt  DateTime         @default(now()) @map("created_at")
-  updatedAt  DateTime         @updatedAt @map("updated_at")
+  paidAt     DateTime?        @map("paid_at") @db.Timestamptz(6)
+  createdAt  DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime         @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  agency     Agency           @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "commissions_agency_fk")
+  // brokerId/userId are nullable: same SetNull-by-default risk noted
+  // above. Explicit onDelete: Restrict here is required for accuracy.
+  broker     Broker?          @relation(fields: [agencyId, brokerId], references: [agencyId, id], onDelete: Restrict, map: "commissions_broker_tenant_fk")
+  sale       Sale             @relation(fields: [agencyId, saleId], references: [agencyId, id], onDelete: Restrict, map: "commissions_sale_tenant_fk")
+  user       User?            @relation(fields: [agencyId, userId], references: [agencyId, id], onDelete: Restrict, map: "commissions_user_tenant_fk")
 
-  agency Agency  @relation(fields: [agencyId], references: [id], onDelete: Restrict)
-  sale   Sale    @relation(fields: [agencyId, saleId], references: [agencyId, id], onDelete: Restrict)
-  broker Broker? @relation(fields: [agencyId, brokerId], references: [agencyId, id], onDelete: Restrict)
-  user   User?   @relation(fields: [agencyId, userId], references: [agencyId, id], onDelete: Restrict)
-
-  @@index([agencyId])
-  @@index([agencyId, saleId])
-  @@index([agencyId, status])
+  // NOTE (ADR-005): commissions has no UNIQUE(agency_id, id) in SQL, so
+  // no composite tenant-safe FK can reference it. Nothing in the
+  // domain currently needs to -- classified SAFE TO DEFER, not a
+  // blocker. Do not add @@unique([agencyId, id]) here without first
+  // adding the matching UNIQUE constraint in the SQL migration --
+  // this file must not describe a constraint the database does not
+  // have.
+  @@index([agencyId], map: "commissions_agency_idx")
+  @@index([agencyId, saleId], map: "commissions_agency_sale_idx")
+  @@index([agencyId, status], map: "commissions_agency_status_idx")
   @@map("commissions")
 }
 
 model Trip {
-  id          String     @id @default(uuid())
+  id          String     @id @default(dbgenerated("(gen_random_uuid())::text"))
   agencyId    String     @map("agency_id")
   customerId  String     @map("customer_id")
   saleId      String?    @map("sale_id")
@@ -288,18 +318,19 @@ model Trip {
   status      TripStatus @default(PLANNED)
   notes       String?
   metadata    Json?
-  createdAt   DateTime   @default(now()) @map("created_at")
-  updatedAt   DateTime   @updatedAt @map("updated_at")
+  createdAt   DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime   @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  agency      Agency     @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "trips_agency_fk")
+  customer    Customer   @relation(fields: [agencyId, customerId], references: [agencyId, id], onDelete: Restrict, map: "trips_customer_tenant_fk")
+  // saleId is nullable: same SetNull-by-default risk noted above.
+  // Explicit onDelete: Restrict here is required for accuracy.
+  sale        Sale?      @relation(fields: [agencyId, saleId], references: [agencyId, id], onDelete: Restrict, map: "trips_sale_tenant_fk")
 
-  agency   Agency   @relation(fields: [agencyId], references: [id], onDelete: Restrict)
-  customer Customer @relation(fields: [agencyId, customerId], references: [agencyId, id], onDelete: Restrict)
-  sale     Sale?    @relation(fields: [agencyId, saleId], references: [agencyId, id], onDelete: Restrict)
-
-  @@unique([agencyId, saleId])
-  @@index([agencyId])
-  @@index([agencyId, customerId])
-  @@index([agencyId, status])
-  @@index([agencyId, startDate])
+  @@unique([agencyId, saleId], map: "trips_agency_sale_key")
+  @@index([agencyId, customerId], map: "trips_agency_customer_idx")
+  @@index([agencyId], map: "trips_agency_idx")
+  @@index([agencyId, startDate], map: "trips_agency_start_date_idx")
+  @@index([agencyId, status], map: "trips_agency_status_idx")
   @@map("trips")
 }
 
