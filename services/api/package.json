@@ -1,0 +1,25 @@
+{
+  "name": "@travel-platform/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Fastify API foundation for the Travel Platform.",
+  "main": "./dist/server.js",
+  "types": "./dist/app.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "lint": "eslint src/**/*.ts tests/**/*.test.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run --config vitest.config.ts",
+    "test:coverage": "vitest run --config vitest.config.ts --coverage",
+    "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\""
+  },
+  "dependencies": {
+    "@travel-platform/domain": "file:../../packages/domain",
+    "fastify": "^5.5.0",
+    "pg": "^8.13.0"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.11.0"
+  }
+}

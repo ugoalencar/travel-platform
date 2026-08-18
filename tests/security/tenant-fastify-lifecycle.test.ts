@@ -2,6 +2,7 @@ import Fastify from 'fastify';
 import { describe, it, expect } from 'vitest';
 import { UserRole } from '../../packages/domain/types';
 import {
+  type AuthPayload,
   createTenantContextHook,
   getAgencyId,
   getOptionalTenantContext,
@@ -28,12 +29,7 @@ function sleep(ms: number): Promise<void> {
 
 declare module 'fastify' {
   interface FastifyRequest {
-    auth?: {
-      sub: string;
-      agency_id: string;
-      role: UserRole;
-      email: string;
-    };
+    auth?: AuthPayload;
   }
 }
 
