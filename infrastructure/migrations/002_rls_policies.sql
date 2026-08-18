@@ -11,8 +11,14 @@
 -- authentication/authorization context. Never trust agency_id supplied
 -- directly by the frontend.
 --
--- Runtime code must set this context at the start of each request and clear it
--- before releasing the database connection back to the pool.
+-- set_tenant_context() uses set_config(..., is_local => TRUE), which scopes
+-- app.current_agency_id / app.current_user_id to the current transaction
+-- only. The setting is automatically discarded on COMMIT or ROLLBACK, so a
+-- pooled connection can never carry one tenant's context into the next
+-- caller. Runtime code MUST call set_tenant_context() after BEGIN and
+-- perform the tenant-scoped operation inside that same transaction; calling
+-- it outside a transaction has no lasting effect beyond the implicit
+-- single-statement transaction Postgres creates for it.
 -- ============================================================
 
 -- ============================================================
@@ -50,12 +56,12 @@ BEGIN
     RAISE EXCEPTION 'Tenant context requires agency_id';
   END IF;
 
-  PERFORM set_config('app.current_agency_id', p_agency_id::TEXT, FALSE);
+  PERFORM set_config('app.current_agency_id', p_agency_id::TEXT, TRUE);
 
   IF p_user_id IS NULL THEN
-    PERFORM set_config('app.current_user_id', '', FALSE);
+    PERFORM set_config('app.current_user_id', '', TRUE);
   ELSE
-    PERFORM set_config('app.current_user_id', p_user_id::TEXT, FALSE);
+    PERFORM set_config('app.current_user_id', p_user_id::TEXT, TRUE);
   END IF;
 END;
 $$;
@@ -66,8 +72,12 @@ LANGUAGE plpgsql
 SET search_path = pg_catalog, public
 AS $$
 BEGIN
-  PERFORM set_config('app.current_agency_id', '', FALSE);
-  PERFORM set_config('app.current_user_id', '', FALSE);
+  -- Defense in depth only: the transaction-scoped set_config() calls in
+  -- set_tenant_context() already guarantee the tenant setting cannot
+  -- outlive COMMIT/ROLLBACK. This function remains for callers that want
+  -- to explicitly clear context mid-transaction.
+  PERFORM set_config('app.current_agency_id', '', TRUE);
+  PERFORM set_config('app.current_user_id', '', TRUE);
 END;
 $$;
 
@@ -392,4 +402,9 @@ CREATE POLICY trips_delete_tenant ON trips
 -- 9. Trip cannot reference Customer or Sale from another agency.
 -- 10. Active Customer CPF/email uniqueness is tenant-scoped and ignores soft-deleted rows.
 -- 11. Runtime role cannot bypass RLS or operate without tenant context.
--- 12. Runtime code clears tenant context before releasing pooled connections.
+-- 12. A connection that COMMITs a transaction for Agency A, then is reused
+--     for a second transaction that never calls set_tenant_context(), must
+--     fail closed (no tenant rows visible) rather than inherit Agency A.
+-- 13. A connection reused across Agency A (commit) then Agency B
+--     (set_tenant_context + commit) must see only Agency B's rows in the
+--     second transaction.

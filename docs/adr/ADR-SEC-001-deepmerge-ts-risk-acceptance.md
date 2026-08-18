@@ -104,6 +104,21 @@ Negative:
 - periodic review is required;
 - residual risk remains temporarily accepted.
 
+## CI Enforcement
+
+`npm run security:check` (`scripts/check-security-audit.cjs`) applies this
+already-accepted exception mechanically in CI: it runs `npm audit --json`
+and compares every reported advisory against a small, explicit allowlist
+keyed to this exact finding (package `deepmerge-ts`, GHSA-GGR8-5VV4-36MX).
+A match is printed as a `WARNING` referencing this ADR and does not fail the
+gate. Any other finding -- a new advisory, a different advisory in
+`deepmerge-ts`, or this GHSA id in an unrelated package -- still fails the
+gate. This section only records that the exception is enforced this way; it
+does not change the Status or Decision above. Removing the allowlist entry
+in `scripts/check-security-audit.cjs` is how this exception is retired once
+a Review Trigger fires -- that removal does not itself require rewriting
+this ADR.
+
 ## Owner
 
 Security / Architecture

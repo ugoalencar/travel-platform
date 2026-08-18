@@ -27,61 +27,63 @@ export interface TenantQueryClient {
   ): Promise<{ rows: T[] } | T[]>;
 }
 
+// ARCH-02: this repository layer is intentionally unimplemented pending the
+// SQL-vs-Prisma source-of-truth decision (ARCH-01). Every method below must
+// still fail closed without a tenant context (getAgencyId() throws
+// TenantError first) and must never place tenant data -- ids, filters,
+// payloads -- into an Error message, since Error objects routinely end up
+// in logs and crash reporters. NotImplementedRepositoryError carries only
+// the operation name and the repository's own class name.
+export class NotImplementedRepositoryError extends Error {
+  constructor(
+    public readonly operation: string,
+    public readonly repositoryName: string,
+  ) {
+    super(
+      `${repositoryName}.${operation}() is not implemented. This repository is a ` +
+        'placeholder pending the persistence-layer architecture decision; no query ' +
+        'was executed and no tenant data was read, written, or included in this error.',
+    );
+    this.name = 'NotImplementedRepositoryError';
+  }
+}
+
 export abstract class TenantRepository<T extends { agencyId: string }> {
-  findAll(filters: Partial<T> = {}): Promise<TenantScoped<T>[]> {
-    const where = this.buildTenantWhere(filters);
-    return this.notImplemented('findAll', where);
+  findAll(_filters: Partial<T> = {}): Promise<TenantScoped<T>[]> {
+    getAgencyId();
+    return this.notImplemented('findAll');
   }
 
-  findById(id: string): Promise<TenantScoped<T> | null> {
-    const where = this.buildTenantWhere({});
-    return this.notImplemented('findById', { ...where, id });
+  findById(_id: string): Promise<TenantScoped<T> | null> {
+    getAgencyId();
+    return this.notImplemented('findById');
   }
 
-  create(data: CreateInput<T>): Promise<TenantScoped<T>> {
-    const scopedData = {
-      ...data,
-      agencyId: getAgencyId(),
-    };
-
-    return this.notImplemented('create', scopedData);
+  create(_data: CreateInput<T>): Promise<TenantScoped<T>> {
+    getAgencyId();
+    return this.notImplemented('create');
   }
 
-  async update(id: string, data: UpdateInput<T>): Promise<TenantScoped<T>> {
-    const agencyId = getAgencyId();
-    const existing = await this.findById(id);
-
-    if (!existing) {
-      throw new Error('Record not found');
-    }
-
-    if (existing.agencyId !== agencyId) {
-      throw new Error('Access denied: record belongs to another agency');
-    }
-
-    return this.notImplemented('update', { id, data, agencyId });
+  update(_id: string, _data: UpdateInput<T>): Promise<TenantScoped<T>> {
+    getAgencyId();
+    return this.notImplemented('update');
   }
 
-  async delete(id: string): Promise<void> {
-    const agencyId = getAgencyId();
-    const existing = await this.findById(id);
-
-    if (!existing) {
-      throw new Error('Record not found');
-    }
-
-    if (existing.agencyId !== agencyId) {
-      throw new Error('Access denied: record belongs to another agency');
-    }
-
-    return this.notImplemented('delete', { id, agencyId });
+  delete(_id: string): Promise<void> {
+    getAgencyId();
+    return this.notImplemented('delete');
   }
 
-  count(filters: Partial<T> = {}): Promise<number> {
-    const where = this.buildTenantWhere(filters);
-    return this.notImplemented('count', where);
+  count(_filters: Partial<T> = {}): Promise<number> {
+    getAgencyId();
+    return this.notImplemented('count');
   }
 
+  /**
+   * Available for a future real implementation to derive a tenant-scoped
+   * filter. Not used by the placeholder methods above, which have nothing
+   * to apply it to.
+   */
   protected buildTenantWhere(filters: Partial<T>): Partial<T> & { agencyId: string } {
     return {
       ...filters,
@@ -89,16 +91,9 @@ export abstract class TenantRepository<T extends { agencyId: string }> {
     };
   }
 
-  protected notImplemented<TReturn>(
-    operation: string,
-    safeParameters: unknown,
-  ): Promise<TReturn> {
+  protected notImplemented<TReturn>(operation: string): Promise<TReturn> {
     return Promise.reject(
-      new Error(
-        `${operation} not implemented. Tenant-safe parameters prepared: ${JSON.stringify(
-          safeParameters,
-        )}`,
-      ),
+      new NotImplementedRepositoryError(operation, this.constructor.name),
     );
   }
 }

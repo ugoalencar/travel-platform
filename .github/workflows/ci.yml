@@ -62,8 +62,20 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
+      - name: Secret scan
+        run: npm run secrets:scan
+
+      - name: Dependency audit
+        run: npm run security:check
+
+      - name: Validate migration file naming
+        run: npm run migrations:validate
+
       - name: Unit tests
         run: npm run test
+
+      - name: Security tests
+        run: npm run test:security
 
       - name: Database and RLS integration tests
         run: npm run test:db

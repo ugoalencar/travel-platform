@@ -59,6 +59,15 @@ export interface TenantAwareClient {
   query<T = unknown>(query: string, params: readonly unknown[]): Promise<T>;
 }
 
+// Fire-and-forget work started inside a request handler (a Promise that is
+// not awaited before the handler returns) is NOT a supported way to reach
+// this tenant context. run() bounds the store to this one request's causal
+// chain; work that outlives the request (a background job, a queue
+// producer, anything scheduled to run after the response is sent) must
+// receive its tenant/user ids explicitly as data, not rely on reading them
+// back out of an ambient AsyncLocalStorage store. Treat any code that calls
+// getAgencyId()/getTenantContext() from outside a request's own causal
+// chain as a bug, not a feature to build job/queue infrastructure on.
 const tenantStorage = new AsyncLocalStorage<TenantContext>();
 
 export function runWithTenantContext<T>(
@@ -103,7 +112,28 @@ export function createTenantContextHook(options: TenantContextHookOptions) {
   ): void => {
     establishTenantContext(request, options)
       .then((context) => {
-        runWithTenantContext(context, done);
+        // run(context, done) -- not enterWith(). `done` here is Fastify's
+        // own hook continuation (lib/hooks.js `next`): hookRunnerGenerator
+        // drives every subsequent onRequest/preParsing/preValidation/
+        // preHandler hook, the route handler, serialization, onSend,
+        // onResponse, and error handling as ONE causal chain rooted at
+        // this call -- each step is reached either by calling `next()`
+        // synchronously (callback-style hooks) or via `.then()`/`.catch()`
+        // on the promise a hook returned (async hooks), and that
+        // continuation is tracked correctly by AsyncLocalStorage
+        // regardless of where `.then()` is textually attached, because
+        // the promise itself originates from inside this run() call
+        // (verified against fastify/lib/hooks.js and route.js: the same
+        // `cb` threading connects onRequestHookRunner -> runPreParsing ->
+        // preParsingHookRunner -> handleRequest, all the way through the
+        // handler and reply). run() therefore scopes the *entire*
+        // remaining lifecycle of exactly this one request and nothing
+        // else, and the store reverts automatically once that chain
+        // settles -- a stronger, explicitly bounded guarantee than
+        // enterWith(), which has no defined end and depends entirely on
+        // no other code sharing this async execution context. See
+        // tests/security/tenant-fastify-lifecycle.test.ts.
+        tenantStorage.run(context, done);
       })
       .catch((error: unknown) => {
         sendTenantError(reply, error);

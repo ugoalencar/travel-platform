@@ -3,6 +3,15 @@
 
 \set ON_ERROR_STOP on
 
+-- set_tenant_context() (see migration 002) is transaction-scoped
+-- (set_config(..., TRUE)), matching how the runtime must use it: BEGIN,
+-- set the tenant, run the operation, COMMIT/ROLLBACK. AUTOCOMMIT off keeps
+-- this whole legacy section inside one open transaction so the context set
+-- once below stays valid across it, exactly as it did when the context was
+-- session-scoped. The SEC-01 regression section further down explicitly
+-- COMMITs between phases to simulate a pooled connection being reused.
+\set AUTOCOMMIT off
+
 DROP TABLE IF EXISTS local_rls_results;
 CREATE TEMP TABLE local_rls_results (
   test_name TEXT PRIMARY KEY,
@@ -468,6 +477,108 @@ BEGIN
   END IF;
 END;
 $$;
+
+-- ============================================================
+-- SEC-01 REGRESSION: transaction-scoped tenant context (pool reuse)
+-- ============================================================
+-- Simulates a pooled connection being handed to a new request without the
+-- pool clearing anything: every COMMIT below is the moment a connection
+-- would return to the pool, and the statements right after run in a new,
+-- fresh transaction on this same session/connection. Because
+-- set_tenant_context() now uses set_config(..., TRUE), the setting must
+-- not survive COMMIT, so the next transaction must fail closed instead of
+-- inheriting the previous caller's agency.
+
+COMMIT;
+
+DO $$
+DECLARE
+  v_count INTEGER;
+BEGIN
+  SELECT COUNT(*) INTO v_count FROM customers;
+
+  IF v_count = 0 THEN
+    PERFORM pg_temp.local_record_rls_result('SEC-01 pool reuse: fresh transaction without context is fail-closed', 'ZERO', 'ZERO');
+  ELSE
+    PERFORM pg_temp.local_record_rls_result('SEC-01 pool reuse: fresh transaction without context is fail-closed', 'ZERO', 'VISIBLE', 'Rows: ' || v_count::TEXT);
+  END IF;
+END;
+$$;
+
+SELECT set_tenant_context('10000000-0000-4000-8000-000000000001', '11000000-0000-4000-8000-000000000001');
+
+DO $$
+DECLARE
+  v_count INTEGER;
+BEGIN
+  SELECT COUNT(*) INTO v_count
+  FROM customers
+  WHERE agency_id <> '10000000-0000-4000-8000-000000000001';
+
+  IF v_count = 0 THEN
+    PERFORM pg_temp.local_record_rls_result('SEC-01 pool reuse: Agency A transaction sees only Agency A', 'ZERO', 'ZERO');
+  ELSE
+    PERFORM pg_temp.local_record_rls_result('SEC-01 pool reuse: Agency A transaction sees only Agency A', 'ZERO', 'VISIBLE', 'Rows: ' || v_count::TEXT);
+  END IF;
+END;
+$$;
+
+COMMIT;
+
+DO $$
+DECLARE
+  v_count INTEGER;
+BEGIN
+  SELECT COUNT(*) INTO v_count FROM customers;
+
+  IF v_count = 0 THEN
+    PERFORM pg_temp.local_record_rls_result('SEC-01 pool reuse: second reused transaction does not inherit Agency A', 'ZERO', 'ZERO');
+  ELSE
+    PERFORM pg_temp.local_record_rls_result('SEC-01 pool reuse: second reused transaction does not inherit Agency A', 'ZERO', 'VISIBLE', 'Rows: ' || v_count::TEXT);
+  END IF;
+END;
+$$;
+
+SELECT set_tenant_context('20000000-0000-4000-8000-000000000001', '21000000-0000-4000-8000-000000000001');
+
+DO $$
+DECLARE
+  v_count_b INTEGER;
+  v_count_a INTEGER;
+BEGIN
+  SELECT COUNT(*) INTO v_count_b
+  FROM customers
+  WHERE agency_id = '20000000-0000-4000-8000-000000000001';
+
+  SELECT COUNT(*) INTO v_count_a
+  FROM customers
+  WHERE agency_id = '10000000-0000-4000-8000-000000000001';
+
+  IF v_count_b > 0 AND v_count_a = 0 THEN
+    PERFORM pg_temp.local_record_rls_result('SEC-01 pool reuse: Agency B transaction sees only Agency B, not Agency A', 'PASS', 'PASS');
+  ELSE
+    PERFORM pg_temp.local_record_rls_result('SEC-01 pool reuse: Agency B transaction sees only Agency B, not Agency A', 'PASS', 'FAIL', 'B visible=' || v_count_b::TEXT || ', A visible=' || v_count_a::TEXT);
+  END IF;
+END;
+$$;
+
+COMMIT;
+
+DO $$
+DECLARE
+  v_count INTEGER;
+BEGIN
+  SELECT COUNT(*) INTO v_count FROM customers;
+
+  IF v_count = 0 THEN
+    PERFORM pg_temp.local_record_rls_result('SEC-01 pool reuse: third reused transaction does not inherit Agency B', 'ZERO', 'ZERO');
+  ELSE
+    PERFORM pg_temp.local_record_rls_result('SEC-01 pool reuse: third reused transaction does not inherit Agency B', 'ZERO', 'VISIBLE', 'Rows: ' || v_count::TEXT);
+  END IF;
+END;
+$$;
+
+\set AUTOCOMMIT on
 
 SELECT test_name, expected, result, detail
 FROM local_rls_results

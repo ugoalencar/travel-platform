@@ -122,7 +122,22 @@ describe.sequential('database integration migrations and RLS', () => {
     expect(result.stdout).toContain('Fail closed SELECT without tenant');
     expect(result.stdout).toContain('Invalid tenant INSERT referencing real Customer A');
     expect(result.stdout).toContain('Runtime role rolsuper/rolbypassrls false');
-    expect(result.stdout).toContain('(32 rows)');
+    expect(result.stdout).toContain(
+      'SEC-01 pool reuse: fresh transaction without context is fail-closed',
+    );
+    expect(result.stdout).toContain(
+      'SEC-01 pool reuse: Agency A transaction sees only Agency A',
+    );
+    expect(result.stdout).toContain(
+      'SEC-01 pool reuse: second reused transaction does not inherit Agency A',
+    );
+    expect(result.stdout).toContain(
+      'SEC-01 pool reuse: Agency B transaction sees only Agency B, not Agency A',
+    );
+    expect(result.stdout).toContain(
+      'SEC-01 pool reuse: third reused transaction does not inherit Agency B',
+    );
+    expect(result.stdout).toContain('(37 rows)');
     expect(result.stderr).not.toContain('ERROR');
   });
 
