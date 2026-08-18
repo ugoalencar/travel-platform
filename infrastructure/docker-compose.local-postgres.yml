@@ -1,0 +1,21 @@
+services:
+  postgres-local:
+    image: postgres:15
+    container_name: travel-platform-postgres-local
+    restart: "no"
+    ports:
+      - "127.0.0.1:55432:5432"
+    environment:
+      POSTGRES_DB: travel_platform_test
+      POSTGRES_USER: travel_test
+      POSTGRES_PASSWORD: travel_test_password
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U travel_test -d travel_platform_test"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - travel_platform_postgres_local_data:/var/lib/postgresql/data
+
+volumes:
+  travel_platform_postgres_local_data:

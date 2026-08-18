@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "target": "ES2023",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "strict": true,
+    "noImplicitOverride": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@apps/*": ["apps/*"],
+      "@services/*": ["services/*"],
+      "@packages/*": ["packages/*"],
+      "@domain/*": ["packages/domain/*"],
+      "@database/*": ["packages/database/*"],
+      "@shared/*": ["packages/shared/*"],
+      "@validation/*": ["packages/validation/*"],
+      "@config/*": ["packages/config/*"]
+    }
+  }
+}

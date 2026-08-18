@@ -1,0 +1,29 @@
+{
+  "name": "@travel-platform/domain",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Tenant-aware domain primitives for the travel platform.",
+  "types": "./dist/types.d.ts",
+  "exports": {
+    "./tenant-context": {
+      "types": "./dist/tenant-context.d.ts",
+      "default": "./dist/tenant-context.js"
+    },
+    "./tenant-scoped-queries": {
+      "types": "./dist/tenant-scoped-queries.d.ts",
+      "default": "./dist/tenant-scoped-queries.js"
+    },
+    "./types": {
+      "types": "./dist/types.d.ts",
+      "default": "./dist/types.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "lint": "eslint *.ts ../../tests/security/tenant-isolation.test.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run --root ../.. tests/security/tenant-isolation.test.ts",
+    "test:coverage": "vitest run --root ../.. --coverage tests/security/tenant-isolation.test.ts"
+  }
+}
