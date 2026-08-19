@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ApiError, listCustomers } from '../lib/api';
 import type { Customer } from '../types/customer';
 import { Button } from '../components/ui/button';
@@ -10,6 +11,7 @@ type LoadState =
 
 export function CustomersPage() {
   const [state, setState] = useState<LoadState>({ status: 'loading' });
+  const navigate = useNavigate();
 
   useEffect(() => {
     let cancelled = false;
@@ -42,9 +44,7 @@ export function CustomersPage() {
         <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
           Clientes
         </h1>
-        <Button disabled title="Cadastro de cliente em breve">
-          + Novo cliente
-        </Button>
+        <Button onClick={() => void navigate('/customers/new')}>+ Novo cliente</Button>
       </div>
 
       {state.status === 'loading' && (

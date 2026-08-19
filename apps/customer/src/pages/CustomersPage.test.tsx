@@ -1,8 +1,17 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { CustomersPage } from './CustomersPage';
 import { listCustomers, ApiError } from '../lib/api';
 import type { Customer } from '../types/customer';
+
+function renderPage() {
+  return render(
+    <MemoryRouter>
+      <CustomersPage />
+    </MemoryRouter>,
+  );
+}
 
 vi.mock('../lib/api', () => {
   class MockApiError extends Error {
@@ -27,7 +36,7 @@ afterEach(() => {
 
 describe('CustomersPage', () => {
   it('renders the exact empty-state text when there are no customers', async () => {
-    render(<CustomersPage />);
+    renderPage();
 
     expect(
       await screen.findByText('Nenhum cliente cadastrado ainda.'),
@@ -42,7 +51,7 @@ describe('CustomersPage', () => {
       }),
     );
 
-    render(<CustomersPage />);
+    renderPage();
 
     expect(screen.getByText('Carregando clientes...')).toBeInTheDocument();
     // avoid an unresolved-promise leak into the next test
@@ -71,7 +80,7 @@ describe('CustomersPage', () => {
       },
     ]);
 
-    render(<CustomersPage />);
+    renderPage();
 
     expect(await screen.findByText('Maria Silva')).toBeInTheDocument();
     expect(screen.getByText('maria@example.com')).toBeInTheDocument();
@@ -88,7 +97,7 @@ describe('CustomersPage', () => {
       new ApiError('Não foi possível carregar os clientes.', 'INTERNAL_ERROR', 500),
     );
 
-    render(<CustomersPage />);
+    renderPage();
 
     expect(
       await screen.findByText('Não foi possível carregar os clientes.'),

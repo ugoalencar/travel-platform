@@ -84,4 +84,36 @@ describe('api client error mapping', () => {
       status: 500,
     });
   });
+
+  it('calls fetch for POST /api/customers with only the submitted fields, no tenant/dev-auth leakage', async () => {
+    const fetchMock = global.fetch as ReturnType<typeof vi.fn>;
+    const created = {
+      id: 'c1',
+      agencyId: 'a1',
+      name: 'Maria Silva',
+      email: 'maria@example.com',
+      status: 'ACTIVE',
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+    };
+    fetchMock.mockResolvedValue(jsonResponse({ customer: created }, 201));
+
+    const result = await createCustomer({ name: 'Maria Silva', email: 'maria@example.com' });
+
+    expect(result).toEqual(created);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit | undefined];
+    expect(url).toBe('/api/customers');
+    expect(init?.method).toBe('POST');
+    expect(init?.headers).toEqual({ 'Content-Type': 'application/json' });
+    const sentBody = JSON.parse(init?.body as string) as Record<string, unknown>;
+    expect(sentBody).toEqual({
+      name: 'Maria Silva',
+      email: 'maria@example.com',
+    });
+    const sentKeys = Object.keys(sentBody);
+    expect(sentKeys).not.toContain('agencyId');
+    expect(sentKeys).not.toContain('tenantId');
+    expect(sentKeys).not.toContain('role');
+  });
 });

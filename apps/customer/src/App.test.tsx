@@ -1,10 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { App } from './App';
 
 vi.mock('./lib/api', () => ({
   listCustomers: vi.fn().mockResolvedValue([]),
+  createCustomer: vi.fn(),
 }));
 
 afterEach(() => {
@@ -70,5 +71,16 @@ describe('App', () => {
     // Still on /customers — the Clientes heading remains rendered and no
     // navigation occurred since placeholder items carry no routing wiring.
     expect(await screen.findByRole('heading', { name: 'Clientes' })).toBeInTheDocument();
+  });
+
+  it('navigates to /customers/new when "+ Novo cliente" is clicked', async () => {
+    renderApp(['/customers']);
+    await screen.findByRole('heading', { name: 'Clientes' });
+
+    fireEvent.click(screen.getByRole('button', { name: '+ Novo cliente' }));
+
+    expect(
+      await screen.findByRole('heading', { name: 'Novo cliente' }),
+    ).toBeInTheDocument();
   });
 });
