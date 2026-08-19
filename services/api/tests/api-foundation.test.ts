@@ -7,6 +7,7 @@ import { buildApp } from '../src/app';
 import { UserRole } from '../../../packages/domain/types';
 import type { AuthenticatedPrincipal } from '../src/auth';
 import { createDatabaseRuntime } from '../src/database';
+import { createServerAccessValidator, createServerAuthProvider } from '../src/dev-auth';
 
 const repoRoot = resolve(import.meta.dirname, '../../..');
 const migration001 = resolve(repoRoot, 'infrastructure/migrations/001_initial_schema.sql');
@@ -279,6 +280,92 @@ describe.sequential('P0 Fastify API foundation', () => {
 
     await app.close();
   });
+
+  it('GET /me accepts valid dev auth only when the explicit local flag is enabled', async () => {
+    const app = buildManualDevApp(runtimePool);
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/me',
+      headers: devHeaders(userAId, agencyAId),
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toEqual({
+      userId: userAId,
+      agencyId: agencyAId,
+      role: UserRole.ADMIN,
+    });
+
+    await app.close();
+  });
+
+  it('GET /tenant-proof remains tenant-scoped with local dev auth', async () => {
+    const app = buildManualDevApp(runtimePool);
+
+    const agencyA = await app.inject({
+      method: 'GET',
+      url: '/tenant-proof',
+      headers: devHeaders(userAId, agencyAId),
+    });
+    const agencyB = await app.inject({
+      method: 'GET',
+      url: '/tenant-proof',
+      headers: devHeaders(userBId, agencyBId),
+    });
+
+    expect(agencyA.statusCode).toBe(200);
+    expect(agencyA.json()).toEqual({
+      agency: { id: agencyAId, name: 'Agency A' },
+    });
+    expect(agencyB.statusCode).toBe(200);
+    expect(agencyB.json()).toEqual({
+      agency: { id: agencyBId, name: 'Agency B' },
+    });
+
+    await app.close();
+  });
+
+  it('does not let local dev auth Agency A spoof Agency B through request input', async () => {
+    const app = buildManualDevApp(runtimePool);
+
+    const response = await app.inject({
+      method: 'GET',
+      url: `/tenant-proof?agencyId=${agencyBId}`,
+      headers: {
+        ...devHeaders(userAId, agencyAId),
+        'x-dev-target-agency-id': agencyBId,
+      },
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toEqual({
+      agency: { id: agencyAId, name: 'Agency A' },
+    });
+
+    await app.close();
+  });
+
+  it('fails closed for incomplete local dev auth payloads', async () => {
+    const app = buildManualDevApp(runtimePool);
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/me',
+      headers: {
+        'x-dev-user-id': userAId,
+        'x-dev-role': UserRole.ADMIN,
+      },
+    });
+
+    expect(response.statusCode).toBe(401);
+    expect(response.json()).toEqual({
+      error: 'Authentication required',
+      code: 'UNAUTHORIZED',
+    });
+
+    await app.close();
+  });
 });
 
 function buildTestApp(pool: Pool) {
@@ -298,6 +385,27 @@ function buildTestApp(pool: Pool) {
     database: createDatabaseRuntime(pool),
     exposeTestRoutes: true,
   });
+}
+
+function buildManualDevApp(pool: Pool) {
+  const environment = {
+    NODE_ENV: 'development',
+    ALLOW_DEV_AUTH: 'true',
+  };
+
+  return buildApp({
+    authProvider: createServerAuthProvider(environment),
+    validateUserAgencyAccess: createServerAccessValidator(environment),
+    database: createDatabaseRuntime(pool),
+  });
+}
+
+function devHeaders(userId: string, agencyId: string) {
+  return {
+    'x-dev-user-id': userId,
+    'x-dev-agency-id': agencyId,
+    'x-dev-role': UserRole.ADMIN,
+  };
 }
 
 async function resetDatabase(pool: Pool): Promise<void> {

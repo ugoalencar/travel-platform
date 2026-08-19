@@ -1,4 +1,5 @@
 import type { FastifyReply, FastifyRequest, HookHandlerDoneFunction } from 'fastify';
+import type { IncomingHttpHeaders } from 'node:http';
 import { UnauthorizedError, type AuthPayload } from '../../../packages/domain/tenant-context';
 import type { UserRole } from '../../../packages/domain/types';
 
@@ -10,7 +11,7 @@ export interface AuthenticatedPrincipal {
 }
 
 export interface AuthProvider {
-  authenticate(request: FastifyRequest): Promise<AuthenticatedPrincipal | null>;
+  authenticate(request: { headers: IncomingHttpHeaders }): Promise<AuthenticatedPrincipal | null>;
 }
 
 declare module 'fastify' {

@@ -4,6 +4,8 @@
     "noEmit": false,
     "declaration": true,
     "declarationMap": true,
+    "module": "CommonJS",
+    "moduleResolution": "Node",
     "sourceMap": true,
     "outDir": "dist"
   },
