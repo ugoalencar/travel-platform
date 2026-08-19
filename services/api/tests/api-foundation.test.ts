@@ -346,6 +346,24 @@ describe.sequential('P0 Fastify API foundation', () => {
     await app.close();
   });
 
+  it('fails closed when local dev auth receives an unauthorized user and agency pair', async () => {
+    const app = buildManualDevApp(runtimePool);
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/me',
+      headers: devHeaders(userAId, agencyBId),
+    });
+
+    expect(response.statusCode).toBe(401);
+    expect(response.json()).toEqual({
+      error: 'Authentication required',
+      code: 'UNAUTHORIZED',
+    });
+
+    await app.close();
+  });
+
   it('fails closed for incomplete local dev auth payloads', async () => {
     const app = buildManualDevApp(runtimePool);
 

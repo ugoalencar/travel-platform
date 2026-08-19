@@ -18,6 +18,8 @@ npm run dev --workspace @travel-platform/api
 
 `npm run dev` uses the local disposable database connection prepared by `dev:db` when `DATABASE_URL` is not provided.
 
+The dev auth headers must match one of the synthetic principals authorized for the local environment. Arbitrary `userId` and `agencyId` combinations are rejected.
+
 3. Check the public health endpoint:
 
 ```powershell

@@ -5,6 +5,18 @@ import type { ValidateUserAgencyAccess } from '../../../packages/domain/tenant-c
 
 const devAuthFlag = 'true';
 const devAuthEmail = 'dev-local@example.test';
+const authorizedDevPrincipals = [
+  {
+    userId: '11000000-0000-4000-8000-000000000001',
+    agencyId: '10000000-0000-4000-8000-000000000001',
+    role: UserRole.ADMIN,
+  },
+  {
+    userId: '21000000-0000-4000-8000-000000000001',
+    agencyId: '20000000-0000-4000-8000-000000000001',
+    role: UserRole.ADMIN,
+  },
+] as const;
 
 export type ServerEnvironment = Partial<Record<string, string | undefined>>;
 
@@ -33,10 +45,16 @@ export function createServerAuthProvider(
         return Promise.resolve(null);
       }
 
+      const principal = findAuthorizedDevPrincipal(userId, agencyId, role);
+
+      if (!principal) {
+        return Promise.resolve(null);
+      }
+
       return Promise.resolve({
-        userId,
-        agencyId,
-        role,
+        userId: principal.userId,
+        agencyId: principal.agencyId,
+        role: principal.role,
         email: devAuthEmail,
       });
     },
@@ -46,8 +64,10 @@ export function createServerAuthProvider(
 export function createServerAccessValidator(
   environment: ServerEnvironment = process.env,
 ): ValidateUserAgencyAccess {
-  return function validateDevAccess() {
-    return Promise.resolve(isDevAuthEnabled(environment));
+  return function validateDevAccess(userId, agencyId) {
+    return Promise.resolve(
+      isDevAuthEnabled(environment) && hasAuthorizedDevPrincipal(userId, agencyId),
+    );
   };
 }
 
@@ -72,4 +92,23 @@ function isUserRole(value: string | undefined): value is UserRole {
 
 function isNonEmptyString(value: string | undefined): value is string {
   return typeof value === 'string' && value.trim().length > 0;
+}
+
+function findAuthorizedDevPrincipal(
+  userId: string,
+  agencyId: string,
+  role: UserRole,
+): (typeof authorizedDevPrincipals)[number] | undefined {
+  return authorizedDevPrincipals.find(
+    (principal) =>
+      principal.userId === userId &&
+      principal.agencyId === agencyId &&
+      principal.role === role,
+  );
+}
+
+function hasAuthorizedDevPrincipal(userId: string, agencyId: string): boolean {
+  return authorizedDevPrincipals.some(
+    (principal) => principal.userId === userId && principal.agencyId === agencyId,
+  );
 }

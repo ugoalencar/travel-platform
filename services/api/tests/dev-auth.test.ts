@@ -7,6 +7,13 @@ import {
 } from '../src/dev-auth';
 
 describe('local manual dev auth', () => {
+  const userAId = '11000000-0000-4000-8000-000000000001';
+  const userBId = '21000000-0000-4000-8000-000000000001';
+  const agencyAId = '10000000-0000-4000-8000-000000000001';
+  const agencyBId = '20000000-0000-4000-8000-000000000001';
+  const unknownUserId = '99000000-0000-4000-8000-000000000001';
+  const unknownAgencyId = '90000000-0000-4000-8000-000000000001';
+
   it('keeps dev auth disabled unless the explicit flag is enabled outside production', () => {
     expect(isDevAuthEnabled({ NODE_ENV: 'development' })).toBe(false);
     expect(isDevAuthEnabled({ NODE_ENV: 'test', ALLOW_DEV_AUTH: 'true' })).toBe(true);
@@ -42,18 +49,111 @@ describe('local manual dev auth', () => {
 
     const principal = await authProvider.authenticate({
       headers: {
-        'x-dev-user-id': '11000000-0000-4000-8000-000000000001',
-        'x-dev-agency-id': '10000000-0000-4000-8000-000000000001',
+        'x-dev-user-id': userAId,
+        'x-dev-agency-id': agencyAId,
         'x-dev-role': UserRole.ADMIN,
       },
     });
 
     expect(principal).toEqual({
-      userId: '11000000-0000-4000-8000-000000000001',
-      agencyId: '10000000-0000-4000-8000-000000000001',
+      userId: userAId,
+      agencyId: agencyAId,
       role: UserRole.ADMIN,
       email: 'dev-local@example.test',
     });
+  });
+
+  it('creates the Agency B synthetic principal only for the authorized Agency B pair', async () => {
+    const authProvider = createServerAuthProvider({
+      NODE_ENV: 'development',
+      ALLOW_DEV_AUTH: 'true',
+    });
+
+    const principal = await authProvider.authenticate({
+      headers: {
+        'x-dev-user-id': userBId,
+        'x-dev-agency-id': agencyBId,
+        'x-dev-role': UserRole.ADMIN,
+      },
+    });
+
+    expect(principal).toEqual({
+      userId: userBId,
+      agencyId: agencyBId,
+      role: UserRole.ADMIN,
+      email: 'dev-local@example.test',
+    });
+  });
+
+  it('rejects synthetic principals with unauthorized user and agency pairs', async () => {
+    const authProvider = createServerAuthProvider({
+      NODE_ENV: 'development',
+      ALLOW_DEV_AUTH: 'true',
+    });
+
+    await expect(
+      authProvider.authenticate({
+        headers: {
+          'x-dev-user-id': userAId,
+          'x-dev-agency-id': agencyBId,
+          'x-dev-role': UserRole.ADMIN,
+        },
+      }),
+    ).resolves.toBeNull();
+
+    await expect(
+      authProvider.authenticate({
+        headers: {
+          'x-dev-user-id': userBId,
+          'x-dev-agency-id': agencyAId,
+          'x-dev-role': UserRole.ADMIN,
+        },
+      }),
+    ).resolves.toBeNull();
+  });
+
+  it('rejects unknown synthetic users and agencies', async () => {
+    const authProvider = createServerAuthProvider({
+      NODE_ENV: 'development',
+      ALLOW_DEV_AUTH: 'true',
+    });
+
+    await expect(
+      authProvider.authenticate({
+        headers: {
+          'x-dev-user-id': unknownUserId,
+          'x-dev-agency-id': agencyAId,
+          'x-dev-role': UserRole.ADMIN,
+        },
+      }),
+    ).resolves.toBeNull();
+
+    await expect(
+      authProvider.authenticate({
+        headers: {
+          'x-dev-user-id': userAId,
+          'x-dev-agency-id': unknownAgencyId,
+          'x-dev-role': UserRole.ADMIN,
+        },
+      }),
+    ).resolves.toBeNull();
+  });
+
+  it('rejects role escalation for an otherwise authorized synthetic principal', async () => {
+    const authProvider = createServerAuthProvider({
+      NODE_ENV: 'development',
+      ALLOW_DEV_AUTH: 'true',
+    });
+
+    await expect(
+      authProvider.authenticate({
+        headers: {
+          'x-dev-user-id': userAId,
+          'x-dev-agency-id': agencyAId,
+          'x-dev-role': 'OWNER_BUT_NOT_VALID_HERE',
+        },
+      }),
+    ).resolves.toBeNull();
   });
 
   it('rejects incomplete or invalid dev auth payloads', async () => {
@@ -66,7 +166,7 @@ describe('local manual dev auth', () => {
       authProvider.authenticate({
         headers: {
           'x-dev-user-id': '',
-          'x-dev-agency-id': '10000000-0000-4000-8000-000000000001',
+          'x-dev-agency-id': agencyAId,
           'x-dev-role': UserRole.ADMIN,
         },
       }),
@@ -76,8 +176,26 @@ describe('local manual dev auth', () => {
       authProvider.authenticate({
         headers: {
           'x-dev-user-id': '11000000-0000-4000-8000-000000000001',
-          'x-dev-agency-id': '10000000-0000-4000-8000-000000000001',
+          'x-dev-agency-id': agencyAId,
           'x-dev-role': 'OWNER_BUT_NOT_VALID_HERE',
+        },
+      }),
+    ).resolves.toBeNull();
+
+    await expect(
+      authProvider.authenticate({
+        headers: {
+          'x-dev-user-id': userAId,
+          'x-dev-role': UserRole.ADMIN,
+        },
+      }),
+    ).resolves.toBeNull();
+
+    await expect(
+      authProvider.authenticate({
+        headers: {
+          'x-dev-user-id': userAId,
+          'x-dev-agency-id': agencyAId,
         },
       }),
     ).resolves.toBeNull();
@@ -97,8 +215,13 @@ describe('local manual dev auth', () => {
       ALLOW_DEV_AUTH: 'true',
     });
 
-    await expect(enabled('user-a', 'agency-a')).resolves.toBe(true);
-    await expect(disabled('user-a', 'agency-a')).resolves.toBe(false);
-    await expect(production('user-a', 'agency-a')).resolves.toBe(false);
+    await expect(enabled(userAId, agencyAId)).resolves.toBe(true);
+    await expect(enabled(userBId, agencyBId)).resolves.toBe(true);
+    await expect(enabled(userAId, agencyBId)).resolves.toBe(false);
+    await expect(enabled(userBId, agencyAId)).resolves.toBe(false);
+    await expect(enabled(unknownUserId, agencyAId)).resolves.toBe(false);
+    await expect(enabled(userAId, unknownAgencyId)).resolves.toBe(false);
+    await expect(disabled(userAId, agencyAId)).resolves.toBe(false);
+    await expect(production(userAId, agencyAId)).resolves.toBe(false);
   });
 });
