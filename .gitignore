@@ -35,6 +35,9 @@ dist/
 build/
 out/
 lib/
+# lib/ above targets compiled package output (e.g. tsc -> lib/), not
+# hand-written source directories like src/lib/ used to group modules.
+!**/src/lib/
 *.tsbuildinfo
 coverage/
 .nyc_output/
