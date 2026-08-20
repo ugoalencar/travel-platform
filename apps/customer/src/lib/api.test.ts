@@ -116,4 +116,57 @@ describe('api client error mapping', () => {
     expect(sentKeys).not.toContain('tenantId');
     expect(sentKeys).not.toContain('role');
   });
+
+  it('calls fetch for GET /api/customers/:id with no body/method override, only Content-Type', async () => {
+    const fetchMock = global.fetch as ReturnType<typeof vi.fn>;
+    const customer = {
+      id: 'c1',
+      agencyId: 'a1',
+      name: 'Maria Silva',
+      status: 'ACTIVE',
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+    };
+    fetchMock.mockResolvedValue(jsonResponse({ customer }));
+
+    const result = await getCustomer('c1');
+
+    expect(result).toEqual(customer);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit | undefined];
+    expect(url).toBe('/api/customers/c1');
+    expect(init?.method).toBeUndefined();
+    expect(init?.body).toBeUndefined();
+    expect(init?.headers).toEqual({ 'Content-Type': 'application/json' });
+  });
+
+  it('calls fetch for PATCH /api/customers/:id with only the submitted fields, no tenant/dev-auth leakage', async () => {
+    const fetchMock = global.fetch as ReturnType<typeof vi.fn>;
+    const updated = {
+      id: 'c1',
+      agencyId: 'a1',
+      name: 'Maria Souza',
+      status: 'ACTIVE',
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-02T00:00:00.000Z',
+    };
+    fetchMock.mockResolvedValue(jsonResponse({ customer: updated }));
+
+    const result = await updateCustomer('c1', { name: 'Maria Souza' });
+
+    expect(result).toEqual(updated);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit | undefined];
+    expect(url).toBe('/api/customers/c1');
+    expect(init?.method).toBe('PATCH');
+    expect(init?.headers).toEqual({ 'Content-Type': 'application/json' });
+    const sentBody = JSON.parse(init?.body as string) as Record<string, unknown>;
+    expect(sentBody).toEqual({ name: 'Maria Souza' });
+    const sentKeys = Object.keys(sentBody);
+    expect(sentKeys).not.toContain('agencyId');
+    expect(sentKeys).not.toContain('tenantId');
+    expect(sentKeys).not.toContain('role');
+    expect(sentKeys).not.toContain('id');
+    expect(sentKeys).not.toContain('createdAt');
+  });
 });

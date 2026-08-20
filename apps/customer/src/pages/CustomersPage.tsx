@@ -65,6 +65,8 @@ export function CustomersPage() {
 }
 
 function CustomerTable({ customers }: { customers: Customer[] }) {
+  const navigate = useNavigate();
+
   if (customers.length === 0) {
     return (
       <p className="text-sm text-slate-500">Nenhum cliente cadastrado ainda.</p>
@@ -89,7 +91,11 @@ function CustomerTable({ customers }: { customers: Customer[] }) {
               <td className="px-4 py-3 text-slate-600">{customer.email ?? '—'}</td>
               <td className="px-4 py-3 text-slate-600">{customer.phone ?? '—'}</td>
               <td className="px-4 py-3 text-right">
-                <Button variant="ghost" size="sm" disabled title="Em breve">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => void navigate(`/customers/${customer.id}`)}
+                >
                   Detalhes
                 </Button>
               </td>
