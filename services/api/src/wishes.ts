@@ -39,6 +39,22 @@ export interface UpdateWishInput {
 const WISH_COLUMNS = `id, agency_id, customer_id, destination, start_date, end_date, budget,
               travelers_count, notes, status, created_at, updated_at`;
 
+export async function listWishes(database: DatabaseRuntime): Promise<Wish[]> {
+  const agencyId = getAgencyId();
+
+  return database.withTenantTransaction(async (client) => {
+    const result = await client.query<WishRow>(
+      `SELECT ${WISH_COLUMNS}
+       FROM wishes
+       WHERE agency_id = $1
+       ORDER BY created_at DESC`,
+      [agencyId],
+    );
+
+    return result.rows.map(toWish);
+  });
+}
+
 export async function listWishesByCustomer(
   database: DatabaseRuntime,
   customerId: string,
