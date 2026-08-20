@@ -27,6 +27,14 @@ import {
   type CreateWishInput,
   type UpdateWishInput,
 } from './wishes';
+import {
+  createTrip,
+  getTripById,
+  listTrips,
+  updateTrip,
+  type CreateTripInput,
+  type UpdateTripInput,
+} from './trips';
 
 export interface BuildAppOptions {
   authProvider: AuthProvider;
@@ -181,6 +189,52 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       }
 
       return { wish };
+    },
+  );
+
+  app.get('/trips', { preHandler: protectedHooks }, async () => {
+    requireRole(UserRole.VIEWER);
+    const trips = await listTrips(options.database);
+    return { trips };
+  });
+
+  app.get<{ Params: { id: string } }>(
+    '/trips/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      const trip = await getTripById(options.database, request.params.id);
+
+      if (!trip) {
+        throw new NotFoundError('Trip not found');
+      }
+
+      return { trip };
+    },
+  );
+
+  app.post('/trips', { preHandler: protectedHooks }, async (request, reply) => {
+    requireRole(UserRole.AGENT);
+    const { customerId, data } = parseCreateTripInput(request.body);
+    const trip = await createTrip(options.database, customerId, data);
+
+    reply.code(201);
+    return { trip };
+  });
+
+  app.patch<{ Params: { id: string } }>(
+    '/trips/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.AGENT);
+      const data = parseUpdateTripInput(request.body);
+      const trip = await updateTrip(options.database, request.params.id, data);
+
+      if (!trip) {
+        throw new NotFoundError('Trip not found');
+      }
+
+      return { trip };
     },
   );
 
@@ -482,6 +536,176 @@ function parseUpdateWishInput(body: unknown): UpdateWishInput {
       throw new ValidationError('Field "travelersCount" must be a number');
     }
     data.travelersCount = record.travelersCount;
+  }
+  if (record.notes !== undefined) {
+    if (typeof record.notes !== 'string') {
+      throw new ValidationError('Field "notes" must be a string');
+    }
+    data.notes = record.notes;
+  }
+
+  if (Object.keys(data).length === 0) {
+    throw new ValidationError('At least one field must be provided');
+  }
+
+  return data;
+}
+
+const FORBIDDEN_TRIP_CREATE_FIELDS = [
+  'agencyId',
+  'tenantId',
+  'id',
+  'createdAt',
+  'updatedAt',
+  'status',
+  'saleId',
+] as const;
+
+const ALLOWED_TRIP_CREATE_FIELDS = [
+  'customerId',
+  'name',
+  'destination',
+  'startDate',
+  'endDate',
+  'description',
+  'notes',
+] as const;
+
+const FORBIDDEN_TRIP_UPDATE_FIELDS = [
+  'agencyId',
+  'tenantId',
+  'id',
+  'createdAt',
+  'updatedAt',
+  'status',
+  'customerId',
+  'saleId',
+] as const;
+
+const ALLOWED_TRIP_UPDATE_FIELDS = [
+  'name',
+  'destination',
+  'startDate',
+  'endDate',
+  'description',
+  'notes',
+] as const;
+
+function parseTripDate(value: unknown, field: string): Date {
+  if (typeof value !== 'string') {
+    throw new ValidationError(`Field "${field}" must be a string`);
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    throw new ValidationError(`Field "${field}" must be a valid date`);
+  }
+
+  return date;
+}
+
+function parseCreateTripInput(body: unknown): { customerId: string; data: CreateTripInput } {
+  if (typeof body !== 'object' || body === null || Array.isArray(body)) {
+    throw new ValidationError('Request body must be an object');
+  }
+
+  const record = body as Record<string, unknown>;
+
+  for (const field of FORBIDDEN_TRIP_CREATE_FIELDS) {
+    if (field in record) {
+      throw new ValidationError(`Field "${field}" is not allowed in the request body`);
+    }
+  }
+
+  for (const key of Object.keys(record)) {
+    if (!(ALLOWED_TRIP_CREATE_FIELDS as readonly string[]).includes(key)) {
+      throw new ValidationError(`Unknown field "${key}" in request body`);
+    }
+  }
+
+  if (typeof record.customerId !== 'string' || record.customerId.trim().length === 0) {
+    throw new ValidationError('Field "customerId" is required and must be a non-empty string');
+  }
+  if (typeof record.name !== 'string' || record.name.trim().length === 0) {
+    throw new ValidationError('Field "name" is required and must be a non-empty string');
+  }
+  if (typeof record.destination !== 'string' || record.destination.trim().length === 0) {
+    throw new ValidationError('Field "destination" is required and must be a non-empty string');
+  }
+  if (record.startDate === undefined) {
+    throw new ValidationError('Field "startDate" is required');
+  }
+  if (record.endDate === undefined) {
+    throw new ValidationError('Field "endDate" is required');
+  }
+
+  const data: CreateTripInput = {
+    name: record.name,
+    destination: record.destination,
+    startDate: parseTripDate(record.startDate, 'startDate'),
+    endDate: parseTripDate(record.endDate, 'endDate'),
+  };
+
+  if (record.description !== undefined) {
+    if (typeof record.description !== 'string') {
+      throw new ValidationError('Field "description" must be a string');
+    }
+    data.description = record.description;
+  }
+  if (record.notes !== undefined) {
+    if (typeof record.notes !== 'string') {
+      throw new ValidationError('Field "notes" must be a string');
+    }
+    data.notes = record.notes;
+  }
+
+  return { customerId: record.customerId, data };
+}
+
+function parseUpdateTripInput(body: unknown): UpdateTripInput {
+  if (typeof body !== 'object' || body === null || Array.isArray(body)) {
+    throw new ValidationError('Request body must be an object');
+  }
+
+  const record = body as Record<string, unknown>;
+
+  for (const field of FORBIDDEN_TRIP_UPDATE_FIELDS) {
+    if (field in record) {
+      throw new ValidationError(`Field "${field}" is not allowed in the request body`);
+    }
+  }
+
+  for (const key of Object.keys(record)) {
+    if (!(ALLOWED_TRIP_UPDATE_FIELDS as readonly string[]).includes(key)) {
+      throw new ValidationError(`Unknown field "${key}" in request body`);
+    }
+  }
+
+  const data: UpdateTripInput = {};
+
+  if (record.name !== undefined) {
+    if (typeof record.name !== 'string' || record.name.trim().length === 0) {
+      throw new ValidationError('Field "name" must be a non-empty string');
+    }
+    data.name = record.name;
+  }
+  if (record.destination !== undefined) {
+    if (typeof record.destination !== 'string' || record.destination.trim().length === 0) {
+      throw new ValidationError('Field "destination" must be a non-empty string');
+    }
+    data.destination = record.destination;
+  }
+  if (record.startDate !== undefined) {
+    data.startDate = parseTripDate(record.startDate, 'startDate');
+  }
+  if (record.endDate !== undefined) {
+    data.endDate = parseTripDate(record.endDate, 'endDate');
+  }
+  if (record.description !== undefined) {
+    if (typeof record.description !== 'string') {
+      throw new ValidationError('Field "description" must be a string');
+    }
+    data.description = record.description;
   }
   if (record.notes !== undefined) {
     if (typeof record.notes !== 'string') {
