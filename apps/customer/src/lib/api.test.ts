@@ -5,6 +5,10 @@ import {
   getCustomer,
   listCustomers,
   updateCustomer,
+  createWish,
+  getWish,
+  listWishes,
+  updateWish,
 } from './api';
 
 function jsonResponse(body: unknown, status = 200): Response {
@@ -21,6 +25,10 @@ describe('api client shape', () => {
     expect(typeof getCustomer).toBe('function');
     expect(typeof createCustomer).toBe('function');
     expect(typeof updateCustomer).toBe('function');
+    expect(typeof listWishes).toBe('function');
+    expect(typeof getWish).toBe('function');
+    expect(typeof createWish).toBe('function');
+    expect(typeof updateWish).toBe('function');
   });
 });
 
@@ -166,6 +174,107 @@ describe('api client error mapping', () => {
     expect(sentKeys).not.toContain('agencyId');
     expect(sentKeys).not.toContain('tenantId');
     expect(sentKeys).not.toContain('role');
+    expect(sentKeys).not.toContain('id');
+    expect(sentKeys).not.toContain('createdAt');
+  });
+
+  it('calls fetch for GET /api/wishes with no tenant/dev-auth leakage in the request shape', async () => {
+    const fetchMock = global.fetch as ReturnType<typeof vi.fn>;
+    fetchMock.mockResolvedValue(jsonResponse({ wishes: [] }));
+
+    const result = await listWishes();
+
+    expect(result).toEqual([]);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit | undefined];
+    expect(url).toBe('/api/wishes');
+    expect(init?.method).toBeUndefined();
+    expect(init?.body).toBeUndefined();
+    expect(init?.headers).toEqual({ 'Content-Type': 'application/json' });
+  });
+
+  it('calls fetch for GET /api/wishes/:id with no body/method override, only Content-Type', async () => {
+    const fetchMock = global.fetch as ReturnType<typeof vi.fn>;
+    const wish = {
+      id: 'w1',
+      agencyId: 'a1',
+      customerId: 'c1',
+      status: 'ACTIVE',
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+    };
+    fetchMock.mockResolvedValue(jsonResponse({ wish }));
+
+    const result = await getWish('w1');
+
+    expect(result).toEqual(wish);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit | undefined];
+    expect(url).toBe('/api/wishes/w1');
+    expect(init?.method).toBeUndefined();
+    expect(init?.body).toBeUndefined();
+    expect(init?.headers).toEqual({ 'Content-Type': 'application/json' });
+  });
+
+  it('calls fetch for POST /api/wishes with only the submitted fields, no tenant/dev-auth leakage', async () => {
+    const fetchMock = global.fetch as ReturnType<typeof vi.fn>;
+    const created = {
+      id: 'w1',
+      agencyId: 'a1',
+      customerId: 'c1',
+      destination: 'Paris',
+      status: 'ACTIVE',
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+    };
+    fetchMock.mockResolvedValue(jsonResponse({ wish: created }, 201));
+
+    const result = await createWish({ customerId: 'c1', destination: 'Paris' });
+
+    expect(result).toEqual(created);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit | undefined];
+    expect(url).toBe('/api/wishes');
+    expect(init?.method).toBe('POST');
+    expect(init?.headers).toEqual({ 'Content-Type': 'application/json' });
+    const sentBody = JSON.parse(init?.body as string) as Record<string, unknown>;
+    expect(sentBody).toEqual({ customerId: 'c1', destination: 'Paris' });
+    const sentKeys = Object.keys(sentBody);
+    expect(sentKeys).not.toContain('agencyId');
+    expect(sentKeys).not.toContain('tenantId');
+    expect(sentKeys).not.toContain('role');
+    expect(sentKeys).not.toContain('status');
+  });
+
+  it('calls fetch for PATCH /api/wishes/:id with only the submitted fields, never customerId', async () => {
+    const fetchMock = global.fetch as ReturnType<typeof vi.fn>;
+    const updated = {
+      id: 'w1',
+      agencyId: 'a1',
+      customerId: 'c1',
+      destination: 'Lisboa',
+      status: 'ACTIVE',
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-02T00:00:00.000Z',
+    };
+    fetchMock.mockResolvedValue(jsonResponse({ wish: updated }));
+
+    const result = await updateWish('w1', { destination: 'Lisboa' });
+
+    expect(result).toEqual(updated);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit | undefined];
+    expect(url).toBe('/api/wishes/w1');
+    expect(init?.method).toBe('PATCH');
+    expect(init?.headers).toEqual({ 'Content-Type': 'application/json' });
+    const sentBody = JSON.parse(init?.body as string) as Record<string, unknown>;
+    expect(sentBody).toEqual({ destination: 'Lisboa' });
+    const sentKeys = Object.keys(sentBody);
+    expect(sentKeys).not.toContain('customerId');
+    expect(sentKeys).not.toContain('agencyId');
+    expect(sentKeys).not.toContain('tenantId');
+    expect(sentKeys).not.toContain('role');
+    expect(sentKeys).not.toContain('status');
     expect(sentKeys).not.toContain('id');
     expect(sentKeys).not.toContain('createdAt');
   });
