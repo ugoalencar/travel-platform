@@ -11,6 +11,11 @@ export class NotFoundError extends Error {
   readonly statusCode = 404;
 }
 
+export class ConflictError extends Error {
+  readonly code = 'CONFLICT';
+  readonly statusCode = 409;
+}
+
 export function registerErrorHandler(app: FastifyInstance): void {
   app.setErrorHandler((error, request, reply) => {
     request.log.error(
@@ -36,7 +41,11 @@ export function registerErrorHandler(app: FastifyInstance): void {
       });
     }
 
-    if (error instanceof ValidationError || error instanceof NotFoundError) {
+    if (
+      error instanceof ValidationError ||
+      error instanceof NotFoundError ||
+      error instanceof ConflictError
+    ) {
       return reply.code(error.statusCode).send({
         error: error.message,
         code: error.code,
