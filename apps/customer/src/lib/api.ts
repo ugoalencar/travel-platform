@@ -3,6 +3,7 @@ import type {
   CreateCustomerInput,
   UpdateCustomerInput,
 } from '../types/customer';
+import type { Wish, CreateWishInput, UpdateWishInput } from '../types/wish';
 
 // Single seam for a future production API base URL. In local dev this stays
 // empty so requests go to relative paths (e.g. `/api/customers`) and are
@@ -90,4 +91,38 @@ export async function updateCustomer(
     },
   );
   return data.customer;
+}
+
+export async function listWishes(): Promise<Wish[]> {
+  const data = await request<{ wishes: Wish[] }>('/api/wishes');
+  return data.wishes;
+}
+
+export async function getWish(id: string): Promise<Wish> {
+  const data = await request<{ wish: Wish }>(
+    `/api/wishes/${encodeURIComponent(id)}`,
+  );
+  return data.wish;
+}
+
+export async function createWish(input: CreateWishInput): Promise<Wish> {
+  const data = await request<{ wish: Wish }>('/api/wishes', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+  return data.wish;
+}
+
+export async function updateWish(
+  id: string,
+  input: UpdateWishInput,
+): Promise<Wish> {
+  const data = await request<{ wish: Wish }>(
+    `/api/wishes/${encodeURIComponent(id)}`,
+    {
+      method: 'PATCH',
+      body: JSON.stringify(input),
+    },
+  );
+  return data.wish;
 }

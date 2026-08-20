@@ -6,6 +6,8 @@ import { App } from './App';
 vi.mock('./lib/api', () => ({
   listCustomers: vi.fn().mockResolvedValue([]),
   createCustomer: vi.fn(),
+  listWishes: vi.fn().mockResolvedValue([]),
+  createWish: vi.fn(),
 }));
 
 afterEach(() => {
@@ -50,17 +52,17 @@ describe('App', () => {
   it('renders placeholder nav items as non-interactive elements', () => {
     renderApp();
     const dashboard = screen.getByText('Dashboard');
-    const desejos = screen.getByText('Desejos');
 
     expect(dashboard.tagName).not.toBe('A');
     expect(dashboard.tagName).not.toBe('BUTTON');
     expect(dashboard).toHaveAttribute('aria-disabled', 'true');
     expect(dashboard).not.toHaveAttribute('href');
+  });
 
-    expect(desejos.tagName).not.toBe('A');
-    expect(desejos.tagName).not.toBe('BUTTON');
-    expect(desejos).toHaveAttribute('aria-disabled', 'true');
-    expect(desejos).not.toHaveAttribute('href');
+  it('renders "Desejos" as a real navigation link', () => {
+    renderApp();
+    const link = screen.getByRole('link', { name: 'Desejos' });
+    expect(link).toHaveAttribute('href', '/wishes');
   });
 
   it('does not navigate when a placeholder nav item is clicked', async () => {
