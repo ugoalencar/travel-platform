@@ -13,7 +13,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Ofertas' },
   { label: 'Propostas' },
   { label: 'Vendas' },
-  { label: 'Viagens' },
+  { label: 'Viagens', to: '/trips' },
 ];
 
 export function Sidebar() {

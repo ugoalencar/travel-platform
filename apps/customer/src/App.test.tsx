@@ -8,6 +8,10 @@ vi.mock('./lib/api', () => ({
   createCustomer: vi.fn(),
   listWishes: vi.fn().mockResolvedValue([]),
   createWish: vi.fn(),
+  listTrips: vi.fn().mockResolvedValue([]),
+  createTrip: vi.fn(),
+  getTrip: vi.fn(),
+  getCustomer: vi.fn(),
 }));
 
 afterEach(() => {
@@ -57,6 +61,17 @@ describe('App', () => {
     expect(dashboard.tagName).not.toBe('BUTTON');
     expect(dashboard).toHaveAttribute('aria-disabled', 'true');
     expect(dashboard).not.toHaveAttribute('href');
+  });
+
+  it('renders "Viagens" as a real navigation link', () => {
+    renderApp();
+    const link = screen.getByRole('link', { name: 'Viagens' });
+    expect(link).toHaveAttribute('href', '/trips');
+  });
+
+  it('renders TripsPage when navigating to "/trips"', async () => {
+    renderApp(['/trips']);
+    expect(await screen.findByRole('heading', { name: 'Viagens' })).toBeInTheDocument();
   });
 
   it('renders "Desejos" as a real navigation link', () => {

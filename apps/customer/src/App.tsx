@@ -8,6 +8,10 @@ import { WishesPage } from './pages/WishesPage';
 import { WishFormPage } from './pages/WishFormPage';
 import { WishDetailsPage } from './pages/WishDetailsPage';
 import { WishEditPage } from './pages/WishEditPage';
+import { TripsPage } from './pages/TripsPage';
+import { TripFormPage } from './pages/TripFormPage';
+import { TripDetailsPage } from './pages/TripDetailsPage';
+import { TripEditPage } from './pages/TripEditPage';
 
 export function App() {
   return (
@@ -22,6 +26,10 @@ export function App() {
         <Route path="wishes/new" element={<WishFormPage />} />
         <Route path="wishes/:id" element={<WishDetailsPage />} />
         <Route path="wishes/:id/edit" element={<WishEditPage />} />
+        <Route path="trips" element={<TripsPage />} />
+        <Route path="trips/new" element={<TripFormPage />} />
+        <Route path="trips/:id" element={<TripDetailsPage />} />
+        <Route path="trips/:id/edit" element={<TripEditPage />} />
       </Route>
     </Routes>
   );
