@@ -20,6 +20,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Fornecedores', to: '/transport/suppliers' },
   { label: 'Saídas', to: '/transport/departures' },
   { label: 'Agenda', to: '/transport/agenda' },
+  { label: 'Operações de hoje', to: '/operations/today' },
 ];
 
 export function Sidebar() {
