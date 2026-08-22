@@ -35,7 +35,11 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON
   proposals,
   sales,
   commissions,
-  trips
+  trips,
+  routes,
+  suppliers,
+  transport_products,
+  scheduled_departures
 TO travel_app_runtime_local;
 
 GRANT EXECUTE ON FUNCTION current_agency_id() TO travel_app_runtime_local;

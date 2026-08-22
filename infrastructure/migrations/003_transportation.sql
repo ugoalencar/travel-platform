@@ -306,8 +306,8 @@ CREATE POLICY scheduled_departures_delete_tenant ON scheduled_departures
 -- Extends the same travel_app_runtime_local grants set up by
 -- tests/integration/database/002_prepare_local_roles.sql. In a real
 -- deployment this should be folded into whatever grants the
--- production runtime role already has; the local test role is
--- extended separately by
--- tests/integration/database/004_prepare_transport_roles.sql so this
--- migration file stays pure schema/RLS (no side effects on roles that
--- do not exist yet in a fresh apply of 001+002+003 alone).
+-- production runtime role already has; the local test role's grant
+-- list in 002_prepare_local_roles.sql has been extended in place to
+-- include routes/suppliers/transport_products/scheduled_departures,
+-- so this migration file stays pure schema/RLS (no side effects on
+-- roles, which are provisioned by the test infra, not by migrations).
