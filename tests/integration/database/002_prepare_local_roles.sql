@@ -84,6 +84,21 @@ BEGIN
 END;
 $$;
 
+-- transport_operations/operation_checkpoints (migration
+-- 006_field_operations.sql) only exist once that migration has been
+-- applied; guard the same way as the blocks above so domains that
+-- only apply 001+002(+003)(+004)(+005) are unaffected.
+DO $$
+BEGIN
+  IF to_regclass('public.transport_operations') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      transport_operations,
+      operation_checkpoints
+    TO travel_app_runtime_local;
+  END IF;
+END;
+$$;
+
 GRANT EXECUTE ON FUNCTION current_agency_id() TO travel_app_runtime_local;
 GRANT EXECUTE ON FUNCTION current_user_id() TO travel_app_runtime_local;
 GRANT EXECUTE ON FUNCTION set_tenant_context(TEXT, TEXT) TO travel_app_runtime_local;

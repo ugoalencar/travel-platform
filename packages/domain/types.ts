@@ -390,6 +390,52 @@ export interface BookingPassenger {
 }
 
 // ============================================================
+// FIELD OPERATIONS DOMAIN
+// ============================================================
+// TransportOperation = EXECUTION marker for a ScheduledDeparture
+// (which remains the PLAN). At most one Operation per Departure.
+// OperationCheckpoint rows hang off it. See
+// 005_field_operations.sql for the full scope-decision notes.
+export interface TransportOperation {
+  id: string;
+  agencyId: string;
+  departureId: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// OperationCheckpoint: EXECUTION record generated (one per monitored
+// RoutePoint, i.e. checkpointRequired = true) when a
+// TransportOperation is created. checkpointType is snapshotted from
+// the RoutePoint at generation time. arrivalCheckedAt/
+// departureCheckedAt are separate, real timestamps set only by a
+// server-side confirmation action -- never client-supplied, never
+// pre-filled/defaulted to an expected time. expectedAt and delay are
+// NOT part of this persisted shape -- they are derived on read by the
+// API layer and attached to the API response type
+// (OperationCheckpointWithExpected below), never stored.
+export interface OperationCheckpoint {
+  id: string;
+  agencyId: string;
+  operationId: string;
+  routePointId: string;
+  checkpointType: CheckpointType;
+  arrivalCheckedAt?: Date;
+  departureCheckedAt?: Date;
+  notes?: string;
+  location?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// API-response shape for a checkpoint including its derived
+// expectedAt (departure.departureAt + routePoint.plannedOffsetMinutes),
+// computed at read time and never persisted.
+export interface OperationCheckpointWithExpected extends OperationCheckpoint {
+  expectedAt?: Date;
+}
+
+// ============================================================
 // TENANT-SCOPED QUERY TYPES
 // ============================================================
 
