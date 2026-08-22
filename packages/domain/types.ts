@@ -250,6 +250,78 @@ export enum TripStatus {
 }
 
 // ============================================================
+// TRANSPORTATION DOMAIN
+// ============================================================
+
+export interface Route {
+  id: string;
+  agencyId: string;
+  origin: string;
+  destination: string;
+  estimatedDuration?: number;
+  distance?: number;
+  notes?: string;
+  active: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface Supplier {
+  id: string;
+  agencyId: string;
+  name: string;
+  document?: string;
+  contact?: string;
+  active: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface TransportProduct {
+  id: string;
+  agencyId: string;
+  name: string;
+  tripType: TripType;
+  outboundRouteId: string;
+  returnRouteId?: string;
+  price: number;
+  active: boolean;
+  publiclyBookable: boolean;
+  notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ScheduledDeparture {
+  id: string;
+  agencyId: string;
+  productId: string;
+  departureAt: Date;
+  arrivalExpectedAt?: Date;
+  capacity: number;
+  supplierId?: string;
+  serviceType: DepartureServiceType;
+  // No Booking table exists yet; nothing consumes capacity. This is a
+  // stub, not a real derived value: availableSeats === capacity until
+  // Booking integration exists (see 003_transportation.sql / brief).
+  cancelled: boolean;
+  notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export enum TripType {
+  ONE_WAY = 'ONE_WAY',
+  ROUND_TRIP = 'ROUND_TRIP',
+}
+
+export enum DepartureServiceType {
+  OWN = 'OWN',
+  SUBCONTRACTED = 'SUBCONTRACTED',
+  RESELL = 'RESELL',
+}
+
+// ============================================================
 // TENANT-SCOPED QUERY TYPES
 // ============================================================
 
