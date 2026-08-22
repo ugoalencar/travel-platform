@@ -16,6 +16,10 @@ vi.mock('./lib/api', () => ({
   createOffer: vi.fn(),
   getOffer: vi.fn(),
   updateOffer: vi.fn(),
+  listProposals: vi.fn().mockResolvedValue([]),
+  createProposal: vi.fn(),
+  getProposal: vi.fn(),
+  updateProposal: vi.fn(),
 }));
 
 afterEach(() => {
@@ -130,6 +134,34 @@ describe('App', () => {
     renderApp(['/offers/o1']);
     expect(
       await screen.findByRole('heading', { name: 'Detalhes da oferta' }),
+    ).toBeInTheDocument();
+  });
+
+  it('renders "Propostas" as a real navigation link', () => {
+    renderApp();
+    const link = screen.getByRole('link', { name: 'Propostas' });
+    expect(link).toHaveAttribute('href', '/proposals');
+  });
+
+  it('renders ProposalsPage when navigating to "/proposals"', async () => {
+    renderApp(['/proposals']);
+    expect(await screen.findByRole('heading', { name: 'Propostas' })).toBeInTheDocument();
+  });
+
+  it('renders ProposalFormPage when navigating to "/proposals/new"', async () => {
+    renderApp(['/proposals/new']);
+    expect(
+      await screen.findByRole('heading', { name: 'Nova proposta' }),
+    ).toBeInTheDocument();
+  });
+
+  it('renders ProposalDetailsPage when navigating to "/proposals/:id"', async () => {
+    vi.mocked(
+      (await import('./lib/api')).getProposal,
+    ).mockReturnValue(new Promise(() => {}));
+    renderApp(['/proposals/p1']);
+    expect(
+      await screen.findByRole('heading', { name: 'Detalhes da proposta' }),
     ).toBeInTheDocument();
   });
 });

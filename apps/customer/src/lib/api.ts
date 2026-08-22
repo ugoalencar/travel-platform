@@ -6,6 +6,7 @@ import type {
 import type { Wish, CreateWishInput, UpdateWishInput } from '../types/wish';
 import type { Trip, CreateTripInput, UpdateTripInput } from '../types/trip';
 import type { Offer, CreateOfferInput, UpdateOfferInput } from '../types/offer';
+import type { Proposal, CreateProposalInput, UpdateProposalInput } from '../types/proposal';
 
 // Single seam for a future production API base URL. In local dev this stays
 // empty so requests go to relative paths (e.g. `/api/customers`) and are
@@ -195,4 +196,38 @@ export async function updateOffer(
     },
   );
   return data.offer;
+}
+
+export async function listProposals(): Promise<Proposal[]> {
+  const data = await request<{ proposals: Proposal[] }>('/api/proposals');
+  return data.proposals;
+}
+
+export async function getProposal(id: string): Promise<Proposal> {
+  const data = await request<{ proposal: Proposal }>(
+    `/api/proposals/${encodeURIComponent(id)}`,
+  );
+  return data.proposal;
+}
+
+export async function createProposal(input: CreateProposalInput): Promise<Proposal> {
+  const data = await request<{ proposal: Proposal }>('/api/proposals', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+  return data.proposal;
+}
+
+export async function updateProposal(
+  id: string,
+  input: UpdateProposalInput,
+): Promise<Proposal> {
+  const data = await request<{ proposal: Proposal }>(
+    `/api/proposals/${encodeURIComponent(id)}`,
+    {
+      method: 'PATCH',
+      body: JSON.stringify(input),
+    },
+  );
+  return data.proposal;
 }

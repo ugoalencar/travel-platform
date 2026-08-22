@@ -16,6 +16,10 @@ import { OffersPage } from './pages/OffersPage';
 import { OfferFormPage } from './pages/OfferFormPage';
 import { OfferDetailsPage } from './pages/OfferDetailsPage';
 import { OfferEditPage } from './pages/OfferEditPage';
+import { ProposalsPage } from './pages/ProposalsPage';
+import { ProposalFormPage } from './pages/ProposalFormPage';
+import { ProposalDetailsPage } from './pages/ProposalDetailsPage';
+import { ProposalEditPage } from './pages/ProposalEditPage';
 
 export function App() {
   return (
@@ -38,6 +42,10 @@ export function App() {
         <Route path="offers/new" element={<OfferFormPage />} />
         <Route path="offers/:id" element={<OfferDetailsPage />} />
         <Route path="offers/:id/edit" element={<OfferEditPage />} />
+        <Route path="proposals" element={<ProposalsPage />} />
+        <Route path="proposals/new" element={<ProposalFormPage />} />
+        <Route path="proposals/:id" element={<ProposalDetailsPage />} />
+        <Route path="proposals/:id/edit" element={<ProposalEditPage />} />
       </Route>
     </Routes>
   );

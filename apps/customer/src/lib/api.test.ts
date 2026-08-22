@@ -17,6 +17,10 @@ import {
   getOffer,
   listOffers,
   updateOffer,
+  createProposal,
+  getProposal,
+  listProposals,
+  updateProposal,
 } from './api';
 
 function jsonResponse(body: unknown, status = 200): Response {
@@ -45,6 +49,10 @@ describe('api client shape', () => {
     expect(typeof getOffer).toBe('function');
     expect(typeof createOffer).toBe('function');
     expect(typeof updateOffer).toBe('function');
+    expect(typeof listProposals).toBe('function');
+    expect(typeof getProposal).toBe('function');
+    expect(typeof createProposal).toBe('function');
+    expect(typeof updateProposal).toBe('function');
   });
 });
 
@@ -523,6 +531,121 @@ describe('api client error mapping', () => {
     expect(sentKeys).not.toContain('agencyId');
     expect(sentKeys).not.toContain('tenantId');
     expect(sentKeys).not.toContain('role');
+    expect(sentKeys).not.toContain('id');
+    expect(sentKeys).not.toContain('createdAt');
+    expect(sentKeys).not.toContain('updatedAt');
+  });
+
+  it('calls fetch for GET /api/proposals with no body/method override', async () => {
+    const fetchMock = global.fetch as ReturnType<typeof vi.fn>;
+    fetchMock.mockResolvedValue(jsonResponse({ proposals: [] }));
+
+    const result = await listProposals();
+
+    expect(result).toEqual([]);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit | undefined];
+    expect(url).toBe('/api/proposals');
+    expect(init?.method).toBeUndefined();
+    expect(init?.body).toBeUndefined();
+    expect(init?.headers).toEqual({ 'Content-Type': 'application/json' });
+  });
+
+  it('calls fetch for GET /api/proposals/:id with no body/method override', async () => {
+    const fetchMock = global.fetch as ReturnType<typeof vi.fn>;
+    const proposal = {
+      id: 'p1',
+      agencyId: 'a1',
+      customerId: 'c1',
+      proposedPrice: 100,
+      discount: 10,
+      total: 90,
+      status: 'DRAFT',
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+    };
+    fetchMock.mockResolvedValue(jsonResponse({ proposal }));
+
+    const result = await getProposal('p1');
+
+    expect(result).toEqual(proposal);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit | undefined];
+    expect(url).toBe('/api/proposals/p1');
+    expect(init?.method).toBeUndefined();
+    expect(init?.body).toBeUndefined();
+  });
+
+  it('calls fetch for POST /api/proposals with only submitted fields, no total/status/agencyId/id/timestamps leakage', async () => {
+    const fetchMock = global.fetch as ReturnType<typeof vi.fn>;
+    const created = {
+      id: 'p1',
+      agencyId: 'a1',
+      customerId: 'c1',
+      proposedPrice: 100,
+      discount: 10,
+      total: 90,
+      status: 'DRAFT',
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+    };
+    fetchMock.mockResolvedValue(jsonResponse({ proposal: created }, 201));
+
+    const result = await createProposal({
+      customerId: 'c1',
+      proposedPrice: 100,
+      discount: 10,
+    });
+
+    expect(result).toEqual(created);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit | undefined];
+    expect(url).toBe('/api/proposals');
+    expect(init?.method).toBe('POST');
+    const sentBody = JSON.parse(init?.body as string) as Record<string, unknown>;
+    expect(sentBody).toEqual({ customerId: 'c1', proposedPrice: 100, discount: 10 });
+    const sentKeys = Object.keys(sentBody);
+    expect(sentKeys).not.toContain('total');
+    expect(sentKeys).not.toContain('status');
+    expect(sentKeys).not.toContain('agencyId');
+    expect(sentKeys).not.toContain('tenantId');
+    expect(sentKeys).not.toContain('id');
+    expect(sentKeys).not.toContain('createdAt');
+    expect(sentKeys).not.toContain('updatedAt');
+  });
+
+  it('calls fetch for PATCH /api/proposals/:id with only submitted fields, never total/status/customerId/offerId/wishId/agencyId/id/timestamps', async () => {
+    const fetchMock = global.fetch as ReturnType<typeof vi.fn>;
+    const updated = {
+      id: 'p1',
+      agencyId: 'a1',
+      customerId: 'c1',
+      proposedPrice: 200,
+      discount: 20,
+      total: 180,
+      status: 'DRAFT',
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-02T00:00:00.000Z',
+    };
+    fetchMock.mockResolvedValue(jsonResponse({ proposal: updated }));
+
+    const result = await updateProposal('p1', { proposedPrice: 200, discount: 20 });
+
+    expect(result).toEqual(updated);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit | undefined];
+    expect(url).toBe('/api/proposals/p1');
+    expect(init?.method).toBe('PATCH');
+    const sentBody = JSON.parse(init?.body as string) as Record<string, unknown>;
+    expect(sentBody).toEqual({ proposedPrice: 200, discount: 20 });
+    const sentKeys = Object.keys(sentBody);
+    expect(sentKeys).not.toContain('total');
+    expect(sentKeys).not.toContain('status');
+    expect(sentKeys).not.toContain('customerId');
+    expect(sentKeys).not.toContain('offerId');
+    expect(sentKeys).not.toContain('wishId');
+    expect(sentKeys).not.toContain('agencyId');
+    expect(sentKeys).not.toContain('tenantId');
     expect(sentKeys).not.toContain('id');
     expect(sentKeys).not.toContain('createdAt');
     expect(sentKeys).not.toContain('updatedAt');

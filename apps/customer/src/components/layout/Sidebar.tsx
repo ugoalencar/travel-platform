@@ -11,7 +11,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Clientes', to: '/customers' },
   { label: 'Desejos', to: '/wishes' },
   { label: 'Ofertas', to: '/offers' },
-  { label: 'Propostas' },
+  { label: 'Propostas', to: '/proposals' },
   { label: 'Vendas' },
   { label: 'Viagens', to: '/trips' },
 ];
