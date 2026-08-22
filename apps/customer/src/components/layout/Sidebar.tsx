@@ -14,6 +14,11 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Propostas', to: '/proposals' },
   { label: 'Vendas' },
   { label: 'Viagens', to: '/trips' },
+  { label: 'Rotas', to: '/transport/routes' },
+  { label: 'Produtos de transporte', to: '/transport/products' },
+  { label: 'Fornecedores', to: '/transport/suppliers' },
+  { label: 'Saídas', to: '/transport/departures' },
+  { label: 'Agenda', to: '/transport/agenda' },
 ];
 
 export function Sidebar() {

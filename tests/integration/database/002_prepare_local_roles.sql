@@ -38,6 +38,36 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON
   trips
 TO travel_app_runtime_local;
 
+-- Transportation tables (routes/suppliers/transport_products/scheduled_departures)
+-- only exist once migration 003_transportation.sql has been applied. This script
+-- is shared by every domain's test suite, and most of them only apply migrations
+-- 001+002, so the grant below must not fail when those tables are absent.
+DO $$
+BEGIN
+  IF to_regclass('public.routes') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      routes,
+      suppliers,
+      transport_products,
+      scheduled_departures
+    TO travel_app_runtime_local;
+  END IF;
+END;
+$$;
+
+-- route_points (migration 004_route_points.sql) only exists once that
+-- migration has been applied; guard the same way as the block above so
+-- domains that only apply 001+002(+003) are unaffected.
+DO $$
+BEGIN
+  IF to_regclass('public.route_points') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      route_points
+    TO travel_app_runtime_local;
+  END IF;
+END;
+$$;
+
 GRANT EXECUTE ON FUNCTION current_agency_id() TO travel_app_runtime_local;
 GRANT EXECUTE ON FUNCTION current_user_id() TO travel_app_runtime_local;
 GRANT EXECUTE ON FUNCTION set_tenant_context(TEXT, TEXT) TO travel_app_runtime_local;

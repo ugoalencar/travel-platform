@@ -21,6 +21,23 @@ import {
   getProposal,
   listProposals,
   updateProposal,
+  createRoute,
+  getRoute,
+  listRoutes,
+  updateRoute,
+  createSupplier,
+  getSupplier,
+  listSuppliers,
+  updateSupplier,
+  createTransportProduct,
+  getTransportProduct,
+  listTransportProducts,
+  updateTransportProduct,
+  createDeparture,
+  getDeparture,
+  listDepartures,
+  updateDeparture,
+  getAgenda,
 } from './api';
 
 function jsonResponse(body: unknown, status = 200): Response {
@@ -649,5 +666,461 @@ describe('api client error mapping', () => {
     expect(sentKeys).not.toContain('id');
     expect(sentKeys).not.toContain('createdAt');
     expect(sentKeys).not.toContain('updatedAt');
+  });
+});
+
+describe('transport api client', () => {
+  const originalFetch = global.fetch;
+
+  beforeEach(() => {
+    global.fetch = vi.fn();
+  });
+
+  afterEach(() => {
+    global.fetch = originalFetch;
+  });
+
+  it('exposes exactly the expected transport functions', () => {
+    expect(typeof listRoutes).toBe('function');
+    expect(typeof getRoute).toBe('function');
+    expect(typeof createRoute).toBe('function');
+    expect(typeof updateRoute).toBe('function');
+    expect(typeof listSuppliers).toBe('function');
+    expect(typeof getSupplier).toBe('function');
+    expect(typeof createSupplier).toBe('function');
+    expect(typeof updateSupplier).toBe('function');
+    expect(typeof listTransportProducts).toBe('function');
+    expect(typeof getTransportProduct).toBe('function');
+    expect(typeof createTransportProduct).toBe('function');
+    expect(typeof updateTransportProduct).toBe('function');
+    expect(typeof listDepartures).toBe('function');
+    expect(typeof getDeparture).toBe('function');
+    expect(typeof createDeparture).toBe('function');
+    expect(typeof updateDeparture).toBe('function');
+    expect(typeof getAgenda).toBe('function');
+  });
+
+  it('GET /api/transport/routes with no body/method override', async () => {
+    const fetchMock = global.fetch as ReturnType<typeof vi.fn>;
+    fetchMock.mockResolvedValue(jsonResponse({ routes: [] }));
+
+    const result = await listRoutes();
+
+    expect(result).toEqual([]);
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit | undefined];
+    expect(url).toBe('/api/transport/routes');
+    expect(init?.method).toBeUndefined();
+    expect(init?.body).toBeUndefined();
+  });
+
+  it('GET /api/transport/routes/:id', async () => {
+    const fetchMock = global.fetch as ReturnType<typeof vi.fn>;
+    const route = {
+      id: 'r1',
+      agencyId: 'a1',
+      origin: 'Sao Paulo',
+      destination: 'Rio de Janeiro',
+      active: true,
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+    };
+    fetchMock.mockResolvedValue(jsonResponse({ route }));
+
+    const result = await getRoute('r1');
+
+    expect(result).toEqual(route);
+    const [url] = fetchMock.mock.calls[0] as [string];
+    expect(url).toBe('/api/transport/routes/r1');
+  });
+
+  it('POST /api/transport/routes sends only submitted fields, never agencyId/id/active/timestamps', async () => {
+    const fetchMock = global.fetch as ReturnType<typeof vi.fn>;
+    const created = {
+      id: 'r1',
+      agencyId: 'a1',
+      origin: 'Sao Paulo',
+      destination: 'Rio de Janeiro',
+      active: true,
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+    };
+    fetchMock.mockResolvedValue(jsonResponse({ route: created }, 201));
+
+    const result = await createRoute({ origin: 'Sao Paulo', destination: 'Rio de Janeiro' });
+
+    expect(result).toEqual(created);
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit | undefined];
+    expect(url).toBe('/api/transport/routes');
+    expect(init?.method).toBe('POST');
+    const sentBody = JSON.parse(init?.body as string) as Record<string, unknown>;
+    expect(sentBody).toEqual({ origin: 'Sao Paulo', destination: 'Rio de Janeiro' });
+    const sentKeys = Object.keys(sentBody);
+    expect(sentKeys).not.toContain('agencyId');
+    expect(sentKeys).not.toContain('id');
+    expect(sentKeys).not.toContain('active');
+    expect(sentKeys).not.toContain('createdAt');
+    expect(sentKeys).not.toContain('updatedAt');
+  });
+
+  it('PATCH /api/transport/routes/:id sends only submitted fields, never agencyId/id/timestamps', async () => {
+    const fetchMock = global.fetch as ReturnType<typeof vi.fn>;
+    const updated = {
+      id: 'r1',
+      agencyId: 'a1',
+      origin: 'Sao Paulo',
+      destination: 'Rio de Janeiro',
+      active: false,
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-02T00:00:00.000Z',
+    };
+    fetchMock.mockResolvedValue(jsonResponse({ route: updated }));
+
+    const result = await updateRoute('r1', { active: false });
+
+    expect(result).toEqual(updated);
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit | undefined];
+    expect(url).toBe('/api/transport/routes/r1');
+    expect(init?.method).toBe('PATCH');
+    const sentBody = JSON.parse(init?.body as string) as Record<string, unknown>;
+    expect(sentBody).toEqual({ active: false });
+    const sentKeys = Object.keys(sentBody);
+    expect(sentKeys).not.toContain('agencyId');
+    expect(sentKeys).not.toContain('id');
+    expect(sentKeys).not.toContain('createdAt');
+    expect(sentKeys).not.toContain('updatedAt');
+  });
+
+  it('GET /api/transport/suppliers with no body/method override', async () => {
+    const fetchMock = global.fetch as ReturnType<typeof vi.fn>;
+    fetchMock.mockResolvedValue(jsonResponse({ suppliers: [] }));
+
+    const result = await listSuppliers();
+
+    expect(result).toEqual([]);
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit | undefined];
+    expect(url).toBe('/api/transport/suppliers');
+    expect(init?.method).toBeUndefined();
+  });
+
+  it('GET /api/transport/suppliers/:id', async () => {
+    const fetchMock = global.fetch as ReturnType<typeof vi.fn>;
+    const supplier = {
+      id: 's1',
+      agencyId: 'a1',
+      name: 'Fast Bus Ltda',
+      active: true,
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+    };
+    fetchMock.mockResolvedValue(jsonResponse({ supplier }));
+
+    const result = await getSupplier('s1');
+
+    expect(result).toEqual(supplier);
+    const [url] = fetchMock.mock.calls[0] as [string];
+    expect(url).toBe('/api/transport/suppliers/s1');
+  });
+
+  it('POST /api/transport/suppliers sends only submitted fields, never agencyId/id/active/timestamps', async () => {
+    const fetchMock = global.fetch as ReturnType<typeof vi.fn>;
+    const created = {
+      id: 's1',
+      agencyId: 'a1',
+      name: 'Fast Bus Ltda',
+      active: true,
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+    };
+    fetchMock.mockResolvedValue(jsonResponse({ supplier: created }, 201));
+
+    const result = await createSupplier({ name: 'Fast Bus Ltda' });
+
+    expect(result).toEqual(created);
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit | undefined];
+    expect(url).toBe('/api/transport/suppliers');
+    expect(init?.method).toBe('POST');
+    const sentBody = JSON.parse(init?.body as string) as Record<string, unknown>;
+    expect(sentBody).toEqual({ name: 'Fast Bus Ltda' });
+    const sentKeys = Object.keys(sentBody);
+    expect(sentKeys).not.toContain('agencyId');
+    expect(sentKeys).not.toContain('id');
+    expect(sentKeys).not.toContain('active');
+    expect(sentKeys).not.toContain('createdAt');
+    expect(sentKeys).not.toContain('updatedAt');
+  });
+
+  it('PATCH /api/transport/suppliers/:id sends only submitted fields', async () => {
+    const fetchMock = global.fetch as ReturnType<typeof vi.fn>;
+    const updated = {
+      id: 's1',
+      agencyId: 'a1',
+      name: 'Fast Bus Ltda',
+      active: false,
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-02T00:00:00.000Z',
+    };
+    fetchMock.mockResolvedValue(jsonResponse({ supplier: updated }));
+
+    const result = await updateSupplier('s1', { active: false });
+
+    expect(result).toEqual(updated);
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit | undefined];
+    expect(url).toBe('/api/transport/suppliers/s1');
+    expect(init?.method).toBe('PATCH');
+    const sentBody = JSON.parse(init?.body as string) as Record<string, unknown>;
+    expect(sentBody).toEqual({ active: false });
+    const sentKeys = Object.keys(sentBody);
+    expect(sentKeys).not.toContain('agencyId');
+    expect(sentKeys).not.toContain('id');
+    expect(sentKeys).not.toContain('createdAt');
+    expect(sentKeys).not.toContain('updatedAt');
+  });
+
+  it('GET /api/transport/products with no body/method override', async () => {
+    const fetchMock = global.fetch as ReturnType<typeof vi.fn>;
+    fetchMock.mockResolvedValue(jsonResponse({ products: [] }));
+
+    const result = await listTransportProducts();
+
+    expect(result).toEqual([]);
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit | undefined];
+    expect(url).toBe('/api/transport/products');
+    expect(init?.method).toBeUndefined();
+  });
+
+  it('GET /api/transport/products/:id', async () => {
+    const fetchMock = global.fetch as ReturnType<typeof vi.fn>;
+    const product = {
+      id: 'p1',
+      agencyId: 'a1',
+      name: 'SP-RJ Executivo',
+      tripType: 'ONE_WAY',
+      outboundRouteId: 'r1',
+      price: 150,
+      active: true,
+      publiclyBookable: false,
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+    };
+    fetchMock.mockResolvedValue(jsonResponse({ product }));
+
+    const result = await getTransportProduct('p1');
+
+    expect(result).toEqual(product);
+    const [url] = fetchMock.mock.calls[0] as [string];
+    expect(url).toBe('/api/transport/products/p1');
+  });
+
+  it('POST /api/transport/products sends only submitted fields, never agencyId/id/active/timestamps', async () => {
+    const fetchMock = global.fetch as ReturnType<typeof vi.fn>;
+    const created = {
+      id: 'p1',
+      agencyId: 'a1',
+      name: 'SP-RJ Executivo',
+      tripType: 'ONE_WAY',
+      outboundRouteId: 'r1',
+      price: 150,
+      active: true,
+      publiclyBookable: false,
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+    };
+    fetchMock.mockResolvedValue(jsonResponse({ product: created }, 201));
+
+    const result = await createTransportProduct({
+      name: 'SP-RJ Executivo',
+      tripType: 'ONE_WAY',
+      outboundRouteId: 'r1',
+      price: 150,
+    });
+
+    expect(result).toEqual(created);
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit | undefined];
+    expect(url).toBe('/api/transport/products');
+    expect(init?.method).toBe('POST');
+    const sentBody = JSON.parse(init?.body as string) as Record<string, unknown>;
+    expect(sentBody).toEqual({
+      name: 'SP-RJ Executivo',
+      tripType: 'ONE_WAY',
+      outboundRouteId: 'r1',
+      price: 150,
+    });
+    const sentKeys = Object.keys(sentBody);
+    expect(sentKeys).not.toContain('agencyId');
+    expect(sentKeys).not.toContain('id');
+    expect(sentKeys).not.toContain('active');
+    expect(sentKeys).not.toContain('createdAt');
+    expect(sentKeys).not.toContain('updatedAt');
+  });
+
+  it('PATCH /api/transport/products/:id sends only submitted fields, never tripType/outboundRouteId/returnRouteId/agencyId/id/timestamps', async () => {
+    const fetchMock = global.fetch as ReturnType<typeof vi.fn>;
+    const updated = {
+      id: 'p1',
+      agencyId: 'a1',
+      name: 'SP-RJ Executivo',
+      tripType: 'ONE_WAY',
+      outboundRouteId: 'r1',
+      price: 200,
+      active: true,
+      publiclyBookable: false,
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-02T00:00:00.000Z',
+    };
+    fetchMock.mockResolvedValue(jsonResponse({ product: updated }));
+
+    const result = await updateTransportProduct('p1', { price: 200 });
+
+    expect(result).toEqual(updated);
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit | undefined];
+    expect(url).toBe('/api/transport/products/p1');
+    expect(init?.method).toBe('PATCH');
+    const sentBody = JSON.parse(init?.body as string) as Record<string, unknown>;
+    expect(sentBody).toEqual({ price: 200 });
+    const sentKeys = Object.keys(sentBody);
+    expect(sentKeys).not.toContain('tripType');
+    expect(sentKeys).not.toContain('outboundRouteId');
+    expect(sentKeys).not.toContain('returnRouteId');
+    expect(sentKeys).not.toContain('agencyId');
+    expect(sentKeys).not.toContain('id');
+    expect(sentKeys).not.toContain('createdAt');
+    expect(sentKeys).not.toContain('updatedAt');
+  });
+
+  it('GET /api/transport/departures with no body/method override', async () => {
+    const fetchMock = global.fetch as ReturnType<typeof vi.fn>;
+    fetchMock.mockResolvedValue(jsonResponse({ departures: [] }));
+
+    const result = await listDepartures();
+
+    expect(result).toEqual([]);
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit | undefined];
+    expect(url).toBe('/api/transport/departures');
+    expect(init?.method).toBeUndefined();
+  });
+
+  it('GET /api/transport/departures/:id', async () => {
+    const fetchMock = global.fetch as ReturnType<typeof vi.fn>;
+    const departure = {
+      id: 'd1',
+      agencyId: 'a1',
+      productId: 'p1',
+      departureAt: '2026-09-01T10:00:00.000Z',
+      capacity: 40,
+      serviceType: 'OWN',
+      cancelled: false,
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+    };
+    fetchMock.mockResolvedValue(jsonResponse({ departure }));
+
+    const result = await getDeparture('d1');
+
+    expect(result).toEqual(departure);
+    const [url] = fetchMock.mock.calls[0] as [string];
+    expect(url).toBe('/api/transport/departures/d1');
+  });
+
+  it('POST /api/transport/departures sends only submitted fields, never agencyId/id/cancelled/timestamps', async () => {
+    const fetchMock = global.fetch as ReturnType<typeof vi.fn>;
+    const created = {
+      id: 'd1',
+      agencyId: 'a1',
+      productId: 'p1',
+      departureAt: '2026-09-01T10:00:00.000Z',
+      capacity: 40,
+      serviceType: 'OWN',
+      cancelled: false,
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+    };
+    fetchMock.mockResolvedValue(jsonResponse({ departure: created }, 201));
+
+    const result = await createDeparture({
+      productId: 'p1',
+      departureAt: '2026-09-01T10:00:00.000Z',
+      capacity: 40,
+      serviceType: 'OWN',
+    });
+
+    expect(result).toEqual(created);
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit | undefined];
+    expect(url).toBe('/api/transport/departures');
+    expect(init?.method).toBe('POST');
+    const sentBody = JSON.parse(init?.body as string) as Record<string, unknown>;
+    expect(sentBody).toEqual({
+      productId: 'p1',
+      departureAt: '2026-09-01T10:00:00.000Z',
+      capacity: 40,
+      serviceType: 'OWN',
+    });
+    const sentKeys = Object.keys(sentBody);
+    expect(sentKeys).not.toContain('agencyId');
+    expect(sentKeys).not.toContain('id');
+    expect(sentKeys).not.toContain('cancelled');
+    expect(sentKeys).not.toContain('createdAt');
+    expect(sentKeys).not.toContain('updatedAt');
+  });
+
+  it('PATCH /api/transport/departures/:id sends only submitted fields, never productId/agencyId/id/timestamps', async () => {
+    const fetchMock = global.fetch as ReturnType<typeof vi.fn>;
+    const updated = {
+      id: 'd1',
+      agencyId: 'a1',
+      productId: 'p1',
+      departureAt: '2026-09-01T10:00:00.000Z',
+      capacity: 30,
+      serviceType: 'OWN',
+      cancelled: false,
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-02T00:00:00.000Z',
+    };
+    fetchMock.mockResolvedValue(jsonResponse({ departure: updated }));
+
+    const result = await updateDeparture('d1', { capacity: 30 });
+
+    expect(result).toEqual(updated);
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit | undefined];
+    expect(url).toBe('/api/transport/departures/d1');
+    expect(init?.method).toBe('PATCH');
+    const sentBody = JSON.parse(init?.body as string) as Record<string, unknown>;
+    expect(sentBody).toEqual({ capacity: 30 });
+    const sentKeys = Object.keys(sentBody);
+    expect(sentKeys).not.toContain('productId');
+    expect(sentKeys).not.toContain('agencyId');
+    expect(sentKeys).not.toContain('id');
+    expect(sentKeys).not.toContain('createdAt');
+    expect(sentKeys).not.toContain('updatedAt');
+  });
+
+  it('GET /api/transport/agenda with no body/method override', async () => {
+    const fetchMock = global.fetch as ReturnType<typeof vi.fn>;
+    const agenda = [
+      {
+        departure: {
+          id: 'd1',
+          agencyId: 'a1',
+          productId: 'p1',
+          departureAt: '2026-09-01T10:00:00.000Z',
+          capacity: 40,
+          serviceType: 'OWN',
+          cancelled: false,
+          createdAt: '2026-01-01T00:00:00.000Z',
+          updatedAt: '2026-01-01T00:00:00.000Z',
+        },
+        productName: 'SP-RJ Executivo',
+        outboundOrigin: 'Sao Paulo',
+        outboundDestination: 'Rio de Janeiro',
+        availableSeats: 40,
+      },
+    ];
+    fetchMock.mockResolvedValue(jsonResponse({ agenda }));
+
+    const result = await getAgenda();
+
+    expect(result).toEqual(agenda);
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit | undefined];
+    expect(url).toBe('/api/transport/agenda');
+    expect(init?.method).toBeUndefined();
   });
 });

@@ -250,6 +250,112 @@ export enum TripStatus {
 }
 
 // ============================================================
+// TRANSPORTATION DOMAIN
+// ============================================================
+
+export interface Route {
+  id: string;
+  agencyId: string;
+  origin: string;
+  destination: string;
+  estimatedDuration?: number;
+  distance?: number;
+  notes?: string;
+  active: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface Supplier {
+  id: string;
+  agencyId: string;
+  name: string;
+  document?: string;
+  contact?: string;
+  active: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface TransportProduct {
+  id: string;
+  agencyId: string;
+  name: string;
+  tripType: TripType;
+  outboundRouteId: string;
+  returnRouteId?: string;
+  price: number;
+  active: boolean;
+  publiclyBookable: boolean;
+  notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ScheduledDeparture {
+  id: string;
+  agencyId: string;
+  productId: string;
+  departureAt: Date;
+  arrivalExpectedAt?: Date;
+  capacity: number;
+  supplierId?: string;
+  serviceType: DepartureServiceType;
+  // No Booking table exists yet; nothing consumes capacity. This is a
+  // stub, not a real derived value: availableSeats === capacity until
+  // Booking integration exists (see 003_transportation.sql / brief).
+  cancelled: boolean;
+  notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export enum TripType {
+  ONE_WAY = 'ONE_WAY',
+  ROUND_TRIP = 'ROUND_TRIP',
+}
+
+export enum DepartureServiceType {
+  OWN = 'OWN',
+  SUBCONTRACTED = 'SUBCONTRACTED',
+  RESELL = 'RESELL',
+}
+
+// RoutePoint: an ordered itinerary point on a Route. Check-in is
+// OPTIONAL PER POINT (checkpointRequired), not a global rule.
+//  - checkpointRequired = false: itinerary-only, no operational
+//    obligation, no pending item, no schedule-compliance calculation.
+//  - checkpointRequired = true: enters operational monitoring; a
+//    future Operation entity (not built here) would generate a
+//    corresponding checkpoint for a driver/guide to confirm.
+// plannedOffsetMinutes is minutes after a ScheduledDeparture's
+// departureAt (NOT an absolute timestamp); expected-absolute-time is
+// a future derivation (departureAt + plannedOffsetMinutes), not
+// persisted anywhere in this scope.
+// Route's origin/destination strings are unchanged; by convention the
+// first/last RoutePoint in sequence typically correspond to them, but
+// there is no enforced sync and no "origin RoutePoint" subtype.
+export interface RoutePoint {
+  id: string;
+  agencyId: string;
+  routeId: string;
+  sequence: number;
+  name: string;
+  checkpointRequired: boolean;
+  checkpointType?: CheckpointType;
+  plannedOffsetMinutes?: number;
+  notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export enum CheckpointType {
+  ARRIVAL = 'ARRIVAL',
+  DEPARTURE = 'DEPARTURE',
+  BOTH = 'BOTH',
+}
+
+// ============================================================
 // TENANT-SCOPED QUERY TYPES
 // ============================================================
 

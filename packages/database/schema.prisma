@@ -34,28 +34,33 @@ datasource db {
 // ============================================================
 
 model Agency {
-  id               String            @id @default(dbgenerated("(gen_random_uuid())::text"))
-  name             String
-  slug             String            @unique
-  cnpj             String?           @unique
-  email            String?
-  phone            String?
-  address          Json?
-  settings         Json?
-  plan             Plan              @default(FREE)
-  status           Status            @default(ACTIVE)
-  createdAt        DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt        DateTime          @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  brokers          Broker[]
-  commissions      Commission[]
-  customerAccounts CustomerAccount[]
-  customers        Customer[]
-  offers           Offer[]
-  proposals        Proposal[]
-  sales            Sale[]
-  trips            Trip[]
-  users            User[]
-  wishes           Wish[]
+  id                  String               @id @default(dbgenerated("(gen_random_uuid())::text"))
+  name                String
+  slug                String               @unique
+  cnpj                String?              @unique
+  email               String?
+  phone               String?
+  address             Json?
+  settings            Json?
+  plan                Plan                 @default(FREE)
+  status              Status               @default(ACTIVE)
+  createdAt           DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime             @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  brokers             Broker[]
+  commissions         Commission[]
+  customerAccounts    CustomerAccount[]
+  customers           Customer[]
+  offers              Offer[]
+  proposals           Proposal[]
+  sales               Sale[]
+  trips               Trip[]
+  users               User[]
+  wishes              Wish[]
+  routes              Route[]
+  routePoints         RoutePoint[]
+  suppliers           Supplier[]
+  transportProducts   TransportProduct[]
+  scheduledDepartures ScheduledDeparture[]
 
   @@map("agencies")
 }
@@ -409,4 +414,166 @@ enum TripStatus {
   IN_PROGRESS
   COMPLETED
   CANCELLED
+}
+
+// ============================================================
+// TRANSPORTATION DOMAIN (see infrastructure/migrations/003_transportation.sql)
+// ============================================================
+
+enum TripType {
+  ONE_WAY
+  ROUND_TRIP
+}
+
+enum DepartureServiceType {
+  OWN
+  SUBCONTRACTED
+  RESELL
+}
+
+enum CheckpointType {
+  ARRIVAL
+  DEPARTURE
+  BOTH
+}
+
+model Route {
+  id                String             @id @default(dbgenerated("(gen_random_uuid())::text"))
+  agencyId          String             @map("agency_id")
+  origin            String
+  destination       String
+  estimatedDuration Int?               @map("estimated_duration")
+  distance          Decimal?           @db.Decimal(10, 2)
+  notes             String?
+  active            Boolean            @default(true)
+  createdAt         DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime           @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  agency            Agency             @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "routes_agency_fk")
+  outboundProducts  TransportProduct[] @relation("ProductOutboundRoute")
+  returnProducts    TransportProduct[] @relation("ProductReturnRoute")
+  points            RoutePoint[]
+
+  @@unique([agencyId, id], map: "routes_agency_id_key")
+  @@index([agencyId], map: "routes_agency_idx")
+  @@index([agencyId, active], map: "routes_agency_active_idx")
+  @@map("routes")
+}
+
+// RoutePoint: an ordered itinerary point on a Route. Check-in is
+// optional per point (checkpointRequired); see 004_route_points.sql
+// for the full scope-decision notes.
+model RoutePoint {
+  id                   String          @id @default(dbgenerated("(gen_random_uuid())::text"))
+  agencyId             String          @map("agency_id")
+  routeId              String          @map("route_id")
+  sequence             Int
+  name                 String
+  checkpointRequired   Boolean         @default(false) @map("checkpoint_required")
+  checkpointType       CheckpointType? @map("checkpoint_type")
+  // Minutes after the future ScheduledDeparture's departureAt. Not an
+  // absolute time; expected-absolute-time (departureAt + offset) is a
+  // future derivation, not stored here.
+  plannedOffsetMinutes Int?            @map("planned_offset_minutes")
+  notes                String?
+  createdAt            DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime        @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  agency               Agency          @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "route_points_agency_fk")
+  route                Route           @relation(fields: [agencyId, routeId], references: [agencyId, id], onDelete: Restrict, map: "route_points_route_tenant_fk")
+
+  // NOTE: route_points_checkpoint_type_required_check (SQL CHECK)
+  // enforces checkpointRequired/checkpointType consistency at the
+  // database layer; Prisma cannot express cross-column CHECK
+  // constraints, so this file cannot describe it directly (same
+  // limitation as the other CHECK constraints noted elsewhere in this
+  // file).
+
+  @@unique([agencyId, id], map: "route_points_agency_id_key")
+  @@unique([agencyId, routeId, sequence], map: "route_points_agency_route_sequence_key")
+  @@index([agencyId], map: "route_points_agency_idx")
+  @@index([agencyId, routeId, sequence], map: "route_points_agency_route_sequence_idx")
+  @@map("route_points")
+}
+
+model Supplier {
+  id         String               @id @default(dbgenerated("(gen_random_uuid())::text"))
+  agencyId   String               @map("agency_id")
+  name       String
+  document   String?
+  contact    String?
+  active     Boolean              @default(true)
+  createdAt  DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime             @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  agency     Agency               @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "suppliers_agency_fk")
+  departures ScheduledDeparture[]
+
+  @@unique([agencyId, id], map: "suppliers_agency_id_key")
+  @@index([agencyId], map: "suppliers_agency_idx")
+  @@index([agencyId, active], map: "suppliers_agency_active_idx")
+  @@map("suppliers")
+}
+
+model TransportProduct {
+  id               String               @id @default(dbgenerated("(gen_random_uuid())::text"))
+  agencyId         String               @map("agency_id")
+  name             String
+  tripType         TripType             @map("trip_type")
+  outboundRouteId  String               @map("outbound_route_id")
+  returnRouteId    String?              @map("return_route_id")
+  price            Decimal              @db.Decimal(10, 2)
+  active           Boolean              @default(true)
+  publiclyBookable Boolean              @default(false) @map("publicly_bookable")
+  notes            String?
+  createdAt        DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime             @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  agency           Agency               @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "transport_products_agency_fk")
+  departures       ScheduledDeparture[]
+  outboundRoute    Route                @relation("ProductOutboundRoute", fields: [agencyId, outboundRouteId], references: [agencyId, id], onDelete: Restrict, map: "transport_products_outbound_route_tenant_fk")
+  // returnRouteId is nullable: same SetNull-by-default risk noted on
+  // Proposal/Sale/Commission/Trip above. Explicit onDelete: Restrict
+  // here is required for this file to be accurate.
+  returnRoute      Route?               @relation("ProductReturnRoute", fields: [agencyId, returnRouteId], references: [agencyId, id], onDelete: Restrict, map: "transport_products_return_route_tenant_fk")
+
+  // NOTE: transport_products_return_route_required_check (SQL CHECK)
+  // enforces trip_type/return_route_id consistency at the database
+  // layer; Prisma cannot express cross-column CHECK constraints, so
+  // this file cannot describe it directly (same limitation as the
+  // other CHECK constraints noted at the top of this file).
+  @@unique([agencyId, id], map: "transport_products_agency_id_key")
+  @@index([agencyId], map: "transport_products_agency_idx")
+  @@index([agencyId, outboundRouteId], map: "transport_products_agency_outbound_route_idx")
+  @@index([agencyId, returnRouteId], map: "transport_products_agency_return_route_idx")
+  @@index([agencyId, active], map: "transport_products_agency_active_idx")
+  @@index([agencyId, publiclyBookable], map: "transport_products_agency_publicly_bookable_idx")
+  @@map("transport_products")
+}
+
+model ScheduledDeparture {
+  id                String               @id @default(dbgenerated("(gen_random_uuid())::text"))
+  agencyId          String               @map("agency_id")
+  productId         String               @map("product_id")
+  departureAt       DateTime             @map("departure_at") @db.Timestamptz(6)
+  arrivalExpectedAt DateTime?            @map("arrival_expected_at") @db.Timestamptz(6)
+  capacity          Int
+  supplierId        String?              @map("supplier_id")
+  serviceType       DepartureServiceType @map("service_type")
+  // No SCHEDULED/DEPARTED/CANCELLED/COMPLETED lifecycle enum exists
+  // (no approved decision). This boolean exists only because it is
+  // mechanically necessary for the "hard capacity limit" rule to be
+  // meaningful once Booking exists (a cancelled departure must not
+  // count toward availability) -- see 003_transportation.sql.
+  cancelled         Boolean              @default(false)
+  notes             String?
+  createdAt         DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime             @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  agency            Agency               @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "scheduled_departures_agency_fk")
+  product           TransportProduct     @relation(fields: [agencyId, productId], references: [agencyId, id], onDelete: Restrict, map: "scheduled_departures_product_tenant_fk")
+  // supplierId is nullable: same SetNull-by-default risk noted above.
+  supplier          Supplier?            @relation(fields: [agencyId, supplierId], references: [agencyId, id], onDelete: Restrict, map: "scheduled_departures_supplier_tenant_fk")
+
+  @@unique([agencyId, id], map: "scheduled_departures_agency_id_key")
+  @@index([agencyId], map: "scheduled_departures_agency_idx")
+  @@index([agencyId, productId, departureAt], map: "scheduled_departures_agency_product_departure_idx")
+  @@index([agencyId, supplierId], map: "scheduled_departures_agency_supplier_idx")
+  @@index([agencyId, departureAt], map: "scheduled_departures_agency_departure_at_idx")
+  @@map("scheduled_departures")
 }
