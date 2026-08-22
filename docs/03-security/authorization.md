@@ -54,6 +54,10 @@ VIEWER (20)
 | Criar | ✅ | ✅ | ✅ | ❌ | ❌ |
 | Editar | ✅ | ✅ | ✅ | ❌ | ❌ |
 | Remover | ✅ | ✅ | ❌ | ❌ | ❌ |
+| **Proposals** | | | | | |
+| Listar | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Criar | ✅ | ✅ | ✅ | ❌ | ❌ |
+| Editar | ✅ | ✅ | ✅ | ❌ | ❌ |
 | **Sales** | | | | | |
 | Listar todas | ✅ | ✅ | ✅ | ❌ | ❌ |
 | Listar próprias | ✅ | ✅ | ✅ | ✅ | ✅ |

@@ -43,6 +43,14 @@ import {
   type CreateOfferInput,
   type UpdateOfferInput,
 } from './offers';
+import {
+  createProposal,
+  getProposalById,
+  listProposals,
+  updateProposal,
+  type CreateProposalInput,
+  type UpdateProposalInput,
+} from './proposals';
 
 export interface BuildAppOptions {
   authProvider: AuthProvider;
@@ -289,6 +297,52 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       }
 
       return { offer };
+    },
+  );
+
+  app.get('/proposals', { preHandler: protectedHooks }, async () => {
+    requireRole(UserRole.VIEWER);
+    const proposals = await listProposals(options.database);
+    return { proposals };
+  });
+
+  app.get<{ Params: { id: string } }>(
+    '/proposals/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      const proposal = await getProposalById(options.database, request.params.id);
+
+      if (!proposal) {
+        throw new NotFoundError('Proposal not found');
+      }
+
+      return { proposal };
+    },
+  );
+
+  app.post('/proposals', { preHandler: protectedHooks }, async (request, reply) => {
+    requireRole(UserRole.MANAGER);
+    const { customerId, data } = parseCreateProposalInput(request.body);
+    const proposal = await createProposal(options.database, customerId, data);
+
+    reply.code(201);
+    return { proposal };
+  });
+
+  app.patch<{ Params: { id: string } }>(
+    '/proposals/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.MANAGER);
+      const data = parseUpdateProposalInput(request.body);
+      const proposal = await updateProposal(options.database, request.params.id, data);
+
+      if (!proposal) {
+        throw new NotFoundError('Proposal not found');
+      }
+
+      return { proposal };
     },
   );
 
@@ -931,6 +985,202 @@ function parseUpdateOfferInput(body: unknown): UpdateOfferInput {
       throw new ValidationError('Field "status" must be one of ACTIVE, INACTIVE, EXPIRED');
     }
     data.status = record.status as NonNullable<UpdateOfferInput['status']>;
+  }
+
+  if (Object.keys(data).length === 0) {
+    throw new ValidationError('At least one field must be provided');
+  }
+
+  return data;
+}
+
+const FORBIDDEN_PROPOSAL_CREATE_FIELDS = [
+  'agencyId',
+  'tenantId',
+  'id',
+  'createdAt',
+  'updatedAt',
+  'total',
+  'status',
+  'userId',
+] as const;
+
+const ALLOWED_PROPOSAL_CREATE_FIELDS = [
+  'customerId',
+  'offerId',
+  'wishId',
+  'proposedPrice',
+  'discount',
+  'validUntil',
+  'conditions',
+  'notes',
+] as const;
+
+const FORBIDDEN_PROPOSAL_UPDATE_FIELDS = [
+  'agencyId',
+  'tenantId',
+  'id',
+  'createdAt',
+  'updatedAt',
+  'total',
+  'status',
+  'userId',
+  'customerId',
+  'offerId',
+  'wishId',
+] as const;
+
+const ALLOWED_PROPOSAL_UPDATE_FIELDS = [
+  'proposedPrice',
+  'discount',
+  'validUntil',
+  'conditions',
+  'notes',
+] as const;
+
+function parseProposalDate(value: unknown, field: string): Date {
+  if (typeof value !== 'string') {
+    throw new ValidationError(`Field "${field}" must be a string`);
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    throw new ValidationError(`Field "${field}" must be a valid date`);
+  }
+
+  return date;
+}
+
+function parseProposalMoney(value: unknown, field: string): number {
+  if (typeof value !== 'number' || Number.isNaN(value)) {
+    throw new ValidationError(`Field "${field}" must be a number`);
+  }
+  if (value < 0) {
+    throw new ValidationError(`Field "${field}" must not be negative`);
+  }
+  return value;
+}
+
+function parseCreateProposalInput(body: unknown): {
+  customerId: string;
+  data: CreateProposalInput;
+} {
+  if (typeof body !== 'object' || body === null || Array.isArray(body)) {
+    throw new ValidationError('Request body must be an object');
+  }
+
+  const record = body as Record<string, unknown>;
+
+  for (const field of FORBIDDEN_PROPOSAL_CREATE_FIELDS) {
+    if (field in record) {
+      throw new ValidationError(`Field "${field}" is not allowed in the request body`);
+    }
+  }
+
+  for (const key of Object.keys(record)) {
+    if (!(ALLOWED_PROPOSAL_CREATE_FIELDS as readonly string[]).includes(key)) {
+      throw new ValidationError(`Unknown field "${key}" in request body`);
+    }
+  }
+
+  if (typeof record.customerId !== 'string' || record.customerId.trim().length === 0) {
+    throw new ValidationError('Field "customerId" is required and must be a non-empty string');
+  }
+  if (record.proposedPrice === undefined) {
+    throw new ValidationError('Field "proposedPrice" is required');
+  }
+
+  const data: CreateProposalInput = {
+    proposedPrice: parseProposalMoney(record.proposedPrice, 'proposedPrice'),
+  };
+
+  if (record.offerId !== undefined) {
+    if (typeof record.offerId !== 'string' || record.offerId.trim().length === 0) {
+      throw new ValidationError('Field "offerId" must be a non-empty string');
+    }
+    data.offerId = record.offerId;
+  }
+  if (record.wishId !== undefined) {
+    if (typeof record.wishId !== 'string' || record.wishId.trim().length === 0) {
+      throw new ValidationError('Field "wishId" must be a non-empty string');
+    }
+    data.wishId = record.wishId;
+  }
+  if (record.discount !== undefined) {
+    data.discount = parseProposalMoney(record.discount, 'discount');
+  }
+  if (record.validUntil !== undefined) {
+    data.validUntil = parseProposalDate(record.validUntil, 'validUntil');
+  }
+  if (record.conditions !== undefined) {
+    if (typeof record.conditions !== 'string') {
+      throw new ValidationError('Field "conditions" must be a string');
+    }
+    data.conditions = record.conditions;
+  }
+  if (record.notes !== undefined) {
+    if (typeof record.notes !== 'string') {
+      throw new ValidationError('Field "notes" must be a string');
+    }
+    data.notes = record.notes;
+  }
+
+  if (data.discount !== undefined && data.discount > data.proposedPrice) {
+    throw new ValidationError('Field "discount" must not exceed "proposedPrice"');
+  }
+
+  return { customerId: record.customerId, data };
+}
+
+function parseUpdateProposalInput(body: unknown): UpdateProposalInput {
+  if (typeof body !== 'object' || body === null || Array.isArray(body)) {
+    throw new ValidationError('Request body must be an object');
+  }
+
+  const record = body as Record<string, unknown>;
+
+  for (const field of FORBIDDEN_PROPOSAL_UPDATE_FIELDS) {
+    if (field in record) {
+      throw new ValidationError(`Field "${field}" is not allowed in the request body`);
+    }
+  }
+
+  for (const key of Object.keys(record)) {
+    if (!(ALLOWED_PROPOSAL_UPDATE_FIELDS as readonly string[]).includes(key)) {
+      throw new ValidationError(`Unknown field "${key}" in request body`);
+    }
+  }
+
+  const data: UpdateProposalInput = {};
+
+  if (record.proposedPrice !== undefined) {
+    data.proposedPrice = parseProposalMoney(record.proposedPrice, 'proposedPrice');
+  }
+  if (record.discount !== undefined) {
+    data.discount = parseProposalMoney(record.discount, 'discount');
+  }
+  if (record.validUntil !== undefined) {
+    data.validUntil = parseProposalDate(record.validUntil, 'validUntil');
+  }
+  if (record.conditions !== undefined) {
+    if (typeof record.conditions !== 'string') {
+      throw new ValidationError('Field "conditions" must be a string');
+    }
+    data.conditions = record.conditions;
+  }
+  if (record.notes !== undefined) {
+    if (typeof record.notes !== 'string') {
+      throw new ValidationError('Field "notes" must be a string');
+    }
+    data.notes = record.notes;
+  }
+
+  if (
+    data.proposedPrice !== undefined &&
+    data.discount !== undefined &&
+    data.discount > data.proposedPrice
+  ) {
+    throw new ValidationError('Field "discount" must not exceed "proposedPrice"');
   }
 
   if (Object.keys(data).length === 0) {
