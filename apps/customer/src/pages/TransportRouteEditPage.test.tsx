@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { TransportRouteEditPage } from './TransportRouteEditPage';
-import { getRoute, updateRoute } from '../lib/api';
+import { getRoute, listRoutePoints, updateRoute } from '../lib/api';
 
 vi.mock('../lib/api', () => {
   class MockApiError extends Error {
@@ -17,6 +17,10 @@ vi.mock('../lib/api', () => {
   return {
     getRoute: vi.fn(),
     updateRoute: vi.fn(),
+    listRoutePoints: vi.fn(),
+    createRoutePoint: vi.fn(),
+    updateRoutePoint: vi.fn(),
+    reorderRoutePoints: vi.fn(),
     ApiError: MockApiError,
   };
 });
@@ -39,6 +43,7 @@ function renderRouted() {
 
 describe('TransportRouteEditPage', () => {
   it('loads current values and includes the active toggle', async () => {
+    vi.mocked(listRoutePoints).mockResolvedValue([]);
     vi.mocked(getRoute).mockResolvedValue({
       id: 'r1',
       agencyId: 'a1',
@@ -54,6 +59,7 @@ describe('TransportRouteEditPage', () => {
   });
 
   it('submits updates and navigates to details', async () => {
+    vi.mocked(listRoutePoints).mockResolvedValue([]);
     vi.mocked(getRoute).mockResolvedValue({
       id: 'r1',
       agencyId: 'a1',

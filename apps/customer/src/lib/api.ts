@@ -21,6 +21,9 @@ import type {
   CreateScheduledDepartureInput,
   UpdateScheduledDepartureInput,
   AgendaEntry,
+  RoutePoint,
+  CreateRoutePointInput,
+  UpdateRoutePointInput,
 } from '../types/transport';
 
 // Single seam for a future production API base URL. In local dev this stays
@@ -276,6 +279,56 @@ export async function updateRoute(id: string, input: UpdateRouteInput): Promise<
     },
   );
   return data.route;
+}
+
+export async function listRoutePoints(routeId: string): Promise<RoutePoint[]> {
+  const data = await request<{ points: RoutePoint[] }>(
+    `/api/transport/routes/${encodeURIComponent(routeId)}/points`,
+  );
+  return data.points;
+}
+
+export async function createRoutePoint(
+  routeId: string,
+  input: CreateRoutePointInput,
+): Promise<RoutePoint> {
+  const data = await request<{ point: RoutePoint }>(
+    `/api/transport/routes/${encodeURIComponent(routeId)}/points`,
+    {
+      method: 'POST',
+      body: JSON.stringify(input),
+    },
+  );
+  return data.point;
+}
+
+export async function updateRoutePoint(
+  routeId: string,
+  pointId: string,
+  input: UpdateRoutePointInput,
+): Promise<RoutePoint> {
+  const data = await request<{ point: RoutePoint }>(
+    `/api/transport/routes/${encodeURIComponent(routeId)}/points/${encodeURIComponent(pointId)}`,
+    {
+      method: 'PATCH',
+      body: JSON.stringify(input),
+    },
+  );
+  return data.point;
+}
+
+export async function reorderRoutePoints(
+  routeId: string,
+  orderedPointIds: string[],
+): Promise<RoutePoint[]> {
+  const data = await request<{ points: RoutePoint[] }>(
+    `/api/transport/routes/${encodeURIComponent(routeId)}/points/reorder`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ orderedPointIds }),
+    },
+  );
+  return data.points;
 }
 
 export async function listSuppliers(): Promise<Supplier[]> {

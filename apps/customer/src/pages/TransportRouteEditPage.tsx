@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ApiError, getRoute, updateRoute } from '../lib/api';
 import type { UpdateRouteInput } from '../types/transport';
 import { Button } from '../components/ui/button';
+import { RoutePointsEditor } from '../components/RoutePointsEditor';
 
 interface FormFields {
   origin: string;
@@ -259,6 +260,14 @@ export function TransportRouteEditPage() {
           </Button>
         </div>
       </form>
+
+      {/*
+        RoutePoints require an existing routeId, so this editor only
+        appears once the Route has been saved -- on the Create page
+        (TransportRouteFormPage) points cannot be added until after the
+        POST succeeds and the user lands here or on the details page.
+      */}
+      {id && <RoutePointsEditor routeId={id} />}
     </div>
   );
 }

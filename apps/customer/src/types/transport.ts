@@ -141,6 +141,45 @@ export interface UpdateScheduledDepartureInput {
   notes?: string;
 }
 
+export type CheckpointType = 'ARRIVAL' | 'DEPARTURE' | 'BOTH';
+
+// RoutePoint: an ordered itinerary point on a Route. Check-in is
+// OPTIONAL PER POINT (checkpointRequired) -- see packages/domain/types.ts
+// for the full scope-decision notes. plannedOffsetMinutes is minutes
+// after a ScheduledDeparture's departureAt (not an absolute time).
+export interface RoutePoint {
+  id: string;
+  agencyId: string;
+  routeId: string;
+  sequence: number;
+  name: string;
+  checkpointRequired: boolean;
+  checkpointType?: CheckpointType;
+  plannedOffsetMinutes?: number;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateRoutePointInput {
+  sequence: number;
+  name: string;
+  checkpointRequired?: boolean;
+  checkpointType?: CheckpointType;
+  plannedOffsetMinutes?: number;
+  notes?: string;
+}
+
+// routeId/sequence are not editable via this input -- sequence changes
+// only happen through the dedicated reorder endpoint.
+export interface UpdateRoutePointInput {
+  name?: string;
+  checkpointRequired?: boolean;
+  checkpointType?: CheckpointType | null;
+  plannedOffsetMinutes?: number | null;
+  notes?: string | null;
+}
+
 export interface AgendaEntry {
   departure: ScheduledDeparture;
   productName: string;
