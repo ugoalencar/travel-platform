@@ -37,6 +37,9 @@ import { DepartureFormPage } from './pages/DepartureFormPage';
 import { DepartureDetailsPage } from './pages/DepartureDetailsPage';
 import { DepartureEditPage } from './pages/DepartureEditPage';
 import { TransportAgendaPage } from './pages/TransportAgendaPage';
+import { BookingsPage } from './pages/BookingsPage';
+import { BookingFormPage } from './pages/BookingFormPage';
+import { BookingDetailsPage } from './pages/BookingDetailsPage';
 
 export function App() {
   return (
@@ -63,6 +66,9 @@ export function App() {
         <Route path="proposals/new" element={<ProposalFormPage />} />
         <Route path="proposals/:id" element={<ProposalDetailsPage />} />
         <Route path="proposals/:id/edit" element={<ProposalEditPage />} />
+        <Route path="bookings" element={<BookingsPage />} />
+        <Route path="bookings/new" element={<BookingFormPage />} />
+        <Route path="bookings/:id" element={<BookingDetailsPage />} />
         <Route path="transport/routes" element={<TransportRoutesPage />} />
         <Route path="transport/routes/new" element={<TransportRouteFormPage />} />
         <Route path="transport/routes/:id" element={<TransportRouteDetailsPage />} />
