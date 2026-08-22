@@ -5,6 +5,7 @@ import type {
 } from '../types/customer';
 import type { Wish, CreateWishInput, UpdateWishInput } from '../types/wish';
 import type { Trip, CreateTripInput, UpdateTripInput } from '../types/trip';
+import type { Offer, CreateOfferInput, UpdateOfferInput } from '../types/offer';
 
 // Single seam for a future production API base URL. In local dev this stays
 // empty so requests go to relative paths (e.g. `/api/customers`) and are
@@ -160,4 +161,38 @@ export async function updateTrip(
     },
   );
   return data.trip;
+}
+
+export async function listOffers(): Promise<Offer[]> {
+  const data = await request<{ offers: Offer[] }>('/api/offers');
+  return data.offers;
+}
+
+export async function getOffer(id: string): Promise<Offer> {
+  const data = await request<{ offer: Offer }>(
+    `/api/offers/${encodeURIComponent(id)}`,
+  );
+  return data.offer;
+}
+
+export async function createOffer(input: CreateOfferInput): Promise<Offer> {
+  const data = await request<{ offer: Offer }>('/api/offers', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+  return data.offer;
+}
+
+export async function updateOffer(
+  id: string,
+  input: UpdateOfferInput,
+): Promise<Offer> {
+  const data = await request<{ offer: Offer }>(
+    `/api/offers/${encodeURIComponent(id)}`,
+    {
+      method: 'PATCH',
+      body: JSON.stringify(input),
+    },
+  );
+  return data.offer;
 }

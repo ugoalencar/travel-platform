@@ -35,6 +35,14 @@ import {
   type CreateTripInput,
   type UpdateTripInput,
 } from './trips';
+import {
+  createOffer,
+  getOfferById,
+  listOffers,
+  updateOffer,
+  type CreateOfferInput,
+  type UpdateOfferInput,
+} from './offers';
 
 export interface BuildAppOptions {
   authProvider: AuthProvider;
@@ -235,6 +243,52 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       }
 
       return { trip };
+    },
+  );
+
+  app.get('/offers', { preHandler: protectedHooks }, async () => {
+    requireRole(UserRole.VIEWER);
+    const offers = await listOffers(options.database);
+    return { offers };
+  });
+
+  app.get<{ Params: { id: string } }>(
+    '/offers/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      const offer = await getOfferById(options.database, request.params.id);
+
+      if (!offer) {
+        throw new NotFoundError('Offer not found');
+      }
+
+      return { offer };
+    },
+  );
+
+  app.post('/offers', { preHandler: protectedHooks }, async (request, reply) => {
+    requireRole(UserRole.MANAGER);
+    const data = parseCreateOfferInput(request.body);
+    const offer = await createOffer(options.database, data);
+
+    reply.code(201);
+    return { offer };
+  });
+
+  app.patch<{ Params: { id: string } }>(
+    '/offers/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.MANAGER);
+      const data = parseUpdateOfferInput(request.body);
+      const offer = await updateOffer(options.database, request.params.id, data);
+
+      if (!offer) {
+        throw new NotFoundError('Offer not found');
+      }
+
+      return { offer };
     },
   );
 
@@ -712,6 +766,171 @@ function parseUpdateTripInput(body: unknown): UpdateTripInput {
       throw new ValidationError('Field "notes" must be a string');
     }
     data.notes = record.notes;
+  }
+
+  if (Object.keys(data).length === 0) {
+    throw new ValidationError('At least one field must be provided');
+  }
+
+  return data;
+}
+
+const FORBIDDEN_OFFER_CREATE_FIELDS = [
+  'agencyId',
+  'tenantId',
+  'id',
+  'createdAt',
+  'updatedAt',
+  'status',
+] as const;
+
+const ALLOWED_OFFER_CREATE_FIELDS = [
+  'name',
+  'description',
+  'price',
+  'validFrom',
+  'validUntil',
+] as const;
+
+const FORBIDDEN_OFFER_UPDATE_FIELDS = [
+  'agencyId',
+  'tenantId',
+  'id',
+  'createdAt',
+  'updatedAt',
+] as const;
+
+const ALLOWED_OFFER_UPDATE_FIELDS = [
+  'name',
+  'description',
+  'price',
+  'validFrom',
+  'validUntil',
+  'status',
+] as const;
+
+const VALID_OFFER_STATUS_VALUES = ['ACTIVE', 'INACTIVE', 'EXPIRED'] as const;
+
+function parseOfferDate(value: unknown, field: string): Date {
+  if (typeof value !== 'string') {
+    throw new ValidationError(`Field "${field}" must be a string`);
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    throw new ValidationError(`Field "${field}" must be a valid date`);
+  }
+
+  return date;
+}
+
+function parseOfferPrice(value: unknown): number {
+  if (typeof value !== 'number' || Number.isNaN(value)) {
+    throw new ValidationError('Field "price" must be a number');
+  }
+  if (value < 0) {
+    throw new ValidationError('Field "price" must not be negative');
+  }
+  return value;
+}
+
+function parseCreateOfferInput(body: unknown): CreateOfferInput {
+  if (typeof body !== 'object' || body === null || Array.isArray(body)) {
+    throw new ValidationError('Request body must be an object');
+  }
+
+  const record = body as Record<string, unknown>;
+
+  for (const field of FORBIDDEN_OFFER_CREATE_FIELDS) {
+    if (field in record) {
+      throw new ValidationError(`Field "${field}" is not allowed in the request body`);
+    }
+  }
+
+  for (const key of Object.keys(record)) {
+    if (!(ALLOWED_OFFER_CREATE_FIELDS as readonly string[]).includes(key)) {
+      throw new ValidationError(`Unknown field "${key}" in request body`);
+    }
+  }
+
+  if (typeof record.name !== 'string' || record.name.trim().length === 0) {
+    throw new ValidationError('Field "name" is required and must be a non-empty string');
+  }
+  if (record.price === undefined) {
+    throw new ValidationError('Field "price" is required');
+  }
+
+  const data: CreateOfferInput = {
+    name: record.name,
+    price: parseOfferPrice(record.price),
+  };
+
+  if (record.description !== undefined) {
+    if (typeof record.description !== 'string') {
+      throw new ValidationError('Field "description" must be a string');
+    }
+    data.description = record.description;
+  }
+  if (record.validFrom !== undefined) {
+    data.validFrom = parseOfferDate(record.validFrom, 'validFrom');
+  }
+  if (record.validUntil !== undefined) {
+    data.validUntil = parseOfferDate(record.validUntil, 'validUntil');
+  }
+
+  return data;
+}
+
+function parseUpdateOfferInput(body: unknown): UpdateOfferInput {
+  if (typeof body !== 'object' || body === null || Array.isArray(body)) {
+    throw new ValidationError('Request body must be an object');
+  }
+
+  const record = body as Record<string, unknown>;
+
+  for (const field of FORBIDDEN_OFFER_UPDATE_FIELDS) {
+    if (field in record) {
+      throw new ValidationError(`Field "${field}" is not allowed in the request body`);
+    }
+  }
+
+  for (const key of Object.keys(record)) {
+    if (!(ALLOWED_OFFER_UPDATE_FIELDS as readonly string[]).includes(key)) {
+      throw new ValidationError(`Unknown field "${key}" in request body`);
+    }
+  }
+
+  const data: UpdateOfferInput = {};
+
+  if (record.name !== undefined) {
+    if (typeof record.name !== 'string' || record.name.trim().length === 0) {
+      throw new ValidationError('Field "name" must be a non-empty string');
+    }
+    data.name = record.name;
+  }
+  if (record.description !== undefined) {
+    if (typeof record.description !== 'string') {
+      throw new ValidationError('Field "description" must be a string');
+    }
+    data.description = record.description;
+  }
+  if (record.price !== undefined) {
+    data.price = parseOfferPrice(record.price);
+  }
+  if (record.validFrom !== undefined) {
+    data.validFrom = parseOfferDate(record.validFrom, 'validFrom');
+  }
+  if (record.validUntil !== undefined) {
+    data.validUntil = parseOfferDate(record.validUntil, 'validUntil');
+  }
+  if (record.status !== undefined) {
+    if (
+      typeof record.status !== 'string' ||
+      !(VALID_OFFER_STATUS_VALUES as readonly string[]).includes(record.status)
+    ) {
+      throw new ValidationError('Field "status" must be one of ACTIVE, INACTIVE, EXPIRED');
+    }
+    data.status = record.status as NonNullable<UpdateOfferInput['status']>;
   }
 
   if (Object.keys(data).length === 0) {
