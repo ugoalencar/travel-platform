@@ -108,6 +108,14 @@ import {
   listOperations,
   type CreateOperationInput,
 } from './transport-operations';
+import {
+  createSale,
+  getSaleById,
+  listSales,
+  updateSale,
+  type CreateSaleInput,
+  type UpdateSaleInput,
+} from './sales';
 
 export interface BuildAppOptions {
   authProvider: AuthProvider;
@@ -752,6 +760,63 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       return { checkpoint };
     },
   );
+
+  // Sale RBAC (docs/03-security/authorization.md): "Listar todas" is
+  // OWNER/ADMIN/MANAGER only, "Listar próprias" is all 5 roles. userId is
+  // never populated from client input on create in this vertical, so there
+  // is no client-controllable "own" subset to filter by -- GET /sales is a
+  // single tenant-wide list gated at the lower floor ("listar próprias"),
+  // i.e. VIEWER+, consistent with both documented rows since there is no
+  // narrower subset to withhold from a VIEWER. "Editar status" (its own,
+  // higher floor) is intentionally not exercised: this vertical treats
+  // status as fully read-only (forbidden on POST/PATCH), so no
+  // status-editing route exists at all.
+  app.get('/sales', { preHandler: protectedHooks }, async () => {
+    requireRole(UserRole.VIEWER);
+    const sales = await listSales(options.database);
+    return { sales };
+  });
+
+  app.get<{ Params: { id: string } }>(
+    '/sales/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      const sale = await getSaleById(options.database, request.params.id);
+
+      if (!sale) {
+        throw new NotFoundError('Sale not found');
+      }
+
+      return { sale };
+    },
+  );
+
+  app.post('/sales', { preHandler: protectedHooks }, async (request, reply) => {
+    requireRole(UserRole.AGENT);
+    const data = parseCreateSaleInput(request.body);
+    const sale = await createSale(options.database, data);
+
+    reply.code(201);
+    return { sale };
+  });
+
+  app.patch<{ Params: { id: string } }>(
+    '/sales/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.AGENT);
+      const data = parseUpdateSaleInput(request.body);
+      const sale = await updateSale(options.database, request.params.id, data);
+
+      if (!sale) {
+        throw new NotFoundError('Sale not found');
+      }
+
+      return { sale };
+    },
+  );
+
 
   if (options.exposeTestRoutes === true) {
     app.post('/__test/rollback-proof', { preHandler: protectedHooks }, async () => {
@@ -1596,6 +1661,152 @@ function parseUpdateProposalInput(body: unknown): UpdateProposalInput {
 
   return data;
 }
+
+const FORBIDDEN_SALE_CREATE_FIELDS = [
+  'agencyId',
+  'tenantId',
+  'id',
+  'createdAt',
+  'updatedAt',
+  'total',
+  'status',
+  'userId',
+  'paidAt',
+] as const;
+
+const ALLOWED_SALE_CREATE_FIELDS = [
+  'customerId',
+  'proposalId',
+  'brokerId',
+  'amount',
+  'discount',
+  'notes',
+] as const;
+
+const FORBIDDEN_SALE_UPDATE_FIELDS = [
+  'agencyId',
+  'tenantId',
+  'id',
+  'createdAt',
+  'updatedAt',
+  'total',
+  'status',
+  'userId',
+  'paidAt',
+  'customerId',
+  'proposalId',
+  'brokerId',
+] as const;
+
+const ALLOWED_SALE_UPDATE_FIELDS = ['amount', 'discount', 'notes'] as const;
+
+function parseSaleMoney(value: unknown, field: string): number {
+  if (typeof value !== 'number' || Number.isNaN(value)) {
+    throw new ValidationError(`Field "${field}" must be a number`);
+  }
+  if (value < 0) {
+    throw new ValidationError(`Field "${field}" must not be negative`);
+  }
+  return value;
+}
+
+function parseCreateSaleInput(body: unknown): CreateSaleInput {
+  if (typeof body !== 'object' || body === null || Array.isArray(body)) {
+    throw new ValidationError('Request body must be an object');
+  }
+
+  const record = body as Record<string, unknown>;
+
+  for (const field of FORBIDDEN_SALE_CREATE_FIELDS) {
+    if (field in record) {
+      throw new ValidationError(`Field "${field}" is not allowed in the request body`);
+    }
+  }
+
+  for (const key of Object.keys(record)) {
+    if (!(ALLOWED_SALE_CREATE_FIELDS as readonly string[]).includes(key)) {
+      throw new ValidationError(`Unknown field "${key}" in request body`);
+    }
+  }
+
+  if (typeof record.customerId !== 'string' || record.customerId.trim().length === 0) {
+    throw new ValidationError('Field "customerId" is required and must be a non-empty string');
+  }
+  if (record.amount === undefined) {
+    throw new ValidationError('Field "amount" is required');
+  }
+
+  const data: CreateSaleInput = {
+    customerId: record.customerId,
+    amount: parseSaleMoney(record.amount, 'amount'),
+  };
+
+  if (record.proposalId !== undefined) {
+    if (typeof record.proposalId !== 'string' || record.proposalId.trim().length === 0) {
+      throw new ValidationError('Field "proposalId" must be a non-empty string');
+    }
+    data.proposalId = record.proposalId;
+  }
+  if (record.brokerId !== undefined) {
+    if (typeof record.brokerId !== 'string' || record.brokerId.trim().length === 0) {
+      throw new ValidationError('Field "brokerId" must be a non-empty string');
+    }
+    data.brokerId = record.brokerId;
+  }
+  if (record.discount !== undefined) {
+    data.discount = parseSaleMoney(record.discount, 'discount');
+  }
+  if (record.notes !== undefined) {
+    if (typeof record.notes !== 'string') {
+      throw new ValidationError('Field "notes" must be a string');
+    }
+    data.notes = record.notes;
+  }
+
+  return data;
+}
+
+function parseUpdateSaleInput(body: unknown): UpdateSaleInput {
+  if (typeof body !== 'object' || body === null || Array.isArray(body)) {
+    throw new ValidationError('Request body must be an object');
+  }
+
+  const record = body as Record<string, unknown>;
+
+  for (const field of FORBIDDEN_SALE_UPDATE_FIELDS) {
+    if (field in record) {
+      throw new ValidationError(`Field "${field}" is not allowed in the request body`);
+    }
+  }
+
+  for (const key of Object.keys(record)) {
+    if (!(ALLOWED_SALE_UPDATE_FIELDS as readonly string[]).includes(key)) {
+      throw new ValidationError(`Unknown field "${key}" in request body`);
+    }
+  }
+
+  const data: UpdateSaleInput = {};
+
+  if (record.amount !== undefined) {
+    data.amount = parseSaleMoney(record.amount, 'amount');
+  }
+  if (record.discount !== undefined) {
+    data.discount = parseSaleMoney(record.discount, 'discount');
+  }
+  if (record.notes !== undefined) {
+    if (typeof record.notes !== 'string') {
+      throw new ValidationError('Field "notes" must be a string');
+    }
+    data.notes = record.notes;
+  }
+
+  if (Object.keys(data).length === 0) {
+    throw new ValidationError('At least one field must be provided');
+  }
+
+  return data;
+}
+
 
 // ============================================================
 // TRANSPORTATION: Route
