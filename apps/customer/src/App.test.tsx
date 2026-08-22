@@ -37,6 +37,10 @@ vi.mock('./lib/api', () => ({
   getDeparture: vi.fn(),
   updateDeparture: vi.fn(),
   getAgenda: vi.fn().mockResolvedValue([]),
+  listSales: vi.fn().mockResolvedValue([]),
+  createSale: vi.fn(),
+  getSale: vi.fn(),
+  updateSale: vi.fn(),
 }));
 
 afterEach(() => {
@@ -320,6 +324,34 @@ describe('App', () => {
     renderApp(['/transport/agenda']);
     expect(
       await screen.findByRole('heading', { name: 'Agenda de saídas' }),
+    ).toBeInTheDocument();
+  });
+
+  it('renders "Vendas" as a real navigation link', () => {
+    renderApp();
+    const link = screen.getByRole('link', { name: 'Vendas' });
+    expect(link).toHaveAttribute('href', '/sales');
+  });
+
+  it('renders SalesPage when navigating to "/sales"', async () => {
+    renderApp(['/sales']);
+    expect(await screen.findByRole('heading', { name: 'Vendas' })).toBeInTheDocument();
+  });
+
+  it('renders SaleFormPage when navigating to "/sales/new"', async () => {
+    renderApp(['/sales/new']);
+    expect(
+      await screen.findByRole('heading', { name: 'Nova venda' }),
+    ).toBeInTheDocument();
+  });
+
+  it('renders SaleDetailsPage when navigating to "/sales/:id"', async () => {
+    vi.mocked(
+      (await import('./lib/api')).getSale,
+    ).mockReturnValue(new Promise(() => {}));
+    renderApp(['/sales/s1']);
+    expect(
+      await screen.findByRole('heading', { name: 'Detalhes da venda' }),
     ).toBeInTheDocument();
   });
 });
