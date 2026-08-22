@@ -12,6 +12,10 @@ import { TripsPage } from './pages/TripsPage';
 import { TripFormPage } from './pages/TripFormPage';
 import { TripDetailsPage } from './pages/TripDetailsPage';
 import { TripEditPage } from './pages/TripEditPage';
+import { OffersPage } from './pages/OffersPage';
+import { OfferFormPage } from './pages/OfferFormPage';
+import { OfferDetailsPage } from './pages/OfferDetailsPage';
+import { OfferEditPage } from './pages/OfferEditPage';
 
 export function App() {
   return (
@@ -30,6 +34,10 @@ export function App() {
         <Route path="trips/new" element={<TripFormPage />} />
         <Route path="trips/:id" element={<TripDetailsPage />} />
         <Route path="trips/:id/edit" element={<TripEditPage />} />
+        <Route path="offers" element={<OffersPage />} />
+        <Route path="offers/new" element={<OfferFormPage />} />
+        <Route path="offers/:id" element={<OfferDetailsPage />} />
+        <Route path="offers/:id/edit" element={<OfferEditPage />} />
       </Route>
     </Routes>
   );
