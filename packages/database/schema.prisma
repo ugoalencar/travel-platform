@@ -46,6 +46,8 @@ model Agency {
   status              Status               @default(ACTIVE)
   createdAt           DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt           DateTime             @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  bookingPassengers   BookingPassenger[]
+  bookings            Booking[]
   brokers             Broker[]
   commissions         Commission[]
   customerAccounts    CustomerAccount[]
@@ -123,6 +125,7 @@ model Customer {
   updatedAt DateTime         @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
   account   CustomerAccount?
   agency    Agency           @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "customers_agency_fk")
+  bookings  Booking[]
   proposals Proposal[]
   sales     Sale[]
   trips     Trip[]
@@ -569,6 +572,8 @@ model ScheduledDeparture {
   product           TransportProduct     @relation(fields: [agencyId, productId], references: [agencyId, id], onDelete: Restrict, map: "scheduled_departures_product_tenant_fk")
   // supplierId is nullable: same SetNull-by-default risk noted above.
   supplier          Supplier?            @relation(fields: [agencyId, supplierId], references: [agencyId, id], onDelete: Restrict, map: "scheduled_departures_supplier_tenant_fk")
+  outboundBookings  Booking[]            @relation("BookingOutboundDeparture")
+  returnBookings    Booking[]            @relation("BookingReturnDeparture")
 
   @@unique([agencyId, id], map: "scheduled_departures_agency_id_key")
   @@index([agencyId], map: "scheduled_departures_agency_idx")
@@ -576,4 +581,51 @@ model ScheduledDeparture {
   @@index([agencyId, supplierId], map: "scheduled_departures_agency_supplier_idx")
   @@index([agencyId, departureAt], map: "scheduled_departures_agency_departure_at_idx")
   @@map("scheduled_departures")
+}
+
+// Booking: the operational reservation. See 005_booking.sql for full
+// scope-decision rationale (no Sale-like pricing fields, no invented
+// lifecycle beyond a capacity-relevant `cancelled` boolean).
+model Booking {
+  id                  String                @id @default(dbgenerated("(gen_random_uuid())::text"))
+  agencyId            String                @map("agency_id")
+  bookerCustomerId    String                @map("booker_customer_id")
+  tripType            TripType              @map("trip_type")
+  outboundDepartureId String                @map("outbound_departure_id")
+  returnDepartureId   String?               @map("return_departure_id")
+  cancelled           Boolean               @default(false)
+  notes               String?
+  createdAt           DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime              @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  agency              Agency                @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "bookings_agency_fk")
+  bookerCustomer      Customer              @relation(fields: [agencyId, bookerCustomerId], references: [agencyId, id], onDelete: Restrict, map: "bookings_booker_customer_tenant_fk")
+  outboundDeparture   ScheduledDeparture    @relation("BookingOutboundDeparture", fields: [agencyId, outboundDepartureId], references: [agencyId, id], onDelete: Restrict, map: "bookings_outbound_departure_tenant_fk")
+  returnDeparture     ScheduledDeparture?   @relation("BookingReturnDeparture", fields: [agencyId, returnDepartureId], references: [agencyId, id], onDelete: Restrict, map: "bookings_return_departure_tenant_fk")
+  passengers          BookingPassenger[]
+
+  @@unique([agencyId, id], map: "bookings_agency_id_key")
+  @@index([agencyId], map: "bookings_agency_idx")
+  @@index([agencyId, outboundDepartureId], map: "bookings_agency_outbound_departure_idx")
+  @@index([agencyId, returnDepartureId], map: "bookings_agency_return_departure_idx")
+  @@index([agencyId, bookerCustomerId], map: "bookings_agency_booker_idx")
+  @@map("bookings")
+}
+
+// Minimal passenger identity only -- NOT a Customer (no FK to
+// customers). See 005_booking.sql.
+model BookingPassenger {
+  id         String   @id @default(dbgenerated("(gen_random_uuid())::text"))
+  agencyId   String   @map("agency_id")
+  bookingId  String   @map("booking_id")
+  name       String
+  notes      String?
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  agency     Agency   @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "booking_passengers_agency_fk")
+  booking    Booking  @relation(fields: [agencyId, bookingId], references: [agencyId, id], onDelete: Restrict, map: "booking_passengers_booking_tenant_fk")
+
+  @@unique([agencyId, id], map: "booking_passengers_agency_id_key")
+  @@index([agencyId], map: "booking_passengers_agency_idx")
+  @@index([agencyId, bookingId], map: "booking_passengers_agency_booking_idx")
+  @@map("booking_passengers")
 }

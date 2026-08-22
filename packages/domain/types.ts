@@ -355,6 +355,40 @@ export enum CheckpointType {
   BOTH = 'BOTH',
 }
 
+// Booking: the operational reservation. Booking != Sale -- Sale (not
+// present in this branch) owns pricing/discount/tax/currency/payment;
+// none of that is modeled here. bookerCustomerId is who owns the
+// reservation and is NOT necessarily traveling; passengers are a
+// separate concept (BookingPassenger), not Customer records.
+// No approved cancellation/refund/no-show workflow exists; `cancelled`
+// is a single boolean (mirrors ScheduledDeparture.cancelled) meaning
+// only "does not consume capacity" -- no other business meaning.
+export interface Booking {
+  id: string;
+  agencyId: string;
+  bookerCustomerId: string;
+  tripType: TripType;
+  outboundDepartureId: string;
+  returnDepartureId?: string;
+  cancelled: boolean;
+  notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Minimal passenger identity only -- NOT a Customer, no FK to
+// customers, no document/manifest fields beyond an optional free-text
+// note (explicit instruction not to over-model passenger data).
+export interface BookingPassenger {
+  id: string;
+  agencyId: string;
+  bookingId: string;
+  name: string;
+  notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 // ============================================================
 // TENANT-SCOPED QUERY TYPES
 // ============================================================
