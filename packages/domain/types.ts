@@ -321,6 +321,40 @@ export enum DepartureServiceType {
   RESELL = 'RESELL',
 }
 
+// RoutePoint: an ordered itinerary point on a Route. Check-in is
+// OPTIONAL PER POINT (checkpointRequired), not a global rule.
+//  - checkpointRequired = false: itinerary-only, no operational
+//    obligation, no pending item, no schedule-compliance calculation.
+//  - checkpointRequired = true: enters operational monitoring; a
+//    future Operation entity (not built here) would generate a
+//    corresponding checkpoint for a driver/guide to confirm.
+// plannedOffsetMinutes is minutes after a ScheduledDeparture's
+// departureAt (NOT an absolute timestamp); expected-absolute-time is
+// a future derivation (departureAt + plannedOffsetMinutes), not
+// persisted anywhere in this scope.
+// Route's origin/destination strings are unchanged; by convention the
+// first/last RoutePoint in sequence typically correspond to them, but
+// there is no enforced sync and no "origin RoutePoint" subtype.
+export interface RoutePoint {
+  id: string;
+  agencyId: string;
+  routeId: string;
+  sequence: number;
+  name: string;
+  checkpointRequired: boolean;
+  checkpointType?: CheckpointType;
+  plannedOffsetMinutes?: number;
+  notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export enum CheckpointType {
+  ARRIVAL = 'ARRIVAL',
+  DEPARTURE = 'DEPARTURE',
+  BOTH = 'BOTH',
+}
+
 // ============================================================
 // TENANT-SCOPED QUERY TYPES
 // ============================================================

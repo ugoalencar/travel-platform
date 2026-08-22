@@ -7,7 +7,7 @@ import {
   requireRole,
   type ValidateUserAgencyAccess,
 } from '../../../packages/domain/tenant-context';
-import { UserRole } from '../../../packages/domain/types';
+import { CheckpointType, UserRole } from '../../../packages/domain/types';
 import { createAuthenticateHook, type AuthProvider } from './auth';
 import type { DatabaseRuntime } from './database';
 import { NotFoundError, ValidationError, registerErrorHandler } from './errors';
@@ -59,6 +59,14 @@ import {
   type CreateRouteInput,
   type UpdateRouteInput,
 } from './transport-routes';
+import {
+  createRoutePoint,
+  listRoutePoints,
+  reorderRoutePoints,
+  updateRoutePoint,
+  type CreateRoutePointInput,
+  type UpdateRoutePointInput,
+} from './route-points';
 import {
   createSupplier,
   getSupplierById,
@@ -418,6 +426,62 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
         throw new NotFoundError('Route not found');
       }
       return { route };
+    },
+  );
+
+  app.get<{ Params: { routeId: string } }>(
+    '/transport/routes/:routeId/points',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      const points = await listRoutePoints(options.database, request.params.routeId);
+      return { points };
+    },
+  );
+
+  app.post<{ Params: { routeId: string } }>(
+    '/transport/routes/:routeId/points',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      requireRole(UserRole.MANAGER);
+      const data = parseCreateRoutePointInput(request.body);
+      const point = await createRoutePoint(options.database, request.params.routeId, data);
+      reply.code(201);
+      return { point };
+    },
+  );
+
+  app.patch<{ Params: { routeId: string; id: string } }>(
+    '/transport/routes/:routeId/points/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.MANAGER);
+      const data = parseUpdateRoutePointInput(request.body);
+      const point = await updateRoutePoint(
+        options.database,
+        request.params.routeId,
+        request.params.id,
+        data,
+      );
+      if (!point) {
+        throw new NotFoundError('Route point not found');
+      }
+      return { point };
+    },
+  );
+
+  app.post<{ Params: { routeId: string } }>(
+    '/transport/routes/:routeId/points/reorder',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.MANAGER);
+      const orderedPointIds = parseReorderRoutePointsInput(request.body);
+      const points = await reorderRoutePoints(
+        options.database,
+        request.params.routeId,
+        orderedPointIds,
+      );
+      return { points };
     },
   );
 
@@ -1442,6 +1506,167 @@ const ALLOWED_ROUTE_UPDATE_FIELDS = [
   'notes',
   'active',
 ] as const;
+
+const FORBIDDEN_ROUTE_POINT_FIELDS = [
+  'agencyId',
+  'tenantId',
+  'routeId',
+  'id',
+  'sequence',
+  'createdAt',
+  'updatedAt',
+] as const;
+
+const ALLOWED_ROUTE_POINT_CREATE_FIELDS = [
+  'sequence',
+  'name',
+  'checkpointRequired',
+  'checkpointType',
+  'plannedOffsetMinutes',
+  'notes',
+] as const;
+
+const ALLOWED_ROUTE_POINT_UPDATE_FIELDS = [
+  'name',
+  'checkpointRequired',
+  'checkpointType',
+  'plannedOffsetMinutes',
+  'notes',
+] as const;
+
+const CHECKPOINT_TYPE_VALUES: readonly string[] = Object.values(CheckpointType);
+
+function parseCreateRoutePointInput(body: unknown): CreateRoutePointInput {
+  if (typeof body !== 'object' || body === null || Array.isArray(body)) {
+    throw new ValidationError('Request body must be an object');
+  }
+  const record = body as Record<string, unknown>;
+
+  for (const field of ['agencyId', 'tenantId', 'id', 'createdAt', 'updatedAt'] as const) {
+    if (field in record) {
+      throw new ValidationError(`Field "${field}" is not allowed in the request body`);
+    }
+  }
+  for (const key of Object.keys(record)) {
+    if (!(ALLOWED_ROUTE_POINT_CREATE_FIELDS as readonly string[]).includes(key)) {
+      throw new ValidationError(`Unknown field "${key}" in request body`);
+    }
+  }
+
+  if (typeof record.sequence !== 'number' || !Number.isInteger(record.sequence)) {
+    throw new ValidationError('Field "sequence" is required and must be an integer');
+  }
+  if (typeof record.name !== 'string' || record.name.trim().length === 0) {
+    throw new ValidationError('Field "name" is required and must be a non-empty string');
+  }
+
+  const data: CreateRoutePointInput = { sequence: record.sequence, name: record.name };
+
+  if (record.checkpointRequired !== undefined) {
+    if (typeof record.checkpointRequired !== 'boolean') {
+      throw new ValidationError('Field "checkpointRequired" must be a boolean');
+    }
+    data.checkpointRequired = record.checkpointRequired;
+  }
+  if (record.checkpointType !== undefined) {
+    if (
+      typeof record.checkpointType !== 'string' ||
+      !CHECKPOINT_TYPE_VALUES.includes(record.checkpointType)
+    ) {
+      throw new ValidationError('Field "checkpointType" must be one of ARRIVAL, DEPARTURE, BOTH');
+    }
+    data.checkpointType = record.checkpointType as CheckpointType;
+  }
+  if (record.plannedOffsetMinutes !== undefined) {
+    if (typeof record.plannedOffsetMinutes !== 'number') {
+      throw new ValidationError('Field "plannedOffsetMinutes" must be a number');
+    }
+    data.plannedOffsetMinutes = record.plannedOffsetMinutes;
+  }
+  if (record.notes !== undefined) {
+    if (typeof record.notes !== 'string') {
+      throw new ValidationError('Field "notes" must be a string');
+    }
+    data.notes = record.notes;
+  }
+
+  return data;
+}
+
+function parseUpdateRoutePointInput(body: unknown): UpdateRoutePointInput {
+  if (typeof body !== 'object' || body === null || Array.isArray(body)) {
+    throw new ValidationError('Request body must be an object');
+  }
+  const record = body as Record<string, unknown>;
+
+  for (const field of FORBIDDEN_ROUTE_POINT_FIELDS) {
+    if (field in record) {
+      throw new ValidationError(`Field "${field}" is not allowed in the request body`);
+    }
+  }
+  for (const key of Object.keys(record)) {
+    if (!(ALLOWED_ROUTE_POINT_UPDATE_FIELDS as readonly string[]).includes(key)) {
+      throw new ValidationError(`Unknown field "${key}" in request body`);
+    }
+  }
+
+  const data: UpdateRoutePointInput = {};
+
+  if (record.name !== undefined) {
+    if (typeof record.name !== 'string' || record.name.trim().length === 0) {
+      throw new ValidationError('Field "name" must be a non-empty string');
+    }
+    data.name = record.name;
+  }
+  if (record.checkpointRequired !== undefined) {
+    if (typeof record.checkpointRequired !== 'boolean') {
+      throw new ValidationError('Field "checkpointRequired" must be a boolean');
+    }
+    data.checkpointRequired = record.checkpointRequired;
+  }
+  if (record.checkpointType !== undefined) {
+    if (
+      record.checkpointType !== null &&
+      (typeof record.checkpointType !== 'string' ||
+        !CHECKPOINT_TYPE_VALUES.includes(record.checkpointType))
+    ) {
+      throw new ValidationError(
+        'Field "checkpointType" must be one of ARRIVAL, DEPARTURE, BOTH, or null',
+      );
+    }
+    data.checkpointType = record.checkpointType as CheckpointType | null;
+  }
+  if (record.plannedOffsetMinutes !== undefined) {
+    if (record.plannedOffsetMinutes !== null && typeof record.plannedOffsetMinutes !== 'number') {
+      throw new ValidationError('Field "plannedOffsetMinutes" must be a number or null');
+    }
+    data.plannedOffsetMinutes = record.plannedOffsetMinutes;
+  }
+  if (record.notes !== undefined) {
+    if (record.notes !== null && typeof record.notes !== 'string') {
+      throw new ValidationError('Field "notes" must be a string or null');
+    }
+    data.notes = record.notes;
+  }
+
+  return data;
+}
+
+function parseReorderRoutePointsInput(body: unknown): string[] {
+  if (typeof body !== 'object' || body === null) {
+    throw new ValidationError('Request body must be an object');
+  }
+  const record = body as Record<string, unknown>;
+  const ids = record.orderedPointIds;
+
+  if (!Array.isArray(ids) || ids.length === 0 || !ids.every((id) => typeof id === 'string')) {
+    throw new ValidationError(
+      'Field "orderedPointIds" is required and must be a non-empty array of strings',
+    );
+  }
+
+  return ids;
+}
 
 function parseCreateRouteInput(body: unknown): CreateRouteInput {
   if (typeof body !== 'object' || body === null || Array.isArray(body)) {
