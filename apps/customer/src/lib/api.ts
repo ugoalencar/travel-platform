@@ -7,6 +7,21 @@ import type { Wish, CreateWishInput, UpdateWishInput } from '../types/wish';
 import type { Trip, CreateTripInput, UpdateTripInput } from '../types/trip';
 import type { Offer, CreateOfferInput, UpdateOfferInput } from '../types/offer';
 import type { Proposal, CreateProposalInput, UpdateProposalInput } from '../types/proposal';
+import type {
+  Route,
+  CreateRouteInput,
+  UpdateRouteInput,
+  Supplier,
+  CreateSupplierInput,
+  UpdateSupplierInput,
+  TransportProduct,
+  CreateTransportProductInput,
+  UpdateTransportProductInput,
+  ScheduledDeparture,
+  CreateScheduledDepartureInput,
+  UpdateScheduledDepartureInput,
+  AgendaEntry,
+} from '../types/transport';
 
 // Single seam for a future production API base URL. In local dev this stays
 // empty so requests go to relative paths (e.g. `/api/customers`) and are
@@ -230,4 +245,146 @@ export async function updateProposal(
     },
   );
   return data.proposal;
+}
+
+export async function listRoutes(): Promise<Route[]> {
+  const data = await request<{ routes: Route[] }>('/api/transport/routes');
+  return data.routes;
+}
+
+export async function getRoute(id: string): Promise<Route> {
+  const data = await request<{ route: Route }>(
+    `/api/transport/routes/${encodeURIComponent(id)}`,
+  );
+  return data.route;
+}
+
+export async function createRoute(input: CreateRouteInput): Promise<Route> {
+  const data = await request<{ route: Route }>('/api/transport/routes', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+  return data.route;
+}
+
+export async function updateRoute(id: string, input: UpdateRouteInput): Promise<Route> {
+  const data = await request<{ route: Route }>(
+    `/api/transport/routes/${encodeURIComponent(id)}`,
+    {
+      method: 'PATCH',
+      body: JSON.stringify(input),
+    },
+  );
+  return data.route;
+}
+
+export async function listSuppliers(): Promise<Supplier[]> {
+  const data = await request<{ suppliers: Supplier[] }>('/api/transport/suppliers');
+  return data.suppliers;
+}
+
+export async function getSupplier(id: string): Promise<Supplier> {
+  const data = await request<{ supplier: Supplier }>(
+    `/api/transport/suppliers/${encodeURIComponent(id)}`,
+  );
+  return data.supplier;
+}
+
+export async function createSupplier(input: CreateSupplierInput): Promise<Supplier> {
+  const data = await request<{ supplier: Supplier }>('/api/transport/suppliers', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+  return data.supplier;
+}
+
+export async function updateSupplier(
+  id: string,
+  input: UpdateSupplierInput,
+): Promise<Supplier> {
+  const data = await request<{ supplier: Supplier }>(
+    `/api/transport/suppliers/${encodeURIComponent(id)}`,
+    {
+      method: 'PATCH',
+      body: JSON.stringify(input),
+    },
+  );
+  return data.supplier;
+}
+
+export async function listTransportProducts(): Promise<TransportProduct[]> {
+  const data = await request<{ products: TransportProduct[] }>('/api/transport/products');
+  return data.products;
+}
+
+export async function getTransportProduct(id: string): Promise<TransportProduct> {
+  const data = await request<{ product: TransportProduct }>(
+    `/api/transport/products/${encodeURIComponent(id)}`,
+  );
+  return data.product;
+}
+
+export async function createTransportProduct(
+  input: CreateTransportProductInput,
+): Promise<TransportProduct> {
+  const data = await request<{ product: TransportProduct }>('/api/transport/products', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+  return data.product;
+}
+
+export async function updateTransportProduct(
+  id: string,
+  input: UpdateTransportProductInput,
+): Promise<TransportProduct> {
+  const data = await request<{ product: TransportProduct }>(
+    `/api/transport/products/${encodeURIComponent(id)}`,
+    {
+      method: 'PATCH',
+      body: JSON.stringify(input),
+    },
+  );
+  return data.product;
+}
+
+export async function listDepartures(): Promise<ScheduledDeparture[]> {
+  const data = await request<{ departures: ScheduledDeparture[] }>('/api/transport/departures');
+  return data.departures;
+}
+
+export async function getDeparture(id: string): Promise<ScheduledDeparture> {
+  const data = await request<{ departure: ScheduledDeparture }>(
+    `/api/transport/departures/${encodeURIComponent(id)}`,
+  );
+  return data.departure;
+}
+
+export async function createDeparture(
+  input: CreateScheduledDepartureInput,
+): Promise<ScheduledDeparture> {
+  const data = await request<{ departure: ScheduledDeparture }>('/api/transport/departures', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+  return data.departure;
+}
+
+export async function updateDeparture(
+  id: string,
+  input: UpdateScheduledDepartureInput,
+): Promise<ScheduledDeparture> {
+  const data = await request<{ departure: ScheduledDeparture }>(
+    `/api/transport/departures/${encodeURIComponent(id)}`,
+    {
+      method: 'PATCH',
+      body: JSON.stringify(input),
+    },
+  );
+  return data.departure;
+}
+
+export async function getAgenda(): Promise<AgendaEntry[]> {
+  const data = await request<{ agenda: AgendaEntry[] }>('/api/transport/agenda');
+  return data.agenda;
 }

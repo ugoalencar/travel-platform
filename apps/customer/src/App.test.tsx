@@ -20,6 +20,23 @@ vi.mock('./lib/api', () => ({
   createProposal: vi.fn(),
   getProposal: vi.fn(),
   updateProposal: vi.fn(),
+  listRoutes: vi.fn().mockResolvedValue([]),
+  createRoute: vi.fn(),
+  getRoute: vi.fn(),
+  updateRoute: vi.fn(),
+  listSuppliers: vi.fn().mockResolvedValue([]),
+  createSupplier: vi.fn(),
+  getSupplier: vi.fn(),
+  updateSupplier: vi.fn(),
+  listTransportProducts: vi.fn().mockResolvedValue([]),
+  createTransportProduct: vi.fn(),
+  getTransportProduct: vi.fn(),
+  updateTransportProduct: vi.fn(),
+  listDepartures: vi.fn().mockResolvedValue([]),
+  createDeparture: vi.fn(),
+  getDeparture: vi.fn(),
+  updateDeparture: vi.fn(),
+  getAgenda: vi.fn().mockResolvedValue([]),
 }));
 
 afterEach(() => {
@@ -162,6 +179,147 @@ describe('App', () => {
     renderApp(['/proposals/p1']);
     expect(
       await screen.findByRole('heading', { name: 'Detalhes da proposta' }),
+    ).toBeInTheDocument();
+  });
+
+  it('renders "Rotas" as a real navigation link', () => {
+    renderApp();
+    const link = screen.getByRole('link', { name: 'Rotas' });
+    expect(link).toHaveAttribute('href', '/transport/routes');
+  });
+
+  it('renders TransportRoutesPage when navigating to "/transport/routes"', async () => {
+    renderApp(['/transport/routes']);
+    expect(await screen.findByRole('heading', { name: 'Rotas' })).toBeInTheDocument();
+  });
+
+  it('renders TransportRouteFormPage when navigating to "/transport/routes/new"', async () => {
+    renderApp(['/transport/routes/new']);
+    expect(await screen.findByRole('heading', { name: 'Nova rota' })).toBeInTheDocument();
+  });
+
+  it('renders TransportRouteDetailsPage when navigating to "/transport/routes/:id"', async () => {
+    vi.mocked((await import('./lib/api')).getRoute).mockReturnValue(new Promise(() => {}));
+    renderApp(['/transport/routes/r1']);
+    expect(
+      await screen.findByRole('heading', { name: 'Detalhes da rota' }),
+    ).toBeInTheDocument();
+  });
+
+  it('renders TransportRouteEditPage when navigating to "/transport/routes/:id/edit"', async () => {
+    vi.mocked((await import('./lib/api')).getRoute).mockReturnValue(new Promise(() => {}));
+    renderApp(['/transport/routes/r1/edit']);
+    expect(await screen.findByText('Carregando rota...')).toBeInTheDocument();
+  });
+
+  it('renders "Produtos de transporte" as a real navigation link', () => {
+    renderApp();
+    const link = screen.getByRole('link', { name: 'Produtos de transporte' });
+    expect(link).toHaveAttribute('href', '/transport/products');
+  });
+
+  it('renders TransportProductsPage when navigating to "/transport/products"', async () => {
+    renderApp(['/transport/products']);
+    expect(
+      await screen.findByRole('heading', { name: 'Produtos de transporte' }),
+    ).toBeInTheDocument();
+  });
+
+  it('renders TransportProductFormPage when navigating to "/transport/products/new"', async () => {
+    renderApp(['/transport/products/new']);
+    expect(await screen.findByRole('heading', { name: 'Novo produto' })).toBeInTheDocument();
+  });
+
+  it('renders TransportProductDetailsPage when navigating to "/transport/products/:id"', async () => {
+    vi.mocked((await import('./lib/api')).getTransportProduct).mockReturnValue(
+      new Promise(() => {}),
+    );
+    renderApp(['/transport/products/p1']);
+    expect(
+      await screen.findByRole('heading', { name: 'Detalhes do produto' }),
+    ).toBeInTheDocument();
+  });
+
+  it('renders TransportProductEditPage when navigating to "/transport/products/:id/edit"', async () => {
+    vi.mocked((await import('./lib/api')).getTransportProduct).mockReturnValue(
+      new Promise(() => {}),
+    );
+    renderApp(['/transport/products/p1/edit']);
+    expect(await screen.findByText('Carregando produto...')).toBeInTheDocument();
+  });
+
+  it('renders "Fornecedores" as a real navigation link', () => {
+    renderApp();
+    const link = screen.getByRole('link', { name: 'Fornecedores' });
+    expect(link).toHaveAttribute('href', '/transport/suppliers');
+  });
+
+  it('renders SuppliersPage when navigating to "/transport/suppliers"', async () => {
+    renderApp(['/transport/suppliers']);
+    expect(await screen.findByRole('heading', { name: 'Fornecedores' })).toBeInTheDocument();
+  });
+
+  it('renders SupplierFormPage when navigating to "/transport/suppliers/new"', async () => {
+    renderApp(['/transport/suppliers/new']);
+    expect(await screen.findByRole('heading', { name: 'Novo fornecedor' })).toBeInTheDocument();
+  });
+
+  it('renders SupplierDetailsPage when navigating to "/transport/suppliers/:id"', async () => {
+    vi.mocked((await import('./lib/api')).getSupplier).mockReturnValue(new Promise(() => {}));
+    renderApp(['/transport/suppliers/s1']);
+    expect(
+      await screen.findByRole('heading', { name: 'Detalhes do fornecedor' }),
+    ).toBeInTheDocument();
+  });
+
+  it('renders SupplierEditPage when navigating to "/transport/suppliers/:id/edit"', async () => {
+    vi.mocked((await import('./lib/api')).getSupplier).mockReturnValue(new Promise(() => {}));
+    renderApp(['/transport/suppliers/s1/edit']);
+    expect(await screen.findByText('Carregando fornecedor...')).toBeInTheDocument();
+  });
+
+  it('renders "Saídas" as a real navigation link', () => {
+    renderApp();
+    const link = screen.getByRole('link', { name: 'Saídas' });
+    expect(link).toHaveAttribute('href', '/transport/departures');
+  });
+
+  it('renders DeparturesPage when navigating to "/transport/departures"', async () => {
+    renderApp(['/transport/departures']);
+    expect(
+      await screen.findByRole('heading', { name: 'Saídas programadas' }),
+    ).toBeInTheDocument();
+  });
+
+  it('renders DepartureFormPage when navigating to "/transport/departures/new"', async () => {
+    renderApp(['/transport/departures/new']);
+    expect(await screen.findByRole('heading', { name: 'Nova saída' })).toBeInTheDocument();
+  });
+
+  it('renders DepartureDetailsPage when navigating to "/transport/departures/:id"', async () => {
+    vi.mocked((await import('./lib/api')).getDeparture).mockReturnValue(new Promise(() => {}));
+    renderApp(['/transport/departures/d1']);
+    expect(
+      await screen.findByRole('heading', { name: 'Detalhes da saída' }),
+    ).toBeInTheDocument();
+  });
+
+  it('renders DepartureEditPage when navigating to "/transport/departures/:id/edit"', async () => {
+    vi.mocked((await import('./lib/api')).getDeparture).mockReturnValue(new Promise(() => {}));
+    renderApp(['/transport/departures/d1/edit']);
+    expect(await screen.findByText('Carregando saída...')).toBeInTheDocument();
+  });
+
+  it('renders "Agenda" as a real navigation link', () => {
+    renderApp();
+    const link = screen.getByRole('link', { name: 'Agenda' });
+    expect(link).toHaveAttribute('href', '/transport/agenda');
+  });
+
+  it('renders TransportAgendaPage when navigating to "/transport/agenda"', async () => {
+    renderApp(['/transport/agenda']);
+    expect(
+      await screen.findByRole('heading', { name: 'Agenda de saídas' }),
     ).toBeInTheDocument();
   });
 });

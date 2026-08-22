@@ -20,6 +20,23 @@ import { ProposalsPage } from './pages/ProposalsPage';
 import { ProposalFormPage } from './pages/ProposalFormPage';
 import { ProposalDetailsPage } from './pages/ProposalDetailsPage';
 import { ProposalEditPage } from './pages/ProposalEditPage';
+import { TransportRoutesPage } from './pages/TransportRoutesPage';
+import { TransportRouteFormPage } from './pages/TransportRouteFormPage';
+import { TransportRouteDetailsPage } from './pages/TransportRouteDetailsPage';
+import { TransportRouteEditPage } from './pages/TransportRouteEditPage';
+import { TransportProductsPage } from './pages/TransportProductsPage';
+import { TransportProductFormPage } from './pages/TransportProductFormPage';
+import { TransportProductDetailsPage } from './pages/TransportProductDetailsPage';
+import { TransportProductEditPage } from './pages/TransportProductEditPage';
+import { SuppliersPage } from './pages/SuppliersPage';
+import { SupplierFormPage } from './pages/SupplierFormPage';
+import { SupplierDetailsPage } from './pages/SupplierDetailsPage';
+import { SupplierEditPage } from './pages/SupplierEditPage';
+import { DeparturesPage } from './pages/DeparturesPage';
+import { DepartureFormPage } from './pages/DepartureFormPage';
+import { DepartureDetailsPage } from './pages/DepartureDetailsPage';
+import { DepartureEditPage } from './pages/DepartureEditPage';
+import { TransportAgendaPage } from './pages/TransportAgendaPage';
 
 export function App() {
   return (
@@ -46,6 +63,23 @@ export function App() {
         <Route path="proposals/new" element={<ProposalFormPage />} />
         <Route path="proposals/:id" element={<ProposalDetailsPage />} />
         <Route path="proposals/:id/edit" element={<ProposalEditPage />} />
+        <Route path="transport/routes" element={<TransportRoutesPage />} />
+        <Route path="transport/routes/new" element={<TransportRouteFormPage />} />
+        <Route path="transport/routes/:id" element={<TransportRouteDetailsPage />} />
+        <Route path="transport/routes/:id/edit" element={<TransportRouteEditPage />} />
+        <Route path="transport/products" element={<TransportProductsPage />} />
+        <Route path="transport/products/new" element={<TransportProductFormPage />} />
+        <Route path="transport/products/:id" element={<TransportProductDetailsPage />} />
+        <Route path="transport/products/:id/edit" element={<TransportProductEditPage />} />
+        <Route path="transport/suppliers" element={<SuppliersPage />} />
+        <Route path="transport/suppliers/new" element={<SupplierFormPage />} />
+        <Route path="transport/suppliers/:id" element={<SupplierDetailsPage />} />
+        <Route path="transport/suppliers/:id/edit" element={<SupplierEditPage />} />
+        <Route path="transport/departures" element={<DeparturesPage />} />
+        <Route path="transport/departures/new" element={<DepartureFormPage />} />
+        <Route path="transport/departures/:id" element={<DepartureDetailsPage />} />
+        <Route path="transport/departures/:id/edit" element={<DepartureEditPage />} />
+        <Route path="transport/agenda" element={<TransportAgendaPage />} />
       </Route>
     </Routes>
   );
