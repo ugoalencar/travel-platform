@@ -5,6 +5,7 @@ import {
   createTenantContextHook,
   getAgencyId,
   getTenantContext,
+  getUserId,
   requireRole,
   type ValidateCustomerAgencyAccess,
   type ValidateUserAgencyAccess,
@@ -122,6 +123,33 @@ import {
   listMyProposals,
   listMyTrips,
 } from './customer-portal';
+import {
+  createInteraction,
+  createOpportunity,
+  createTask,
+  getDashboardSummary,
+  getOpportunityById,
+  getTaskById,
+  listInteractions,
+  listOpportunities,
+  listTasks,
+  parsePagination,
+  searchCustomers,
+  travelSearch,
+  updateOpportunity,
+  updateTask,
+} from './commercial-cockpit';
+import {
+  parseCreateInteractionInput,
+  parseCreateOpportunityInput,
+  parseCreateTaskInput,
+  parseInteractionFilters,
+  parseOpportunityFilters,
+  parseTaskFilters,
+  parseTravelSearchRange,
+  parseUpdateOpportunityInput,
+  parseUpdateTaskInput,
+} from './commercial-cockpit-parsers';
 
 export interface BuildAppOptions {
   authProvider: AuthProvider;
@@ -865,6 +893,159 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       return { checkpoint };
     },
   );
+
+  // ============================================================
+  // COMMERCIAL COCKPIT
+  // Kanban stage lives ONLY on commercial_opportunities.stage -- these
+  // routes never touch proposals.status or sales.status.
+  // ============================================================
+
+  app.get<{ Querystring: Record<string, string> }>(
+    '/commercial/opportunities',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      const filters = parseOpportunityFilters(request.query);
+      const pagination = parsePagination(request.query);
+      const { opportunities, total } = await listOpportunities(options.database, filters, pagination);
+      return { opportunities, total, limit: pagination.limit, offset: pagination.offset };
+    },
+  );
+
+  app.get<{ Params: { id: string } }>(
+    '/commercial/opportunities/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      const opportunity = await getOpportunityById(options.database, request.params.id);
+      if (!opportunity) {
+        throw new NotFoundError('Opportunity not found');
+      }
+      return { opportunity };
+    },
+  );
+
+  app.post('/commercial/opportunities', { preHandler: protectedHooks }, async (request, reply) => {
+    requireRole(UserRole.AGENT);
+    const data = parseCreateOpportunityInput(request.body);
+    const opportunity = await createOpportunity(options.database, data);
+    reply.code(201);
+    return { opportunity };
+  });
+
+  app.patch<{ Params: { id: string } }>(
+    '/commercial/opportunities/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.AGENT);
+      const data = parseUpdateOpportunityInput(request.body);
+      const opportunity = await updateOpportunity(options.database, request.params.id, data);
+      if (!opportunity) {
+        throw new NotFoundError('Opportunity not found');
+      }
+      return { opportunity };
+    },
+  );
+
+  app.get<{ Querystring: Record<string, string> }>(
+    '/commercial/tasks',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      const filters = parseTaskFilters(request.query);
+      const pagination = parsePagination(request.query);
+      const { tasks, total } = await listTasks(options.database, filters, pagination);
+      return { tasks, total, limit: pagination.limit, offset: pagination.offset };
+    },
+  );
+
+  app.get<{ Params: { id: string } }>(
+    '/commercial/tasks/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      const task = await getTaskById(options.database, request.params.id);
+      if (!task) {
+        throw new NotFoundError('Task not found');
+      }
+      return { task };
+    },
+  );
+
+  app.post('/commercial/tasks', { preHandler: protectedHooks }, async (request, reply) => {
+    requireRole(UserRole.AGENT);
+    const data = parseCreateTaskInput(request.body);
+    const task = await createTask(options.database, getUserId(), data);
+    reply.code(201);
+    return { task };
+  });
+
+  app.patch<{ Params: { id: string } }>(
+    '/commercial/tasks/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.AGENT);
+      const data = parseUpdateTaskInput(request.body);
+      const task = await updateTask(options.database, request.params.id, data);
+      if (!task) {
+        throw new NotFoundError('Task not found');
+      }
+      return { task };
+    },
+  );
+
+  app.get<{ Querystring: Record<string, string> }>(
+    '/commercial/interactions',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      const filters = parseInteractionFilters(request.query);
+      const pagination = parsePagination(request.query);
+      const { interactions, total } = await listInteractions(options.database, filters, pagination);
+      return { interactions, total, limit: pagination.limit, offset: pagination.offset };
+    },
+  );
+
+  app.post('/commercial/interactions', { preHandler: protectedHooks }, async (request, reply) => {
+    requireRole(UserRole.AGENT);
+    const data = parseCreateInteractionInput(request.body);
+    const interaction = await createInteraction(options.database, getUserId(), data);
+    reply.code(201);
+    return { interaction };
+  });
+
+  app.get<{ Querystring: Record<string, string> }>(
+    '/commercial/customers/search',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      const q = request.query.q;
+      if (typeof q !== 'string') {
+        throw new ValidationError('Query parameter "q" is required');
+      }
+      const pagination = parsePagination(request.query);
+      const customers = await searchCustomers(options.database, q, pagination);
+      return { customers };
+    },
+  );
+
+  app.get<{ Querystring: Record<string, string> }>(
+    '/commercial/travel-search',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      const range = parseTravelSearchRange(request.query);
+      const destination = typeof request.query.destination === 'string' ? request.query.destination : undefined;
+      const result = await travelSearch(options.database, range, destination);
+      return result;
+    },
+  );
+
+  app.get('/commercial/dashboard', { preHandler: protectedHooks }, async () => {
+    requireRole(UserRole.VIEWER);
+    const summary = await getDashboardSummary(options.database, getUserId());
+    return summary;
+  });
 
   if (options.exposeTestRoutes === true) {
     app.post('/__test/rollback-proof', { preHandler: protectedHooks }, async () => {

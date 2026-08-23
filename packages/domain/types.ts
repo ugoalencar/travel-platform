@@ -441,6 +441,101 @@ export interface OperationCheckpointWithExpected extends OperationCheckpoint {
 }
 
 // ============================================================
+// COMMERCIAL COCKPIT (migration 007_commercial_cockpit.sql)
+// Additive-only. CommercialOpportunity.stage is a separate, independent
+// mutable lifecycle -- never derived from or written back to
+// Wish.status / Proposal.status / Sale.status.
+// ============================================================
+
+export enum CommercialStage {
+  PROSPECTING = 'PROSPECTING',
+  INTEREST = 'INTEREST',
+  QUOTE = 'QUOTE',
+  PROPOSAL_SENT = 'PROPOSAL_SENT',
+  WAITING_CUSTOMER = 'WAITING_CUSTOMER',
+  NEGOTIATION = 'NEGOTIATION',
+  WON = 'WON',
+  POST_SALE = 'POST_SALE',
+  LOST = 'LOST',
+}
+
+export const CLOSED_COMMERCIAL_STAGES: readonly CommercialStage[] = [
+  CommercialStage.WON,
+  CommercialStage.LOST,
+];
+
+export enum CommercialTaskType {
+  FOLLOW_UP = 'FOLLOW_UP',
+  CALL = 'CALL',
+  POST_SALE = 'POST_SALE',
+  OTHER = 'OTHER',
+}
+
+export enum InteractionChannel {
+  PHONE = 'PHONE',
+  WHATSAPP = 'WHATSAPP',
+  EMAIL = 'EMAIL',
+  IN_PERSON = 'IN_PERSON',
+  OTHER = 'OTHER',
+}
+
+export enum InteractionDirection {
+  INBOUND = 'INBOUND',
+  OUTBOUND = 'OUTBOUND',
+}
+
+export interface CommercialOpportunity {
+  id: string;
+  agencyId: string;
+  customerId: string;
+  wishId?: string;
+  proposalId?: string;
+  saleId?: string;
+  responsibleUserId?: string;
+  destination?: string;
+  tripDateFrom?: Date;
+  tripDateTo?: Date;
+  expectedValue?: number;
+  stage: CommercialStage;
+  nextActionAt?: Date;
+  lastInteractionAt?: Date;
+  lostReason?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface CommercialTask {
+  id: string;
+  agencyId: string;
+  customerId: string;
+  opportunityId?: string;
+  assignedUserId: string;
+  type: CommercialTaskType;
+  title: string;
+  dueAt: Date;
+  completedAt?: Date;
+  notes?: string;
+  createdBy: string;
+  createdAt: Date;
+}
+
+export interface CustomerInteraction {
+  id: string;
+  agencyId: string;
+  customerId: string;
+  opportunityId?: string;
+  proposalId?: string;
+  saleId?: string;
+  userId: string;
+  channel: InteractionChannel;
+  direction: InteractionDirection;
+  occurredAt: Date;
+  summary: string;
+  nextActionAt?: Date;
+  createdAt: Date;
+}
+
+// ============================================================
 // TENANT-SCOPED QUERY TYPES
 // ============================================================
 
