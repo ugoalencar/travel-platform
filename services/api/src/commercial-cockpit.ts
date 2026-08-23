@@ -443,7 +443,7 @@ export async function updateOpportunity(
 
     const fields: string[] = [];
     const values: unknown[] = [];
-    let index = 2;
+    let index = 1;
 
     if (data.stage !== undefined) {
       fields.push(`stage = $${++index}`);
@@ -660,7 +660,7 @@ export async function updateTask(
 
     const fields: string[] = [];
     const values: unknown[] = [];
-    let index = 2;
+    let index = 1;
 
     if (data.assignedUserId !== undefined) {
       fields.push(`assigned_user_id = $${++index}`);
