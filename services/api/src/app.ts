@@ -93,6 +93,13 @@ import {
   type UpdateScheduledDepartureInput,
 } from './scheduled-departures';
 import { DepartureServiceType, TripType } from '../../../packages/domain/types';
+import {
+  listBookings,
+  getBookingById,
+  createBooking,
+  type CreateBookingInput,
+  type CreateBookingPassengerInput,
+} from './bookings';
 
 export interface BuildAppOptions {
   authProvider: AuthProvider;
@@ -632,6 +639,40 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       return { agenda };
     },
   );
+
+  app.get('/bookings', { preHandler: protectedHooks }, async () => {
+    requireRole(UserRole.VIEWER);
+    const bookings = await listBookings(options.database);
+    return { bookings };
+  });
+
+  app.get<{ Params: { id: string } }>(
+    '/bookings/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      const result = await getBookingById(options.database, request.params.id);
+      if (!result) {
+        throw new NotFoundError('Booking not found');
+      }
+      return { booking: result.booking, passengers: result.passengers };
+    },
+  );
+
+  // RBAC floor: AGENT, not MANAGER. Transportation's write floor
+  // (ScheduledDeparture/TransportProduct/etc.) is MANAGER because those
+  // are catalog/admin changes. Booking creation is closer in spirit to
+  // Sale's "Criar" floor -- a day-to-day operational action performed by
+  // front-line staff, not a catalog/admin change. No documented Booking
+  // RBAC floor exists, so this is a precedent-based choice, recorded here
+  // per the project's anti-invention discipline.
+  app.post('/bookings', { preHandler: protectedHooks }, async (request, reply) => {
+    requireRole(UserRole.AGENT);
+    const data = parseCreateBookingInput(request.body);
+    const result = await createBooking(options.database, data);
+    reply.code(201);
+    return { booking: result.booking, passengers: result.passengers };
+  });
 
   if (options.exposeTestRoutes === true) {
     app.post('/__test/rollback-proof', { preHandler: protectedHooks }, async () => {
@@ -2224,6 +2265,126 @@ function parseUpdateScheduledDepartureInput(body: unknown): UpdateScheduledDepar
 
   if (Object.keys(data).length === 0) {
     throw new ValidationError('At least one field must be provided');
+  }
+
+  return data;
+}
+
+// ============================================================
+// BOOKING
+// ============================================================
+
+const FORBIDDEN_BOOKING_CREATE_FIELDS = [
+  'agencyId',
+  'tenantId',
+  'id',
+  'createdAt',
+  'updatedAt',
+  'cancelled',
+] as const;
+
+const ALLOWED_BOOKING_CREATE_FIELDS = [
+  'bookerCustomerId',
+  'tripType',
+  'outboundDepartureId',
+  'returnDepartureId',
+  'notes',
+  'passengers',
+] as const;
+
+const FORBIDDEN_PASSENGER_FIELDS = [
+  'agencyId',
+  'tenantId',
+  'id',
+  'bookingId',
+  'createdAt',
+  'updatedAt',
+] as const;
+
+const ALLOWED_PASSENGER_FIELDS = ['name', 'notes'] as const;
+
+function parseCreateBookingPassengerInput(value: unknown): CreateBookingPassengerInput {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    throw new ValidationError('Each passenger must be an object');
+  }
+  const record = value as Record<string, unknown>;
+
+  for (const field of FORBIDDEN_PASSENGER_FIELDS) {
+    if (field in record) {
+      throw new ValidationError(`Field "${field}" is not allowed on a passenger`);
+    }
+  }
+  for (const key of Object.keys(record)) {
+    if (!(ALLOWED_PASSENGER_FIELDS as readonly string[]).includes(key)) {
+      throw new ValidationError(`Unknown field "${key}" on a passenger`);
+    }
+  }
+
+  if (typeof record.name !== 'string' || record.name.trim().length === 0) {
+    throw new ValidationError('Each passenger must have a non-empty "name"');
+  }
+
+  const passenger: CreateBookingPassengerInput = { name: record.name };
+  if (record.notes !== undefined) {
+    if (typeof record.notes !== 'string') {
+      throw new ValidationError('Passenger field "notes" must be a string');
+    }
+    passenger.notes = record.notes;
+  }
+  return passenger;
+}
+
+function parseCreateBookingInput(body: unknown): CreateBookingInput {
+  if (typeof body !== 'object' || body === null || Array.isArray(body)) {
+    throw new ValidationError('Request body must be an object');
+  }
+  const record = body as Record<string, unknown>;
+
+  for (const field of FORBIDDEN_BOOKING_CREATE_FIELDS) {
+    if (field in record) {
+      throw new ValidationError(`Field "${field}" is not allowed in the request body`);
+    }
+  }
+  for (const key of Object.keys(record)) {
+    if (!(ALLOWED_BOOKING_CREATE_FIELDS as readonly string[]).includes(key)) {
+      throw new ValidationError(`Unknown field "${key}" in request body`);
+    }
+  }
+
+  if (typeof record.bookerCustomerId !== 'string' || record.bookerCustomerId.trim().length === 0) {
+    throw new ValidationError('Field "bookerCustomerId" is required and must be a non-empty string');
+  }
+  if (
+    typeof record.tripType !== 'string' ||
+    !(Object.values(TripType) as string[]).includes(record.tripType)
+  ) {
+    throw new ValidationError('Field "tripType" must be one of ONE_WAY, ROUND_TRIP');
+  }
+  if (typeof record.outboundDepartureId !== 'string' || record.outboundDepartureId.trim().length === 0) {
+    throw new ValidationError('Field "outboundDepartureId" is required and must be a non-empty string');
+  }
+  if (!Array.isArray(record.passengers) || record.passengers.length === 0) {
+    throw new ValidationError('Field "passengers" is required and must be a non-empty array');
+  }
+
+  const data: CreateBookingInput = {
+    bookerCustomerId: record.bookerCustomerId,
+    tripType: record.tripType as TripType,
+    outboundDepartureId: record.outboundDepartureId,
+    passengers: record.passengers.map(parseCreateBookingPassengerInput),
+  };
+
+  if (record.returnDepartureId !== undefined) {
+    if (typeof record.returnDepartureId !== 'string' || record.returnDepartureId.trim().length === 0) {
+      throw new ValidationError('Field "returnDepartureId" must be a non-empty string');
+    }
+    data.returnDepartureId = record.returnDepartureId;
+  }
+  if (record.notes !== undefined) {
+    if (typeof record.notes !== 'string') {
+      throw new ValidationError('Field "notes" must be a string');
+    }
+    data.notes = record.notes;
   }
 
   return data;

@@ -7,6 +7,7 @@ import type { Wish, CreateWishInput, UpdateWishInput } from '../types/wish';
 import type { Trip, CreateTripInput, UpdateTripInput } from '../types/trip';
 import type { Offer, CreateOfferInput, UpdateOfferInput } from '../types/offer';
 import type { Proposal, CreateProposalInput, UpdateProposalInput } from '../types/proposal';
+import type { Booking, BookingPassenger, CreateBookingInput } from '../types/booking';
 import type {
   Route,
   CreateRouteInput,
@@ -440,4 +441,26 @@ export async function updateDeparture(
 export async function getAgenda(): Promise<AgendaEntry[]> {
   const data = await request<{ agenda: AgendaEntry[] }>('/api/transport/agenda');
   return data.agenda;
+}
+
+export async function listBookings(): Promise<Booking[]> {
+  const data = await request<{ bookings: Booking[] }>('/api/bookings');
+  return data.bookings;
+}
+
+export async function getBooking(
+  id: string,
+): Promise<{ booking: Booking; passengers: BookingPassenger[] }> {
+  return request<{ booking: Booking; passengers: BookingPassenger[] }>(
+    `/api/bookings/${encodeURIComponent(id)}`,
+  );
+}
+
+export async function createBooking(
+  input: CreateBookingInput,
+): Promise<{ booking: Booking; passengers: BookingPassenger[] }> {
+  return request<{ booking: Booking; passengers: BookingPassenger[] }>('/api/bookings', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
 }

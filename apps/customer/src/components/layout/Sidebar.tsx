@@ -12,6 +12,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Desejos', to: '/wishes' },
   { label: 'Ofertas', to: '/offers' },
   { label: 'Propostas', to: '/proposals' },
+  { label: 'Reservas', to: '/bookings' },
   { label: 'Vendas' },
   { label: 'Viagens', to: '/trips' },
   { label: 'Rotas', to: '/transport/routes' },
