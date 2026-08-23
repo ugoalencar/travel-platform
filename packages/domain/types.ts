@@ -395,7 +395,7 @@ export interface BookingPassenger {
 // TransportOperation = EXECUTION marker for a ScheduledDeparture
 // (which remains the PLAN). At most one Operation per Departure.
 // OperationCheckpoint rows hang off it. See
-// 005_field_operations.sql for the full scope-decision notes.
+// 006_field_operations.sql for the full scope-decision notes.
 export interface TransportOperation {
   id: string;
   agencyId: string;

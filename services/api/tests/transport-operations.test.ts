@@ -19,7 +19,7 @@ const migration001 = resolve(repoRoot, 'infrastructure/migrations/001_initial_sc
 const migration002 = resolve(repoRoot, 'infrastructure/migrations/002_rls_policies.sql');
 const migration003 = resolve(repoRoot, 'infrastructure/migrations/003_transportation.sql');
 const migration004 = resolve(repoRoot, 'infrastructure/migrations/004_route_points.sql');
-const migration005 = resolve(repoRoot, 'infrastructure/migrations/005_field_operations.sql');
+const migration005 = resolve(repoRoot, 'infrastructure/migrations/006_field_operations.sql');
 const prepareRolesSql = resolve(repoRoot, 'tests/integration/database/002_prepare_local_roles.sql');
 const composeFile = resolve(repoRoot, 'infrastructure/docker-compose.local-postgres.yml');
 

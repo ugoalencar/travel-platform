@@ -34,7 +34,7 @@ interface CheckpointRow {
 
 // Joined columns needed to derive expectedAt = departureAt + plannedOffsetMinutes
 // at read time, without persisting a second source of truth (see
-// 005_field_operations.sql decision notes).
+// 006_field_operations.sql decision notes).
 interface CheckpointWithDerivationRow extends CheckpointRow {
   departure_at: string;
   planned_offset_minutes: number | null;
@@ -110,7 +110,7 @@ export async function getOperationById(
  * checkpointRequired = true (snapshotting each RoutePoint's
  * checkpointType). RoutePoints with checkpointRequired = false
  * generate nothing. Return-route operations are out of scope for this
- * version (see 005_field_operations.sql).
+ * version (see 006_field_operations.sql).
  */
 export async function createOperation(
   database: DatabaseRuntime,
