@@ -302,13 +302,11 @@ model Commission {
   sale       Sale             @relation(fields: [agencyId, saleId], references: [agencyId, id], onDelete: Restrict, map: "commissions_sale_tenant_fk")
   user       User?            @relation(fields: [agencyId, userId], references: [agencyId, id], onDelete: Restrict, map: "commissions_user_tenant_fk")
 
-  // NOTE (ADR-005): commissions has no UNIQUE(agency_id, id) in SQL, so
-  // no composite tenant-safe FK can reference it. Nothing in the
-  // domain currently needs to -- classified SAFE TO DEFER, not a
-  // blocker. Do not add @@unique([agencyId, id]) here without first
-  // adding the matching UNIQUE constraint in the SQL migration --
-  // this file must not describe a constraint the database does not
-  // have.
+  // Repaired by 007_commission_repair.sql (D1, Option A): commissions
+  // now has UNIQUE(agency_id, id), matching every other tenant-scoped
+  // table in this schema, so future tables can reference it via a
+  // composite tenant-safe FK.
+  @@unique([agencyId, id], map: "commissions_agency_id_key")
   @@index([agencyId], map: "commissions_agency_idx")
   @@index([agencyId, saleId], map: "commissions_agency_sale_idx")
   @@index([agencyId, status], map: "commissions_agency_status_idx")
