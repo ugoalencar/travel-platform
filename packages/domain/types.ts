@@ -9,6 +9,11 @@ export interface TenantContext {
   userId: string;
   userRole: UserRole;
   email: string;
+  // Optional: set only by the customer-portal auth path
+  // (establishCustomerTenantContext in tenant-context.ts). Undefined for
+  // every existing staff/admin request. Never read this field directly --
+  // use getCustomerId() (throws if unset), mirroring getUserId().
+  customerId?: string;
 }
 
 export interface Agency {
