@@ -47,6 +47,8 @@ async function main() {
       customerId: customerDemoBId,
     });
 
+    await seedCommercialCockpitScenarios(pool, { agencyId: agencyAId, userId: userAId });
+
     console.log('Demo data seeded for Agency A and Agency B, including Cliente Demo customer portal fixtures.');
   } finally {
     await pool.end();
@@ -172,6 +174,108 @@ async function seedAgencyAndDemoCustomer(pool, opts) {
     `INSERT INTO bookings (agency_id, booker_customer_id, trip_type, outbound_departure_id, return_departure_id, notes)
      VALUES ($1, $2, 'ROUND_TRIP', $3, $4, 'Reserva demo round-trip')`,
     [agencyId, customerId, roundTripOutbound.rows[0].id, roundTripReturn.rows[0].id],
+  );
+}
+
+// ============================================================
+// COMMERCIAL COCKPIT DEMO SCENARIOS (Cliente A/B/C/D)
+// Additive only -- inserted once for Agency A, distinct from the
+// "Cliente Demo" customer-portal fixture above. Exactly the 4 scenarios
+// from the brief, each exercising a different part of the cockpit.
+// ============================================================
+async function seedCommercialCockpitScenarios(pool, { agencyId, userId }) {
+  // Cliente A: Wish + Proposal sent + OVERDUE follow-up.
+  const clienteA = await pool.query(
+    `INSERT INTO customers (agency_id, name, email, phone, status)
+     VALUES ($1, 'Cliente A (Cockpit Demo)', 'cliente-a-cockpit@example.test', '11999991111', 'ACTIVE')
+     RETURNING id`,
+    [agencyId],
+  );
+  const clienteAId = clienteA.rows[0].id;
+
+  await pool.query(
+    `INSERT INTO wishes (agency_id, customer_id, destination, start_date, end_date, travelers_count)
+     VALUES ($1, $2, 'Cancún', '2027-05-01', '2027-05-10', 2)`,
+    [agencyId, clienteAId],
+  );
+  const proposalA = await pool.query(
+    `INSERT INTO proposals (agency_id, customer_id, proposed_price, discount, total, status, valid_until)
+     VALUES ($1, $2, 4500, 0, 4500, 'SENT', now() + INTERVAL '10 days') RETURNING id`,
+    [agencyId, clienteAId],
+  );
+  const opportunityA = await pool.query(
+    `INSERT INTO commercial_opportunities
+       (agency_id, customer_id, proposal_id, responsible_user_id, destination, stage, next_action_at, expected_value)
+     VALUES ($1, $2, $3, $4, 'Cancún', 'PROPOSAL_SENT', now() - INTERVAL '3 days', 4500)
+     RETURNING id`,
+    [agencyId, clienteAId, proposalA.rows[0].id, userId],
+  );
+  await pool.query(
+    `INSERT INTO commercial_tasks
+       (agency_id, customer_id, opportunity_id, assigned_user_id, type, title, due_at, created_by)
+     VALUES ($1, $2, $3, $4, 'FOLLOW_UP', 'Retornar sobre proposta Cancún', now() - INTERVAL '2 days', $4)`,
+    [agencyId, clienteAId, opportunityA.rows[0].id, userId],
+  );
+
+  // Cliente B: Proposal awaiting response, NO overdue follow-up.
+  const clienteB = await pool.query(
+    `INSERT INTO customers (agency_id, name, email, phone, status)
+     VALUES ($1, 'Cliente B (Cockpit Demo)', 'cliente-b-cockpit@example.test', '11999992222', 'ACTIVE')
+     RETURNING id`,
+    [agencyId],
+  );
+  const clienteBId = clienteB.rows[0].id;
+  const proposalB = await pool.query(
+    `INSERT INTO proposals (agency_id, customer_id, proposed_price, discount, total, status, valid_until)
+     VALUES ($1, $2, 3200, 0, 3200, 'SENT', now() + INTERVAL '15 days') RETURNING id`,
+    [agencyId, clienteBId],
+  );
+  await pool.query(
+    `INSERT INTO commercial_opportunities
+       (agency_id, customer_id, proposal_id, responsible_user_id, destination, stage, next_action_at, expected_value)
+     VALUES ($1, $2, $3, $4, 'Gramado', 'PROPOSAL_SENT', now() + INTERVAL '5 days', 3200)`,
+    [agencyId, clienteBId, proposalB.rows[0].id, userId],
+  );
+
+  // Cliente C: closed Sale + future Trip.
+  const clienteC = await pool.query(
+    `INSERT INTO customers (agency_id, name, email, phone, status)
+     VALUES ($1, 'Cliente C (Cockpit Demo)', 'cliente-c-cockpit@example.test', '11999993333', 'ACTIVE')
+     RETURNING id`,
+    [agencyId],
+  );
+  const clienteCId = clienteC.rows[0].id;
+  const saleC = await pool.query(
+    `INSERT INTO sales (agency_id, customer_id, user_id, amount, discount, total, status)
+     VALUES ($1, $2, $3, 6000, 0, 6000, 'CONFIRMED') RETURNING id`,
+    [agencyId, clienteCId, userId],
+  );
+  await pool.query(
+    `INSERT INTO trips (agency_id, customer_id, sale_id, name, destination, start_date, end_date, status)
+     VALUES ($1, $2, $3, 'Viagem confirmada', 'Buzios', '2027-06-01', '2027-06-08', 'CONFIRMED')`,
+    [agencyId, clienteCId, saleC.rows[0].id],
+  );
+  await pool.query(
+    `INSERT INTO commercial_opportunities
+       (agency_id, customer_id, sale_id, responsible_user_id, destination, stage, expected_value)
+     VALUES ($1, $2, $3, $4, 'Buzios', 'WON', 6000)`,
+    [agencyId, clienteCId, saleC.rows[0].id, userId],
+  );
+
+  // Cliente D: COMPLETED trip + pending post-sale task suggestion --
+  // deliberately no POST_SALE CommercialTask row, so
+  // listPostSaleCandidates() surfaces this customer for manual follow-up.
+  const clienteD = await pool.query(
+    `INSERT INTO customers (agency_id, name, email, phone, status)
+     VALUES ($1, 'Cliente D (Cockpit Demo)', 'cliente-d-cockpit@example.test', '11999994444', 'ACTIVE')
+     RETURNING id`,
+    [agencyId],
+  );
+  const clienteDId = clienteD.rows[0].id;
+  await pool.query(
+    `INSERT INTO trips (agency_id, customer_id, name, destination, start_date, end_date, status)
+     VALUES ($1, $2, 'Viagem concluída', 'Porto de Galinhas', '2025-11-01', '2025-11-08', 'COMPLETED')`,
+    [agencyId, clienteDId],
   );
 }
 
