@@ -84,6 +84,10 @@ model User {
   proposals    Proposal[]
   sales        Sale[]
   agency       Agency       @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "users_agency_fk")
+  commercialOpportunities CommercialOpportunity[]
+  commercialTasksAssigned CommercialTask[]         @relation("CommercialTaskAssignedUser")
+  commercialTasksCreated  CommercialTask[]         @relation("CommercialTaskCreatedBy")
+  customerInteractions    CustomerInteraction[]
 
   @@unique([agencyId, email], map: "users_agency_email_key")
   @@unique([agencyId, id], map: "users_agency_id_key")
@@ -132,6 +136,9 @@ model Customer {
   sales     Sale[]
   trips     Trip[]
   wishes    Wish[]
+  commercialOpportunities CommercialOpportunity[]
+  commercialTasks         CommercialTask[]
+  customerInteractions    CustomerInteraction[]
 
   // Migration 001 also enforces active-customer uniqueness with partial
   // indexes not representable here:
@@ -180,6 +187,7 @@ model Wish {
   proposals      Proposal[]
   agency         Agency     @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "wishes_agency_fk")
   customer       Customer   @relation(fields: [agencyId, customerId], references: [agencyId, id], onDelete: Restrict, map: "wishes_customer_tenant_fk")
+  commercialOpportunities CommercialOpportunity[]
 
   @@unique([agencyId, id], map: "wishes_agency_id_key")
   @@index([agencyId, customerId], map: "wishes_agency_customer_idx")
@@ -239,6 +247,8 @@ model Proposal {
   user          User?          @relation(fields: [agencyId, userId], references: [agencyId, id], onDelete: Restrict, map: "proposals_user_tenant_fk")
   wish          Wish?          @relation(fields: [agencyId, wishId], references: [agencyId, id], onDelete: Restrict, map: "proposals_wish_tenant_fk")
   sale          Sale?
+  commercialOpportunities CommercialOpportunity[]
+  customerInteractions    CustomerInteraction[]
 
   @@unique([agencyId, id], map: "proposals_agency_id_key")
   @@index([agencyId, customerId], map: "proposals_agency_customer_idx")
@@ -273,6 +283,8 @@ model Sale {
   proposal    Proposal?    @relation(fields: [agencyId, proposalId], references: [agencyId, id], onDelete: Restrict, map: "sales_proposal_tenant_fk")
   user        User         @relation(fields: [agencyId, userId], references: [agencyId, id], onDelete: Restrict, map: "sales_user_tenant_fk")
   trip        Trip?
+  commercialOpportunities CommercialOpportunity[]
+  customerInteractions    CustomerInteraction[]
 
   @@unique([agencyId, id], map: "sales_agency_id_key")
   @@unique([agencyId, proposalId], map: "sales_agency_proposal_key")
@@ -440,6 +452,38 @@ enum CheckpointType {
   ARRIVAL
   DEPARTURE
   BOTH
+}
+
+enum CommercialStage {
+  PROSPECTING
+  INTEREST
+  QUOTE
+  PROPOSAL_SENT
+  WAITING_CUSTOMER
+  NEGOTIATION
+  WON
+  POST_SALE
+  LOST
+}
+
+enum CommercialTaskType {
+  FOLLOW_UP
+  CALL
+  POST_SALE
+  OTHER
+}
+
+enum InteractionChannel {
+  PHONE
+  WHATSAPP
+  EMAIL
+  IN_PERSON
+  OTHER
+}
+
+enum InteractionDirection {
+  INBOUND
+  OUTBOUND
 }
 
 model Route {
@@ -692,4 +736,102 @@ model OperationCheckpoint {
   @@index([agencyId, operationId], map: "operation_checkpoints_agency_operation_idx")
   @@index([agencyId, routePointId], map: "operation_checkpoints_agency_route_point_idx")
   @@map("operation_checkpoints")
+}
+
+// ============================================================
+// COMMERCIAL COCKPIT (migration 007_commercial_cockpit.sql)
+// Additive only. Does not touch Wish.status / Proposal.status /
+// Sale.status -- CommercialOpportunity.stage is its own independent,
+// mutable lifecycle for commercial/CRM tracking only.
+// ============================================================
+
+model CommercialOpportunity {
+  id                 String          @id @default(dbgenerated("(gen_random_uuid())::text"))
+  agencyId           String          @map("agency_id")
+  customerId         String          @map("customer_id")
+  wishId             String?         @map("wish_id")
+  proposalId         String?         @map("proposal_id")
+  saleId             String?         @map("sale_id")
+  responsibleUserId  String?         @map("responsible_user_id")
+  destination        String?
+  tripDateFrom       DateTime?       @map("trip_date_from") @db.Date
+  tripDateTo         DateTime?       @map("trip_date_to") @db.Date
+  expectedValue      Decimal?        @map("expected_value") @db.Decimal(10, 2)
+  stage              CommercialStage @default(PROSPECTING)
+  nextActionAt       DateTime?       @map("next_action_at") @db.Timestamptz(6)
+  lastInteractionAt  DateTime?       @map("last_interaction_at") @db.Timestamptz(6)
+  lostReason         String?        @map("lost_reason")
+  createdAt          DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime        @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  agency          Agency               @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "commercial_opportunities_agency_fk")
+  customer        Customer             @relation(fields: [agencyId, customerId], references: [agencyId, id], onDelete: Restrict, map: "commercial_opportunities_customer_tenant_fk")
+  wish            Wish?                @relation(fields: [agencyId, wishId], references: [agencyId, id], onDelete: Restrict, map: "commercial_opportunities_wish_tenant_fk")
+  proposal        Proposal?            @relation(fields: [agencyId, proposalId], references: [agencyId, id], onDelete: Restrict, map: "commercial_opportunities_proposal_tenant_fk")
+  sale            Sale?                @relation(fields: [agencyId, saleId], references: [agencyId, id], onDelete: Restrict, map: "commercial_opportunities_sale_tenant_fk")
+  responsibleUser User?                @relation(fields: [agencyId, responsibleUserId], references: [agencyId, id], onDelete: Restrict, map: "commercial_opportunities_responsible_user_tenant_fk")
+  tasks           CommercialTask[]
+  interactions    CustomerInteraction[]
+
+  @@unique([agencyId, id], map: "commercial_opportunities_agency_id_key")
+  @@index([agencyId, stage], map: "commercial_opportunities_agency_stage_idx")
+  @@index([agencyId, responsibleUserId], map: "commercial_opportunities_agency_responsible_user_idx")
+  @@index([agencyId, nextActionAt], map: "commercial_opportunities_agency_next_action_idx")
+  @@index([agencyId, customerId], map: "commercial_opportunities_agency_customer_idx")
+  @@map("commercial_opportunities")
+}
+
+model CommercialTask {
+  id              String             @id @default(dbgenerated("(gen_random_uuid())::text"))
+  agencyId        String             @map("agency_id")
+  customerId      String             @map("customer_id")
+  opportunityId   String?            @map("opportunity_id")
+  assignedUserId  String             @map("assigned_user_id")
+  type            CommercialTaskType @default(FOLLOW_UP)
+  title           String
+  dueAt           DateTime           @map("due_at") @db.Timestamptz(6)
+  completedAt     DateTime?          @map("completed_at") @db.Timestamptz(6)
+  notes           String?
+  createdBy       String             @map("created_by")
+  createdAt       DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  agency       Agency                 @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "commercial_tasks_agency_fk")
+  customer     Customer               @relation(fields: [agencyId, customerId], references: [agencyId, id], onDelete: Restrict, map: "commercial_tasks_customer_tenant_fk")
+  opportunity  CommercialOpportunity? @relation(fields: [agencyId, opportunityId], references: [agencyId, id], onDelete: Restrict, map: "commercial_tasks_opportunity_tenant_fk")
+  assignedUser User                   @relation("CommercialTaskAssignedUser", fields: [agencyId, assignedUserId], references: [agencyId, id], onDelete: Restrict, map: "commercial_tasks_assigned_user_tenant_fk")
+  creator      User                   @relation("CommercialTaskCreatedBy", fields: [agencyId, createdBy], references: [agencyId, id], onDelete: Restrict, map: "commercial_tasks_created_by_tenant_fk")
+
+  @@unique([agencyId, id], map: "commercial_tasks_agency_id_key")
+  @@index([agencyId, dueAt], map: "commercial_tasks_agency_due_at_idx")
+  @@index([agencyId, assignedUserId], map: "commercial_tasks_agency_assigned_user_idx")
+  @@index([agencyId, customerId], map: "commercial_tasks_agency_customer_idx")
+  @@map("commercial_tasks")
+}
+
+model CustomerInteraction {
+  id             String                @id @default(dbgenerated("(gen_random_uuid())::text"))
+  agencyId       String                @map("agency_id")
+  customerId     String                @map("customer_id")
+  opportunityId  String?               @map("opportunity_id")
+  proposalId     String?               @map("proposal_id")
+  saleId         String?               @map("sale_id")
+  userId         String                @map("user_id")
+  channel        InteractionChannel
+  direction      InteractionDirection
+  occurredAt     DateTime              @default(now()) @map("occurred_at") @db.Timestamptz(6)
+  summary        String
+  nextActionAt   DateTime?             @map("next_action_at") @db.Timestamptz(6)
+  createdAt      DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  agency      Agency                 @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "customer_interactions_agency_fk")
+  customer    Customer               @relation(fields: [agencyId, customerId], references: [agencyId, id], onDelete: Restrict, map: "customer_interactions_customer_tenant_fk")
+  opportunity CommercialOpportunity? @relation(fields: [agencyId, opportunityId], references: [agencyId, id], onDelete: Restrict, map: "customer_interactions_opportunity_tenant_fk")
+  proposal    Proposal?              @relation(fields: [agencyId, proposalId], references: [agencyId, id], onDelete: Restrict, map: "customer_interactions_proposal_tenant_fk")
+  sale        Sale?                  @relation(fields: [agencyId, saleId], references: [agencyId, id], onDelete: Restrict, map: "customer_interactions_sale_tenant_fk")
+  user        User                   @relation(fields: [agencyId, userId], references: [agencyId, id], onDelete: Restrict, map: "customer_interactions_user_tenant_fk")
+
+  @@unique([agencyId, id], map: "customer_interactions_agency_id_key")
+  @@index([agencyId, customerId], map: "customer_interactions_agency_customer_idx")
+  @@index([agencyId, occurredAt], map: "customer_interactions_agency_occurred_at_idx")
+  @@map("customer_interactions")
 }
