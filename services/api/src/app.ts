@@ -1,14 +1,17 @@
 import Fastify from 'fastify';
 import type { FastifyInstance } from 'fastify';
 import {
+  createCustomerTenantContextHook,
   createTenantContextHook,
   getAgencyId,
   getTenantContext,
   requireRole,
+  type ValidateCustomerAgencyAccess,
   type ValidateUserAgencyAccess,
 } from '../../../packages/domain/tenant-context';
 import { CheckpointType, UserRole } from '../../../packages/domain/types';
 import { createAuthenticateHook, type AuthProvider } from './auth';
+import { createCustomerAuthenticateHook, type CustomerAuthProvider } from './customer-auth';
 import type { DatabaseRuntime } from './database';
 import { NotFoundError, ValidationError, registerErrorHandler } from './errors';
 import {
@@ -108,12 +111,30 @@ import {
   listOperations,
   type CreateOperationInput,
 } from './transport-operations';
+import {
+  getAvailableOfferById,
+  getMyBookingById,
+  getMyProfile,
+  getMyProposalById,
+  getMyTripById,
+  listAvailableOffers,
+  listMyBookings,
+  listMyProposals,
+  listMyTrips,
+} from './customer-portal';
 
 export interface BuildAppOptions {
   authProvider: AuthProvider;
   validateUserAgencyAccess: ValidateUserAgencyAccess;
   database: DatabaseRuntime;
   exposeTestRoutes?: boolean;
+  // Customer-portal auth. Optional so every existing caller of buildApp()
+  // (all staff/admin tests and server.ts's prior wiring) keeps working
+  // unchanged; when omitted, the customer-portal routes below fail closed
+  // with 401 rather than being unmounted, so their route surface/behavior
+  // stays exercisable and reviewable even before a caller opts in.
+  customerAuthProvider?: CustomerAuthProvider;
+  validateCustomerAgencyAccess?: ValidateCustomerAgencyAccess;
 }
 
 interface AgencyProofRow {
@@ -134,6 +155,98 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     validateUserAgencyAccess: options.validateUserAgencyAccess,
   });
   const protectedHooks = [authenticate, establishTenant];
+
+  // ============================================================
+  // CUSTOMER PORTAL (end-customer facing, read-only). Entirely separate
+  // auth/tenant-context pipeline from the staff protectedHooks above --
+  // never shares a hook, a decorator, or a data-access function with the
+  // staff routes. Mounted under /customer-api/* (distinct prefix from
+  // the staff /api/* surface the frontend proxy uses).
+  // ============================================================
+  const customerAuthenticate = createCustomerAuthenticateHook(
+    options.customerAuthProvider ?? { authenticateCustomer: () => Promise.resolve(null) },
+  );
+  const establishCustomerTenant = createCustomerTenantContextHook({
+    validateCustomerAgencyAccess:
+      options.validateCustomerAgencyAccess ?? (() => Promise.resolve(false)),
+  });
+  const customerHooks = [customerAuthenticate, establishCustomerTenant];
+
+  app.get('/customer-api/me', { preHandler: customerHooks }, async () => {
+    const profile = await getMyProfile(options.database);
+    if (!profile) {
+      throw new NotFoundError('Customer profile not found');
+    }
+    return { profile };
+  });
+
+  app.get('/customer-api/trips', { preHandler: customerHooks }, async () => {
+    const trips = await listMyTrips(options.database);
+    return { trips };
+  });
+
+  app.get<{ Params: { id: string } }>(
+    '/customer-api/trips/:id',
+    { preHandler: customerHooks },
+    async (request) => {
+      const trip = await getMyTripById(options.database, request.params.id);
+      if (!trip) {
+        throw new NotFoundError('Trip not found');
+      }
+      return { trip };
+    },
+  );
+
+  app.get('/customer-api/offers', { preHandler: customerHooks }, async () => {
+    const offers = await listAvailableOffers(options.database);
+    return { offers };
+  });
+
+  app.get<{ Params: { id: string } }>(
+    '/customer-api/offers/:id',
+    { preHandler: customerHooks },
+    async (request) => {
+      const offer = await getAvailableOfferById(options.database, request.params.id);
+      if (!offer) {
+        throw new NotFoundError('Offer not found');
+      }
+      return { offer };
+    },
+  );
+
+  app.get('/customer-api/proposals', { preHandler: customerHooks }, async () => {
+    const proposals = await listMyProposals(options.database);
+    return { proposals };
+  });
+
+  app.get<{ Params: { id: string } }>(
+    '/customer-api/proposals/:id',
+    { preHandler: customerHooks },
+    async (request) => {
+      const proposal = await getMyProposalById(options.database, request.params.id);
+      if (!proposal) {
+        throw new NotFoundError('Proposal not found');
+      }
+      return { proposal };
+    },
+  );
+
+  app.get('/customer-api/bookings', { preHandler: customerHooks }, async () => {
+    const bookings = await listMyBookings(options.database);
+    return { bookings };
+  });
+
+  app.get<{ Params: { id: string } }>(
+    '/customer-api/bookings/:id',
+    { preHandler: customerHooks },
+    async (request) => {
+      const result = await getMyBookingById(options.database, request.params.id);
+      if (!result) {
+        throw new NotFoundError('Booking not found');
+      }
+      return { booking: result.booking, passengers: result.passengers };
+    },
+  );
 
   app.get('/health', () => ({
     status: 'ok',
