@@ -50,6 +50,95 @@ export type TenantFastifyRequest = {
   body?: unknown;
 };
 
+// ============================================================
+// CUSTOMER PORTAL TENANT CONTEXT
+// Fully separate from the staff auth/context flow above. Never merged
+// with AuthPayload/establishTenantContext -- a customer identity must
+// never be mistaken for (or escalate into) a staff principal.
+// ============================================================
+
+export interface CustomerAuthPayload {
+  agencyId: string;
+  customerId: string;
+}
+
+// Independent DB-backed check that the resolved customerId actually
+// belongs to the resolved agencyId (mirrors ValidateUserAgencyAccess /
+// validateUserAgencyAccess for the staff flow). Must query the
+// `customers` table -- never trust the auth layer's claim alone.
+export type ValidateCustomerAgencyAccess = (
+  customerId: string,
+  agencyId: string,
+) => Promise<boolean>;
+
+export interface CustomerTenantContextHookOptions {
+  validateCustomerAgencyAccess: ValidateCustomerAgencyAccess;
+}
+
+export type CustomerTenantFastifyRequest = {
+  customerAuth?: CustomerAuthPayload;
+  body?: unknown;
+};
+
+// Synthetic, non-secret placeholders used only to satisfy
+// assertValidTenantContext's staff-shaped invariants (non-empty
+// userId/userRole) for a customer-portal request. Never treated as a
+// real user id or role: customer-portal routes never call
+// requireRole()/requireExactRole() and never read userId for anything
+// but this context's own internal consistency.
+const CUSTOMER_CONTEXT_ROLE = UserRole.VIEWER;
+
+export async function establishCustomerTenantContext(
+  request: CustomerTenantFastifyRequest,
+  options: CustomerTenantContextHookOptions,
+): Promise<TenantContext> {
+  const customerAuth = request.customerAuth;
+
+  if (!customerAuth) {
+    throw new UnauthorizedError('Customer authentication required');
+  }
+
+  if (!isNonEmptyString(customerAuth.agencyId) || !isNonEmptyString(customerAuth.customerId)) {
+    throw new UnauthorizedError('Customer authentication required');
+  }
+
+  const belongsToAgency = await options.validateCustomerAgencyAccess(
+    customerAuth.customerId,
+    customerAuth.agencyId,
+  );
+
+  if (!belongsToAgency) {
+    throw new ForbiddenError('Customer does not belong to this agency');
+  }
+
+  const context: TenantContext = {
+    agencyId: customerAuth.agencyId,
+    userId: `customer-context:${customerAuth.customerId}`,
+    userRole: CUSTOMER_CONTEXT_ROLE,
+    email: '',
+    customerId: customerAuth.customerId,
+  };
+
+  assertValidTenantContext(context);
+  return context;
+}
+
+export function createCustomerTenantContextHook(options: CustomerTenantContextHookOptions) {
+  return (
+    request: CustomerTenantFastifyRequest,
+    reply: TenantFastifyReply,
+    done: HookHandlerDoneFunction,
+  ): void => {
+    establishCustomerTenantContext(request, options)
+      .then((context) => {
+        tenantStorage.run(context, done);
+      })
+      .catch((error: unknown) => {
+        sendTenantError(reply, error);
+      });
+  };
+}
+
 export interface TenantFastifyReply {
   code(statusCode: number): TenantFastifyReply;
   send(payload: unknown): unknown;
@@ -102,6 +191,23 @@ export function getAgencyId(): string {
 
 export function getUserId(): string {
   return getTenantContext().userId;
+}
+
+// Customer-portal counterpart to getUserId(). Throws if this request's
+// tenant context was not established via establishCustomerTenantContext()
+// (e.g. a staff request has no customerId at all). Never falls back to
+// trusting a customerId supplied by the caller.
+export function getCustomerId(): string {
+  const context = getTenantContext();
+
+  if (!isNonEmptyString(context.customerId ?? '')) {
+    throw new TenantError(
+      'No customer context available on this request.',
+      'NO_CUSTOMER_CONTEXT',
+    );
+  }
+
+  return context.customerId as string;
 }
 
 export function createTenantContextHook(options: TenantContextHookOptions) {

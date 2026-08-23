@@ -46,10 +46,37 @@ import { SalesPage } from './pages/SalesPage';
 import { SaleFormPage } from './pages/SaleFormPage';
 import { SaleDetailsPage } from './pages/SaleDetailsPage';
 import { SaleEditPage } from './pages/SaleEditPage';
+import { CustomerPortalShell } from './customer-portal/CustomerPortalShell';
+import { CustomerHomePage } from './customer-portal/pages/CustomerHomePage';
+import { CustomerTripsPage } from './customer-portal/pages/CustomerTripsPage';
+import { CustomerTripDetailsPage } from './customer-portal/pages/CustomerTripDetailsPage';
+import { CustomerOffersPage } from './customer-portal/pages/CustomerOffersPage';
+import { CustomerOfferDetailsPage } from './customer-portal/pages/CustomerOfferDetailsPage';
+import { CustomerProposalsPage } from './customer-portal/pages/CustomerProposalsPage';
+import { CustomerProposalDetailsPage } from './customer-portal/pages/CustomerProposalDetailsPage';
+import { CustomerBookingsPage } from './customer-portal/pages/CustomerBookingsPage';
+import { CustomerBookingDetailsPage } from './customer-portal/pages/CustomerBookingDetailsPage';
+import { CustomerProfilePage } from './customer-portal/pages/CustomerProfilePage';
 
 export function App() {
   return (
     <Routes>
+      {/* End-customer-facing portal. Entirely separate route tree, shell,
+          and nav from the staff admin tree below -- see
+          customer-portal/CustomerPortalShell.tsx. */}
+      <Route element={<CustomerPortalShell />}>
+        <Route path="customer-portal" element={<CustomerHomePage />} />
+        <Route path="customer-portal/trips" element={<CustomerTripsPage />} />
+        <Route path="customer-portal/trips/:id" element={<CustomerTripDetailsPage />} />
+        <Route path="customer-portal/offers" element={<CustomerOffersPage />} />
+        <Route path="customer-portal/offers/:id" element={<CustomerOfferDetailsPage />} />
+        <Route path="customer-portal/proposals" element={<CustomerProposalsPage />} />
+        <Route path="customer-portal/proposals/:id" element={<CustomerProposalDetailsPage />} />
+        <Route path="customer-portal/bookings" element={<CustomerBookingsPage />} />
+        <Route path="customer-portal/bookings/:id" element={<CustomerBookingDetailsPage />} />
+        <Route path="customer-portal/profile" element={<CustomerProfilePage />} />
+      </Route>
+
       <Route element={<AppShell />}>
         <Route index element={<Navigate to="/customers" replace />} />
         <Route path="customers" element={<CustomersPage />} />
