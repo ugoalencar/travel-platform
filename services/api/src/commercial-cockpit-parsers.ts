@@ -228,6 +228,7 @@ export function parseOpportunityFilters(query: Record<string, unknown>): Opportu
   if (typeof query.tripDateTo === 'string') filters.tripDateTo = query.tripDateTo;
   if (typeof query.hasProposal === 'string') filters.hasProposal = query.hasProposal === 'true';
   if (typeof query.hasSale === 'string') filters.hasSale = query.hasSale === 'true';
+  if (typeof query.hasNextAction === 'string') filters.hasNextAction = query.hasNextAction === 'true';
   if (typeof query.nextActionFrom === 'string') filters.nextActionFrom = query.nextActionFrom;
   if (typeof query.nextActionTo === 'string') filters.nextActionTo = query.nextActionTo;
   if (typeof query.overdue === 'string') filters.overdue = query.overdue === 'true';

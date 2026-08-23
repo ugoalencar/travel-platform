@@ -53,6 +53,9 @@ import { CustomerProposalDetailsPage } from './customer-portal/pages/CustomerPro
 import { CustomerBookingsPage } from './customer-portal/pages/CustomerBookingsPage';
 import { CustomerBookingDetailsPage } from './customer-portal/pages/CustomerBookingDetailsPage';
 import { CustomerProfilePage } from './customer-portal/pages/CustomerProfilePage';
+import { CommercialDashboardPage } from './pages/commercial/CommercialDashboardPage';
+import { CommercialPipelinePage } from './pages/commercial/CommercialPipelinePage';
+import { CommercialAgendaPage } from './pages/commercial/CommercialAgendaPage';
 
 export function App() {
   return (
@@ -117,6 +120,9 @@ export function App() {
         <Route path="transport/agenda" element={<TransportAgendaPage />} />
         <Route path="operations/today" element={<OperationsTodayPage />} />
         <Route path="operations/:id" element={<OperationDetailsPage />} />
+        <Route path="commercial/dashboard" element={<CommercialDashboardPage />} />
+        <Route path="commercial/pipeline" element={<CommercialPipelinePage />} />
+        <Route path="commercial/agenda" element={<CommercialAgendaPage />} />
       </Route>
     </Routes>
   );

@@ -129,6 +129,8 @@ import {
   createTask,
   getDashboardSummary,
   getOpportunityById,
+  getPostSaleCandidates,
+  getProposalsWaiting,
   getTaskById,
   listInteractions,
   listOpportunities,
@@ -1045,6 +1047,21 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     requireRole(UserRole.VIEWER);
     const summary = await getDashboardSummary(options.database, getUserId());
     return summary;
+  });
+
+  // Read-only agenda/dashboard-suggestion lists. Neither ever writes --
+  // proposals stay unmanaged, and post-sale candidates only ever result
+  // in a MANUAL CommercialTask creation via POST /commercial/tasks.
+  app.get('/commercial/proposals-waiting', { preHandler: protectedHooks }, async () => {
+    requireRole(UserRole.VIEWER);
+    const proposals = await getProposalsWaiting(options.database);
+    return { proposals };
+  });
+
+  app.get('/commercial/post-sale-candidates', { preHandler: protectedHooks }, async () => {
+    requireRole(UserRole.VIEWER);
+    const candidates = await getPostSaleCandidates(options.database);
+    return { candidates };
   });
 
   if (options.exposeTestRoutes === true) {

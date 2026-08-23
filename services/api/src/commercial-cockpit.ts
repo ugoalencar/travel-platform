@@ -248,6 +248,7 @@ export interface OpportunityFilters {
   tripDateTo?: string;
   hasProposal?: boolean;
   hasSale?: boolean;
+  hasNextAction?: boolean;
   nextActionFrom?: string;
   nextActionTo?: string;
   overdue?: boolean;
@@ -352,6 +353,11 @@ function buildOpportunityWhere(
     clauses.push('sale_id IS NOT NULL');
   } else if (filters.hasSale === false) {
     clauses.push('sale_id IS NULL');
+  }
+  if (filters.hasNextAction === true) {
+    clauses.push('next_action_at IS NOT NULL');
+  } else if (filters.hasNextAction === false) {
+    clauses.push("next_action_at IS NULL AND stage NOT IN ('WON', 'LOST')");
   }
   if (filters.nextActionFrom !== undefined) {
     values.push(filters.nextActionFrom);
@@ -1053,6 +1059,23 @@ export async function getDashboardSummary(database: DatabaseRuntime, userId: str
       postSalePendingCount: postSalePending.length,
     };
   });
+}
+
+// Agenda/dashboard-facing wrappers around the reusable query layer that
+// establish agencyId from ambient tenant context (HTTP callers) rather
+// than requiring it as an explicit parameter, mirroring every other
+// service function in this file.
+
+export async function getProposalsWaiting(database: DatabaseRuntime) {
+  const agencyId = getAgencyId();
+  return database.withTenantTransaction((client) => listProposalsWithNoResponse(client, agencyId));
+}
+
+// Read-only: never auto-creates the POST_SALE task, only surfaces the
+// candidates so staff can create one manually via POST /commercial/tasks.
+export async function getPostSaleCandidates(database: DatabaseRuntime) {
+  const agencyId = getAgencyId();
+  return database.withTenantTransaction((client) => listPostSaleCandidates(client, agencyId));
 }
 
 export {
