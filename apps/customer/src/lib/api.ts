@@ -26,6 +26,12 @@ import type {
   CreateRoutePointInput,
   UpdateRoutePointInput,
 } from '../types/transport';
+import type {
+  CreateOperationInput,
+  OperationCheckpoint,
+  OperationWithCheckpoints,
+  TransportOperation,
+} from '../types/operations';
 
 // Single seam for a future production API base URL. In local dev this stays
 // empty so requests go to relative paths (e.g. `/api/customers`) and are
@@ -463,4 +469,55 @@ export async function createBooking(
     method: 'POST',
     body: JSON.stringify(input),
   });
+}
+
+// ============================================================
+// FIELD OPERATIONS (TransportOperation / OperationCheckpoint)
+// ============================================================
+// Note the path has no "/transport" segment on the backend (see
+// services/api/src/app.ts) -- routes are registered at /operations, not
+// /transport/operations, per the approved brief. The "/api" prefix here is
+// the same Vite dev-proxy prefix used by every other call in this file.
+
+export async function listOperations(): Promise<TransportOperation[]> {
+  const data = await request<{ operations: TransportOperation[] }>('/api/operations');
+  return data.operations;
+}
+
+export async function getOperation(id: string): Promise<OperationWithCheckpoints> {
+  return request<OperationWithCheckpoints>(`/api/operations/${encodeURIComponent(id)}`);
+}
+
+export async function createOperation(
+  input: CreateOperationInput,
+): Promise<OperationWithCheckpoints> {
+  return request<OperationWithCheckpoints>('/api/operations', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+}
+
+// The server always stamps now() on confirmation -- these calls never
+// send a client-supplied timestamp, by design (see brief's Safe
+// Timestamps requirement).
+export async function confirmArrival(
+  operationId: string,
+  checkpointId: string,
+): Promise<OperationCheckpoint> {
+  const data = await request<{ checkpoint: OperationCheckpoint }>(
+    `/api/operations/${encodeURIComponent(operationId)}/checkpoints/${encodeURIComponent(checkpointId)}/arrival`,
+    { method: 'POST' },
+  );
+  return data.checkpoint;
+}
+
+export async function confirmDeparture(
+  operationId: string,
+  checkpointId: string,
+): Promise<OperationCheckpoint> {
+  const data = await request<{ checkpoint: OperationCheckpoint }>(
+    `/api/operations/${encodeURIComponent(operationId)}/checkpoints/${encodeURIComponent(checkpointId)}/departure`,
+    { method: 'POST' },
+  );
+  return data.checkpoint;
 }

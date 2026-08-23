@@ -100,6 +100,14 @@ import {
   type CreateBookingInput,
   type CreateBookingPassengerInput,
 } from './bookings';
+import {
+  confirmArrival,
+  confirmDeparture,
+  createOperation,
+  getOperationById,
+  listOperations,
+  type CreateOperationInput,
+} from './transport-operations';
 
 export interface BuildAppOptions {
   authProvider: AuthProvider;
@@ -673,6 +681,77 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     reply.code(201);
     return { booking: result.booking, passengers: result.passengers };
   });
+
+  // ============================================================
+  // FIELD OPERATIONS (TransportOperation / OperationCheckpoint)
+  // ============================================================
+  // RBAC floor reasoning: GET routes use VIEWER (read-only, same floor
+  // as every other transport read endpoint above). POST /operations
+  // (creating today's operation + generating checkpoints) and the two
+  // confirmation endpoints are day-to-day operational actions taken by
+  // field/ops staff -- the same reasoning already applied to Booking's
+  // POST /bookings floor in this codebase -- so they use AGENT, one
+  // level below the MANAGER floor used for administrative
+  // Route/Product/Departure configuration changes above. There is no
+  // DRIVER/GUIDE role and no staff-assignment mechanism (explicit
+  // project constraint); confirmation is gated purely on "authenticated
+  // user with AGENT+ role in this tenant", not on a specific assigned
+  // individual -- that gap is deferred, not invented around.
+
+  app.get('/operations', { preHandler: protectedHooks }, async () => {
+    requireRole(UserRole.VIEWER);
+    const operations = await listOperations(options.database);
+    return { operations };
+  });
+
+  app.get<{ Params: { id: string } }>(
+    '/operations/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      const result = await getOperationById(options.database, request.params.id);
+      if (!result) {
+        throw new NotFoundError('Operation not found');
+      }
+      return result;
+    },
+  );
+
+  app.post('/operations', { preHandler: protectedHooks }, async (request, reply) => {
+    requireRole(UserRole.AGENT);
+    const data = parseCreateOperationInput(request.body);
+    const result = await createOperation(options.database, data);
+    reply.code(201);
+    return result;
+  });
+
+  app.post<{ Params: { id: string; checkpointId: string } }>(
+    '/operations/:id/checkpoints/:checkpointId/arrival',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.AGENT);
+      const checkpoint = await confirmArrival(
+        options.database,
+        request.params.id,
+        request.params.checkpointId,
+      );
+      return { checkpoint };
+    },
+  );
+
+  app.post<{ Params: { id: string; checkpointId: string } }>(
+    '/operations/:id/checkpoints/:checkpointId/departure',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.AGENT);
+      const checkpoint = await confirmDeparture(
+        options.database,
+        request.params.id,
+        request.params.checkpointId,
+      );
+      return { checkpoint };
+    },
+  );
 
   if (options.exposeTestRoutes === true) {
     app.post('/__test/rollback-proof', { preHandler: protectedHooks }, async () => {
@@ -2196,6 +2275,30 @@ function parseCreateScheduledDepartureInput(body: unknown): CreateScheduledDepar
   }
 
   return data;
+}
+
+function parseCreateOperationInput(body: unknown): CreateOperationInput {
+  if (typeof body !== 'object' || body === null || Array.isArray(body)) {
+    throw new ValidationError('Request body must be an object');
+  }
+  const record = body as Record<string, unknown>;
+
+  for (const field of ['agencyId', 'tenantId', 'id', 'createdAt', 'updatedAt'] as const) {
+    if (field in record) {
+      throw new ValidationError(`Field "${field}" is not allowed in the request body`);
+    }
+  }
+  for (const key of Object.keys(record)) {
+    if (key !== 'departureId') {
+      throw new ValidationError(`Unknown field "${key}" in request body`);
+    }
+  }
+
+  if (typeof record.departureId !== 'string' || record.departureId.trim().length === 0) {
+    throw new ValidationError('Field "departureId" is required and must be a non-empty string');
+  }
+
+  return { departureId: record.departureId };
 }
 
 function parseUpdateScheduledDepartureInput(body: unknown): UpdateScheduledDepartureInput {

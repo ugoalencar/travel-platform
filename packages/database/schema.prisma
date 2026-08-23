@@ -34,35 +34,37 @@ datasource db {
 // ============================================================
 
 model Agency {
-  id                  String               @id @default(dbgenerated("(gen_random_uuid())::text"))
-  name                String
-  slug                String               @unique
-  cnpj                String?              @unique
-  email               String?
-  phone               String?
-  address             Json?
-  settings            Json?
-  plan                Plan                 @default(FREE)
-  status              Status               @default(ACTIVE)
-  createdAt           DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt           DateTime             @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  bookingPassengers   BookingPassenger[]
-  bookings            Booking[]
-  brokers             Broker[]
-  commissions         Commission[]
-  customerAccounts    CustomerAccount[]
-  customers           Customer[]
-  offers              Offer[]
-  proposals           Proposal[]
-  sales               Sale[]
-  trips               Trip[]
-  users               User[]
-  wishes              Wish[]
-  routes              Route[]
-  routePoints         RoutePoint[]
-  suppliers           Supplier[]
-  transportProducts   TransportProduct[]
-  scheduledDepartures ScheduledDeparture[]
+  id                   String                @id @default(dbgenerated("(gen_random_uuid())::text"))
+  name                 String
+  slug                 String                @unique
+  cnpj                 String?               @unique
+  email                String?
+  phone                String?
+  address              Json?
+  settings             Json?
+  plan                 Plan                  @default(FREE)
+  status               Status                @default(ACTIVE)
+  createdAt            DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime              @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  bookingPassengers    BookingPassenger[]
+  bookings             Booking[]
+  brokers              Broker[]
+  commissions          Commission[]
+  customerAccounts     CustomerAccount[]
+  customers            Customer[]
+  offers               Offer[]
+  proposals            Proposal[]
+  sales                Sale[]
+  trips                Trip[]
+  users                User[]
+  wishes               Wish[]
+  routes               Route[]
+  routePoints          RoutePoint[]
+  suppliers            Supplier[]
+  transportProducts    TransportProduct[]
+  scheduledDepartures  ScheduledDeparture[]
+  transportOperations  TransportOperation[]
+  operationCheckpoints OperationCheckpoint[]
 
   @@map("agencies")
 }
@@ -466,22 +468,23 @@ model Route {
 // optional per point (checkpointRequired); see 004_route_points.sql
 // for the full scope-decision notes.
 model RoutePoint {
-  id                   String          @id @default(dbgenerated("(gen_random_uuid())::text"))
-  agencyId             String          @map("agency_id")
-  routeId              String          @map("route_id")
+  id                   String                @id @default(dbgenerated("(gen_random_uuid())::text"))
+  agencyId             String                @map("agency_id")
+  routeId              String                @map("route_id")
   sequence             Int
   name                 String
-  checkpointRequired   Boolean         @default(false) @map("checkpoint_required")
-  checkpointType       CheckpointType? @map("checkpoint_type")
+  checkpointRequired   Boolean               @default(false) @map("checkpoint_required")
+  checkpointType       CheckpointType?       @map("checkpoint_type")
   // Minutes after the future ScheduledDeparture's departureAt. Not an
   // absolute time; expected-absolute-time (departureAt + offset) is a
   // future derivation, not stored here.
-  plannedOffsetMinutes Int?            @map("planned_offset_minutes")
+  plannedOffsetMinutes Int?                  @map("planned_offset_minutes")
   notes                String?
-  createdAt            DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt            DateTime        @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  agency               Agency          @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "route_points_agency_fk")
-  route                Route           @relation(fields: [agencyId, routeId], references: [agencyId, id], onDelete: Restrict, map: "route_points_route_tenant_fk")
+  createdAt            DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime              @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  agency               Agency                @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "route_points_agency_fk")
+  route                Route                 @relation(fields: [agencyId, routeId], references: [agencyId, id], onDelete: Restrict, map: "route_points_route_tenant_fk")
+  operationCheckpoints OperationCheckpoint[]
 
   // NOTE: route_points_checkpoint_type_required_check (SQL CHECK)
   // enforces checkpointRequired/checkpointType consistency at the
@@ -574,6 +577,7 @@ model ScheduledDeparture {
   supplier          Supplier?            @relation(fields: [agencyId, supplierId], references: [agencyId, id], onDelete: Restrict, map: "scheduled_departures_supplier_tenant_fk")
   outboundBookings  Booking[]            @relation("BookingOutboundDeparture")
   returnBookings    Booking[]            @relation("BookingReturnDeparture")
+  operation         TransportOperation?  @relation("ScheduledDeparture_operation")
 
   @@unique([agencyId, id], map: "scheduled_departures_agency_id_key")
   @@index([agencyId], map: "scheduled_departures_agency_idx")
@@ -628,4 +632,64 @@ model BookingPassenger {
   @@index([agencyId], map: "booking_passengers_agency_idx")
   @@index([agencyId, bookingId], map: "booking_passengers_agency_booking_idx")
   @@map("booking_passengers")
+}
+
+// TransportOperation: a thin "this ScheduledDeparture is now being
+// operated" marker (EXECUTION), distinct from ScheduledDeparture
+// (PLAN). At most one Operation per Departure. OperationCheckpoint
+// rows hang off this join point. See 005_field_operations.sql for the
+// full scope-decision notes.
+model TransportOperation {
+  id          String                @id @default(dbgenerated("(gen_random_uuid())::text"))
+  agencyId    String                @map("agency_id")
+  departureId String                @map("departure_id")
+  createdAt   DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime              @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  agency      Agency                @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "transport_operations_agency_fk")
+  departure   ScheduledDeparture    @relation("ScheduledDeparture_operation", fields: [agencyId, departureId], references: [agencyId, id], onDelete: Restrict, map: "transport_operations_departure_tenant_fk")
+  checkpoints OperationCheckpoint[]
+
+  @@unique([agencyId, id], map: "transport_operations_agency_id_key")
+  @@unique([agencyId, departureId], map: "transport_operations_agency_departure_key")
+  @@index([agencyId], map: "transport_operations_agency_idx")
+  @@index([agencyId, departureId], map: "transport_operations_agency_departure_idx")
+  @@map("transport_operations")
+}
+
+// OperationCheckpoint: EXECUTION record generated from a RoutePoint
+// with checkpointRequired = true when a TransportOperation is created.
+// checkpointType is snapshotted from the RoutePoint at generation
+// time. arrivalCheckedAt/departureCheckedAt are separate nullable
+// columns set only by a server-side confirmation action (never
+// client-supplied, never pre-filled). expectedAt/delay are NOT
+// persisted -- both are derived on read by the application layer.
+model OperationCheckpoint {
+  id                 String             @id @default(dbgenerated("(gen_random_uuid())::text"))
+  agencyId           String             @map("agency_id")
+  operationId        String             @map("operation_id")
+  routePointId       String             @map("route_point_id")
+  checkpointType     CheckpointType     @map("checkpoint_type")
+  arrivalCheckedAt   DateTime?          @map("arrival_checked_at") @db.Timestamptz(6)
+  departureCheckedAt DateTime?          @map("departure_checked_at") @db.Timestamptz(6)
+  notes              String?
+  // Optional, manual-entry-only free text. No GPS/geofencing.
+  location           String?
+  createdAt          DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime           @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  agency             Agency             @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "operation_checkpoints_agency_fk")
+  operation          TransportOperation @relation(fields: [agencyId, operationId], references: [agencyId, id], onDelete: Restrict, map: "operation_checkpoints_operation_tenant_fk")
+  routePoint         RoutePoint         @relation(fields: [agencyId, routePointId], references: [agencyId, id], onDelete: Restrict, map: "operation_checkpoints_route_point_tenant_fk")
+
+  // NOTE: operation_checkpoints_arrival_type_check /
+  // operation_checkpoints_departure_type_check (SQL CHECK constraints)
+  // enforce checkpointType/timestamp consistency at the database
+  // layer; Prisma cannot express cross-column CHECK constraints, same
+  // limitation noted elsewhere in this file.
+
+  @@unique([agencyId, id], map: "operation_checkpoints_agency_id_key")
+  @@unique([agencyId, operationId, routePointId], map: "operation_checkpoints_agency_operation_point_key")
+  @@index([agencyId], map: "operation_checkpoints_agency_idx")
+  @@index([agencyId, operationId], map: "operation_checkpoints_agency_operation_idx")
+  @@index([agencyId, routePointId], map: "operation_checkpoints_agency_route_point_idx")
+  @@map("operation_checkpoints")
 }

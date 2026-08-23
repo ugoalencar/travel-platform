@@ -40,6 +40,8 @@ import { TransportAgendaPage } from './pages/TransportAgendaPage';
 import { BookingsPage } from './pages/BookingsPage';
 import { BookingFormPage } from './pages/BookingFormPage';
 import { BookingDetailsPage } from './pages/BookingDetailsPage';
+import { OperationsTodayPage } from './pages/OperationsTodayPage';
+import { OperationDetailsPage } from './pages/OperationDetailsPage';
 
 export function App() {
   return (
@@ -86,6 +88,8 @@ export function App() {
         <Route path="transport/departures/:id" element={<DepartureDetailsPage />} />
         <Route path="transport/departures/:id/edit" element={<DepartureEditPage />} />
         <Route path="transport/agenda" element={<TransportAgendaPage />} />
+        <Route path="operations/today" element={<OperationsTodayPage />} />
+        <Route path="operations/:id" element={<OperationDetailsPage />} />
       </Route>
     </Routes>
   );
