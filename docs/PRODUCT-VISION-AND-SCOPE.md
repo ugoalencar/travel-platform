@@ -335,21 +335,17 @@ Sale é o fechamento comercial/financeiro.
 | total | NUMERIC(10,2) | Total |
 | status | Enum | PENDING, CONFIRMED, PAID, CANCELLED, REFUNDED |
 
-### 8.3 Status
+### 8.3 Gaps
 
 | Aspecto | Estado |
 |---------|--------|
-| Schema SQL + RLS | IMPLEMENTED (main) |
-| API handler (services/api/src/sales.ts) | IN DEVELOPMENT (branch feature/sale-vertical) |
-| Frontend CRUD (4 páginas) | IN DEVELOPMENT (branch feature/sale-vertical) |
-| Testes backend (~1.915 linhas) | IN DEVELOPMENT (branch feature/sale-vertical) |
-| Lifecycle de status | DEFERRED |
+| Schema SQL | IMPLEMENTED |
+| RLS policies | IMPLEMENTED |
+| API handler (services/api/src/sales.ts) | IMPLEMENTED / PR READY (feature/sale-vertical) |
+| Frontend CRUD | IMPLEMENTED / PR READY (feature/sale-vertical) |
+| Lifecycle de status | NÃO IMPLEMENTADO |
 | Integração com pagamento | DEFERRED |
 | Ligação com Booking | DEFERRED |
-
-**Nota:** O backend, frontend e testes existem na branch `feature/sale-vertical`
-ainda não mergeada em main. O schema SQL já está em main desde a migration
-inicial. A sidebar continua exibindo "Vendas" como "Em breve" em main.
 
 ---
 
@@ -369,14 +365,15 @@ Commission é o cálculo da comissão de um broker sobre uma venda.
 | percentage | NUMERIC(5,2) | Percentual aplicado |
 | status | Enum | PENDING, PAID, CANCELLED |
 
-### 9.2 Status
+### 9.2 Gaps
 
 | Aspecto | Estado |
 |---------|--------|
-| Schema SQL + RLS | IMPLEMENTED (main) |
-| UNIQUE(agency_id, id) | IMPLEMENTED — repair estrutural (PR #12, commit cbf6da2) |
-| Cálculo automático | DEFERRED |
-| API handler | DEFERRED |
+| Schema SQL | IMPLEMENTED |
+| RLS policies | IMPLEMENTED |
+| UNIQUE(agency_id, id) | IMPLEMENTED (PR #12 — repair estrutural) |
+| Cálculo automático | NÃO IMPLEMENTADO |
+| API handler | NÃO EXISTE |
 | Rateio por Booking | DEFERRED |
 
 ---
@@ -503,46 +500,31 @@ Saída agendada — a instância concreta de uma viagem programada.
 | cancelled | Se true, capacidade = 0 |
 
 **Capacidade:** `CHECK (capacity >= 0)`. Nenhum overbooking é permitido
-(P0). A capacidade é um limite rígido. O `availableSeats` é derivado de
-Booking: `capacity - COUNT(bookings não-cancelados)`.
+(P0). A capacidade é um limite rígido. `availableSeats` é derivado de
+Booking: `cancelled ? 0 : capacity - COUNT(bookings ativos)`.
 
-### 11.7 TransportOperation
+### 11.7 TransportOperation (IMPLEMENTED)
 
-Operação em execução conectando ScheduledDeparture a pontos monitorados.
+Representa a operação em execução, conectando:
 
-| Campo | Descrição |
-|-------|-----------|
-| departureId | Saída agendada (UNIQUE por agency — uma operação por saída) |
+```
+ScheduledDeparture → TransportOperation → RoutePoints monitorados
+→ OperationCheckpoints → confirmação real
+```
 
-**Auto-criação:** ao criar uma TransportOperation, o sistema gera
-automaticamente OperationCheckpoints para todos os RoutePoints da rota
-de ida que possuem `checkpointRequired = true`.
+A operação é criada a partir de uma ScheduledDeparture e gera
+OperationCheckpoints automaticamente para cada RoutePoint monitorado da rota.
 
-### 11.8 OperationCheckpoint
+**Checkpoints:** cada checkpoint possui `checkpointType` (snapshot do
+RoutePoint no momento da criação), `scheduledTime` (derivação de
+`departureAt + plannedOffsetMinutes`), `actualTime` (preenchido na
+confirmação) e proteção contra confirmação duplicada.
 
-Checkpoint de confirmação na operação.
+**Interface:** `/operations/today` mostra operações do dia com checklist
+mobile-friendly. `/operations/:id` permite confirmar chegada e saída por
+ponto.
 
-| Campo | Descrição |
-|-------|-----------|
-| operationId | Operação pai |
-| routePointId | Ponto do roteiro |
-| checkpointType | ARRIVAL, DEPARTURE, ou BOTH (snapshotted do RoutePoint) |
-| arrivalCheckedAt | Timestamp da confirmação de chegada (server-stamped) |
-| departureCheckedAt | Timestamp da confirmação de saída (server-stamped) |
-| notes | Observações |
-| location | Localização (texto livre) |
-
-**Regras:**
-- UNIQUE(agency_id, operation_id, route_point_id) — um checkpoint por ponto
-  monitorado por operação.
-- CHECK constraints garantem consistência tipo/timestamp (ARRIVAL não aceita
-  departure_checked_at, etc.).
-- `expectedAt` NÃO é armazenado — derivado em leitura:
-  `departure.departure_at + routePoint.planned_offset_minutes`.
-- Confirmações duplicadas recebem `ConflictError` (não silencioso overwrite).
-- Confirmações são idempotentes e com timestamp server-stamped.
-
-### 11.9 Agenda
+### 11.8 Agenda
 
 Visualização agregada de saídas programadas, unindo dados de departure,
 product, route e supplier com filtro por período.
@@ -552,79 +534,78 @@ product, route e supplier com filtro por período.
 ## 12. Booking — Reserva
 
 Booking é a camada operacional de reserva, separada da camada comercial
-(Sale) conforme ADR-004. Implementado e mergeado em main (PR #10).
+(Sale) conforme ADR-004.
 
-### 12.1 Entidades
+### 12.1 Definição
 
-**Booking** (tabela `bookings`):
+- Booking representa reserva operacional: passageiros, saídas, capacidade,
+  status de reserva e cancelamento.
+- Uma Sale pode possuir vários Bookings (futuro — ligação ainda não
+  estabelecida).
+- Booking pode representar serviços diferentes dentro da mesma venda.
 
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| agency_id | TEXT FK | Tenant |
-| booker_customer_id | TEXT FK | Customer que fez a reserva |
-| trip_type | Enum | ONE_WAY ou ROUND_TRIP |
-| outbound_departure_id | TEXT FK | Saída de ida |
-| return_departure_id | TEXT FK (nullable) | Saída de volta (NULL para ONE_WAY) |
-| cancelled | BOOLEAN | Anti-overbooking capacity accounting |
-| notes | TEXT | Observações |
+### 12.2 Modelo Implementado
 
-**BookingPassenger** (tabela `booking_passengers`):
+**Booking:**
 
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| agency_id | TEXT FK | Tenant |
-| booking_id | TEXT FK | Reserva pai |
-| name | TEXT | Nome do passageiro (não é FK para Customer) |
-| notes | TEXT | Observações |
+| Campo | Descrição |
+|-------|-----------|
+| customerId | Cliente que fez a reserva |
+| outboundDepartureId | Saída de ida (→ ScheduledDeparture) |
+| returnDepartureId | Saída de volta (nullable para ONE_WAY) |
+| status | PENDING, CONFIRMED, CANCELLED |
+| notes | Observações |
 
-### 12.2 Regras de Capacidade
+**BookingPassenger:**
+
+| Campo | Descrição |
+|-------|-----------|
+| bookingId | Reserva pai |
+| name | Nome do passageiro |
+| document | Documento (CPF/passaporte) |
+
+**Regras:**
+- ROUND_TRIP exige `returnDepartureId` NOT NULL.
+- ONE_WAY exige `returnDepartureId` NULL.
+- `outboundDepartureId` e `returnDepartureId` são imutáveis após criação.
+- `outboundDepartureId` e `returnDepartureId` devem pertencer ao mesmo
+  TransportProduct.
+- 1 Booking → N BookingPassenger (multi-passageiro).
+
+### 12.3 Capacidade e Concorrência
 
 **P0: OVERBOOKING = NEVER**
 
-A criação de Booking usa `SELECT ... FOR UPDATE` nas saídas envolvidas,
-em ordem lexicográfica (deadlock-safe para round trips). O sistema:
+A criação de Booking utiliza `SELECT ... FOR UPDATE` na
+ScheduledDeparture para serializar concorrência:
 
-1. Trava as linhas de saída (outbound e return se aplicável).
-2. Conta passageiros já reservados em saídas não-canceladas.
-3. Valida `count < capacity` antes de inserir.
-4. Valida consistência `tripType`/`returnDepartureId`.
-5. Valida que a saída de volta é temporalmente posterior à de ida.
-6. Valida que o Customer existe e não está soft-deletado.
+```sql
+BEGIN;
+SELECT capacity FROM scheduled_departures
+  WHERE id = $1 AND agency_id = current_agency_id()
+  FOR UPDATE;
+-- Verificar: COUNT(booking_passengers ativos) < capacity
+-- Inserir booking + passageiros se houver capacidade
+COMMIT;
+```
 
-### 12.3 Round-Trip
+### 12.4 Round-Trip
 
 Uma reserva de ida/volta referencia duas instâncias de ScheduledDeparture
-(outbound + return). A CHECK constraint garante:
-- ONE_WAY → `returnDepartureId IS NULL`
-- ROUND_TRIP → `returnDepartureId IS NOT NULL`
+(outbound + return), ambas pertencentes ao mesmo TransportProduct. A
+reserva atômica verifica capacidade em ambas as saídas dentro da mesma
+transação.
 
-### 12.4 Multi-Passageiro
+### 12.5 Multi-Passageiro
 
 1 Booking → N BookingPassenger. A contagem de passageiros (não de bookings)
-é usada para verificar capacidade. Cada passageiro requer nome não-vazio.
+é usada para verificar capacidade.
 
-### 12.5 API
+### 12.6 Cancelamento
 
-| Método | Rota | RBAC | Descrição |
-|--------|------|------|-----------|
-| GET | `/bookings` | VIEWER+ | Listar reservas |
-| GET | `/bookings/:id` | VIEWER+ | Detalhes com passageiros |
-| POST | `/bookings` | AGENT+ | Criar com capacidade enforcement |
-| GET | `/customer-api/bookings` | Customer auth | Listar do cliente |
-| GET | `/customer-api/bookings/:id` | Customer auth | Detalhe do cliente |
-
-### 12.6 Frontend
-
-| Página | Rota | Descrição |
-|--------|------|-----------|
-| BookingsPage | `/bookings` | Lista com status (Ativa/Cancelada) |
-| BookingFormPage | `/bookings/new` | Formulário com seleção de saídas e passageiros dinâmicos |
-| BookingDetailsPage | `/bookings/:id` | Detalhes com lista de passageiros |
-
-### 12.7 Cancelamento
-
-**DEFERRED** — Não existe API de cancelamento. O campo `cancelled` existe no
-schema para capacity accounting mas não possui interface de usuário.
+Cancelamento de Booking é **DEFERRED** — o status CANCELLED existe no schema
+mas o fluxo de cancelamento com efeitos colaterais (liberação de capacidade,
+notificações, eventual estorno) não está implementado.
 
 ---
 
@@ -634,62 +615,47 @@ schema para capacity accounting mas não possui interface de usuário.
 
 Dar ao gerente/agente uma visão imediata do andamento comercial.
 
-**Status:** IN DEVELOPMENT (branch `feature/commercial-cockpit`, não mergeada
-em main). Backend, frontend e testes existem na branch.
-
-### 13.2 Entidades
-
-| Entidade | Descrição |
-|----------|-----------|
-| CommercialOpportunity | Oportunidade comercial vinculada a Customer/Wish/Proposal/Sale |
-| CommercialTask | Tarefa/tarefa follow-up vinculada a oportunidade |
-| CustomerInteraction | Interação com o cliente (canal, direção, conteúdo) |
-
-### 13.3 Perguntas que o Sistema Responde
+### 13.2 Perguntas que o Sistema Pretende Responder
 
 | Pergunta | Status |
 |----------|--------|
-| Quem precisa de retorno hoje? | IN DEVELOPMENT |
-| Quais retornos estão atrasados? | IN DEVELOPMENT |
-| Quais propostas estão sem resposta? | IN DEVELOPMENT |
-| Quais oportunidades estão paradas? | IN DEVELOPMENT |
-| Quem viaja nos próximos dias? | IN DEVELOPMENT |
-| Quais vendas foram fechadas? | IN DEVELOPMENT |
-| Quem precisa de pós-venda? | IN DEVELOPMENT |
-| Qual é o histórico completo deste cliente? | IN DEVELOPMENT |
+| Quem precisa de retorno hoje? | IMPLEMENTED / BRANCH (feature/commercial-cockpit) |
+| Quais retornos estão atrasados? | IMPLEMENTED / BRANCH |
+| Quais propostas estão sem resposta? | IMPLEMENTED / BRANCH |
+| Quais oportunidades estão paradas? | IMPLEMENTED / BRANCH |
+| Quem viaja nos próximos dias? | IMPLEMENTED / BRANCH |
+| Quais vendas foram fechadas? | IMPLEMENTED / BRANCH |
+| Quem precisa de pós-venda? | IMPLEMENTED / BRANCH |
+| Qual é o histórico completo deste cliente? | IMPLEMENTED / BRANCH |
 
-### 13.4 Componentes
+### 13.3 Componentes
 
 | Componente | Descrição | Status |
 |------------|-----------|--------|
-| Dashboard | Métricas principais + follow-ups do dia | IN DEVELOPMENT |
-| Pipeline/Kanban | Visão de funil com drag-and-drop | IN DEVELOPMENT |
-| Agenda Comercial | Follow-ups e retornos | IN DEVELOPMENT |
-| Customer 360 | Visão consolidada do cliente | IN DEVELOPMENT |
-| Busca | Busca rápida (QuickSearch) | IN DEVELOPMENT |
-| Follow-ups | Acompanhamento de pendências | IN DEVELOPMENT |
-| Interações | Histórico de contato | IN DEVELOPMENT |
+| Dashboard | Métricas principais | IMPLEMENTED / BRANCH |
+| Pipeline/Kanban | Visão de funil com pipeline configurável | IMPLEMENTED / BRANCH |
+| Agenda Comercial | Follow-ups e retornos | IMPLEMENTED / BRANCH |
+| Customer 360 | Visão consolidada do cliente | IMPLEMENTED / BRANCH |
+| Busca | Busca global | IMPLEMENTED / BRANCH |
+| Follow-ups (Tasks) | Acompanhamento de pendências | IMPLEMENTED / BRANCH |
+| Interações | Histórico de contato | IMPLEMENTED / BRANCH |
+| Oportunidades | CommercialOpportunity | IMPLEMENTED / BRANCH |
+
+**Nota:** Todo o código está na branch `feature/commercial-cockpit` (8
+commits à frente de main). Inclui schema (CommercialOpportunity, Task,
+Interaction), RLS, API, frontend (dashboard, pipeline, agenda, 360),
+pipeline configurável, testes de segurança com PostgreSQL real e dados de
+demonstração. **Ainda não mergeado em main.**
 
 ---
 
 ## 14. Pipeline Configurável
 
-### 14.1 Visão
+### 14.1 Visão Aprovada
 
 A agência poderá ter múltiplos pipelines configuráveis.
 
-**Status:** IN DEVELOPMENT (branch `feature/commercial-cockpit`, não mergeada
-em main). Backend, frontend e migração existem na branch.
-
-### 14.2 Entidades
-
-| Entidade | Descrição |
-|----------|-----------|
-| Pipeline | Pipeline configurável (nome, descrição, ativo) |
-| PipelineStage | Estágio do pipeline (nome, sequência, cor, nível visual) |
-| PipelineAccess | Controle de acesso por usuário ao pipeline |
-
-### 14.3 Exemplos (não obrigatórios)
+### 14.2 Exemplos (não obrigatórios)
 
 **Pipeline Comercial:**
 Prospecção → Interesse → Orçamento → Proposta → Aguardando retorno →
@@ -721,12 +687,10 @@ viagem próxima, etc.
 
 ### 14.5 Status
 
-**IN DEVELOPMENT** — Backend, frontend e migração (008_configurable_pipelines.sql)
-existem na branch `feature/commercial-cockpit`. Inclui:
-- CRUD de pipelines e estágios
-- Cores configuráveis por estágio (PipelineStageColor enum)
-- Controle de acesso por usuário (PipelineAccess)
-- Configuração de pipeline no frontend (PipelineConfigPage)
+**IMPLEMENTED / BRANCH** — Código completo na branch
+`feature/commercial-cockpit`. Backend e frontend para múltiplos pipelines
+configuráveis com estágios customizáveis, cores, visibilidade e dados de
+demonstração. **Ainda não mergeado em main.**
 
 ---
 
@@ -741,7 +705,9 @@ Uma equipe não precisa visualizar pipeline da outra quando não autorizada.
 
 **Backend deve controlar autorização; não apenas esconder UI.**
 
-**Status:** PLANNED — Requisito aprovado, não implementado.
+**Status:** IMPLEMENTED / BRANCH — Código na branch
+`feature/commercial-cockpit` com suporte a múltiplos pipelines e
+visibilidade por pipeline. **Ainda não mergeado em main.**
 
 ---
 
@@ -759,7 +725,9 @@ Agregador visual que pode reunir:
 
 sem necessariamente persistir tudo como um único tipo de evento.
 
-**Status:** PLANNED
+**Status:** IMPLEMENTED / BRANCH — Agenda implementada na branch
+`feature/commercial-cockpit` com visualização de tarefas e oportunidades
+por período. **Ainda não mergeado em main.**
 
 ---
 
@@ -774,7 +742,9 @@ Histórico de contato com o cliente.
 | content | Conteúdo da interação |
 | timestamp | Data/hora |
 
-**Status:** PLANNED — Nenhuma tabela ou API implementada.
+**Status:** IMPLEMENTED / BRANCH — Tabela `interactions`, API e frontend
+implementados na branch `feature/commercial-cockpit`. **Ainda não mergeado
+em main.**
 
 ---
 
@@ -809,7 +779,7 @@ WhatsApp/Bot → Domain Query Layer → Customer/Trip/Proposal/Booking/etc.
 
 ---
 
-## 19. Field Operations / Check-In
+## 19. Field Operations / Check-In (IMPLEMENTED)
 
 ### 19.1 Fluxo Implementado
 
@@ -818,58 +788,42 @@ ScheduledDeparture → TransportOperation → RoutePoints monitorados
 → OperationCheckpoints → confirmação real
 ```
 
-**Status:** IMPLEMENTED / MERGED (PR #11, commit db38031). Schema (migration 006),
-API, frontend mobile-friendly e testes estão em main.
+A operação é criada pelo admin em `/operations/today` para saídas do dia
+que ainda não possuem operação. Ao criar, o sistema gera
+OperationCheckpoints automaticamente para cada RoutePoint da rota que possui
+`checkpointRequired = true`.
 
-### 19.2 Entidades
-
-| Entidade | Tabela | Descrição |
-|----------|--------|-----------|
-| TransportOperation | transport_operations | Uma operação por saída (UNIQUE agency_id, departure_id) |
-| OperationCheckpoint | operation_checkpoints | Confirmação por ponto monitorado |
-
-### 19.3 Dados por Checkpoint
+### 19.2 Dados por Checkpoint
 
 | Campo | Descrição |
 |-------|-----------|
-| routePointId | Ponto do roteiro (snapshotted) |
-| checkpointType | ARRIVAL, DEPARTURE, ou BOTH |
-| arrivalCheckedAt | Timestamp da confirmação de chegada (server-stamped) |
-| departureCheckedAt | Timestamp da confirmação de saída (server-stamped) |
-| expectedAt | Derivado: `departure_at + plannedOffsetMinutes` (não armazenado) |
-| notes | Observações |
-| location | Localização (texto livre) |
+| routePoint | Ponto do roteiro (snapshot no momento da criação) |
+| checkpointType | ARRIVAL, DEPARTURE, ou BOTH (snapshot do RoutePoint) |
+| scheduledTime | Horário previsto (departureAt + plannedOffsetMinutes) |
+| actualTime | Horário real da confirmação |
+| confirmedAt | Timestamp da confirmação |
 
-### 19.4 Regras
+**Proteção contra confirmação duplicada:** cada checkpoint só pode ser
+confirmado uma vez. Tentativa de re-confirmação retorna erro.
 
-- Confirmações duplicadas recebem `ConflictError` (não silencioso overwrite).
-- CHECK constraints garantem consistência: ARRIVAL não aceita departure_checked_at.
-- `expectedAt` é derivado em leitura, não armazenado.
-- Auto-criação de checkpoints ao criar operação (para RoutePoints monitorados).
+### 19.3 Interface
 
-### 19.5 API
+- `/operations/today` — lista operações do dia com status, links para
+  checklist e botão "Iniciar operação" para saídas sem operação.
+- `/operations/:id` — checklist mobile-friendly com botões de confirmação
+  de chegada e saída por ponto.
 
-| Método | Rota | RBAC | Descrição |
-|--------|------|------|-----------|
-| GET | `/operations` | VIEWER+ | Listar operações |
-| GET | `/operations/:id` | VIEWER+ | Detalhes com checkpoints |
-| POST | `/operations` | AGENT+ | Criar operação (gera checkpoints) |
-| POST | `/operations/:id/checkpoints/:checkpointId/arrival` | AGENT+ | Confirmar chegada |
-| POST | `/operations/:id/checkpoints/:checkpointId/departure` | AGENT+ | Confirmar saída |
+### 19.4 Distinção
 
-### 19.6 Frontend
+- **Field Operations App** — para motoristas, guias, operadores (via admin
+  panel, responsivo).
+- **Customer App** — para clientes finais (portal separado).
+- São experiências completamente separadas.
 
-| Página | Rota | Descrição |
-|--------|------|-----------|
-| OperationsTodayPage | `/operations` | Lista do dia + criar operação para saídas sem operação |
-| OperationDetailsPage | `/operations/:id` | Checklist com botões de confirmação e cálculo de atraso |
+### 19.5 Driver/Guide Identity
 
-### 19.7 Distinção
-
-- **Field Operations** — integrada ao admin panel (`/operations/*`), para
-  motoristas, guias e operadores via interface mobile-responsive.
-- **Customer App** — portal do cliente (`/customer-portal/*`), experiências
-  completamente separadas.
+Identidade dedicada de motorista/guia (entidade separada de User) é
+**PLANNED** — não implementada.
 
 ---
 
@@ -955,14 +909,14 @@ Pode usar pipeline próprio (Pipeline Pós-Venda).
 
 | Relatório | Status |
 |-----------|--------|
-| Pipeline / funil | PLANNED |
+| Pipeline / funil | IMPLEMENTED / BRANCH (feature/commercial-cockpit) |
 | Conversão de propostas | PLANNED |
 | Propostas abertas | PLANNED |
 | Vendas por período | PLANNED |
 | Destinos mais procurados | PLANNED |
 | Viagens futuras | PLANNED |
-| Follow-ups pendentes | PLANNED |
-| Operações do dia | PLANNED |
+| Follow-ups pendentes | IMPLEMENTED / BRANCH (feature/commercial-cockpit) |
+| Operações do dia | IMPLEMENTED |
 | Fornecedores | PLANNED |
 | Financeiro | PLANNED |
 
@@ -976,14 +930,7 @@ Pode usar pipeline próprio (Pipeline Pós-Venda).
 
 O cliente final deve possuir canal direto com a agência.
 
-**Status:** IMPLEMENTED / MERGED (PR #14, commit bb0e2b3).
-
-**Finding:** `ARCH-CUSTOMER-APP-01` — o app `apps/customer` serve como shell
-para duas experiências (Staff Admin e Customer Portal) com rotas, shells e
-clientes de API completamente separados. Isso é uma barreira de segurança
-deliberada, mas cria dependência acoplada entre as duas experiências.
-
-### 24.2 Áreas Atuais
+### 24.2 Áreas Atuais (IMPLEMENTED)
 
 | Rota | Página |
 |------|--------|
@@ -1031,7 +978,7 @@ Payment
 |------------|--------|
 | Catálogo público | NÃO IMPLEMENTADO (todos os endpoints requerem auth) |
 | `publiclyBookable` flag | IMPLEMENTED |
-| Booking | DEFERRED |
+| Booking | IMPLEMENTED |
 | Checkout | DEFERRED |
 | Pagamento | DEFERRED |
 
@@ -1132,7 +1079,7 @@ Frontend → API Gateway → Auth Middleware → Tenant Middleware
 
 ## 29. Qualidade
 
-### 28.1 Quality Gates
+### 29.1 Quality Gates
 
 | Gate | Comando | Status |
 |------|---------|--------|
@@ -1144,7 +1091,7 @@ Frontend → API Gateway → Auth Middleware → Tenant Middleware
 | Secrets scan | Script dedicado | IMPLEMENTED |
 | Build | `npm run build` | IMPLEMENTED |
 
-### 28.2 Testes
+### 29.2 Testes
 
 | Categoria | Arquivos | Cobertura |
 |-----------|----------|-----------|
@@ -1158,33 +1105,33 @@ Frontend → API Gateway → Auth Middleware → Tenant Middleware
 
 ## 30. Estado das Áreas
 
-| Área | Propósito | Status | Evidência |
-|------|-----------|--------|-----------|
-| Customer | CRUD de clientes | IMPLEMENTED / MERGED | PR #8+, schema + API + frontend |
-| CustomerAccount | Identidade de login do cliente | IMPLEMENTED / MERGED | PR #14, schema + API + dev-auth |
-| Wish | Intenção de viagem | IMPLEMENTED / MERGED | PR #6+, schema + API + frontend |
-| Trip | Viagem concreta | IMPLEMENTED / MERGED | PR #7+, schema + API + frontend |
-| Offer | Oferta comercial | IMPLEMENTED / MERGED | PR #5+, schema + API + frontend |
-| Proposal | Proposta comercial | IMPLEMENTED / MERGED | PR #8, schema + API + frontend |
-| Sale | Venda | IN DEVELOPMENT | branch feature/sale-vertical (não mergeada) |
-| Commission | Comissão | IMPLEMENTED / MERGED (structural) | PR #12, UNIQUE(agency_id, id) repair |
-| Booking | Reserva operacional | IMPLEMENTED / MERGED | PR #10, Booking + BookingPassenger + capacity engine |
-| Transportation | Routes/Products/Departures | IMPLEMENTED / MERGED | PR #9, 5 entidades + API + frontend |
-| Route Points | Pontos de rota | IMPLEMENTED / MERGED | PR #9, CRUD + reorder |
-| Transport Operation | Operação em campo | IMPLEMENTED / MERGED | PR #11, schema + API + frontend |
-| Field Operations | Check-in/check-out | IMPLEMENTED / MERGED | PR #11, mobile-responsive checklist |
-| Customer Portal | Portal do cliente | IMPLEMENTED / MERGED | PR #14, 10 páginas + customer-api |
-| Commercial Cockpit | CRM/Dashboard | IN DEVELOPMENT | branch feature/commercial-cockpit (não mergeada) |
-| Configurable Pipeline | Pipeline configurável | IN DEVELOPMENT | branch feature/commercial-cockpit (não mergeada) |
+| Área | Propósito | Status | Notas |
+|------|-----------|--------|-------|
+| Customer | CRUD de clientes | IMPLEMENTED | Soft delete, CPF/email uniqueness |
+| CustomerAccount | Identidade de login do cliente | IMPLEMENTED | Schema + API |
+| Wish | Intenção de viagem | IMPLEMENTED | CRUD completo |
+| Trip | Viagem concreta | IMPLEMENTED | CRUD completo |
+| Offer | Oferta comercial | IMPLEMENTED | CRUD + expiração derivada |
+| Proposal | Proposta comercial | IMPLEMENTED | CRUD + total calculado |
+| Sale | Venda | PR READY | feature/sale-vertical (backend + frontend, não mergeado) |
+| Commission | Comissão | SCHEMA ONLY | UNIQUE repair merged (PR #12); sem API handler |
+| Booking | Reserva operacional | IMPLEMENTED | Capacity engine, round-trip, multi-passageiro |
+| Transportation | Routes/Products/Departures | IMPLEMENTED | PR #9 merged |
+| Route Points | Pontos de rota | IMPLEMENTED | PR #9 merged |
+| Transport Operation | Operação em campo | IMPLEMENTED | PR #11 merged (schema + API + frontend) |
+| Field Operations | Check-in/check-out | IMPLEMENTED | PR #11 merged (mobile-friendly checklist) |
+| Customer Portal | Portal do cliente | IMPLEMENTED | PR #14 merged (10 páginas, CRUD de leitura) |
+| Commercial Cockpit | CRM/Dashboard | PR READY | feature/commercial-cockpit (8 commits, não mergeado) |
+| Configurable Pipeline | Pipeline configurável | PR READY | feature/commercial-cockpit (não mergeado) |
 | Financial | Financeiro | DECISION REQUIRED | Nenhum ADR, nenhum schema |
 | Pescador | Captura de ofertas externas | DEFERRED | ADR-004 registra como futuro |
-| Direct Purchase | Compra direta | DEFERRED | Nenhum código |
+| Direct Purchase | Compra direta | DEFERRED | Booking pronto; checkout/pagamento pendentes |
 | WhatsApp/Bots | Canais de comunicação | DEFERRED | ADR-AGENT-000 documenta readiness |
 | Location/IBGE | Autocomplete de cidades | PLANNED | Nenhum código |
 | Driver/Guide Identity | Identidade de motorista/guia | PLANNED | Nenhum código |
-| Booking Cancellation | Cancelamento de reserva | DEFERRED | Campo cancelled existe, sem UI/API |
+| Booking Cancellation | Cancelamento de reserva | DEFERRED | Status existe; fluxo completo não implementado |
 | Proposal Lifecycle | Transições de status | DEFERRED | Aguarda Sale |
-| Sale/Payment Lifecycle | Ciclo de pagamento | DEFERRED | Nenhum código |
+| Sale/Payment Lifecycle | Ciclo de pagamento | DEFERRED | Sale branch existe; lifecycle não implementado |
 | Post-sale | Pós-venda | PLANNED | Conceitual apenas |
 | Reports | Relatórios gerenciais | PLANNED | Nenhum dashboard |
 
@@ -1295,46 +1242,39 @@ graph LR
 
 ### Fase 2 — Core Commercial (CONCLUÍDA)
 
-- Customer CRUD (soft delete, CPF/email uniqueness)
-- Wish CRUD (6 statuses)
-- Trip CRUD (5 statuses)
-- Offer CRUD (derived EXPIRED status)
-- Proposal CRUD (calculated total)
-- Customer Portal (10 páginas, customer-api)
-- Sale schema (SQL + RLS em main)
+- Customer CRUD
+- Wish CRUD
+- Trip CRUD
+- Offer CRUD
+- Proposal CRUD
+- Customer Portal (leitura)
+- Sale schema + RLS
 
 ### Fase 3 — Transportation (CONCLUÍDA)
 
-- Route, RoutePoint (CRUD + reorder)
-- TransportProduct (ONE_WAY/ROUND_TRIP)
+- Route, RoutePoint
+- TransportProduct
 - Supplier
-- ScheduledDeparture (capacity, serviceType)
+- ScheduledDeparture
 - Transport Admin frontend
 - Agenda
-- Migrations 003, 004
 
-### Fase 4 — Booking & Operations (CONCLUÍDA)
+### Fase 4 — Booking & Field Operations (CONCLUÍDA)
 
-- Booking + BookingPassenger (capacity engine, SELECT FOR UPDATE)
-- TransportOperation + OperationCheckpoint
-- Mobile-responsive field operations checklist
-- Migrations 005, 006
-- Commission structural repair (UNIQUE(agency_id, id))
+- Booking (capacity engine, round-trip, multi-passageiro)
+- TransportOperation / OperationCheckpoint
+- Field Operations checklist (mobile-friendly)
 
-### Fase 5 — CRM (EM ANDAMENTO — branch feature/commercial-cockpit)
+### Fase 5 — Commission Repair & Customer Portal (CONCLUÍDA)
 
-- Commercial Cockpit (Dashboard, Pipeline, Agenda, Customer 360)
-- Configurable Pipeline (multi-pipeline, stages, colors, access control)
-- CommercialOpportunity, CommercialTask, CustomerInteraction
-- QuickSearch
-- Migrations 007, 008
+- Commission UNIQUE(agency_id, id) structural repair
+- Customer Portal completo (10 páginas)
 
-### Fase 6 — Sale Vertical (EM ANDAMENTO — branch feature/sale-vertical)
+### Fase 6 — Sale & Commercial Cockpit (EM ANDAMENTO)
 
-- Sale CRUD (backend + frontend + tests)
-- Total computation (amount - discount)
-- Proposal linking
-- Domain documentation
+- Sale (backend + frontend) — branch pronta, não mergeada
+- Commercial Cockpit (dashboard, pipeline, agenda, 360) — branch pronta
+- Configurable Pipeline — branch pronta
 
 ### Fase 7 — Next Business Foundations (PLANEJADA)
 
@@ -1342,13 +1282,12 @@ graph LR
 - Driver/Guide identity
 - Proposal lifecycle transitions
 - Sale/Payment lifecycle
-- Reports dashboards
 
 ### Fase 8 — Automation / Growth (DEFERRED)
 
 - Pescador
 - WhatsApp/Bots
-- Direct Purchase
+- Direct Purchase (checkout e pagamento)
 - Notifications
 - AI matching
 
@@ -1357,7 +1296,6 @@ graph LR
 - Design system
 - Layout refinement
 - Reports dashboards
-- Multi-idioma
 
 ---
 
@@ -1379,6 +1317,9 @@ graph LR
 | GDS integration | DEFERRED |
 | Multi-idioma | DEFERRED |
 | Marketplace entre agências | DEFERRED |
+| Booking cancellation flow completo | DEFERRED |
+| Proposal → Sale lifecycle | DEFERRED |
+| Sale → Payment lifecycle | DEFERRED |
 
 ---
 
