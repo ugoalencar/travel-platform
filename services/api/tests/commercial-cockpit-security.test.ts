@@ -627,7 +627,7 @@ describe.sequential('Commercial cockpit security (IDOR / tenant / RBAC / mass-as
         method: 'POST',
         url: `/commercial/pipelines/${newPipelineId}/stages`,
         headers: { 'x-test-principal': 'managerA' },
-        payload: { name: 'Novo', sequence: 1, colorToken: 'BLUE' },
+        payload: { name: 'Novo', sequence: 1, colorKey: 'BLUE' },
       });
       expect(stageForbidden.statusCode).toBe(403);
 
@@ -635,7 +635,7 @@ describe.sequential('Commercial cockpit security (IDOR / tenant / RBAC / mass-as
         method: 'POST',
         url: `/commercial/pipelines/${newPipelineId}/stages`,
         headers: { 'x-test-principal': 'adminA' },
-        payload: { name: 'Novo', sequence: 1, colorToken: 'BLUE' },
+        payload: { name: 'Novo', sequence: 1, colorKey: 'BLUE' },
       });
       expect(stageCreated.statusCode).toBe(201);
       await app.close();
@@ -656,7 +656,7 @@ describe.sequential('Commercial cockpit security (IDOR / tenant / RBAC / mass-as
         method: 'POST',
         url: `/commercial/pipelines/${pipelineAId}/stages`,
         headers: { 'x-test-principal': 'adminA' },
-        payload: { name: 'Test', sequence: 1, colorToken: 'BLUE', agencyId: agencyBId },
+        payload: { name: 'Test', sequence: 1, colorKey: 'BLUE', agencyId: agencyBId },
       });
       expect(stageResponse.statusCode).toBe(400);
 
@@ -893,7 +893,7 @@ describe.sequential('Commercial cockpit security (IDOR / tenant / RBAC / mass-as
     const stages: Record<string, string> = {};
     for (const [stageName, sequence, color] of stageDefs) {
       const stageResult = await pool.query<{ id: string }>(
-        `INSERT INTO pipeline_stages (agency_id, pipeline_id, name, sequence, color_token)
+        `INSERT INTO pipeline_stages (agency_id, pipeline_id, name, sequence, color_key)
          VALUES ($1, $2, $3, $4, $5) RETURNING id`,
         [agencyId, pipelineId, stageName, sequence, color],
       );

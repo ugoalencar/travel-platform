@@ -143,7 +143,7 @@ function PipelineDetail({ pipelineId, onChanged }: { pipelineId: string; onChang
       await createStage(pipelineId, {
         name: newStageName.trim(),
         sequence: stages.length + 1,
-        colorToken: newStageColor,
+        colorKey: newStageColor,
       });
       setNewStageName('');
       reload();
@@ -153,9 +153,9 @@ function PipelineDetail({ pipelineId, onChanged }: { pipelineId: string; onChang
     }
   }
 
-  async function handleStageColor(stage: PipelineStage, colorToken: PipelineStageColor) {
+  async function handleStageColor(stage: PipelineStage, colorKey: PipelineStageColor) {
     try {
-      await updateStage(pipelineId, stage.id, { colorToken });
+      await updateStage(pipelineId, stage.id, { colorKey });
       reload();
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Não foi possível atualizar a cor da etapa.');
@@ -239,7 +239,7 @@ function PipelineDetail({ pipelineId, onChanged }: { pipelineId: string; onChang
               }`}
             >
               <span
-                className={`rounded-full border px-2 py-0.5 text-xs font-semibold ${STAGE_COLOR_CLASSES[stage.colorToken]}`}
+                className={`rounded-full border px-2 py-0.5 text-xs font-semibold ${STAGE_COLOR_CLASSES[stage.colorKey]}`}
               >
                 {stage.name}
               </span>
@@ -262,7 +262,7 @@ function PipelineDetail({ pipelineId, onChanged }: { pipelineId: string; onChang
                 </button>
               </div>
               <select
-                value={stage.colorToken}
+                value={stage.colorKey}
                 onChange={(event) => void handleStageColor(stage, event.target.value as PipelineStageColor)}
                 className="rounded-md border border-slate-300 px-1.5 py-1 text-xs"
               >

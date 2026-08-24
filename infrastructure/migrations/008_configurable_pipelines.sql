@@ -71,7 +71,7 @@ CREATE TABLE pipeline_stages (
   pipeline_id            TEXT NOT NULL,
   name                   TEXT NOT NULL,
   sequence               INTEGER NOT NULL,
-  color_token            "PipelineStageColor" NOT NULL,
+  color_key            "PipelineStageColor" NOT NULL,
   visual_level           "PipelineStageVisualLevel" NOT NULL DEFAULT 'NORMAL',
   active                 BOOLEAN NOT NULL DEFAULT true,
   notifications_enabled  BOOLEAN NOT NULL DEFAULT false,
@@ -136,9 +136,9 @@ FROM agencies a;
 
 -- Stage mapping: exact 1:1 order/name preservation of the old
 -- CommercialStage enum, sequence 1-9, sensible default colors/levels.
-INSERT INTO pipeline_stages (id, agency_id, pipeline_id, name, sequence, color_token, visual_level, active)
+INSERT INTO pipeline_stages (id, agency_id, pipeline_id, name, sequence, color_key, visual_level, active)
 SELECT gen_random_uuid()::TEXT, p.agency_id, p.id, stage_def.name, stage_def.sequence,
-       stage_def.color_token::"PipelineStageColor", stage_def.visual_level::"PipelineStageVisualLevel", true
+       stage_def.color_key::"PipelineStageColor", stage_def.visual_level::"PipelineStageVisualLevel", true
 FROM pipelines p
 JOIN LATERAL (
   VALUES
@@ -151,7 +151,7 @@ JOIN LATERAL (
     ('WON',              7, 'GREEN',  'SUCCESS'),
     ('POST_SALE',        8, 'PURPLE',  'NORMAL'),
     ('LOST',             9, 'RED',     'ATTENTION')
-) AS stage_def(name, sequence, color_token, visual_level) ON true
+) AS stage_def(name, sequence, color_key, visual_level) ON true
 WHERE p.name = 'Comercial';
 
 -- ============================================================

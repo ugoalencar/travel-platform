@@ -123,7 +123,7 @@ const FORBIDDEN_STAGE_CREATE_FIELDS = ['agencyId', 'tenantId', 'id', 'pipelineId
 const ALLOWED_STAGE_CREATE_FIELDS = [
   'name',
   'sequence',
-  'colorToken',
+  'colorKey',
   'visualLevel',
   'notificationsEnabled',
 ] as const;
@@ -134,11 +134,11 @@ export function parseCreateStageInput(body: unknown): CreateStageInput {
 
   const name = requireNonEmptyString(record.name, 'name');
   const sequence = requireInteger(record.sequence, 'sequence');
-  if (!isEnumValue(PipelineStageColor, record.colorToken)) {
-    throw new ValidationError('Field "colorToken" must be a valid PipelineStageColor value');
+  if (!isEnumValue(PipelineStageColor, record.colorKey)) {
+    throw new ValidationError('Field "colorKey" must be a valid PipelineStageColor value');
   }
 
-  const input: CreateStageInput = { name, sequence, colorToken: record.colorToken };
+  const input: CreateStageInput = { name, sequence, colorKey: record.colorKey };
   if (record.visualLevel !== undefined) {
     if (!isEnumValue(PipelineStageVisualLevel, record.visualLevel)) {
       throw new ValidationError('Field "visualLevel" must be a valid PipelineStageVisualLevel value');
@@ -155,7 +155,7 @@ const FORBIDDEN_STAGE_UPDATE_FIELDS = ['agencyId', 'tenantId', 'id', 'pipelineId
 const ALLOWED_STAGE_UPDATE_FIELDS = [
   'name',
   'sequence',
-  'colorToken',
+  'colorKey',
   'visualLevel',
   'active',
   'notificationsEnabled',
@@ -170,11 +170,11 @@ export function parseUpdateStageInput(body: unknown): UpdateStageInput {
   if (name !== undefined) input.name = name;
   const sequence = optionalInteger(record.sequence, 'sequence');
   if (sequence !== undefined) input.sequence = sequence;
-  if (record.colorToken !== undefined) {
-    if (!isEnumValue(PipelineStageColor, record.colorToken)) {
-      throw new ValidationError('Field "colorToken" must be a valid PipelineStageColor value');
+  if (record.colorKey !== undefined) {
+    if (!isEnumValue(PipelineStageColor, record.colorKey)) {
+      throw new ValidationError('Field "colorKey" must be a valid PipelineStageColor value');
     }
-    input.colorToken = record.colorToken;
+    input.colorKey = record.colorKey;
   }
   if (record.visualLevel !== undefined) {
     if (!isEnumValue(PipelineStageVisualLevel, record.visualLevel)) {

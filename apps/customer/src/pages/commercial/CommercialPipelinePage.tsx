@@ -310,7 +310,7 @@ function KanbanBoard({
           }}
         >
           <div
-            className={`inline-flex w-fit items-center rounded-full border px-2 py-0.5 text-xs font-semibold uppercase tracking-wide ${STAGE_COLOR_CLASSES[stage.colorToken]}`}
+            className={`inline-flex w-fit items-center rounded-full border px-2 py-0.5 text-xs font-semibold uppercase tracking-wide ${STAGE_COLOR_CLASSES[stage.colorKey]}`}
           >
             {stage.name}
             {!stage.active ? ' (inativa)' : ''}

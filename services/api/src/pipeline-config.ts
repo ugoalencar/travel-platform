@@ -31,7 +31,7 @@ interface PipelineStageRow {
   pipeline_id: string;
   name: string;
   sequence: number;
-  color_token: PipelineStageColor;
+  color_key: PipelineStageColor;
   visual_level: PipelineStageVisualLevel;
   active: boolean;
   notifications_enabled: boolean;
@@ -48,7 +48,7 @@ interface PipelineAccessRow {
 }
 
 const PIPELINE_COLUMNS = `id, agency_id, name, description, active, notifications_enabled, created_at, updated_at`;
-const STAGE_COLUMNS = `id, agency_id, pipeline_id, name, sequence, color_token, visual_level, active, notifications_enabled, created_at, updated_at`;
+const STAGE_COLUMNS = `id, agency_id, pipeline_id, name, sequence, color_key, visual_level, active, notifications_enabled, created_at, updated_at`;
 const ACCESS_COLUMNS = `id, agency_id, pipeline_id, user_id, created_at`;
 
 function toPipeline(row: PipelineRow): Pipeline {
@@ -71,7 +71,7 @@ function toStage(row: PipelineStageRow): PipelineStage {
     pipelineId: row.pipeline_id,
     name: row.name,
     sequence: row.sequence,
-    colorToken: row.color_token,
+    colorKey: row.color_key,
     visualLevel: row.visual_level,
     active: row.active,
     notificationsEnabled: row.notifications_enabled,
@@ -332,7 +332,7 @@ export async function updatePipeline(
 export interface CreateStageInput {
   name: string;
   sequence: number;
-  colorToken: PipelineStageColor;
+  colorKey: PipelineStageColor;
   visualLevel?: PipelineStageVisualLevel;
   notificationsEnabled?: boolean;
 }
@@ -340,7 +340,7 @@ export interface CreateStageInput {
 export interface UpdateStageInput {
   name?: string;
   sequence?: number;
-  colorToken?: PipelineStageColor;
+  colorKey?: PipelineStageColor;
   visualLevel?: PipelineStageVisualLevel;
   active?: boolean;
   notificationsEnabled?: boolean;
@@ -388,7 +388,7 @@ export async function createStage(
 
     const result = await client.query<PipelineStageRow>(
       `INSERT INTO pipeline_stages
-         (agency_id, pipeline_id, name, sequence, color_token, visual_level, notifications_enabled)
+         (agency_id, pipeline_id, name, sequence, color_key, visual_level, notifications_enabled)
        VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING ${STAGE_COLUMNS}`,
       [
@@ -396,7 +396,7 @@ export async function createStage(
         pipelineId,
         data.name,
         data.sequence,
-        data.colorToken,
+        data.colorKey,
         data.visualLevel ?? PipelineStageVisualLevel.NORMAL,
         data.notificationsEnabled ?? false,
       ],
@@ -453,9 +453,9 @@ export async function updateStage(
       fields.push(`sequence = $${++index}`);
       values.push(data.sequence);
     }
-    if (data.colorToken !== undefined) {
-      fields.push(`color_token = $${++index}`);
-      values.push(data.colorToken);
+    if (data.colorKey !== undefined) {
+      fields.push(`color_key = $${++index}`);
+      values.push(data.colorKey);
     }
     if (data.visualLevel !== undefined) {
       fields.push(`visual_level = $${++index}`);

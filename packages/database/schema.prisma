@@ -839,7 +839,7 @@ model Pipeline {
   @@map("pipelines")
 }
 
-// PipelineStage: an ordered stage within one Pipeline. colorToken is a
+// PipelineStage: an ordered stage within one Pipeline. colorKey is a
 // constrained enum (never a free CSS string) that the frontend maps to
 // actual CSS classes -- prevents style/CSS injection from admin-entered
 // stage config. visualLevel is purely presentational and admin-assigned,
@@ -850,7 +850,7 @@ model PipelineStage {
   pipelineId           String                    @map("pipeline_id")
   name                 String
   sequence             Int
-  colorToken           PipelineStageColor        @map("color_token")
+  colorKey           PipelineStageColor        @map("color_key")
   visualLevel          PipelineStageVisualLevel  @default(NORMAL) @map("visual_level")
   active               Boolean                   @default(true)
   notificationsEnabled Boolean                   @default(false) @map("notifications_enabled")

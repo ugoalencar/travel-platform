@@ -141,7 +141,7 @@ export interface PipelineStage {
   pipelineId: string;
   name: string;
   sequence: number;
-  colorToken: PipelineStageColor;
+  colorKey: PipelineStageColor;
   visualLevel: PipelineStageVisualLevel;
   active: boolean;
   notificationsEnabled: boolean;
@@ -173,7 +173,7 @@ export interface UpdatePipelineInput {
 export interface CreateStageInput {
   name: string;
   sequence: number;
-  colorToken: PipelineStageColor;
+  colorKey: PipelineStageColor;
   visualLevel?: PipelineStageVisualLevel;
   notificationsEnabled?: boolean;
 }
@@ -181,7 +181,7 @@ export interface CreateStageInput {
 export interface UpdateStageInput {
   name?: string;
   sequence?: number;
-  colorToken?: PipelineStageColor;
+  colorKey?: PipelineStageColor;
   visualLevel?: PipelineStageVisualLevel;
   active?: boolean;
   notificationsEnabled?: boolean;

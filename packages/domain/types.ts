@@ -547,7 +547,7 @@ export interface PipelineStage {
   pipelineId: string;
   name: string;
   sequence: number;
-  colorToken: PipelineStageColor;
+  colorKey: PipelineStageColor;
   visualLevel: PipelineStageVisualLevel;
   active: boolean;
   notificationsEnabled: boolean;
