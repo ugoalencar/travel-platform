@@ -32,6 +32,12 @@ const COMMERCIAL_NAV_ITEMS: NavItem[] = [
   { label: 'Agenda', to: '/commercial/agenda' },
 ];
 
+// Minimal "Configurações" nav section (no settings framework existed
+// before this) -- currently just Pipelines. Every write on that page is
+// still enforced server-side by requirePipelineAdmin(); this link is not
+// itself a permission gate.
+const SETTINGS_NAV_ITEMS: NavItem[] = [{ label: 'Pipelines', to: '/settings/pipelines' }];
+
 export function Sidebar() {
   return (
     <aside className="flex h-full w-56 shrink-0 flex-col overflow-y-auto border-r border-slate-200 bg-white">
@@ -50,6 +56,13 @@ export function Sidebar() {
         </div>
         {COMMERCIAL_NAV_ITEMS.map((item) => (
           <NavItemLink key={`commercial-${item.label}`} item={item} />
+        ))}
+
+        <div className="mt-4 px-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
+          Configurações
+        </div>
+        {SETTINGS_NAV_ITEMS.map((item) => (
+          <NavItemLink key={`settings-${item.label}`} item={item} />
         ))}
       </nav>
     </aside>

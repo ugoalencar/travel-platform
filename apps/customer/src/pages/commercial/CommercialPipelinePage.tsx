@@ -5,19 +5,26 @@ import {
   createInteraction,
   createTask,
   listOpportunities,
+  listPipelines,
+  listStages,
   updateOpportunity,
 } from '../../lib/commercialApi';
 import {
-  COMMERCIAL_STAGES,
-  STAGE_LABELS,
+  STAGE_COLOR_CLASSES,
   type CommercialOpportunity,
-  type CommercialStage,
+  type Pipeline,
+  type PipelineStage,
 } from '../../types/commercial';
 
 type LoadState =
   | { status: 'loading' }
   | { status: 'error'; message: string }
   | { status: 'success'; opportunities: CommercialOpportunity[] };
+
+type PipelinesState =
+  | { status: 'loading' }
+  | { status: 'error'; message: string }
+  | { status: 'success'; pipelines: Pipeline[] };
 
 const QUICK_FILTER_BUTTONS: Array<{ label: string; param: string; value: string }> = [
   { label: 'Retornos atrasados', param: 'overdue', value: 'true' },
@@ -26,11 +33,16 @@ const QUICK_FILTER_BUTTONS: Array<{ label: string; param: string; value: string 
   { label: 'Com venda', param: 'hasSale', value: 'true' },
 ];
 
-// Kanban stage lives ONLY on CommercialOpportunity.stage -- dragging a
-// card here PATCHes /commercial/opportunities/:id { stage }, never
-// touching Proposal.status or Sale.status.
+// Kanban stage lives on CommercialOpportunity.pipelineId + stageId
+// (migration 008_configurable_pipelines.sql) -- dragging a card here
+// PATCHes /commercial/opportunities/:id { stageId } within the currently
+// selected pipeline, never touching Proposal.status or Sale.status, and
+// never changing pipelineId (moving pipelines is out of scope for this
+// PATCH -- see UpdateOpportunityInput's doc comment).
 export function CommercialPipelinePage() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const [pipelinesState, setPipelinesState] = useState<PipelinesState>({ status: 'loading' });
+  const [stages, setStages] = useState<PipelineStage[]>([]);
   const [state, setState] = useState<LoadState>({ status: 'loading' });
   const [isNarrow, setIsNarrow] = useState(
     typeof window !== 'undefined' ? window.innerWidth < 768 : false,
@@ -39,17 +51,54 @@ export function CommercialPipelinePage() {
     null,
   );
 
+  const selectedPipelineId = searchParams.get('pipelineId') ?? undefined;
+
   useEffect(() => {
     const onResize = () => setIsNarrow(window.innerWidth < 768);
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
   }, []);
 
+  // Server-driven: only ever lists pipelines this user may see (never
+  // hidden client-side over an unrestricted fetch).
+  useEffect(() => {
+    listPipelines()
+      .then((pipelines) => {
+        setPipelinesState({ status: 'success', pipelines });
+        const firstPipeline = pipelines[0];
+        if (!selectedPipelineId && firstPipeline) {
+          const next = new URLSearchParams(searchParams);
+          next.set('pipelineId', firstPipeline.id);
+          setSearchParams(next, { replace: true });
+        }
+      })
+      .catch((error: unknown) => {
+        setPipelinesState({
+          status: 'error',
+          message: error instanceof ApiError ? error.message : 'Não foi possível carregar os pipelines.',
+        });
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once
+  }, []);
+
+  useEffect(() => {
+    if (!selectedPipelineId) {
+      setStages([]);
+      return;
+    }
+    listStages(selectedPipelineId)
+      .then(setStages)
+      .catch(() => setStages([]));
+  }, [selectedPipelineId]);
+
   const load = useCallback(() => {
+    if (!selectedPipelineId) {
+      return;
+    }
     setState({ status: 'loading' });
-    const filters: Record<string, string> = {};
+    const filters: Record<string, string> = { pipelineId: selectedPipelineId };
     for (const [key, value] of searchParams.entries()) {
-      filters[key] = value;
+      if (key !== 'pipelineId') filters[key] = value;
     }
     listOpportunities(filters)
       .then(({ opportunities }) => setState({ status: 'success', opportunities }))
@@ -59,14 +108,14 @@ export function CommercialPipelinePage() {
           message: error instanceof ApiError ? error.message : 'Não foi possível carregar o pipeline.',
         });
       });
-  }, [searchParams]);
+  }, [searchParams, selectedPipelineId]);
 
   useEffect(() => {
     load();
   }, [load]);
 
-  async function moveToStage(id: string, stage: CommercialStage) {
-    await updateOpportunity(id, { stage });
+  async function moveToStage(id: string, stageId: string) {
+    await updateOpportunity(id, { stageId });
     load();
   }
 
@@ -80,16 +129,24 @@ export function CommercialPipelinePage() {
     setSearchParams(next);
   }
 
-  if (state.status === 'loading') {
-    return <p className="text-sm text-slate-500">Carregando pipeline...</p>;
+  function selectPipeline(pipelineId: string) {
+    const next = new URLSearchParams(searchParams);
+    next.set('pipelineId', pipelineId);
+    setSearchParams(next);
   }
-  if (state.status === 'error') {
+
+  if (pipelinesState.status === 'loading') {
+    return <p className="text-sm text-slate-500">Carregando pipelines...</p>;
+  }
+  if (pipelinesState.status === 'error') {
     return (
       <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-        {state.message}
+        {pipelinesState.message}
       </div>
     );
   }
+
+  const activePipelines = pipelinesState.pipelines.filter((p) => p.active);
 
   return (
     <div className="flex flex-col gap-6">
@@ -97,87 +154,174 @@ export function CommercialPipelinePage() {
         <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Pipeline Comercial</h1>
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        {QUICK_FILTER_BUTTONS.map((filter) => {
-          const active = searchParams.get(filter.param) === filter.value;
-          return (
-            <button
-              key={filter.label}
-              type="button"
-              onClick={() => toggleQuickFilter(filter.param, filter.value)}
-              className={`rounded-full border px-3 py-1.5 text-xs font-medium ${
-                active
-                  ? 'border-slate-900 bg-slate-900 text-white'
-                  : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-100'
-              }`}
-            >
-              {filter.label}
-            </button>
-          );
-        })}
-      </div>
+      <PipelineSelector
+        pipelines={activePipelines}
+        selectedId={selectedPipelineId}
+        onSelect={selectPipeline}
+        isNarrow={isNarrow}
+      />
 
-      {isNarrow ? (
-        <MobileStageList
-          opportunities={state.opportunities}
-          onMove={(id, stage) => void moveToStage(id, stage)}
-          onAction={setActionFor}
-        />
-      ) : (
-        <KanbanBoard
-          opportunities={state.opportunities}
-          onMove={(id, stage) => void moveToStage(id, stage)}
-          onAction={setActionFor}
-        />
+      {activePipelines.length === 0 && (
+        <p className="text-sm text-slate-500">
+          Nenhum pipeline disponível. Peça a um administrador para criar ou liberar um pipeline em
+          Configurações → Pipelines.
+        </p>
       )}
 
-      {actionFor && (
-        <QuickActionForm
-          opportunityId={actionFor.id}
-          kind={actionFor.kind}
-          onClose={() => setActionFor(null)}
-          onDone={() => {
-            setActionFor(null);
-            load();
-          }}
-        />
+      {selectedPipelineId && (
+        <>
+          <div className="flex flex-wrap gap-2">
+            {QUICK_FILTER_BUTTONS.map((filter) => {
+              const active = searchParams.get(filter.param) === filter.value;
+              return (
+                <button
+                  key={filter.label}
+                  type="button"
+                  onClick={() => toggleQuickFilter(filter.param, filter.value)}
+                  className={`rounded-full border px-3 py-1.5 text-xs font-medium ${
+                    active
+                      ? 'border-slate-900 bg-slate-900 text-white'
+                      : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  {filter.label}
+                </button>
+              );
+            })}
+          </div>
+
+          {state.status === 'loading' && <p className="text-sm text-slate-500">Carregando cartões...</p>}
+          {state.status === 'error' && (
+            <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+              {state.message}
+            </div>
+          )}
+          {state.status === 'success' &&
+            (isNarrow ? (
+              <MobileStageList
+                opportunities={state.opportunities}
+                stages={stages}
+                onMove={(id, stageId) => void moveToStage(id, stageId)}
+                onAction={setActionFor}
+              />
+            ) : (
+              <KanbanBoard
+                opportunities={state.opportunities}
+                stages={stages}
+                onMove={(id, stageId) => void moveToStage(id, stageId)}
+                onAction={setActionFor}
+              />
+            ))}
+
+          {actionFor && (
+            <QuickActionForm
+              opportunityId={actionFor.id}
+              kind={actionFor.kind}
+              onClose={() => setActionFor(null)}
+              onDone={() => {
+                setActionFor(null);
+                load();
+              }}
+            />
+          )}
+        </>
       )}
+    </div>
+  );
+}
+
+// Tabs on desktop, a <select> fallback on mobile -- per brief.
+function PipelineSelector({
+  pipelines,
+  selectedId,
+  onSelect,
+  isNarrow,
+}: {
+  pipelines: Pipeline[];
+  selectedId: string | undefined;
+  onSelect: (id: string) => void;
+  isNarrow: boolean;
+}) {
+  if (pipelines.length === 0) {
+    return null;
+  }
+
+  if (isNarrow) {
+    return (
+      <select
+        value={selectedId ?? ''}
+        onChange={(event) => onSelect(event.target.value)}
+        className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+      >
+        {pipelines.map((p) => (
+          <option key={p.id} value={p.id}>
+            {p.name}
+          </option>
+        ))}
+      </select>
+    );
+  }
+
+  return (
+    <div className="flex flex-wrap gap-2 border-b border-slate-200 pb-2">
+      {pipelines.map((p) => (
+        <button
+          key={p.id}
+          type="button"
+          onClick={() => onSelect(p.id)}
+          className={`rounded-t-md px-4 py-2 text-sm font-medium ${
+            p.id === selectedId
+              ? 'border-b-2 border-slate-900 text-slate-900'
+              : 'text-slate-500 hover:text-slate-700'
+          }`}
+        >
+          {p.name}
+        </button>
+      ))}
     </div>
   );
 }
 
 function KanbanBoard({
   opportunities,
+  stages,
   onMove,
   onAction,
 }: {
   opportunities: CommercialOpportunity[];
-  onMove: (id: string, stage: CommercialStage) => void;
+  stages: PipelineStage[];
+  onMove: (id: string, stageId: string) => void;
   onAction: (value: { id: string; kind: 'interaction' | 'task' }) => void;
 }) {
+  const sorted = [...stages].sort((a, b) => a.sequence - b.sequence);
   return (
     <div className="flex gap-4 overflow-x-auto pb-4">
-      {COMMERCIAL_STAGES.map((stage) => (
+      {sorted.map((stage) => (
         <div
-          key={stage}
-          className="flex w-64 shrink-0 flex-col gap-2 rounded-lg border border-slate-200 bg-slate-50 p-3"
+          key={stage.id}
+          className={`flex w-64 shrink-0 flex-col gap-2 rounded-lg border p-3 ${
+            stage.active ? 'border-slate-200 bg-slate-50' : 'border-slate-100 bg-slate-50/50 opacity-60'
+          }`}
           onDragOver={(event) => event.preventDefault()}
           onDrop={(event) => {
             event.preventDefault();
             const id = event.dataTransfer.getData('text/opportunity-id');
-            if (id) onMove(id, stage);
+            if (id) onMove(id, stage.id);
           }}
         >
-          <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-            {STAGE_LABELS[stage]}
+          <div
+            className={`inline-flex w-fit items-center rounded-full border px-2 py-0.5 text-xs font-semibold uppercase tracking-wide ${STAGE_COLOR_CLASSES[stage.colorToken]}`}
+          >
+            {stage.name}
+            {!stage.active ? ' (inativa)' : ''}
           </div>
           {opportunities
-            .filter((o) => o.stage === stage)
+            .filter((o) => o.stageId === stage.id)
             .map((opportunity) => (
               <OpportunityCard
                 key={opportunity.id}
                 opportunity={opportunity}
-                draggable
+                draggable={stage.active}
                 onAction={onAction}
               />
             ))}
@@ -189,13 +333,16 @@ function KanbanBoard({
 
 function MobileStageList({
   opportunities,
+  stages,
   onMove,
   onAction,
 }: {
   opportunities: CommercialOpportunity[];
-  onMove: (id: string, stage: CommercialStage) => void;
+  stages: PipelineStage[];
+  onMove: (id: string, stageId: string) => void;
   onAction: (value: { id: string; kind: 'interaction' | 'task' }) => void;
 }) {
+  const sorted = [...stages].sort((a, b) => a.sequence - b.sequence);
   return (
     <div className="flex flex-col gap-3">
       {opportunities.map((opportunity) => (
@@ -204,13 +351,13 @@ function MobileStageList({
           <label className="mt-2 block text-xs font-medium text-slate-500">
             Etapa
             <select
-              value={opportunity.stage}
-              onChange={(event) => onMove(opportunity.id, event.target.value as CommercialStage)}
+              value={opportunity.stageId}
+              onChange={(event) => onMove(opportunity.id, event.target.value)}
               className="mt-1 w-full rounded-md border border-slate-300 px-2 py-1.5 text-sm"
             >
-              {COMMERCIAL_STAGES.map((stage) => (
-                <option key={stage} value={stage}>
-                  {STAGE_LABELS[stage]}
+              {sorted.map((stage) => (
+                <option key={stage.id} value={stage.id}>
+                  {stage.name}
                 </option>
               ))}
             </select>

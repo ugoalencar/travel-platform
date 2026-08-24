@@ -56,6 +56,7 @@ import { CustomerProfilePage } from './customer-portal/pages/CustomerProfilePage
 import { CommercialDashboardPage } from './pages/commercial/CommercialDashboardPage';
 import { CommercialPipelinePage } from './pages/commercial/CommercialPipelinePage';
 import { CommercialAgendaPage } from './pages/commercial/CommercialAgendaPage';
+import { PipelineConfigPage } from './pages/commercial/PipelineConfigPage';
 
 export function App() {
   return (
@@ -123,6 +124,7 @@ export function App() {
         <Route path="commercial/dashboard" element={<CommercialDashboardPage />} />
         <Route path="commercial/pipeline" element={<CommercialPipelinePage />} />
         <Route path="commercial/agenda" element={<CommercialAgendaPage />} />
+        <Route path="settings/pipelines" element={<PipelineConfigPage />} />
       </Route>
     </Routes>
   );

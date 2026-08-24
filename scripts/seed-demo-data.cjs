@@ -47,7 +47,9 @@ async function main() {
       customerId: customerDemoBId,
     });
 
-    await seedCommercialCockpitScenarios(pool, { agencyId: agencyAId, userId: userAId });
+    const stagesA = await seedDefaultPipelines(pool, agencyAId);
+    await seedDefaultPipelines(pool, agencyBId);
+    await seedCommercialCockpitScenarios(pool, { agencyId: agencyAId, userId: userAId, stages: stagesA });
 
     console.log('Demo data seeded for Agency A and Agency B, including Cliente Demo customer portal fixtures.');
   } finally {
@@ -178,12 +180,104 @@ async function seedAgencyAndDemoCustomer(pool, opts) {
 }
 
 // ============================================================
+// CONFIGURABLE MULTI-PIPELINE DEMO DATA
+// (migration 008_configurable_pipelines.sql)
+// Creates the default "Comercial" pipeline (9 stages, mirroring the old
+// CommercialStage enum exactly, same as the migration's own per-agency
+// backfill DML) plus 3 extra pipelines for visual variety in the demo:
+// "Pos-venda", "Terrestre", "Internacional". All pipelines are left
+// unrestricted (zero PipelineAccess rows) -- this repo's demo seed only
+// ever creates one staff user per agency, so there is no second demo
+// user available to exercise a real restricted-pipeline scenario without
+// fabricating one, which the brief explicitly says not to do.
+// Returns a { STAGE_NAME: stageId } map for the "Comercial" pipeline so
+// seedCommercialCockpitScenarios() below can assign the 4 demo
+// opportunities to real stage ids.
+// ============================================================
+async function seedDefaultPipelines(pool, agencyId) {
+  const comercial = await pool.query(
+    `INSERT INTO pipelines (agency_id, name, description) VALUES ($1, 'Comercial', 'Pipeline padrao') RETURNING id`,
+    [agencyId],
+  );
+  const comercialId = comercial.rows[0].id;
+
+  const comercialStageDefs = [
+    ['PROSPECTING', 1, 'NEUTRAL', 'NORMAL'],
+    ['INTEREST', 2, 'BLUE', 'NORMAL'],
+    ['QUOTE', 3, 'BLUE', 'NORMAL'],
+    ['PROPOSAL_SENT', 4, 'YELLOW', 'NORMAL'],
+    ['WAITING_CUSTOMER', 5, 'YELLOW', 'ATTENTION'],
+    ['NEGOTIATION', 6, 'ORANGE', 'ATTENTION'],
+    ['WON', 7, 'GREEN', 'SUCCESS'],
+    ['POST_SALE', 8, 'PURPLE', 'NORMAL'],
+    ['LOST', 9, 'RED', 'ATTENTION'],
+  ];
+  const stages = {};
+  for (const [name, sequence, colorToken, visualLevel] of comercialStageDefs) {
+    const result = await pool.query(
+      `INSERT INTO pipeline_stages (agency_id, pipeline_id, name, sequence, color_token, visual_level)
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
+      [agencyId, comercialId, name, sequence, colorToken, visualLevel],
+    );
+    stages[name] = result.rows[0].id;
+  }
+
+  await seedSimplePipeline(pool, agencyId, 'Pós-venda', [
+    ['Aguardando contato', 1, 'NEUTRAL', 'NORMAL'],
+    ['Contato realizado', 2, 'BLUE', 'NORMAL'],
+    ['Feedback', 3, 'YELLOW', 'NORMAL'],
+    ['Problema', 4, 'RED', 'ATTENTION'],
+    ['Resolvido', 5, 'GREEN', 'SUCCESS'],
+  ]);
+
+  await seedSimplePipeline(pool, agencyId, 'Terrestre', [
+    ['Novo contato', 1, 'NEUTRAL', 'NORMAL'],
+    ['Orçamento terrestre', 2, 'BLUE', 'NORMAL'],
+    ['Confirmado', 3, 'GREEN', 'SUCCESS'],
+  ]);
+
+  await seedSimplePipeline(pool, agencyId, 'Internacional', [
+    ['Novo contato', 1, 'NEUTRAL', 'NORMAL'],
+    ['Documentação', 2, 'PURPLE', 'ATTENTION'],
+    ['Visto/aprovação', 3, 'ORANGE', 'ATTENTION'],
+    ['Confirmado', 4, 'GREEN', 'SUCCESS'],
+  ]);
+
+  return stages;
+}
+
+async function seedSimplePipeline(pool, agencyId, name, stageDefs) {
+  const pipeline = await pool.query(
+    `INSERT INTO pipelines (agency_id, name) VALUES ($1, $2) RETURNING id`,
+    [agencyId, name],
+  );
+  const pipelineId = pipeline.rows[0].id;
+  for (const [stageName, sequence, colorToken, visualLevel] of stageDefs) {
+    await pool.query(
+      `INSERT INTO pipeline_stages (agency_id, pipeline_id, name, sequence, color_token, visual_level)
+       VALUES ($1, $2, $3, $4, $5, $6)`,
+      [agencyId, pipelineId, stageName, sequence, colorToken, visualLevel],
+    );
+  }
+  return pipelineId;
+}
+
+// ============================================================
 // COMMERCIAL COCKPIT DEMO SCENARIOS (Cliente A/B/C/D)
 // Additive only -- inserted once for Agency A, distinct from the
 // "Cliente Demo" customer-portal fixture above. Exactly the 4 scenarios
-// from the brief, each exercising a different part of the cockpit.
+// from the brief, each exercising a different part of the cockpit. Each
+// opportunity is assigned to the "Comercial" pipeline's matching stage
+// (via the `stages` map from seedDefaultPipelines()) instead of the old
+// `stage` enum column, per migration 008_configurable_pipelines.sql.
 // ============================================================
-async function seedCommercialCockpitScenarios(pool, { agencyId, userId }) {
+async function seedCommercialCockpitScenarios(pool, { agencyId, userId, stages }) {
+  const comercialPipelineId = (
+    await pool.query(`SELECT pipeline_id FROM pipeline_stages WHERE agency_id = $1 AND id = $2`, [
+      agencyId,
+      stages.PROSPECTING,
+    ])
+  ).rows[0].pipeline_id;
   // Cliente A: Wish + Proposal sent + OVERDUE follow-up.
   const clienteA = await pool.query(
     `INSERT INTO customers (agency_id, name, email, phone, status)
@@ -205,10 +299,10 @@ async function seedCommercialCockpitScenarios(pool, { agencyId, userId }) {
   );
   const opportunityA = await pool.query(
     `INSERT INTO commercial_opportunities
-       (agency_id, customer_id, proposal_id, responsible_user_id, destination, stage, next_action_at, expected_value)
-     VALUES ($1, $2, $3, $4, 'Cancún', 'PROPOSAL_SENT', now() - INTERVAL '3 days', 4500)
+       (agency_id, customer_id, proposal_id, responsible_user_id, destination, stage, pipeline_id, stage_id, next_action_at, expected_value)
+     VALUES ($1, $2, $3, $4, 'Cancún', 'PROPOSAL_SENT', $5, $6, now() - INTERVAL '3 days', 4500)
      RETURNING id`,
-    [agencyId, clienteAId, proposalA.rows[0].id, userId],
+    [agencyId, clienteAId, proposalA.rows[0].id, userId, comercialPipelineId, stages.PROPOSAL_SENT],
   );
   await pool.query(
     `INSERT INTO commercial_tasks
@@ -232,9 +326,9 @@ async function seedCommercialCockpitScenarios(pool, { agencyId, userId }) {
   );
   await pool.query(
     `INSERT INTO commercial_opportunities
-       (agency_id, customer_id, proposal_id, responsible_user_id, destination, stage, next_action_at, expected_value)
-     VALUES ($1, $2, $3, $4, 'Gramado', 'PROPOSAL_SENT', now() + INTERVAL '5 days', 3200)`,
-    [agencyId, clienteBId, proposalB.rows[0].id, userId],
+       (agency_id, customer_id, proposal_id, responsible_user_id, destination, stage, pipeline_id, stage_id, next_action_at, expected_value)
+     VALUES ($1, $2, $3, $4, 'Gramado', 'PROPOSAL_SENT', $5, $6, now() + INTERVAL '5 days', 3200)`,
+    [agencyId, clienteBId, proposalB.rows[0].id, userId, comercialPipelineId, stages.PROPOSAL_SENT],
   );
 
   // Cliente C: closed Sale + future Trip.
@@ -257,9 +351,9 @@ async function seedCommercialCockpitScenarios(pool, { agencyId, userId }) {
   );
   await pool.query(
     `INSERT INTO commercial_opportunities
-       (agency_id, customer_id, sale_id, responsible_user_id, destination, stage, expected_value)
-     VALUES ($1, $2, $3, $4, 'Buzios', 'WON', 6000)`,
-    [agencyId, clienteCId, saleC.rows[0].id, userId],
+       (agency_id, customer_id, sale_id, responsible_user_id, destination, stage, pipeline_id, stage_id, expected_value)
+     VALUES ($1, $2, $3, $4, 'Buzios', 'WON', $5, $6, 6000)`,
+    [agencyId, clienteCId, saleC.rows[0].id, userId, comercialPipelineId, stages.WON],
   );
 
   // Cliente D: COMPLETED trip + pending post-sale task suggestion --

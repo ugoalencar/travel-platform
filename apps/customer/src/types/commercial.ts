@@ -44,7 +44,11 @@ export interface CommercialOpportunity {
   tripDateFrom?: string;
   tripDateTo?: string;
   expectedValue?: number;
+  // DEPRECATED: retained as a read-only historical artifact only (see
+  // migration 008_configurable_pipelines.sql). Never written to.
   stage: CommercialStage;
+  pipelineId: string;
+  stageId: string;
   nextActionAt?: string;
   lastInteractionAt?: string;
   lostReason?: string;
@@ -62,12 +66,13 @@ export interface CreateOpportunityInput {
   tripDateFrom?: string;
   tripDateTo?: string;
   expectedValue?: number;
-  stage?: CommercialStage;
+  pipelineId: string;
+  stageId: string;
   nextActionAt?: string;
 }
 
 export interface UpdateOpportunityInput {
-  stage?: CommercialStage;
+  stageId?: string;
   responsibleUserId?: string | null;
   nextActionAt?: string | null;
   lostReason?: string | null;
@@ -79,6 +84,8 @@ export interface UpdateOpportunityInput {
 
 export interface OpportunityFilters {
   stage?: CommercialStage;
+  pipelineId?: string;
+  stageId?: string;
   responsibleUserId?: string;
   customerId?: string;
   destination?: string;
@@ -86,6 +93,98 @@ export interface OpportunityFilters {
   hasSale?: boolean;
   hasNextAction?: boolean;
   overdue?: boolean;
+}
+
+// ============================================================
+// CONFIGURABLE MULTI-PIPELINE (migration 008_configurable_pipelines.sql)
+// ============================================================
+
+export const PIPELINE_STAGE_COLORS = [
+  'NEUTRAL',
+  'BLUE',
+  'YELLOW',
+  'ORANGE',
+  'RED',
+  'GREEN',
+  'PURPLE',
+] as const;
+export type PipelineStageColor = (typeof PIPELINE_STAGE_COLORS)[number];
+
+// Fixed token -> CSS class mapping. Never render an arbitrary CSS string
+// from the server -- only these seven admin-chosen tokens exist.
+export const STAGE_COLOR_CLASSES: Record<PipelineStageColor, string> = {
+  NEUTRAL: 'bg-slate-100 text-slate-700 border-slate-300',
+  BLUE: 'bg-blue-100 text-blue-700 border-blue-300',
+  YELLOW: 'bg-yellow-100 text-yellow-800 border-yellow-300',
+  ORANGE: 'bg-orange-100 text-orange-800 border-orange-300',
+  RED: 'bg-red-100 text-red-700 border-red-300',
+  GREEN: 'bg-green-100 text-green-700 border-green-300',
+  PURPLE: 'bg-purple-100 text-purple-700 border-purple-300',
+};
+
+export type PipelineStageVisualLevel = 'NORMAL' | 'ATTENTION' | 'SUCCESS';
+
+export interface Pipeline {
+  id: string;
+  agencyId: string;
+  name: string;
+  description?: string;
+  active: boolean;
+  notificationsEnabled: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PipelineStage {
+  id: string;
+  agencyId: string;
+  pipelineId: string;
+  name: string;
+  sequence: number;
+  colorToken: PipelineStageColor;
+  visualLevel: PipelineStageVisualLevel;
+  active: boolean;
+  notificationsEnabled: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PipelineAccess {
+  id: string;
+  agencyId: string;
+  pipelineId: string;
+  userId: string;
+  createdAt: string;
+}
+
+export interface CreatePipelineInput {
+  name: string;
+  description?: string;
+  notificationsEnabled?: boolean;
+}
+
+export interface UpdatePipelineInput {
+  name?: string;
+  description?: string | null;
+  active?: boolean;
+  notificationsEnabled?: boolean;
+}
+
+export interface CreateStageInput {
+  name: string;
+  sequence: number;
+  colorToken: PipelineStageColor;
+  visualLevel?: PipelineStageVisualLevel;
+  notificationsEnabled?: boolean;
+}
+
+export interface UpdateStageInput {
+  name?: string;
+  sequence?: number;
+  colorToken?: PipelineStageColor;
+  visualLevel?: PipelineStageVisualLevel;
+  active?: boolean;
+  notificationsEnabled?: boolean;
 }
 
 export interface CommercialTask {

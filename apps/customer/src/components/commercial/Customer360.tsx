@@ -1,6 +1,12 @@
 import { useEffect, useState } from 'react';
 import { listProposals, listTrips, listWishes } from '../../lib/api';
-import { listInteractions, listOpportunities, listTasks } from '../../lib/commercialApi';
+import {
+  listInteractions,
+  listOpportunities,
+  listPipelines,
+  listStages,
+  listTasks,
+} from '../../lib/commercialApi';
 import type { Proposal } from '../../types/proposal';
 import type { Trip } from '../../types/trip';
 import type { Wish } from '../../types/wish';
@@ -13,6 +19,11 @@ interface Customer360Data {
   opportunities: CommercialOpportunity[];
   interactions: CustomerInteraction[];
   tasks: CommercialTask[];
+  // pipelineId -> name / stageId -> name lookups, so each opportunity can
+  // be labeled with its pipeline + stage even though a customer can have
+  // opportunities across several different pipelines.
+  pipelineNames: Record<string, string>;
+  stageNames: Record<string, string>;
 }
 
 // Read aggregation only -- no data is duplicated/stored here, every
@@ -40,8 +51,27 @@ export function Customer360({ customerId }: { customerId: string }) {
       listOpportunities({ customerId }),
       listInteractions(customerId),
       listTasks({ customerId }),
+      listPipelines(),
     ])
-      .then(([wishes, proposals, trips, opportunitiesResult, interactionsResult, tasksResult]) => {
+      .then(async ([wishes, proposals, trips, opportunitiesResult, interactionsResult, tasksResult, pipelines]) => {
+        if (cancelled) return;
+
+        const pipelineNames: Record<string, string> = {};
+        for (const p of pipelines) pipelineNames[p.id] = p.name;
+
+        // Fetch stages only for the pipelines this customer's
+        // opportunities actually reference, to label each card with its
+        // stage name (a customer can have opportunities across several
+        // different pipelines -- each is labeled with its own pipeline).
+        const relevantPipelineIds = Array.from(
+          new Set(opportunitiesResult.opportunities.map((o) => o.pipelineId)),
+        );
+        const stageLists = await Promise.all(relevantPipelineIds.map((id) => listStages(id).catch(() => [])));
+        const stageNames: Record<string, string> = {};
+        for (const stages of stageLists) {
+          for (const stage of stages) stageNames[stage.id] = stage.name;
+        }
+
         if (cancelled) return;
         setData({
           wishes: wishes.filter((w) => w.customerId === customerId),
@@ -50,6 +80,8 @@ export function Customer360({ customerId }: { customerId: string }) {
           opportunities: opportunitiesResult.opportunities,
           interactions: interactionsResult.interactions,
           tasks: tasksResult.tasks,
+          pipelineNames,
+          stageNames,
         });
       })
       .catch(() => {
@@ -74,7 +106,10 @@ export function Customer360({ customerId }: { customerId: string }) {
         {data.opportunities.length === 0 && <Empty />}
         {data.opportunities.map((o) => (
           <Row key={o.id}>
-            {o.stage} — {o.destination ?? 'sem destino'}
+            <span className="font-medium text-slate-900">
+              {data.pipelineNames[o.pipelineId] ?? 'Pipeline'}
+            </span>{' '}
+            — {data.stageNames[o.stageId] ?? 'Etapa'} — {o.destination ?? 'sem destino'}
           </Row>
         ))}
       </Section>

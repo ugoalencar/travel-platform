@@ -3,14 +3,21 @@ import type {
   CommercialTask,
   CreateInteractionInput,
   CreateOpportunityInput,
+  CreatePipelineInput,
+  CreateStageInput,
   CreateTaskInput,
   CustomerInteraction,
   CustomerSearchResult,
   DashboardSummary,
   OpportunityFilters,
+  Pipeline,
+  PipelineAccess,
+  PipelineStage,
   TaskFilters,
   TravelSearchResult,
   UpdateOpportunityInput,
+  UpdatePipelineInput,
+  UpdateStageInput,
   UpdateTaskInput,
 } from '../types/commercial';
 import { ApiError } from './api';
@@ -153,8 +160,95 @@ export async function travelSearch(
   return request(`/api/commercial/travel-search${toQueryString({ range, destination })}`);
 }
 
-export async function getDashboardSummary(): Promise<DashboardSummary> {
-  return request('/api/commercial/dashboard');
+export async function getDashboardSummary(pipelineId?: string): Promise<DashboardSummary> {
+  return request(`/api/commercial/dashboard${toQueryString({ pipelineId })}`);
+}
+
+// ============================================================
+// CONFIGURABLE MULTI-PIPELINE
+// GET /commercial/pipelines is server-driven access control: it only ever
+// returns pipelines the current user may see (never all pipelines
+// filtered client-side).
+// ============================================================
+
+export async function listPipelines(): Promise<Pipeline[]> {
+  const data = await request<{ pipelines: Pipeline[] }>('/api/commercial/pipelines');
+  return data.pipelines;
+}
+
+export async function getPipeline(id: string): Promise<Pipeline> {
+  const data = await request<{ pipeline: Pipeline }>(`/api/commercial/pipelines/${encodeURIComponent(id)}`);
+  return data.pipeline;
+}
+
+export async function createPipeline(input: CreatePipelineInput): Promise<Pipeline> {
+  const data = await request<{ pipeline: Pipeline }>('/api/commercial/pipelines', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+  return data.pipeline;
+}
+
+export async function updatePipeline(id: string, input: UpdatePipelineInput): Promise<Pipeline> {
+  const data = await request<{ pipeline: Pipeline }>(`/api/commercial/pipelines/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(input),
+  });
+  return data.pipeline;
+}
+
+export async function listStages(pipelineId: string): Promise<PipelineStage[]> {
+  const data = await request<{ stages: PipelineStage[] }>(
+    `/api/commercial/pipelines/${encodeURIComponent(pipelineId)}/stages`,
+  );
+  return data.stages;
+}
+
+export async function createStage(pipelineId: string, input: CreateStageInput): Promise<PipelineStage> {
+  const data = await request<{ stage: PipelineStage }>(
+    `/api/commercial/pipelines/${encodeURIComponent(pipelineId)}/stages`,
+    { method: 'POST', body: JSON.stringify(input) },
+  );
+  return data.stage;
+}
+
+export async function updateStage(
+  pipelineId: string,
+  stageId: string,
+  input: UpdateStageInput,
+): Promise<PipelineStage> {
+  const data = await request<{ stage: PipelineStage }>(
+    `/api/commercial/pipelines/${encodeURIComponent(pipelineId)}/stages/${encodeURIComponent(stageId)}`,
+    { method: 'PATCH', body: JSON.stringify(input) },
+  );
+  return data.stage;
+}
+
+export async function listPipelineAccess(pipelineId: string): Promise<PipelineAccess[]> {
+  const data = await request<{ access: PipelineAccess[] }>(
+    `/api/commercial/pipelines/${encodeURIComponent(pipelineId)}/access`,
+  );
+  return data.access;
+}
+
+export async function grantPipelineAccess(pipelineId: string, userId: string): Promise<PipelineAccess> {
+  const data = await request<{ access: PipelineAccess }>(
+    `/api/commercial/pipelines/${encodeURIComponent(pipelineId)}/access`,
+    { method: 'POST', body: JSON.stringify({ userId }) },
+  );
+  return data.access;
+}
+
+// 204 No Content: bypasses request()'s unconditional response.json() call.
+export async function revokePipelineAccess(pipelineId: string, userId: string): Promise<void> {
+  const response = await fetch(
+    `${API_BASE_URL}/api/commercial/pipelines/${encodeURIComponent(pipelineId)}/access/${encodeURIComponent(userId)}`,
+    { method: 'DELETE', headers: { 'Content-Type': 'application/json' } },
+  );
+  if (!response.ok) {
+    const body = (await safeJson(response)) as Partial<ApiErrorBody> | null;
+    throw new ApiError(body?.error ?? 'Request failed.', body?.code ?? 'UNKNOWN_ERROR', response.status);
+  }
 }
 
 export interface ProposalWaiting {
