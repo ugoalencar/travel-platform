@@ -1,7 +1,7 @@
 import {
-  CommercialStage,
   CommercialTaskType,
   type CommercialOpportunity,
+  type CommercialStage,
   type CommercialTask,
   type CustomerInteraction,
   type InteractionChannel,
@@ -319,7 +319,7 @@ export async function listOpportunities(
       if (visibleIds.length === 0) {
         return { opportunities: [], total: 0 };
       }
-      filters = { ...filters, visiblePipelineIds: visibleIds } as OpportunityFilters;
+      filters = { ...filters, visiblePipelineIds: visibleIds };
     }
 
     const { where, values } = buildOpportunityWhere(agencyId, filters);

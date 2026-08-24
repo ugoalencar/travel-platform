@@ -1,9 +1,9 @@
 import {
-  PipelineStageColor,
   PipelineStageVisualLevel,
   type Pipeline,
   type PipelineAccess,
   type PipelineStage,
+  type PipelineStageColor,
 } from '../../../packages/domain/types';
 import { ForbiddenError, getAgencyId, getTenantContext } from '../../../packages/domain/tenant-context';
 import { UserRole } from '../../../packages/domain/types';
