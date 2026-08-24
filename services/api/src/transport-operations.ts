@@ -234,16 +234,29 @@ async function confirmCheckpoint(
       throw new ConflictError(`This checkpoint's ${kind.toLowerCase()} was already confirmed`);
     }
 
+    // Compare-and-set: the WHERE clause's own `${column} IS NULL` guard is
+    // what makes this atomic under real concurrency, not the earlier
+    // read (`row.arrival_checked_at`/`row.departure_checked_at` above,
+    // which only rejects a request that arrives after a prior
+    // confirmation has already committed -- it cannot see a
+    // still-in-flight concurrent transaction). Two simultaneous
+    // confirmations both pass that early check, but only one of the two
+    // UPDATEs can match `${column} IS NULL` once Postgres serializes
+    // them; the loser's UPDATE affects zero rows and is treated as a
+    // conflict below, exactly like the sequential duplicate-confirmation
+    // case. No SELECT ... FOR UPDATE is needed because there is no
+    // multi-row invariant to protect (unlike bookings.ts's capacity
+    // engine) -- a single-row atomic predicate is sufficient here.
     const column = kind === 'ARRIVAL' ? 'arrival_checked_at' : 'departure_checked_at';
     const result = await client.query<CheckpointRow>(
       `UPDATE operation_checkpoints SET ${column} = now(), updated_at = now()
-       WHERE agency_id = $1 AND id = $2
+       WHERE agency_id = $1 AND id = $2 AND ${column} IS NULL
        RETURNING ${CHECKPOINT_COLUMNS}`,
       [agencyId, checkpointId],
     );
     const updated = result.rows[0];
     if (!updated) {
-      throw new Error('OperationCheckpoint update did not return a row');
+      throw new ConflictError(`This checkpoint's ${kind.toLowerCase()} was already confirmed`);
     }
     return toCheckpoint(updated);
   });
