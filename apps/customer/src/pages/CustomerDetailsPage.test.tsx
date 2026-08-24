@@ -19,9 +19,20 @@ vi.mock('../lib/api', () => {
   return {
     listCustomers: vi.fn().mockResolvedValue([]),
     getCustomer: vi.fn(),
+    listWishes: vi.fn().mockResolvedValue([]),
+    listProposals: vi.fn().mockResolvedValue([]),
+    listTrips: vi.fn().mockResolvedValue([]),
     ApiError: MockApiError,
   };
 });
+
+vi.mock('../lib/commercialApi', () => ({
+  listOpportunities: vi.fn().mockResolvedValue([]),
+  listInteractions: vi.fn().mockResolvedValue([]),
+  listTasks: vi.fn().mockResolvedValue([]),
+  listPipelines: vi.fn().mockResolvedValue([]),
+  listStages: vi.fn().mockResolvedValue([]),
+}));
 
 afterEach(() => {
   cleanup();

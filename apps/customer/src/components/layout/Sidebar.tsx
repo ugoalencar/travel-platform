@@ -27,9 +27,9 @@ const NAV_ITEMS: NavItem[] = [
 // the existing flat list above (which is left untouched: Ofertas/
 // Propostas/Vendas/Reservas keep their current spots).
 const COMMERCIAL_NAV_ITEMS: NavItem[] = [
-  { label: 'Dashboard', to: '/commercial/dashboard' },
+  { label: 'Dashboard comercial', to: '/commercial/dashboard' },
   { label: 'Pipeline', to: '/commercial/pipeline' },
-  { label: 'Agenda', to: '/commercial/agenda' },
+  { label: 'Agenda comercial', to: '/commercial/agenda' },
 ];
 
 // Minimal "Configurações" nav section (no settings framework existed
