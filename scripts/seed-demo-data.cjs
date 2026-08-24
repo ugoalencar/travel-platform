@@ -195,6 +195,16 @@ async function seedAgencyAndDemoCustomer(pool, opts) {
 // opportunities to real stage ids.
 // ============================================================
 async function seedDefaultPipelines(pool, agencyId) {
+  // Migration 008's own backfill DML creates a default "Comercial"
+  // pipeline per agency, but only for agencies that already exist at
+  // migration-apply time -- on a fresh database (this script's only
+  // supported entry point, matching every other reset-then-seed flow in
+  // this repo) no agencies exist yet when 008 runs, so it creates zero
+  // pipelines. This function is what actually creates "Comercial" (+ its
+  // 9 stages) for the agencies this script itself just inserted. Do NOT
+  // run this script twice against the same database without resetting
+  // the schema first -- like every other seed/test flow in this repo, it
+  // assumes a clean slate and will create duplicate pipelines otherwise.
   const comercial = await pool.query(
     `INSERT INTO pipelines (agency_id, name, description) VALUES ($1, 'Comercial', 'Pipeline padrao') RETURNING id`,
     [agencyId],
