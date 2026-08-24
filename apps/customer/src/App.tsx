@@ -42,6 +42,10 @@ import { BookingFormPage } from './pages/BookingFormPage';
 import { BookingDetailsPage } from './pages/BookingDetailsPage';
 import { OperationsTodayPage } from './pages/OperationsTodayPage';
 import { OperationDetailsPage } from './pages/OperationDetailsPage';
+import { SalesPage } from './pages/SalesPage';
+import { SaleFormPage } from './pages/SaleFormPage';
+import { SaleDetailsPage } from './pages/SaleDetailsPage';
+import { SaleEditPage } from './pages/SaleEditPage';
 import { CustomerPortalShell } from './customer-portal/CustomerPortalShell';
 import { CustomerHomePage } from './customer-portal/pages/CustomerHomePage';
 import { CustomerTripsPage } from './customer-portal/pages/CustomerTripsPage';
@@ -117,6 +121,10 @@ export function App() {
         <Route path="transport/agenda" element={<TransportAgendaPage />} />
         <Route path="operations/today" element={<OperationsTodayPage />} />
         <Route path="operations/:id" element={<OperationDetailsPage />} />
+        <Route path="sales" element={<SalesPage />} />
+        <Route path="sales/new" element={<SaleFormPage />} />
+        <Route path="sales/:id" element={<SaleDetailsPage />} />
+        <Route path="sales/:id/edit" element={<SaleEditPage />} />
       </Route>
     </Routes>
   );

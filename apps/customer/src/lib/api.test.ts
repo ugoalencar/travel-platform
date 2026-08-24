@@ -38,6 +38,10 @@ import {
   listDepartures,
   updateDeparture,
   getAgenda,
+  createSale,
+  getSale,
+  listSales,
+  updateSale,
 } from './api';
 
 function jsonResponse(body: unknown, status = 200): Response {
@@ -70,6 +74,10 @@ describe('api client shape', () => {
     expect(typeof getProposal).toBe('function');
     expect(typeof createProposal).toBe('function');
     expect(typeof updateProposal).toBe('function');
+    expect(typeof listSales).toBe('function');
+    expect(typeof getSale).toBe('function');
+    expect(typeof createSale).toBe('function');
+    expect(typeof updateSale).toBe('function');
   });
 });
 
@@ -1122,5 +1130,146 @@ describe('transport api client', () => {
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit | undefined];
     expect(url).toBe('/api/transport/agenda');
     expect(init?.method).toBeUndefined();
+  });
+});
+
+describe('sale api client', () => {
+  const originalFetch = global.fetch;
+
+  beforeEach(() => {
+    global.fetch = vi.fn();
+  });
+
+  afterEach(() => {
+    global.fetch = originalFetch;
+  });
+
+  it('calls fetch for GET /api/sales and returns the sales array', async () => {
+    const fetchMock = global.fetch as ReturnType<typeof vi.fn>;
+    const sales = [
+      {
+        id: 's1',
+        agencyId: 'a1',
+        customerId: 'c1',
+        userId: 'u1',
+        amount: 1000,
+        discount: 0,
+        total: 1000,
+        status: 'PENDING',
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-01T00:00:00.000Z',
+      },
+    ];
+    fetchMock.mockResolvedValue(jsonResponse({ sales }));
+
+    const result = await listSales();
+
+    expect(result).toEqual(sales);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit | undefined];
+    expect(url).toBe('/api/sales');
+    expect(init?.method).toBeUndefined();
+  });
+
+  it('calls fetch for GET /api/sales/:id and returns the sale', async () => {
+    const fetchMock = global.fetch as ReturnType<typeof vi.fn>;
+    const sale = {
+      id: 's1',
+      agencyId: 'a1',
+      customerId: 'c1',
+      userId: 'u1',
+      amount: 1000,
+      discount: 100,
+      total: 900,
+      status: 'PENDING',
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+    };
+    fetchMock.mockResolvedValue(jsonResponse({ sale }));
+
+    const result = await getSale('s1');
+
+    expect(result).toEqual(sale);
+    const [url] = fetchMock.mock.calls[0] as [string, RequestInit | undefined];
+    expect(url).toBe('/api/sales/s1');
+  });
+
+  it('calls fetch for POST /api/sales with only submitted fields, no agencyId/id/total/status/userId/paidAt leakage', async () => {
+    const fetchMock = global.fetch as ReturnType<typeof vi.fn>;
+    const created = {
+      id: 's1',
+      agencyId: 'a1',
+      customerId: 'c1',
+      userId: 'u1',
+      amount: 1000,
+      discount: 0,
+      total: 1000,
+      status: 'PENDING',
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+    };
+    fetchMock.mockResolvedValue(jsonResponse({ sale: created }, 201));
+
+    const result = await createSale({
+      customerId: 'c1',
+      amount: 1000,
+    });
+
+    expect(result).toEqual(created);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit | undefined];
+    expect(url).toBe('/api/sales');
+    expect(init?.method).toBe('POST');
+    const sentBody = JSON.parse(init?.body as string) as Record<string, unknown>;
+    expect(sentBody).toEqual({ customerId: 'c1', amount: 1000 });
+    const sentKeys = Object.keys(sentBody);
+    expect(sentKeys).not.toContain('agencyId');
+    expect(sentKeys).not.toContain('tenantId');
+    expect(sentKeys).not.toContain('id');
+    expect(sentKeys).not.toContain('total');
+    expect(sentKeys).not.toContain('status');
+    expect(sentKeys).not.toContain('userId');
+    expect(sentKeys).not.toContain('paidAt');
+    expect(sentKeys).not.toContain('createdAt');
+    expect(sentKeys).not.toContain('updatedAt');
+  });
+
+  it('calls fetch for PATCH /api/sales/:id with only submitted fields, never customerId/proposalId/brokerId/total/status/userId/paidAt', async () => {
+    const fetchMock = global.fetch as ReturnType<typeof vi.fn>;
+    const updated = {
+      id: 's1',
+      agencyId: 'a1',
+      customerId: 'c1',
+      userId: 'u1',
+      amount: 1200,
+      discount: 200,
+      total: 1000,
+      status: 'PENDING',
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-02T00:00:00.000Z',
+    };
+    fetchMock.mockResolvedValue(jsonResponse({ sale: updated }));
+
+    const result = await updateSale('s1', { amount: 1200, discount: 200 });
+
+    expect(result).toEqual(updated);
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit | undefined];
+    expect(url).toBe('/api/sales/s1');
+    expect(init?.method).toBe('PATCH');
+    const sentBody = JSON.parse(init?.body as string) as Record<string, unknown>;
+    expect(sentBody).toEqual({ amount: 1200, discount: 200 });
+    const sentKeys = Object.keys(sentBody);
+    expect(sentKeys).not.toContain('agencyId');
+    expect(sentKeys).not.toContain('tenantId');
+    expect(sentKeys).not.toContain('customerId');
+    expect(sentKeys).not.toContain('proposalId');
+    expect(sentKeys).not.toContain('brokerId');
+    expect(sentKeys).not.toContain('id');
+    expect(sentKeys).not.toContain('total');
+    expect(sentKeys).not.toContain('status');
+    expect(sentKeys).not.toContain('userId');
+    expect(sentKeys).not.toContain('paidAt');
+    expect(sentKeys).not.toContain('createdAt');
+    expect(sentKeys).not.toContain('updatedAt');
   });
 });

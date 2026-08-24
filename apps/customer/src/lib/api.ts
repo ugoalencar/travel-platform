@@ -32,6 +32,7 @@ import type {
   OperationWithCheckpoints,
   TransportOperation,
 } from '../types/operations';
+import type { Sale, CreateSaleInput, UpdateSaleInput } from '../types/sale';
 
 // Single seam for a future production API base URL. In local dev this stays
 // empty so requests go to relative paths (e.g. `/api/customers`) and are
@@ -255,6 +256,37 @@ export async function updateProposal(
     },
   );
   return data.proposal;
+}
+
+export async function listSales(): Promise<Sale[]> {
+  const data = await request<{ sales: Sale[] }>('/api/sales');
+  return data.sales;
+}
+
+export async function getSale(id: string): Promise<Sale> {
+  const data = await request<{ sale: Sale }>(
+    `/api/sales/${encodeURIComponent(id)}`,
+  );
+  return data.sale;
+}
+
+export async function createSale(input: CreateSaleInput): Promise<Sale> {
+  const data = await request<{ sale: Sale }>('/api/sales', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+  return data.sale;
+}
+
+export async function updateSale(id: string, input: UpdateSaleInput): Promise<Sale> {
+  const data = await request<{ sale: Sale }>(
+    `/api/sales/${encodeURIComponent(id)}`,
+    {
+      method: 'PATCH',
+      body: JSON.stringify(input),
+    },
+  );
+  return data.sale;
 }
 
 export async function listRoutes(): Promise<Route[]> {
