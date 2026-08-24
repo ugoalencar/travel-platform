@@ -281,6 +281,21 @@ async function seedSimplePipeline(pool, agencyId, name, stageDefs) {
 // (via the `stages` map from seedDefaultPipelines()) instead of the old
 // `stage` enum column, per migration 008_configurable_pipelines.sql.
 // ============================================================
+// Fixed, deterministic ids for the 4 Commercial Cockpit demo customers --
+// NOT gen_random_uuid()-generated. A human tester needs a stable URL to
+// bookmark/share across re-seeds; a random id changes every time this
+// script runs against a freshly reset database, silently breaking any
+// previously-handed-out "here's the demo customer" link (this happened
+// once already -- see the ARCH note in the security test file). Only
+// scoped to Agency A (agencyAId, '...0001') since these 4 scenarios are
+// agency-A-only by design.
+const cockpitDemoCustomerIds = {
+  cancun: 'c0cc0001-0000-4000-8000-00000000000a',
+  gramado: 'c0cc0001-0000-4000-8000-00000000000b',
+  buzios: 'c0cc0001-0000-4000-8000-00000000000c',
+  portoDeGalinhas: 'c0cc0001-0000-4000-8000-00000000000d',
+};
+
 async function seedCommercialCockpitScenarios(pool, { agencyId, userId, stages }) {
   const comercialPipelineId = (
     await pool.query(`SELECT pipeline_id FROM pipeline_stages WHERE agency_id = $1 AND id = $2`, [
@@ -290,10 +305,10 @@ async function seedCommercialCockpitScenarios(pool, { agencyId, userId, stages }
   ).rows[0].pipeline_id;
   // Cliente A: Wish + Proposal sent + OVERDUE follow-up.
   const clienteA = await pool.query(
-    `INSERT INTO customers (agency_id, name, email, phone, status)
-     VALUES ($1, 'Cliente A (Cockpit Demo)', 'cliente-a-cockpit@example.test', '11999991111', 'ACTIVE')
+    `INSERT INTO customers (id, agency_id, name, email, phone, status)
+     VALUES ($1, $2, 'Cliente A (Cockpit Demo - Cancun)', 'cliente-a-cockpit@example.test', '11999991111', 'ACTIVE')
      RETURNING id`,
-    [agencyId],
+    [cockpitDemoCustomerIds.cancun, agencyId],
   );
   const clienteAId = clienteA.rows[0].id;
 
@@ -323,10 +338,10 @@ async function seedCommercialCockpitScenarios(pool, { agencyId, userId, stages }
 
   // Cliente B: Proposal awaiting response, NO overdue follow-up.
   const clienteB = await pool.query(
-    `INSERT INTO customers (agency_id, name, email, phone, status)
-     VALUES ($1, 'Cliente B (Cockpit Demo)', 'cliente-b-cockpit@example.test', '11999992222', 'ACTIVE')
+    `INSERT INTO customers (id, agency_id, name, email, phone, status)
+     VALUES ($1, $2, 'Cliente B (Cockpit Demo - Gramado)', 'cliente-b-cockpit@example.test', '11999992222', 'ACTIVE')
      RETURNING id`,
-    [agencyId],
+    [cockpitDemoCustomerIds.gramado, agencyId],
   );
   const clienteBId = clienteB.rows[0].id;
   const proposalB = await pool.query(
@@ -343,10 +358,10 @@ async function seedCommercialCockpitScenarios(pool, { agencyId, userId, stages }
 
   // Cliente C: closed Sale + future Trip.
   const clienteC = await pool.query(
-    `INSERT INTO customers (agency_id, name, email, phone, status)
-     VALUES ($1, 'Cliente C (Cockpit Demo)', 'cliente-c-cockpit@example.test', '11999993333', 'ACTIVE')
+    `INSERT INTO customers (id, agency_id, name, email, phone, status)
+     VALUES ($1, $2, 'Cliente C (Cockpit Demo - Buzios)', 'cliente-c-cockpit@example.test', '11999993333', 'ACTIVE')
      RETURNING id`,
-    [agencyId],
+    [cockpitDemoCustomerIds.buzios, agencyId],
   );
   const clienteCId = clienteC.rows[0].id;
   const saleC = await pool.query(
@@ -370,10 +385,10 @@ async function seedCommercialCockpitScenarios(pool, { agencyId, userId, stages }
   // deliberately no POST_SALE CommercialTask row, so
   // listPostSaleCandidates() surfaces this customer for manual follow-up.
   const clienteD = await pool.query(
-    `INSERT INTO customers (agency_id, name, email, phone, status)
-     VALUES ($1, 'Cliente D (Cockpit Demo)', 'cliente-d-cockpit@example.test', '11999994444', 'ACTIVE')
+    `INSERT INTO customers (id, agency_id, name, email, phone, status)
+     VALUES ($1, $2, 'Cliente D (Cockpit Demo - Porto de Galinhas)', 'cliente-d-cockpit@example.test', '11999994444', 'ACTIVE')
      RETURNING id`,
-    [agencyId],
+    [cockpitDemoCustomerIds.portoDeGalinhas, agencyId],
   );
   const clienteDId = clienteD.rows[0].id;
   await pool.query(
