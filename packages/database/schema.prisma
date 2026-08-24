@@ -65,6 +65,12 @@ model Agency {
   scheduledDepartures  ScheduledDeparture[]
   transportOperations  TransportOperation[]
   operationCheckpoints OperationCheckpoint[]
+  commercialOpportunities CommercialOpportunity[]
+  commercialTasks         CommercialTask[]
+  customerInteractions    CustomerInteraction[]
+  pipelines               Pipeline[]
+  pipelineStages          PipelineStage[]
+  pipelineAccesses        PipelineAccess[]
 
   @@map("agencies")
 }
@@ -88,6 +94,7 @@ model User {
   commercialTasksAssigned CommercialTask[]         @relation("CommercialTaskAssignedUser")
   commercialTasksCreated  CommercialTask[]         @relation("CommercialTaskCreatedBy")
   customerInteractions    CustomerInteraction[]
+  pipelineAccesses        PipelineAccess[]
 
   @@unique([agencyId, email], map: "users_agency_email_key")
   @@unique([agencyId, id], map: "users_agency_id_key")
@@ -486,6 +493,22 @@ enum InteractionDirection {
   OUTBOUND
 }
 
+enum PipelineStageColor {
+  NEUTRAL
+  BLUE
+  YELLOW
+  ORANGE
+  RED
+  GREEN
+  PURPLE
+}
+
+enum PipelineStageVisualLevel {
+  NORMAL
+  ATTENTION
+  SUCCESS
+}
+
 model Route {
   id                String             @id @default(dbgenerated("(gen_random_uuid())::text"))
   agencyId          String             @map("agency_id")
@@ -757,7 +780,13 @@ model CommercialOpportunity {
   tripDateFrom       DateTime?       @map("trip_date_from") @db.Date
   tripDateTo         DateTime?       @map("trip_date_to") @db.Date
   expectedValue      Decimal?        @map("expected_value") @db.Decimal(10, 2)
+  // DEPRECATED as of migration 008_configurable_pipelines.sql: kept as a
+  // read-only historical artifact (never written to after 008) rather
+  // than dropped, to avoid any risk to already-migrated data. The live
+  // lifecycle lives in pipelineId/stageId below.
   stage              CommercialStage @default(PROSPECTING)
+  pipelineId         String          @map("pipeline_id")
+  stageId            String          @map("stage_id")
   nextActionAt       DateTime?       @map("next_action_at") @db.Timestamptz(6)
   lastInteractionAt  DateTime?       @map("last_interaction_at") @db.Timestamptz(6)
   lostReason         String?        @map("lost_reason")
@@ -770,6 +799,8 @@ model CommercialOpportunity {
   proposal        Proposal?            @relation(fields: [agencyId, proposalId], references: [agencyId, id], onDelete: Restrict, map: "commercial_opportunities_proposal_tenant_fk")
   sale            Sale?                @relation(fields: [agencyId, saleId], references: [agencyId, id], onDelete: Restrict, map: "commercial_opportunities_sale_tenant_fk")
   responsibleUser User?                @relation(fields: [agencyId, responsibleUserId], references: [agencyId, id], onDelete: Restrict, map: "commercial_opportunities_responsible_user_tenant_fk")
+  pipeline        Pipeline             @relation(fields: [agencyId, pipelineId], references: [agencyId, id], onDelete: Restrict, map: "commercial_opportunities_pipeline_tenant_fk")
+  pipelineStage   PipelineStage        @relation(fields: [agencyId, stageId], references: [agencyId, id], onDelete: Restrict, map: "commercial_opportunities_stage_tenant_fk")
   tasks           CommercialTask[]
   interactions    CustomerInteraction[]
 
@@ -778,7 +809,82 @@ model CommercialOpportunity {
   @@index([agencyId, responsibleUserId], map: "commercial_opportunities_agency_responsible_user_idx")
   @@index([agencyId, nextActionAt], map: "commercial_opportunities_agency_next_action_idx")
   @@index([agencyId, customerId], map: "commercial_opportunities_agency_customer_idx")
+  @@index([agencyId, pipelineId], map: "commercial_opportunities_agency_pipeline_idx")
+  @@index([agencyId, stageId], map: "commercial_opportunities_agency_stage_id_idx")
   @@map("commercial_opportunities")
+}
+
+// Pipeline: an agency-scoped configurable named pipeline (e.g. "Comercial",
+// "Pos-venda"). Replaces the old single fixed CommercialStage enum: an
+// opportunity now belongs to exactly one Pipeline and one PipelineStage
+// within it. See migration 008_configurable_pipelines.sql.
+model Pipeline {
+  id                   String                @id @default(dbgenerated("(gen_random_uuid())::text"))
+  agencyId             String                @map("agency_id")
+  name                 String
+  description          String?
+  active               Boolean               @default(true)
+  notificationsEnabled Boolean               @default(false) @map("notifications_enabled")
+  createdAt            DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime              @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  agency        Agency                  @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "pipelines_agency_fk")
+  stages        PipelineStage[]
+  opportunities CommercialOpportunity[]
+  accesses      PipelineAccess[]
+
+  @@unique([agencyId, id], map: "pipelines_agency_id_key")
+  @@index([agencyId], map: "pipelines_agency_idx")
+  @@index([agencyId, active], map: "pipelines_agency_active_idx")
+  @@map("pipelines")
+}
+
+// PipelineStage: an ordered stage within one Pipeline. colorToken is a
+// constrained enum (never a free CSS string) that the frontend maps to
+// actual CSS classes -- prevents style/CSS injection from admin-entered
+// stage config. visualLevel is purely presentational and admin-assigned,
+// never inferred from business logic.
+model PipelineStage {
+  id                   String                    @id @default(dbgenerated("(gen_random_uuid())::text"))
+  agencyId             String                    @map("agency_id")
+  pipelineId           String                    @map("pipeline_id")
+  name                 String
+  sequence             Int
+  colorToken           PipelineStageColor        @map("color_token")
+  visualLevel          PipelineStageVisualLevel  @default(NORMAL) @map("visual_level")
+  active               Boolean                   @default(true)
+  notificationsEnabled Boolean                   @default(false) @map("notifications_enabled")
+  createdAt            DateTime                  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime                  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  agency        Agency                  @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "pipeline_stages_agency_fk")
+  pipeline      Pipeline                @relation(fields: [agencyId, pipelineId], references: [agencyId, id], onDelete: Restrict, map: "pipeline_stages_pipeline_tenant_fk")
+  opportunities CommercialOpportunity[]
+
+  @@unique([agencyId, id], map: "pipeline_stages_agency_id_key")
+  @@index([agencyId, pipelineId, sequence], map: "pipeline_stages_agency_pipeline_sequence_idx")
+  @@map("pipeline_stages")
+}
+
+// PipelineAccess: smallest-safe-structure join table (deliberately NOT a
+// Team/Group model -- no team concept exists anywhere else in this schema)
+// granting one userId explicit visibility into one Pipeline. See
+// PipelineAccess doc comment in packages/domain/types.ts for the
+// default-open-until-restricted enforcement rule.
+model PipelineAccess {
+  id         String   @id @default(dbgenerated("(gen_random_uuid())::text"))
+  agencyId   String   @map("agency_id")
+  pipelineId String   @map("pipeline_id")
+  userId     String   @map("user_id")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  agency   Agency   @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "pipeline_access_agency_fk")
+  pipeline Pipeline @relation(fields: [agencyId, pipelineId], references: [agencyId, id], onDelete: Restrict, map: "pipeline_access_pipeline_tenant_fk")
+  user     User     @relation(fields: [agencyId, userId], references: [agencyId, id], onDelete: Restrict, map: "pipeline_access_user_tenant_fk")
+
+  @@unique([agencyId, pipelineId, userId], map: "pipeline_access_agency_pipeline_user_key")
+  @@index([agencyId, userId], map: "pipeline_access_agency_user_idx")
+  @@map("pipeline_access")
 }
 
 model CommercialTask {

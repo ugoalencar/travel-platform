@@ -25,6 +25,7 @@ const migration004 = resolve(repoRoot, 'infrastructure/migrations/004_route_poin
 const migration005 = resolve(repoRoot, 'infrastructure/migrations/005_booking.sql');
 const migration006 = resolve(repoRoot, 'infrastructure/migrations/006_field_operations.sql');
 const migration007 = resolve(repoRoot, 'infrastructure/migrations/007_commercial_cockpit.sql');
+const migration008 = resolve(repoRoot, 'infrastructure/migrations/008_configurable_pipelines.sql');
 const prepareRolesSql = resolve(repoRoot, 'tests/integration/database/002_prepare_local_roles.sql');
 const composeFile = resolve(repoRoot, 'infrastructure/docker-compose.local-postgres.yml');
 
@@ -51,6 +52,12 @@ const principals: Record<string, AuthenticatedPrincipal> = {
   agentB: { userId: userBId, agencyId: agencyBId, role: UserRole.AGENT, email: 'user-b@example.test' },
   viewerA: { userId: userAId, agencyId: agencyAId, role: UserRole.VIEWER, email: 'user-a@example.test' },
   managerA: { userId: userAId, agencyId: agencyAId, role: UserRole.MANAGER, email: 'user-a@example.test' },
+  adminA: { userId: userAId, agencyId: agencyAId, role: UserRole.ADMIN, email: 'user-a@example.test' },
+  ownerA: { userId: userAId, agencyId: agencyAId, role: UserRole.OWNER, email: 'user-a@example.test' },
+  // Second same-agency user, used as a MANAGER for pipeline-access tests
+  // (an explicit PipelineAccess grant is per-userId, independent of the
+  // synthetic test role assigned here).
+  managerA2: { userId: userA2Id, agencyId: agencyAId, role: UserRole.MANAGER, email: 'user-a2@example.test' },
 };
 
 describe.sequential('Commercial cockpit security (IDOR / tenant / RBAC / mass-assignment)', () => {
@@ -59,6 +66,15 @@ describe.sequential('Commercial cockpit security (IDOR / tenant / RBAC / mass-as
   let customerAId: string;
   let customerA2Id: string;
   let customerBId: string;
+  // Default "Comercial" pipeline + stage ids per agency, seeded once in
+  // beforeAll (migration 008's own DML only backfills agencies that exist
+  // AT migration-apply time; in this fresh test database agencies are
+  // seeded AFTER migrations, so tests seed their own pipeline/stages here,
+  // same shape as migration 008's production default).
+  let pipelineAId: string;
+  let stagesA: Record<string, string>;
+  let pipelineBId: string;
+  let stagesB: Record<string, string>;
 
   beforeAll(async () => {
     assertSafeTestDatabase();
@@ -82,6 +98,13 @@ describe.sequential('Commercial cockpit security (IDOR / tenant / RBAC / mass-as
     });
 
     await resetDatabase(adminPool);
+
+    const seededA = await seedPipeline(adminPool, agencyAId, 'Comercial');
+    pipelineAId = seededA.pipelineId;
+    stagesA = seededA.stages;
+    const seededB = await seedPipeline(adminPool, agencyBId, 'Comercial');
+    pipelineBId = seededB.pipelineId;
+    stagesB = seededB.stages;
   });
 
   beforeEach(async () => {
@@ -119,7 +142,7 @@ describe.sequential('Commercial cockpit security (IDOR / tenant / RBAC / mass-as
         method: 'POST',
         url: '/commercial/opportunities',
         headers: { 'x-test-principal': 'viewerA' },
-        payload: { customerId: customerAId },
+        payload: { customerId: customerAId, pipelineId: pipelineAId, stageId: stagesA.PROSPECTING },
       });
       expect(response.statusCode).toBe(403);
       await app.close();
@@ -132,7 +155,7 @@ describe.sequential('Commercial cockpit security (IDOR / tenant / RBAC / mass-as
         method: 'PATCH',
         url: `/commercial/opportunities/${oppId}`,
         headers: { 'x-test-principal': 'viewerA' },
-        payload: { stage: 'INTEREST' },
+        payload: { stageId: stagesA.INTEREST },
       });
       expect(response.statusCode).toBe(403);
       await app.close();
@@ -144,7 +167,7 @@ describe.sequential('Commercial cockpit security (IDOR / tenant / RBAC / mass-as
         method: 'POST',
         url: '/commercial/opportunities',
         headers: { 'x-test-principal': 'agentA' },
-        payload: { customerId: customerAId },
+        payload: { customerId: customerAId, pipelineId: pipelineAId, stageId: stagesA.PROSPECTING },
       });
       expect(createResponse.statusCode).toBe(201);
       const oppId = createResponse.json<{ opportunity: { id: string } }>().opportunity.id;
@@ -153,10 +176,12 @@ describe.sequential('Commercial cockpit security (IDOR / tenant / RBAC / mass-as
         method: 'PATCH',
         url: `/commercial/opportunities/${oppId}`,
         headers: { 'x-test-principal': 'agentA' },
-        payload: { stage: 'INTEREST' },
+        payload: { stageId: stagesA.INTEREST },
       });
       expect(patchResponse.statusCode).toBe(200);
-      expect(patchResponse.json<{ opportunity: { stage: string } }>().opportunity.stage).toBe('INTEREST');
+      expect(patchResponse.json<{ opportunity: { stageId: string } }>().opportunity.stageId).toBe(
+        stagesA.INTEREST,
+      );
       await app.close();
     });
 
@@ -202,7 +227,7 @@ describe.sequential('Commercial cockpit security (IDOR / tenant / RBAC / mass-as
         method: 'PATCH',
         url: `/commercial/opportunities/${oppB}`,
         headers: { 'x-test-principal': 'agentA' },
-        payload: { stage: 'WON' },
+        payload: { stageId: stagesB.WON },
       });
       expect([403, 404]).toContain(response.statusCode);
 
@@ -266,7 +291,7 @@ describe.sequential('Commercial cockpit security (IDOR / tenant / RBAC / mass-as
         method: 'POST',
         url: '/commercial/opportunities',
         headers: { 'x-test-principal': 'agentA' },
-        payload: { customerId: customerAId, agencyId: agencyBId },
+        payload: { customerId: customerAId, pipelineId: pipelineAId, stageId: stagesA.PROSPECTING, agencyId: agencyBId },
       });
       expect(response.statusCode).toBe(400);
       await app.close();
@@ -279,7 +304,7 @@ describe.sequential('Commercial cockpit security (IDOR / tenant / RBAC / mass-as
         method: 'PATCH',
         url: `/commercial/opportunities/${oppId}`,
         headers: { 'x-test-principal': 'agentA' },
-        payload: { stage: 'INTEREST', agencyId: agencyBId },
+        payload: { stageId: stagesA.INTEREST, agencyId: agencyBId },
       });
       expect(response.statusCode).toBe(400);
 
@@ -342,7 +367,12 @@ describe.sequential('Commercial cockpit security (IDOR / tenant / RBAC / mass-as
         method: 'POST',
         url: '/commercial/opportunities',
         headers: { 'x-test-principal': 'agentA' },
-        payload: { customerId: customerAId, responsibleUserId: userBId },
+        payload: {
+          customerId: customerAId,
+          pipelineId: pipelineAId,
+          stageId: stagesA.PROSPECTING,
+          responsibleUserId: userBId,
+        },
       });
       expect(response.statusCode).toBe(400);
       await app.close();
@@ -384,7 +414,12 @@ describe.sequential('Commercial cockpit security (IDOR / tenant / RBAC / mass-as
         method: 'POST',
         url: '/commercial/opportunities',
         headers: { 'x-test-principal': 'agentA' },
-        payload: { customerId: customerAId, responsibleUserId: userAId },
+        payload: {
+          customerId: customerAId,
+          pipelineId: pipelineAId,
+          stageId: stagesA.PROSPECTING,
+          responsibleUserId: userAId,
+        },
       });
       expect(response.statusCode).toBe(201);
       await app.close();
@@ -561,6 +596,207 @@ describe.sequential('Commercial cockpit security (IDOR / tenant / RBAC / mass-as
     });
   });
 
+  describe('configurable multi-pipeline: RBAC / tenant isolation / access rules', () => {
+    it('ADMIN can create a pipeline and a stage; MANAGER/AGENT/VIEWER get 403', async () => {
+      const app = buildTestApp(runtimePool);
+
+      const forbidden = await Promise.all(
+        ['managerA', 'agentA', 'viewerA'].map((principal) =>
+          app.inject({
+            method: 'POST',
+            url: '/commercial/pipelines',
+            headers: { 'x-test-principal': principal },
+            payload: { name: 'Should not be created' },
+          }),
+        ),
+      );
+      for (const response of forbidden) {
+        expect(response.statusCode).toBe(403);
+      }
+
+      const created = await app.inject({
+        method: 'POST',
+        url: '/commercial/pipelines',
+        headers: { 'x-test-principal': 'adminA' },
+        payload: { name: 'Pos-venda A' },
+      });
+      expect(created.statusCode).toBe(201);
+      const newPipelineId = created.json<{ pipeline: { id: string } }>().pipeline.id;
+
+      const stageForbidden = await app.inject({
+        method: 'POST',
+        url: `/commercial/pipelines/${newPipelineId}/stages`,
+        headers: { 'x-test-principal': 'managerA' },
+        payload: { name: 'Novo', sequence: 1, colorToken: 'BLUE' },
+      });
+      expect(stageForbidden.statusCode).toBe(403);
+
+      const stageCreated = await app.inject({
+        method: 'POST',
+        url: `/commercial/pipelines/${newPipelineId}/stages`,
+        headers: { 'x-test-principal': 'adminA' },
+        payload: { name: 'Novo', sequence: 1, colorToken: 'BLUE' },
+      });
+      expect(stageCreated.statusCode).toBe(201);
+      await app.close();
+    });
+
+    it('mass-assignment: agencyId cannot be set from the request body on pipeline/stage/access routes', async () => {
+      const app = buildTestApp(runtimePool);
+
+      const pipelineResponse = await app.inject({
+        method: 'POST',
+        url: '/commercial/pipelines',
+        headers: { 'x-test-principal': 'adminA' },
+        payload: { name: 'Test', agencyId: agencyBId },
+      });
+      expect(pipelineResponse.statusCode).toBe(400);
+
+      const stageResponse = await app.inject({
+        method: 'POST',
+        url: `/commercial/pipelines/${pipelineAId}/stages`,
+        headers: { 'x-test-principal': 'adminA' },
+        payload: { name: 'Test', sequence: 1, colorToken: 'BLUE', agencyId: agencyBId },
+      });
+      expect(stageResponse.statusCode).toBe(400);
+
+      const accessResponse = await app.inject({
+        method: 'POST',
+        url: `/commercial/pipelines/${pipelineAId}/access`,
+        headers: { 'x-test-principal': 'adminA' },
+        payload: { userId: userA2Id, agencyId: agencyBId },
+      });
+      expect(accessResponse.statusCode).toBe(400);
+      await app.close();
+    });
+
+    it('rejects granting pipeline access to a userId from a different agency', async () => {
+      const app = buildTestApp(runtimePool);
+      const response = await app.inject({
+        method: 'POST',
+        url: `/commercial/pipelines/${pipelineAId}/access`,
+        headers: { 'x-test-principal': 'adminA' },
+        payload: { userId: userBId },
+      });
+      expect(response.statusCode).toBe(400);
+      await app.close();
+    });
+
+    it('Agency A cannot fetch or list Agency B pipelines/stages (cross-tenant blocked)', async () => {
+      const app = buildTestApp(runtimePool);
+
+      const getResponse = await app.inject({
+        method: 'GET',
+        url: `/commercial/pipelines/${pipelineBId}`,
+        headers: { 'x-test-principal': 'agentA' },
+      });
+      expect([403, 404]).toContain(getResponse.statusCode);
+
+      const listResponse = await app.inject({
+        method: 'GET',
+        url: '/commercial/pipelines',
+        headers: { 'x-test-principal': 'agentA' },
+      });
+      expect(listResponse.statusCode).toBe(200);
+      const ids = listResponse.json<{ pipelines: Array<{ id: string }> }>().pipelines.map((p) => p.id);
+      expect(ids).not.toContain(pipelineBId);
+      await app.close();
+    });
+
+    it('cannot assign an opportunity to another agency pipeline/stage (cross-tenant assignment blocked)', async () => {
+      const app = buildTestApp(runtimePool);
+      const response = await app.inject({
+        method: 'POST',
+        url: '/commercial/opportunities',
+        headers: { 'x-test-principal': 'agentA' },
+        payload: { customerId: customerAId, pipelineId: pipelineBId, stageId: stagesB.PROSPECTING },
+      });
+      // pipelineBId does not exist in agency A's tenant scope -> validation
+      // error (never a silent cross-tenant assignment).
+      expect(response.statusCode).toBe(400);
+      await app.close();
+    });
+
+    it(
+      'default-open-until-restricted: a pipeline with zero PipelineAccess rows is visible to any agency staff; ' +
+        'once restricted, a MANAGER without a grant cannot see it or its opportunities, by ID or by list',
+      async () => {
+        const app = buildTestApp(runtimePool);
+
+        // Before any PipelineAccess row exists, pipelineA is unrestricted:
+        // MANAGER (managerA2) can already see it and its opportunities.
+        const oppId = await seedOpportunity(agencyAId, customerAId, { stage: 'PROSPECTING' });
+
+        const beforeRestriction = await app.inject({
+          method: 'GET',
+          url: `/commercial/opportunities/${oppId}`,
+          headers: { 'x-test-principal': 'managerA2' },
+        });
+        expect(beforeRestriction.statusCode).toBe(200);
+
+        // ADMIN restricts pipelineA by granting access to a DIFFERENT user
+        // (userAId), never to managerA2 (userA2Id).
+        const grantResponse = await app.inject({
+          method: 'POST',
+          url: `/commercial/pipelines/${pipelineAId}/access`,
+          headers: { 'x-test-principal': 'adminA' },
+          payload: { userId: userAId },
+        });
+        expect(grantResponse.statusCode).toBe(201);
+
+        // Now pipelineA is restricted and managerA2 has no grant: blocked
+        // both by ID and by list.
+        const afterRestrictionById = await app.inject({
+          method: 'GET',
+          url: `/commercial/opportunities/${oppId}`,
+          headers: { 'x-test-principal': 'managerA2' },
+        });
+        expect(afterRestrictionById.statusCode).toBe(403);
+
+        const afterRestrictionList = await app.inject({
+          method: 'GET',
+          url: '/commercial/opportunities',
+          headers: { 'x-test-principal': 'managerA2' },
+        });
+        expect(afterRestrictionList.statusCode).toBe(200);
+        const ids = afterRestrictionList
+          .json<{ opportunities: Array<{ id: string }> }>()
+          .opportunities.map((o) => o.id);
+        expect(ids).not.toContain(oppId);
+
+        // OWNER/ADMIN still see it regardless of grants.
+        const adminStillSees = await app.inject({
+          method: 'GET',
+          url: `/commercial/opportunities/${oppId}`,
+          headers: { 'x-test-principal': 'adminA' },
+        });
+        expect(adminStillSees.statusCode).toBe(200);
+
+        // Clean up the grant so it doesn't leak into later tests in this file.
+        await app.inject({
+          method: 'DELETE',
+          url: `/commercial/pipelines/${pipelineAId}/access/${userAId}`,
+          headers: { 'x-test-principal': 'adminA' },
+        });
+        await app.close();
+      },
+    );
+
+    it('setting active=false on a stage with assigned opportunities is blocked with a clear count', async () => {
+      await seedOpportunity(agencyAId, customerAId, { stage: 'INTEREST' });
+      const app = buildTestApp(runtimePool);
+      const response = await app.inject({
+        method: 'PATCH',
+        url: `/commercial/pipelines/${pipelineAId}/stages/${stagesA.INTEREST}`,
+        headers: { 'x-test-principal': 'adminA' },
+        payload: { active: false },
+      });
+      expect(response.statusCode).toBe(400);
+      expect(response.json<{ error: string }>().error).toMatch(/opportunit/i);
+      await app.close();
+    });
+  });
+
   function buildTestApp(pool: Pool) {
     return buildApp({
       authProvider: {
@@ -592,21 +828,83 @@ describe.sequential('Commercial cockpit security (IDOR / tenant / RBAC / mass-as
     return id;
   }
 
+  function stagesFor(agencyId: string): Record<string, string> {
+    return agencyId === agencyAId ? stagesA : stagesB;
+  }
+
+  function pipelineFor(agencyId: string): string {
+    return agencyId === agencyAId ? pipelineAId : pipelineBId;
+  }
+
   async function seedOpportunity(
     agencyId: string,
     customerId: string,
-    overrides: { stage?: string; nextActionAt?: string; proposalId?: string } = {},
+    overrides: { stage?: string; nextActionAt?: string; proposalId?: string; pipelineId?: string } = {},
   ): Promise<string> {
+    const stageName = overrides.stage ?? 'PROSPECTING';
+    const stageId = stagesFor(agencyId)[stageName];
+    if (!stageId) {
+      throw new Error(`No seeded stage "${stageName}" for agency ${agencyId}`);
+    }
     const result = await adminPool.query<{ id: string }>(
-      `INSERT INTO commercial_opportunities (agency_id, customer_id, stage, next_action_at, proposal_id)
-       VALUES ($1, $2, $3, $4, $5) RETURNING id`,
-      [agencyId, customerId, overrides.stage ?? 'PROSPECTING', overrides.nextActionAt ?? null, overrides.proposalId ?? null],
+      `INSERT INTO commercial_opportunities (agency_id, customer_id, stage, pipeline_id, stage_id, next_action_at, proposal_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
+      [
+        agencyId,
+        customerId,
+        stageName,
+        overrides.pipelineId ?? pipelineFor(agencyId),
+        stageId,
+        overrides.nextActionAt ?? null,
+        overrides.proposalId ?? null,
+      ],
     );
     const id = result.rows[0]?.id;
     if (!id) {
       throw new Error('Failed to seed opportunity');
     }
     return id;
+  }
+
+  // Seeds one Pipeline + 4 stages (PROSPECTING/INTEREST/NEGOTIATION/WON --
+  // enough coverage for this suite) for one agency, mirroring the shape
+  // migration 008 creates in production. Returns the pipeline id and a
+  // name -> stageId map.
+  async function seedPipeline(
+    pool: Pool,
+    agencyId: string,
+    name: string,
+  ): Promise<{ pipelineId: string; stages: Record<string, string> }> {
+    const pipelineResult = await pool.query<{ id: string }>(
+      `INSERT INTO pipelines (agency_id, name) VALUES ($1, $2) RETURNING id`,
+      [agencyId, name],
+    );
+    const pipelineId = pipelineResult.rows[0]?.id;
+    if (!pipelineId) {
+      throw new Error('Failed to seed pipeline');
+    }
+
+    const stageDefs: Array<[string, number, string]> = [
+      ['PROSPECTING', 1, 'NEUTRAL'],
+      ['INTEREST', 2, 'BLUE'],
+      ['NEGOTIATION', 3, 'ORANGE'],
+      ['WON', 4, 'GREEN'],
+    ];
+    const stages: Record<string, string> = {};
+    for (const [stageName, sequence, color] of stageDefs) {
+      const stageResult = await pool.query<{ id: string }>(
+        `INSERT INTO pipeline_stages (agency_id, pipeline_id, name, sequence, color_token)
+         VALUES ($1, $2, $3, $4, $5) RETURNING id`,
+        [agencyId, pipelineId, stageName, sequence, color],
+      );
+      const stageId = stageResult.rows[0]?.id;
+      if (!stageId) {
+        throw new Error(`Failed to seed stage ${stageName}`);
+      }
+      stages[stageName] = stageId;
+    }
+
+    return { pipelineId, stages };
   }
 
   async function seedTask(
@@ -740,6 +1038,7 @@ async function resetDatabase(pool: Pool): Promise<void> {
   await pool.query(readSqlForPg(migration005));
   await pool.query(readSqlForPg(migration006));
   await pool.query(readSqlForPg(migration007));
+  await pool.query(readSqlForPg(migration008));
   await pool.query(readSqlForPg(prepareRolesSql));
   await seedAgenciesAndUsers(pool);
 }

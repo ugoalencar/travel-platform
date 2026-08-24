@@ -152,6 +152,25 @@ import {
   parseUpdateOpportunityInput,
   parseUpdateTaskInput,
 } from './commercial-cockpit-parsers';
+import {
+  createPipeline,
+  createStage,
+  getPipelineById,
+  grantPipelineAccess,
+  listPipelineAccess,
+  listPipelines,
+  listStages,
+  revokePipelineAccess,
+  updatePipeline,
+  updateStage,
+} from './pipeline-config';
+import {
+  parseCreatePipelineInput,
+  parseCreateStageInput,
+  parseGrantAccessInput,
+  parseUpdatePipelineInput,
+  parseUpdateStageInput,
+} from './pipeline-config-parsers';
 
 export interface BuildAppOptions {
   authProvider: AuthProvider;
@@ -1043,11 +1062,16 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     },
   );
 
-  app.get('/commercial/dashboard', { preHandler: protectedHooks }, async () => {
-    requireRole(UserRole.VIEWER);
-    const summary = await getDashboardSummary(options.database, getUserId());
-    return summary;
-  });
+  app.get<{ Querystring: Record<string, string> }>(
+    '/commercial/dashboard',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      const pipelineId = typeof request.query.pipelineId === 'string' ? request.query.pipelineId : undefined;
+      const summary = await getDashboardSummary(options.database, getUserId(), pipelineId);
+      return summary;
+    },
+  );
 
   // Read-only agenda/dashboard-suggestion lists. Neither ever writes --
   // proposals stay unmanaged, and post-sale candidates only ever result
@@ -1063,6 +1087,126 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     const candidates = await getPostSaleCandidates(options.database);
     return { candidates };
   });
+
+  // ============================================================
+  // CONFIGURABLE MULTI-PIPELINE (migration 008_configurable_pipelines.sql)
+  // Reading GET /commercial/pipelines is server-driven access control: it
+  // only ever returns pipelines the caller may see (never all pipelines
+  // filtered client-side). Every configuration write below requires
+  // ADMIN (OWNER passes too, higher in ROLE_HIERARCHY) -- requirePipelineAdmin()
+  // inside pipeline-config.ts is the actual enforcement, requireRole()
+  // here is the route-level first gate matching the existing pattern.
+  // ============================================================
+
+  app.get('/commercial/pipelines', { preHandler: protectedHooks }, async () => {
+    requireRole(UserRole.VIEWER);
+    const pipelines = await listPipelines(options.database);
+    return { pipelines };
+  });
+
+  app.post('/commercial/pipelines', { preHandler: protectedHooks }, async (request, reply) => {
+    requireRole(UserRole.ADMIN);
+    const data = parseCreatePipelineInput(request.body);
+    const pipeline = await createPipeline(options.database, data);
+    reply.code(201);
+    return { pipeline };
+  });
+
+  app.get<{ Params: { id: string } }>(
+    '/commercial/pipelines/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      const pipeline = await getPipelineById(options.database, request.params.id);
+      if (!pipeline) {
+        throw new NotFoundError('Pipeline not found');
+      }
+      return { pipeline };
+    },
+  );
+
+  app.patch<{ Params: { id: string } }>(
+    '/commercial/pipelines/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.ADMIN);
+      const data = parseUpdatePipelineInput(request.body);
+      const pipeline = await updatePipeline(options.database, request.params.id, data);
+      if (!pipeline) {
+        throw new NotFoundError('Pipeline not found');
+      }
+      return { pipeline };
+    },
+  );
+
+  app.get<{ Params: { id: string } }>(
+    '/commercial/pipelines/:id/stages',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      const stages = await listStages(options.database, request.params.id);
+      return { stages };
+    },
+  );
+
+  app.post<{ Params: { id: string } }>(
+    '/commercial/pipelines/:id/stages',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      requireRole(UserRole.ADMIN);
+      const data = parseCreateStageInput(request.body);
+      const stage = await createStage(options.database, request.params.id, data);
+      reply.code(201);
+      return { stage };
+    },
+  );
+
+  app.patch<{ Params: { id: string; stageId: string } }>(
+    '/commercial/pipelines/:id/stages/:stageId',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.ADMIN);
+      const data = parseUpdateStageInput(request.body);
+      const stage = await updateStage(options.database, request.params.id, request.params.stageId, data);
+      if (!stage) {
+        throw new NotFoundError('Stage not found');
+      }
+      return { stage };
+    },
+  );
+
+  app.get<{ Params: { id: string } }>(
+    '/commercial/pipelines/:id/access',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.ADMIN);
+      const access = await listPipelineAccess(options.database, request.params.id);
+      return { access };
+    },
+  );
+
+  app.post<{ Params: { id: string } }>(
+    '/commercial/pipelines/:id/access',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      requireRole(UserRole.ADMIN);
+      const data = parseGrantAccessInput(request.body);
+      const access = await grantPipelineAccess(options.database, request.params.id, data.userId);
+      reply.code(201);
+      return { access };
+    },
+  );
+
+  app.delete<{ Params: { id: string; userId: string } }>(
+    '/commercial/pipelines/:id/access/:userId',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      requireRole(UserRole.ADMIN);
+      await revokePipelineAccess(options.database, request.params.id, request.params.userId);
+      reply.code(204);
+      return null;
+    },
+  );
 
   if (options.exposeTestRoutes === true) {
     app.post('/__test/rollback-proof', { preHandler: protectedHooks }, async () => {

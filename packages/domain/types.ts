@@ -496,12 +496,78 @@ export interface CommercialOpportunity {
   tripDateFrom?: Date;
   tripDateTo?: Date;
   expectedValue?: number;
+  // DEPRECATED: retained only as a read-only historical artifact after
+  // migration 008_configurable_pipelines.sql moved the live lifecycle to
+  // pipelineId/stageId. Never written to by any route after 008. See that
+  // migration's header comment for the "keep vs drop" rationale.
   stage: CommercialStage;
+  pipelineId: string;
+  stageId: string;
   nextActionAt?: Date;
   lastInteractionAt?: Date;
   lostReason?: string;
   createdAt: Date;
   updatedAt: Date;
+}
+
+// ============================================================
+// CONFIGURABLE MULTI-PIPELINE (migration 008_configurable_pipelines.sql)
+// ============================================================
+
+export enum PipelineStageColor {
+  NEUTRAL = 'NEUTRAL',
+  BLUE = 'BLUE',
+  YELLOW = 'YELLOW',
+  ORANGE = 'ORANGE',
+  RED = 'RED',
+  GREEN = 'GREEN',
+  PURPLE = 'PURPLE',
+}
+
+export enum PipelineStageVisualLevel {
+  NORMAL = 'NORMAL',
+  ATTENTION = 'ATTENTION',
+  SUCCESS = 'SUCCESS',
+}
+
+export interface Pipeline {
+  id: string;
+  agencyId: string;
+  name: string;
+  description?: string;
+  active: boolean;
+  notificationsEnabled: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface PipelineStage {
+  id: string;
+  agencyId: string;
+  pipelineId: string;
+  name: string;
+  sequence: number;
+  colorToken: PipelineStageColor;
+  visualLevel: PipelineStageVisualLevel;
+  active: boolean;
+  notificationsEnabled: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Grants a specific user explicit visibility into a specific pipeline.
+// DEFAULT-OPEN-UNTIL-RESTRICTED: a pipeline with ZERO PipelineAccess rows
+// is visible to every agency staff member (OWNER/ADMIN always see every
+// pipeline regardless of grants). Once at least one PipelineAccess row
+// exists for a pipeline, only OWNER/ADMIN plus the explicitly granted
+// userIds may see it. See services/api/src/pipeline-config.ts
+// resolveVisiblePipelineAccess() for the enforcement point.
+export interface PipelineAccess {
+  id: string;
+  agencyId: string;
+  pipelineId: string;
+  userId: string;
+  createdAt: Date;
 }
 
 export interface CommercialTask {

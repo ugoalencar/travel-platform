@@ -15,6 +15,7 @@ import {
   listPostSaleCandidates,
   listProposalsWithNoResponse,
 } from './commercial-queries';
+import { assertCanAccessPipeline, resolveVisiblePipelineIds } from './pipeline-config';
 
 // ============================================================
 // ROW SHAPES
@@ -33,6 +34,8 @@ interface OpportunityRow {
   trip_date_to: string | null;
   expected_value: string | null;
   stage: CommercialStage;
+  pipeline_id: string;
+  stage_id: string;
   next_action_at: string | null;
   last_interaction_at: string | null;
   lost_reason: string | null;
@@ -73,7 +76,7 @@ interface InteractionRow {
 
 const OPPORTUNITY_COLUMNS = `id, agency_id, customer_id, wish_id, proposal_id, sale_id,
   responsible_user_id, destination, trip_date_from, trip_date_to, expected_value, stage,
-  next_action_at, last_interaction_at, lost_reason, created_at, updated_at`;
+  pipeline_id, stage_id, next_action_at, last_interaction_at, lost_reason, created_at, updated_at`;
 
 const TASK_COLUMNS = `id, agency_id, customer_id, opportunity_id, assigned_user_id, type,
   title, due_at, completed_at, notes, created_by, created_at`;
@@ -87,6 +90,8 @@ function toOpportunity(row: OpportunityRow): CommercialOpportunity {
     agencyId: row.agency_id,
     customerId: row.customer_id,
     stage: row.stage,
+    pipelineId: row.pipeline_id,
+    stageId: row.stage_id,
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
     ...(row.wish_id !== null ? { wishId: row.wish_id } : {}),
@@ -241,6 +246,12 @@ async function assertNullableRefInAgency(
 
 export interface OpportunityFilters {
   stage?: CommercialStage;
+  pipelineId?: string;
+  stageId?: string;
+  // Internal only: never set from parsed request input. Populated by
+  // listOpportunities() itself to scope the query to the pipelines the
+  // caller may see when no explicit pipelineId filter was supplied.
+  visiblePipelineIds?: string[];
   responsibleUserId?: string;
   customerId?: string;
   destination?: string;
@@ -264,15 +275,22 @@ export interface CreateOpportunityInput {
   tripDateFrom?: string;
   tripDateTo?: string;
   expectedValue?: number;
-  stage?: CommercialStage;
+  // pipelineId/stageId are now mandatory -- every new opportunity is
+  // created directly into a specific pipeline+stage. The old `stage`
+  // enum is never written to by this route after migration 008.
+  pipelineId: string;
+  stageId: string;
   nextActionAt?: string;
 }
 
 // Mass-assignment-safe: only these named, allow-listed fields are ever
 // read off the PATCH body. agencyId/customerId/id are never accepted
 // here -- they cannot be changed after creation via this input type.
+// pipelineId is deliberately NOT patchable here (moving an opportunity
+// between pipelines is out of scope) -- only stageId, to move within its
+// existing pipeline (Kanban drag/drop, mobile <select> fallback).
 export interface UpdateOpportunityInput {
-  stage?: CommercialStage;
+  stageId?: string;
   responsibleUserId?: string | null;
   nextActionAt?: string | null;
   lostReason?: string | null;
@@ -290,6 +308,20 @@ export async function listOpportunities(
   const agencyId = getAgencyId();
 
   return database.withTenantTransaction(async (client) => {
+    if (filters.pipelineId !== undefined) {
+      // A single explicit pipelineId filter is checked directly against
+      // the access rule.
+      await assertCanAccessPipeline(client, agencyId, filters.pipelineId);
+    } else {
+      // No explicit pipeline filter: scope the query down to only the
+      // pipelines this user may see, never leaving that to the frontend.
+      const visibleIds = await resolveVisiblePipelineIds(client, agencyId);
+      if (visibleIds.length === 0) {
+        return { opportunities: [], total: 0 };
+      }
+      filters = { ...filters, visiblePipelineIds: visibleIds } as OpportunityFilters;
+    }
+
     const { where, values } = buildOpportunityWhere(agencyId, filters);
 
     const countResult = await client.query<{ count: string }>(
@@ -323,6 +355,18 @@ function buildOpportunityWhere(
   if (filters.stage !== undefined) {
     values.push(filters.stage);
     clauses.push(`stage = $${values.length}`);
+  }
+  if (filters.pipelineId !== undefined) {
+    values.push(filters.pipelineId);
+    clauses.push(`pipeline_id = $${values.length}`);
+  }
+  if (filters.stageId !== undefined) {
+    values.push(filters.stageId);
+    clauses.push(`stage_id = $${values.length}`);
+  }
+  if (filters.visiblePipelineIds !== undefined) {
+    values.push(filters.visiblePipelineIds);
+    clauses.push(`pipeline_id = ANY($${values.length}::text[])`);
   }
   if (filters.responsibleUserId !== undefined) {
     values.push(filters.responsibleUserId);
@@ -386,8 +430,48 @@ export async function getOpportunityById(
       [agencyId, id],
     );
     const row = result.rows[0];
-    return row ? toOpportunity(row) : null;
+    if (!row) {
+      return null;
+    }
+    // Pipeline-visibility check enforced at the API layer, never left to
+    // the frontend to hide -- a MANAGER without access to this
+    // opportunity's pipeline cannot fetch it by ID even if they know it.
+    await assertCanAccessPipeline(client, agencyId, row.pipeline_id);
+    return toOpportunity(row);
   });
+}
+
+// Tenant-safe FK validation for stageId: must belong to the same agency
+// AND to the exact pipelineId claimed, so a caller can never set an
+// opportunity's stageId to a stage from a different pipeline (or a
+// different agency's pipeline entirely).
+async function assertStageInPipeline(
+  client: TenantTransactionClient,
+  agencyId: string,
+  pipelineId: string,
+  stageId: string,
+): Promise<void> {
+  const result = await client.query(
+    `SELECT 1 FROM pipeline_stages WHERE agency_id = $1 AND pipeline_id = $2 AND id = $3`,
+    [agencyId, pipelineId, stageId],
+  );
+  if (result.rows.length === 0) {
+    throw new ValidationError('stageId does not belong to the given pipelineId in this agency');
+  }
+}
+
+async function assertPipelineInAgency(
+  client: TenantTransactionClient,
+  agencyId: string,
+  pipelineId: string,
+): Promise<void> {
+  const result = await client.query(`SELECT 1 FROM pipelines WHERE agency_id = $1 AND id = $2`, [
+    agencyId,
+    pipelineId,
+  ]);
+  if (result.rows.length === 0) {
+    throw new ValidationError('Referenced pipeline row not found in this agency');
+  }
 }
 
 export async function createOpportunity(
@@ -404,12 +488,15 @@ export async function createOpportunity(
     if (data.responsibleUserId !== undefined) {
       await assertUserInAgency(client, agencyId, data.responsibleUserId);
     }
+    await assertPipelineInAgency(client, agencyId, data.pipelineId);
+    await assertStageInPipeline(client, agencyId, data.pipelineId, data.stageId);
+    await assertCanAccessPipeline(client, agencyId, data.pipelineId);
 
     const result = await client.query<OpportunityRow>(
       `INSERT INTO commercial_opportunities
          (agency_id, customer_id, wish_id, proposal_id, sale_id, responsible_user_id,
-          destination, trip_date_from, trip_date_to, expected_value, stage, next_action_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+          destination, trip_date_from, trip_date_to, expected_value, pipeline_id, stage_id, next_action_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
        RETURNING ${OPPORTUNITY_COLUMNS}`,
       [
         agencyId,
@@ -422,7 +509,8 @@ export async function createOpportunity(
         data.tripDateFrom ?? null,
         data.tripDateTo ?? null,
         data.expectedValue ?? null,
-        data.stage ?? CommercialStage.PROSPECTING,
+        data.pipelineId,
+        data.stageId,
         data.nextActionAt ?? null,
       ],
     );
@@ -443,17 +531,35 @@ export async function updateOpportunity(
   const agencyId = getAgencyId();
 
   return database.withTenantTransaction(async (client) => {
+    // Look up the opportunity's current pipeline first: pipelineId is not
+    // patchable, so any stageId supplied must belong to that SAME
+    // pipeline in this SAME agency -- never another agency's pipeline
+    // (cross-tenant pipeline assignment) and never a different pipeline
+    // (moving pipelines is out of scope for this PATCH).
+    const current = await client.query<{ pipeline_id: string }>(
+      `SELECT pipeline_id FROM commercial_opportunities WHERE agency_id = $1 AND id = $2`,
+      [agencyId, id],
+    );
+    const currentRow = current.rows[0];
+    if (!currentRow) {
+      return null;
+    }
+    await assertCanAccessPipeline(client, agencyId, currentRow.pipeline_id);
+
     if (data.responsibleUserId !== undefined && data.responsibleUserId !== null) {
       await assertUserInAgency(client, agencyId, data.responsibleUserId);
+    }
+    if (data.stageId !== undefined) {
+      await assertStageInPipeline(client, agencyId, currentRow.pipeline_id, data.stageId);
     }
 
     const fields: string[] = [];
     const values: unknown[] = [];
     let index = 1;
 
-    if (data.stage !== undefined) {
-      fields.push(`stage = $${++index}`);
-      values.push(data.stage);
+    if (data.stageId !== undefined) {
+      fields.push(`stage_id = $${++index}`);
+      values.push(data.stageId);
       // Any stage change counts as commercial interaction activity for
       // "last interaction" purposes at the cockpit level.
       fields.push(`last_interaction_at = now()`);
@@ -999,14 +1105,34 @@ export interface DashboardSummary {
   postSalePendingCount: number;
 }
 
-export async function getDashboardSummary(database: DatabaseRuntime, userId: string): Promise<DashboardSummary> {
+export async function getDashboardSummary(
+  database: DatabaseRuntime,
+  userId: string,
+  pipelineId?: string,
+): Promise<DashboardSummary> {
   const agencyId = getAgencyId();
 
   return database.withTenantTransaction(async (client) => {
+    // pipelineId filter respects the same pipeline-access restriction as
+    // the opportunities list: an explicit pipelineId is access-checked
+    // directly; with no filter, the aggregate is scoped to every pipeline
+    // the caller may see (never left unscoped).
+    let pipelineClause = '';
+    const pipelineValues: unknown[] = [agencyId];
+    if (pipelineId !== undefined) {
+      await assertCanAccessPipeline(client, agencyId, pipelineId);
+      pipelineValues.push(pipelineId);
+      pipelineClause = `AND pipeline_id = $${pipelineValues.length}`;
+    } else {
+      const visibleIds = await resolveVisiblePipelineIds(client, agencyId);
+      pipelineValues.push(visibleIds);
+      pipelineClause = `AND pipeline_id = ANY($${pipelineValues.length}::text[])`;
+    }
+
     const openOpportunities = await client.query<{ count: string }>(
       `SELECT COUNT(*)::text AS count FROM commercial_opportunities
-       WHERE agency_id = $1 AND stage NOT IN ('WON', 'LOST')`,
-      [agencyId],
+       WHERE agency_id = $1 AND stage NOT IN ('WON', 'LOST') ${pipelineClause}`,
+      pipelineValues,
     );
 
     const followUpsToday = await listFollowUpsDueTodayForUser(client, agencyId, userId);

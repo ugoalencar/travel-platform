@@ -104,7 +104,14 @@ function isEnumValue<T extends Record<string, string>>(enumObj: T, value: unknow
 
 // ---- Opportunities ----
 
-const FORBIDDEN_OPPORTUNITY_CREATE_FIELDS = ['agencyId', 'tenantId', 'id', 'createdAt', 'updatedAt'] as const;
+const FORBIDDEN_OPPORTUNITY_CREATE_FIELDS = [
+  'agencyId',
+  'tenantId',
+  'id',
+  'createdAt',
+  'updatedAt',
+  'stage',
+] as const;
 const ALLOWED_OPPORTUNITY_CREATE_FIELDS = [
   'customerId',
   'wishId',
@@ -115,7 +122,8 @@ const ALLOWED_OPPORTUNITY_CREATE_FIELDS = [
   'tripDateFrom',
   'tripDateTo',
   'expectedValue',
-  'stage',
+  'pipelineId',
+  'stageId',
   'nextActionAt',
 ] as const;
 
@@ -124,8 +132,10 @@ export function parseCreateOpportunityInput(body: unknown): CreateOpportunityInp
   assertAllowList(record, FORBIDDEN_OPPORTUNITY_CREATE_FIELDS, ALLOWED_OPPORTUNITY_CREATE_FIELDS);
 
   const customerId = requireNonEmptyString(record.customerId, 'customerId');
+  const pipelineId = requireNonEmptyString(record.pipelineId, 'pipelineId');
+  const stageId = requireNonEmptyString(record.stageId, 'stageId');
 
-  const input: CreateOpportunityInput = { customerId };
+  const input: CreateOpportunityInput = { customerId, pipelineId, stageId };
   const wishId = optionalString(record.wishId, 'wishId');
   if (wishId !== undefined) input.wishId = wishId;
   const proposalId = optionalString(record.proposalId, 'proposalId');
@@ -145,13 +155,6 @@ export function parseCreateOpportunityInput(body: unknown): CreateOpportunityInp
   const nextActionAt = optionalString(record.nextActionAt, 'nextActionAt');
   if (nextActionAt !== undefined) input.nextActionAt = nextActionAt;
 
-  if (record.stage !== undefined) {
-    if (!isEnumValue(CommercialStage, record.stage)) {
-      throw new ValidationError('Field "stage" must be a valid CommercialStage value');
-    }
-    input.stage = record.stage;
-  }
-
   return input;
 }
 
@@ -170,9 +173,14 @@ const FORBIDDEN_OPPORTUNITY_UPDATE_FIELDS = [
   'wishId',
   'proposalId',
   'saleId',
+  'stage',
+  // pipelineId is deliberately forbidden on PATCH: moving an opportunity
+  // between pipelines is out of scope. Only stageId (within the
+  // opportunity's existing pipeline) is patchable.
+  'pipelineId',
 ] as const;
 const ALLOWED_OPPORTUNITY_UPDATE_FIELDS = [
-  'stage',
+  'stageId',
   'responsibleUserId',
   'nextActionAt',
   'lostReason',
@@ -188,12 +196,8 @@ export function parseUpdateOpportunityInput(body: unknown): UpdateOpportunityInp
 
   const input: UpdateOpportunityInput = {};
 
-  if (record.stage !== undefined) {
-    if (!isEnumValue(CommercialStage, record.stage)) {
-      throw new ValidationError('Field "stage" must be a valid CommercialStage value');
-    }
-    input.stage = record.stage;
-  }
+  const stageId = optionalString(record.stageId, 'stageId');
+  if (stageId !== undefined) input.stageId = stageId;
   const responsibleUserId = optionalNullableString(record.responsibleUserId, 'responsibleUserId');
   if (responsibleUserId !== undefined) input.responsibleUserId = responsibleUserId;
   const nextActionAt = optionalNullableString(record.nextActionAt, 'nextActionAt');
@@ -221,6 +225,8 @@ export function parseOpportunityFilters(query: Record<string, unknown>): Opportu
     }
     filters.stage = query.stage;
   }
+  if (typeof query.pipelineId === 'string') filters.pipelineId = query.pipelineId;
+  if (typeof query.stageId === 'string') filters.stageId = query.stageId;
   if (typeof query.responsibleUserId === 'string') filters.responsibleUserId = query.responsibleUserId;
   if (typeof query.customerId === 'string') filters.customerId = query.customerId;
   if (typeof query.destination === 'string') filters.destination = query.destination;
