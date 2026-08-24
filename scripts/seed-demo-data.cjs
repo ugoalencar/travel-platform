@@ -213,11 +213,11 @@ async function seedDefaultPipelines(pool, agencyId) {
     ['LOST', 9, 'RED', 'ATTENTION'],
   ];
   const stages = {};
-  for (const [name, sequence, colorToken, visualLevel] of comercialStageDefs) {
+  for (const [name, sequence, colorKey, visualLevel] of comercialStageDefs) {
     const result = await pool.query(
-      `INSERT INTO pipeline_stages (agency_id, pipeline_id, name, sequence, color_token, visual_level)
+      `INSERT INTO pipeline_stages (agency_id, pipeline_id, name, sequence, color_key, visual_level)
        VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
-      [agencyId, comercialId, name, sequence, colorToken, visualLevel],
+      [agencyId, comercialId, name, sequence, colorKey, visualLevel],
     );
     stages[name] = result.rows[0].id;
   }
@@ -252,11 +252,11 @@ async function seedSimplePipeline(pool, agencyId, name, stageDefs) {
     [agencyId, name],
   );
   const pipelineId = pipeline.rows[0].id;
-  for (const [stageName, sequence, colorToken, visualLevel] of stageDefs) {
+  for (const [stageName, sequence, colorKey, visualLevel] of stageDefs) {
     await pool.query(
-      `INSERT INTO pipeline_stages (agency_id, pipeline_id, name, sequence, color_token, visual_level)
+      `INSERT INTO pipeline_stages (agency_id, pipeline_id, name, sequence, color_key, visual_level)
        VALUES ($1, $2, $3, $4, $5, $6)`,
-      [agencyId, pipelineId, stageName, sequence, colorToken, visualLevel],
+      [agencyId, pipelineId, stageName, sequence, colorKey, visualLevel],
     );
   }
   return pipelineId;
