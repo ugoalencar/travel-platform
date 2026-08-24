@@ -57,6 +57,10 @@ import { CustomerProposalDetailsPage } from './customer-portal/pages/CustomerPro
 import { CustomerBookingsPage } from './customer-portal/pages/CustomerBookingsPage';
 import { CustomerBookingDetailsPage } from './customer-portal/pages/CustomerBookingDetailsPage';
 import { CustomerProfilePage } from './customer-portal/pages/CustomerProfilePage';
+import { CommercialDashboardPage } from './pages/commercial/CommercialDashboardPage';
+import { CommercialPipelinePage } from './pages/commercial/CommercialPipelinePage';
+import { CommercialAgendaPage } from './pages/commercial/CommercialAgendaPage';
+import { PipelineConfigPage } from './pages/commercial/PipelineConfigPage';
 
 export function App() {
   return (
@@ -125,6 +129,10 @@ export function App() {
         <Route path="sales/new" element={<SaleFormPage />} />
         <Route path="sales/:id" element={<SaleDetailsPage />} />
         <Route path="sales/:id/edit" element={<SaleEditPage />} />
+        <Route path="commercial/dashboard" element={<CommercialDashboardPage />} />
+        <Route path="commercial/pipeline" element={<CommercialPipelinePage />} />
+        <Route path="commercial/agenda" element={<CommercialAgendaPage />} />
+        <Route path="settings/pipelines" element={<PipelineConfigPage />} />
       </Route>
     </Routes>
   );

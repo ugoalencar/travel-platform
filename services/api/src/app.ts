@@ -5,6 +5,7 @@ import {
   createTenantContextHook,
   getAgencyId,
   getTenantContext,
+  getUserId,
   requireRole,
   type ValidateCustomerAgencyAccess,
   type ValidateUserAgencyAccess,
@@ -130,6 +131,54 @@ import {
   listMyProposals,
   listMyTrips,
 } from './customer-portal';
+import {
+  createInteraction,
+  createOpportunity,
+  createTask,
+  getDashboardSummary,
+  getOpportunityById,
+  getPostSaleCandidates,
+  getProposalsWaiting,
+  getTaskById,
+  listInteractions,
+  listOpportunities,
+  listTasks,
+  parsePagination,
+  searchCustomers,
+  travelSearch,
+  updateOpportunity,
+  updateTask,
+} from './commercial-cockpit';
+import {
+  parseCreateInteractionInput,
+  parseCreateOpportunityInput,
+  parseCreateTaskInput,
+  parseInteractionFilters,
+  parseOpportunityFilters,
+  parseTaskFilters,
+  parseTravelSearchRange,
+  parseUpdateOpportunityInput,
+  parseUpdateTaskInput,
+} from './commercial-cockpit-parsers';
+import {
+  createPipeline,
+  createStage,
+  getPipelineById,
+  grantPipelineAccess,
+  listPipelineAccess,
+  listPipelines,
+  listStages,
+  revokePipelineAccess,
+  updatePipeline,
+  updateStage,
+} from './pipeline-config';
+import {
+  parseCreatePipelineInput,
+  parseCreateStageInput,
+  parseGrantAccessInput,
+  parseUpdatePipelineInput,
+  parseUpdateStageInput,
+} from './pipeline-config-parsers';
 
 export interface BuildAppOptions {
   authProvider: AuthProvider;
@@ -874,6 +923,298 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     },
   );
 
+  // ============================================================
+  // COMMERCIAL COCKPIT
+  // Kanban stage lives ONLY on commercial_opportunities.stage -- these
+  // routes never touch proposals.status or sales.status.
+  // ============================================================
+
+  app.get<{ Querystring: Record<string, string> }>(
+    '/commercial/opportunities',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      const filters = parseOpportunityFilters(request.query);
+      const pagination = parsePagination(request.query);
+      const { opportunities, total } = await listOpportunities(options.database, filters, pagination);
+      return { opportunities, total, limit: pagination.limit, offset: pagination.offset };
+    },
+  );
+
+  app.get<{ Params: { id: string } }>(
+    '/commercial/opportunities/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      const opportunity = await getOpportunityById(options.database, request.params.id);
+      if (!opportunity) {
+        throw new NotFoundError('Opportunity not found');
+      }
+      return { opportunity };
+    },
+  );
+
+  app.post('/commercial/opportunities', { preHandler: protectedHooks }, async (request, reply) => {
+    requireRole(UserRole.AGENT);
+    const data = parseCreateOpportunityInput(request.body);
+    const opportunity = await createOpportunity(options.database, data);
+    reply.code(201);
+    return { opportunity };
+  });
+
+  app.patch<{ Params: { id: string } }>(
+    '/commercial/opportunities/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.AGENT);
+      const data = parseUpdateOpportunityInput(request.body);
+      const opportunity = await updateOpportunity(options.database, request.params.id, data);
+      if (!opportunity) {
+        throw new NotFoundError('Opportunity not found');
+      }
+      return { opportunity };
+    },
+  );
+
+  app.get<{ Querystring: Record<string, string> }>(
+    '/commercial/tasks',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      const filters = parseTaskFilters(request.query);
+      const pagination = parsePagination(request.query);
+      const { tasks, total } = await listTasks(options.database, filters, pagination);
+      return { tasks, total, limit: pagination.limit, offset: pagination.offset };
+    },
+  );
+
+  app.get<{ Params: { id: string } }>(
+    '/commercial/tasks/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      const task = await getTaskById(options.database, request.params.id);
+      if (!task) {
+        throw new NotFoundError('Task not found');
+      }
+      return { task };
+    },
+  );
+
+  app.post('/commercial/tasks', { preHandler: protectedHooks }, async (request, reply) => {
+    requireRole(UserRole.AGENT);
+    const data = parseCreateTaskInput(request.body);
+    const task = await createTask(options.database, getUserId(), data);
+    reply.code(201);
+    return { task };
+  });
+
+  app.patch<{ Params: { id: string } }>(
+    '/commercial/tasks/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.AGENT);
+      const data = parseUpdateTaskInput(request.body);
+      const task = await updateTask(options.database, request.params.id, data);
+      if (!task) {
+        throw new NotFoundError('Task not found');
+      }
+      return { task };
+    },
+  );
+
+  app.get<{ Querystring: Record<string, string> }>(
+    '/commercial/interactions',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      const filters = parseInteractionFilters(request.query);
+      const pagination = parsePagination(request.query);
+      const { interactions, total } = await listInteractions(options.database, filters, pagination);
+      return { interactions, total, limit: pagination.limit, offset: pagination.offset };
+    },
+  );
+
+  app.post('/commercial/interactions', { preHandler: protectedHooks }, async (request, reply) => {
+    requireRole(UserRole.AGENT);
+    const data = parseCreateInteractionInput(request.body);
+    const interaction = await createInteraction(options.database, getUserId(), data);
+    reply.code(201);
+    return { interaction };
+  });
+
+  app.get<{ Querystring: Record<string, string> }>(
+    '/commercial/customers/search',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      const q = request.query.q;
+      if (typeof q !== 'string') {
+        throw new ValidationError('Query parameter "q" is required');
+      }
+      const pagination = parsePagination(request.query);
+      const customers = await searchCustomers(options.database, q, pagination);
+      return { customers };
+    },
+  );
+
+  app.get<{ Querystring: Record<string, string> }>(
+    '/commercial/travel-search',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      const range = parseTravelSearchRange(request.query);
+      const destination = typeof request.query.destination === 'string' ? request.query.destination : undefined;
+      const result = await travelSearch(options.database, range, destination);
+      return result;
+    },
+  );
+
+  app.get<{ Querystring: Record<string, string> }>(
+    '/commercial/dashboard',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      const pipelineId = typeof request.query.pipelineId === 'string' ? request.query.pipelineId : undefined;
+      const summary = await getDashboardSummary(options.database, getUserId(), pipelineId);
+      return summary;
+    },
+  );
+
+  // Read-only agenda/dashboard-suggestion lists. Neither ever writes --
+  // proposals stay unmanaged, and post-sale candidates only ever result
+  // in a MANUAL CommercialTask creation via POST /commercial/tasks.
+  app.get('/commercial/proposals-waiting', { preHandler: protectedHooks }, async () => {
+    requireRole(UserRole.VIEWER);
+    const proposals = await getProposalsWaiting(options.database);
+    return { proposals };
+  });
+
+  app.get('/commercial/post-sale-candidates', { preHandler: protectedHooks }, async () => {
+    requireRole(UserRole.VIEWER);
+    const candidates = await getPostSaleCandidates(options.database);
+    return { candidates };
+  });
+
+  // ============================================================
+  // CONFIGURABLE MULTI-PIPELINE (migration 009_configurable_pipelines.sql)
+  // Reading GET /commercial/pipelines is server-driven access control: it
+  // only ever returns pipelines the caller may see (never all pipelines
+  // filtered client-side). Every configuration write below requires
+  // ADMIN (OWNER passes too, higher in ROLE_HIERARCHY) -- requirePipelineAdmin()
+  // inside pipeline-config.ts is the actual enforcement, requireRole()
+  // here is the route-level first gate matching the existing pattern.
+  // ============================================================
+
+  app.get('/commercial/pipelines', { preHandler: protectedHooks }, async () => {
+    requireRole(UserRole.VIEWER);
+    const pipelines = await listPipelines(options.database);
+    return { pipelines };
+  });
+
+  app.post('/commercial/pipelines', { preHandler: protectedHooks }, async (request, reply) => {
+    requireRole(UserRole.ADMIN);
+    const data = parseCreatePipelineInput(request.body);
+    const pipeline = await createPipeline(options.database, data);
+    reply.code(201);
+    return { pipeline };
+  });
+
+  app.get<{ Params: { id: string } }>(
+    '/commercial/pipelines/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      const pipeline = await getPipelineById(options.database, request.params.id);
+      if (!pipeline) {
+        throw new NotFoundError('Pipeline not found');
+      }
+      return { pipeline };
+    },
+  );
+
+  app.patch<{ Params: { id: string } }>(
+    '/commercial/pipelines/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.ADMIN);
+      const data = parseUpdatePipelineInput(request.body);
+      const pipeline = await updatePipeline(options.database, request.params.id, data);
+      if (!pipeline) {
+        throw new NotFoundError('Pipeline not found');
+      }
+      return { pipeline };
+    },
+  );
+
+  app.get<{ Params: { id: string } }>(
+    '/commercial/pipelines/:id/stages',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      const stages = await listStages(options.database, request.params.id);
+      return { stages };
+    },
+  );
+
+  app.post<{ Params: { id: string } }>(
+    '/commercial/pipelines/:id/stages',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      requireRole(UserRole.ADMIN);
+      const data = parseCreateStageInput(request.body);
+      const stage = await createStage(options.database, request.params.id, data);
+      reply.code(201);
+      return { stage };
+    },
+  );
+
+  app.patch<{ Params: { id: string; stageId: string } }>(
+    '/commercial/pipelines/:id/stages/:stageId',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.ADMIN);
+      const data = parseUpdateStageInput(request.body);
+      const stage = await updateStage(options.database, request.params.id, request.params.stageId, data);
+      if (!stage) {
+        throw new NotFoundError('Stage not found');
+      }
+      return { stage };
+    },
+  );
+
+  app.get<{ Params: { id: string } }>(
+    '/commercial/pipelines/:id/access',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.ADMIN);
+      const access = await listPipelineAccess(options.database, request.params.id);
+      return { access };
+    },
+  );
+
+  app.post<{ Params: { id: string } }>(
+    '/commercial/pipelines/:id/access',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      requireRole(UserRole.ADMIN);
+      const data = parseGrantAccessInput(request.body);
+      const access = await grantPipelineAccess(options.database, request.params.id, data.userId);
+      reply.code(201);
+      return { access };
+    },
+  );
+
+  app.delete<{ Params: { id: string; userId: string } }>(
+    '/commercial/pipelines/:id/access/:userId',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      requireRole(UserRole.ADMIN);
+      await revokePipelineAccess(options.database, request.params.id, request.params.userId);
+      reply.code(204);
+      return null;
+    },
+  );
   // Sale RBAC (docs/03-security/authorization.md): "Listar todas" is
   // OWNER/ADMIN/MANAGER only, "Listar próprias" is all 5 roles. userId is
   // never populated from client input on create in this vertical, so there
@@ -929,7 +1270,6 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       return { sale };
     },
   );
-
 
   if (options.exposeTestRoutes === true) {
     app.post('/__test/rollback-proof', { preHandler: protectedHooks }, async () => {

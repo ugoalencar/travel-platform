@@ -441,6 +441,167 @@ export interface OperationCheckpointWithExpected extends OperationCheckpoint {
 }
 
 // ============================================================
+// COMMERCIAL COCKPIT (migration 008_commercial_cockpit.sql)
+// Additive-only. CommercialOpportunity.stage is a separate, independent
+// mutable lifecycle -- never derived from or written back to
+// Wish.status / Proposal.status / Sale.status.
+// ============================================================
+
+export enum CommercialStage {
+  PROSPECTING = 'PROSPECTING',
+  INTEREST = 'INTEREST',
+  QUOTE = 'QUOTE',
+  PROPOSAL_SENT = 'PROPOSAL_SENT',
+  WAITING_CUSTOMER = 'WAITING_CUSTOMER',
+  NEGOTIATION = 'NEGOTIATION',
+  WON = 'WON',
+  POST_SALE = 'POST_SALE',
+  LOST = 'LOST',
+}
+
+export const CLOSED_COMMERCIAL_STAGES: readonly CommercialStage[] = [
+  CommercialStage.WON,
+  CommercialStage.LOST,
+];
+
+export enum CommercialTaskType {
+  FOLLOW_UP = 'FOLLOW_UP',
+  CALL = 'CALL',
+  POST_SALE = 'POST_SALE',
+  OTHER = 'OTHER',
+}
+
+export enum InteractionChannel {
+  PHONE = 'PHONE',
+  WHATSAPP = 'WHATSAPP',
+  EMAIL = 'EMAIL',
+  IN_PERSON = 'IN_PERSON',
+  OTHER = 'OTHER',
+}
+
+export enum InteractionDirection {
+  INBOUND = 'INBOUND',
+  OUTBOUND = 'OUTBOUND',
+}
+
+export interface CommercialOpportunity {
+  id: string;
+  agencyId: string;
+  customerId: string;
+  wishId?: string;
+  proposalId?: string;
+  saleId?: string;
+  responsibleUserId?: string;
+  destination?: string;
+  tripDateFrom?: Date;
+  tripDateTo?: Date;
+  expectedValue?: number;
+  // DEPRECATED: retained only as a read-only historical artifact after
+  // migration 009_configurable_pipelines.sql moved the live lifecycle to
+  // pipelineId/stageId. Never written to by any route after 008. See that
+  // migration's header comment for the "keep vs drop" rationale.
+  stage: CommercialStage;
+  pipelineId: string;
+  stageId: string;
+  nextActionAt?: Date;
+  lastInteractionAt?: Date;
+  lostReason?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// ============================================================
+// CONFIGURABLE MULTI-PIPELINE (migration 009_configurable_pipelines.sql)
+// ============================================================
+
+export enum PipelineStageColor {
+  NEUTRAL = 'NEUTRAL',
+  BLUE = 'BLUE',
+  YELLOW = 'YELLOW',
+  ORANGE = 'ORANGE',
+  RED = 'RED',
+  GREEN = 'GREEN',
+  PURPLE = 'PURPLE',
+}
+
+export enum PipelineStageVisualLevel {
+  NORMAL = 'NORMAL',
+  ATTENTION = 'ATTENTION',
+  SUCCESS = 'SUCCESS',
+}
+
+export interface Pipeline {
+  id: string;
+  agencyId: string;
+  name: string;
+  description?: string;
+  active: boolean;
+  notificationsEnabled: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface PipelineStage {
+  id: string;
+  agencyId: string;
+  pipelineId: string;
+  name: string;
+  sequence: number;
+  colorKey: PipelineStageColor;
+  visualLevel: PipelineStageVisualLevel;
+  active: boolean;
+  notificationsEnabled: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Grants a specific user explicit visibility into a specific pipeline.
+// DEFAULT-OPEN-UNTIL-RESTRICTED: a pipeline with ZERO PipelineAccess rows
+// is visible to every agency staff member (OWNER/ADMIN always see every
+// pipeline regardless of grants). Once at least one PipelineAccess row
+// exists for a pipeline, only OWNER/ADMIN plus the explicitly granted
+// userIds may see it. See services/api/src/pipeline-config.ts
+// resolveVisiblePipelineAccess() for the enforcement point.
+export interface PipelineAccess {
+  id: string;
+  agencyId: string;
+  pipelineId: string;
+  userId: string;
+  createdAt: Date;
+}
+
+export interface CommercialTask {
+  id: string;
+  agencyId: string;
+  customerId: string;
+  opportunityId?: string;
+  assignedUserId: string;
+  type: CommercialTaskType;
+  title: string;
+  dueAt: Date;
+  completedAt?: Date;
+  notes?: string;
+  createdBy: string;
+  createdAt: Date;
+}
+
+export interface CustomerInteraction {
+  id: string;
+  agencyId: string;
+  customerId: string;
+  opportunityId?: string;
+  proposalId?: string;
+  saleId?: string;
+  userId: string;
+  channel: InteractionChannel;
+  direction: InteractionDirection;
+  occurredAt: Date;
+  summary: string;
+  nextActionAt?: Date;
+  createdAt: Date;
+}
+
+// ============================================================
 // TENANT-SCOPED QUERY TYPES
 // ============================================================
 
