@@ -45,7 +45,7 @@ export interface CommercialOpportunity {
   tripDateTo?: string;
   expectedValue?: number;
   // DEPRECATED: retained as a read-only historical artifact only (see
-  // migration 008_configurable_pipelines.sql). Never written to.
+  // migration 009_configurable_pipelines.sql). Never written to.
   stage: CommercialStage;
   pipelineId: string;
   stageId: string;
@@ -96,7 +96,7 @@ export interface OpportunityFilters {
 }
 
 // ============================================================
-// CONFIGURABLE MULTI-PIPELINE (migration 008_configurable_pipelines.sql)
+// CONFIGURABLE MULTI-PIPELINE (migration 009_configurable_pipelines.sql)
 // ============================================================
 
 export const PIPELINE_STAGE_COLORS = [

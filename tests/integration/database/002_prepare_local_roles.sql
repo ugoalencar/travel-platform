@@ -100,7 +100,7 @@ END;
 $$;
 
 -- commercial_opportunities/commercial_tasks/customer_interactions
--- (migration 007_commercial_cockpit.sql) only exist once that migration
+-- (migration 008_commercial_cockpit.sql) only exist once that migration
 -- has been applied; guard the same way as the blocks above so domains
 -- that only apply earlier migrations are unaffected. Do NOT use an
 -- unconditional GRANT here -- a prior session broke every other
@@ -118,7 +118,7 @@ END;
 $$;
 
 -- pipelines/pipeline_stages/pipeline_access (migration
--- 008_configurable_pipelines.sql) only exist once that migration has been
+-- 009_configurable_pipelines.sql) only exist once that migration has been
 -- applied; guard the same way as the blocks above so domains that only
 -- apply earlier migrations are unaffected. Do NOT use an unconditional
 -- GRANT here -- a prior session broke every other domain's test suite

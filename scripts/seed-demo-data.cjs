@@ -181,7 +181,7 @@ async function seedAgencyAndDemoCustomer(pool, opts) {
 
 // ============================================================
 // CONFIGURABLE MULTI-PIPELINE DEMO DATA
-// (migration 008_configurable_pipelines.sql)
+// (migration 009_configurable_pipelines.sql)
 // Creates the default "Comercial" pipeline (9 stages, mirroring the old
 // CommercialStage enum exactly, same as the migration's own per-agency
 // backfill DML) plus 3 extra pipelines for visual variety in the demo:
@@ -279,7 +279,7 @@ async function seedSimplePipeline(pool, agencyId, name, stageDefs) {
 // from the brief, each exercising a different part of the cockpit. Each
 // opportunity is assigned to the "Comercial" pipeline's matching stage
 // (via the `stages` map from seedDefaultPipelines()) instead of the old
-// `stage` enum column, per migration 008_configurable_pipelines.sql.
+// `stage` enum column, per migration 009_configurable_pipelines.sql.
 // ============================================================
 // Fixed, deterministic ids for the 4 Commercial Cockpit demo customers --
 // NOT gen_random_uuid()-generated. A human tester needs a stable URL to

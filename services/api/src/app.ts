@@ -1097,7 +1097,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
   });
 
   // ============================================================
-  // CONFIGURABLE MULTI-PIPELINE (migration 008_configurable_pipelines.sql)
+  // CONFIGURABLE MULTI-PIPELINE (migration 009_configurable_pipelines.sql)
   // Reading GET /commercial/pipelines is server-driven access control: it
   // only ever returns pipelines the caller may see (never all pipelines
   // filtered client-side). Every configuration write below requires

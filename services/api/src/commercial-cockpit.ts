@@ -277,7 +277,7 @@ export interface CreateOpportunityInput {
   expectedValue?: number;
   // pipelineId/stageId are now mandatory -- every new opportunity is
   // created directly into a specific pipeline+stage. The old `stage`
-  // enum is never written to by this route after migration 008.
+  // enum is never written to by this route after migration 009.
   pipelineId: string;
   stageId: string;
   nextActionAt?: string;

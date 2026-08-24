@@ -34,7 +34,7 @@ const QUICK_FILTER_BUTTONS: Array<{ label: string; param: string; value: string 
 ];
 
 // Kanban stage lives on CommercialOpportunity.pipelineId + stageId
-// (migration 008_configurable_pipelines.sql) -- dragging a card here
+// (migration 009_configurable_pipelines.sql) -- dragging a card here
 // PATCHes /commercial/opportunities/:id { stageId } within the currently
 // selected pipeline, never touching Proposal.status or Sale.status, and
 // never changing pipelineId (moving pipelines is out of scope for this

@@ -760,7 +760,7 @@ model OperationCheckpoint {
 }
 
 // ============================================================
-// COMMERCIAL COCKPIT (migration 007_commercial_cockpit.sql)
+// COMMERCIAL COCKPIT (migration 008_commercial_cockpit.sql)
 // Additive only. Does not touch Wish.status / Proposal.status /
 // Sale.status -- CommercialOpportunity.stage is its own independent,
 // mutable lifecycle for commercial/CRM tracking only.
@@ -778,7 +778,7 @@ model CommercialOpportunity {
   tripDateFrom       DateTime?       @map("trip_date_from") @db.Date
   tripDateTo         DateTime?       @map("trip_date_to") @db.Date
   expectedValue      Decimal?        @map("expected_value") @db.Decimal(10, 2)
-  // DEPRECATED as of migration 008_configurable_pipelines.sql: kept as a
+  // DEPRECATED as of migration 009_configurable_pipelines.sql: kept as a
   // read-only historical artifact (never written to after 008) rather
   // than dropped, to avoid any risk to already-migrated data. The live
   // lifecycle lives in pipelineId/stageId below.
@@ -815,7 +815,7 @@ model CommercialOpportunity {
 // Pipeline: an agency-scoped configurable named pipeline (e.g. "Comercial",
 // "Pos-venda"). Replaces the old single fixed CommercialStage enum: an
 // opportunity now belongs to exactly one Pipeline and one PipelineStage
-// within it. See migration 008_configurable_pipelines.sql.
+// within it. See migration 009_configurable_pipelines.sql.
 model Pipeline {
   id                   String                @id @default(dbgenerated("(gen_random_uuid())::text"))
   agencyId             String                @map("agency_id")

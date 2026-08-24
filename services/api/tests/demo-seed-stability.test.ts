@@ -18,8 +18,8 @@ const migration003 = resolve(repoRoot, 'infrastructure/migrations/003_transporta
 const migration004 = resolve(repoRoot, 'infrastructure/migrations/004_route_points.sql');
 const migration005 = resolve(repoRoot, 'infrastructure/migrations/005_booking.sql');
 const migration006 = resolve(repoRoot, 'infrastructure/migrations/006_field_operations.sql');
-const migration007 = resolve(repoRoot, 'infrastructure/migrations/007_commercial_cockpit.sql');
-const migration008 = resolve(repoRoot, 'infrastructure/migrations/008_configurable_pipelines.sql');
+const migration008Commercial = resolve(repoRoot, 'infrastructure/migrations/008_commercial_cockpit.sql');
+const migration009Configurable = resolve(repoRoot, 'infrastructure/migrations/009_configurable_pipelines.sql');
 const prepareRolesSql = resolve(repoRoot, 'tests/integration/database/002_prepare_local_roles.sql');
 const seedScript = resolve(repoRoot, 'scripts/seed-demo-data.cjs');
 const composeFile = resolve(repoRoot, 'infrastructure/docker-compose.local-postgres.yml');
@@ -177,8 +177,8 @@ async function applyMigrations(pool: Pool): Promise<void> {
     migration004,
     migration005,
     migration006,
-    migration007,
-    migration008,
+    migration008Commercial,
+    migration009Configurable,
     prepareRolesSql,
   ]) {
     await pool.query(readSqlForPg(migration));

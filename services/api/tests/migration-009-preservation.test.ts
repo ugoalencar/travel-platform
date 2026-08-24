@@ -6,9 +6,9 @@ import { Pool } from 'pg';
 
 // Migration-preservation test: seeds commercial_opportunities rows under
 // the OLD (pre-008) schema shape -- i.e. applies every migration up to
-// and including 007_commercial_cockpit.sql (which only has the `stage`
+// and including 008_commercial_cockpit.sql (which only has the `stage`
 // enum column, no pipeline_id/stage_id) and inserts rows using that old
-// shape -- then applies 008_configurable_pipelines.sql on top and asserts
+// shape -- then applies 009_configurable_pipelines.sql on top and asserts
 // every pre-existing row ends up with a valid, correctly-mapped
 // pipeline_id/stage_id and that zero rows were lost.
 
@@ -19,11 +19,11 @@ const migration003 = resolve(repoRoot, 'infrastructure/migrations/003_transporta
 const migration004 = resolve(repoRoot, 'infrastructure/migrations/004_route_points.sql');
 const migration005 = resolve(repoRoot, 'infrastructure/migrations/005_booking.sql');
 const migration006 = resolve(repoRoot, 'infrastructure/migrations/006_field_operations.sql');
-const migration007 = resolve(repoRoot, 'infrastructure/migrations/007_commercial_cockpit.sql');
-const migration008 = resolve(repoRoot, 'infrastructure/migrations/008_configurable_pipelines.sql');
+const migration008Commercial = resolve(repoRoot, 'infrastructure/migrations/008_commercial_cockpit.sql');
+const migration009Configurable = resolve(repoRoot, 'infrastructure/migrations/009_configurable_pipelines.sql');
 const composeFile = resolve(repoRoot, 'infrastructure/docker-compose.local-postgres.yml');
 
-const projectName = 'travel-platform-migration-008-preservation-postgres';
+const projectName = 'travel-platform-migration-009-preservation-postgres';
 const containerName = 'travel-platform-postgres-local';
 const postgresImage = 'postgres:15';
 const databaseHost = process.env.DATABASE_TEST_HOST ?? '127.0.0.1';
@@ -38,7 +38,7 @@ const agency2Id = '30000000-0000-4000-8000-000000000002';
 const customerId = '31000000-0000-4000-8000-000000000001';
 const customer2Id = '31000000-0000-4000-8000-000000000002';
 
-describe.sequential('Migration 008 preservation (pre-008 rows survive with valid pipeline/stage)', () => {
+describe.sequential('Migration 009 preservation (pre-009 rows survive with valid pipeline/stage)', () => {
   let pool: Pool;
 
   beforeAll(async () => {
@@ -55,10 +55,18 @@ describe.sequential('Migration 008 preservation (pre-008 rows survive with valid
       [poolPasswordKey]: adminPassword,
     });
 
-    // Apply every migration UP TO 007 only -- the old pre-pipeline schema
+    // Apply every migration UP TO 008 only -- the old pre-pipeline schema
     // shape, with just the `stage` enum column.
     await pool.query('DROP SCHEMA public CASCADE; CREATE SCHEMA public;');
-    for (const file of [migration001, migration002, migration003, migration004, migration005, migration006, migration007]) {
+    for (const file of [
+      migration001,
+      migration002,
+      migration003,
+      migration004,
+      migration005,
+      migration006,
+      migration008Commercial,
+    ]) {
       await pool.query(readSqlForPg(file));
     }
 
@@ -105,14 +113,14 @@ describe.sequential('Migration 008 preservation (pre-008 rows survive with valid
     compose(['down', '-v']);
   });
 
-  it('applies 008 cleanly and preserves every pre-existing row with a correctly-mapped pipeline/stage', async () => {
+  it('applies 009 cleanly and preserves every pre-existing row with a correctly-mapped pipeline/stage', async () => {
     const beforeCount = await pool.query<{ count: string }>(
       `SELECT COUNT(*)::text AS count FROM commercial_opportunities WHERE agency_id = $1`,
       [agencyId],
     );
     expect(Number(beforeCount.rows[0]?.count)).toBe(10);
 
-    await pool.query(readSqlForPg(migration008));
+    await pool.query(readSqlForPg(migration009Configurable));
 
     const afterCount = await pool.query<{ count: string }>(
       `SELECT COUNT(*)::text AS count FROM commercial_opportunities WHERE agency_id = $1`,

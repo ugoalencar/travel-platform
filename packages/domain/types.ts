@@ -441,7 +441,7 @@ export interface OperationCheckpointWithExpected extends OperationCheckpoint {
 }
 
 // ============================================================
-// COMMERCIAL COCKPIT (migration 007_commercial_cockpit.sql)
+// COMMERCIAL COCKPIT (migration 008_commercial_cockpit.sql)
 // Additive-only. CommercialOpportunity.stage is a separate, independent
 // mutable lifecycle -- never derived from or written back to
 // Wish.status / Proposal.status / Sale.status.
@@ -497,7 +497,7 @@ export interface CommercialOpportunity {
   tripDateTo?: Date;
   expectedValue?: number;
   // DEPRECATED: retained only as a read-only historical artifact after
-  // migration 008_configurable_pipelines.sql moved the live lifecycle to
+  // migration 009_configurable_pipelines.sql moved the live lifecycle to
   // pipelineId/stageId. Never written to by any route after 008. See that
   // migration's header comment for the "keep vs drop" rationale.
   stage: CommercialStage;
@@ -511,7 +511,7 @@ export interface CommercialOpportunity {
 }
 
 // ============================================================
-// CONFIGURABLE MULTI-PIPELINE (migration 008_configurable_pipelines.sql)
+// CONFIGURABLE MULTI-PIPELINE (migration 009_configurable_pipelines.sql)
 // ============================================================
 
 export enum PipelineStageColor {

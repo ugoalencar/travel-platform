@@ -24,8 +24,8 @@ const migration003 = resolve(repoRoot, 'infrastructure/migrations/003_transporta
 const migration004 = resolve(repoRoot, 'infrastructure/migrations/004_route_points.sql');
 const migration005 = resolve(repoRoot, 'infrastructure/migrations/005_booking.sql');
 const migration006 = resolve(repoRoot, 'infrastructure/migrations/006_field_operations.sql');
-const migration007 = resolve(repoRoot, 'infrastructure/migrations/007_commercial_cockpit.sql');
-const migration008 = resolve(repoRoot, 'infrastructure/migrations/008_configurable_pipelines.sql');
+const migration008Commercial = resolve(repoRoot, 'infrastructure/migrations/008_commercial_cockpit.sql');
+const migration009Configurable = resolve(repoRoot, 'infrastructure/migrations/009_configurable_pipelines.sql');
 const prepareRolesSql = resolve(repoRoot, 'tests/integration/database/002_prepare_local_roles.sql');
 const composeFile = resolve(repoRoot, 'infrastructure/docker-compose.local-postgres.yml');
 
@@ -67,10 +67,10 @@ describe.sequential('Commercial cockpit security (IDOR / tenant / RBAC / mass-as
   let customerA2Id: string;
   let customerBId: string;
   // Default "Comercial" pipeline + stage ids per agency, seeded once in
-  // beforeAll (migration 008's own DML only backfills agencies that exist
+  // beforeAll (migration 009's own DML only backfills agencies that exist
   // AT migration-apply time; in this fresh test database agencies are
   // seeded AFTER migrations, so tests seed their own pipeline/stages here,
-  // same shape as migration 008's production default).
+  // same shape as migration 009's production default).
   let pipelineAId: string;
   let stagesA: Record<string, string>;
   let pipelineBId: string;
@@ -868,7 +868,7 @@ describe.sequential('Commercial cockpit security (IDOR / tenant / RBAC / mass-as
 
   // Seeds one Pipeline + 4 stages (PROSPECTING/INTEREST/NEGOTIATION/WON --
   // enough coverage for this suite) for one agency, mirroring the shape
-  // migration 008 creates in production. Returns the pipeline id and a
+  // migration 009 creates in production. Returns the pipeline id and a
   // name -> stageId map.
   async function seedPipeline(
     pool: Pool,
@@ -1037,8 +1037,8 @@ async function resetDatabase(pool: Pool): Promise<void> {
   await pool.query(readSqlForPg(migration004));
   await pool.query(readSqlForPg(migration005));
   await pool.query(readSqlForPg(migration006));
-  await pool.query(readSqlForPg(migration007));
-  await pool.query(readSqlForPg(migration008));
+  await pool.query(readSqlForPg(migration008Commercial));
+  await pool.query(readSqlForPg(migration009Configurable));
   await pool.query(readSqlForPg(prepareRolesSql));
   await seedAgenciesAndUsers(pool);
 }
