@@ -10,7 +10,13 @@ import {
 import type { Proposal } from '../../types/proposal';
 import type { Trip } from '../../types/trip';
 import type { Wish } from '../../types/wish';
-import type { CommercialOpportunity, CommercialTask, CustomerInteraction } from '../../types/commercial';
+import {
+  STAGE_COLOR_CLASSES,
+  type CommercialOpportunity,
+  type CommercialTask,
+  type CustomerInteraction,
+  type PipelineStageColor,
+} from '../../types/commercial';
 
 interface Customer360Data {
   wishes: Wish[];
@@ -24,6 +30,11 @@ interface Customer360Data {
   // opportunities across several different pipelines.
   pipelineNames: Record<string, string>;
   stageNames: Record<string, string>;
+  // stageId -> the stage's admin-configured colorKey, so each opportunity
+  // row can carry the same fixed-token color badge used in the Kanban
+  // board and pipeline config UI (STAGE_COLOR_CLASSES), instead of only
+  // plain text -- see PipelineStage.colorKey.
+  stageColors: Record<string, PipelineStageColor>;
 }
 
 // Read aggregation only -- no data is duplicated/stored here, every
@@ -68,8 +79,12 @@ export function Customer360({ customerId }: { customerId: string }) {
         );
         const stageLists = await Promise.all(relevantPipelineIds.map((id) => listStages(id).catch(() => [])));
         const stageNames: Record<string, string> = {};
+        const stageColors: Record<string, PipelineStageColor> = {};
         for (const stages of stageLists) {
-          for (const stage of stages) stageNames[stage.id] = stage.name;
+          for (const stage of stages) {
+            stageNames[stage.id] = stage.name;
+            stageColors[stage.id] = stage.colorKey;
+          }
         }
 
         if (cancelled) return;
@@ -82,6 +97,7 @@ export function Customer360({ customerId }: { customerId: string }) {
           tasks: tasksResult.tasks,
           pipelineNames,
           stageNames,
+          stageColors,
         });
       })
       .catch(() => {
@@ -104,14 +120,25 @@ export function Customer360({ customerId }: { customerId: string }) {
     <div className="flex flex-col gap-6">
       <Section title="Oportunidades comerciais">
         {data.opportunities.length === 0 && <Empty />}
-        {data.opportunities.map((o) => (
-          <Row key={o.id}>
-            <span className="font-medium text-slate-900">
-              {data.pipelineNames[o.pipelineId] ?? 'Pipeline'}
-            </span>{' '}
-            — {data.stageNames[o.stageId] ?? 'Etapa'} — {o.destination ?? 'sem destino'}
-          </Row>
-        ))}
+        {data.opportunities.map((o) => {
+          const colorKey = data.stageColors[o.stageId];
+          return (
+            <Row key={o.id}>
+              <span className="font-medium text-slate-900">
+                {data.pipelineNames[o.pipelineId] ?? 'Pipeline'}
+              </span>{' '}
+              —{' '}
+              <span
+                className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-semibold uppercase tracking-wide ${
+                  colorKey ? STAGE_COLOR_CLASSES[colorKey] : 'bg-slate-100 text-slate-700 border-slate-300'
+                }`}
+              >
+                {data.stageNames[o.stageId] ?? 'Etapa'}
+              </span>{' '}
+              — {o.destination ?? 'sem destino'}
+            </Row>
+          );
+        })}
       </Section>
 
       <Section title="Desejos (Wishes)">
