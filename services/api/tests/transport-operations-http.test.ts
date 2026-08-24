@@ -307,6 +307,126 @@ describe.sequential('TransportOperation HTTP routes', () => {
       await app.close();
     });
 
+    it('CONCURRENCY: two simultaneous ARRIVAL confirmations on the same checkpoint yield exactly one 200 and one 409, and the first timestamp is preserved', async () => {
+      const { departureId } = await seedDepartureWithPoints(agencyAId, [
+        { sequence: 1, name: 'Ponto', checkpointRequired: true, checkpointType: 'ARRIVAL' },
+      ]);
+      const app = buildTestApp(runtimePool);
+      const created = await app.inject({
+        method: 'POST',
+        url: '/operations',
+        headers: { 'x-test-principal': 'agent' },
+        payload: { departureId },
+      });
+      const { operation, checkpoints } = created.json<{
+        operation: { id: string };
+        checkpoints: Array<{ id: string }>;
+      }>();
+      const checkpointId = checkpoints[0]!.id;
+
+      const confirm = () =>
+        app.inject({
+          method: 'POST',
+          url: `/operations/${operation.id}/checkpoints/${checkpointId}/arrival`,
+          headers: { 'x-test-principal': 'agent' },
+        });
+
+      const [first, second] = await Promise.all([confirm(), confirm()]);
+      const statuses = [first.statusCode, second.statusCode].sort();
+      expect(statuses).toEqual([200, 409]);
+
+      const winner = first.statusCode === 200 ? first : second;
+      const winningTimestamp = winner.json<{ checkpoint: { arrivalCheckedAt: string } }>()
+        .checkpoint.arrivalCheckedAt;
+
+      const after = await app.inject({
+        method: 'GET',
+        url: `/operations/${operation.id}`,
+        headers: { 'x-test-principal': 'agent' },
+      });
+      const persisted = after.json<{
+        checkpoints: Array<{ id: string; arrivalCheckedAt: string | null }>;
+      }>();
+      const persistedCheckpoint = persisted.checkpoints.find((c) => c.id === checkpointId)!;
+      expect(persistedCheckpoint.arrivalCheckedAt).toBe(winningTimestamp);
+      await app.close();
+    });
+
+    it('CONCURRENCY: two simultaneous DEPARTURE confirmations on the same checkpoint yield exactly one 200 and one 409', async () => {
+      const { departureId } = await seedDepartureWithPoints(agencyAId, [
+        { sequence: 1, name: 'Ponto', checkpointRequired: true, checkpointType: 'DEPARTURE' },
+      ]);
+      const app = buildTestApp(runtimePool);
+      const created = await app.inject({
+        method: 'POST',
+        url: '/operations',
+        headers: { 'x-test-principal': 'agent' },
+        payload: { departureId },
+      });
+      const { operation, checkpoints } = created.json<{
+        operation: { id: string };
+        checkpoints: Array<{ id: string }>;
+      }>();
+      const checkpointId = checkpoints[0]!.id;
+
+      const confirm = () =>
+        app.inject({
+          method: 'POST',
+          url: `/operations/${operation.id}/checkpoints/${checkpointId}/departure`,
+          headers: { 'x-test-principal': 'agent' },
+        });
+
+      const [first, second] = await Promise.all([confirm(), confirm()]);
+      const statuses = [first.statusCode, second.statusCode].sort();
+      expect(statuses).toEqual([200, 409]);
+      await app.close();
+    });
+
+    it('CONCURRENCY: BOTH-type checkpoint allows independent ARRIVAL and DEPARTURE confirmations but each is protected individually against its own concurrent duplicate', async () => {
+      const { departureId } = await seedDepartureWithPoints(agencyAId, [
+        { sequence: 1, name: 'Ponto', checkpointRequired: true, checkpointType: 'BOTH' },
+      ]);
+      const app = buildTestApp(runtimePool);
+      const created = await app.inject({
+        method: 'POST',
+        url: '/operations',
+        headers: { 'x-test-principal': 'agent' },
+        payload: { departureId },
+      });
+      const { operation, checkpoints } = created.json<{
+        operation: { id: string };
+        checkpoints: Array<{ id: string }>;
+      }>();
+      const checkpointId = checkpoints[0]!.id;
+
+      const confirmArrivalReq = () =>
+        app.inject({
+          method: 'POST',
+          url: `/operations/${operation.id}/checkpoints/${checkpointId}/arrival`,
+          headers: { 'x-test-principal': 'agent' },
+        });
+      const confirmDepartureReq = () =>
+        app.inject({
+          method: 'POST',
+          url: `/operations/${operation.id}/checkpoints/${checkpointId}/departure`,
+          headers: { 'x-test-principal': 'agent' },
+        });
+
+      // Two concurrent ARRIVAL attempts -- exactly one wins.
+      const [arrivalFirst, arrivalSecond] = await Promise.all([confirmArrivalReq(), confirmArrivalReq()]);
+      expect([arrivalFirst.statusCode, arrivalSecond.statusCode].sort()).toEqual([200, 409]);
+
+      // Two concurrent DEPARTURE attempts -- independent column, both should
+      // be able to race against each other the same way (exactly one wins),
+      // unaffected by arrival already being confirmed.
+      const [departureFirst, departureSecond] = await Promise.all([
+        confirmDepartureReq(),
+        confirmDepartureReq(),
+      ]);
+      expect([departureFirst.statusCode, departureSecond.statusCode].sort()).toEqual([200, 409]);
+      await app.close();
+    });
+
     it('rejects confirmation attempts against a cross-tenant checkpoint with 404', async () => {
       const { departureId } = await seedDepartureWithPoints(agencyBId, [
         { sequence: 1, name: 'Ponto', checkpointRequired: true, checkpointType: 'ARRIVAL' },
