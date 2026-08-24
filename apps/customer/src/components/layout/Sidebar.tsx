@@ -13,7 +13,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Ofertas', to: '/offers' },
   { label: 'Propostas', to: '/proposals' },
   { label: 'Reservas', to: '/bookings' },
-  { label: 'Vendas' },
+  { label: 'Vendas', to: '/sales' },
   { label: 'Viagens', to: '/trips' },
   { label: 'Rotas', to: '/transport/routes' },
   { label: 'Produtos de transporte', to: '/transport/products' },
