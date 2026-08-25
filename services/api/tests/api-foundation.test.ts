@@ -99,6 +99,60 @@ describe.sequential('P0 Fastify API foundation', () => {
     await app.close();
   });
 
+  it('GET /readiness returns ready after the configured dependency check succeeds', async () => {
+    const app = buildTestApp(runtimePool, {
+      readinessCheck: () => Promise.resolve(),
+    });
+
+    const response = await app.inject({ method: 'GET', url: '/readiness' });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toEqual({ status: 'ready', service: 'api' });
+
+    await app.close();
+  });
+
+  it('GET /readiness returns 503 without leaking dependency details when checks fail', async () => {
+    const app = buildTestApp(runtimePool, {
+      readinessCheck: () => Promise.reject(new Error('database password invalid')),
+    });
+
+    const response = await app.inject({ method: 'GET', url: '/readiness' });
+
+    expect(response.statusCode).toBe(503);
+    expect(response.json()).toEqual({ status: 'not_ready', service: 'api' });
+    expect(response.body).not.toContain('password');
+
+    await app.close();
+  });
+
+  it('rate limits repeated write requests by route and client address', async () => {
+    const app = buildTestApp(runtimePool, {
+      rateLimit: { windowMs: 60_000, max: 1 },
+    });
+
+    const first = await app.inject({
+      method: 'POST',
+      url: '/__test/rate-limit-proof',
+      headers: { 'x-test-principal': 'a' },
+    });
+    const second = await app.inject({
+      method: 'POST',
+      url: '/__test/rate-limit-proof',
+      headers: { 'x-test-principal': 'a' },
+    });
+
+    expect(first.statusCode).toBe(200);
+    expect(second.statusCode).toBe(429);
+    expect(second.headers['retry-after']).toBeDefined();
+    expect(second.json()).toEqual({
+      error: 'Too many requests',
+      code: 'RATE_LIMITED',
+    });
+
+    await app.close();
+  });
+
   it('GET /me returns the authenticated principal inside tenant context', async () => {
     const app = buildTestApp(runtimePool);
 
@@ -386,7 +440,10 @@ describe.sequential('P0 Fastify API foundation', () => {
   });
 });
 
-function buildTestApp(pool: Pool) {
+function buildTestApp(
+  pool: Pool,
+  overrides: Partial<Parameters<typeof buildApp>[0]> = {},
+) {
   return buildApp({
     authProvider: {
       authenticate(request) {
@@ -402,6 +459,7 @@ function buildTestApp(pool: Pool) {
     },
     database: createDatabaseRuntime(pool),
     exposeTestRoutes: true,
+    ...overrides,
   });
 }
 

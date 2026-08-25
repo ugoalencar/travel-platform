@@ -411,6 +411,62 @@ describe.sequential('Sale HTTP routes', () => {
   });
 
   describe('Sale lifecycle and receivable integration', () => {
+    it('keeps an unallocated Sale receivable synchronized when financial fields change', async () => {
+      const app = buildTestApp(runtimePool);
+
+      const create = await app.inject({
+        method: 'POST',
+        url: '/sales',
+        headers: { 'x-test-principal': 'agent' },
+        payload: validSalePayload(customerAId, { amount: 100, discount: 10 }),
+      });
+      expect(create.statusCode).toBe(201);
+      const saleId = create.json<{ sale: { id: string } }>().sale.id;
+
+      const update = await app.inject({
+        method: 'PATCH',
+        url: `/sales/${saleId}`,
+        headers: { 'x-test-principal': 'agent' },
+        payload: { amount: 80, discount: 5 },
+      });
+      expect(update.statusCode).toBe(200);
+      expect(update.json<{ sale: { total: number } }>().sale.total).toBe(75);
+
+      const receivable = await adminPool.query<{ amount: string; status: string }>(
+        'SELECT amount, status FROM receivables WHERE agency_id = $1 AND sale_id = $2',
+        [agencyAId, saleId],
+      );
+      expect(receivable.rows).toHaveLength(1);
+      expect(receivable.rows[0]).toMatchObject({ amount: '75.00', status: 'OPEN' });
+
+      await app.close();
+    });
+
+    it('blocks Sale financial edits once the linked receivable has allocations', async () => {
+      const saleId = await seedSale(agencyAId, customerAId, { amount: '100.00' });
+      const receivableId = await seedReceivableForSale(saleId, customerAId, '100.00');
+      await markReceivableFullyPaid(receivableId, '25.00');
+
+      const app = buildTestApp(runtimePool);
+      const response = await app.inject({
+        method: 'PATCH',
+        url: `/sales/${saleId}`,
+        headers: { 'x-test-principal': 'agent' },
+        payload: { amount: 80 },
+      });
+
+      expect(response.statusCode).toBe(409);
+      expect(response.json()).toMatchObject({ code: 'CONFLICT' });
+
+      const sale = await adminPool.query<{ amount: string; total: string }>(
+        'SELECT amount, total FROM sales WHERE agency_id = $1 AND id = $2',
+        [agencyAId, saleId],
+      );
+      expect(sale.rows[0]).toMatchObject({ amount: '100.00', total: '100.00' });
+
+      await app.close();
+    });
+
     it('creates a receivable for new positive-total Sales and supports confirm then paid after full allocation', async () => {
       const app = buildTestApp(runtimePool);
 
