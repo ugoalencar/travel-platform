@@ -227,6 +227,53 @@ import {
   parseUpdatePipelineInput,
   parseUpdateStageInput,
 } from './pipeline-config-parsers';
+import {
+  AssetSourceType,
+  AssetType,
+  AutomationStatus,
+  CampaignStatus,
+  PlatformFeature,
+  PublicationStatus,
+} from '../../../packages/domain/types';
+import { createAsset, listAssets, type CreateAssetInput } from './assets';
+import {
+  createCampaign,
+  getCampaignById,
+  linkOfferToCampaign,
+  listCampaigns,
+  transitionCampaignStatus,
+  type CreateCampaignInput,
+} from './campaigns';
+import {
+  createPublication,
+  generatePublicationSnapshot,
+  getPublicationById,
+  listPublications,
+  publishViaConnector,
+  transitionPublicationStatus,
+  type CreatePublicationInput,
+} from './publications';
+import {
+  listEntitlements,
+  requireEntitlement,
+  setAgencyEntitlementViaPlatformStopgap,
+  type SetAgencyEntitlementInput,
+} from './entitlements';
+import type { PlatformDatabaseRuntime } from './database';
+import {
+  createAutomation,
+  getAutomationById,
+  listAutomations,
+  processConnectorEvent,
+  setAutomationStatus,
+  type CreateAutomationInput,
+} from './automations';
+import { createCoupon, grantCoupon, listCoupons, recordRedemption } from './coupons';
+import type { CreateCouponInput, GrantCouponInput, RecordRedemptionInput } from './coupons';
+import { listEngagements } from './engagements';
+import { listAuditLog } from './offer-growth-audit';
+import { InternalMockConnector } from './connectors/mock-connector';
+import type { ConnectorEvent } from '../../../packages/domain/types';
 
 export interface BuildAppOptions {
   authProvider: AuthProvider;
@@ -242,6 +289,22 @@ export interface BuildAppOptions {
   validateCustomerAgencyAccess?: ValidateCustomerAgencyAccess;
   readinessCheck?: () => Promise<void>;
   rateLimit?: RateLimitOptions;
+  // Offer & Growth Engine: platform-scoped entitlement-write stopgap
+  // (section H). Deliberately NOT part of protectedHooks / agency auth
+  // -- see entitlements.ts's header comment for the full rationale and
+  // the documented architecture gap (no real platform-admin identity
+  // exists yet in this codebase). Omit to leave /platform/entitlements
+  // disabled (its handler 404s when not configured).
+  platformStopgap?: {
+    enabled: boolean;
+    sharedKey: string;
+    database: PlatformDatabaseRuntime;
+  };
+  // Offer & Growth Engine: the one real internal test/mock connector
+  // (channel-connectors.md section I/W). Defaults to a fresh in-process
+  // InternalMockConnector per buildApp() call when omitted, so routes
+  // that simulate connector events always have something real to call.
+  mockConnector?: InternalMockConnector;
 }
 
 interface AgencyProofRow {
@@ -1570,6 +1633,306 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     },
   );
 
+  // ============================================================
+  // OFFER & GROWTH ENGINE (batch 04 backend foundation)
+  // Order of authorization per entitlements.md: entitlement check FIRST
+  // (requireEntitlement), then RBAC (requireRole). No frontend UI in
+  // this batch -- every route below is safe standalone.
+  // ============================================================
+  const mockConnector = options.mockConnector ?? new InternalMockConnector();
+
+  app.get('/assets', { preHandler: protectedHooks }, async () => {
+    await requireEntitlement(options.database, PlatformFeature.CREATIVE_STUDIO);
+    requireRole(UserRole.VIEWER);
+    const assets = await listAssets(options.database);
+    return { assets };
+  });
+
+  app.post('/assets', { preHandler: protectedHooks }, async (request, reply) => {
+    await requireEntitlement(options.database, PlatformFeature.CREATIVE_STUDIO);
+    requireRole(UserRole.AGENT);
+    const data = parseCreateAssetInput(request.body);
+    const asset = await createAsset(options.database, data);
+    reply.code(201);
+    return { asset };
+  });
+
+  app.get('/campaigns', { preHandler: protectedHooks }, async () => {
+    await requireEntitlement(options.database, PlatformFeature.CAMPAIGNS);
+    requireRole(UserRole.VIEWER);
+    const campaigns = await listCampaigns(options.database);
+    return { campaigns };
+  });
+
+  app.get<{ Params: { id: string } }>('/campaigns/:id', { preHandler: protectedHooks }, async (request) => {
+    await requireEntitlement(options.database, PlatformFeature.CAMPAIGNS);
+    requireRole(UserRole.VIEWER);
+    const campaign = await getCampaignById(options.database, request.params.id);
+    return { campaign };
+  });
+
+  app.post('/campaigns', { preHandler: protectedHooks }, async (request, reply) => {
+    await requireEntitlement(options.database, PlatformFeature.CAMPAIGNS);
+    requireRole(UserRole.AGENT);
+    const data = parseCreateCampaignInput(request.body);
+    const campaign = await createCampaign(options.database, data);
+    reply.code(201);
+    return { campaign };
+  });
+
+  app.post<{ Params: { id: string }; Body: { offerId: string } }>(
+    '/campaigns/:id/offers',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      await requireEntitlement(options.database, PlatformFeature.CAMPAIGNS);
+      requireRole(UserRole.AGENT);
+      const offerId = requireStringField(request.body, 'offerId');
+      await linkOfferToCampaign(options.database, request.params.id, offerId);
+      reply.code(204);
+    },
+  );
+
+  app.post<{ Params: { id: string }; Body: { status: string } }>(
+    '/campaigns/:id/status',
+    { preHandler: protectedHooks },
+    async (request) => {
+      await requireEntitlement(options.database, PlatformFeature.CAMPAIGNS);
+      const status = parseCampaignStatus(request.body?.status);
+      // Publishing/activating a campaign requires campaign.publish RBAC;
+      // any other transition requires campaign.write (write >= AGENT).
+      requireRole(status === CampaignStatus.ACTIVE ? UserRole.MANAGER : UserRole.AGENT);
+      const campaign = await transitionCampaignStatus(options.database, request.params.id, status);
+      return { campaign };
+    },
+  );
+
+  app.get('/publications', { preHandler: protectedHooks }, async () => {
+    await requireEntitlement(options.database, PlatformFeature.SOCIAL_PUBLISHING);
+    requireRole(UserRole.VIEWER);
+    const publications = await listPublications(options.database);
+    return { publications };
+  });
+
+  app.get<{ Params: { id: string } }>(
+    '/publications/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      await requireEntitlement(options.database, PlatformFeature.SOCIAL_PUBLISHING);
+      requireRole(UserRole.VIEWER);
+      const publication = await getPublicationById(options.database, request.params.id);
+      return { publication };
+    },
+  );
+
+  app.post('/publications', { preHandler: protectedHooks }, async (request, reply) => {
+    await requireEntitlement(options.database, PlatformFeature.SOCIAL_PUBLISHING);
+    requireRole(UserRole.AGENT);
+    const data = parseCreatePublicationInput(request.body);
+    const publication = await createPublication(options.database, data);
+    reply.code(201);
+    return { publication };
+  });
+
+  app.post<{ Params: { id: string }; Body: { snapshot: Record<string, unknown> } }>(
+    '/publications/:id/snapshot',
+    { preHandler: protectedHooks },
+    async (request) => {
+      await requireEntitlement(options.database, PlatformFeature.SOCIAL_PUBLISHING);
+      requireRole(UserRole.AGENT);
+      if (typeof request.body?.snapshot !== 'object' || request.body.snapshot === null) {
+        throw new ValidationError('Field "snapshot" is required and must be an object');
+      }
+      const publication = await generatePublicationSnapshot(
+        options.database,
+        request.params.id,
+        request.body.snapshot,
+      );
+      return { publication };
+    },
+  );
+
+  app.post<{ Params: { id: string } }>(
+    '/publications/:id/publish',
+    { preHandler: protectedHooks },
+    async (request) => {
+      await requireEntitlement(options.database, PlatformFeature.SOCIAL_PUBLISHING);
+      requireRole(UserRole.MANAGER);
+      const publication = await publishViaConnector(options.database, mockConnector, request.params.id);
+      return { publication };
+    },
+  );
+
+  app.post<{ Params: { id: string }; Body: { status: string } }>(
+    '/publications/:id/status',
+    { preHandler: protectedHooks },
+    async (request) => {
+      await requireEntitlement(options.database, PlatformFeature.SOCIAL_PUBLISHING);
+      requireRole(UserRole.AGENT);
+      const status = parsePublicationStatus(request.body?.status);
+      const publication = await transitionPublicationStatus(options.database, request.params.id, status);
+      return { publication };
+    },
+  );
+
+  app.get('/engagements', { preHandler: protectedHooks }, async () => {
+    await requireEntitlement(options.database, PlatformFeature.SOCIAL_AUTOMATION);
+    requireRole(UserRole.VIEWER);
+    const engagements = await listEngagements(options.database);
+    return { engagements };
+  });
+
+  app.get('/automations', { preHandler: protectedHooks }, async () => {
+    await requireEntitlement(options.database, PlatformFeature.SOCIAL_AUTOMATION);
+    requireRole(UserRole.VIEWER);
+    const automations = await listAutomations(options.database);
+    return { automations };
+  });
+
+  app.get<{ Params: { id: string } }>(
+    '/automations/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      await requireEntitlement(options.database, PlatformFeature.SOCIAL_AUTOMATION);
+      requireRole(UserRole.VIEWER);
+      const automation = await getAutomationById(options.database, request.params.id);
+      return { automation };
+    },
+  );
+
+  app.post('/automations', { preHandler: protectedHooks }, async (request, reply) => {
+    await requireEntitlement(options.database, PlatformFeature.SOCIAL_AUTOMATION);
+    requireRole(UserRole.AGENT);
+    const data = parseCreateAutomationInput(request.body);
+    const automation = await createAutomation(options.database, data);
+    reply.code(201);
+    return { automation };
+  });
+
+  app.post<{ Params: { id: string } }>(
+    '/automations/:id/activate',
+    { preHandler: protectedHooks },
+    async (request) => {
+      await requireEntitlement(options.database, PlatformFeature.SOCIAL_AUTOMATION);
+      requireRole(UserRole.MANAGER);
+      const automation = await setAutomationStatus(options.database, request.params.id, AutomationStatus.ACTIVE);
+      return { automation };
+    },
+  );
+
+  app.post<{ Params: { id: string } }>(
+    '/automations/:id/pause',
+    { preHandler: protectedHooks },
+    async (request) => {
+      await requireEntitlement(options.database, PlatformFeature.SOCIAL_AUTOMATION);
+      requireRole(UserRole.MANAGER);
+      const automation = await setAutomationStatus(options.database, request.params.id, AutomationStatus.PAUSED);
+      return { automation };
+    },
+  );
+
+  // Drives the internal mock connector's simulateComment()/
+  // simulateMessage() output through the real automation engine. Used
+  // by tests (see the Cancun E2E test) to exercise the full chain
+  // end-to-end without any real Meta/WhatsApp API.
+  app.post<{
+    Body: {
+      kind: 'comment' | 'message';
+      externalUserId: string;
+      content: string;
+      campaignId?: string;
+      publicationId?: string;
+      offerId?: string;
+    };
+  }>('/connectors/internal-mock/simulate', { preHandler: protectedHooks }, async (request) => {
+    await requireEntitlement(options.database, PlatformFeature.SOCIAL_AUTOMATION);
+    requireRole(UserRole.AGENT);
+    const agencyId = getAgencyId();
+    const body = request.body ?? ({} as never);
+    const event: ConnectorEvent =
+      body.kind === 'message'
+        ? mockConnector.simulateMessage({ agencyId, externalUserId: body.externalUserId, content: body.content })
+        : mockConnector.simulateComment({ agencyId, externalUserId: body.externalUserId, content: body.content });
+
+    const result = await processConnectorEvent(options.database, mockConnector, event, {
+      ...(body.campaignId !== undefined ? { campaignId: body.campaignId } : {}),
+      ...(body.publicationId !== undefined ? { publicationId: body.publicationId } : {}),
+      ...(body.offerId !== undefined ? { offerId: body.offerId } : {}),
+    });
+    return result;
+  });
+
+  app.get('/coupons', { preHandler: protectedHooks }, async () => {
+    await requireEntitlement(options.database, PlatformFeature.CAMPAIGNS);
+    requireRole(UserRole.VIEWER);
+    const coupons = await listCoupons(options.database);
+    return { coupons };
+  });
+
+  app.post('/coupons', { preHandler: protectedHooks }, async (request, reply) => {
+    await requireEntitlement(options.database, PlatformFeature.CAMPAIGNS);
+    requireRole(UserRole.AGENT);
+    const data = parseCreateCouponInput(request.body);
+    const coupon = await createCoupon(options.database, data);
+    reply.code(201);
+    return { coupon };
+  });
+
+  app.post('/coupons/grants', { preHandler: protectedHooks }, async (request, reply) => {
+    await requireEntitlement(options.database, PlatformFeature.CAMPAIGNS);
+    requireRole(UserRole.AGENT);
+    const data = parseGrantCouponInput(request.body);
+    const grant = await grantCoupon(options.database, data);
+    reply.code(201);
+    return { grant };
+  });
+
+  app.post('/coupons/redemptions', { preHandler: protectedHooks }, async (request, reply) => {
+    await requireEntitlement(options.database, PlatformFeature.CAMPAIGNS);
+    requireRole(UserRole.AGENT);
+    const data = parseRecordRedemptionInput(request.body);
+    const redemption = await recordRedemption(options.database, data);
+    reply.code(201);
+    return { redemption };
+  });
+
+  app.get('/entitlements', { preHandler: protectedHooks }, async () => {
+    requireRole(UserRole.VIEWER);
+    const entitlements = await listEntitlements(options.database);
+    return { entitlements };
+  });
+
+  app.get('/offer-growth/audit-log', { preHandler: protectedHooks }, async () => {
+    requireRole(UserRole.MANAGER);
+    const entries = await listAuditLog(options.database);
+    return { entries };
+  });
+
+  // Platform-scoped entitlement WRITE stopgap. Deliberately mounted
+  // OUTSIDE protectedHooks -- no agency JWT/session can satisfy it. See
+  // entitlements.ts's header comment: this is a documented temporary
+  // stopgap (dual-gated like ALLOW_DEV_AUTH), not a real Super Admin
+  // boundary, because no real platform-admin identity exists yet.
+  app.post<{ Body: SetAgencyEntitlementInput }>('/platform/entitlements', async (request, reply) => {
+    const stopgap = options.platformStopgap;
+    if (!stopgap || stopgap.enabled !== true) {
+      reply.code(404);
+      return { error: 'Not found' };
+    }
+    const providedKey = request.headers['x-platform-stopgap-key'];
+    if (typeof providedKey !== 'string' || providedKey.length === 0 || providedKey !== stopgap.sharedKey) {
+      reply.code(401);
+      return { error: 'Unauthorized' };
+    }
+    const body = request.body ?? ({} as SetAgencyEntitlementInput);
+    const entitlement = await setAgencyEntitlementViaPlatformStopgap(
+      stopgap.database,
+      body,
+      'platform-stopgap',
+    );
+    reply.code(200);
+    return { entitlement };
+  });
+
   if (options.exposeTestRoutes === true) {
     app.post('/__test/rate-limit-proof', { preHandler: protectedHooks }, () => ({
       status: 'ok',
@@ -2837,6 +3200,159 @@ function parseCreateExternalOfferCaptureInput(body: unknown): CreateExternalOffe
     data.validUntil = parseRequiredDate(record.validUntil, 'validUntil');
   }
 
+  return data;
+}
+
+// ============================================================
+// OFFER & GROWTH ENGINE request parsers
+// ============================================================
+
+function requireStringField(body: unknown, field: string): string {
+  const record = parseObjectBody(body);
+  return parseRequiredString(record[field], field);
+}
+
+function parseCreateAssetInput(body: unknown): CreateAssetInput {
+  const record = parseObjectBody(body);
+  if (!Object.values(AssetType).includes(record.type as AssetType)) {
+    throw new ValidationError('Field "type" must be a valid AssetType');
+  }
+  if (!Object.values(AssetSourceType).includes(record.source as AssetSourceType)) {
+    throw new ValidationError('Field "source" must be a valid AssetSourceType');
+  }
+  const data: CreateAssetInput = {
+    type: record.type as AssetType,
+    source: record.source as AssetSourceType,
+  };
+  if (record.storageUrl !== undefined) data.storageUrl = parseRequiredString(record.storageUrl, 'storageUrl');
+  if (record.localReference !== undefined) data.localReference = parseRequiredString(record.localReference, 'localReference');
+  if (record.sourceConnector !== undefined) data.sourceConnector = parseRequiredString(record.sourceConnector, 'sourceConnector');
+  if (record.sourceSupplier !== undefined) data.sourceSupplier = parseRequiredString(record.sourceSupplier, 'sourceSupplier');
+  if (record.sourceOriginalUrl !== undefined) data.sourceOriginalUrl = parseRequiredString(record.sourceOriginalUrl, 'sourceOriginalUrl');
+  if (record.sourceLicense !== undefined) data.sourceLicense = parseRequiredString(record.sourceLicense, 'sourceLicense');
+  if (record.sourceAuthor !== undefined) data.sourceAuthor = parseRequiredString(record.sourceAuthor, 'sourceAuthor');
+  if (record.sourceDedupeHash !== undefined) data.sourceDedupeHash = parseRequiredString(record.sourceDedupeHash, 'sourceDedupeHash');
+  if (record.sourceUsageRestrictions !== undefined) data.sourceUsageRestrictions = parseRequiredString(record.sourceUsageRestrictions, 'sourceUsageRestrictions');
+  if (record.sourceCaptureId !== undefined) data.sourceCaptureId = parseRequiredString(record.sourceCaptureId, 'sourceCaptureId');
+  if (record.metaTags !== undefined) {
+    if (!Array.isArray(record.metaTags)) throw new ValidationError('Field "metaTags" must be an array');
+    data.metaTags = record.metaTags as string[];
+  }
+  return data;
+}
+
+function parseCreateCampaignInput(body: unknown): CreateCampaignInput {
+  const record = parseObjectBody(body);
+  const data: CreateCampaignInput = {
+    name: parseRequiredString(record.name, 'name'),
+  };
+  if (record.description !== undefined) data.description = parseRequiredString(record.description, 'description');
+  if (record.startsAt !== undefined) data.startsAt = parseRequiredDate(record.startsAt, 'startsAt');
+  if (record.endsAt !== undefined) data.endsAt = parseRequiredDate(record.endsAt, 'endsAt');
+  if (record.publicationStartsAt !== undefined) data.publicationStartsAt = parseRequiredDate(record.publicationStartsAt, 'publicationStartsAt');
+  if (record.publicationEndsAt !== undefined) data.publicationEndsAt = parseRequiredDate(record.publicationEndsAt, 'publicationEndsAt');
+  if (record.timezone !== undefined) data.timezone = parseRequiredString(record.timezone, 'timezone');
+  if (record.offerIds !== undefined) {
+    if (!Array.isArray(record.offerIds)) throw new ValidationError('Field "offerIds" must be an array');
+    data.offerIds = record.offerIds as string[];
+  }
+  return data;
+}
+
+function parseCampaignStatus(value: unknown): CampaignStatus {
+  if (typeof value !== 'string' || !Object.values(CampaignStatus).includes(value as CampaignStatus)) {
+    throw new ValidationError('Field "status" must be a valid CampaignStatus');
+  }
+  return value as CampaignStatus;
+}
+
+function parsePublicationStatus(value: unknown): PublicationStatus {
+  if (typeof value !== 'string' || !Object.values(PublicationStatus).includes(value as PublicationStatus)) {
+    throw new ValidationError('Field "status" must be a valid PublicationStatus');
+  }
+  return value as PublicationStatus;
+}
+
+function parseCreatePublicationInput(body: unknown): CreatePublicationInput {
+  const record = parseObjectBody(body);
+  const data: CreatePublicationInput = {
+    campaignId: parseRequiredString(record.campaignId, 'campaignId'),
+    offerId: parseRequiredString(record.offerId, 'offerId'),
+    channel: parseRequiredString(record.channel, 'channel'),
+  };
+  if (record.creativeTemplateId !== undefined) data.creativeTemplateId = parseRequiredString(record.creativeTemplateId, 'creativeTemplateId');
+  if (record.scheduledAt !== undefined) data.scheduledAt = parseRequiredDate(record.scheduledAt, 'scheduledAt');
+  return data;
+}
+
+function parseCreateAutomationInput(body: unknown): CreateAutomationInput {
+  const record = parseObjectBody(body);
+  if (!Array.isArray(record.actions)) {
+    throw new ValidationError('Field "actions" must be an array');
+  }
+  const data: CreateAutomationInput = {
+    name: parseRequiredString(record.name, 'name'),
+    trigger: parseRequiredString(record.trigger, 'trigger') as CreateAutomationInput['trigger'],
+    actions: record.actions as CreateAutomationInput['actions'],
+  };
+  if (record.channel !== undefined) data.channel = parseRequiredString(record.channel, 'channel');
+  if (record.campaignId !== undefined) data.campaignId = parseRequiredString(record.campaignId, 'campaignId');
+  if (record.publicationId !== undefined) data.publicationId = parseRequiredString(record.publicationId, 'publicationId');
+  if (record.keyword !== undefined) data.keyword = parseRequiredString(record.keyword, 'keyword');
+  if (record.caseSensitive !== undefined) {
+    if (typeof record.caseSensitive !== 'boolean') throw new ValidationError('Field "caseSensitive" must be a boolean');
+    data.caseSensitive = record.caseSensitive;
+  }
+  if (record.validFrom !== undefined) data.validFrom = parseRequiredDate(record.validFrom, 'validFrom');
+  if (record.validUntil !== undefined) data.validUntil = parseRequiredDate(record.validUntil, 'validUntil');
+  if (record.cooldownSeconds !== undefined) data.cooldownSeconds = parseNonNegativeNumber(record.cooldownSeconds, 'cooldownSeconds');
+  if (record.maxExecutions !== undefined) data.maxExecutions = parsePositiveNumber(record.maxExecutions, 'maxExecutions');
+  if (record.maxExecutionsPerExternalUser !== undefined) data.maxExecutionsPerExternalUser = parsePositiveNumber(record.maxExecutionsPerExternalUser, 'maxExecutionsPerExternalUser');
+  return data;
+}
+
+function parseCreateCouponInput(body: unknown): CreateCouponInput {
+  const record = parseObjectBody(body);
+  const data: CreateCouponInput = {
+    code: parseRequiredString(record.code, 'code'),
+    name: parseRequiredString(record.name, 'name'),
+    type: parseRequiredString(record.type, 'type') as CreateCouponInput['type'],
+  };
+  if (record.value !== undefined) data.value = parseNonNegativeNumber(record.value, 'value');
+  if (record.benefitDescription !== undefined) data.benefitDescription = parseRequiredString(record.benefitDescription, 'benefitDescription');
+  if (record.startsAt !== undefined) data.startsAt = parseRequiredDate(record.startsAt, 'startsAt');
+  if (record.expiresAt !== undefined) data.expiresAt = parseRequiredDate(record.expiresAt, 'expiresAt');
+  if (record.maxUses !== undefined) data.maxUses = parsePositiveNumber(record.maxUses, 'maxUses');
+  if (record.maxUsesPerCustomer !== undefined) data.maxUsesPerCustomer = parsePositiveNumber(record.maxUsesPerCustomer, 'maxUsesPerCustomer');
+  if (record.campaignId !== undefined) data.campaignId = parseRequiredString(record.campaignId, 'campaignId');
+  if (record.offerId !== undefined) data.offerId = parseRequiredString(record.offerId, 'offerId');
+  return data;
+}
+
+function parseGrantCouponInput(body: unknown): GrantCouponInput {
+  const record = parseObjectBody(body);
+  const data: GrantCouponInput = {
+    couponId: parseRequiredString(record.couponId, 'couponId'),
+  };
+  if (record.campaignId !== undefined) data.campaignId = parseRequiredString(record.campaignId, 'campaignId');
+  if (record.publicationId !== undefined) data.publicationId = parseRequiredString(record.publicationId, 'publicationId');
+  if (record.automationId !== undefined) data.automationId = parseRequiredString(record.automationId, 'automationId');
+  if (record.customerId !== undefined) data.customerId = parseRequiredString(record.customerId, 'customerId');
+  if (record.externalUserId !== undefined) data.externalUserId = parseRequiredString(record.externalUserId, 'externalUserId');
+  if (record.deliveryChannel !== undefined) data.deliveryChannel = parseRequiredString(record.deliveryChannel, 'deliveryChannel');
+  return data;
+}
+
+function parseRecordRedemptionInput(body: unknown): RecordRedemptionInput {
+  const record = parseObjectBody(body);
+  const data: RecordRedemptionInput = {
+    couponId: parseRequiredString(record.couponId, 'couponId'),
+    customerId: parseRequiredString(record.customerId, 'customerId'),
+  };
+  if (record.grantId !== undefined) data.grantId = parseRequiredString(record.grantId, 'grantId');
+  if (record.proposalId !== undefined) data.proposalId = parseRequiredString(record.proposalId, 'proposalId');
+  if (record.saleId !== undefined) data.saleId = parseRequiredString(record.saleId, 'saleId');
+  if (record.amountApplied !== undefined) data.amountApplied = parseNonNegativeNumber(record.amountApplied, 'amountApplied');
   return data;
 }
 
