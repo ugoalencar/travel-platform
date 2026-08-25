@@ -1,6 +1,6 @@
-import type { Sale } from '../../../packages/domain/types';
+import { SaleStatus, type Sale } from '../../../packages/domain/types';
 import { getAgencyId, getUserId } from '../../../packages/domain/tenant-context';
-import type { DatabaseRuntime } from './database';
+import type { DatabaseRuntime, TenantTransactionClient } from './database';
 import { ConflictError, NotFoundError, ValidationError } from './errors';
 
 interface SaleRow {
@@ -175,6 +175,13 @@ export async function createSale(database: DatabaseRuntime, data: CreateSaleInpu
       if (!row) {
         throw new Error('Sale insert did not return a row');
       }
+      if (total > 0) {
+        await client.query(
+          `INSERT INTO receivables (agency_id, sale_id, customer_id, description, amount, due_at)
+           VALUES ($1, $2, $3, $4, $5, now())`,
+          [agencyId, row.id, data.customerId, 'Sale receivable', total],
+        );
+      }
       return toSale(row);
     } catch (error) {
       if (isUniqueViolation(error)) {
@@ -259,6 +266,186 @@ export async function updateSale(
     }
     return toSale(row);
   });
+}
+
+export async function confirmSale(
+  database: DatabaseRuntime,
+  id: string,
+): Promise<Sale | null> {
+  return transitionSale(database, id, SaleStatus.CONFIRMED, [SaleStatus.PENDING]);
+}
+
+export async function cancelSale(
+  database: DatabaseRuntime,
+  id: string,
+): Promise<Sale | null> {
+  const agencyId = getAgencyId();
+
+  return database.withTenantTransaction(async (client) => {
+    const current = await client.query<SaleRow>(
+      `SELECT ${SALE_COLUMNS}
+       FROM sales
+       WHERE agency_id = $1 AND id = $2
+       FOR UPDATE`,
+      [agencyId, id],
+    );
+    const currentRow = current.rows[0];
+    if (!currentRow) return null;
+
+    if (currentRow.status === SaleStatus.CANCELLED) {
+      return toSale(currentRow);
+    }
+
+    if (![SaleStatus.PENDING, SaleStatus.CONFIRMED].includes(currentRow.status)) {
+      throw new ConflictError(`Cannot transition Sale from ${currentRow.status} to CANCELLED`);
+    }
+
+    const paidAmount = await getAllocatedReceivableAmount(client, agencyId, id);
+    if (paidAmount > 0) {
+      throw new ConflictError('Cannot cancel a Sale with allocated receivable payments');
+    }
+
+    const updated = await client.query<SaleRow>(
+      `UPDATE sales
+       SET status = 'CANCELLED', updated_at = now()
+       WHERE agency_id = $1 AND id = $2
+       RETURNING ${SALE_COLUMNS}`,
+      [agencyId, id],
+    );
+
+    await client.query(
+      `UPDATE receivables
+       SET status = 'CANCELLED', updated_at = now()
+       WHERE agency_id = $1 AND sale_id = $2 AND status IN ('OPEN', 'PARTIALLY_PAID')`,
+      [agencyId, id],
+    );
+
+    const row = updated.rows[0];
+    if (!row) throw new Error('Sale cancellation did not return a row');
+    return toSale(row);
+  });
+}
+
+export async function markSalePaid(
+  database: DatabaseRuntime,
+  id: string,
+): Promise<Sale | null> {
+  const agencyId = getAgencyId();
+
+  return database.withTenantTransaction(async (client) => {
+    const current = await client.query<SaleRow>(
+      `SELECT ${SALE_COLUMNS}
+       FROM sales
+       WHERE agency_id = $1 AND id = $2
+       FOR UPDATE`,
+      [agencyId, id],
+    );
+    const currentRow = current.rows[0];
+    if (!currentRow) return null;
+
+    if (currentRow.status === SaleStatus.PAID) {
+      return toSale(currentRow);
+    }
+
+    if (currentRow.status !== SaleStatus.CONFIRMED) {
+      throw new ConflictError(`Cannot transition Sale from ${currentRow.status} to PAID`);
+    }
+
+    const total = Number(currentRow.total);
+    if (total > 0) {
+      const receivable = await getReceivablePaymentSummary(client, agencyId, id);
+      if (!receivable || receivable.paidAmount < receivable.amount) {
+        throw new ConflictError('Sale can be marked PAID only after its Receivable is fully paid');
+      }
+    }
+
+    const updated = await client.query<SaleRow>(
+      `UPDATE sales
+       SET status = 'PAID', paid_at = now(), updated_at = now()
+       WHERE agency_id = $1 AND id = $2
+       RETURNING ${SALE_COLUMNS}`,
+      [agencyId, id],
+    );
+
+    const row = updated.rows[0];
+    if (!row) throw new Error('Sale payment transition did not return a row');
+    return toSale(row);
+  });
+}
+
+async function transitionSale(
+  database: DatabaseRuntime,
+  id: string,
+  targetStatus: SaleStatus,
+  allowedFrom: SaleStatus[],
+): Promise<Sale | null> {
+  const agencyId = getAgencyId();
+
+  return database.withTenantTransaction(async (client) => {
+    const current = await client.query<SaleRow>(
+      `SELECT ${SALE_COLUMNS}
+       FROM sales
+       WHERE agency_id = $1 AND id = $2
+       FOR UPDATE`,
+      [agencyId, id],
+    );
+    const currentRow = current.rows[0];
+    if (!currentRow) return null;
+
+    if (currentRow.status === targetStatus) {
+      return toSale(currentRow);
+    }
+
+    if (!allowedFrom.includes(currentRow.status)) {
+      throw new ConflictError(`Cannot transition Sale from ${currentRow.status} to ${targetStatus}`);
+    }
+
+    const updated = await client.query<SaleRow>(
+      `UPDATE sales
+       SET status = $3, updated_at = now()
+       WHERE agency_id = $1 AND id = $2
+       RETURNING ${SALE_COLUMNS}`,
+      [agencyId, id, targetStatus],
+    );
+
+    const row = updated.rows[0];
+    if (!row) throw new Error('Sale transition did not return a row');
+    return toSale(row);
+  });
+}
+
+async function getAllocatedReceivableAmount(
+  client: TenantTransactionClient,
+  agencyId: string,
+  saleId: string,
+): Promise<number> {
+  const result = await client.query<{ paid_amount: string }>(
+    `SELECT COALESCE(sum(pa.amount), 0)::numeric(12,2) AS paid_amount
+     FROM receivables r
+     LEFT JOIN payment_allocations pa
+       ON pa.agency_id = r.agency_id AND pa.receivable_id = r.id
+     WHERE r.agency_id = $1 AND r.sale_id = $2`,
+    [agencyId, saleId],
+  );
+  return Number(result.rows[0]?.paid_amount ?? 0);
+}
+
+async function getReceivablePaymentSummary(
+  client: TenantTransactionClient,
+  agencyId: string,
+  saleId: string,
+): Promise<{ amount: number; paidAmount: number } | null> {
+  const result = await client.query<{ amount: string; paid_amount: string }>(
+    `SELECT r.amount, COALESCE(sum(pa.amount), 0)::numeric(12,2) AS paid_amount
+     FROM receivables r
+     LEFT JOIN payment_allocations pa
+       ON pa.agency_id = r.agency_id AND pa.receivable_id = r.id
+     WHERE r.agency_id = $1 AND r.sale_id = $2
+     GROUP BY r.id, r.amount`,
+    [agencyId, saleId],
+  );
+  const row = result.rows[0];
+  return row ? { amount: Number(row.amount), paidAmount: Number(row.paid_amount) } : null;
 }
 
 function toSale(row: SaleRow): Sale {

@@ -46,6 +46,8 @@ import { SalesPage } from './pages/SalesPage';
 import { SaleFormPage } from './pages/SaleFormPage';
 import { SaleDetailsPage } from './pages/SaleDetailsPage';
 import { SaleEditPage } from './pages/SaleEditPage';
+import { FinancialPage } from './pages/FinancialPage';
+import { PescadorPage } from './pages/PescadorPage';
 import { CustomerPortalShell } from './customer-portal/CustomerPortalShell';
 import { CustomerHomePage } from './customer-portal/pages/CustomerHomePage';
 import { CustomerTripsPage } from './customer-portal/pages/CustomerTripsPage';
@@ -129,6 +131,8 @@ export function App() {
         <Route path="sales/new" element={<SaleFormPage />} />
         <Route path="sales/:id" element={<SaleDetailsPage />} />
         <Route path="sales/:id/edit" element={<SaleEditPage />} />
+        <Route path="financial" element={<FinancialPage />} />
+        <Route path="pescador" element={<PescadorPage />} />
         <Route path="commercial/dashboard" element={<CommercialDashboardPage />} />
         <Route path="commercial/pipeline" element={<CommercialPipelinePage />} />
         <Route path="commercial/agenda" element={<CommercialAgendaPage />} />

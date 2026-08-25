@@ -135,6 +135,51 @@ BEGIN
 END;
 $$;
 
+-- financial foundation tables (migration 010_financial_foundation.sql) only
+-- exist once that migration has been applied. Keep this guarded so earlier
+-- domain tests can keep applying only the migrations they need.
+DO $$
+BEGIN
+  IF to_regclass('public.receivables') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      receivables,
+      payables,
+      payments,
+      payment_allocations,
+      operational_costs
+    TO travel_app_runtime_local;
+  END IF;
+END;
+$$;
+
+-- operational_staff/operation_assignments (migration
+-- 012_operational_staff_assignments.sql) only exist once that migration
+-- has been applied. Keep this guarded so earlier domain tests can keep
+-- applying only the migrations they need.
+DO $$
+BEGIN
+  IF to_regclass('public.operational_staff') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      operational_staff,
+      operational_staff_capabilities,
+      operation_assignments
+    TO travel_app_runtime_local;
+  END IF;
+END;
+$$;
+
+-- external_offer_captures (migration 013_pescador_foundation.sql) only
+-- exists once Pescador foundation has been applied.
+DO $$
+BEGIN
+  IF to_regclass('public.external_offer_captures') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      external_offer_captures
+    TO travel_app_runtime_local;
+  END IF;
+END;
+$$;
+
 GRANT EXECUTE ON FUNCTION current_agency_id() TO travel_app_runtime_local;
 GRANT EXECUTE ON FUNCTION current_user_id() TO travel_app_runtime_local;
 GRANT EXECUTE ON FUNCTION set_tenant_context(TEXT, TEXT) TO travel_app_runtime_local;

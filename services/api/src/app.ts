@@ -10,7 +10,13 @@ import {
   type ValidateCustomerAgencyAccess,
   type ValidateUserAgencyAccess,
 } from '../../../packages/domain/tenant-context';
-import { CheckpointType, UserRole } from '../../../packages/domain/types';
+import {
+  CheckpointType,
+  OperationAssignmentRole,
+  OperationalStaffCapability,
+  PaymentDirection,
+  UserRole,
+} from '../../../packages/domain/types';
 import { createAuthenticateHook, type AuthProvider } from './auth';
 import { createCustomerAuthenticateHook, type CustomerAuthProvider } from './customer-auth';
 import type { DatabaseRuntime } from './database';
@@ -48,9 +54,13 @@ import {
   type UpdateOfferInput,
 } from './offers';
 import {
+  acceptProposal,
+  cancelProposal,
   createProposal,
+  declineProposal,
   getProposalById,
   listProposals,
+  sendProposal,
   updateProposal,
   type CreateProposalInput,
   type UpdateProposalInput,
@@ -98,28 +108,61 @@ import {
 } from './scheduled-departures';
 import { DepartureServiceType, TripType } from '../../../packages/domain/types';
 import {
+  cancelBooking,
   listBookings,
   getBookingById,
   createBooking,
+  type CancelBookingInput,
   type CreateBookingInput,
   type CreateBookingPassengerInput,
 } from './bookings';
 import {
   confirmArrival,
   confirmDeparture,
+  createOperationAssignment,
+  createOperationalStaff,
   createOperation,
   getOperationById,
   listOperations,
+  type CreateOperationAssignmentInput,
   type CreateOperationInput,
+  type CreateOperationalStaffInput,
 } from './transport-operations';
 import {
+  cancelSale,
+  confirmSale,
   createSale,
   getSaleById,
   listSales,
+  markSalePaid,
   updateSale,
   type CreateSaleInput,
   type UpdateSaleInput,
 } from './sales';
+import {
+  allocatePayment,
+  createOperationalCost,
+  createPayable,
+  createReceivable,
+  getCashFlowSummary,
+  listReceivables,
+  recordPayment,
+  type CashFlowPeriod,
+  type CreateOperationalCostInput,
+  type CreatePayableInput,
+  type CreatePaymentAllocationInput,
+  type CreateReceivableInput,
+  type RecordPaymentInput,
+} from './financial';
+import {
+  approveCapture,
+  createExternalOfferCapture,
+  listExternalOfferCaptures,
+  moveCaptureToReview,
+  publishCapture,
+  rejectCapture,
+  type CreateExternalOfferCaptureInput,
+} from './pescador';
 import {
   getAvailableOfferById,
   getMyBookingById,
@@ -573,6 +616,50 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     },
   );
 
+  app.post<{ Params: { id: string } }>(
+    '/proposals/:id/send',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.MANAGER);
+      const proposal = await sendProposal(options.database, request.params.id);
+      if (!proposal) throw new NotFoundError('Proposal not found');
+      return { proposal };
+    },
+  );
+
+  app.post<{ Params: { id: string } }>(
+    '/proposals/:id/cancel',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.MANAGER);
+      const proposal = await cancelProposal(options.database, request.params.id);
+      if (!proposal) throw new NotFoundError('Proposal not found');
+      return { proposal };
+    },
+  );
+
+  app.post<{ Params: { id: string } }>(
+    '/proposals/:id/accept',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.MANAGER);
+      const proposal = await acceptProposal(options.database, request.params.id);
+      if (!proposal) throw new NotFoundError('Proposal not found');
+      return { proposal };
+    },
+  );
+
+  app.post<{ Params: { id: string } }>(
+    '/proposals/:id/decline',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.MANAGER);
+      const proposal = await declineProposal(options.database, request.params.id);
+      if (!proposal) throw new NotFoundError('Proposal not found');
+      return { proposal };
+    },
+  );
+
   app.get('/transport/routes', { preHandler: protectedHooks }, async () => {
     requireRole(UserRole.VIEWER);
     const routes = await listRoutes(options.database);
@@ -852,6 +939,20 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     return { booking: result.booking, passengers: result.passengers };
   });
 
+  app.post<{ Params: { id: string } }>(
+    '/bookings/:id/cancel',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.MANAGER);
+      const data = parseCancelBookingInput(request.body);
+      const booking = await cancelBooking(options.database, request.params.id, {
+        ...data,
+        userId: getUserId(),
+      });
+      return { booking };
+    },
+  );
+
   // ============================================================
   // FIELD OPERATIONS (TransportOperation / OperationCheckpoint)
   // ============================================================
@@ -874,6 +975,14 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     return { operations };
   });
 
+  app.post('/operational-staff', { preHandler: protectedHooks }, async (request, reply) => {
+    requireRole(UserRole.MANAGER);
+    const data = parseCreateOperationalStaffInput(request.body);
+    const staff = await createOperationalStaff(options.database, data);
+    reply.code(201);
+    return { staff };
+  });
+
   app.get<{ Params: { id: string } }>(
     '/operations/:id',
     { preHandler: protectedHooks },
@@ -894,6 +1003,21 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     reply.code(201);
     return result;
   });
+
+  app.post<{ Params: { id: string } }>(
+    '/operations/:id/assignments',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      requireRole(UserRole.MANAGER);
+      const data = parseCreateOperationAssignmentInput(request.params.id, request.body);
+      const assignment = await createOperationAssignment(options.database, {
+        ...data,
+        createdByUserId: getUserId(),
+      });
+      reply.code(201);
+      return { assignment };
+    },
+  );
 
   app.post<{ Params: { id: string; checkpointId: string } }>(
     '/operations/:id/checkpoints/:checkpointId/arrival',
@@ -1268,6 +1392,149 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       }
 
       return { sale };
+    },
+  );
+
+  app.post<{ Params: { id: string } }>(
+    '/sales/:id/confirm',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.MANAGER);
+      const sale = await confirmSale(options.database, request.params.id);
+      if (!sale) throw new NotFoundError('Sale not found');
+      return { sale };
+    },
+  );
+
+  app.post<{ Params: { id: string } }>(
+    '/sales/:id/cancel',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.MANAGER);
+      const sale = await cancelSale(options.database, request.params.id);
+      if (!sale) throw new NotFoundError('Sale not found');
+      return { sale };
+    },
+  );
+
+  app.post<{ Params: { id: string } }>(
+    '/sales/:id/mark-paid',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.MANAGER);
+      const sale = await markSalePaid(options.database, request.params.id);
+      if (!sale) throw new NotFoundError('Sale not found');
+      return { sale };
+    },
+  );
+
+  app.get('/financial/receivables', { preHandler: protectedHooks }, async () => {
+    requireRole(UserRole.MANAGER);
+    const receivables = await listReceivables(options.database);
+    return { receivables };
+  });
+
+  app.get('/financial/dashboard', { preHandler: protectedHooks }, async (request) => {
+    requireRole(UserRole.MANAGER);
+    const period = parseCashFlowPeriod(request.query);
+    const cashFlow = await getCashFlowSummary(options.database, period);
+    return { cashFlow };
+  });
+
+  app.post('/financial/receivables', { preHandler: protectedHooks }, async (request, reply) => {
+    requireRole(UserRole.ADMIN);
+    const data = parseCreateReceivableInput(request.body);
+    const receivable = await createReceivable(options.database, data);
+    reply.code(201);
+    return { receivable };
+  });
+
+  app.post('/financial/payables', { preHandler: protectedHooks }, async (request, reply) => {
+    requireRole(UserRole.ADMIN);
+    const data = parseCreatePayableInput(request.body);
+    const payable = await createPayable(options.database, data);
+    reply.code(201);
+    return { payable };
+  });
+
+  app.post('/financial/payments', { preHandler: protectedHooks }, async (request, reply) => {
+    requireRole(UserRole.ADMIN);
+    const data = parseRecordPaymentInput(request.body);
+    const payment = await recordPayment(options.database, data);
+    reply.code(201);
+    return { payment };
+  });
+
+  app.post<{ Params: { id: string } }>(
+    '/financial/payments/:id/allocations',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.ADMIN);
+      const allocations = parsePaymentAllocationsInput(request.body);
+      return allocatePayment(options.database, request.params.id, allocations);
+    },
+  );
+
+  app.post('/financial/operational-costs', { preHandler: protectedHooks }, async (request, reply) => {
+    requireRole(UserRole.ADMIN);
+    const data = parseCreateOperationalCostInput(request.body);
+    const operationalCost = await createOperationalCost(options.database, data);
+    reply.code(201);
+    return { operationalCost };
+  });
+
+  app.get('/pescador/captures', { preHandler: protectedHooks }, async () => {
+    requireRole(UserRole.AGENT);
+    const captures = await listExternalOfferCaptures(options.database);
+    return { captures };
+  });
+
+  app.post('/pescador/captures', { preHandler: protectedHooks }, async (request, reply) => {
+    requireRole(UserRole.AGENT);
+    const data = parseCreateExternalOfferCaptureInput(request.body);
+    const capture = await createExternalOfferCapture(options.database, data);
+    reply.code(201);
+    return { capture };
+  });
+
+  app.post<{ Params: { id: string } }>(
+    '/pescador/captures/:id/review',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.MANAGER);
+      const capture = await moveCaptureToReview(options.database, request.params.id, getUserId());
+      return { capture };
+    },
+  );
+
+  app.post<{ Params: { id: string } }>(
+    '/pescador/captures/:id/approve',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.MANAGER);
+      const capture = await approveCapture(options.database, request.params.id, getUserId());
+      return { capture };
+    },
+  );
+
+  app.post<{ Params: { id: string } }>(
+    '/pescador/captures/:id/reject',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.MANAGER);
+      const capture = await rejectCapture(options.database, request.params.id, getUserId());
+      return { capture };
+    },
+  );
+
+  app.post<{ Params: { id: string } }>(
+    '/pescador/captures/:id/publish',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      requireRole(UserRole.ADMIN);
+      const result = await publishCapture(options.database, request.params.id, getUserId());
+      reply.code(201);
+      return result;
     },
   );
 
@@ -2260,6 +2527,293 @@ function parseUpdateSaleInput(body: unknown): UpdateSaleInput {
   return data;
 }
 
+// ============================================================
+// FINANCIAL
+// ============================================================
+
+const FORBIDDEN_FINANCIAL_FIELDS = [
+  'agencyId',
+  'tenantId',
+  'id',
+  'createdAt',
+  'updatedAt',
+  'createdBy',
+  'status',
+] as const;
+
+const ALLOWED_RECEIVABLE_CREATE_FIELDS = [
+  'saleId',
+  'customerId',
+  'description',
+  'amount',
+  'dueAt',
+] as const;
+
+const ALLOWED_PAYABLE_CREATE_FIELDS = [
+  'saleId',
+  'supplierId',
+  'commissionId',
+  'transportOperationId',
+  'operationalCostId',
+  'description',
+  'amount',
+  'dueAt',
+] as const;
+
+const ALLOWED_PAYMENT_CREATE_FIELDS = [
+  'direction',
+  'amount',
+  'occurredAt',
+  'method',
+  'reference',
+  'notes',
+] as const;
+
+const ALLOWED_OPERATIONAL_COST_CREATE_FIELDS = [
+  'saleId',
+  'transportOperationId',
+  'supplierId',
+  'description',
+  'costType',
+  'expectedAmount',
+  'actualAmount',
+  'incurredAt',
+] as const;
+
+function parseCreateReceivableInput(body: unknown): CreateReceivableInput {
+  const record = parseObjectBody(body);
+  assertAllowedFields(record, FORBIDDEN_FINANCIAL_FIELDS, ALLOWED_RECEIVABLE_CREATE_FIELDS);
+
+  return {
+    customerId: parseRequiredString(record.customerId, 'customerId'),
+    description: parseRequiredString(record.description, 'description'),
+    amount: parsePositiveNumber(record.amount, 'amount'),
+    dueAt: parseRequiredDate(record.dueAt, 'dueAt'),
+    ...(record.saleId !== undefined ? { saleId: parseRequiredString(record.saleId, 'saleId') } : {}),
+  };
+}
+
+function parseCreatePayableInput(body: unknown): CreatePayableInput {
+  const record = parseObjectBody(body);
+  assertAllowedFields(record, FORBIDDEN_FINANCIAL_FIELDS, ALLOWED_PAYABLE_CREATE_FIELDS);
+
+  return {
+    description: parseRequiredString(record.description, 'description'),
+    amount: parsePositiveNumber(record.amount, 'amount'),
+    dueAt: parseRequiredDate(record.dueAt, 'dueAt'),
+    ...(record.saleId !== undefined ? { saleId: parseRequiredString(record.saleId, 'saleId') } : {}),
+    ...(record.supplierId !== undefined
+      ? { supplierId: parseRequiredString(record.supplierId, 'supplierId') }
+      : {}),
+    ...(record.commissionId !== undefined
+      ? { commissionId: parseRequiredString(record.commissionId, 'commissionId') }
+      : {}),
+    ...(record.transportOperationId !== undefined
+      ? {
+          transportOperationId: parseRequiredString(
+            record.transportOperationId,
+            'transportOperationId',
+          ),
+        }
+      : {}),
+    ...(record.operationalCostId !== undefined
+      ? { operationalCostId: parseRequiredString(record.operationalCostId, 'operationalCostId') }
+      : {}),
+  };
+}
+
+function parseRecordPaymentInput(body: unknown): RecordPaymentInput {
+  const record = parseObjectBody(body);
+  assertAllowedFields(record, FORBIDDEN_FINANCIAL_FIELDS, ALLOWED_PAYMENT_CREATE_FIELDS);
+  if (typeof record.direction !== 'string' || !Object.values(PaymentDirection).includes(record.direction as PaymentDirection)) {
+    throw new ValidationError('Field "direction" must be IN or OUT');
+  }
+
+  return {
+    direction: record.direction as PaymentDirection,
+    amount: parsePositiveNumber(record.amount, 'amount'),
+    occurredAt: parseRequiredDate(record.occurredAt, 'occurredAt'),
+    ...(record.method !== undefined ? { method: parseRequiredString(record.method, 'method') } : {}),
+    ...(record.reference !== undefined
+      ? { reference: parseRequiredString(record.reference, 'reference') }
+      : {}),
+    ...(record.notes !== undefined ? { notes: parseRequiredString(record.notes, 'notes') } : {}),
+  };
+}
+
+function parsePaymentAllocationsInput(body: unknown): CreatePaymentAllocationInput[] {
+  const record = parseObjectBody(body);
+  assertAllowedFields(record, FORBIDDEN_FINANCIAL_FIELDS, ['allocations'] as const);
+  if (!Array.isArray(record.allocations) || record.allocations.length === 0) {
+    throw new ValidationError('Field "allocations" must be a non-empty array');
+  }
+  return record.allocations.map((value) => {
+    const allocation = parseObjectBody(value);
+    assertAllowedFields(
+      allocation,
+      FORBIDDEN_FINANCIAL_FIELDS,
+      ['receivableId', 'payableId', 'amount'] as const,
+    );
+    return {
+      amount: parsePositiveNumber(allocation.amount, 'amount'),
+      ...(allocation.receivableId !== undefined
+        ? { receivableId: parseRequiredString(allocation.receivableId, 'receivableId') }
+        : {}),
+      ...(allocation.payableId !== undefined
+        ? { payableId: parseRequiredString(allocation.payableId, 'payableId') }
+        : {}),
+    };
+  });
+}
+
+function parseCreateOperationalCostInput(body: unknown): CreateOperationalCostInput {
+  const record = parseObjectBody(body);
+  assertAllowedFields(record, FORBIDDEN_FINANCIAL_FIELDS, ALLOWED_OPERATIONAL_COST_CREATE_FIELDS);
+
+  return {
+    description: parseRequiredString(record.description, 'description'),
+    costType: parseRequiredString(record.costType, 'costType'),
+    incurredAt: parseRequiredDate(record.incurredAt, 'incurredAt'),
+    ...(record.saleId !== undefined ? { saleId: parseRequiredString(record.saleId, 'saleId') } : {}),
+    ...(record.transportOperationId !== undefined
+      ? {
+          transportOperationId: parseRequiredString(
+            record.transportOperationId,
+            'transportOperationId',
+          ),
+        }
+      : {}),
+    ...(record.supplierId !== undefined
+      ? { supplierId: parseRequiredString(record.supplierId, 'supplierId') }
+      : {}),
+    ...(record.expectedAmount !== undefined
+      ? { expectedAmount: parseNonNegativeNumber(record.expectedAmount, 'expectedAmount') }
+      : {}),
+    ...(record.actualAmount !== undefined
+      ? { actualAmount: parseNonNegativeNumber(record.actualAmount, 'actualAmount') }
+      : {}),
+  };
+}
+
+function parseCashFlowPeriod(query: unknown): CashFlowPeriod {
+  const record = parseObjectBody(query);
+  return {
+    from: parseRequiredDate(record.from, 'from'),
+    to: parseRequiredDate(record.to, 'to'),
+  };
+}
+
+function parseCreateExternalOfferCaptureInput(body: unknown): CreateExternalOfferCaptureInput {
+  const record = parseObjectBody(body);
+  const allowed = [
+    'sourceUrl',
+    'sourceName',
+    'rawContent',
+    'normalizedTitle',
+    'normalizedDescription',
+    'foundPrice',
+    'currency',
+    'validUntil',
+  ] as const;
+  assertAllowedFields(
+    record,
+    [
+      'agencyId',
+      'tenantId',
+      'id',
+      'status',
+      'reviewedAt',
+      'reviewedByUserId',
+      'publishedOfferId',
+      'createdAt',
+      'updatedAt',
+    ],
+    allowed,
+  );
+
+  const data: CreateExternalOfferCaptureInput = {
+    sourceUrl: parseRequiredString(record.sourceUrl, 'sourceUrl'),
+    sourceName: parseRequiredString(record.sourceName, 'sourceName'),
+    rawContent: parseRequiredString(record.rawContent, 'rawContent'),
+  };
+
+  if (record.normalizedTitle !== undefined) {
+    data.normalizedTitle = parseRequiredString(record.normalizedTitle, 'normalizedTitle');
+  }
+  if (record.normalizedDescription !== undefined) {
+    data.normalizedDescription = parseRequiredString(
+      record.normalizedDescription,
+      'normalizedDescription',
+    );
+  }
+  if (record.foundPrice !== undefined) {
+    data.foundPrice = parseNonNegativeNumber(record.foundPrice, 'foundPrice');
+  }
+  if (record.currency !== undefined) {
+    data.currency = parseRequiredString(record.currency, 'currency');
+  }
+  if (record.validUntil !== undefined) {
+    data.validUntil = parseRequiredDate(record.validUntil, 'validUntil');
+  }
+
+  return data;
+}
+
+function parseObjectBody(value: unknown): Record<string, unknown> {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    throw new ValidationError('Request body must be an object');
+  }
+  return value as Record<string, unknown>;
+}
+
+function assertAllowedFields(
+  record: Record<string, unknown>,
+  forbidden: readonly string[],
+  allowed: readonly string[],
+): void {
+  for (const field of forbidden) {
+    if (field in record) {
+      throw new ValidationError(`Field "${field}" is not allowed in the request body`);
+    }
+  }
+  for (const key of Object.keys(record)) {
+    if (!allowed.includes(key)) {
+      throw new ValidationError(`Unknown field "${key}" in request body`);
+    }
+  }
+}
+
+function parseRequiredString(value: unknown, field: string): string {
+  if (typeof value !== 'string' || value.trim().length === 0) {
+    throw new ValidationError(`Field "${field}" is required and must be a non-empty string`);
+  }
+  return value;
+}
+
+function parsePositiveNumber(value: unknown, field: string): number {
+  if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) {
+    throw new ValidationError(`Field "${field}" must be a positive number`);
+  }
+  return value;
+}
+
+function parseNonNegativeNumber(value: unknown, field: string): number {
+  if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) {
+    throw new ValidationError(`Field "${field}" must be a non-negative number`);
+  }
+  return value;
+}
+
+function parseRequiredDate(value: unknown, field: string): Date {
+  if (typeof value !== 'string') {
+    throw new ValidationError(`Field "${field}" must be a date string`);
+  }
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    throw new ValidationError(`Field "${field}" must be a valid date`);
+  }
+  return date;
+}
 
 // ============================================================
 // TRANSPORTATION: Route
@@ -2965,6 +3519,104 @@ function parseCreateOperationInput(body: unknown): CreateOperationInput {
   return { departureId: record.departureId };
 }
 
+function parseCreateOperationalStaffInput(body: unknown): CreateOperationalStaffInput {
+  if (typeof body !== 'object' || body === null || Array.isArray(body)) {
+    throw new ValidationError('Request body must be an object');
+  }
+  const record = body as Record<string, unknown>;
+  const allowed = ['userId', 'name', 'phone', 'email', 'capabilities'] as const;
+
+  for (const field of ['agencyId', 'tenantId', 'id', 'active', 'createdAt', 'updatedAt'] as const) {
+    if (field in record) {
+      throw new ValidationError(`Field "${field}" is not allowed in the request body`);
+    }
+  }
+  for (const key of Object.keys(record)) {
+    if (!(allowed as readonly string[]).includes(key)) {
+      throw new ValidationError(`Unknown field "${key}" in request body`);
+    }
+  }
+  if (typeof record.name !== 'string' || record.name.trim().length === 0) {
+    throw new ValidationError('Field "name" is required and must be a non-empty string');
+  }
+  if (!Array.isArray(record.capabilities) || record.capabilities.length === 0) {
+    throw new ValidationError('Field "capabilities" is required and must be a non-empty array');
+  }
+
+  const capabilities = record.capabilities.map((capability) => {
+    if (
+      typeof capability !== 'string' ||
+      !(Object.values(OperationalStaffCapability) as string[]).includes(capability)
+    ) {
+      throw new ValidationError('Field "capabilities" must contain only DRIVER or GUIDE');
+    }
+    return capability as OperationalStaffCapability;
+  });
+
+  const data: CreateOperationalStaffInput = {
+    name: record.name,
+    capabilities,
+  };
+
+  if (record.userId !== undefined) {
+    if (typeof record.userId !== 'string' || record.userId.trim().length === 0) {
+      throw new ValidationError('Field "userId" must be a non-empty string');
+    }
+    data.userId = record.userId;
+  }
+  if (record.phone !== undefined) {
+    if (typeof record.phone !== 'string') {
+      throw new ValidationError('Field "phone" must be a string');
+    }
+    data.phone = record.phone;
+  }
+  if (record.email !== undefined) {
+    if (typeof record.email !== 'string') {
+      throw new ValidationError('Field "email" must be a string');
+    }
+    data.email = record.email;
+  }
+
+  return data;
+}
+
+function parseCreateOperationAssignmentInput(
+  operationId: string,
+  body: unknown,
+): Omit<CreateOperationAssignmentInput, 'createdByUserId'> {
+  if (typeof body !== 'object' || body === null || Array.isArray(body)) {
+    throw new ValidationError('Request body must be an object');
+  }
+  const record = body as Record<string, unknown>;
+  const allowed = ['operationalStaffId', 'role'] as const;
+
+  for (const field of ['agencyId', 'tenantId', 'id', 'operationId', 'createdByUserId', 'createdAt'] as const) {
+    if (field in record) {
+      throw new ValidationError(`Field "${field}" is not allowed in the request body`);
+    }
+  }
+  for (const key of Object.keys(record)) {
+    if (!(allowed as readonly string[]).includes(key)) {
+      throw new ValidationError(`Unknown field "${key}" in request body`);
+    }
+  }
+  if (typeof record.operationalStaffId !== 'string' || record.operationalStaffId.trim().length === 0) {
+    throw new ValidationError('Field "operationalStaffId" is required and must be a non-empty string');
+  }
+  if (
+    typeof record.role !== 'string' ||
+    !(Object.values(OperationAssignmentRole) as string[]).includes(record.role)
+  ) {
+    throw new ValidationError('Field "role" must be one of DRIVER, GUIDE');
+  }
+
+  return {
+    operationId,
+    operationalStaffId: record.operationalStaffId,
+    role: record.role as OperationAssignmentRole,
+  };
+}
+
 function parseUpdateScheduledDepartureInput(body: unknown): UpdateScheduledDepartureInput {
   if (typeof body !== 'object' || body === null || Array.isArray(body)) {
     throw new ValidationError('Request body must be an object');
@@ -3058,6 +3710,20 @@ const ALLOWED_BOOKING_CREATE_FIELDS = [
   'notes',
   'passengers',
 ] as const;
+
+const FORBIDDEN_BOOKING_CANCEL_FIELDS = [
+  'agencyId',
+  'tenantId',
+  'id',
+  'bookingId',
+  'userId',
+  'cancelledAt',
+  'cancelledByUserId',
+  'createdAt',
+  'updatedAt',
+] as const;
+
+const ALLOWED_BOOKING_CANCEL_FIELDS = ['reason'] as const;
 
 const FORBIDDEN_PASSENGER_FIELDS = [
   'agencyId',
@@ -3155,4 +3821,34 @@ function parseCreateBookingInput(body: unknown): CreateBookingInput {
   }
 
   return data;
+}
+
+function parseCancelBookingInput(body: unknown): Omit<CancelBookingInput, 'userId'> {
+  if (body === undefined || body === null) {
+    return {};
+  }
+  if (typeof body !== 'object' || Array.isArray(body)) {
+    throw new ValidationError('Request body must be an object');
+  }
+  const record = body as Record<string, unknown>;
+
+  for (const field of FORBIDDEN_BOOKING_CANCEL_FIELDS) {
+    if (field in record) {
+      throw new ValidationError(`Field "${field}" is not allowed in the request body`);
+    }
+  }
+  for (const key of Object.keys(record)) {
+    if (!(ALLOWED_BOOKING_CANCEL_FIELDS as readonly string[]).includes(key)) {
+      throw new ValidationError(`Unknown field "${key}" in request body`);
+    }
+  }
+
+  if (record.reason === undefined || record.reason === null) {
+    return {};
+  }
+  if (typeof record.reason !== 'string') {
+    throw new ValidationError('Field "reason" must be a string');
+  }
+  const reason = record.reason.trim();
+  return reason.length > 0 ? { reason } : {};
 }

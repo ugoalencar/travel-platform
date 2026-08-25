@@ -110,3 +110,15 @@ rota nesta vertical, pois o status é tratado como somente leitura (D4).
   "updatedAt": "2026-02-01T09:30:00Z"
 }
 ```
+
+## Batch 02 lifecycle update
+
+Sale status changes are now exposed only through explicit staff actions:
+`POST /sales/:id/confirm`, `/cancel`, and `/mark-paid` (MANAGER+). Generic
+PATCH still rejects `status` and `paidAt`.
+
+Creating a Sale with `total > 0` creates a related Receivable. A zero-total Sale
+does not create a Receivable because `receivables.amount` is constrained to a
+positive value. Cancelling a Sale cancels open related Receivables without
+deleting financial records; provider refunds and accounting ledger behavior
+remain deferred.

@@ -20,6 +20,14 @@
 > PR READY, LOCAL IMPLEMENTED, IN DEVELOPMENT, PLANNED, DEFERRED, DECISION
 > REQUIRED.
 
+> **Adendo Batch 02 (2026-08-25):** no branch atual, Financial Foundation,
+> Booking cancellation, Pescador manual capture, Proposal lifecycle, Sale
+> lifecycle/Sale-to-Receivable, Commercial Cockpit indicators, Customer 360
+> aggregation, and bot-query readiness are LOCAL IMPLEMENTED. This does not
+> implement WhatsApp, production crawling/scraping, payment provider flows,
+> refunds, passenger-level cancellation, Driver/Guide identity (D2), or the
+> broader D3/D4 future work.
+
 ---
 
 ## Sumário Executivo

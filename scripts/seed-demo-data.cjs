@@ -165,17 +165,27 @@ async function seedAgencyAndDemoCustomer(pool, opts) {
   );
 
   // 1 one-way Booking
-  await pool.query(
+  const oneWayBooking = await pool.query(
     `INSERT INTO bookings (agency_id, booker_customer_id, trip_type, outbound_departure_id, notes)
-     VALUES ($1, $2, 'ONE_WAY', $3, 'Reserva demo one-way')`,
+     VALUES ($1, $2, 'ONE_WAY', $3, 'Reserva demo one-way') RETURNING id`,
     [agencyId, customerId, outboundDeparture.rows[0].id],
+  );
+  await pool.query(
+    `INSERT INTO booking_passengers (agency_id, booking_id, name)
+     VALUES ($1, $2, 'Cliente Demo')`,
+    [agencyId, oneWayBooking.rows[0].id],
   );
 
   // 1 round-trip Booking
-  await pool.query(
+  const roundTripBooking = await pool.query(
     `INSERT INTO bookings (agency_id, booker_customer_id, trip_type, outbound_departure_id, return_departure_id, notes)
-     VALUES ($1, $2, 'ROUND_TRIP', $3, $4, 'Reserva demo round-trip')`,
+     VALUES ($1, $2, 'ROUND_TRIP', $3, $4, 'Reserva demo round-trip') RETURNING id`,
     [agencyId, customerId, roundTripOutbound.rows[0].id, roundTripReturn.rows[0].id],
+  );
+  await pool.query(
+    `INSERT INTO booking_passengers (agency_id, booking_id, name)
+     VALUES ($1, $2, 'Cliente Demo')`,
+    [agencyId, roundTripBooking.rows[0].id],
   );
 }
 
@@ -370,6 +380,11 @@ async function seedCommercialCockpitScenarios(pool, { agencyId, userId, stages }
     [agencyId, clienteCId, userId],
   );
   await pool.query(
+    `INSERT INTO receivables (agency_id, sale_id, customer_id, description, amount, due_at)
+     VALUES ($1, $2, $3, 'Venda demo Buzios', 6000, '2020-01-01T00:00:00Z')`,
+    [agencyId, saleC.rows[0].id, clienteCId],
+  );
+  await pool.query(
     `INSERT INTO trips (agency_id, customer_id, sale_id, name, destination, start_date, end_date, status)
      VALUES ($1, $2, $3, 'Viagem confirmada', 'Buzios', '2027-06-01', '2027-06-08', 'CONFIRMED')`,
     [agencyId, clienteCId, saleC.rows[0].id],
@@ -396,6 +411,53 @@ async function seedCommercialCockpitScenarios(pool, { agencyId, userId, stages }
      VALUES ($1, $2, 'Viagem concluída', 'Porto de Galinhas', '2025-11-01', '2025-11-08', 'COMPLETED')`,
     [agencyId, clienteDId],
   );
+
+  const cancelledDeparture = await seedDemoDeparture(pool, agencyId, {
+    origin: 'Sao Paulo',
+    destination: 'Curitiba',
+    productName: 'Onibus SP -> Curitiba',
+    departureAt: '2027-07-01T08:00:00Z',
+  });
+  const cancelledBooking = await pool.query(
+    `INSERT INTO bookings
+       (agency_id, booker_customer_id, trip_type, outbound_departure_id, cancelled, cancelled_at, cancelled_by_user_id, cancellation_reason, notes)
+     VALUES ($1, $2, 'ONE_WAY', $3, true, now(), $4, 'Solicitacao do cliente', 'Reserva demo cancelada')
+     RETURNING id`,
+    [agencyId, clienteDId, cancelledDeparture, userId],
+  );
+  await pool.query(
+    `INSERT INTO booking_passengers (agency_id, booking_id, name)
+     VALUES ($1, $2, 'Cliente D Demo')`,
+    [agencyId, cancelledBooking.rows[0].id],
+  );
+
+  await pool.query(
+    `INSERT INTO external_offer_captures
+       (agency_id, source_url, source_name, raw_content, normalized_title, normalized_description, found_price, currency, valid_until, status)
+     VALUES
+       ($1, 'https://supplier.example/demo-cancun', 'Supplier Demo', 'Pacote Cancun com hotel', 'Pacote Cancun Demo', 'Hotel e transfer', 4200, 'BRL', now() + INTERVAL '20 days', 'UNDER_REVIEW'),
+       ($1, 'https://supplier.example/demo-lisboa', 'Supplier Demo', 'Pacote Lisboa com aereo', 'Pacote Lisboa Demo', 'Aereo e hotel', 7200, 'BRL', now() + INTERVAL '30 days', 'APPROVED')`,
+    [agencyId],
+  );
+}
+
+async function seedDemoDeparture(pool, agencyId, opts) {
+  const route = await pool.query(
+    `INSERT INTO routes (agency_id, origin, destination)
+     VALUES ($1, $2, $3) RETURNING id`,
+    [agencyId, opts.origin, opts.destination],
+  );
+  const product = await pool.query(
+    `INSERT INTO transport_products (agency_id, name, trip_type, outbound_route_id, price)
+     VALUES ($1, $2, 'ONE_WAY', $3, 180) RETURNING id`,
+    [agencyId, opts.productName, route.rows[0].id],
+  );
+  const departure = await pool.query(
+    `INSERT INTO scheduled_departures (agency_id, product_id, departure_at, capacity, service_type)
+     VALUES ($1, $2, $3, 40, 'OWN') RETURNING id`,
+    [agencyId, product.rows[0].id, opts.departureAt],
+  );
+  return departure.rows[0].id;
 }
 
 main().catch((error) => {

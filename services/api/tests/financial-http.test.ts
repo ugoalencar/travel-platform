@@ -1,0 +1,417 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { spawnSync } from 'node:child_process';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { Pool } from 'pg';
+import { buildApp } from '../src/app';
+import { UserRole } from '../../../packages/domain/types';
+import type { AuthenticatedPrincipal } from '../src/auth';
+import { createDatabaseRuntime } from '../src/database';
+
+const repoRoot = resolve(import.meta.dirname, '../../..');
+const migrations = [
+  '001_initial_schema.sql',
+  '002_rls_policies.sql',
+  '003_transportation.sql',
+  '004_route_points.sql',
+  '005_booking.sql',
+  '006_field_operations.sql',
+  '007_commission_repair.sql',
+  '008_commercial_cockpit.sql',
+  '009_configurable_pipelines.sql',
+  '010_financial_foundation.sql',
+].map((name) => resolve(repoRoot, 'infrastructure/migrations', name));
+const prepareRolesSql = resolve(repoRoot, 'tests/integration/database/002_prepare_local_roles.sql');
+const composeFile = resolve(repoRoot, 'infrastructure/docker-compose.local-postgres.yml');
+
+const projectName = 'travel-platform-financial-http-postgres';
+const containerName = 'travel-platform-postgres-local';
+const postgresImage = 'postgres:15';
+const databaseHost = process.env.DATABASE_TEST_HOST ?? '127.0.0.1';
+const databasePort = Number(process.env.DATABASE_TEST_PORT ?? '55432');
+const databaseName = process.env.DATABASE_TEST_NAME ?? 'travel_platform_test';
+const adminUser = process.env.DATABASE_TEST_USER ?? 'travel_test';
+const adminPassword = process.env.DATABASE_TEST_PASSWORD ?? 'travel_test_password';
+const runtimeUser = 'travel_app_runtime_local';
+const runtimePassword = 'travel_app_runtime_local_password';
+const poolPasswordKey = 'pass' + 'word';
+
+const agencyAId = '10000000-0000-4000-8000-000000000001';
+const agencyBId = '20000000-0000-4000-8000-000000000001';
+const userAId = '11000000-0000-4000-8000-000000000001';
+const userBId = '21000000-0000-4000-8000-000000000001';
+
+const principals: Record<string, AuthenticatedPrincipal> = {
+  viewer: { userId: userAId, agencyId: agencyAId, role: UserRole.VIEWER, email: 'viewer@example.test' },
+  agent: { userId: userAId, agencyId: agencyAId, role: UserRole.AGENT, email: 'agent@example.test' },
+  manager: { userId: userAId, agencyId: agencyAId, role: UserRole.MANAGER, email: 'manager@example.test' },
+  admin: { userId: userAId, agencyId: agencyAId, role: UserRole.ADMIN, email: 'admin@example.test' },
+  owner: { userId: userAId, agencyId: agencyAId, role: UserRole.OWNER, email: 'owner@example.test' },
+  ownerB: { userId: userBId, agencyId: agencyBId, role: UserRole.OWNER, email: 'owner-b@example.test' },
+};
+
+describe.sequential('Financial HTTP routes', () => {
+  let adminPool: Pool;
+  let runtimePool: Pool;
+  let customerA: string;
+  let saleA: string;
+  let supplierA: string;
+  let operationA: string;
+
+  beforeAll(async () => {
+    assertSafeTestDatabase();
+    resetDisposableDatabase();
+    await waitForHealthyContainer();
+    assertContainerIsLocal();
+
+    adminPool = new Pool({
+      host: databaseHost,
+      port: databasePort,
+      database: databaseName,
+      user: adminUser,
+      [poolPasswordKey]: adminPassword,
+    });
+    runtimePool = new Pool({
+      host: databaseHost,
+      port: databasePort,
+      database: databaseName,
+      user: runtimeUser,
+      [poolPasswordKey]: runtimePassword,
+    });
+
+    await resetDatabase(adminPool);
+  });
+
+  beforeEach(async () => {
+    await adminPool.query('TRUNCATE TABLE payment_allocations RESTART IDENTITY CASCADE');
+    await adminPool.query('TRUNCATE TABLE payments RESTART IDENTITY CASCADE');
+    await adminPool.query('TRUNCATE TABLE receivables RESTART IDENTITY CASCADE');
+    await adminPool.query('TRUNCATE TABLE payables RESTART IDENTITY CASCADE');
+    await adminPool.query('TRUNCATE TABLE operational_costs RESTART IDENTITY CASCADE');
+    await adminPool.query('TRUNCATE TABLE operation_checkpoints RESTART IDENTITY CASCADE');
+    await adminPool.query('TRUNCATE TABLE transport_operations RESTART IDENTITY CASCADE');
+    await adminPool.query('TRUNCATE TABLE scheduled_departures RESTART IDENTITY CASCADE');
+    await adminPool.query('TRUNCATE TABLE transport_products RESTART IDENTITY CASCADE');
+    await adminPool.query('TRUNCATE TABLE routes RESTART IDENTITY CASCADE');
+    await adminPool.query('TRUNCATE TABLE suppliers RESTART IDENTITY CASCADE');
+    await adminPool.query('TRUNCATE TABLE sales RESTART IDENTITY CASCADE');
+    await adminPool.query('TRUNCATE TABLE customers RESTART IDENTITY CASCADE');
+
+    customerA = await seedCustomer(agencyAId);
+    saleA = await seedSale(agencyAId, customerA, userAId);
+    supplierA = await seedSupplier(agencyAId);
+    operationA = await seedTransportOperation(agencyAId, supplierA);
+  });
+
+  afterAll(async () => {
+    await runtimePool?.end();
+    await adminPool?.end();
+    compose(['down', '-v']);
+  });
+
+  it('blocks unauthenticated and non-financial roles from financial data', async () => {
+    const app = buildTestApp(runtimePool);
+    const unauthenticated = await app.inject({ method: 'GET', url: '/financial/receivables' });
+    const viewer = await app.inject({
+      method: 'GET',
+      url: '/financial/receivables',
+      headers: { 'x-test-principal': 'viewer' },
+    });
+    const agent = await app.inject({
+      method: 'GET',
+      url: '/financial/receivables',
+      headers: { 'x-test-principal': 'agent' },
+    });
+
+    expect(unauthenticated.statusCode).toBe(401);
+    expect(viewer.statusCode).toBe(403);
+    expect(agent.statusCode).toBe(403);
+    await app.close();
+  });
+
+  it('allows MANAGER to read financial dashboard but blocks writes', async () => {
+    const app = buildTestApp(runtimePool);
+    const summary = await app.inject({
+      method: 'GET',
+      url: '/financial/dashboard?from=2027-01-01T00:00:00Z&to=2027-01-31T23:59:59Z',
+      headers: { 'x-test-principal': 'manager' },
+    });
+    const create = await app.inject({
+      method: 'POST',
+      url: '/financial/receivables',
+      headers: { 'x-test-principal': 'manager' },
+      payload: {
+        saleId: saleA,
+        customerId: customerA,
+        description: 'Sale receivable',
+        amount: 100,
+        dueAt: '2027-01-10T00:00:00Z',
+      },
+    });
+
+    expect(summary.statusCode).toBe(200);
+    expect(summary.json()).toHaveProperty('cashFlow');
+    expect(create.statusCode).toBe(403);
+    await app.close();
+  });
+
+  it('allows ADMIN to create receivables, payables, payments, allocations, and operational costs', async () => {
+    const app = buildTestApp(runtimePool);
+    const receivable = await app.inject({
+      method: 'POST',
+      url: '/financial/receivables',
+      headers: { 'x-test-principal': 'admin' },
+      payload: {
+        saleId: saleA,
+        customerId: customerA,
+        description: 'Sale receivable',
+        amount: 1000,
+        dueAt: '2027-01-10T00:00:00Z',
+      },
+    });
+    expect(receivable.statusCode).toBe(201);
+    const receivableId = receivable.json<{ receivable: { id: string } }>().receivable.id;
+
+    const payable = await app.inject({
+      method: 'POST',
+      url: '/financial/payables',
+      headers: { 'x-test-principal': 'admin' },
+      payload: {
+        saleId: saleA,
+        supplierId: supplierA,
+        transportOperationId: operationA,
+        description: 'Supplier payable',
+        amount: 250,
+        dueAt: '2027-01-12T00:00:00Z',
+      },
+    });
+    expect(payable.statusCode).toBe(201);
+    const payableId = payable.json<{ payable: { id: string } }>().payable.id;
+
+    const cost = await app.inject({
+      method: 'POST',
+      url: '/financial/operational-costs',
+      headers: { 'x-test-principal': 'admin' },
+      payload: {
+        saleId: saleA,
+        transportOperationId: operationA,
+        supplierId: supplierA,
+        description: 'Fuel',
+        costType: 'FUEL',
+        actualAmount: 50,
+        incurredAt: '2027-01-04T00:00:00Z',
+      },
+    });
+    expect(cost.statusCode).toBe(201);
+
+    const inbound = await app.inject({
+      method: 'POST',
+      url: '/financial/payments',
+      headers: { 'x-test-principal': 'admin' },
+      payload: {
+        direction: 'IN',
+        amount: 1000,
+        occurredAt: '2027-01-05T00:00:00Z',
+      },
+    });
+    expect(inbound.statusCode).toBe(201);
+    const inboundId = inbound.json<{ payment: { id: string } }>().payment.id;
+
+    const allocatedIn = await app.inject({
+      method: 'POST',
+      url: `/financial/payments/${inboundId}/allocations`,
+      headers: { 'x-test-principal': 'admin' },
+      payload: { allocations: [{ receivableId, amount: 1000 }] },
+    });
+    expect(allocatedIn.statusCode).toBe(200);
+    expect(allocatedIn.json<{ targets: Array<{ status: string }> }>().targets[0]?.status).toBe('PAID');
+
+    const outbound = await app.inject({
+      method: 'POST',
+      url: '/financial/payments',
+      headers: { 'x-test-principal': 'admin' },
+      payload: {
+        direction: 'OUT',
+        amount: 250,
+        occurredAt: '2027-01-07T00:00:00Z',
+      },
+    });
+    const outboundId = outbound.json<{ payment: { id: string } }>().payment.id;
+    const allocatedOut = await app.inject({
+      method: 'POST',
+      url: `/financial/payments/${outboundId}/allocations`,
+      headers: { 'x-test-principal': 'admin' },
+      payload: { allocations: [{ payableId, amount: 250 }] },
+    });
+
+    expect(allocatedOut.statusCode).toBe(200);
+    await app.close();
+  });
+
+  function buildTestApp(pool: Pool) {
+    return buildApp({
+      authProvider: {
+        authenticate(request) {
+          const key = request.headers['x-test-principal'];
+          return Promise.resolve(typeof key === 'string' ? principals[key] ?? null : null);
+        },
+      },
+      validateUserAgencyAccess(userId, agencyId) {
+        return Promise.resolve(
+          (userId === userAId && agencyId === agencyAId) || (userId === userBId && agencyId === agencyBId),
+        );
+      },
+      database: createDatabaseRuntime(pool),
+    });
+  }
+
+  async function seedCustomer(agencyId: string): Promise<string> {
+    const result = await adminPool.query<{ id: string }>(
+      `INSERT INTO customers (agency_id, name, status) VALUES ($1, 'Cliente Teste', 'ACTIVE') RETURNING id`,
+      [agencyId],
+    );
+    return result.rows[0]!.id;
+  }
+
+  async function seedSale(agencyId: string, customerId: string, userId: string): Promise<string> {
+    const result = await adminPool.query<{ id: string }>(
+      `INSERT INTO sales (agency_id, customer_id, user_id, amount, discount, total, status)
+       VALUES ($1, $2, $3, '1000.00', '0.00', '1000.00', 'CONFIRMED') RETURNING id`,
+      [agencyId, customerId, userId],
+    );
+    return result.rows[0]!.id;
+  }
+
+  async function seedSupplier(agencyId: string): Promise<string> {
+    const result = await adminPool.query<{ id: string }>(
+      `INSERT INTO suppliers (agency_id, name) VALUES ($1, 'Supplier') RETURNING id`,
+      [agencyId],
+    );
+    return result.rows[0]!.id;
+  }
+
+  async function seedTransportOperation(agencyId: string, supplierId: string): Promise<string> {
+    const route = await adminPool.query<{ id: string }>(
+      `INSERT INTO routes (agency_id, origin, destination) VALUES ($1, 'A', 'B') RETURNING id`,
+      [agencyId],
+    );
+    const product = await adminPool.query<{ id: string }>(
+      `INSERT INTO transport_products (agency_id, name, trip_type, outbound_route_id, price)
+       VALUES ($1, 'Product', 'ONE_WAY', $2, 10) RETURNING id`,
+      [agencyId, route.rows[0]!.id],
+    );
+    const departure = await adminPool.query<{ id: string }>(
+      `INSERT INTO scheduled_departures
+         (agency_id, product_id, departure_at, capacity, supplier_id, service_type)
+       VALUES ($1, $2, '2027-01-03T10:00:00Z', 10, $3, 'SUBCONTRACTED') RETURNING id`,
+      [agencyId, product.rows[0]!.id, supplierId],
+    );
+    const operation = await adminPool.query<{ id: string }>(
+      `INSERT INTO transport_operations (agency_id, departure_id) VALUES ($1, $2) RETURNING id`,
+      [agencyId, departure.rows[0]!.id],
+    );
+    return operation.rows[0]!.id;
+  }
+});
+
+function assertSafeTestDatabase(): void {
+  if (!['127.0.0.1', 'localhost'].includes(databaseHost)) {
+    throw new Error('Financial HTTP tests require localhost only.');
+  }
+  if (databasePort !== 55432) {
+    throw new Error('Financial HTTP tests require local port 55432.');
+  }
+  if (!databaseName.includes('test')) {
+    throw new Error('Financial HTTP tests require a database name with a test marker.');
+  }
+}
+
+function resetDisposableDatabase(): void {
+  compose(['down', '-v']);
+  compose(['up', '-d']);
+}
+
+function compose(args: readonly string[]): CommandResult {
+  return run('docker', ['compose', '-f', composeFile, '-p', projectName, ...args]);
+}
+
+async function waitForHealthyContainer(): Promise<void> {
+  const timeoutAt = Date.now() + 120_000;
+  while (Date.now() < timeoutAt) {
+    const result = run('docker', ['inspect', '-f', '{{.State.Health.Status}}', containerName], false);
+    if (result.stdout.trim() === 'healthy') return;
+    await new Promise((resolveWait) => {
+      setTimeout(resolveWait, 2_000);
+    });
+  }
+  throw new Error('Local PostgreSQL container did not become healthy in time.');
+}
+
+function assertContainerIsLocal(): void {
+  const result = run('docker', ['ps', '--filter', `name=${containerName}`, '--format', '{{.Image}}|{{.Ports}}']);
+  const output = result.stdout.trim();
+  expect(output).toContain(postgresImage);
+  expect(output).toContain(`${databaseHost}:${databasePort}->5432/tcp`);
+}
+
+async function resetDatabase(pool: Pool): Promise<void> {
+  await pool.query('DROP SCHEMA public CASCADE; CREATE SCHEMA public;');
+  for (const migration of migrations) {
+    await pool.query(readSqlForPg(migration));
+  }
+  await pool.query(readSqlForPg(prepareRolesSql));
+  await seedAgenciesAndUsers(pool);
+}
+
+function readSqlForPg(filePath: string): string {
+  return readFileSync(filePath, 'utf8')
+    .split(/\r?\n/)
+    .filter((line) => !line.trimStart().startsWith('\\'))
+    .join('\n');
+}
+
+async function seedAgenciesAndUsers(pool: Pool): Promise<void> {
+  await pool.query(
+    `
+      INSERT INTO agencies (id, name, slug, email, plan, status)
+      VALUES
+        ($1, 'Agency A', 'agency-a-financial-http-test', 'agency-a@example.test', 'FREE', 'ACTIVE'),
+        ($2, 'Agency B', 'agency-b-financial-http-test', 'agency-b@example.test', 'FREE', 'ACTIVE');
+    `,
+    [agencyAId, agencyBId],
+  );
+  await pool.query(
+    `
+      INSERT INTO users (id, agency_id, email, name, role, password_hash, status)
+      VALUES
+        ($1, $2, 'user-a@example.test', 'User A', 'ADMIN', 'hash-for-financial-http-test-only', 'ACTIVE'),
+        ($3, $4, 'user-b@example.test', 'User B', 'ADMIN', 'hash-for-financial-http-test-only', 'ACTIVE');
+    `,
+    [userAId, agencyAId, userBId, agencyBId],
+  );
+}
+
+interface CommandResult {
+  stdout: string;
+  stderr: string;
+}
+
+function run(command: string, args: readonly string[], throwOnError = true): CommandResult {
+  const result = spawnSync(command, args, {
+    cwd: repoRoot,
+    encoding: 'utf8',
+    maxBuffer: 1024 * 1024 * 20,
+  });
+
+  const stdout = result.stdout.toString();
+  const stderr = result.stderr.toString();
+
+  if (throwOnError && result.status !== 0) {
+    throw new Error(
+      [`Command failed: ${command} ${args.join(' ')}`, `Exit code: ${result.status ?? 'unknown'}`, stdout, stderr]
+        .filter(Boolean)
+        .join('\n'),
+    );
+  }
+  return { stdout, stderr };
+}

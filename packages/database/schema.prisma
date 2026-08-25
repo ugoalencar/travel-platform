@@ -50,6 +50,11 @@ model Agency {
   bookings             Booking[]
   brokers              Broker[]
   commissions          Commission[]
+  receivables          Receivable[]
+  payables             Payable[]
+  payments             Payment[]
+  paymentAllocations   PaymentAllocation[]
+  operationalCosts     OperationalCost[]
   customerAccounts     CustomerAccount[]
   customers            Customer[]
   offers               Offer[]
@@ -60,6 +65,9 @@ model Agency {
   wishes               Wish[]
   routes               Route[]
   routePoints          RoutePoint[]
+  operationalStaff     OperationalStaff[]
+  operationalStaffCapabilities OperationalStaffCapabilityEntry[]
+  operationAssignments OperationAssignment[]
   suppliers            Supplier[]
   transportProducts    TransportProduct[]
   scheduledDepartures  ScheduledDeparture[]
@@ -71,6 +79,7 @@ model Agency {
   pipelines               Pipeline[]
   pipelineStages          PipelineStage[]
   pipelineAccesses        PipelineAccess[]
+  externalOfferCaptures   ExternalOfferCapture[]
 
   @@map("agencies")
 }
@@ -87,6 +96,8 @@ model User {
   createdAt    DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt    DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
   commissions  Commission[]
+  payments     Payment[]
+  operationalCosts OperationalCost[]
   proposals    Proposal[]
   sales        Sale[]
   agency       Agency       @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "users_agency_fk")
@@ -94,7 +105,13 @@ model User {
   commercialTasksAssigned CommercialTask[]         @relation("CommercialTaskAssignedUser")
   commercialTasksCreated  CommercialTask[]         @relation("CommercialTaskCreatedBy")
   customerInteractions    CustomerInteraction[]
+  cancelledBookings       Booking[]                @relation("BookingCancelledByUser")
+  operationalStaffProfiles OperationalStaff[]
+  operationAssignmentsCreated OperationAssignment[]
+  arrivalConfirmations     OperationCheckpoint[]    @relation("OperationCheckpointArrivalConfirmedBy")
+  departureConfirmations   OperationCheckpoint[]    @relation("OperationCheckpointDepartureConfirmedBy")
   pipelineAccesses        PipelineAccess[]
+  reviewedExternalOfferCaptures ExternalOfferCapture[]
 
   @@unique([agencyId, email], map: "users_agency_email_key")
   @@unique([agencyId, id], map: "users_agency_id_key")
@@ -139,6 +156,7 @@ model Customer {
   account   CustomerAccount?
   agency    Agency           @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "customers_agency_fk")
   bookings  Booking[]
+  receivables Receivable[]
   proposals Proposal[]
   sales     Sale[]
   trips     Trip[]
@@ -217,12 +235,43 @@ model Offer {
   updatedAt   DateTime    @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
   agency      Agency      @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "offers_agency_fk")
   proposals   Proposal[]
+  externalCaptures ExternalOfferCapture[]
 
   @@unique([agencyId, id], map: "offers_agency_id_key")
   @@index([agencyId], map: "offers_agency_idx")
   @@index([agencyId, status], map: "offers_agency_status_idx")
   @@index([agencyId, validUntil], map: "offers_agency_valid_until_idx")
   @@map("offers")
+}
+
+model ExternalOfferCapture {
+  id                    String                     @id @default(dbgenerated("(gen_random_uuid())::text"))
+  agencyId              String                     @map("agency_id")
+  sourceUrl             String                     @map("source_url")
+  sourceName            String                     @map("source_name")
+  capturedAt            DateTime                   @default(now()) @map("captured_at") @db.Timestamptz(6)
+  rawContent            String                     @map("raw_content")
+  normalizedTitle       String?                    @map("normalized_title")
+  normalizedDescription String?                    @map("normalized_description")
+  foundPrice            Decimal?                   @map("found_price") @db.Decimal(10, 2)
+  currency              String?
+  validUntil            DateTime?                  @map("valid_until") @db.Timestamptz(6)
+  status                ExternalOfferCaptureStatus @default(CAPTURED)
+  reviewedAt            DateTime?                  @map("reviewed_at") @db.Timestamptz(6)
+  reviewedByUserId      String?                    @map("reviewed_by_user_id")
+  publishedOfferId      String?                    @map("published_offer_id")
+  createdAt             DateTime                   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime                   @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  agency                Agency                     @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "external_offer_captures_agency_fk")
+  reviewedByUser        User?                      @relation(fields: [agencyId, reviewedByUserId], references: [agencyId, id], onDelete: Restrict, map: "external_offer_captures_reviewed_by_user_tenant_fk")
+  publishedOffer        Offer?                     @relation(fields: [agencyId, publishedOfferId], references: [agencyId, id], onDelete: Restrict, map: "external_offer_captures_published_offer_tenant_fk")
+
+  @@unique([agencyId, id], map: "external_offer_captures_agency_id_key")
+  @@unique([agencyId, sourceUrl], map: "external_offer_captures_agency_source_url_key")
+  @@index([agencyId, status, createdAt], map: "external_offer_captures_agency_status_idx")
+  @@index([agencyId, reviewedByUserId], map: "external_offer_captures_agency_reviewed_by_idx")
+  @@index([agencyId, publishedOfferId], map: "external_offer_captures_agency_published_offer_idx")
+  @@map("external_offer_captures")
 }
 
 model Proposal {
@@ -281,6 +330,9 @@ model Sale {
   createdAt   DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt   DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
   commissions Commission[]
+  receivables Receivable[]
+  payables    Payable[]
+  operationalCosts OperationalCost[]
   agency      Agency       @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "sales_agency_fk")
   // proposalId/brokerId are nullable: same SetNull-by-default risk as
   // Proposal.offer/wish/user above. Explicit onDelete: Restrict here
@@ -320,6 +372,7 @@ model Commission {
   broker     Broker?          @relation(fields: [agencyId, brokerId], references: [agencyId, id], onDelete: Restrict, map: "commissions_broker_tenant_fk")
   sale       Sale             @relation(fields: [agencyId, saleId], references: [agencyId, id], onDelete: Restrict, map: "commissions_sale_tenant_fk")
   user       User?            @relation(fields: [agencyId, userId], references: [agencyId, id], onDelete: Restrict, map: "commissions_user_tenant_fk")
+  payables   Payable[]
 
   // Repaired by 007_commission_repair.sql (D1, Option A): commissions
   // now has UNIQUE(agency_id, id), matching every other tenant-scoped
@@ -330,6 +383,132 @@ model Commission {
   @@index([agencyId, saleId], map: "commissions_agency_sale_idx")
   @@index([agencyId, status], map: "commissions_agency_status_idx")
   @@map("commissions")
+}
+
+model Receivable {
+  id          String                    @id @default(dbgenerated("(gen_random_uuid())::text"))
+  agencyId    String                    @map("agency_id")
+  saleId      String?                   @map("sale_id")
+  customerId  String                    @map("customer_id")
+  description String
+  amount      Decimal                   @db.Decimal(12, 2)
+  dueAt       DateTime                  @map("due_at") @db.Timestamptz(6)
+  status      FinancialObligationStatus @default(OPEN)
+  createdAt   DateTime                  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime                  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  agency   Agency   @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "receivables_agency_fk")
+  sale     Sale?    @relation(fields: [agencyId, saleId], references: [agencyId, id], onDelete: Restrict, map: "receivables_sale_tenant_fk")
+  customer Customer @relation(fields: [agencyId, customerId], references: [agencyId, id], onDelete: Restrict, map: "receivables_customer_tenant_fk")
+  allocations PaymentAllocation[]
+
+  @@unique([agencyId, id], map: "receivables_agency_id_key")
+  @@unique([agencyId, saleId], map: "receivables_agency_sale_key")
+  @@index([agencyId, status, dueAt], map: "receivables_agency_status_due_idx")
+  @@index([agencyId, customerId], map: "receivables_agency_customer_idx")
+  @@map("receivables")
+}
+
+model Payable {
+  id                   String                    @id @default(dbgenerated("(gen_random_uuid())::text"))
+  agencyId             String                    @map("agency_id")
+  saleId               String?                   @map("sale_id")
+  supplierId           String?                   @map("supplier_id")
+  commissionId         String?                   @map("commission_id")
+  transportOperationId String?                   @map("transport_operation_id")
+  operationalCostId    String?                   @map("operational_cost_id")
+  description          String
+  amount               Decimal                   @db.Decimal(12, 2)
+  dueAt                DateTime                  @map("due_at") @db.Timestamptz(6)
+  status               FinancialObligationStatus @default(OPEN)
+  createdAt            DateTime                  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime                  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  agency             Agency              @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "payables_agency_fk")
+  sale               Sale?               @relation(fields: [agencyId, saleId], references: [agencyId, id], onDelete: Restrict, map: "payables_sale_tenant_fk")
+  supplier           Supplier?           @relation(fields: [agencyId, supplierId], references: [agencyId, id], onDelete: Restrict, map: "payables_supplier_tenant_fk")
+  commission         Commission?         @relation(fields: [agencyId, commissionId], references: [agencyId, id], onDelete: Restrict, map: "payables_commission_tenant_fk")
+  transportOperation TransportOperation? @relation(fields: [agencyId, transportOperationId], references: [agencyId, id], onDelete: Restrict, map: "payables_operation_tenant_fk")
+  operationalCost    OperationalCost?    @relation(fields: [agencyId, operationalCostId], references: [agencyId, id], onDelete: Restrict, map: "payables_operational_cost_tenant_fk")
+  allocations        PaymentAllocation[]
+
+  @@unique([agencyId, id], map: "payables_agency_id_key")
+  @@index([agencyId, status, dueAt], map: "payables_agency_status_due_idx")
+  @@index([agencyId, supplierId], map: "payables_agency_supplier_idx")
+  @@index([agencyId, saleId], map: "payables_agency_sale_idx")
+  @@index([agencyId, transportOperationId], map: "payables_agency_operation_idx")
+  @@map("payables")
+}
+
+model Payment {
+  id          String           @id @default(dbgenerated("(gen_random_uuid())::text"))
+  agencyId    String           @map("agency_id")
+  direction   PaymentDirection
+  amount      Decimal          @db.Decimal(12, 2)
+  occurredAt  DateTime         @map("occurred_at") @db.Timestamptz(6)
+  method      String?
+  reference   String?
+  notes       String?
+  createdBy   String           @map("created_by")
+  createdAt   DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  agency      Agency              @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "payments_agency_fk")
+  creator     User                @relation(fields: [agencyId, createdBy], references: [agencyId, id], onDelete: Restrict, map: "payments_created_by_tenant_fk")
+  allocations PaymentAllocation[]
+
+  @@unique([agencyId, id], map: "payments_agency_id_key")
+  @@index([agencyId, direction, occurredAt], map: "payments_agency_direction_occurred_idx")
+  @@map("payments")
+}
+
+model PaymentAllocation {
+  id           String   @id @default(dbgenerated("(gen_random_uuid())::text"))
+  agencyId     String   @map("agency_id")
+  paymentId    String   @map("payment_id")
+  receivableId String?  @map("receivable_id")
+  payableId    String?  @map("payable_id")
+  amount       Decimal  @db.Decimal(12, 2)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  agency     Agency      @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "payment_allocations_agency_fk")
+  payment    Payment     @relation(fields: [agencyId, paymentId], references: [agencyId, id], onDelete: Restrict, map: "payment_allocations_payment_tenant_fk")
+  receivable Receivable? @relation(fields: [agencyId, receivableId], references: [agencyId, id], onDelete: Restrict, map: "payment_allocations_receivable_tenant_fk")
+  payable    Payable?    @relation(fields: [agencyId, payableId], references: [agencyId, id], onDelete: Restrict, map: "payment_allocations_payable_tenant_fk")
+
+  @@unique([agencyId, id], map: "payment_allocations_agency_id_key")
+  @@index([agencyId, paymentId], map: "payment_allocations_agency_payment_idx")
+  @@index([agencyId, receivableId], map: "payment_allocations_agency_receivable_idx")
+  @@index([agencyId, payableId], map: "payment_allocations_agency_payable_idx")
+  @@map("payment_allocations")
+}
+
+model OperationalCost {
+  id                   String   @id @default(dbgenerated("(gen_random_uuid())::text"))
+  agencyId             String   @map("agency_id")
+  saleId               String?  @map("sale_id")
+  transportOperationId String?  @map("transport_operation_id")
+  supplierId           String?  @map("supplier_id")
+  description          String
+  costType             String   @map("cost_type")
+  expectedAmount       Decimal? @map("expected_amount") @db.Decimal(12, 2)
+  actualAmount         Decimal? @map("actual_amount") @db.Decimal(12, 2)
+  incurredAt           DateTime @map("incurred_at") @db.Timestamptz(6)
+  createdBy            String   @map("created_by")
+  createdAt            DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  agency             Agency              @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "operational_costs_agency_fk")
+  sale               Sale?               @relation(fields: [agencyId, saleId], references: [agencyId, id], onDelete: Restrict, map: "operational_costs_sale_tenant_fk")
+  transportOperation TransportOperation? @relation(fields: [agencyId, transportOperationId], references: [agencyId, id], onDelete: Restrict, map: "operational_costs_operation_tenant_fk")
+  supplier           Supplier?           @relation(fields: [agencyId, supplierId], references: [agencyId, id], onDelete: Restrict, map: "operational_costs_supplier_tenant_fk")
+  creator            User                @relation(fields: [agencyId, createdBy], references: [agencyId, id], onDelete: Restrict, map: "operational_costs_created_by_tenant_fk")
+  payables           Payable[]
+
+  @@unique([agencyId, id], map: "operational_costs_agency_id_key")
+  @@index([agencyId, transportOperationId], map: "operational_costs_agency_operation_idx")
+  @@index([agencyId, saleId], map: "operational_costs_agency_sale_idx")
+  @@index([agencyId, incurredAt], map: "operational_costs_agency_incurred_idx")
+  @@map("operational_costs")
 }
 
 model Trip {
@@ -430,6 +609,18 @@ enum CommissionStatus {
   CANCELLED
 }
 
+enum FinancialObligationStatus {
+  OPEN
+  PARTIALLY_PAID
+  PAID
+  CANCELLED
+}
+
+enum PaymentDirection {
+  IN
+  OUT
+}
+
 enum TripStatus {
   PLANNED
   CONFIRMED
@@ -457,6 +648,25 @@ enum CheckpointType {
   ARRIVAL
   DEPARTURE
   BOTH
+}
+
+enum OperationalStaffCapability {
+  DRIVER
+  GUIDE
+}
+
+enum OperationAssignmentRole {
+  DRIVER
+  GUIDE
+}
+
+enum ExternalOfferCaptureStatus {
+  CAPTURED
+  NORMALIZED
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  PUBLISHED
 }
 
 enum CommercialStage {
@@ -576,6 +786,8 @@ model Supplier {
   updatedAt  DateTime             @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
   agency     Agency               @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "suppliers_agency_fk")
   departures ScheduledDeparture[]
+  payables   Payable[]
+  operationalCosts OperationalCost[]
 
   @@unique([agencyId, id], map: "suppliers_agency_id_key")
   @@index([agencyId], map: "suppliers_agency_idx")
@@ -663,6 +875,9 @@ model Booking {
   outboundDepartureId String                @map("outbound_departure_id")
   returnDepartureId   String?               @map("return_departure_id")
   cancelled           Boolean               @default(false)
+  cancelledAt         DateTime?             @map("cancelled_at") @db.Timestamptz(6)
+  cancelledByUserId   String?               @map("cancelled_by_user_id")
+  cancellationReason  String?               @map("cancellation_reason")
   notes               String?
   createdAt           DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt           DateTime              @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
@@ -670,6 +885,7 @@ model Booking {
   bookerCustomer      Customer              @relation(fields: [agencyId, bookerCustomerId], references: [agencyId, id], onDelete: Restrict, map: "bookings_booker_customer_tenant_fk")
   outboundDeparture   ScheduledDeparture    @relation("BookingOutboundDeparture", fields: [agencyId, outboundDepartureId], references: [agencyId, id], onDelete: Restrict, map: "bookings_outbound_departure_tenant_fk")
   returnDeparture     ScheduledDeparture?   @relation("BookingReturnDeparture", fields: [agencyId, returnDepartureId], references: [agencyId, id], onDelete: Restrict, map: "bookings_return_departure_tenant_fk")
+  cancelledByUser     User?                 @relation("BookingCancelledByUser", fields: [agencyId, cancelledByUserId], references: [agencyId, id], onDelete: Restrict, map: "bookings_cancelled_by_user_tenant_fk")
   passengers          BookingPassenger[]
 
   @@unique([agencyId, id], map: "bookings_agency_id_key")
@@ -677,6 +893,7 @@ model Booking {
   @@index([agencyId, outboundDepartureId], map: "bookings_agency_outbound_departure_idx")
   @@index([agencyId, returnDepartureId], map: "bookings_agency_return_departure_idx")
   @@index([agencyId, bookerCustomerId], map: "bookings_agency_booker_idx")
+  @@index([agencyId, cancelled, cancelledAt], map: "bookings_agency_cancelled_idx")
   @@map("bookings")
 }
 
@@ -713,6 +930,9 @@ model TransportOperation {
   agency      Agency                @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "transport_operations_agency_fk")
   departure   ScheduledDeparture    @relation("ScheduledDeparture_operation", fields: [agencyId, departureId], references: [agencyId, id], onDelete: Restrict, map: "transport_operations_departure_tenant_fk")
   checkpoints OperationCheckpoint[]
+  assignments OperationAssignment[]
+  payables    Payable[]
+  operationalCosts OperationalCost[]
 
   @@unique([agencyId, id], map: "transport_operations_agency_id_key")
   @@unique([agencyId, departureId], map: "transport_operations_agency_departure_key")
@@ -736,6 +956,10 @@ model OperationCheckpoint {
   checkpointType     CheckpointType     @map("checkpoint_type")
   arrivalCheckedAt   DateTime?          @map("arrival_checked_at") @db.Timestamptz(6)
   departureCheckedAt DateTime?          @map("departure_checked_at") @db.Timestamptz(6)
+  arrivalConfirmedByUserId   String?    @map("arrival_confirmed_by_user_id")
+  departureConfirmedByUserId String?    @map("departure_confirmed_by_user_id")
+  arrivalOperationalStaffId  String?    @map("arrival_operational_staff_id")
+  departureOperationalStaffId String?   @map("departure_operational_staff_id")
   notes              String?
   // Optional, manual-entry-only free text. No GPS/geofencing.
   location           String?
@@ -744,6 +968,10 @@ model OperationCheckpoint {
   agency             Agency             @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "operation_checkpoints_agency_fk")
   operation          TransportOperation @relation(fields: [agencyId, operationId], references: [agencyId, id], onDelete: Restrict, map: "operation_checkpoints_operation_tenant_fk")
   routePoint         RoutePoint         @relation(fields: [agencyId, routePointId], references: [agencyId, id], onDelete: Restrict, map: "operation_checkpoints_route_point_tenant_fk")
+  arrivalConfirmedByUser User?          @relation("OperationCheckpointArrivalConfirmedBy", fields: [agencyId, arrivalConfirmedByUserId], references: [agencyId, id], onDelete: Restrict, map: "operation_checkpoints_arrival_confirmed_by_user_tenant_fk")
+  departureConfirmedByUser User?        @relation("OperationCheckpointDepartureConfirmedBy", fields: [agencyId, departureConfirmedByUserId], references: [agencyId, id], onDelete: Restrict, map: "operation_checkpoints_departure_confirmed_by_user_tenant_fk")
+  arrivalOperationalStaff OperationalStaff? @relation("OperationCheckpointArrivalOperationalStaff", fields: [agencyId, arrivalOperationalStaffId], references: [agencyId, id], onDelete: Restrict, map: "operation_checkpoints_arrival_operational_staff_tenant_fk")
+  departureOperationalStaff OperationalStaff? @relation("OperationCheckpointDepartureOperationalStaff", fields: [agencyId, departureOperationalStaffId], references: [agencyId, id], onDelete: Restrict, map: "operation_checkpoints_departure_operational_staff_tenant_fk")
 
   // NOTE: operation_checkpoints_arrival_type_check /
   // operation_checkpoints_departure_type_check (SQL CHECK constraints)
@@ -757,6 +985,66 @@ model OperationCheckpoint {
   @@index([agencyId, operationId], map: "operation_checkpoints_agency_operation_idx")
   @@index([agencyId, routePointId], map: "operation_checkpoints_agency_route_point_idx")
   @@map("operation_checkpoints")
+}
+
+model OperationalStaff {
+  id          String   @id @default(dbgenerated("(gen_random_uuid())::text"))
+  agencyId    String   @map("agency_id")
+  userId      String?  @map("user_id")
+  name        String
+  phone       String?
+  email       String?
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  agency      Agency   @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "operational_staff_agency_fk")
+  user        User?    @relation(fields: [agencyId, userId], references: [agencyId, id], onDelete: Restrict, map: "operational_staff_user_tenant_fk")
+  capabilities OperationalStaffCapabilityEntry[]
+  assignments OperationAssignment[]
+  arrivalConfirmations OperationCheckpoint[] @relation("OperationCheckpointArrivalOperationalStaff")
+  departureConfirmations OperationCheckpoint[] @relation("OperationCheckpointDepartureOperationalStaff")
+
+  @@unique([agencyId, id], map: "operational_staff_agency_id_key")
+  @@unique([agencyId, userId], map: "operational_staff_agency_user_key")
+  @@index([agencyId], map: "operational_staff_agency_idx")
+  @@index([agencyId, userId], map: "operational_staff_agency_user_idx")
+  @@map("operational_staff")
+}
+
+model OperationalStaffCapabilityEntry {
+  id                 String                     @id @default(dbgenerated("(gen_random_uuid())::text"))
+  agencyId           String                     @map("agency_id")
+  operationalStaffId String                     @map("operational_staff_id")
+  capability         OperationalStaffCapability
+  createdAt          DateTime                   @default(now()) @map("created_at") @db.Timestamptz(6)
+  agency             Agency                     @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "operational_staff_capabilities_agency_fk")
+  operationalStaff   OperationalStaff           @relation(fields: [agencyId, operationalStaffId], references: [agencyId, id], onDelete: Restrict, map: "operational_staff_capabilities_staff_tenant_fk")
+
+  @@unique([agencyId, id], map: "operational_staff_capabilities_agency_id_key")
+  @@unique([agencyId, operationalStaffId, capability], map: "operational_staff_capabilities_staff_capability_key")
+  @@index([agencyId, operationalStaffId], map: "operational_staff_capabilities_agency_staff_idx")
+  @@map("operational_staff_capabilities")
+}
+
+model OperationAssignment {
+  id                 String                  @id @default(dbgenerated("(gen_random_uuid())::text"))
+  agencyId           String                  @map("agency_id")
+  operationId        String                  @map("operation_id")
+  operationalStaffId String                  @map("operational_staff_id")
+  role               OperationAssignmentRole
+  createdByUserId    String                  @map("created_by_user_id")
+  createdAt          DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
+  agency             Agency                  @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "operation_assignments_agency_fk")
+  operation          TransportOperation      @relation(fields: [agencyId, operationId], references: [agencyId, id], onDelete: Restrict, map: "operation_assignments_operation_tenant_fk")
+  operationalStaff   OperationalStaff        @relation(fields: [agencyId, operationalStaffId], references: [agencyId, id], onDelete: Restrict, map: "operation_assignments_staff_tenant_fk")
+  createdByUser      User                    @relation(fields: [agencyId, createdByUserId], references: [agencyId, id], onDelete: Restrict, map: "operation_assignments_created_by_user_tenant_fk")
+
+  @@unique([agencyId, id], map: "operation_assignments_agency_id_key")
+  @@unique([agencyId, operationId, role], map: "operation_assignments_operation_role_key")
+  @@unique([agencyId, operationId, operationalStaffId, role], map: "operation_assignments_operation_staff_role_key")
+  @@index([agencyId, operationId], map: "operation_assignments_agency_operation_idx")
+  @@index([agencyId, operationalStaffId], map: "operation_assignments_agency_staff_idx")
+  @@map("operation_assignments")
 }
 
 // ============================================================
