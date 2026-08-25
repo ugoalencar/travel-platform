@@ -114,11 +114,13 @@ describe.sequential('Offer & Growth Engine: Cancun E2E (mandatory)', () => {
       database: createDatabaseRuntime(runtimePool),
     });
 
-    // 1. Create Offer "Cancun" directly (Offer domain predates this batch).
+    // 1. Create Offer "Cancun" directly (Offer domain predates this batch;
+    // POST /offers requires MANAGER, unlike this batch's AGENT-level
+    // campaign/publication/automation writes).
     const offerResponse = await app.inject({
       method: 'POST',
       url: '/offers',
-      headers: { 'x-test-principal': 'agentA' },
+      headers: { 'x-test-principal': 'managerA' },
       payload: { name: 'Cancun', price: 2500 },
     });
     expect(offerResponse.statusCode).toBe(201);
