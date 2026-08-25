@@ -301,8 +301,8 @@ async function seedDefaultPipeline(pool: Pool): Promise<void> {
   );
   const pipelineId = pipeline.rows[0]?.id;
   await pool.query(
-    `INSERT INTO pipeline_stages (agency_id, pipeline_id, name, sequence)
-     VALUES ($1, $2, 'Prospecting', 1)`,
+    `INSERT INTO pipeline_stages (agency_id, pipeline_id, name, sequence, color_key)
+     VALUES ($1, $2, 'Prospecting', 1, 'NEUTRAL')`,
     [agencyAId, pipelineId],
   );
 }

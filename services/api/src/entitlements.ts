@@ -147,6 +147,7 @@ export async function setAgencyEntitlementViaPlatformStopgap(
     if (!row) throw new Error('Entitlement upsert did not return a row');
 
     await recordAuditLog(client, {
+      agencyId: input.agencyId,
       action: 'entitlement.changed',
       entityType: 'AgencyEntitlement',
       entityId: row.id,

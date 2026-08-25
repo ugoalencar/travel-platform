@@ -11,13 +11,19 @@ export interface RecordAuditLogInput {
   entityType: string;
   entityId?: string;
   metadata?: Record<string, unknown>;
+  // Explicit override for the platform-scoped stopgap path (see
+  // entitlements.ts), which runs OUTSIDE the ambient request tenant
+  // context (no runWithTenantContext()/getTenantContext() available) --
+  // it operates on an explicit target agencyId instead. Every ordinary
+  // agency-scoped caller omits this and gets the ambient getAgencyId().
+  agencyId?: string;
 }
 
 export async function recordAuditLog(
   client: TenantTransactionClient,
   input: RecordAuditLogInput,
 ): Promise<void> {
-  const agencyId = getAgencyId();
+  const agencyId = input.agencyId ?? getAgencyId();
   await client.query(
     `INSERT INTO offer_growth_audit_log (agency_id, actor_user_id, action, entity_type, entity_id, metadata)
      VALUES ($1, $2, $3, $4, $5, $6)`,
