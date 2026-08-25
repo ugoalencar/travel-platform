@@ -79,6 +79,19 @@ model Agency {
   pipelineStages          PipelineStage[]
   pipelineAccesses        PipelineAccess[]
   externalOfferCaptures   ExternalOfferCapture[]
+  assets                  Asset[]
+  campaigns               Campaign[]
+  campaignOffers          CampaignOffer[]
+  publications            Publication[]
+  agencyEntitlements      AgencyEntitlement[]
+  engagements             Engagement[]
+  automations             Automation[]
+  automationExecutions    AutomationExecution[]
+  coupons                 Coupon[]
+  couponGrants            CouponGrant[]
+  couponRedemptions       CouponRedemption[]
+  connectorActions        ConnectorAction[]
+  offerGrowthAuditLog     OfferGrowthAuditLog[]
 
   @@map("agencies")
 }
@@ -111,6 +124,13 @@ model User {
   departureConfirmations   OperationCheckpoint[]    @relation("OperationCheckpointDepartureConfirmedBy")
   pipelineAccesses        PipelineAccess[]
   reviewedExternalOfferCaptures ExternalOfferCapture[]
+  createdAssets           Asset[]
+  createdCampaigns        Campaign[]
+  createdPublications     Publication[]
+  createdAutomations      Automation[]
+  createdCoupons          Coupon[]
+  recordedCouponRedemptions CouponRedemption[]
+  offerGrowthAuditLogEntries OfferGrowthAuditLog[]
 
   @@unique([agencyId, email], map: "users_agency_email_key")
   @@unique([agencyId, id], map: "users_agency_id_key")
@@ -163,6 +183,9 @@ model Customer {
   commercialOpportunities CommercialOpportunity[]
   commercialTasks         CommercialTask[]
   customerInteractions    CustomerInteraction[]
+  engagements             Engagement[]
+  couponGrants            CouponGrant[]
+  couponRedemptions       CouponRedemption[]
 
   // Migration 001 also enforces active-customer uniqueness with partial
   // indexes not representable here:
@@ -235,6 +258,11 @@ model Offer {
   agency      Agency      @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "offers_agency_fk")
   proposals   Proposal[]
   externalCaptures ExternalOfferCapture[]
+  campaignOffers   CampaignOffer[]
+  publications     Publication[]
+  engagements      Engagement[]
+  coupons          Coupon[]
+  commercialOpportunities CommercialOpportunity[]
 
   @@unique([agencyId, id], map: "offers_agency_id_key")
   @@index([agencyId], map: "offers_agency_idx")
@@ -264,6 +292,7 @@ model ExternalOfferCapture {
   agency                Agency                     @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "external_offer_captures_agency_fk")
   reviewedByUser        User?                      @relation(fields: [agencyId, reviewedByUserId], references: [agencyId, id], onDelete: Restrict, map: "external_offer_captures_reviewed_by_user_tenant_fk")
   publishedOffer        Offer?                     @relation(fields: [agencyId, publishedOfferId], references: [agencyId, id], onDelete: Restrict, map: "external_offer_captures_published_offer_tenant_fk")
+  assets                Asset[]
 
   @@unique([agencyId, id], map: "external_offer_captures_agency_id_key")
   @@unique([agencyId, sourceUrl], map: "external_offer_captures_agency_source_url_key")
@@ -304,6 +333,7 @@ model Proposal {
   sale          Sale?
   commercialOpportunities CommercialOpportunity[]
   customerInteractions    CustomerInteraction[]
+  couponRedemptions       CouponRedemption[]
 
   @@unique([agencyId, id], map: "proposals_agency_id_key")
   @@index([agencyId, customerId], map: "proposals_agency_customer_idx")
@@ -343,6 +373,7 @@ model Sale {
   trip        Trip?
   commercialOpportunities CommercialOpportunity[]
   customerInteractions    CustomerInteraction[]
+  couponRedemptions       CouponRedemption[]
 
   @@unique([agencyId, id], map: "sales_agency_id_key")
   @@unique([agencyId, proposalId], map: "sales_agency_proposal_key")
@@ -1078,6 +1109,14 @@ model CommercialOpportunity {
   createdAt          DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt          DateTime        @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
+  // Additive attribution columns (migration 014_offer_growth_foundation.sql,
+  // Offer & Growth Engine J/K). Never touches the semantics above.
+  sourceChannel      String?         @map("source_channel")
+  campaignId         String?         @map("campaign_id")
+  publicationId      String?         @map("publication_id")
+  offerId            String?         @map("offer_id")
+  automationId       String?         @map("automation_id")
+
   agency          Agency               @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "commercial_opportunities_agency_fk")
   customer        Customer             @relation(fields: [agencyId, customerId], references: [agencyId, id], onDelete: Restrict, map: "commercial_opportunities_customer_tenant_fk")
   wish            Wish?                @relation(fields: [agencyId, wishId], references: [agencyId, id], onDelete: Restrict, map: "commercial_opportunities_wish_tenant_fk")
@@ -1088,6 +1127,11 @@ model CommercialOpportunity {
   pipelineStage   PipelineStage        @relation(fields: [agencyId, stageId], references: [agencyId, id], onDelete: Restrict, map: "commercial_opportunities_stage_tenant_fk")
   tasks           CommercialTask[]
   interactions    CustomerInteraction[]
+  campaign        Campaign?            @relation(fields: [agencyId, campaignId], references: [agencyId, id], onDelete: Restrict, map: "commercial_opportunities_campaign_tenant_fk")
+  publication     Publication?         @relation(fields: [agencyId, publicationId], references: [agencyId, id], onDelete: Restrict, map: "commercial_opportunities_publication_tenant_fk")
+  offer           Offer?               @relation(fields: [agencyId, offerId], references: [agencyId, id], onDelete: Restrict, map: "commercial_opportunities_offer_tenant_fk")
+  automation      Automation?          @relation(fields: [agencyId, automationId], references: [agencyId, id], onDelete: Restrict, map: "commercial_opportunities_automation_tenant_fk")
+  engagements     Engagement[]
 
   @@unique([agencyId, id], map: "commercial_opportunities_agency_id_key")
   @@index([agencyId, stage], map: "commercial_opportunities_agency_stage_idx")
@@ -1096,6 +1140,8 @@ model CommercialOpportunity {
   @@index([agencyId, customerId], map: "commercial_opportunities_agency_customer_idx")
   @@index([agencyId, pipelineId], map: "commercial_opportunities_agency_pipeline_idx")
   @@index([agencyId, stageId], map: "commercial_opportunities_agency_stage_id_idx")
+  @@index([agencyId, campaignId], map: "commercial_opportunities_agency_campaign_idx")
+  @@index([agencyId, publicationId], map: "commercial_opportunities_agency_publication_idx")
   @@map("commercial_opportunities")
 }
 
@@ -1225,4 +1271,480 @@ model CustomerInteraction {
   @@index([agencyId, customerId], map: "customer_interactions_agency_customer_idx")
   @@index([agencyId, occurredAt], map: "customer_interactions_agency_occurred_at_idx")
   @@map("customer_interactions")
+}
+
+// ============================================================
+// OFFER & GROWTH ENGINE (migration 014_offer_growth_foundation.sql)
+// See docs/adr/ADR-OFFER-GROWTH-001 and docs/offer-growth/*.md.
+// ============================================================
+
+model Asset {
+  id                      String          @id @default(dbgenerated("(gen_random_uuid())::text"))
+  agencyId                String          @map("agency_id")
+  type                    AssetType
+  source                  AssetSourceType
+  sourceConnector         String?         @map("source_connector")
+  sourceSupplier          String?         @map("source_supplier")
+  sourceOriginalUrl       String?         @map("source_original_url")
+  sourceLicense           String?         @map("source_license")
+  sourceAuthor            String?         @map("source_author")
+  sourceDedupeHash        String?         @map("source_dedupe_hash")
+  sourceUsageRestrictions String?         @map("source_usage_restrictions")
+  sourceCaptureId         String?         @map("source_capture_id")
+  metaWidth               Int?            @map("meta_width")
+  metaHeight              Int?            @map("meta_height")
+  metaDurationSeconds     Decimal?        @map("meta_duration_seconds") @db.Decimal(10, 2)
+  metaMimeType            String?         @map("meta_mime_type")
+  metaSizeBytes           BigInt?         @map("meta_size_bytes")
+  metaLanguage            String?         @map("meta_language")
+  metaTags                Json            @default("[]") @map("meta_tags")
+  metaSafeArea            Json?           @map("meta_safe_area")
+  metaVariants            Json            @default("[]") @map("meta_variants")
+  storageUrl              String?         @map("storage_url")
+  localReference          String?         @map("local_reference")
+  createdByUserId         String?         @map("created_by_user_id")
+  createdAt               DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt               DateTime        @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  agency         Agency                @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "assets_agency_fk")
+  createdByUser  User?                 @relation(fields: [agencyId, createdByUserId], references: [agencyId, id], onDelete: Restrict, map: "assets_created_by_user_tenant_fk")
+  sourceCapture  ExternalOfferCapture? @relation(fields: [agencyId, sourceCaptureId], references: [agencyId, id], onDelete: Restrict, map: "assets_source_capture_tenant_fk")
+
+  @@unique([agencyId, id], map: "assets_agency_id_key")
+  @@index([agencyId, type], map: "assets_agency_type_idx")
+  @@index([agencyId, source], map: "assets_agency_source_idx")
+  @@index([agencyId, sourceDedupeHash], map: "assets_agency_dedupe_hash_idx")
+  @@index([agencyId, sourceCaptureId], map: "assets_agency_capture_idx")
+  @@map("assets")
+}
+
+model Campaign {
+  id                   String         @id @default(dbgenerated("(gen_random_uuid())::text"))
+  agencyId             String         @map("agency_id")
+  name                 String
+  description          String?
+  startsAt             DateTime?      @map("starts_at") @db.Timestamptz(6)
+  endsAt               DateTime?      @map("ends_at") @db.Timestamptz(6)
+  publicationStartsAt  DateTime?      @map("publication_starts_at") @db.Timestamptz(6)
+  publicationEndsAt    DateTime?      @map("publication_ends_at") @db.Timestamptz(6)
+  timezone             String         @default("UTC")
+  status               CampaignStatus @default(DRAFT)
+  createdByUserId      String?        @map("created_by_user_id")
+  createdAt            DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime       @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  agency          Agency           @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "campaigns_agency_fk")
+  createdByUser   User?            @relation(fields: [agencyId, createdByUserId], references: [agencyId, id], onDelete: Restrict, map: "campaigns_created_by_user_tenant_fk")
+  campaignOffers  CampaignOffer[]
+  publications    Publication[]
+  automations     Automation[]
+  coupons         Coupon[]
+  couponGrants    CouponGrant[]
+  engagements     Engagement[]
+  opportunities   CommercialOpportunity[]
+
+  @@unique([agencyId, id], map: "campaigns_agency_id_key")
+  @@index([agencyId, status], map: "campaigns_agency_status_idx")
+  @@map("campaigns")
+}
+
+model CampaignOffer {
+  id         String   @id @default(dbgenerated("(gen_random_uuid())::text"))
+  agencyId   String   @map("agency_id")
+  campaignId String   @map("campaign_id")
+  offerId    String   @map("offer_id")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  agency   Agency   @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "campaign_offers_agency_fk")
+  campaign Campaign @relation(fields: [agencyId, campaignId], references: [agencyId, id], onDelete: Restrict, map: "campaign_offers_campaign_tenant_fk")
+  offer    Offer    @relation(fields: [agencyId, offerId], references: [agencyId, id], onDelete: Restrict, map: "campaign_offers_offer_tenant_fk")
+
+  @@unique([agencyId, id], map: "campaign_offers_agency_id_key")
+  @@unique([agencyId, campaignId, offerId], map: "campaign_offers_unique")
+  @@index([agencyId, campaignId], map: "campaign_offers_agency_campaign_idx")
+  @@index([agencyId, offerId], map: "campaign_offers_agency_offer_idx")
+  @@map("campaign_offers")
+}
+
+model Publication {
+  id                     String            @id @default(dbgenerated("(gen_random_uuid())::text"))
+  agencyId               String            @map("agency_id")
+  campaignId             String            @map("campaign_id")
+  offerId                String            @map("offer_id")
+  creativeTemplateId     String?           @map("creative_template_id")
+  channel                String
+  snapshot               Json?
+  snapshotGeneratedAt    DateTime?         @map("snapshot_generated_at") @db.Timestamptz(6)
+  scheduledAt            DateTime?         @map("scheduled_at") @db.Timestamptz(6)
+  publishedAt            DateTime?         @map("published_at") @db.Timestamptz(6)
+  status                 PublicationStatus @default(DRAFT)
+  externalPublicationId  String?           @map("external_publication_id")
+  createdByUserId        String?           @map("created_by_user_id")
+  createdAt              DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt              DateTime          @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  agency          Agency                  @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "publications_agency_fk")
+  campaign        Campaign                @relation(fields: [agencyId, campaignId], references: [agencyId, id], onDelete: Restrict, map: "publications_campaign_tenant_fk")
+  offer           Offer                   @relation(fields: [agencyId, offerId], references: [agencyId, id], onDelete: Restrict, map: "publications_offer_tenant_fk")
+  createdByUser   User?                   @relation(fields: [agencyId, createdByUserId], references: [agencyId, id], onDelete: Restrict, map: "publications_created_by_user_tenant_fk")
+  automations     Automation[]
+  engagements     Engagement[]
+  couponGrants    CouponGrant[]
+  connectorActions ConnectorAction[]
+  opportunities   CommercialOpportunity[]
+
+  @@unique([agencyId, id], map: "publications_agency_id_key")
+  @@index([agencyId, status], map: "publications_agency_status_idx")
+  @@index([agencyId, campaignId], map: "publications_agency_campaign_idx")
+  @@index([agencyId, offerId], map: "publications_agency_offer_idx")
+  @@index([agencyId, channel], map: "publications_agency_channel_idx")
+  @@map("publications")
+}
+
+model AgencyEntitlement {
+  id        String          @id @default(dbgenerated("(gen_random_uuid())::text"))
+  agencyId  String          @map("agency_id")
+  feature   PlatformFeature
+  enabled   Boolean         @default(false)
+  limits    Json            @default("{}")
+  updatedBy String          @map("updated_by")
+  createdAt DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime        @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  agency Agency @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "agency_entitlements_agency_fk")
+
+  @@unique([agencyId, id], map: "agency_entitlements_agency_id_key")
+  @@unique([agencyId, feature], map: "agency_entitlements_unique")
+  @@index([agencyId, feature], map: "agency_entitlements_agency_feature_idx")
+  @@map("agency_entitlements")
+}
+
+model Engagement {
+  id               String         @id @default(dbgenerated("(gen_random_uuid())::text"))
+  agencyId         String         @map("agency_id")
+  type             EngagementType
+  channel          String
+  campaignId       String?        @map("campaign_id")
+  publicationId    String?        @map("publication_id")
+  offerId          String?        @map("offer_id")
+  externalUserId   String?        @map("external_user_id")
+  customerId       String?        @map("customer_id")
+  opportunityId    String?        @map("opportunity_id")
+  content          String?
+  occurredAt       DateTime       @default(now()) @map("occurred_at") @db.Timestamptz(6)
+  rawPayload       Json?          @map("raw_payload")
+  createdAt        DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  agency      Agency                 @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "engagements_agency_fk")
+  campaign    Campaign?              @relation(fields: [agencyId, campaignId], references: [agencyId, id], onDelete: Restrict, map: "engagements_campaign_tenant_fk")
+  publication Publication?           @relation(fields: [agencyId, publicationId], references: [agencyId, id], onDelete: Restrict, map: "engagements_publication_tenant_fk")
+  offer       Offer?                 @relation(fields: [agencyId, offerId], references: [agencyId, id], onDelete: Restrict, map: "engagements_offer_tenant_fk")
+  customer    Customer?              @relation(fields: [agencyId, customerId], references: [agencyId, id], onDelete: Restrict, map: "engagements_customer_tenant_fk")
+  opportunity CommercialOpportunity? @relation(fields: [agencyId, opportunityId], references: [agencyId, id], onDelete: Restrict, map: "engagements_opportunity_tenant_fk")
+  automationExecutions AutomationExecution[]
+  connectorActions     ConnectorAction[]
+
+  @@unique([agencyId, id], map: "engagements_agency_id_key")
+  @@index([agencyId, campaignId], map: "engagements_agency_campaign_idx")
+  @@index([agencyId, publicationId], map: "engagements_agency_publication_idx")
+  @@index([agencyId, type], map: "engagements_agency_type_idx")
+  @@index([agencyId, externalUserId], map: "engagements_agency_external_user_idx")
+  @@map("engagements")
+}
+
+model Automation {
+  id                             String            @id @default(dbgenerated("(gen_random_uuid())::text"))
+  agencyId                       String            @map("agency_id")
+  name                           String
+  trigger                        AutomationTrigger
+  status                         AutomationStatus  @default(DRAFT)
+  channel                        String?
+  campaignId                     String?           @map("campaign_id")
+  publicationId                  String?           @map("publication_id")
+  keyword                        String?
+  caseSensitive                  Boolean           @default(false) @map("case_sensitive")
+  actions                        Json              @default("[]")
+  validFrom                      DateTime?         @map("valid_from") @db.Timestamptz(6)
+  validUntil                     DateTime?         @map("valid_until") @db.Timestamptz(6)
+  cooldownSeconds                Int               @default(0) @map("cooldown_seconds")
+  maxExecutions                  Int?              @map("max_executions")
+  maxExecutionsPerExternalUser   Int?              @map("max_executions_per_external_user")
+  createdByUserId                String?           @map("created_by_user_id")
+  createdAt                      DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                      DateTime          @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  agency        Agency                @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "automations_agency_fk")
+  campaign      Campaign?             @relation(fields: [agencyId, campaignId], references: [agencyId, id], onDelete: Restrict, map: "automations_campaign_tenant_fk")
+  publication   Publication?          @relation(fields: [agencyId, publicationId], references: [agencyId, id], onDelete: Restrict, map: "automations_publication_tenant_fk")
+  createdByUser User?                 @relation(fields: [agencyId, createdByUserId], references: [agencyId, id], onDelete: Restrict, map: "automations_created_by_user_tenant_fk")
+  executions       AutomationExecution[]
+  couponGrants     CouponGrant[]
+  connectorActions ConnectorAction[]
+  opportunities    CommercialOpportunity[]
+
+  @@unique([agencyId, id], map: "automations_agency_id_key")
+  @@index([agencyId, status], map: "automations_agency_status_idx")
+  @@index([agencyId, campaignId], map: "automations_agency_campaign_idx")
+  @@index([agencyId, trigger], map: "automations_agency_trigger_idx")
+  @@map("automations")
+}
+
+model AutomationExecution {
+  id                String     @id @default(dbgenerated("(gen_random_uuid())::text"))
+  agencyId          String     @map("agency_id")
+  automationId      String     @map("automation_id")
+  engagementId      String?    @map("engagement_id")
+  channel           String
+  externalUserId    String     @default("__none__") @map("external_user_id")
+  normalizedKeyword String     @default("__none__") @map("normalized_keyword")
+  publicationId     String     @default("__none__") @map("publication_id")
+  executedAt        DateTime   @default(now()) @map("executed_at") @db.Timestamptz(6)
+  result            Json?
+
+  agency     Agency      @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "automation_executions_agency_fk")
+  automation Automation  @relation(fields: [agencyId, automationId], references: [agencyId, id], onDelete: Restrict, map: "automation_executions_automation_tenant_fk")
+  engagement Engagement? @relation(fields: [agencyId, engagementId], references: [agencyId, id], onDelete: Restrict, map: "automation_executions_engagement_tenant_fk")
+
+  @@unique([agencyId, id], map: "automation_executions_agency_id_key")
+  @@unique([agencyId, automationId, channel, externalUserId, normalizedKeyword, publicationId], map: "automation_executions_dedup_key")
+  @@index([agencyId, automationId], map: "automation_executions_agency_automation_idx")
+  @@index([agencyId, externalUserId], map: "automation_executions_agency_external_user_idx")
+  @@map("automation_executions")
+}
+
+model Coupon {
+  id                  String     @id @default(dbgenerated("(gen_random_uuid())::text"))
+  agencyId            String     @map("agency_id")
+  code                String
+  name                String
+  type                CouponType
+  value               Decimal?   @db.Decimal(10, 2)
+  benefitDescription  String?    @map("benefit_description")
+  startsAt            DateTime?  @map("starts_at") @db.Timestamptz(6)
+  expiresAt           DateTime?  @map("expires_at") @db.Timestamptz(6)
+  maxUses             Int?       @map("max_uses")
+  maxUsesPerCustomer  Int?       @map("max_uses_per_customer")
+  campaignId          String?    @map("campaign_id")
+  offerId             String?    @map("offer_id")
+  active              Boolean    @default(true)
+  createdByUserId     String?    @map("created_by_user_id")
+  createdAt           DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime   @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  agency        Agency        @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "coupons_agency_fk")
+  campaign      Campaign?     @relation(fields: [agencyId, campaignId], references: [agencyId, id], onDelete: Restrict, map: "coupons_campaign_tenant_fk")
+  offer         Offer?        @relation(fields: [agencyId, offerId], references: [agencyId, id], onDelete: Restrict, map: "coupons_offer_tenant_fk")
+  createdByUser User?         @relation(fields: [agencyId, createdByUserId], references: [agencyId, id], onDelete: Restrict, map: "coupons_created_by_user_tenant_fk")
+  grants        CouponGrant[]
+  redemptions   CouponRedemption[]
+
+  @@unique([agencyId, id], map: "coupons_agency_id_key")
+  @@unique([agencyId, code], map: "coupons_agency_code_key")
+  @@index([agencyId, active], map: "coupons_agency_active_idx")
+  @@index([agencyId, campaignId], map: "coupons_agency_campaign_idx")
+  @@map("coupons")
+}
+
+model CouponGrant {
+  id               String            @id @default(dbgenerated("(gen_random_uuid())::text"))
+  agencyId         String            @map("agency_id")
+  couponId         String            @map("coupon_id")
+  campaignId       String?           @map("campaign_id")
+  publicationId    String?           @map("publication_id")
+  automationId     String?           @map("automation_id")
+  customerId       String?           @map("customer_id")
+  externalUserId   String?           @map("external_user_id")
+  issuedAt         DateTime          @default(now()) @map("issued_at") @db.Timestamptz(6)
+  expiresAt        DateTime?         @map("expires_at") @db.Timestamptz(6)
+  deliveryChannel  String?           @map("delivery_channel")
+  status           CouponGrantStatus @default(ISSUED)
+  createdAt        DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  agency      Agency             @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "coupon_grants_agency_fk")
+  coupon      Coupon             @relation(fields: [agencyId, couponId], references: [agencyId, id], onDelete: Restrict, map: "coupon_grants_coupon_tenant_fk")
+  campaign    Campaign?          @relation(fields: [agencyId, campaignId], references: [agencyId, id], onDelete: Restrict, map: "coupon_grants_campaign_tenant_fk")
+  publication Publication?       @relation(fields: [agencyId, publicationId], references: [agencyId, id], onDelete: Restrict, map: "coupon_grants_publication_tenant_fk")
+  automation  Automation?        @relation(fields: [agencyId, automationId], references: [agencyId, id], onDelete: Restrict, map: "coupon_grants_automation_tenant_fk")
+  customer    Customer?          @relation(fields: [agencyId, customerId], references: [agencyId, id], onDelete: Restrict, map: "coupon_grants_customer_tenant_fk")
+  redemptions CouponRedemption[]
+
+  @@unique([agencyId, id], map: "coupon_grants_agency_id_key")
+  @@index([agencyId, couponId], map: "coupon_grants_agency_coupon_idx")
+  @@index([agencyId, status], map: "coupon_grants_agency_status_idx")
+  @@index([agencyId, externalUserId], map: "coupon_grants_agency_external_user_idx")
+  @@map("coupon_grants")
+}
+
+model CouponRedemption {
+  id                 String    @id @default(dbgenerated("(gen_random_uuid())::text"))
+  agencyId           String    @map("agency_id")
+  couponId           String    @map("coupon_id")
+  grantId            String?   @map("grant_id")
+  customerId         String    @map("customer_id")
+  proposalId         String?   @map("proposal_id")
+  saleId             String?   @map("sale_id")
+  amountApplied      Decimal?  @map("amount_applied") @db.Decimal(10, 2)
+  redeemedAt         DateTime  @default(now()) @map("redeemed_at") @db.Timestamptz(6)
+  reversedAt         DateTime? @map("reversed_at") @db.Timestamptz(6)
+  recordedByUserId   String?   @map("recorded_by_user_id")
+  createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  agency         Agency       @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "coupon_redemptions_agency_fk")
+  coupon         Coupon       @relation(fields: [agencyId, couponId], references: [agencyId, id], onDelete: Restrict, map: "coupon_redemptions_coupon_tenant_fk")
+  grant          CouponGrant? @relation(fields: [agencyId, grantId], references: [agencyId, id], onDelete: Restrict, map: "coupon_redemptions_grant_tenant_fk")
+  customer       Customer     @relation(fields: [agencyId, customerId], references: [agencyId, id], onDelete: Restrict, map: "coupon_redemptions_customer_tenant_fk")
+  proposal       Proposal?    @relation(fields: [agencyId, proposalId], references: [agencyId, id], onDelete: Restrict, map: "coupon_redemptions_proposal_tenant_fk")
+  sale           Sale?        @relation(fields: [agencyId, saleId], references: [agencyId, id], onDelete: Restrict, map: "coupon_redemptions_sale_tenant_fk")
+  recordedByUser User?        @relation(fields: [agencyId, recordedByUserId], references: [agencyId, id], onDelete: Restrict, map: "coupon_redemptions_recorded_by_user_tenant_fk")
+
+  @@unique([agencyId, id], map: "coupon_redemptions_agency_id_key")
+  @@index([agencyId, couponId], map: "coupon_redemptions_agency_coupon_idx")
+  @@index([agencyId, customerId], map: "coupon_redemptions_agency_customer_idx")
+  @@map("coupon_redemptions")
+}
+
+model ConnectorAction {
+  id             String                 @id @default(dbgenerated("(gen_random_uuid())::text"))
+  agencyId       String                 @map("agency_id")
+  channel        String
+  type           ConnectorActionType
+  automationId   String?                @map("automation_id")
+  publicationId  String?                @map("publication_id")
+  engagementId   String?                @map("engagement_id")
+  externalUserId String?                @map("external_user_id")
+  payload        Json                   @default("{}")
+  status         ConnectorActionStatus  @default(PENDING)
+  externalRef    String?                @map("external_ref")
+  errorMessage   String?                @map("error_message")
+  createdAt      DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+  sentAt         DateTime?              @map("sent_at") @db.Timestamptz(6)
+
+  agency      Agency       @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "connector_actions_agency_fk")
+  automation  Automation?  @relation(fields: [agencyId, automationId], references: [agencyId, id], onDelete: Restrict, map: "connector_actions_automation_tenant_fk")
+  publication Publication? @relation(fields: [agencyId, publicationId], references: [agencyId, id], onDelete: Restrict, map: "connector_actions_publication_tenant_fk")
+  engagement  Engagement?  @relation(fields: [agencyId, engagementId], references: [agencyId, id], onDelete: Restrict, map: "connector_actions_engagement_tenant_fk")
+
+  @@unique([agencyId, id], map: "connector_actions_agency_id_key")
+  @@index([agencyId, status], map: "connector_actions_agency_status_idx")
+  @@index([agencyId, automationId], map: "connector_actions_agency_automation_idx")
+  @@map("connector_actions")
+}
+
+model OfferGrowthAuditLog {
+  id           String   @id @default(dbgenerated("(gen_random_uuid())::text"))
+  agencyId     String   @map("agency_id")
+  actorUserId  String?  @map("actor_user_id")
+  action       String
+  entityType   String   @map("entity_type")
+  entityId     String?  @map("entity_id")
+  metadata     Json     @default("{}")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  agency    Agency @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "offer_growth_audit_log_agency_fk")
+  actorUser User?  @relation(fields: [agencyId, actorUserId], references: [agencyId, id], onDelete: Restrict, map: "offer_growth_audit_log_actor_user_tenant_fk")
+
+  @@unique([agencyId, id], map: "offer_growth_audit_log_agency_id_key")
+  @@index([agencyId, action, createdAt], map: "offer_growth_audit_log_agency_action_idx")
+  @@index([agencyId, entityType, entityId], map: "offer_growth_audit_log_agency_entity_idx")
+  @@map("offer_growth_audit_log")
+}
+
+enum AssetType {
+  IMAGE
+  VIDEO
+  LOGO
+  ICON
+  DOCUMENT
+}
+
+enum AssetSourceType {
+  PESCADOR
+  UPLOAD
+  AGENCY_LIBRARY
+  SUPPLIER
+  GENERATED
+  EXTERNAL_CONNECTOR
+}
+
+enum CampaignStatus {
+  DRAFT
+  SCHEDULED
+  ACTIVE
+  PAUSED
+  FINISHED
+  CANCELLED
+}
+
+enum PublicationStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHING
+  PUBLISHED
+  FAILED
+  CANCELLED
+  ARCHIVED
+}
+
+enum PlatformFeature {
+  PESCADOR
+  CREATIVE_STUDIO
+  CAMPAIGNS
+  SOCIAL_PUBLISHING
+  SOCIAL_AUTOMATION
+  WHATSAPP
+  AI_ASSISTANT
+  ADVANCED_ANALYTICS
+  GDS
+}
+
+enum EngagementType {
+  COMMENT
+  MESSAGE
+  CLICK
+  FORM
+  QR
+  COUPON_REQUEST
+}
+
+enum AutomationTrigger {
+  COMMENT_KEYWORD
+  DIRECT_MESSAGE_KEYWORD
+  FORM_SUBMITTED
+  LINK_CLICKED
+  QR_SCANNED
+  COUPON_REQUESTED
+}
+
+enum AutomationStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  ARCHIVED
+}
+
+enum CouponType {
+  FIXED_AMOUNT
+  PERCENTAGE
+  BENEFIT
+}
+
+enum CouponGrantStatus {
+  ISSUED
+  DELIVERED
+  REDEEMED
+  EXPIRED
+  REVOKED
+}
+
+enum ConnectorActionType {
+  PUBLIC_REPLY
+  PRIVATE_MESSAGE
+  PUBLISH
+  UPDATE_PUBLICATION
+}
+
+enum ConnectorActionStatus {
+  PENDING
+  SENT
+  FAILED
 }

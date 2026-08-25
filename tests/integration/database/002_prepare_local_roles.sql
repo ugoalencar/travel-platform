@@ -180,6 +180,32 @@ BEGIN
 END;
 $$;
 
+-- Offer & Growth Engine foundation tables (migration
+-- 014_offer_growth_foundation.sql) only exist once that migration has been
+-- applied. Keep this guarded so earlier domain tests can keep applying only
+-- the migrations they need.
+DO $$
+BEGIN
+  IF to_regclass('public.assets') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      assets,
+      campaigns,
+      campaign_offers,
+      publications,
+      agency_entitlements,
+      engagements,
+      automations,
+      automation_executions,
+      coupons,
+      coupon_grants,
+      coupon_redemptions,
+      connector_actions,
+      offer_growth_audit_log
+    TO travel_app_runtime_local;
+  END IF;
+END;
+$$;
+
 GRANT EXECUTE ON FUNCTION current_agency_id() TO travel_app_runtime_local;
 GRANT EXECUTE ON FUNCTION current_user_id() TO travel_app_runtime_local;
 GRANT EXECUTE ON FUNCTION set_tenant_context(TEXT, TEXT) TO travel_app_runtime_local;
