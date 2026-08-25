@@ -4,12 +4,12 @@ import {
   AutomationActionType,
   AutomationStatus,
   AutomationTrigger,
-  CouponType,
   EngagementType,
   type Automation,
   type AutomationAction,
   type AutomationExecution,
   type ConnectorEvent,
+  type CouponType,
 } from '../../../packages/domain/types';
 import type { DatabaseRuntime, TenantTransactionClient } from './database';
 import { ConflictError, NotFoundError, ValidationError } from './errors';

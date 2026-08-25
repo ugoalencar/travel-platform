@@ -1,6 +1,6 @@
 import { getAgencyId, getUserId } from '../../../packages/domain/tenant-context';
-import { CouponGrantStatus, CouponType } from '../../../packages/domain/types';
-import type { Coupon, CouponGrant, CouponRedemption } from '../../../packages/domain/types';
+import { CouponType } from '../../../packages/domain/types';
+import type { Coupon, CouponGrant, CouponGrantStatus, CouponRedemption } from '../../../packages/domain/types';
 import type { DatabaseRuntime, TenantTransactionClient } from './database';
 import { ConflictError, NotFoundError, ValidationError } from './errors';
 import { recordAuditLog } from './offer-growth-audit';

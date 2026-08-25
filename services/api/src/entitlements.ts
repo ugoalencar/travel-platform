@@ -175,7 +175,7 @@ function toView(row: EntitlementRow): AgencyEntitlementView {
     agencyId: row.agency_id,
     feature: row.feature,
     enabled: row.enabled,
-    limits: (row.limits ?? {}) as AgencyEntitlementLimits,
+    limits: row.limits ?? {},
     updatedBy: row.updated_by,
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
