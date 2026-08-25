@@ -1,0 +1,29 @@
+{
+  "name": "@travel-platform/creative-engine",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Abstract, domain-neutral creative/channel/automation primitives. No persistence, no travel-domain coupling, no product-model decisions -- see docs/offer-growth/IMPLEMENTATION-HANDOFF.md.",
+  "types": "./dist/types.d.ts",
+  "exports": {
+    "./types": {
+      "types": "./dist/types.d.ts",
+      "default": "./dist/types.js"
+    },
+    "./channel": {
+      "types": "./dist/channel.d.ts",
+      "default": "./dist/channel.js"
+    },
+    "./automation": {
+      "types": "./dist/automation.d.ts",
+      "default": "./dist/automation.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "lint": "eslint *.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run --root ../.. creative-engine",
+    "test:coverage": "vitest run --root ../.. --coverage creative-engine"
+  }
+}
