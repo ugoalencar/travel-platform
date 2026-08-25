@@ -435,7 +435,7 @@ function readAllMigrations(): string {
     .filter((fileName) => /^\d+_.+\.sql$/.test(fileName))
     .sort();
 
-  expect(migrationFiles).toHaveLength(13);
+  expect(migrationFiles).toHaveLength(14);
 
   return migrationFiles
     .map((fileName) => readSql(resolve(migrationsDir, fileName)))
