@@ -15,8 +15,7 @@ datasource db {
 //
 // SOURCE OF TRUTH: infrastructure/migrations/*.sql (ADR-005).
 // This file is a DERIVED representation, produced by `prisma db pull`
-// against a database with 001_initial_schema.sql and
-// 002_rls_policies.sql applied, then hand-annotated only where
+// against a database with the ordered SQL migrations applied, then hand-annotated only where
 // introspection cannot express something the SQL already guarantees
 // (see the onDelete note below). Do not hand-edit structural fields,
 // types, relations, or `@map`/`@@map` values here without first
@@ -24,10 +23,10 @@ datasource db {
 // file drifts out of sync with what PostgreSQL actually enforces.
 //
 // NOT representable in this file at all (SQL only):
-//   - Row-Level Security (ENABLE/FORCE RLS, CREATE POLICY, 44 policies)
+//   - Row-Level Security (ENABLE/FORCE RLS, CREATE POLICY)
 //   - current_agency_id() / current_user_id() / set_tenant_context() /
 //     clear_tenant_context()
-//   - CHECK constraints (11: non-negative amounts, date ranges, etc.)
+//   - CHECK constraints (non-negative amounts, date ranges, state guards, etc.)
 //   - Partial unique indexes (customers_agency_cpf_active_key,
 //     customers_agency_email_active_key -- WHERE ... AND deleted_at IS NULL)
 //   - Runtime role grants (travel_app_runtime_local, no BYPASSRLS)

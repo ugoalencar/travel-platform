@@ -1,5 +1,10 @@
 import Fastify from 'fastify';
-import type { FastifyInstance } from 'fastify';
+import type {
+  FastifyInstance,
+  FastifyReply,
+  FastifyRequest,
+  HookHandlerDoneFunction,
+} from 'fastify';
 import {
   createCustomerTenantContextHook,
   createTenantContextHook,
@@ -235,11 +240,19 @@ export interface BuildAppOptions {
   // stays exercisable and reviewable even before a caller opts in.
   customerAuthProvider?: CustomerAuthProvider;
   validateCustomerAgencyAccess?: ValidateCustomerAgencyAccess;
+  readinessCheck?: () => Promise<void>;
+  rateLimit?: RateLimitOptions;
 }
 
 interface AgencyProofRow {
   id: string;
   name: string;
+}
+
+interface RateLimitOptions {
+  enabled?: boolean;
+  windowMs?: number;
+  max?: number;
 }
 
 export function buildApp(options: BuildAppOptions): FastifyInstance {
@@ -255,6 +268,8 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     validateUserAgencyAccess: options.validateUserAgencyAccess,
   });
   const protectedHooks = [authenticate, establishTenant];
+  const rateLimit = createRateLimitHook(options.rateLimit);
+  app.addHook('onRequest', rateLimit);
 
   // ============================================================
   // CUSTOMER PORTAL (end-customer facing, read-only). Entirely separate
@@ -352,6 +367,23 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     status: 'ok',
     service: 'api',
   }));
+
+  app.get('/readiness', async (_request, reply) => {
+    try {
+      await options.readinessCheck?.();
+      return {
+        status: 'ready',
+        service: 'api',
+      };
+    } catch (error: unknown) {
+      app.log.error({ errorName: error instanceof Error ? error.name : 'UnknownError' }, 'Readiness check failed');
+      reply.code(503);
+      return {
+        status: 'not_ready',
+        service: 'api',
+      };
+    }
+  });
 
   app.get('/me', { preHandler: protectedHooks }, () => {
     const context = getTenantContext();
@@ -1539,6 +1571,10 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
   );
 
   if (options.exposeTestRoutes === true) {
+    app.post('/__test/rate-limit-proof', { preHandler: protectedHooks }, () => ({
+      status: 'ok',
+    }));
+
     app.post('/__test/rollback-proof', { preHandler: protectedHooks }, async () => {
       await options.database.withTenantTransaction(async (client) => {
         await client.query(
@@ -1551,6 +1587,51 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
   }
 
   return app;
+}
+
+function createRateLimitHook(options: RateLimitOptions | undefined) {
+  const enabled = options?.enabled ?? true;
+  const windowMs = options?.windowMs ?? 60_000;
+  const max = options?.max ?? 300;
+  const buckets = new Map<string, { count: number; resetAt: number }>();
+
+  return function rateLimitHook(
+    request: FastifyRequest,
+    reply: FastifyReply,
+    done: HookHandlerDoneFunction,
+  ): void {
+    if (!enabled || !isRateLimitedMethod(request.method)) {
+      done();
+      return;
+    }
+
+    const now = Date.now();
+    const key = `${request.ip}:${request.method}:${request.url.split('?')[0] ?? request.url}`;
+    const bucket = buckets.get(key);
+
+    if (!bucket || bucket.resetAt <= now) {
+      buckets.set(key, { count: 1, resetAt: now + windowMs });
+      done();
+      return;
+    }
+
+    bucket.count += 1;
+    if (bucket.count <= max) {
+      done();
+      return;
+    }
+
+    const retryAfterSeconds = Math.max(1, Math.ceil((bucket.resetAt - now) / 1000));
+    reply.header('retry-after', String(retryAfterSeconds));
+    reply.code(429).send({
+      error: 'Too many requests',
+      code: 'RATE_LIMITED',
+    });
+  };
+}
+
+function isRateLimitedMethod(method: string): boolean {
+  return ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method);
 }
 
 const FORBIDDEN_CREATE_FIELDS = [

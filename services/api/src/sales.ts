@@ -20,6 +20,13 @@ interface SaleRow {
   updated_at: string;
 }
 
+interface ReceivableSyncRow {
+  id: string;
+  amount: string;
+  status: string;
+  paid_amount: string;
+}
+
 export interface CreateSaleInput {
   customerId: string;
   proposalId?: string;
@@ -244,6 +251,36 @@ export async function updateSale(
   }
 
   return database.withTenantTransaction(async (client) => {
+    let receivableToSync: ReceivableSyncRow | null = null;
+    let nextTotal: number | null = null;
+    let nextCustomerId: string | null = null;
+
+    if (data.amount !== undefined || data.discount !== undefined) {
+      const current = await client.query<SaleRow>(
+        `SELECT ${SALE_COLUMNS}
+         FROM sales
+         WHERE agency_id = $1 AND id = $2
+         FOR UPDATE`,
+        [agencyId, id],
+      );
+      const currentRow = current.rows[0];
+      if (!currentRow) return null;
+
+      const nextAmount = data.amount ?? Number(currentRow.amount);
+      const nextDiscount = data.discount ?? Number(currentRow.discount);
+      if (nextDiscount > nextAmount) {
+        throw new ValidationError('Field "discount" must not exceed "amount"');
+      }
+
+      receivableToSync = await getReceivableSyncState(client, agencyId, id);
+      if (receivableToSync && Number(receivableToSync.paid_amount) > 0) {
+        throw new ConflictError('Cannot edit Sale financial fields after receivable allocation');
+      }
+
+      nextTotal = computeTotal(nextAmount, nextDiscount);
+      nextCustomerId = currentRow.customer_id;
+    }
+
     const result = await client.query<SaleRow>(
       `UPDATE sales
        SET ${fields.join(', ')}, updated_at = now()
@@ -264,6 +301,11 @@ export async function updateSale(
       }
       return null;
     }
+
+    if (nextTotal !== null && nextCustomerId !== null) {
+      await syncUnallocatedSaleReceivable(client, agencyId, row.id, nextCustomerId, nextTotal, receivableToSync);
+    }
+
     return toSale(row);
   });
 }
@@ -446,6 +488,69 @@ async function getReceivablePaymentSummary(
   );
   const row = result.rows[0];
   return row ? { amount: Number(row.amount), paidAmount: Number(row.paid_amount) } : null;
+}
+
+async function getReceivableSyncState(
+  client: TenantTransactionClient,
+  agencyId: string,
+  saleId: string,
+): Promise<ReceivableSyncRow | null> {
+  const result = await client.query<ReceivableSyncRow>(
+    `SELECT r.id,
+            r.amount,
+            r.status,
+            COALESCE(allocations.paid_amount, 0)::numeric(12,2) AS paid_amount
+     FROM receivables r
+     LEFT JOIN (
+       SELECT agency_id, receivable_id, sum(amount) AS paid_amount
+       FROM payment_allocations
+       WHERE agency_id = $1
+       GROUP BY agency_id, receivable_id
+     ) allocations
+       ON allocations.agency_id = r.agency_id AND allocations.receivable_id = r.id
+     WHERE r.agency_id = $1 AND r.sale_id = $2
+     FOR UPDATE OF r`,
+    [agencyId, saleId],
+  );
+
+  return result.rows[0] ?? null;
+}
+
+async function syncUnallocatedSaleReceivable(
+  client: TenantTransactionClient,
+  agencyId: string,
+  saleId: string,
+  customerId: string,
+  total: number,
+  receivable: ReceivableSyncRow | null,
+): Promise<void> {
+  if (total <= 0) {
+    if (receivable) {
+      await client.query(
+        `UPDATE receivables
+         SET status = 'CANCELLED', updated_at = now()
+         WHERE agency_id = $1 AND id = $2`,
+        [agencyId, receivable.id],
+      );
+    }
+    return;
+  }
+
+  if (!receivable) {
+    await client.query(
+      `INSERT INTO receivables (agency_id, sale_id, customer_id, description, amount, due_at)
+       VALUES ($1, $2, $3, $4, $5, now())`,
+      [agencyId, saleId, customerId, 'Sale receivable', total],
+    );
+    return;
+  }
+
+  await client.query(
+    `UPDATE receivables
+     SET amount = $3, status = 'OPEN', updated_at = now()
+     WHERE agency_id = $1 AND id = $2`,
+    [agencyId, receivable.id, total],
+  );
 }
 
 function toSale(row: SaleRow): Sale {
