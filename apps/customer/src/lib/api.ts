@@ -33,15 +33,6 @@ import type {
   TransportOperation,
 } from '../types/operations';
 import type { Sale, CreateSaleInput, UpdateSaleInput } from '../types/sale';
-import type {
-  CashFlowSummary,
-  FinancialPeriod,
-  Receivable,
-} from '../types/financial';
-import type {
-  CreateExternalOfferCaptureInput,
-  ExternalOfferCapture,
-} from '../types/pescador';
 
 // Single seam for a future production API base URL. In local dev this stays
 // empty so requests go to relative paths (e.g. `/api/customers`) and are
@@ -296,91 +287,6 @@ export async function updateSale(id: string, input: UpdateSaleInput): Promise<Sa
     },
   );
   return data.sale;
-}
-
-export async function listReceivables(): Promise<Receivable[]> {
-  const data = await request<{ receivables: Receivable[] }>('/api/financial/receivables');
-  return data.receivables;
-}
-
-export async function listExternalOfferCaptures(): Promise<ExternalOfferCapture[]> {
-  const data = await request<{ captures: ExternalOfferCapture[] }>('/api/pescador/captures');
-  return data.captures;
-}
-
-export async function createExternalOfferCapture(
-  input: CreateExternalOfferCaptureInput,
-): Promise<ExternalOfferCapture> {
-  const data = await request<{ capture: ExternalOfferCapture }>('/api/pescador/captures', {
-    method: 'POST',
-    body: JSON.stringify(input),
-  });
-  return data.capture;
-}
-
-export async function reviewExternalOfferCapture(
-  id: string,
-): Promise<ExternalOfferCapture> {
-  const data = await request<{ capture: ExternalOfferCapture }>(
-    `/api/pescador/captures/${encodeURIComponent(id)}/review`,
-    { method: 'POST' },
-  );
-  return data.capture;
-}
-
-export async function approveExternalOfferCapture(
-  id: string,
-): Promise<ExternalOfferCapture> {
-  const data = await request<{ capture: ExternalOfferCapture }>(
-    `/api/pescador/captures/${encodeURIComponent(id)}/approve`,
-    { method: 'POST' },
-  );
-  return data.capture;
-}
-
-export async function rejectExternalOfferCapture(
-  id: string,
-): Promise<ExternalOfferCapture> {
-  const data = await request<{ capture: ExternalOfferCapture }>(
-    `/api/pescador/captures/${encodeURIComponent(id)}/reject`,
-    { method: 'POST' },
-  );
-  return data.capture;
-}
-
-export async function publishExternalOfferCapture(
-  id: string,
-): Promise<ExternalOfferCapture> {
-  const data = await request<{ capture: ExternalOfferCapture }>(
-    `/api/pescador/captures/${encodeURIComponent(id)}/publish`,
-    { method: 'POST' },
-  );
-  return data.capture;
-}
-
-export async function getFinancialDashboard(
-  period = getCurrentMonthPeriod(),
-): Promise<CashFlowSummary> {
-  const query = new URLSearchParams({ from: period.from, to: period.to });
-  const data = await request<{ cashFlow: CashFlowSummary }>(
-    `/api/financial/dashboard?${query.toString()}`,
-  );
-  return data.cashFlow;
-}
-
-function getCurrentMonthPeriod(): FinancialPeriod {
-  const now = new Date();
-  const from = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
-  const to = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0));
-
-  return {
-    from: formatDateOnly(from),
-    to: formatDateOnly(to),
-  };
-}
-
-function formatDateOnly(date: Date): string {
-  return date.toISOString().slice(0, 10);
 }
 
 export async function listRoutes(): Promise<Route[]> {

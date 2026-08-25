@@ -15,7 +15,6 @@ const migration002 = resolve(repoRoot, 'infrastructure/migrations/002_rls_polici
 const migration003 = resolve(repoRoot, 'infrastructure/migrations/003_transportation.sql');
 const migration004 = resolve(repoRoot, 'infrastructure/migrations/004_route_points.sql');
 const migration005 = resolve(repoRoot, 'infrastructure/migrations/006_field_operations.sql');
-const migration012 = resolve(repoRoot, 'infrastructure/migrations/012_operational_staff_assignments.sql');
 const prepareRolesSql = resolve(repoRoot, 'tests/integration/database/002_prepare_local_roles.sql');
 const composeFile = resolve(repoRoot, 'infrastructure/docker-compose.local-postgres.yml');
 
@@ -34,7 +33,6 @@ const poolPasswordKey = 'pass' + 'word';
 const agencyAId = '10000000-0000-4000-8000-000000000001';
 const agencyBId = '20000000-0000-4000-8000-000000000001';
 const userAId = '11000000-0000-4000-8000-000000000001';
-const userCId = '11000000-0000-4000-8000-000000000003';
 const userBId = '21000000-0000-4000-8000-000000000001';
 
 const principals: Record<string, AuthenticatedPrincipal> = {
@@ -42,7 +40,6 @@ const principals: Record<string, AuthenticatedPrincipal> = {
   viewer: { userId: userAId, agencyId: agencyAId, role: UserRole.VIEWER, email: 'user-a@example.test' },
   agent: { userId: userAId, agencyId: agencyAId, role: UserRole.AGENT, email: 'user-a@example.test' },
   manager: { userId: userAId, agencyId: agencyAId, role: UserRole.MANAGER, email: 'user-a@example.test' },
-  fieldAgent: { userId: userCId, agencyId: agencyAId, role: UserRole.AGENT, email: 'field@example.test' },
   owner: { userId: userAId, agencyId: agencyAId, role: UserRole.OWNER, email: 'user-a@example.test' },
   ownerAgencyB: { userId: userBId, agencyId: agencyBId, role: UserRole.OWNER, email: 'user-b@example.test' },
 };
@@ -77,10 +74,7 @@ describe.sequential('TransportOperation HTTP routes', () => {
 
   beforeEach(async () => {
     await adminPool.query('TRUNCATE TABLE operation_checkpoints RESTART IDENTITY CASCADE');
-    await adminPool.query('TRUNCATE TABLE operation_assignments RESTART IDENTITY CASCADE');
     await adminPool.query('TRUNCATE TABLE transport_operations RESTART IDENTITY CASCADE');
-    await adminPool.query('TRUNCATE TABLE operational_staff_capabilities RESTART IDENTITY CASCADE');
-    await adminPool.query('TRUNCATE TABLE operational_staff RESTART IDENTITY CASCADE');
     await adminPool.query('TRUNCATE TABLE route_points RESTART IDENTITY CASCADE');
     await adminPool.query('TRUNCATE TABLE scheduled_departures RESTART IDENTITY CASCADE');
     await adminPool.query('TRUNCATE TABLE transport_products RESTART IDENTITY CASCADE');
@@ -109,94 +103,6 @@ describe.sequential('TransportOperation HTTP routes', () => {
         headers: { 'x-test-principal': 'viewer' },
       });
       expect(response.statusCode).toBe(200);
-      await app.close();
-    });
-  });
-
-  describe('Operational staff assignments', () => {
-    it('creates operational staff with capabilities and assigns a driver to an operation', async () => {
-      const { departureId } = await seedDepartureWithPoints(agencyAId, []);
-      const app = buildTestApp(runtimePool);
-      const createdOperation = await app.inject({
-        method: 'POST',
-        url: '/operations',
-        headers: { 'x-test-principal': 'manager' },
-        payload: { departureId },
-      });
-      expect(createdOperation.statusCode).toBe(201);
-      const operationId = createdOperation.json<{ operation: { id: string } }>().operation.id;
-
-      const createdStaff = await app.inject({
-        method: 'POST',
-        url: '/operational-staff',
-        headers: { 'x-test-principal': 'manager' },
-        payload: {
-          userId: userCId,
-          name: 'Driver One',
-          phone: '+5511999999999',
-          email: 'driver@example.test',
-          capabilities: ['DRIVER'],
-        },
-      });
-      expect(createdStaff.statusCode).toBe(201);
-      const staffId = createdStaff.json<{ staff: { id: string; capabilities: string[] } }>().staff.id;
-      expect(createdStaff.json<{ staff: { capabilities: string[] } }>().staff.capabilities).toEqual(['DRIVER']);
-
-      const assigned = await app.inject({
-        method: 'POST',
-        url: `/operations/${operationId}/assignments`,
-        headers: { 'x-test-principal': 'manager' },
-        payload: { operationalStaffId: staffId, role: 'DRIVER' },
-      });
-      expect(assigned.statusCode).toBe(201);
-      expect(assigned.json<{ assignment: { operationId: string; operationalStaffId: string; role: string } }>())
-        .toMatchObject({ assignment: { operationId, operationalStaffId: staffId, role: 'DRIVER' } });
-      await app.close();
-    });
-
-    it('shows only assigned operations to a linked field agent and blocks checkpoint confirmation outside assignment', async () => {
-      const app = buildTestApp(runtimePool);
-      const first = await createOperationForTest(app);
-      const second = await createOperationForTest(app);
-      const staff = await app.inject({
-        method: 'POST',
-        url: '/operational-staff',
-        headers: { 'x-test-principal': 'manager' },
-        payload: { userId: userCId, name: 'Driver One', capabilities: ['DRIVER'] },
-      });
-      const staffId = staff.json<{ staff: { id: string } }>().staff.id;
-      await app.inject({
-        method: 'POST',
-        url: `/operations/${first.operationId}/assignments`,
-        headers: { 'x-test-principal': 'manager' },
-        payload: { operationalStaffId: staffId, role: 'DRIVER' },
-      });
-
-      const mine = await app.inject({
-        method: 'GET',
-        url: '/operations',
-        headers: { 'x-test-principal': 'fieldAgent' },
-      });
-      expect(mine.statusCode).toBe(200);
-      expect(mine.json<{ operations: Array<{ id: string }> }>().operations.map((op) => op.id)).toEqual([
-        first.operationId,
-      ]);
-
-      const forbidden = await app.inject({
-        method: 'POST',
-        url: `/operations/${second.operationId}/checkpoints/${second.checkpointId}/arrival`,
-        headers: { 'x-test-principal': 'fieldAgent' },
-      });
-      expect(forbidden.statusCode).toBe(403);
-
-      const allowed = await app.inject({
-        method: 'POST',
-        url: `/operations/${first.operationId}/checkpoints/${first.checkpointId}/arrival`,
-        headers: { 'x-test-principal': 'fieldAgent' },
-      });
-      expect(allowed.statusCode).toBe(200);
-      expect(allowed.json<{ checkpoint: { arrivalOperationalStaffId: string } }>().checkpoint.arrivalOperationalStaffId)
-        .toBe(staffId);
       await app.close();
     });
   });
@@ -586,8 +492,7 @@ describe.sequential('TransportOperation HTTP routes', () => {
       },
       validateUserAgencyAccess(userId, agencyId) {
         return Promise.resolve(
-          ((userId === userAId || userId === userCId) && agencyId === agencyAId) ||
-            (userId === userBId && agencyId === agencyBId),
+          (userId === userAId && agencyId === agencyAId) || (userId === userBId && agencyId === agencyBId),
         );
       },
       database: createDatabaseRuntime(pool),
@@ -645,22 +550,6 @@ describe.sequential('TransportOperation HTTP routes', () => {
     const departureId = departureResult.rows[0]!.id;
 
     return { routeId, departureId };
-  }
-
-  async function createOperationForTest(
-    app: ReturnType<typeof buildTestApp>,
-  ): Promise<{ operationId: string; checkpointId: string }> {
-    const { departureId } = await seedDepartureWithPoints(agencyAId, [
-      { sequence: 1, name: 'Ponto', checkpointRequired: true, checkpointType: 'ARRIVAL' },
-    ]);
-    const created = await app.inject({
-      method: 'POST',
-      url: '/operations',
-      headers: { 'x-test-principal': 'manager' },
-      payload: { departureId },
-    });
-    const body = created.json<{ operation: { id: string }; checkpoints: Array<{ id: string }> }>();
-    return { operationId: body.operation.id, checkpointId: body.checkpoints[0]!.id };
   }
 });
 
@@ -722,7 +611,6 @@ async function resetDatabase(pool: Pool): Promise<void> {
   await pool.query(readSqlForPg(migration003));
   await pool.query(readSqlForPg(migration004));
   await pool.query(readSqlForPg(migration005));
-  await pool.query(readSqlForPg(migration012));
   await pool.query(readSqlForPg(prepareRolesSql));
   await seedAgenciesAndUsers(pool);
 }
@@ -749,10 +637,9 @@ async function seedAgenciesAndUsers(pool: Pool): Promise<void> {
       INSERT INTO users (id, agency_id, email, name, role, password_hash, status)
       VALUES
         ($1, $2, 'user-a@example.test', 'User A', 'ADMIN', 'hash-for-transport-operations-http-test-only', 'ACTIVE'),
-        ($3, $2, 'field@example.test', 'Field Agent', 'AGENT', 'hash-for-transport-operations-http-test-only', 'ACTIVE'),
-        ($4, $5, 'user-b@example.test', 'User B', 'ADMIN', 'hash-for-transport-operations-http-test-only', 'ACTIVE');
+        ($3, $4, 'user-b@example.test', 'User B', 'ADMIN', 'hash-for-transport-operations-http-test-only', 'ACTIVE');
     `,
-    [userAId, agencyAId, userCId, userBId, agencyBId],
+    [userAId, agencyAId, userBId, agencyBId],
   );
 }
 

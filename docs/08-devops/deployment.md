@@ -2,12 +2,6 @@
 
 Deployment is deferred.
 
-The application now exposes separate `/health` and `/readiness` endpoints for
-deployment orchestration. `/health` confirms the API process is alive;
-`/readiness` is wired by `services/api/src/server.ts` to a PostgreSQL
-connectivity check and returns 503 without leaking dependency details when the
-check fails.
-
 ## Current CI
 
 The current workflow is CI only:
@@ -51,8 +45,5 @@ A future deployment design must define:
 - secret management;
 - migration process;
 - rollback process;
-- backup and recovery process;
 - monitoring and incident response;
 - branch protection and required checks.
-
-See also `docs/08-devops/backup-and-recovery.md`.

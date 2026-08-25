@@ -1,7 +1,7 @@
-import { ProposalStatus, type Proposal } from '../../../packages/domain/types';
+import type { Proposal } from '../../../packages/domain/types';
 import { getAgencyId } from '../../../packages/domain/tenant-context';
 import type { DatabaseRuntime } from './database';
-import { ConflictError, NotFoundError, ValidationError } from './errors';
+import { NotFoundError, ValidationError } from './errors';
 
 interface ProposalRow {
   id: string;
@@ -251,80 +251,6 @@ export async function updateProposal(
       }
       return null;
     }
-    return toProposal(row);
-  });
-}
-
-export async function sendProposal(
-  database: DatabaseRuntime,
-  id: string,
-): Promise<Proposal | null> {
-  return transitionProposal(database, id, ProposalStatus.SENT, [ProposalStatus.DRAFT]);
-}
-
-export async function cancelProposal(
-  database: DatabaseRuntime,
-  id: string,
-): Promise<Proposal | null> {
-  return transitionProposal(database, id, ProposalStatus.CANCELLED, [
-    ProposalStatus.DRAFT,
-    ProposalStatus.SENT,
-  ]);
-}
-
-export async function acceptProposal(
-  database: DatabaseRuntime,
-  id: string,
-): Promise<Proposal | null> {
-  return transitionProposal(database, id, ProposalStatus.ACCEPTED, [ProposalStatus.SENT]);
-}
-
-export async function declineProposal(
-  database: DatabaseRuntime,
-  id: string,
-): Promise<Proposal | null> {
-  return transitionProposal(database, id, ProposalStatus.DECLINED, [ProposalStatus.SENT]);
-}
-
-async function transitionProposal(
-  database: DatabaseRuntime,
-  id: string,
-  targetStatus: ProposalStatus,
-  allowedFrom: ProposalStatus[],
-): Promise<Proposal | null> {
-  const agencyId = getAgencyId();
-
-  return database.withTenantTransaction(async (client) => {
-    const current = await client.query<ProposalRow>(
-      `SELECT ${PROPOSAL_COLUMNS}
-       FROM proposals
-       WHERE agency_id = $1 AND id = $2
-       FOR UPDATE`,
-      [agencyId, id],
-    );
-    const currentRow = current.rows[0];
-    if (!currentRow) return null;
-
-    if (currentRow.status === targetStatus) {
-      return toProposal(currentRow);
-    }
-
-    if (!allowedFrom.includes(currentRow.status)) {
-      throw new ConflictError(
-        `Cannot transition Proposal from ${currentRow.status} to ${targetStatus}`,
-      );
-    }
-
-    const updated = await client.query<ProposalRow>(
-      `UPDATE proposals
-       SET status = $3, updated_at = now()
-       WHERE agency_id = $1 AND id = $2
-       RETURNING ${PROPOSAL_COLUMNS}`,
-      [agencyId, id, targetStatus],
-    );
-
-    const row = updated.rows[0];
-    if (!row) throw new Error('Proposal transition did not return a row');
     return toProposal(row);
   });
 }

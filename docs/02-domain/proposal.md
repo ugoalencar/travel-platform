@@ -90,11 +90,3 @@ escopo.
   "updatedAt": "2026-02-01T09:30:00Z"
 }
 ```
-
-## Batch 02 lifecycle update
-
-Proposal status changes are now exposed only through explicit staff actions:
-`POST /proposals/:id/send`, `/cancel`, `/accept`, and `/decline` (MANAGER+).
-Generic POST/PATCH still rejects `status`. Invalid lifecycle transitions return
-409, cross-tenant IDs remain hidden as 404, and accepting a Proposal does not
-auto-create a Sale.

@@ -2,12 +2,9 @@
 
 ## Current Status
 
-Only local development and CI test environments are active.
+Only local development and CI test environments are documented as active.
 
-Staging and production infrastructure are not configured yet. A staging
-readiness baseline exists for application checks, quality gates, and
-backup/recovery expectations, but no external environment, provider, or secrets
-are defined in this repository.
+Staging and production are not configured yet.
 
 ## Local Development
 
@@ -52,22 +49,6 @@ That decision must define:
 - deployment workflow;
 - migration workflow;
 - monitoring and rollback procedures.
-- backup and recovery implementation.
-
-## Staging Readiness Baseline
-
-Before a real staging environment or pilot is used:
-
-- run all quality gates from `QUALITY-GATES.md`;
-- apply all ordered SQL migrations from `infrastructure/migrations/*.sql` to an
-  empty disposable database;
-- verify `/health` and `/readiness`;
-- run a staging smoke test that covers tenant proof, Customer Portal, booking
-  concurrency/capacity, Field Operations checkpoint concurrency, Sale/Receivable
-  synchronization, Commercial Cockpit, PipelineAccess, Customer 360, and
-  Pescador manual capture;
-- validate backup/restore expectations in
-  `docs/08-devops/backup-and-recovery.md`.
 
 ## Rules
 

@@ -1,14 +1,5 @@
 import { useEffect, useState } from 'react';
-import {
-  listBookings,
-  listProposals,
-  listReceivables,
-  listSales,
-  listTrips,
-  listWishes,
-} from '../../lib/api';
-import type { Booking } from '../../types/booking';
-import type { Receivable } from '../../types/financial';
+import { listProposals, listTrips, listWishes } from '../../lib/api';
 import {
   listInteractions,
   listOpportunities,
@@ -17,7 +8,6 @@ import {
   listTasks,
 } from '../../lib/commercialApi';
 import type { Proposal } from '../../types/proposal';
-import type { Sale } from '../../types/sale';
 import type { Trip } from '../../types/trip';
 import type { Wish } from '../../types/wish';
 import {
@@ -31,9 +21,6 @@ import {
 interface Customer360Data {
   wishes: Wish[];
   proposals: Proposal[];
-  sales: Sale[];
-  bookings: Booking[];
-  receivables: Receivable[] | null;
   trips: Trip[];
   opportunities: CommercialOpportunity[];
   interactions: CustomerInteraction[];
@@ -57,8 +44,10 @@ interface Customer360Data {
 // existing agency-wide list endpoints (no customerId filter exists yet
 // on those pre-existing routes) and are filtered client-side here purely
 // for display -- a known limitation flagged in the delivery report, not a
-// new server-side filtering capability this page invents. Financial data
-// is shown only when the existing financial route authorizes the caller.
+// new server-side filtering capability this page invents.
+// Sale has no staff-facing list route in this codebase today (read-only/
+// unmanaged, per ADR) -- no Sales section is possible to add here without
+// inventing a new sales route, which is out of scope for this vertical.
 export function Customer360({ customerId }: { customerId: string }) {
   const [data, setData] = useState<Customer360Data | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -69,67 +58,48 @@ export function Customer360({ customerId }: { customerId: string }) {
     Promise.all([
       listWishes(),
       listProposals(),
-      listSales(),
-      listBookings(),
-      listReceivables().catch(() => null),
       listTrips(),
       listOpportunities({ customerId }),
       listInteractions(customerId),
       listTasks({ customerId }),
       listPipelines(),
     ])
-      .then(
-        async ([
-          wishes,
-          proposals,
-          sales,
-          bookings,
-          receivables,
-          trips,
-          opportunitiesResult,
-          interactionsResult,
-          tasksResult,
-          pipelines,
-        ]) => {
-          if (cancelled) return;
+      .then(async ([wishes, proposals, trips, opportunitiesResult, interactionsResult, tasksResult, pipelines]) => {
+        if (cancelled) return;
 
-          const pipelineNames: Record<string, string> = {};
-          for (const p of pipelines) pipelineNames[p.id] = p.name;
+        const pipelineNames: Record<string, string> = {};
+        for (const p of pipelines) pipelineNames[p.id] = p.name;
 
-          // Fetch stages only for the pipelines this customer's
-          // opportunities actually reference, to label each card with its
-          // stage name (a customer can have opportunities across several
-          // different pipelines -- each is labeled with its own pipeline).
-          const relevantPipelineIds = Array.from(
-            new Set(opportunitiesResult.opportunities.map((o) => o.pipelineId)),
-          );
-          const stageLists = await Promise.all(relevantPipelineIds.map((id) => listStages(id).catch(() => [])));
-          const stageNames: Record<string, string> = {};
-          const stageColors: Record<string, PipelineStageColor> = {};
-          for (const stages of stageLists) {
-            for (const stage of stages) {
-              stageNames[stage.id] = stage.name;
-              stageColors[stage.id] = stage.colorKey;
-            }
+        // Fetch stages only for the pipelines this customer's
+        // opportunities actually reference, to label each card with its
+        // stage name (a customer can have opportunities across several
+        // different pipelines -- each is labeled with its own pipeline).
+        const relevantPipelineIds = Array.from(
+          new Set(opportunitiesResult.opportunities.map((o) => o.pipelineId)),
+        );
+        const stageLists = await Promise.all(relevantPipelineIds.map((id) => listStages(id).catch(() => [])));
+        const stageNames: Record<string, string> = {};
+        const stageColors: Record<string, PipelineStageColor> = {};
+        for (const stages of stageLists) {
+          for (const stage of stages) {
+            stageNames[stage.id] = stage.name;
+            stageColors[stage.id] = stage.colorKey;
           }
+        }
 
-          if (cancelled) return;
-          setData({
-            wishes: wishes.filter((w) => w.customerId === customerId),
-            proposals: proposals.filter((p) => p.customerId === customerId),
-            sales: sales.filter((s) => s.customerId === customerId),
-            bookings: bookings.filter((b) => b.bookerCustomerId === customerId),
-            receivables: receivables?.filter((r) => r.customerId === customerId) ?? null,
-            trips: trips.filter((t) => t.customerId === customerId),
-            opportunities: opportunitiesResult.opportunities,
-            interactions: interactionsResult.interactions,
-            tasks: tasksResult.tasks,
-            pipelineNames,
-            stageNames,
-            stageColors,
-          });
-        },
-      )
+        if (cancelled) return;
+        setData({
+          wishes: wishes.filter((w) => w.customerId === customerId),
+          proposals: proposals.filter((p) => p.customerId === customerId),
+          trips: trips.filter((t) => t.customerId === customerId),
+          opportunities: opportunitiesResult.opportunities,
+          interactions: interactionsResult.interactions,
+          tasks: tasksResult.tasks,
+          pipelineNames,
+          stageNames,
+          stageColors,
+        });
+      })
       .catch(() => {
         if (!cancelled) setError('Não foi possível carregar o histórico do cliente.');
       });
@@ -194,42 +164,6 @@ export function Customer360({ customerId }: { customerId: string }) {
           </Row>
         ))}
       </Section>
-
-      <Section title="Vendas">
-        {data.sales.length === 0 && <Empty />}
-        {data.sales.map((s) => (
-          <Row key={s.id}>
-            <a href={`/sales/${s.id}`} className="text-blue-600 hover:underline">
-              Venda {s.id.slice(0, 8)}
-            </a>{' '}
-            â€” {s.status} â€” {s.total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-          </Row>
-        ))}
-      </Section>
-
-      <Section title="Reservas">
-        {data.bookings.length === 0 && <Empty />}
-        {data.bookings.map((b) => (
-          <Row key={b.id}>
-            <a href={`/bookings/${b.id}`} className="text-blue-600 hover:underline">
-              Reserva {b.id.slice(0, 8)}
-            </a>{' '}
-            â€” {b.tripType} â€” {b.cancelled ? 'cancelada' : 'ativa'}
-          </Row>
-        ))}
-      </Section>
-
-      {data.receivables !== null && (
-        <Section title="Financeiro autorizado">
-          {data.receivables.length === 0 && <Empty />}
-          {data.receivables.map((r) => (
-            <Row key={r.id}>
-              {r.description} â€” {r.status} â€”{' '}
-              {r.amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-            </Row>
-          ))}
-        </Section>
-      )}
 
       <Section title="Viagens (Trips)">
         {data.trips.length === 0 && <Empty />}

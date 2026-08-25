@@ -246,86 +246,6 @@ export enum CommissionStatus {
   CANCELLED = 'CANCELLED',
 }
 
-export enum FinancialObligationStatus {
-  OPEN = 'OPEN',
-  PARTIALLY_PAID = 'PARTIALLY_PAID',
-  PAID = 'PAID',
-  CANCELLED = 'CANCELLED',
-}
-
-export enum PaymentDirection {
-  IN = 'IN',
-  OUT = 'OUT',
-}
-
-export interface Receivable {
-  id: string;
-  agencyId: string;
-  saleId?: string;
-  customerId: string;
-  description: string;
-  amount: number;
-  dueAt: Date;
-  status: FinancialObligationStatus;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface Payable {
-  id: string;
-  agencyId: string;
-  saleId?: string;
-  supplierId?: string;
-  commissionId?: string;
-  transportOperationId?: string;
-  operationalCostId?: string;
-  description: string;
-  amount: number;
-  dueAt: Date;
-  status: FinancialObligationStatus;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface Payment {
-  id: string;
-  agencyId: string;
-  direction: PaymentDirection;
-  amount: number;
-  occurredAt: Date;
-  method?: string;
-  reference?: string;
-  notes?: string;
-  createdBy: string;
-  createdAt: Date;
-}
-
-export interface PaymentAllocation {
-  id: string;
-  agencyId: string;
-  paymentId: string;
-  receivableId?: string;
-  payableId?: string;
-  amount: number;
-  createdAt: Date;
-}
-
-export interface OperationalCost {
-  id: string;
-  agencyId: string;
-  saleId?: string;
-  transportOperationId?: string;
-  supplierId?: string;
-  description: string;
-  costType: string;
-  expectedAmount?: number;
-  actualAmount?: number;
-  incurredAt: Date;
-  createdBy: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
 export enum TripStatus {
   PLANNED = 'PLANNED',
   CONFIRMED = 'CONFIRMED',
@@ -440,32 +360,14 @@ export enum CheckpointType {
   BOTH = 'BOTH',
 }
 
-export enum OperationalStaffCapability {
-  DRIVER = 'DRIVER',
-  GUIDE = 'GUIDE',
-}
-
-export enum OperationAssignmentRole {
-  DRIVER = 'DRIVER',
-  GUIDE = 'GUIDE',
-}
-
-export enum ExternalOfferCaptureStatus {
-  CAPTURED = 'CAPTURED',
-  NORMALIZED = 'NORMALIZED',
-  UNDER_REVIEW = 'UNDER_REVIEW',
-  APPROVED = 'APPROVED',
-  REJECTED = 'REJECTED',
-  PUBLISHED = 'PUBLISHED',
-}
-
 // Booking: the operational reservation. Booking != Sale -- Sale (not
 // present in this branch) owns pricing/discount/tax/currency/payment;
 // none of that is modeled here. bookerCustomerId is who owns the
 // reservation and is NOT necessarily traveling; passengers are a
 // separate concept (BookingPassenger), not Customer records.
-// Cancellation V1 is whole-booking only. Refund, passenger-level,
-// outbound-only, and return-only cancellation remain outside this model.
+// No approved cancellation/refund/no-show workflow exists; `cancelled`
+// is a single boolean (mirrors ScheduledDeparture.cancelled) meaning
+// only "does not consume capacity" -- no other business meaning.
 export interface Booking {
   id: string;
   agencyId: string;
@@ -474,9 +376,6 @@ export interface Booking {
   outboundDepartureId: string;
   returnDepartureId?: string;
   cancelled: boolean;
-  cancelledAt?: Date;
-  cancelledByUserId?: string;
-  cancellationReason?: string;
   notes?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -510,49 +409,6 @@ export interface TransportOperation {
   updatedAt: Date;
 }
 
-export interface OperationalStaff {
-  id: string;
-  agencyId: string;
-  userId?: string;
-  name: string;
-  phone?: string;
-  email?: string;
-  active: boolean;
-  capabilities: OperationalStaffCapability[];
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface OperationAssignment {
-  id: string;
-  agencyId: string;
-  operationId: string;
-  operationalStaffId: string;
-  role: OperationAssignmentRole;
-  createdByUserId: string;
-  createdAt: Date;
-}
-
-export interface ExternalOfferCapture {
-  id: string;
-  agencyId: string;
-  sourceUrl: string;
-  sourceName: string;
-  capturedAt: Date;
-  rawContent: string;
-  normalizedTitle?: string;
-  normalizedDescription?: string;
-  foundPrice?: number;
-  currency?: string;
-  validUntil?: Date;
-  status: ExternalOfferCaptureStatus;
-  reviewedAt?: Date;
-  reviewedByUserId?: string;
-  publishedOfferId?: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
 // OperationCheckpoint: EXECUTION record generated (one per monitored
 // RoutePoint, i.e. checkpointRequired = true) when a
 // TransportOperation is created. checkpointType is snapshotted from
@@ -571,10 +427,6 @@ export interface OperationCheckpoint {
   checkpointType: CheckpointType;
   arrivalCheckedAt?: Date;
   departureCheckedAt?: Date;
-  arrivalConfirmedByUserId?: string;
-  departureConfirmedByUserId?: string;
-  arrivalOperationalStaffId?: string;
-  departureOperationalStaffId?: string;
   notes?: string;
   location?: string;
   createdAt: Date;

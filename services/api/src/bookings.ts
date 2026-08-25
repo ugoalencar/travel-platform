@@ -12,9 +12,6 @@ interface BookingRow {
   outbound_departure_id: string;
   return_departure_id: string | null;
   cancelled: boolean;
-  cancelled_at: string | null;
-  cancelled_by_user_id: string | null;
-  cancellation_reason: string | null;
   notes: string | null;
   created_at: string;
   updated_at: string;
@@ -49,14 +46,8 @@ export interface BookingWithPassengers {
   passengers: BookingPassenger[];
 }
 
-export interface CancelBookingInput {
-  userId: string;
-  reason?: string;
-}
-
 const BOOKING_COLUMNS = `id, agency_id, booker_customer_id, trip_type, outbound_departure_id,
-              return_departure_id, cancelled, cancelled_at, cancelled_by_user_id,
-              cancellation_reason, notes, created_at, updated_at`;
+              return_departure_id, cancelled, notes, created_at, updated_at`;
 const PASSENGER_COLUMNS = `id, agency_id, booking_id, name, notes, created_at, updated_at`;
 
 export async function listBookings(database: DatabaseRuntime): Promise<Booking[]> {
@@ -275,67 +266,6 @@ export async function createBooking(
   });
 }
 
-export async function cancelBooking(
-  database: DatabaseRuntime,
-  id: string,
-  data: CancelBookingInput,
-): Promise<Booking> {
-  const agencyId = getAgencyId();
-
-  return database.withTenantTransaction(async (client) => {
-    const bookingResult = await client.query<BookingRow>(
-      `SELECT ${BOOKING_COLUMNS} FROM bookings
-       WHERE agency_id = $1 AND id = $2
-       FOR UPDATE`,
-      [agencyId, id],
-    );
-    const bookingRow = bookingResult.rows[0];
-    if (!bookingRow) {
-      throw new NotFoundError('Booking not found');
-    }
-
-    if (bookingRow.cancelled) {
-      return toBooking(bookingRow);
-    }
-
-    const departureIds = [bookingRow.outbound_departure_id];
-    if (bookingRow.return_departure_id !== null) {
-      departureIds.push(bookingRow.return_departure_id);
-    }
-    const orderedIds = [...new Set(departureIds)].sort();
-
-    for (const departureId of orderedIds) {
-      const departureLock = await client.query(
-        `SELECT 1 FROM scheduled_departures
-         WHERE agency_id = $1 AND id = $2
-         FOR UPDATE`,
-        [agencyId, departureId],
-      );
-      if (departureLock.rows.length === 0) {
-        throw new NotFoundError('Scheduled departure not found');
-      }
-    }
-
-    const updateResult = await client.query<BookingRow>(
-      `UPDATE bookings
-       SET cancelled = true,
-           cancelled_at = now(),
-           cancelled_by_user_id = $3,
-           cancellation_reason = $4,
-           updated_at = now()
-       WHERE agency_id = $1 AND id = $2
-       RETURNING ${BOOKING_COLUMNS}`,
-      [agencyId, id, data.userId, data.reason ?? null],
-    );
-    const updatedRow = updateResult.rows[0];
-    if (!updatedRow) {
-      throw new Error('Booking cancellation did not return a row');
-    }
-
-    return toBooking(updatedRow);
-  });
-}
-
 function toBooking(row: BookingRow): Booking {
   return {
     id: row.id,
@@ -346,11 +276,6 @@ function toBooking(row: BookingRow): Booking {
     cancelled: row.cancelled,
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
-    ...(row.cancelled_at !== null ? { cancelledAt: new Date(row.cancelled_at) } : {}),
-    ...(row.cancelled_by_user_id !== null
-      ? { cancelledByUserId: row.cancelled_by_user_id }
-      : {}),
-    ...(row.cancellation_reason !== null ? { cancellationReason: row.cancellation_reason } : {}),
     ...(row.return_departure_id !== null ? { returnDepartureId: row.return_departure_id } : {}),
     ...(row.notes !== null ? { notes: row.notes } : {}),
   };

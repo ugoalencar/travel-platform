@@ -285,17 +285,9 @@ export interface DashboardSummary {
   followUpsDueTodayCount: number;
   overdueFollowUpsCount: number;
   proposalsWaitingCount: number;
-  sentProposalsCount: number;
-  acceptedProposalsCount: number;
   openProposalValueSum: string;
   salesThisMonthCount: number;
   salesThisMonthTotal: string;
-  pendingSalesCount: number;
-  confirmedSalesCount: number;
-  paidSalesCount: number;
-  overdueReceivablesCount: number;
-  cancelledBookingsCount: number;
-  pescadorReviewQueueCount: number;
   upcomingTripsCount: number;
   postSalePendingCount: number;
 }

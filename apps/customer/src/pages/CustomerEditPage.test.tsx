@@ -21,18 +21,15 @@ vi.mock('../lib/api', () => {
     updateCustomer: vi.fn(),
     listWishes: vi.fn().mockResolvedValue([]),
     listProposals: vi.fn().mockResolvedValue([]),
-    listSales: vi.fn().mockResolvedValue([]),
-    listBookings: vi.fn().mockResolvedValue([]),
-    listReceivables: vi.fn().mockResolvedValue([]),
     listTrips: vi.fn().mockResolvedValue([]),
     ApiError: MockApiError,
   };
 });
 
 vi.mock('../lib/commercialApi', () => ({
-  listOpportunities: vi.fn().mockResolvedValue({ opportunities: [], total: 0 }),
-  listInteractions: vi.fn().mockResolvedValue({ interactions: [], total: 0 }),
-  listTasks: vi.fn().mockResolvedValue({ tasks: [], total: 0 }),
+  listOpportunities: vi.fn().mockResolvedValue([]),
+  listInteractions: vi.fn().mockResolvedValue([]),
+  listTasks: vi.fn().mockResolvedValue([]),
   listPipelines: vi.fn().mockResolvedValue([]),
   listStages: vi.fn().mockResolvedValue([]),
 }));

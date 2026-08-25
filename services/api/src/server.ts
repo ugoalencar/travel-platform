@@ -26,9 +26,6 @@ const app = buildApp({
   // customer who does not actually belong to the resolved agency.
   customerAuthProvider: createServerCustomerAuthProvider(),
   validateCustomerAgencyAccess: createCustomerAccessValidator(pool),
-  readinessCheck: async () => {
-    await pool.query('SELECT 1');
-  },
 });
 
 async function main(): Promise<void> {

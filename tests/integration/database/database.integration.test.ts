@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process';
-import { readdirSync, readFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -7,7 +7,8 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 const testDir = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(testDir, '../../..');
 const composeFile = resolve(repoRoot, 'infrastructure/docker-compose.local-postgres.yml');
-const migrationsDir = resolve(repoRoot, 'infrastructure/migrations');
+const migration001 = resolve(repoRoot, 'infrastructure/migrations/001_initial_schema.sql');
+const migration002 = resolve(repoRoot, 'infrastructure/migrations/002_rls_policies.sql');
 const constraintsTestSql = resolve(repoRoot, 'tests/integration/database/001_constraints_test.sql');
 const prepareRolesSql = resolve(repoRoot, 'tests/integration/database/002_prepare_local_roles.sql');
 const rlsRuntimeTestSql = resolve(repoRoot, 'tests/integration/database/003_rls_runtime_test.sql');
@@ -27,37 +28,13 @@ const localPort = process.env.DATABASE_TEST_PORT ?? (isCiMode ? '5432' : '55432'
 
 const expectedTables = [
   'agencies',
-  'booking_passengers',
-  'bookings',
   'brokers',
-  'commercial_opportunities',
-  'commercial_tasks',
   'commissions',
   'customer_accounts',
-  'customer_interactions',
   'customers',
-  'external_offer_captures',
   'offers',
-  'operation_assignments',
-  'operation_checkpoints',
-  'operational_costs',
-  'operational_staff',
-  'operational_staff_capabilities',
-  'payables',
-  'payment_allocations',
-  'payments',
-  'pipeline_access',
-  'pipeline_stages',
-  'pipelines',
   'proposals',
-  'receivables',
-  'route_points',
-  'routes',
   'sales',
-  'scheduled_departures',
-  'suppliers',
-  'transport_operations',
-  'transport_products',
   'trips',
   'users',
   'wishes',
@@ -87,20 +64,20 @@ describe.sequential('database integration migrations and RLS', () => {
     }
   });
 
-  it('applies every ordered migration to an empty local database', () => {
-    const result = psqlAdmin(readAllMigrations());
+  it('applies migration 001 to an empty local database', () => {
+    const result = psqlAdmin(readSql(migration001));
 
     expect(result.stdout).toContain('CREATE TABLE');
-    expect(result.stdout).toContain('CREATE POLICY');
     expect(result.stderr).not.toContain('ERROR');
   });
 
-  it('creates exactly the current migrated domain tables', () => {
+  it('creates exactly the V1 domain tables and excludes future/removed tables', () => {
     const tables = queryAdminLines(
       "SELECT tablename FROM pg_tables WHERE schemaname = 'public' ORDER BY tablename;",
     );
 
     expect(tables).toEqual(expectedTables);
+    expect(tables).not.toContain('bookings');
     expect(tables).not.toContain('audit_logs');
   });
 
@@ -117,6 +94,13 @@ describe.sequential('database integration migrations and RLS', () => {
     expect(result.stdout).toContain('Trip Agency A -> Sale B');
     expect(result.stdout).toContain('Proposal snapshot after Offer change');
     expect(result.stdout).toContain('(23 rows)');
+    expect(result.stderr).not.toContain('ERROR');
+  });
+
+  it('applies migration 002 after migration 001', () => {
+    const result = psqlAdmin(readSql(migration002));
+
+    expect(result.stdout).toContain('CREATE POLICY');
     expect(result.stderr).not.toContain('ERROR');
   });
 
@@ -157,7 +141,7 @@ describe.sequential('database integration migrations and RLS', () => {
     expect(result.stderr).not.toContain('ERROR');
   });
 
-  it('keeps FORCE RLS enabled on every migrated tenant table', () => {
+  it('keeps FORCE RLS enabled on every V1 table', () => {
     const rows = queryAdminLines(`
       SELECT relname
       FROM pg_class
@@ -211,7 +195,7 @@ describe.sequential('database integration migrations and RLS', () => {
       ORDER BY routine_name;
     `);
 
-    expect(tableGrantCount).toBe(String(expectedTables.length * 4));
+    expect(tableGrantCount).toBe('44');
     expect(functionGrants).toEqual([
       'clear_tenant_context',
       'current_agency_id',
@@ -415,18 +399,6 @@ function queryAdmin(sql: string): CommandResult {
 
 function readSql(filePath: string): string {
   return readFileSync(filePath, 'utf8');
-}
-
-function readAllMigrations(): string {
-  const migrationFiles = readdirSync(migrationsDir)
-    .filter((fileName) => /^\d+_.+\.sql$/.test(fileName))
-    .sort();
-
-  expect(migrationFiles).toHaveLength(13);
-
-  return migrationFiles
-    .map((fileName) => readSql(resolve(migrationsDir, fileName)))
-    .join('\n');
 }
 
 async function waitForHealthyContainer(): Promise<void> {

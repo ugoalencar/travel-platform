@@ -1098,17 +1098,9 @@ export interface DashboardSummary {
   followUpsDueTodayCount: number;
   overdueFollowUpsCount: number;
   proposalsWaitingCount: number;
-  sentProposalsCount: number;
-  acceptedProposalsCount: number;
   openProposalValueSum: string;
   salesThisMonthCount: number;
   salesThisMonthTotal: string;
-  pendingSalesCount: number;
-  confirmedSalesCount: number;
-  paidSalesCount: number;
-  overdueReceivablesCount: number;
-  cancelledBookingsCount: number;
-  pescadorReviewQueueCount: number;
   upcomingTripsCount: number;
   postSalePendingCount: number;
 }
@@ -1163,54 +1155,12 @@ export async function getDashboardSummary(
       [agencyId],
     );
 
-    const proposalLifecycle = await client.query<{ sent: string; accepted: string }>(
-      `SELECT
-         COUNT(*) FILTER (WHERE status = 'SENT')::text AS sent,
-         COUNT(*) FILTER (WHERE status = 'ACCEPTED')::text AS accepted
-       FROM proposals
-       WHERE agency_id = $1`,
-      [agencyId],
-    );
-
     const salesThisMonth = await client.query<{ count: string; sum: string | null }>(
       `SELECT COUNT(*)::text AS count, COALESCE(SUM(total), 0)::text AS sum
        FROM sales
        WHERE agency_id = $1
          AND created_at >= date_trunc('month', now())
          AND created_at < date_trunc('month', now()) + INTERVAL '1 month'`,
-      [agencyId],
-    );
-
-    const saleLifecycle = await client.query<{ pending: string; confirmed: string; paid: string }>(
-      `SELECT
-         COUNT(*) FILTER (WHERE status = 'PENDING')::text AS pending,
-         COUNT(*) FILTER (WHERE status = 'CONFIRMED')::text AS confirmed,
-         COUNT(*) FILTER (WHERE status = 'PAID')::text AS paid
-       FROM sales
-       WHERE agency_id = $1`,
-      [agencyId],
-    );
-
-    const overdueReceivables = await client.query<{ count: string }>(
-      `SELECT COUNT(*)::text AS count
-       FROM receivables
-       WHERE agency_id = $1
-         AND status IN ('OPEN', 'PARTIALLY_PAID')
-         AND due_at < now()`,
-      [agencyId],
-    );
-
-    const cancelledBookings = await client.query<{ count: string }>(
-      `SELECT COUNT(*)::text AS count
-       FROM bookings
-       WHERE agency_id = $1 AND cancelled = true`,
-      [agencyId],
-    );
-
-    const pescadorReviewQueue = await client.query<{ count: string }>(
-      `SELECT COUNT(*)::text AS count
-       FROM external_offer_captures
-       WHERE agency_id = $1 AND status IN ('UNDER_REVIEW', 'APPROVED')`,
       [agencyId],
     );
 
@@ -1228,17 +1178,9 @@ export async function getDashboardSummary(
       followUpsDueTodayCount: followUpsToday.length,
       overdueFollowUpsCount: Number(overdueFollowUps.rows[0]?.count ?? '0'),
       proposalsWaitingCount: proposalsWaiting.length,
-      sentProposalsCount: Number(proposalLifecycle.rows[0]?.sent ?? '0'),
-      acceptedProposalsCount: Number(proposalLifecycle.rows[0]?.accepted ?? '0'),
       openProposalValueSum: openProposalValue.rows[0]?.sum ?? '0',
       salesThisMonthCount: Number(salesThisMonth.rows[0]?.count ?? '0'),
       salesThisMonthTotal: salesThisMonth.rows[0]?.sum ?? '0',
-      pendingSalesCount: Number(saleLifecycle.rows[0]?.pending ?? '0'),
-      confirmedSalesCount: Number(saleLifecycle.rows[0]?.confirmed ?? '0'),
-      paidSalesCount: Number(saleLifecycle.rows[0]?.paid ?? '0'),
-      overdueReceivablesCount: Number(overdueReceivables.rows[0]?.count ?? '0'),
-      cancelledBookingsCount: Number(cancelledBookings.rows[0]?.count ?? '0'),
-      pescadorReviewQueueCount: Number(pescadorReviewQueue.rows[0]?.count ?? '0'),
       upcomingTripsCount: Number(upcomingTrips.rows[0]?.count ?? '0'),
       postSalePendingCount: postSalePending.length,
     };

@@ -11,11 +11,6 @@ import { createDatabaseRuntime } from '../src/database';
 const repoRoot = resolve(import.meta.dirname, '../../..');
 const migration001 = resolve(repoRoot, 'infrastructure/migrations/001_initial_schema.sql');
 const migration002 = resolve(repoRoot, 'infrastructure/migrations/002_rls_policies.sql');
-const migration003 = resolve(repoRoot, 'infrastructure/migrations/003_transportation.sql');
-const migration004 = resolve(repoRoot, 'infrastructure/migrations/004_route_points.sql');
-const migration006 = resolve(repoRoot, 'infrastructure/migrations/006_field_operations.sql');
-const migration007 = resolve(repoRoot, 'infrastructure/migrations/007_commission_repair.sql');
-const migration010 = resolve(repoRoot, 'infrastructure/migrations/010_financial_foundation.sql');
 const prepareRolesSql = resolve(repoRoot, 'tests/integration/database/002_prepare_local_roles.sql');
 const composeFile = resolve(repoRoot, 'infrastructure/docker-compose.local-postgres.yml');
 
@@ -81,9 +76,6 @@ describe.sequential('Sale end-to-end vertical validation', () => {
   });
 
   beforeEach(async () => {
-    await adminPool.query(
-      'TRUNCATE TABLE payment_allocations, payments, receivables, payables, operational_costs RESTART IDENTITY CASCADE',
-    );
     await adminPool.query('TRUNCATE TABLE sales RESTART IDENTITY CASCADE');
     await adminPool.query('TRUNCATE TABLE proposals RESTART IDENTITY CASCADE');
     await adminPool.query('TRUNCATE TABLE customers RESTART IDENTITY CASCADE');
@@ -585,11 +577,6 @@ async function resetDatabase(pool: Pool): Promise<void> {
   await pool.query('DROP SCHEMA public CASCADE; CREATE SCHEMA public;');
   await pool.query(readSqlForPg(migration001));
   await pool.query(readSqlForPg(migration002));
-  await pool.query(readSqlForPg(migration003));
-  await pool.query(readSqlForPg(migration004));
-  await pool.query(readSqlForPg(migration006));
-  await pool.query(readSqlForPg(migration007));
-  await pool.query(readSqlForPg(migration010));
   await pool.query(readSqlForPg(prepareRolesSql));
   await seedAgenciesAndUsers(pool);
 }
