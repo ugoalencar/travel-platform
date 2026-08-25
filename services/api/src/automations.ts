@@ -318,7 +318,15 @@ async function tryExecuteAutomation(
   // not just an application-level check -- concurrent duplicate webhook
   // deliveries are structurally impossible to double-process (same
   // discipline as the Field Operations checkpoint TOCTOU fix).
+  // A unique-violation on this INSERT leaves the enclosing Postgres
+  // transaction in an ABORTED state (any later statement in the same
+  // transaction fails with 25P02) unless we wrap it in a SAVEPOINT and
+  // roll back to it on conflict -- required because processConnectorEvent
+  // runs the engagement insert + every matching automation's attempt in
+  // ONE transaction, and a dedup hit for automation N must not corrupt
+  // automation N+1's attempt or the audit-log write below.
   let executionId: string;
+  await client.query('SAVEPOINT automation_execution_dedup');
   try {
     const inserted = await client.query<{ id: string }>(
       `INSERT INTO automation_executions
@@ -330,8 +338,10 @@ async function tryExecuteAutomation(
     const row = inserted.rows[0];
     if (!row) throw new Error('AutomationExecution insert did not return a row');
     executionId = row.id;
+    await client.query('RELEASE SAVEPOINT automation_execution_dedup');
   } catch (error) {
     if (isUniqueViolation(error)) {
+      await client.query('ROLLBACK TO SAVEPOINT automation_execution_dedup');
       await recordAuditLog(client, {
         action: 'automation.execution_deduped',
         entityType: 'Automation',
