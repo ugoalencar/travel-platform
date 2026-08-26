@@ -641,6 +641,15 @@ export async function createBooking(
   });
 }
 
+export async function cancelBooking(
+  id: string,
+): Promise<{ booking: Booking }> {
+  return request<{ booking: Booking }>(
+    `/api/bookings/${encodeURIComponent(id)}/cancel`,
+    { method: 'POST' },
+  );
+}
+
 // ============================================================
 // FIELD OPERATIONS (TransportOperation / OperationCheckpoint)
 // ============================================================

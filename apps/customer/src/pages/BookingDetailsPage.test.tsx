@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { BookingDetailsPage } from './BookingDetailsPage';
-import { getBooking, getCustomer, getDeparture, ApiError } from '../lib/api';
+import { getBooking, getCustomer, getDeparture, cancelBooking, ApiError } from '../lib/api';
 
 vi.mock('../lib/api', () => {
   class MockApiError extends Error {
@@ -18,6 +18,7 @@ vi.mock('../lib/api', () => {
     getBooking: vi.fn(),
     getCustomer: vi.fn(),
     getDeparture: vi.fn(),
+    cancelBooking: vi.fn(),
     ApiError: MockApiError,
   };
 });
@@ -96,5 +97,97 @@ describe('BookingDetailsPage', () => {
     renderRouted();
 
     expect(await screen.findByText('Reserva não encontrada.')).toBeInTheDocument();
+  });
+
+  it('shows cancel button for active bookings and confirms cancellation', async () => {
+    const activeBooking = {
+      id: 'b1',
+      agencyId: 'a1',
+      bookerCustomerId: 'c1',
+      tripType: 'ONE_WAY' as const,
+      outboundDepartureId: 'd1',
+      cancelled: false,
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+    };
+    vi.mocked(getBooking).mockResolvedValue({
+      booking: activeBooking,
+      passengers: [],
+    });
+    vi.mocked(getCustomer).mockResolvedValue({
+      id: 'c1',
+      agencyId: 'a1',
+      name: 'Cliente',
+      status: 'ACTIVE',
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+    });
+    vi.mocked(getDeparture).mockResolvedValue({
+      id: 'd1',
+      agencyId: 'a1',
+      productId: 'p1',
+      departureAt: '2027-01-10T10:00:00.000Z',
+      capacity: 10,
+      serviceType: 'OWN',
+      cancelled: false,
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+    });
+    vi.mocked(cancelBooking).mockResolvedValue({
+      booking: { ...activeBooking, cancelled: true },
+    });
+
+    renderRouted();
+
+    await screen.findByText('Cliente');
+    expect(screen.getByRole('button', { name: 'Cancelar reserva' })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cancelar reserva' }));
+    expect(screen.getByText('Tem certeza?')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Sim, cancelar' })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Sim, cancelar' }));
+    expect(await screen.findByText('Cancelada')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Cancelar reserva' })).not.toBeInTheDocument();
+  });
+
+  it('hides cancel button for already cancelled bookings', async () => {
+    vi.mocked(getBooking).mockResolvedValue({
+      booking: {
+        id: 'b1',
+        agencyId: 'a1',
+        bookerCustomerId: 'c1',
+        tripType: 'ONE_WAY',
+        outboundDepartureId: 'd1',
+        cancelled: true,
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-01T00:00:00.000Z',
+      },
+      passengers: [],
+    });
+    vi.mocked(getCustomer).mockResolvedValue({
+      id: 'c1',
+      agencyId: 'a1',
+      name: 'Cliente',
+      status: 'ACTIVE',
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+    });
+    vi.mocked(getDeparture).mockResolvedValue({
+      id: 'd1',
+      agencyId: 'a1',
+      productId: 'p1',
+      departureAt: '2027-01-10T10:00:00.000Z',
+      capacity: 10,
+      serviceType: 'OWN',
+      cancelled: false,
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+    });
+
+    renderRouted();
+
+    await screen.findByText('Reserva (Cancelada)');
+    expect(screen.queryByRole('button', { name: 'Cancelar reserva' })).not.toBeInTheDocument();
   });
 });
