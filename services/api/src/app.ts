@@ -170,6 +170,7 @@ import {
 } from './pescador';
 import {
   getAvailableOfferById,
+  getMyAgencyContact,
   getMyBookingById,
   getMyProfile,
   getMyProposalById,
@@ -356,6 +357,14 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       throw new NotFoundError('Customer profile not found');
     }
     return { profile };
+  });
+
+  app.get('/customer-api/agency-contact', { preHandler: customerHooks }, async () => {
+    const agency = await getMyAgencyContact(options.database);
+    if (!agency) {
+      throw new NotFoundError('Agency not found');
+    }
+    return { agency };
   });
 
   app.get('/customer-api/trips', { preHandler: customerHooks }, async () => {
