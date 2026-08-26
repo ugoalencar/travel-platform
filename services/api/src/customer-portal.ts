@@ -43,6 +43,7 @@ export interface CustomerProfile {
   phone: string | null;
   cpfMasked: string | null;
   passportMasked: string | null;
+  address: Record<string, unknown> | null;
 }
 
 interface CustomerProfileRow {
@@ -52,6 +53,7 @@ interface CustomerProfileRow {
   phone: string | null;
   cpf: string | null;
   passport: string | null;
+  address: Record<string, unknown> | null;
 }
 
 export async function getMyProfile(database: DatabaseRuntime): Promise<CustomerProfile | null> {
@@ -60,7 +62,7 @@ export async function getMyProfile(database: DatabaseRuntime): Promise<CustomerP
 
   return database.withTenantTransaction(async (client) => {
     const result = await client.query<CustomerProfileRow>(
-      `SELECT id, name, email, phone, cpf, passport
+      `SELECT id, name, email, phone, cpf, passport, address
        FROM customers
        WHERE agency_id = $1 AND id = $2 AND deleted_at IS NULL`,
       [agencyId, customerId],
@@ -76,7 +78,46 @@ export async function getMyProfile(database: DatabaseRuntime): Promise<CustomerP
       phone: row.phone,
       cpfMasked: maskTail(row.cpf),
       passportMasked: maskTail(row.passport),
+      address: row.address ?? null,
     };
+  });
+}
+
+// ============================================================
+// Agency contact (read-only, safe projection: name/phone/email only --
+// never cnpj, settings, plan, or any staff-internal field).
+// ============================================================
+export interface CustomerAgencyContact {
+  name: string;
+  email: string | null;
+  phone: string | null;
+}
+
+interface AgencyContactRow {
+  name: string;
+  email: string | null;
+  phone: string | null;
+}
+
+export async function getMyAgencyContact(
+  database: DatabaseRuntime,
+): Promise<CustomerAgencyContact | null> {
+  const agencyId = getAgencyId();
+  // customerId is still required even though unused in the query below --
+  // enforces an established customer context, matching every other
+  // function in this file.
+  getCustomerId();
+
+  return database.withTenantTransaction(async (client) => {
+    const result = await client.query<AgencyContactRow>(
+      `SELECT name, email, phone FROM agencies WHERE id = $1`,
+      [agencyId],
+    );
+    const row = result.rows[0];
+    if (!row) {
+      return null;
+    }
+    return { name: row.name, email: row.email, phone: row.phone };
   });
 }
 
@@ -144,6 +185,12 @@ export async function getMyTripById(database: DatabaseRuntime, id: string): Prom
   });
 }
 
+// NOTE: row.notes (Trip.notes) is deliberately NEVER copied into the
+// returned shape below. It is internal agency-only free text and must
+// never reach the customer portal, in the API response or otherwise --
+// see the customer-portal productization audit. It is still selected in
+// TRIP_COLUMNS only because staff-side queries elsewhere reuse row
+// shapes; if that stops being true, drop it from the SELECT list too.
 function toTrip(row: TripRow): Trip {
   return {
     id: row.id,
@@ -158,7 +205,6 @@ function toTrip(row: TripRow): Trip {
     updatedAt: new Date(row.updated_at),
     ...(row.sale_id !== null ? { saleId: row.sale_id } : {}),
     ...(row.description !== null ? { description: row.description } : {}),
-    ...(row.notes !== null ? { notes: row.notes } : {}),
   };
 }
 
@@ -342,6 +388,16 @@ interface BookingRow {
   notes: string | null;
   created_at: string;
   updated_at: string;
+  // Enrichment columns (server-side join: bookings -> scheduled_departures
+  // (outbound) -> transport_products -> routes). Prefer this single join
+  // over N client-side requests per booking.
+  departure_at: string;
+  arrival_expected_at: string | null;
+  departure_cancelled: boolean;
+  product_name: string;
+  origin: string;
+  destination: string;
+  passenger_count: string;
 }
 
 interface PassengerRow {
@@ -354,27 +410,58 @@ interface PassengerRow {
   updated_at: string;
 }
 
-const BOOKING_COLUMNS = `id, agency_id, booker_customer_id, trip_type, outbound_departure_id,
-              return_departure_id, cancelled, notes, created_at, updated_at`;
+const BOOKING_COLUMNS = `b.id, b.agency_id, b.booker_customer_id, b.trip_type, b.outbound_departure_id,
+              b.return_departure_id, b.cancelled, b.notes, b.created_at, b.updated_at,
+              d.departure_at, d.arrival_expected_at, d.cancelled AS departure_cancelled,
+              p.name AS product_name, ro.origin AS origin, ro.destination AS destination,
+              (SELECT count(*) FROM booking_passengers bp
+                 WHERE bp.agency_id = b.agency_id AND bp.booking_id = b.id) AS passenger_count`;
+const BOOKING_JOINS = `FROM bookings b
+       JOIN scheduled_departures d ON d.agency_id = b.agency_id AND d.id = b.outbound_departure_id
+       JOIN transport_products p ON p.agency_id = b.agency_id AND p.id = d.product_id
+       JOIN routes ro ON ro.agency_id = b.agency_id AND ro.id = p.outbound_route_id`;
 const PASSENGER_COLUMNS = `id, agency_id, booking_id, name, notes, created_at, updated_at`;
 
-export async function listMyBookings(database: DatabaseRuntime): Promise<Booking[]> {
+// Enriched, read-model shape for the customer portal. Route/date/product
+// context and passenger count are resolved server-side via SQL join
+// (BOOKING_JOINS above) rather than requiring the frontend to fan out one
+// request per booking. `isFuture` is the single source of truth for
+// "future booking" semantics: NOT cancelled (booking or departure) AND
+// departure_at in the future -- never just `!cancelled`.
+export interface CustomerBookingView {
+  id: string;
+  tripType: Booking['tripType'];
+  cancelled: boolean;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+  departureAt: string;
+  arrivalExpectedAt: string | null;
+  productName: string;
+  origin: string;
+  destination: string;
+  passengerCount: number;
+  isFuture: boolean;
+}
+
+export async function listMyBookings(database: DatabaseRuntime): Promise<CustomerBookingView[]> {
   const agencyId = getAgencyId();
   const customerId = getCustomerId();
 
   return database.withTenantTransaction(async (client) => {
     const result = await client.query<BookingRow>(
-      `SELECT ${BOOKING_COLUMNS} FROM bookings
-       WHERE agency_id = $1 AND booker_customer_id = $2
-       ORDER BY created_at DESC`,
+      `SELECT ${BOOKING_COLUMNS}
+       ${BOOKING_JOINS}
+       WHERE b.agency_id = $1 AND b.booker_customer_id = $2
+       ORDER BY d.departure_at DESC`,
       [agencyId, customerId],
     );
-    return result.rows.map(toBooking);
+    return result.rows.map(toBookingView);
   });
 }
 
 export interface CustomerBookingWithPassengers {
-  booking: Booking;
+  booking: CustomerBookingView;
   passengers: BookingPassenger[];
 }
 
@@ -387,8 +474,9 @@ export async function getMyBookingById(
 
   return database.withTenantTransaction(async (client) => {
     const result = await client.query<BookingRow>(
-      `SELECT ${BOOKING_COLUMNS} FROM bookings
-       WHERE agency_id = $1 AND booker_customer_id = $2 AND id = $3`,
+      `SELECT ${BOOKING_COLUMNS}
+       ${BOOKING_JOINS}
+       WHERE b.agency_id = $1 AND b.booker_customer_id = $2 AND b.id = $3`,
       [agencyId, customerId, id],
     );
     const row = result.rows[0];
@@ -404,23 +492,28 @@ export async function getMyBookingById(
     );
 
     return {
-      booking: toBooking(row),
+      booking: toBookingView(row),
       passengers: passengers.rows.map(toPassenger),
     };
   });
 }
 
-function toBooking(row: BookingRow): Booking {
+function toBookingView(row: BookingRow): CustomerBookingView {
+  const departureAt = new Date(row.departure_at);
+  const isFuture = !row.cancelled && !row.departure_cancelled && departureAt.getTime() > Date.now();
   return {
     id: row.id,
-    agencyId: row.agency_id,
-    bookerCustomerId: row.booker_customer_id,
     tripType: row.trip_type,
-    outboundDepartureId: row.outbound_departure_id,
     cancelled: row.cancelled,
-    createdAt: new Date(row.created_at),
-    updatedAt: new Date(row.updated_at),
-    ...(row.return_departure_id !== null ? { returnDepartureId: row.return_departure_id } : {}),
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    departureAt: row.departure_at,
+    arrivalExpectedAt: row.arrival_expected_at,
+    productName: row.product_name,
+    origin: row.origin,
+    destination: row.destination,
+    passengerCount: Number(row.passenger_count),
+    isFuture,
     ...(row.notes !== null ? { notes: row.notes } : {}),
   };
 }
