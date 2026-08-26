@@ -14,6 +14,22 @@ type LoadState =
   | { status: 'error'; message: string }
   | { status: 'ready'; coupons: Coupon[]; campaigns: Campaign[]; offers: Offer[] };
 
+function formatValidityDate(value?: string): string | null {
+  if (!value) return null;
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return null;
+  return parsed.toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+}
+
+function formatValidityPeriod(coupon: Pick<Coupon, 'startsAt' | 'expiresAt'>): string {
+  const starts = formatValidityDate(coupon.startsAt);
+  const expires = formatValidityDate(coupon.expiresAt);
+  if (!starts && !expires) return 'Sem validade definida';
+  if (starts && expires) return `${starts} – ${expires}`;
+  if (expires) return `Até ${expires}`;
+  return `A partir de ${starts}`;
+}
+
 export function CouponsPage() {
   const [state, setState] = useState<LoadState>({ status: 'loading' });
   const [showForm, setShowForm] = useState(false);
@@ -285,7 +301,7 @@ export function CouponsPage() {
                   <td className="px-4 py-2 font-medium text-slate-900">{coupon.code}</td>
                   <td className="px-4 py-2 text-slate-700">{coupon.name}</td>
                   <td className="px-4 py-2 text-slate-700">{labelFor(COUPON_TYPE_LABELS, coupon.type)}</td>
-                  <td className="px-4 py-2 text-slate-700">—</td>
+                  <td className="px-4 py-2 text-slate-700">{formatValidityPeriod(coupon)}</td>
                   <td className="px-4 py-2 text-slate-700">
                     {coupon.maxUses ?? '∞'}
                     {coupon.maxUsesPerCustomer ? ` (máx ${coupon.maxUsesPerCustomer}/cliente)` : ''}

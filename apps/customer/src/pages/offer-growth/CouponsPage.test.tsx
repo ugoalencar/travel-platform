@@ -45,6 +45,19 @@ describe('CouponsPage', () => {
     expect(screen.getByText('Valor fixo')).toBeInTheDocument();
   });
 
+  it('shows the coupon validity period when startsAt/expiresAt are present', async () => {
+    vi.mocked(api.listCoupons).mockResolvedValue([
+      { ...coupon, startsAt: '2026-09-01T00:00:00.000Z', expiresAt: '2026-09-30T00:00:00.000Z' },
+    ]);
+    renderPage();
+    expect(await screen.findByText('01/09/2026 – 30/09/2026')).toBeInTheDocument();
+  });
+
+  it('shows a fallback message when no validity period is set', async () => {
+    renderPage();
+    expect(await screen.findByText('Sem validade definida')).toBeInTheDocument();
+  });
+
   it('creates a coupon through the real form', async () => {
     renderPage();
     await screen.findByText('CANCUN300');
