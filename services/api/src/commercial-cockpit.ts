@@ -25,6 +25,7 @@ interface OpportunityRow {
   id: string;
   agency_id: string;
   customer_id: string;
+  customer_name?: string | null;
   wish_id: string | null;
   proposal_id: string | null;
   sale_id: string | null;
@@ -94,6 +95,7 @@ function toOpportunity(row: OpportunityRow): CommercialOpportunity {
     stageId: row.stage_id,
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
+    ...(row.customer_name != null ? { customerName: row.customer_name } : {}),
     ...(row.wish_id !== null ? { wishId: row.wish_id } : {}),
     ...(row.proposal_id !== null ? { proposalId: row.proposal_id } : {}),
     ...(row.sale_id !== null ? { saleId: row.sale_id } : {}),
@@ -325,15 +327,17 @@ export async function listOpportunities(
     const { where, values } = buildOpportunityWhere(agencyId, filters);
 
     const countResult = await client.query<{ count: string }>(
-      `SELECT COUNT(*)::text AS count FROM commercial_opportunities WHERE ${where}`,
+      `SELECT COUNT(*)::text AS count FROM commercial_opportunities co WHERE ${where}`,
       values,
     );
 
     const result = await client.query<OpportunityRow>(
-      `SELECT ${OPPORTUNITY_COLUMNS}
-       FROM commercial_opportunities
+      `SELECT ${OPPORTUNITY_COLUMNS.split(',').map((c) => `co.${c.trim()}`).join(', ')},
+              cu.name AS customer_name
+       FROM commercial_opportunities co
+       LEFT JOIN customers cu ON cu.id = co.customer_id AND cu.agency_id = co.agency_id
        WHERE ${where}
-       ORDER BY updated_at DESC
+       ORDER BY co.updated_at DESC
        LIMIT $${values.length + 1} OFFSET $${values.length + 2}`,
       [...values, pagination.limit, pagination.offset],
     );
@@ -349,70 +353,70 @@ function buildOpportunityWhere(
   agencyId: string,
   filters: OpportunityFilters,
 ): { where: string; values: unknown[] } {
-  const clauses: string[] = ['agency_id = $1'];
+  const clauses: string[] = ['co.agency_id = $1'];
   const values: unknown[] = [agencyId];
 
   if (filters.stage !== undefined) {
     values.push(filters.stage);
-    clauses.push(`stage = $${values.length}`);
+    clauses.push(`co.stage = $${values.length}`);
   }
   if (filters.pipelineId !== undefined) {
     values.push(filters.pipelineId);
-    clauses.push(`pipeline_id = $${values.length}`);
+    clauses.push(`co.pipeline_id = $${values.length}`);
   }
   if (filters.stageId !== undefined) {
     values.push(filters.stageId);
-    clauses.push(`stage_id = $${values.length}`);
+    clauses.push(`co.stage_id = $${values.length}`);
   }
   if (filters.visiblePipelineIds !== undefined) {
     values.push(filters.visiblePipelineIds);
-    clauses.push(`pipeline_id = ANY($${values.length}::text[])`);
+    clauses.push(`co.pipeline_id = ANY($${values.length}::text[])`);
   }
   if (filters.responsibleUserId !== undefined) {
     values.push(filters.responsibleUserId);
-    clauses.push(`responsible_user_id = $${values.length}`);
+    clauses.push(`co.responsible_user_id = $${values.length}`);
   }
   if (filters.customerId !== undefined) {
     values.push(filters.customerId);
-    clauses.push(`customer_id = $${values.length}`);
+    clauses.push(`co.customer_id = $${values.length}`);
   }
   if (filters.destination !== undefined) {
     values.push(`%${filters.destination}%`);
-    clauses.push(`destination ILIKE $${values.length}`);
+    clauses.push(`co.destination ILIKE $${values.length}`);
   }
   if (filters.tripDateFrom !== undefined) {
     values.push(filters.tripDateFrom);
-    clauses.push(`(trip_date_to IS NULL OR trip_date_to >= $${values.length})`);
+    clauses.push(`(co.trip_date_to IS NULL OR co.trip_date_to >= $${values.length})`);
   }
   if (filters.tripDateTo !== undefined) {
     values.push(filters.tripDateTo);
-    clauses.push(`(trip_date_from IS NULL OR trip_date_from <= $${values.length})`);
+    clauses.push(`(co.trip_date_from IS NULL OR co.trip_date_from <= $${values.length})`);
   }
   if (filters.hasProposal === true) {
-    clauses.push('proposal_id IS NOT NULL');
+    clauses.push('co.proposal_id IS NOT NULL');
   } else if (filters.hasProposal === false) {
-    clauses.push('proposal_id IS NULL');
+    clauses.push('co.proposal_id IS NULL');
   }
   if (filters.hasSale === true) {
-    clauses.push('sale_id IS NOT NULL');
+    clauses.push('co.sale_id IS NOT NULL');
   } else if (filters.hasSale === false) {
-    clauses.push('sale_id IS NULL');
+    clauses.push('co.sale_id IS NULL');
   }
   if (filters.hasNextAction === true) {
-    clauses.push('next_action_at IS NOT NULL');
+    clauses.push('co.next_action_at IS NOT NULL');
   } else if (filters.hasNextAction === false) {
-    clauses.push("next_action_at IS NULL AND stage NOT IN ('WON', 'LOST')");
+    clauses.push("co.next_action_at IS NULL AND co.stage NOT IN ('WON', 'LOST')");
   }
   if (filters.nextActionFrom !== undefined) {
     values.push(filters.nextActionFrom);
-    clauses.push(`next_action_at >= $${values.length}`);
+    clauses.push(`co.next_action_at >= $${values.length}`);
   }
   if (filters.nextActionTo !== undefined) {
     values.push(filters.nextActionTo);
-    clauses.push(`next_action_at <= $${values.length}`);
+    clauses.push(`co.next_action_at <= $${values.length}`);
   }
   if (filters.overdue === true) {
-    clauses.push(`next_action_at < now() AND stage NOT IN ('WON', 'LOST')`);
+    clauses.push(`co.next_action_at < now() AND co.stage NOT IN ('WON', 'LOST')`);
   }
 
   return { where: clauses.join(' AND '), values };

@@ -36,6 +36,10 @@ export interface CommercialOpportunity {
   id: string;
   agencyId: string;
   customerId: string;
+  // Server-joined display name (services/api/src/commercial-cockpit.ts
+  // LEFT JOINs customers in listOpportunities). Only present on list reads;
+  // absent (e.g. a deleted customer) falls back to customerId in the UI.
+  customerName?: string;
   wishId?: string;
   proposalId?: string;
   saleId?: string;
