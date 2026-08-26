@@ -65,9 +65,19 @@ export function OfferDetailsPage() {
             Voltar
           </Button>
           {state.status === 'success' && (
-            <Button onClick={() => void navigate(`/offers/${state.offer.id}/edit`)}>
-              Editar
-            </Button>
+            <>
+              <Button
+                variant="outline"
+                onClick={() =>
+                  void navigate(`/offer-growth/studio?offerId=${encodeURIComponent(state.offer.id)}`)
+                }
+              >
+                Criar material
+              </Button>
+              <Button onClick={() => void navigate(`/offers/${state.offer.id}/edit`)}>
+                Editar
+              </Button>
+            </>
           )}
         </div>
       </div>

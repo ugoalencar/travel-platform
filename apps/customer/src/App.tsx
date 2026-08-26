@@ -16,6 +16,7 @@ import { OffersPage } from './pages/OffersPage';
 import { OfferFormPage } from './pages/OfferFormPage';
 import { OfferDetailsPage } from './pages/OfferDetailsPage';
 import { OfferEditPage } from './pages/OfferEditPage';
+import { OfferGrowthStudioPage } from './pages/OfferGrowthStudioPage';
 import { ProposalsPage } from './pages/ProposalsPage';
 import { ProposalFormPage } from './pages/ProposalFormPage';
 import { ProposalDetailsPage } from './pages/ProposalDetailsPage';
@@ -101,6 +102,13 @@ export function App() {
         <Route path="offers/new" element={<OfferFormPage />} />
         <Route path="offers/:id" element={<OfferDetailsPage />} />
         <Route path="offers/:id/edit" element={<OfferEditPage />} />
+        <Route path="offer-growth/studio" element={<OfferGrowthStudioPage />} />
+        <Route path="offer-growth/templates" element={<OfferGrowthStudioPage />} />
+        <Route path="offer-growth/editor" element={<OfferGrowthStudioPage />} />
+        <Route path="offer-growth/campaigns" element={<OfferGrowthStudioPage />} />
+        <Route path="offer-growth/publications" element={<OfferGrowthStudioPage />} />
+        <Route path="offer-growth/automations" element={<OfferGrowthStudioPage />} />
+        <Route path="offer-growth/coupons" element={<OfferGrowthStudioPage />} />
         <Route path="proposals" element={<ProposalsPage />} />
         <Route path="proposals/new" element={<ProposalFormPage />} />
         <Route path="proposals/:id" element={<ProposalDetailsPage />} />
