@@ -32,4 +32,8 @@ export interface UpdateCustomerInput {
   name?: string;
   email?: string;
   phone?: string;
+  cpf?: string;
+  passport?: string;
+  address?: Record<string, unknown>;
+  notes?: string;
 }

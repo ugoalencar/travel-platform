@@ -267,6 +267,30 @@ export async function updateProposal(
   return data.proposal;
 }
 
+async function transitionProposal(id: string, action: string): Promise<Proposal> {
+  const data = await request<{ proposal: Proposal }>(
+    `/api/proposals/${encodeURIComponent(id)}/${action}`,
+    { method: 'POST' },
+  );
+  return data.proposal;
+}
+
+export async function sendProposal(id: string): Promise<Proposal> {
+  return transitionProposal(id, 'send');
+}
+
+export async function acceptProposal(id: string): Promise<Proposal> {
+  return transitionProposal(id, 'accept');
+}
+
+export async function declineProposal(id: string): Promise<Proposal> {
+  return transitionProposal(id, 'decline');
+}
+
+export async function cancelProposal(id: string): Promise<Proposal> {
+  return transitionProposal(id, 'cancel');
+}
+
 export async function listSales(): Promise<Sale[]> {
   const data = await request<{ sales: Sale[] }>('/api/sales');
   return data.sales;
@@ -296,6 +320,26 @@ export async function updateSale(id: string, input: UpdateSaleInput): Promise<Sa
     },
   );
   return data.sale;
+}
+
+async function transitionSale(id: string, action: string): Promise<Sale> {
+  const data = await request<{ sale: Sale }>(
+    `/api/sales/${encodeURIComponent(id)}/${action}`,
+    { method: 'POST' },
+  );
+  return data.sale;
+}
+
+export async function confirmSale(id: string): Promise<Sale> {
+  return transitionSale(id, 'confirm');
+}
+
+export async function cancelSale(id: string): Promise<Sale> {
+  return transitionSale(id, 'cancel');
+}
+
+export async function markSalePaid(id: string): Promise<Sale> {
+  return transitionSale(id, 'mark-paid');
 }
 
 export async function listReceivables(): Promise<Receivable[]> {
