@@ -1,13 +1,28 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { ApiError, confirmArrival, confirmDeparture, getOperation } from '../lib/api';
+import {
+  ApiError,
+  confirmArrival,
+  confirmDeparture,
+  getOperation,
+  getDeparture,
+  getTransportProduct,
+  getRoute,
+} from '../lib/api';
 import type { OperationCheckpoint, OperationWithCheckpoints } from '../types/operations';
+import type { ScheduledDeparture, TransportProduct, Route } from '../types/transport';
 import { Button } from '../components/ui/button';
 
 type LoadState =
   | { status: 'loading' }
   | { status: 'error'; message: string }
-  | { status: 'success'; data: OperationWithCheckpoints };
+  | {
+      status: 'success';
+      data: OperationWithCheckpoints;
+      departure: ScheduledDeparture | null;
+      product: TransportProduct | null;
+      route: Route | null;
+    };
 
 function formatTime(iso: string): string {
   const date = new Date(iso);
@@ -35,7 +50,16 @@ export function OperationDetailsPage() {
     if (!id) return;
     setState({ status: 'loading' });
     getOperation(id)
-      .then((data) => setState({ status: 'success', data }))
+      .then(async (data) => {
+        const departure = await getDeparture(data.operation.departureId).catch(() => null);
+        const product = departure
+          ? await getTransportProduct(departure.productId).catch(() => null)
+          : null;
+        const route = product
+          ? await getRoute(product.outboundRouteId).catch(() => null)
+          : null;
+        setState({ status: 'success', data, departure, product, route });
+      })
       .catch((error: unknown) => {
         const message =
           error instanceof ApiError ? error.message : 'Não foi possível carregar a operação.';
@@ -72,23 +96,65 @@ export function OperationDetailsPage() {
       )}
 
       {state.status === 'error' && (
-        <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <div role="alert" aria-live="assertive" className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
           {state.message}
         </div>
       )}
 
       {state.status === 'success' && (
-        <ul className="flex flex-col gap-4">
-          {state.data.checkpoints.length === 0 && (
-            <p className="text-sm text-slate-500">Nenhum checkpoint monitorado nesta operação.</p>
+        <>
+          {(state.departure || state.product || state.route) && (
+            <dl className="grid grid-cols-1 gap-3 rounded-lg border border-slate-200 bg-white p-4 sm:grid-cols-2">
+              {state.route && (
+                <div>
+                  <dt className="text-xs font-medium uppercase tracking-wide text-slate-500">Rota</dt>
+                  <dd className="text-sm text-slate-900">
+                    {state.route.origin} → {state.route.destination}
+                  </dd>
+                </div>
+              )}
+              {state.product && (
+                <div>
+                  <dt className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                    Produto
+                  </dt>
+                  <dd className="text-sm text-slate-900">{state.product.name}</dd>
+                </div>
+              )}
+              {state.departure && (
+                <div>
+                  <dt className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                    Saída
+                  </dt>
+                  <dd className="text-sm text-slate-900">
+                    {new Date(state.departure.departureAt).toLocaleString('pt-BR')}
+                  </dd>
+                </div>
+              )}
+              <div>
+                <dt className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                  Status
+                </dt>
+                <dd className="text-sm text-slate-900">
+                  {state.departure?.cancelled ? 'Saída cancelada' : 'Operação ativa'}
+                </dd>
+              </div>
+            </dl>
           )}
-          {state.data.checkpoints.map((checkpoint) => (
+
+          <ul className="flex flex-col gap-4">
+            {state.data.checkpoints.length === 0 && (
+              <p className="text-sm text-slate-500">Nenhum checkpoint monitorado nesta operação.</p>
+            )}
+            {state.data.checkpoints.map((checkpoint) => (
             <li
               key={checkpoint.id}
               className="flex flex-col gap-3 rounded-lg border border-slate-200 bg-white p-4"
             >
               <div className="flex flex-col gap-1">
-                <p className="font-medium text-slate-900">Checkpoint {checkpoint.routePointId}</p>
+                <p className="font-medium text-slate-900">
+                  {checkpoint.routePointName ?? `Ponto ${checkpoint.routePointId}`}
+                </p>
                 {checkpoint.expectedAt && (
                   <p className="text-sm text-slate-500">
                     Previsto: {formatTime(checkpoint.expectedAt)}
@@ -140,6 +206,7 @@ export function OperationDetailsPage() {
             </li>
           ))}
         </ul>
+        </>
       )}
     </div>
   );

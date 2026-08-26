@@ -52,6 +52,7 @@ interface CheckpointRow {
 interface CheckpointWithDerivationRow extends CheckpointRow {
   departure_at: string;
   planned_offset_minutes: number | null;
+  route_point_name: string;
 }
 
 export interface CreateOperationInput {
@@ -161,7 +162,7 @@ export async function getOperationById(
       `SELECT oc.id, oc.agency_id, oc.operation_id, oc.route_point_id, oc.checkpoint_type,
               oc.arrival_checked_at, oc.departure_checked_at, oc.notes, oc.location,
               oc.created_at, oc.updated_at,
-              sd.departure_at, rp.planned_offset_minutes
+              sd.departure_at, rp.planned_offset_minutes, rp.name AS route_point_name
        FROM operation_checkpoints oc
        JOIN transport_operations op ON op.agency_id = oc.agency_id AND op.id = oc.operation_id
        JOIN scheduled_departures sd ON sd.agency_id = op.agency_id AND sd.id = op.departure_id
@@ -246,7 +247,7 @@ export async function createOperation(
       `SELECT oc.id, oc.agency_id, oc.operation_id, oc.route_point_id, oc.checkpoint_type,
               oc.arrival_checked_at, oc.departure_checked_at, oc.notes, oc.location,
               oc.created_at, oc.updated_at,
-              sd.departure_at, rp.planned_offset_minutes
+              sd.departure_at, rp.planned_offset_minutes, rp.name AS route_point_name
        FROM operation_checkpoints oc
        JOIN transport_operations op ON op.agency_id = oc.agency_id AND op.id = oc.operation_id
        JOIN scheduled_departures sd ON sd.agency_id = op.agency_id AND sd.id = op.departure_id
@@ -630,10 +631,14 @@ function toAssignment(row: OperationAssignmentRow): OperationAssignment {
 
 function toCheckpointWithExpected(row: CheckpointWithDerivationRow): OperationCheckpointWithExpected {
   const base = toCheckpoint(row);
+  const result: OperationCheckpointWithExpected = {
+    ...base,
+    routePointName: row.route_point_name,
+  };
   if (row.planned_offset_minutes === null) {
-    return base;
+    return result;
   }
   const departureAt = new Date(row.departure_at);
   const expectedAt = new Date(departureAt.getTime() + row.planned_offset_minutes * 60_000);
-  return { ...base, expectedAt };
+  return { ...result, expectedAt };
 }

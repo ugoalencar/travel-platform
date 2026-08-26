@@ -586,6 +586,7 @@ export interface OperationCheckpoint {
 // computed at read time and never persisted.
 export interface OperationCheckpointWithExpected extends OperationCheckpoint {
   expectedAt?: Date;
+  routePointName?: string;
 }
 
 // ============================================================
