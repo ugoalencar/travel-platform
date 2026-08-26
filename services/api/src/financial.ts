@@ -183,6 +183,87 @@ export async function listReceivables(database: DatabaseRuntime): Promise<Receiv
   });
 }
 
+export async function listPayables(database: DatabaseRuntime): Promise<Payable[]> {
+  const agencyId = getAgencyId();
+  return database.withTenantTransaction(async (client) => {
+    const result = await client.query<PayableRow>(
+      `SELECT ${PAYABLE_COLUMNS}
+       FROM payables
+       WHERE agency_id = $1
+       ORDER BY due_at ASC, created_at DESC`,
+      [agencyId],
+    );
+    return result.rows.map(toPayable);
+  });
+}
+
+export async function listPayments(database: DatabaseRuntime): Promise<Payment[]> {
+  const agencyId = getAgencyId();
+  return database.withTenantTransaction(async (client) => {
+    const result = await client.query<PaymentRow>(
+      `SELECT ${PAYMENT_COLUMNS}
+       FROM payments
+       WHERE agency_id = $1
+       ORDER BY occurred_at DESC, created_at DESC`,
+      [agencyId],
+    );
+    return result.rows.map(toPayment);
+  });
+}
+
+export async function listPaymentAllocations(
+  database: DatabaseRuntime,
+  paymentId: string,
+): Promise<PaymentAllocation[]> {
+  const agencyId = getAgencyId();
+  return database.withTenantTransaction(async (client) => {
+    const result = await client.query<AllocationRow>(
+      `SELECT ${ALLOCATION_COLUMNS}
+       FROM payment_allocations
+       WHERE agency_id = $1 AND payment_id = $2
+       ORDER BY created_at ASC`,
+      [agencyId, paymentId],
+    );
+    return result.rows.map(toAllocation);
+  });
+}
+
+export async function listAllocationsForTarget(
+  database: DatabaseRuntime,
+  target: { receivableId?: string; payableId?: string },
+): Promise<PaymentAllocation[]> {
+  const agencyId = getAgencyId();
+  if (!target.receivableId && !target.payableId) {
+    return [];
+  }
+  const column = target.receivableId ? 'receivable_id' : 'payable_id';
+  const value = target.receivableId ?? target.payableId;
+  return database.withTenantTransaction(async (client) => {
+    const result = await client.query<AllocationRow>(
+      `SELECT ${ALLOCATION_COLUMNS}
+       FROM payment_allocations
+       WHERE agency_id = $1 AND ${column} = $2
+       ORDER BY created_at ASC`,
+      [agencyId, value],
+    );
+    return result.rows.map(toAllocation);
+  });
+}
+
+export async function listOperationalCosts(database: DatabaseRuntime): Promise<OperationalCost[]> {
+  const agencyId = getAgencyId();
+  return database.withTenantTransaction(async (client) => {
+    const result = await client.query<OperationalCostRow>(
+      `SELECT ${OPERATIONAL_COST_COLUMNS}
+       FROM operational_costs
+       WHERE agency_id = $1
+       ORDER BY incurred_at DESC, created_at DESC`,
+      [agencyId],
+    );
+    return result.rows.map(toOperationalCost);
+  });
+}
+
 export async function createReceivable(
   database: DatabaseRuntime,
   data: CreateReceivableInput,

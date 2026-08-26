@@ -150,6 +150,12 @@ import {
   createPayable,
   createReceivable,
   getCashFlowSummary,
+  getSaleMargin,
+  listAllocationsForTarget,
+  listOperationalCosts,
+  listPaymentAllocations,
+  listPayables,
+  listPayments,
   listReceivables,
   recordPayment,
   type CashFlowPeriod,
@@ -1537,6 +1543,54 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     const receivables = await listReceivables(options.database);
     return { receivables };
   });
+
+  app.get('/financial/payables', { preHandler: protectedHooks }, async () => {
+    requireRole(UserRole.MANAGER);
+    const payables = await listPayables(options.database);
+    return { payables };
+  });
+
+  app.get('/financial/payments', { preHandler: protectedHooks }, async () => {
+    requireRole(UserRole.MANAGER);
+    const payments = await listPayments(options.database);
+    return { payments };
+  });
+
+  app.get<{ Params: { id: string } }>(
+    '/financial/payments/:id/allocations',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.MANAGER);
+      const allocations = await listPaymentAllocations(options.database, request.params.id);
+      return { allocations };
+    },
+  );
+
+  app.get('/financial/operational-costs', { preHandler: protectedHooks }, async () => {
+    requireRole(UserRole.MANAGER);
+    const operationalCosts = await listOperationalCosts(options.database);
+    return { operationalCosts };
+  });
+
+  app.get('/financial/allocations', { preHandler: protectedHooks }, async (request) => {
+    requireRole(UserRole.MANAGER);
+    const query = request.query as Record<string, string>;
+    const target: { receivableId?: string; payableId?: string } = {};
+    if (query.receivableId) target.receivableId = query.receivableId;
+    if (query.payableId) target.payableId = query.payableId;
+    const allocations = await listAllocationsForTarget(options.database, target);
+    return { allocations };
+  });
+
+  app.get<{ Params: { id: string } }>(
+    '/financial/sales/:id/margin',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.MANAGER);
+      const margin = await getSaleMargin(options.database, request.params.id);
+      return { margin };
+    },
+  );
 
   app.get('/financial/dashboard', { preHandler: protectedHooks }, async (request) => {
     requireRole(UserRole.MANAGER);

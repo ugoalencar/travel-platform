@@ -390,9 +390,9 @@ describe('App', () => {
     ).toBeInTheDocument();
   });
 
-  it('renders "Financeiro" as a real navigation link', () => {
+  it('renders "Financeiro" section with Dashboard link to /financial', () => {
     renderApp();
-    const link = screen.getByRole('link', { name: 'Financeiro' });
+    const link = screen.getByRole('link', { name: 'Dashboard' });
     expect(link).toHaveAttribute('href', '/financial');
   });
 

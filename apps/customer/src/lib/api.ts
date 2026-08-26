@@ -36,7 +36,12 @@ import type { Sale, CreateSaleInput, UpdateSaleInput } from '../types/sale';
 import type {
   CashFlowSummary,
   FinancialPeriod,
+  OperationalCost,
+  Payable,
+  Payment,
+  PaymentAllocation,
   Receivable,
+  SaleMargin,
 } from '../types/financial';
 import type {
   CreateExternalOfferCaptureInput,
@@ -345,6 +350,50 @@ export async function markSalePaid(id: string): Promise<Sale> {
 export async function listReceivables(): Promise<Receivable[]> {
   const data = await request<{ receivables: Receivable[] }>('/api/financial/receivables');
   return data.receivables;
+}
+
+export async function listPayables(): Promise<Payable[]> {
+  const data = await request<{ payables: Payable[] }>('/api/financial/payables');
+  return data.payables;
+}
+
+export async function listPayments(): Promise<Payment[]> {
+  const data = await request<{ payments: Payment[] }>('/api/financial/payments');
+  return data.payments;
+}
+
+export async function listPaymentAllocations(paymentId: string): Promise<PaymentAllocation[]> {
+  const data = await request<{ allocations: PaymentAllocation[] }>(
+    `/api/financial/payments/${encodeURIComponent(paymentId)}/allocations`,
+  );
+  return data.allocations;
+}
+
+export async function listAllocationsForTarget(target: {
+  receivableId?: string;
+  payableId?: string;
+}): Promise<PaymentAllocation[]> {
+  const params = new URLSearchParams();
+  if (target.receivableId) params.set('receivableId', target.receivableId);
+  if (target.payableId) params.set('payableId', target.payableId);
+  const data = await request<{ allocations: PaymentAllocation[] }>(
+    `/api/financial/allocations?${params.toString()}`,
+  );
+  return data.allocations;
+}
+
+export async function listOperationalCosts(): Promise<OperationalCost[]> {
+  const data = await request<{ operationalCosts: OperationalCost[] }>(
+    '/api/financial/operational-costs',
+  );
+  return data.operationalCosts;
+}
+
+export async function getSaleMargin(saleId: string): Promise<SaleMargin> {
+  const data = await request<{ margin: SaleMargin }>(
+    `/api/financial/sales/${encodeURIComponent(saleId)}/margin`,
+  );
+  return data.margin;
 }
 
 export async function listExternalOfferCaptures(): Promise<ExternalOfferCapture[]> {

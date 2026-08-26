@@ -48,6 +48,10 @@ import { SaleFormPage } from './pages/SaleFormPage';
 import { SaleDetailsPage } from './pages/SaleDetailsPage';
 import { SaleEditPage } from './pages/SaleEditPage';
 import { FinancialPage } from './pages/FinancialPage';
+import { PayablesPage } from './pages/PayablesPage';
+import { PaymentsPage } from './pages/PaymentsPage';
+import { OperationalCostsPage } from './pages/OperationalCostsPage';
+import { SaleMarginPage } from './pages/SaleMarginPage';
 import { PescadorPage } from './pages/PescadorPage';
 import { CustomerPortalShell } from './customer-portal/CustomerPortalShell';
 import { CustomerHomePage } from './customer-portal/pages/CustomerHomePage';
@@ -140,6 +144,10 @@ export function App() {
         <Route path="sales/:id" element={<SaleDetailsPage />} />
         <Route path="sales/:id/edit" element={<SaleEditPage />} />
         <Route path="financial" element={<FinancialPage />} />
+        <Route path="financial/payables" element={<PayablesPage />} />
+        <Route path="financial/payments" element={<PaymentsPage />} />
+        <Route path="financial/operational-costs" element={<OperationalCostsPage />} />
+        <Route path="financial/sales/:saleId/margin" element={<SaleMarginPage />} />
         <Route path="pescador" element={<PescadorPage />} />
         <Route path="commercial/dashboard" element={<CommercialDashboardPage />} />
         <Route path="commercial/pipeline" element={<CommercialPipelinePage />} />
