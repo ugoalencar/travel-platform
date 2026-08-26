@@ -10,7 +10,6 @@
 import type { Pool } from 'pg';
 import type {
   Booking,
-  BookingPassenger,
   Offer,
   Proposal,
   Trip,
@@ -432,7 +431,6 @@ export interface CustomerBookingView {
   id: string;
   tripType: Booking['tripType'];
   cancelled: boolean;
-  notes?: string;
   createdAt: string;
   updatedAt: string;
   departureAt: string;
@@ -442,6 +440,16 @@ export interface CustomerBookingView {
   destination: string;
   passengerCount: number;
   isFuture: boolean;
+}
+
+// Customer-facing passenger projection — excludes internal notes.
+export interface CustomerBookingPassenger {
+  id: string;
+  agencyId: string;
+  bookingId: string;
+  name: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export async function listMyBookings(database: DatabaseRuntime): Promise<CustomerBookingView[]> {
@@ -462,7 +470,7 @@ export async function listMyBookings(database: DatabaseRuntime): Promise<Custome
 
 export interface CustomerBookingWithPassengers {
   booking: CustomerBookingView;
-  passengers: BookingPassenger[];
+  passengers: CustomerBookingPassenger[];
 }
 
 export async function getMyBookingById(
@@ -493,7 +501,7 @@ export async function getMyBookingById(
 
     return {
       booking: toBookingView(row),
-      passengers: passengers.rows.map(toPassenger),
+      passengers: passengers.rows.map(toCustomerPassenger),
     };
   });
 }
@@ -514,11 +522,11 @@ function toBookingView(row: BookingRow): CustomerBookingView {
     destination: row.destination,
     passengerCount: Number(row.passenger_count),
     isFuture,
-    ...(row.notes !== null ? { notes: row.notes } : {}),
   };
 }
 
-function toPassenger(row: PassengerRow): BookingPassenger {
+// Customer-facing passenger projection — internal notes never exposed.
+function toCustomerPassenger(row: PassengerRow): CustomerBookingPassenger {
   return {
     id: row.id,
     agencyId: row.agency_id,
@@ -526,6 +534,5 @@ function toPassenger(row: PassengerRow): BookingPassenger {
     name: row.name,
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
-    ...(row.notes !== null ? { notes: row.notes } : {}),
   };
 }

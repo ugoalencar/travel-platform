@@ -172,6 +172,91 @@ describe.sequential('Customer portal HTTP routes (happy path)', () => {
     await app.close();
   });
 
+  it('GET /customer-api/bookings never exposes Booking.notes (internal agency notes)', async () => {
+    const route = await adminPool.query<{ id: string }>(
+      `INSERT INTO routes (agency_id, origin, destination) VALUES ($1, 'A', 'B') RETURNING id`,
+      [agencyAId],
+    );
+    const product = await adminPool.query<{ id: string }>(
+      `INSERT INTO transport_products (agency_id, name, trip_type, outbound_route_id, price)
+       VALUES ($1, 'Product', 'ONE_WAY', $2, 100) RETURNING id`,
+      [agencyAId, route.rows[0]!.id],
+    );
+    const departure = await adminPool.query<{ id: string }>(
+      `INSERT INTO scheduled_departures (agency_id, product_id, departure_at, capacity, service_type)
+       VALUES ($1, $2, '2026-07-01T10:00:00Z', 40, 'OWN') RETURNING id`,
+      [agencyAId, product.rows[0]!.id],
+    );
+    const booking = await adminPool.query<{ id: string }>(
+      `INSERT INTO bookings (agency_id, booker_customer_id, trip_type, outbound_departure_id, notes)
+       VALUES ($1, $2, 'ONE_WAY', $3, 'internal booking note') RETURNING id`,
+      [agencyAId, customerId, departure.rows[0]!.id],
+    );
+
+    const app = buildTestApp();
+
+    // List endpoint
+    const list = await app.inject({
+      method: 'GET',
+      url: '/customer-api/bookings',
+      headers: { 'x-test-customer': 'ok' },
+    });
+    const bookings = list.json<{ bookings: Array<Record<string, unknown>> }>().bookings;
+    expect(bookings).toHaveLength(1);
+    expect(bookings[0]).not.toHaveProperty('notes');
+    expect(JSON.stringify(bookings)).not.toContain('internal booking note');
+
+    // Detail endpoint
+    const detail = await app.inject({
+      method: 'GET',
+      url: `/customer-api/bookings/${booking.rows[0]!.id}`,
+      headers: { 'x-test-customer': 'ok' },
+    });
+    const detailBody = detail.json<{ booking: Record<string, unknown> }>();
+    expect(detailBody.booking).not.toHaveProperty('notes');
+    expect(JSON.stringify(detailBody.booking)).not.toContain('internal booking note');
+    await app.close();
+  });
+
+  it('GET /customer-api/bookings/:id never exposes BookingPassenger.notes (internal agency notes)', async () => {
+    const route = await adminPool.query<{ id: string }>(
+      `INSERT INTO routes (agency_id, origin, destination) VALUES ($1, 'A', 'B') RETURNING id`,
+      [agencyAId],
+    );
+    const product = await adminPool.query<{ id: string }>(
+      `INSERT INTO transport_products (agency_id, name, trip_type, outbound_route_id, price)
+       VALUES ($1, 'Product', 'ONE_WAY', $2, 100) RETURNING id`,
+      [agencyAId, route.rows[0]!.id],
+    );
+    const departure = await adminPool.query<{ id: string }>(
+      `INSERT INTO scheduled_departures (agency_id, product_id, departure_at, capacity, service_type)
+       VALUES ($1, $2, '2026-07-01T10:00:00Z', 40, 'OWN') RETURNING id`,
+      [agencyAId, product.rows[0]!.id],
+    );
+    const booking = await adminPool.query<{ id: string }>(
+      `INSERT INTO bookings (agency_id, booker_customer_id, trip_type, outbound_departure_id)
+       VALUES ($1, $2, 'ONE_WAY', $3) RETURNING id`,
+      [agencyAId, customerId, departure.rows[0]!.id],
+    );
+    await adminPool.query(
+      `INSERT INTO booking_passengers (agency_id, booking_id, name, notes)
+       VALUES ($1, $2, 'Passenger One', 'internal passenger note')`,
+      [agencyAId, booking.rows[0]!.id],
+    );
+
+    const app = buildTestApp();
+    const detail = await app.inject({
+      method: 'GET',
+      url: `/customer-api/bookings/${booking.rows[0]!.id}`,
+      headers: { 'x-test-customer': 'ok' },
+    });
+    const body = detail.json<{ passengers: Array<Record<string, unknown>> }>();
+    expect(body.passengers).toHaveLength(1);
+    expect(body.passengers[0]).not.toHaveProperty('notes');
+    expect(JSON.stringify(body.passengers)).not.toContain('internal passenger note');
+    await app.close();
+  });
+
   it('GET /customer-api/offers lists agency-wide active offers (not personalized)', async () => {
     await adminPool.query(
       `INSERT INTO offers (agency_id, name, price, status) VALUES ($1, 'Promo', 500, 'ACTIVE')`,
