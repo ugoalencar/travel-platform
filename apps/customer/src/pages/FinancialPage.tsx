@@ -1,23 +1,15 @@
 import { useEffect, useState } from 'react';
 import { ApiError, getFinancialDashboard, listReceivables } from '../lib/api';
 import type { CashFlowSummary, Receivable } from '../types/financial';
+import { formatBRL } from '../lib/formatCurrency';
+import { formatDateBR } from '../lib/formatDateBR';
+import { getReceivableStatusLabel } from '../lib/statusLabels';
+import { StatusPill, receivableStatusTone } from '../components/ui/StatusPill';
 
 type LoadState =
   | { status: 'loading' }
   | { status: 'error'; message: string }
   | { status: 'success'; cashFlow: CashFlowSummary; receivables: Receivable[] };
-
-const currencyFormatter = new Intl.NumberFormat('pt-BR', {
-  style: 'currency',
-  currency: 'BRL',
-});
-
-const dateFormatter = new Intl.DateTimeFormat('pt-BR', {
-  day: '2-digit',
-  month: '2-digit',
-  year: 'numeric',
-  timeZone: 'UTC',
-});
 
 export function FinancialPage() {
   const [state, setState] = useState<LoadState>({ status: 'loading' });
@@ -62,7 +54,11 @@ export function FinancialPage() {
       )}
 
       {state.status === 'error' && (
-        <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <div
+          role="alert"
+          aria-live="polite"
+          className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+        >
           {state.message}
         </div>
       )}
@@ -98,7 +94,7 @@ function CashFlowCards({ cashFlow }: { cashFlow: CashFlowSummary }) {
             {card.label}
           </p>
           <p className="mt-2 text-2xl font-semibold text-slate-900">
-            {formatCurrency(card.value)}
+            {formatBRL(card.value)}
           </p>
         </div>
       ))}
@@ -144,15 +140,15 @@ function ReceivablesTable({ receivables }: { receivables: Receivable[] }) {
                 </td>
                 <td className="px-4 py-3 text-slate-600">{receivable.customerId}</td>
                 <td className="px-4 py-3 text-slate-600">
-                  {formatDate(receivable.dueAt)}
+                  {formatDateBR(receivable.dueAt, { assumeDateOnly: true })}
                 </td>
                 <td className="px-4 py-3">
-                  <span className="rounded-md bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700">
-                    {receivable.status}
-                  </span>
+                  <StatusPill tone={receivableStatusTone(receivable.status)}>
+                    {getReceivableStatusLabel(receivable.status)}
+                  </StatusPill>
                 </td>
                 <td className="px-4 py-3 text-right font-medium text-slate-900">
-                  {formatCurrency(receivable.amount)}
+                  {formatBRL(receivable.amount)}
                 </td>
               </tr>
             ))}
@@ -161,12 +157,4 @@ function ReceivablesTable({ receivables }: { receivables: Receivable[] }) {
       </div>
     </section>
   );
-}
-
-function formatCurrency(value: number): string {
-  return currencyFormatter.format(value);
-}
-
-function formatDate(value: string): string {
-  return dateFormatter.format(new Date(value));
 }
