@@ -125,14 +125,9 @@ describe('App', () => {
     expect(link).toHaveAttribute('href', '/customers');
   });
 
-  it('renders placeholder nav items as non-interactive elements', () => {
+  it('does not render the dead "Dashboard" placeholder nav item (no route exists for it)', () => {
     renderApp();
-    const dashboard = screen.getByText('Dashboard');
-
-    expect(dashboard.tagName).not.toBe('A');
-    expect(dashboard.tagName).not.toBe('BUTTON');
-    expect(dashboard).toHaveAttribute('aria-disabled', 'true');
-    expect(dashboard).not.toHaveAttribute('href');
+    expect(screen.queryByText('Dashboard')).not.toBeInTheDocument();
   });
 
   it('renders "Viagens" as a real navigation link', () => {
@@ -150,16 +145,6 @@ describe('App', () => {
     renderApp();
     const link = screen.getByRole('link', { name: 'Desejos' });
     expect(link).toHaveAttribute('href', '/wishes');
-  });
-
-  it('does not navigate when a placeholder nav item is clicked', async () => {
-    renderApp(['/customers']);
-    const dashboard = screen.getByText('Dashboard');
-    dashboard.click();
-
-    // Still on /customers — the Clientes heading remains rendered and no
-    // navigation occurred since placeholder items carry no routing wiring.
-    expect(await screen.findByRole('heading', { name: 'Clientes' })).toBeInTheDocument();
   });
 
   it('navigates to /customers/new when "+ Novo cliente" is clicked', async () => {
