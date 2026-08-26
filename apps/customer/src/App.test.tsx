@@ -84,6 +84,13 @@ vi.mock('./lib/api', () => ({
   approveExternalOfferCapture: vi.fn(),
   rejectExternalOfferCapture: vi.fn(),
   publishExternalOfferCapture: vi.fn(),
+  sendProposal: vi.fn(),
+  acceptProposal: vi.fn(),
+  declineProposal: vi.fn(),
+  cancelProposal: vi.fn(),
+  confirmSale: vi.fn(),
+  cancelSale: vi.fn(),
+  markSalePaid: vi.fn(),
 }));
 
 afterEach(() => {
