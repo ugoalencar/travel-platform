@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { ApiError, getMyProposal } from '../../lib/customerApi';
 import type { CustomerProposalView } from '../../types/customer-portal';
+import { proposalStatusLabel } from '../../lib/statusLabels';
+import { BackLink } from '../BackLink';
 
 type LoadState =
   | { status: 'loading' }
@@ -30,22 +32,27 @@ export function CustomerProposalDetailsPage() {
     };
   }, [id]);
 
-  if (state.status === 'loading') {
-    return <p className="text-sm text-slate-500">Carregando...</p>;
-  }
-
-  if (state.status === 'error') {
-    return (
-      <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-        {state.message}
-      </div>
-    );
-  }
-
-  const { proposal } = state;
-
   return (
     <div className="flex flex-col gap-4">
+      <BackLink to="/customer-portal/proposals" label="Voltar para minhas propostas" />
+
+      <div aria-live="polite">
+        {state.status === 'loading' && <p className="text-sm text-slate-500">Carregando...</p>}
+        {state.status === 'error' && (
+          <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            {state.message}
+          </div>
+        )}
+      </div>
+
+      {state.status === 'success' && <ProposalDetails proposal={state.proposal} />}
+    </div>
+  );
+}
+
+function ProposalDetails({ proposal }: { proposal: CustomerProposalView }) {
+  return (
+    <>
       <div className="rounded-md border border-slate-200 bg-slate-50 p-3 text-xs text-slate-500">
         Esta proposta é apenas informativa. Fale com sua agência para negociar ou confirmar.
       </div>
@@ -54,7 +61,7 @@ export function CustomerProposalDetailsPage() {
       </h1>
       <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
         <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <Detail label="Status" value={proposal.status} />
+          <Detail label="Status" value={proposalStatusLabel(proposal.status)} />
           <Detail
             label="Preço proposto"
             value={proposal.proposedPrice.toLocaleString('pt-BR', {
@@ -83,7 +90,7 @@ export function CustomerProposalDetailsPage() {
         </dl>
       </div>
       {/* Deliberately no accept/decline controls in this vertical. */}
-    </div>
+    </>
   );
 }
 
