@@ -36,6 +36,10 @@ export interface UpdateCustomerInput {
   name?: string;
   email?: string;
   phone?: string;
+  cpf?: string;
+  passport?: string;
+  address?: Record<string, unknown>;
+  notes?: string;
 }
 
 export async function listCustomers(database: DatabaseRuntime): Promise<Customer[]> {
@@ -133,6 +137,22 @@ export async function updateCustomer(
   if (data.phone !== undefined) {
     fields.push(`phone = $${++index}`);
     values.push(data.phone);
+  }
+  if (data.cpf !== undefined) {
+    fields.push(`cpf = $${++index}`);
+    values.push(data.cpf);
+  }
+  if (data.passport !== undefined) {
+    fields.push(`passport = $${++index}`);
+    values.push(data.passport);
+  }
+  if (data.address !== undefined) {
+    fields.push(`address = $${++index}`);
+    values.push(JSON.stringify(data.address));
+  }
+  if (data.notes !== undefined) {
+    fields.push(`notes = $${++index}`);
+    values.push(data.notes);
   }
 
   if (fields.length === 0) {
