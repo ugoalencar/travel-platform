@@ -209,4 +209,37 @@ describe('ProposalFormPage', () => {
       await screen.findByText('Você não tem permissão para criar propostas.'),
     ).toBeInTheDocument();
   });
+
+  it('marks required fields with * and optional fields with (opcional)', async () => {
+    vi.mocked(listCustomers).mockResolvedValue(customers);
+    renderRouted();
+
+    await screen.findByLabelText(/Cliente/);
+
+    const customerLabel = screen.getByText((_, element) => {
+      return (
+        element?.tagName === 'LABEL' &&
+        element.textContent?.includes('Cliente') &&
+        element.textContent?.includes('*')
+      );
+    });
+    expect(customerLabel).toBeInTheDocument();
+
+    const optionalLabel = screen.getByText('Oferta (opcional)');
+    expect(optionalLabel).toBeInTheDocument();
+
+    const wishLabel = screen.getByText('Desejo (opcional)');
+    expect(wishLabel).toBeInTheDocument();
+  });
+
+  it('error div has role="alert" for screen readers', async () => {
+    vi.mocked(listCustomers).mockResolvedValue(customers);
+    renderRouted();
+
+    await screen.findByLabelText(/Cliente/);
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar' }));
+
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent('Cliente é obrigatório.');
+  });
 });
