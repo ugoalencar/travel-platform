@@ -3,15 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import { ApiError, listOffers } from '../lib/api';
 import type { Offer } from '../types/offer';
 import { Button } from '../components/ui/button';
+import { formatBRL } from '../lib/formatCurrency';
+import { formatDateBR } from '../lib/formatDateBR';
+import { getOfferStatusLabel } from '../lib/statusLabels';
+import { StatusPill, offerStatusTone } from '../components/ui/StatusPill';
 
 type LoadState =
   | { status: 'loading' }
   | { status: 'error'; message: string }
   | { status: 'success'; offers: Offer[] };
-
-function formatPrice(price: number): string {
-  return price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-}
 
 export function OffersPage() {
   const [state, setState] = useState<LoadState>({ status: 'loading' });
@@ -56,7 +56,11 @@ export function OffersPage() {
       )}
 
       {state.status === 'error' && (
-        <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <div
+          role="alert"
+          aria-live="polite"
+          className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+        >
           {state.message}
         </div>
       )}
@@ -92,18 +96,18 @@ function OfferTable({ offers }: { offers: Offer[] }) {
           {offers.map((offer) => (
             <tr key={offer.id} className="border-b border-slate-100 last:border-0">
               <td className="px-4 py-3 font-medium text-slate-900">{offer.name}</td>
-              <td className="px-4 py-3 text-slate-600">{formatPrice(offer.price)}</td>
+              <td className="px-4 py-3 text-slate-600">{formatBRL(offer.price)}</td>
               <td className="px-4 py-3 text-slate-600">
-                {offer.validFrom
-                  ? new Date(offer.validFrom).toLocaleDateString('pt-BR')
-                  : '—'}
+                {formatDateBR(offer.validFrom, { assumeDateOnly: true })}
               </td>
               <td className="px-4 py-3 text-slate-600">
-                {offer.validUntil
-                  ? new Date(offer.validUntil).toLocaleDateString('pt-BR')
-                  : '—'}
+                {formatDateBR(offer.validUntil, { assumeDateOnly: true })}
               </td>
-              <td className="px-4 py-3 text-slate-600">{offer.status}</td>
+              <td className="px-4 py-3">
+                <StatusPill tone={offerStatusTone(offer.status)}>
+                  {getOfferStatusLabel(offer.status)}
+                </StatusPill>
+              </td>
               <td className="px-4 py-3 text-right">
                 <Button
                   variant="ghost"

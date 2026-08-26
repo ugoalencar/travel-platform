@@ -60,7 +60,7 @@ export function BookingsPage() {
       )}
 
       {state.status === 'error' && (
-        <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <div role="alert" aria-live="assertive" className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
           {state.message}
         </div>
       )}

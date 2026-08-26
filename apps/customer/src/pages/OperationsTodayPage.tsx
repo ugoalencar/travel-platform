@@ -21,9 +21,9 @@ function isToday(iso: string): boolean {
   const date = new Date(iso);
   const now = new Date();
   return (
-    date.getUTCFullYear() === now.getUTCFullYear() &&
-    date.getUTCMonth() === now.getUTCMonth() &&
-    date.getUTCDate() === now.getUTCDate()
+    date.getFullYear() === now.getFullYear() &&
+    date.getMonth() === now.getMonth() &&
+    date.getDate() === now.getDate()
   );
 }
 
@@ -78,7 +78,7 @@ export function OperationsTodayPage() {
       )}
 
       {state.status === 'error' && (
-        <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <div role="alert" aria-live="assertive" className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
           {state.message}
         </div>
       )}

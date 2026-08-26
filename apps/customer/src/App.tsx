@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { AppShell } from './components/layout/AppShell';
 import { CustomersPage } from './pages/CustomersPage';
 import { CustomerFormPage } from './pages/CustomerFormPage';
@@ -16,7 +16,14 @@ import { OffersPage } from './pages/OffersPage';
 import { OfferFormPage } from './pages/OfferFormPage';
 import { OfferDetailsPage } from './pages/OfferDetailsPage';
 import { OfferEditPage } from './pages/OfferEditPage';
-import { OfferGrowthStudioPage } from './pages/OfferGrowthStudioPage';
+import { CreativeStudioPage } from './pages/offer-growth/CreativeStudioPage';
+import { TemplatesPage } from './pages/offer-growth/TemplatesPage';
+import { AssetsPage } from './pages/offer-growth/AssetsPage';
+import { CampaignsPage } from './pages/offer-growth/CampaignsPage';
+import { PublicationsPage } from './pages/offer-growth/PublicationsPage';
+import { AutomationsPage } from './pages/offer-growth/AutomationsPage';
+import { CouponsPage } from './pages/offer-growth/CouponsPage';
+import { OfferGrowthDemoPage } from './pages/offer-growth/DemoPage';
 import { ProposalsPage } from './pages/ProposalsPage';
 import { ProposalFormPage } from './pages/ProposalFormPage';
 import { ProposalDetailsPage } from './pages/ProposalDetailsPage';
@@ -48,6 +55,10 @@ import { SaleFormPage } from './pages/SaleFormPage';
 import { SaleDetailsPage } from './pages/SaleDetailsPage';
 import { SaleEditPage } from './pages/SaleEditPage';
 import { FinancialPage } from './pages/FinancialPage';
+import { PayablesPage } from './pages/PayablesPage';
+import { PaymentsPage } from './pages/PaymentsPage';
+import { OperationalCostsPage } from './pages/OperationalCostsPage';
+import { SaleMarginPage } from './pages/SaleMarginPage';
 import { PescadorPage } from './pages/PescadorPage';
 import { CustomerPortalShell } from './customer-portal/CustomerPortalShell';
 import { CustomerHomePage } from './customer-portal/pages/CustomerHomePage';
@@ -102,13 +113,15 @@ export function App() {
         <Route path="offers/new" element={<OfferFormPage />} />
         <Route path="offers/:id" element={<OfferDetailsPage />} />
         <Route path="offers/:id/edit" element={<OfferEditPage />} />
-        <Route path="offer-growth/studio" element={<OfferGrowthStudioPage />} />
-        <Route path="offer-growth/templates" element={<OfferGrowthStudioPage />} />
-        <Route path="offer-growth/editor" element={<OfferGrowthStudioPage />} />
-        <Route path="offer-growth/campaigns" element={<OfferGrowthStudioPage />} />
-        <Route path="offer-growth/publications" element={<OfferGrowthStudioPage />} />
-        <Route path="offer-growth/automations" element={<OfferGrowthStudioPage />} />
-        <Route path="offer-growth/coupons" element={<OfferGrowthStudioPage />} />
+        <Route path="offer-growth/studio" element={<CreativeStudioPage />} />
+        <Route path="offer-growth/editor" element={<OfferGrowthEditorRedirect />} />
+        <Route path="offer-growth/templates" element={<TemplatesPage />} />
+        <Route path="offer-growth/assets" element={<AssetsPage />} />
+        <Route path="offer-growth/campaigns" element={<CampaignsPage />} />
+        <Route path="offer-growth/publications" element={<PublicationsPage />} />
+        <Route path="offer-growth/automations" element={<AutomationsPage />} />
+        <Route path="offer-growth/coupons" element={<CouponsPage />} />
+        <Route path="offer-growth/demo" element={<OfferGrowthDemoPage />} />
         <Route path="proposals" element={<ProposalsPage />} />
         <Route path="proposals/new" element={<ProposalFormPage />} />
         <Route path="proposals/:id" element={<ProposalDetailsPage />} />
@@ -140,6 +153,10 @@ export function App() {
         <Route path="sales/:id" element={<SaleDetailsPage />} />
         <Route path="sales/:id/edit" element={<SaleEditPage />} />
         <Route path="financial" element={<FinancialPage />} />
+        <Route path="financial/payables" element={<PayablesPage />} />
+        <Route path="financial/payments" element={<PaymentsPage />} />
+        <Route path="financial/operational-costs" element={<OperationalCostsPage />} />
+        <Route path="financial/sales/:saleId/margin" element={<SaleMarginPage />} />
         <Route path="pescador" element={<PescadorPage />} />
         <Route path="commercial/dashboard" element={<CommercialDashboardPage />} />
         <Route path="commercial/pipeline" element={<CommercialPipelinePage />} />
@@ -148,4 +165,14 @@ export function App() {
       </Route>
     </Routes>
   );
+}
+
+// /offer-growth/editor is kept as a distinct route (not the Studio
+// placeholder) but is a thin alias: opening a template for editing and
+// opening the Creative Studio editor are the same feature, so this
+// preserves the query string (templateId/offerId) and forwards into
+// /offer-growth/studio rather than duplicating the whole editor.
+function OfferGrowthEditorRedirect() {
+  const location = useLocation();
+  return <Navigate to={`/offer-growth/studio${location.search}`} replace />;
 }

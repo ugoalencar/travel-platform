@@ -78,9 +78,9 @@ describe('SalesPage', () => {
     renderRouted();
 
     expect(await screen.findByText('Maria Silva')).toBeInTheDocument();
-    expect(screen.getByText('100')).toBeInTheDocument();
-    expect(screen.getByText('90')).toBeInTheDocument();
-    expect(screen.getByText('PENDING')).toBeInTheDocument();
+    expect(screen.getByText('R$ 100,00')).toBeInTheDocument();
+    expect(screen.getByText('R$ 90,00')).toBeInTheDocument();
+    expect(screen.getByText('Pendente')).toBeInTheDocument();
   });
 
   it('shows an empty state with no crash', async () => {

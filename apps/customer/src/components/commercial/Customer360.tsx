@@ -148,6 +148,8 @@ export function Customer360({ customerId }: { customerId: string }) {
 
   return (
     <div className="flex flex-col gap-6">
+      <AtAGlance data={data} />
+
       <Section title="Oportunidades comerciais">
         {data.opportunities.length === 0 && <Empty />}
         {data.opportunities.map((o) => {
@@ -262,6 +264,91 @@ export function Customer360({ customerId }: { customerId: string }) {
           </Row>
         ))}
       </Section>
+    </div>
+  );
+}
+
+// Additive "at a glance" summary, derived entirely from data this page
+// already fetched (no new requests, no new fields, nothing beyond what the
+// existing sections below already have permission to show). Every value is
+// either a real record or an explicit "—", never invented.
+function AtAGlance({ data }: { data: Customer360Data }) {
+  const openTasks = data.tasks
+    .filter((t) => !t.completedAt)
+    .sort((a, b) => new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime());
+  const nextFollowUp = openTasks[0] ?? null;
+
+  const lastInteraction = [...data.interactions].sort(
+    (a, b) => new Date(b.occurredAt).getTime() - new Date(a.occurredAt).getTime(),
+  )[0] ?? null;
+
+  const nextOpportunityAction = data.opportunities
+    .filter((o) => o.nextActionAt)
+    .sort(
+      (a, b) => new Date(a.nextActionAt as string).getTime() - new Date(b.nextActionAt as string).getTime(),
+    )[0] ?? null;
+
+  const currentSale = [...data.sales].sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+  )[0] ?? null;
+
+  const currentProposal = currentSale
+    ? null
+    : [...data.proposals]
+        .filter((p) => p.status === 'DRAFT' || p.status === 'SENT')
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0] ?? null;
+
+  const nextAction = nextFollowUp
+    ? `${nextFollowUp.title} — ${new Date(nextFollowUp.dueAt).toLocaleString('pt-BR')}`
+    : nextOpportunityAction
+      ? `Ação na oportunidade — ${new Date(nextOpportunityAction.nextActionAt as string).toLocaleString('pt-BR')}`
+      : null;
+
+  return (
+    <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+      <h3 className="mb-3 text-sm font-semibold text-slate-900">Resumo</h3>
+      <dl className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
+        <GlanceItem label="Próxima ação" value={nextAction} />
+        <GlanceItem
+          label="Última interação"
+          value={
+            lastInteraction
+              ? `${lastInteraction.summary} — ${new Date(lastInteraction.occurredAt).toLocaleDateString('pt-BR')}`
+              : null
+          }
+        />
+        <GlanceItem
+          label="Próximo retorno"
+          value={
+            nextFollowUp ? new Date(nextFollowUp.dueAt).toLocaleString('pt-BR') : null
+          }
+        />
+        <GlanceItem
+          label="Contexto atual"
+          value={
+            currentSale
+              ? `Venda ${currentSale.status} — ${currentSale.total.toLocaleString('pt-BR', {
+                  style: 'currency',
+                  currency: 'BRL',
+                })}`
+              : currentProposal
+                ? `Proposta ${currentProposal.status} — ${currentProposal.total.toLocaleString('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL',
+                  })}`
+                : null
+          }
+        />
+      </dl>
+    </div>
+  );
+}
+
+function GlanceItem({ label, value }: { label: string; value: string | null }) {
+  return (
+    <div>
+      <dt className="text-xs font-medium uppercase tracking-wide text-slate-500">{label}</dt>
+      <dd className="mt-0.5 text-slate-900">{value ?? '—'}</dd>
     </div>
   );
 }

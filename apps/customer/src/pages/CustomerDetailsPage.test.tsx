@@ -109,11 +109,16 @@ describe('CustomerDetailsPage', () => {
       createdAt: '2026-01-01T00:00:00.000Z',
       updatedAt: '2026-01-01T00:00:00.000Z',
     });
-    renderRouted(['/customers/c2']);
+    const { container } = renderRouted(['/customers/c2']);
 
     await screen.findByText('João Souza');
-    // email, phone, cpf, passport, notes all missing -> 5 dashes
-    expect(screen.getAllByText('—')).toHaveLength(5);
+    // Scope to the customer details <dl> only — not Customer 360 summary
+    const dl = container.querySelector('dl');
+    expect(dl).toBeInTheDocument();
+    const dashes = Array.from(dl!.querySelectorAll('dd')).filter(
+      (dd) => dd.textContent === '—',
+    );
+    expect(dashes).toHaveLength(5);
   });
 
   it('404 shows a safe generic message, never implying cross-tenant existence', async () => {
@@ -154,5 +159,79 @@ describe('CustomerDetailsPage', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Voltar' }));
 
     expect(await screen.findByRole('heading', { name: 'Clientes' })).toBeInTheDocument();
+  });
+
+  describe('Customer 360 "at a glance" summary', () => {
+    it('shows "—" placeholders when there is no activity yet', async () => {
+      vi.mocked(getCustomer).mockResolvedValue(fullCustomer);
+      renderRouted(['/customers/c1']);
+
+      expect(await screen.findByText('Resumo')).toBeInTheDocument();
+      expect(screen.getByText('Próxima ação')).toBeInTheDocument();
+      expect(screen.getByText('Última interação')).toBeInTheDocument();
+      expect(screen.getByText('Próximo retorno')).toBeInTheDocument();
+      expect(screen.getByText('Contexto atual')).toBeInTheDocument();
+      expect(screen.getAllByText('—').length).toBeGreaterThanOrEqual(4);
+    });
+
+    it('surfaces the next open follow-up, last interaction, and current proposal', async () => {
+      vi.mocked(getCustomer).mockResolvedValue(fullCustomer);
+
+      const commercialApi = await import('../lib/commercialApi');
+      vi.mocked(commercialApi.listTasks).mockResolvedValue({
+        tasks: [
+          {
+            id: 't1',
+            agencyId: 'a1',
+            customerId: 'c1',
+            assignedUserId: 'u1',
+            type: 'FOLLOW_UP',
+            title: 'Confirmar datas',
+            dueAt: '2026-02-01T10:00:00.000Z',
+            createdBy: 'u1',
+            createdAt: '2026-01-01T00:00:00.000Z',
+          },
+        ],
+        total: 1,
+      });
+      vi.mocked(commercialApi.listInteractions).mockResolvedValue({
+        interactions: [
+          {
+            id: 'i1',
+            agencyId: 'a1',
+            customerId: 'c1',
+            userId: 'u1',
+            channel: 'PHONE',
+            direction: 'OUTBOUND',
+            occurredAt: '2026-01-15T10:00:00.000Z',
+            summary: 'Ligação de acompanhamento',
+            createdAt: '2026-01-15T10:00:00.000Z',
+          },
+        ],
+        total: 1,
+      });
+
+      const api = await import('../lib/api');
+      vi.mocked(api.listProposals).mockResolvedValue([
+        {
+          id: 'p1',
+          agencyId: 'a1',
+          customerId: 'c1',
+          proposedPrice: 1000,
+          discount: 0,
+          total: 1000,
+          status: 'SENT',
+          createdAt: '2026-01-10T00:00:00.000Z',
+          updatedAt: '2026-01-10T00:00:00.000Z',
+        },
+      ]);
+
+      renderRouted(['/customers/c1']);
+
+      await screen.findByText('Resumo');
+      expect(screen.getAllByText(/Confirmar datas/).length).toBeGreaterThan(0);
+      expect(screen.getAllByText(/Ligação de acompanhamento/).length).toBeGreaterThan(0);
+      expect(screen.getByText(/Proposta SENT/)).toBeInTheDocument();
+    });
   });
 });

@@ -6,17 +6,33 @@ interface NavItem {
   to?: string;
 }
 
-const NAV_ITEMS: NavItem[] = [
-  { label: 'Dashboard' },
+// Grouped nav sections (item 7 of the shared-UX batch). This is a
+// label/grouping/ordering change only -- every `to` route below is exactly
+// what the old flat NAV_ITEMS array had; nothing was renamed or rerouted.
+//
+// NOTE ON "Financeiro": every /financial/* backend route already requires
+// MANAGER server-side (confirmed separately) -- this list intentionally
+// does NOT hide it for lower roles. Doing so would require knowing the
+// current user's role client-side, and this app has no client-side
+// auth/session/role mechanism today (see services/api.ts: "The frontend
+// never sets agencyId/tenant/role itself -- it only calls the API and
+// renders what comes back."). Inventing one here would cross into
+// Auth/TenantContext, which is out of scope for this batch, so the item is
+// deferred rather than improvised -- see this batch's final report.
+const COMERCIAL_NAV_ITEMS: NavItem[] = [
   { label: 'Clientes', to: '/customers' },
   { label: 'Desejos', to: '/wishes' },
   { label: 'Ofertas', to: '/offers' },
   { label: 'Propostas', to: '/proposals' },
   { label: 'Reservas', to: '/bookings' },
   { label: 'Vendas', to: '/sales' },
-  { label: 'Financeiro', to: '/financial' },
-  { label: 'Pescador', to: '/pescador' },
   { label: 'Viagens', to: '/trips' },
+  { label: 'Dashboard comercial', to: '/commercial/dashboard' },
+  { label: 'Pipeline', to: '/commercial/pipeline' },
+  { label: 'Agenda comercial', to: '/commercial/agenda' },
+];
+
+const TRANSPORTES_NAV_ITEMS: NavItem[] = [
   { label: 'Rotas', to: '/transport/routes' },
   { label: 'Produtos de transporte', to: '/transport/products' },
   { label: 'Fornecedores', to: '/transport/suppliers' },
@@ -25,22 +41,19 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Operações de hoje', to: '/operations/today' },
 ];
 
-// Commercial Cockpit nav section -- kept as its own group, appended after
-// the existing flat list above (which is left untouched: Ofertas/
-// Propostas/Vendas/Reservas keep their current spots).
-const COMMERCIAL_NAV_ITEMS: NavItem[] = [
-  { label: 'Dashboard comercial', to: '/commercial/dashboard' },
-  { label: 'Pipeline', to: '/commercial/pipeline' },
-  { label: 'Agenda comercial', to: '/commercial/agenda' },
+// See NOTE above on Financeiro's visibility being unconditional for now.
+const FINANCEIRO_NAV_ITEMS: NavItem[] = [
+  { label: 'Financeiro', to: '/financial' },
+  { label: 'Pescador', to: '/pescador' },
 ];
 
-const OFFER_GROWTH_NAV_ITEMS: NavItem[] = [
+const OFERTAS_MARKETING_NAV_ITEMS: NavItem[] = [
   { label: 'Creative Studio', to: '/offer-growth/studio' },
   { label: 'Templates', to: '/offer-growth/templates' },
   { label: 'Editor criativo', to: '/offer-growth/editor' },
   { label: 'Campanhas', to: '/offer-growth/campaigns' },
-  { label: 'Publicacoes', to: '/offer-growth/publications' },
-  { label: 'Automacoes', to: '/offer-growth/automations' },
+  { label: 'Publicações', to: '/offer-growth/publications' },
+  { label: 'Automações', to: '/offer-growth/automations' },
   { label: 'Cupons', to: '/offer-growth/coupons' },
 ];
 
@@ -48,7 +61,19 @@ const OFFER_GROWTH_NAV_ITEMS: NavItem[] = [
 // before this) -- currently just Pipelines. Every write on that page is
 // still enforced server-side by requirePipelineAdmin(); this link is not
 // itself a permission gate.
-const SETTINGS_NAV_ITEMS: NavItem[] = [{ label: 'Pipelines', to: '/settings/pipelines' }];
+const CONFIGURACOES_NAV_ITEMS: NavItem[] = [{ label: 'Pipelines', to: '/settings/pipelines' }];
+
+const NAV_SECTIONS: Array<{ key: string; heading: string; items: NavItem[] }> = [
+  { key: 'comercial', heading: 'Comercial', items: COMERCIAL_NAV_ITEMS },
+  { key: 'transportes', heading: 'Transportes', items: TRANSPORTES_NAV_ITEMS },
+  { key: 'financeiro', heading: 'Financeiro', items: FINANCEIRO_NAV_ITEMS },
+  {
+    key: 'ofertas-marketing',
+    heading: 'Ofertas & Marketing',
+    items: OFERTAS_MARKETING_NAV_ITEMS,
+  },
+  { key: 'configuracoes', heading: 'Configurações', items: CONFIGURACOES_NAV_ITEMS },
+];
 
 export function Sidebar() {
   return (
@@ -59,29 +84,20 @@ export function Sidebar() {
         </span>
       </div>
       <nav className="flex flex-row gap-1 overflow-x-auto p-3 md:flex-1 md:flex-col md:overflow-x-visible">
-        {NAV_ITEMS.map((item) => (
-          <NavItemLink key={`main-${item.label}-${item.to ?? ''}`} item={item} />
-        ))}
-
-        <div className="shrink-0 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-400 md:mt-4 md:py-0">
-          Comercial
-        </div>
-        {COMMERCIAL_NAV_ITEMS.map((item) => (
-          <NavItemLink key={`commercial-${item.label}`} item={item} />
-        ))}
-
-        <div className="shrink-0 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-400 md:mt-4 md:py-0">
-          Offer & Growth
-        </div>
-        {OFFER_GROWTH_NAV_ITEMS.map((item) => (
-          <NavItemLink key={`offer-growth-${item.label}`} item={item} />
-        ))}
-
-        <div className="shrink-0 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-400 md:mt-4 md:py-0">
-          Configurações
-        </div>
-        {SETTINGS_NAV_ITEMS.map((item) => (
-          <NavItemLink key={`settings-${item.label}`} item={item} />
+        {NAV_SECTIONS.map((section, index) => (
+          <div key={section.key} className="contents">
+            <div
+              className={cn(
+                'shrink-0 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-400 md:py-0',
+                index > 0 && 'md:mt-4',
+              )}
+            >
+              {section.heading}
+            </div>
+            {section.items.map((item) => (
+              <NavItemLink key={`${section.key}-${item.label}-${item.to ?? ''}`} item={item} />
+            ))}
+          </div>
         ))}
       </nav>
     </aside>

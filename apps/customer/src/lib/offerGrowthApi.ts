@@ -90,9 +90,37 @@ export async function transitionCampaignStatus(id: string, status: Campaign['sta
   return data.campaign;
 }
 
+export async function getCampaignById(id: string): Promise<Campaign> {
+  const data = await request<{ campaign: Campaign }>(`/api/campaigns/${encodeURIComponent(id)}`);
+  return data.campaign;
+}
+
+export async function linkOfferToCampaign(campaignId: string, offerId: string): Promise<void> {
+  await request<void>(`/api/campaigns/${encodeURIComponent(campaignId)}/offers`, {
+    method: 'POST',
+    body: JSON.stringify({ offerId }),
+  });
+}
+
 export async function listPublications(): Promise<Publication[]> {
   const data = await request<{ publications: Publication[] }>('/api/publications');
   return data.publications;
+}
+
+export async function getPublicationById(id: string): Promise<Publication> {
+  const data = await request<{ publication: Publication }>(`/api/publications/${encodeURIComponent(id)}`);
+  return data.publication;
+}
+
+export async function transitionPublicationStatus(
+  id: string,
+  status: Publication['status'],
+): Promise<Publication> {
+  const data = await request<{ publication: Publication }>(
+    `/api/publications/${encodeURIComponent(id)}/status`,
+    { method: 'POST', body: JSON.stringify({ status }) },
+  );
+  return data.publication;
 }
 
 export async function createPublication(input: CreatePublicationInput): Promise<Publication> {
@@ -140,6 +168,19 @@ export async function activateAutomation(id: string): Promise<Automation> {
     `/api/automations/${encodeURIComponent(id)}/activate`,
     { method: 'POST' },
   );
+  return data.automation;
+}
+
+export async function pauseAutomation(id: string): Promise<Automation> {
+  const data = await request<{ automation: Automation }>(
+    `/api/automations/${encodeURIComponent(id)}/pause`,
+    { method: 'POST' },
+  );
+  return data.automation;
+}
+
+export async function getAutomationById(id: string): Promise<Automation> {
+  const data = await request<{ automation: Automation }>(`/api/automations/${encodeURIComponent(id)}`);
   return data.automation;
 }
 

@@ -3,6 +3,10 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ApiError, getOffer } from '../lib/api';
 import type { Offer } from '../types/offer';
 import { Button } from '../components/ui/button';
+import { formatBRL } from '../lib/formatCurrency';
+import { formatDateBR } from '../lib/formatDateBR';
+import { getOfferStatusLabel } from '../lib/statusLabels';
+import { StatusPill, offerStatusTone } from '../components/ui/StatusPill';
 
 type LoadState =
   | { status: 'loading' }
@@ -17,10 +21,6 @@ function mapErrorToMessage(error: unknown): string {
     return 'Não foi possível carregar a oferta. Tente novamente.';
   }
   return 'Não foi possível carregar a oferta. Tente novamente.';
-}
-
-function formatPrice(price: number): string {
-  return price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
 export function OfferDetailsPage() {
@@ -87,7 +87,11 @@ export function OfferDetailsPage() {
       )}
 
       {state.status === 'error' && (
-        <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <div
+          role="alert"
+          aria-live="polite"
+          className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+        >
           {state.message}
         </div>
       )}
@@ -95,13 +99,22 @@ export function OfferDetailsPage() {
       {state.status === 'success' && (
         <dl className="grid max-w-lg grid-cols-1 gap-4 rounded-lg border border-slate-200 bg-white p-6 sm:grid-cols-2">
           <Field label="Nome" value={state.offer.name} />
-          <Field label="Preço" value={formatPrice(state.offer.price)} />
-          <Field label="Status" value={state.offer.status} />
+          <Field label="Preço" value={formatBRL(state.offer.price)} />
+          <div className="flex flex-col gap-1">
+            <dt className="text-xs font-medium uppercase tracking-wide text-slate-500">
+              Status
+            </dt>
+            <dd>
+              <StatusPill tone={offerStatusTone(state.offer.status)}>
+                {getOfferStatusLabel(state.offer.status)}
+              </StatusPill>
+            </dd>
+          </div>
           <Field
             label="Válido de"
             value={
               state.offer.validFrom
-                ? new Date(state.offer.validFrom).toLocaleDateString('pt-BR')
+                ? formatDateBR(state.offer.validFrom, { assumeDateOnly: true })
                 : undefined
             }
           />
@@ -109,19 +122,13 @@ export function OfferDetailsPage() {
             label="Válido até"
             value={
               state.offer.validUntil
-                ? new Date(state.offer.validUntil).toLocaleDateString('pt-BR')
+                ? formatDateBR(state.offer.validUntil, { assumeDateOnly: true })
                 : undefined
             }
           />
           <Field label="Descrição" value={state.offer.description} />
-          <Field
-            label="Criado em"
-            value={new Date(state.offer.createdAt).toLocaleDateString('pt-BR')}
-          />
-          <Field
-            label="Atualizado em"
-            value={new Date(state.offer.updatedAt).toLocaleDateString('pt-BR')}
-          />
+          <Field label="Criado em" value={formatDateBR(state.offer.createdAt)} />
+          <Field label="Atualizado em" value={formatDateBR(state.offer.updatedAt)} />
         </dl>
       )}
     </div>

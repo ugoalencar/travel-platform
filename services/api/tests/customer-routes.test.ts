@@ -397,6 +397,68 @@ describe.sequential('Customer HTTP routes (Task 2)', () => {
       expect(response.statusCode).toBe(400);
       await app.close();
     });
+
+    it('updates cpf, passport, address, and notes for its own tenant', async () => {
+      const id = await seedCustomer(agencyAId, { name: 'Original' });
+
+      const app = buildTestApp(runtimePool);
+      const response = await app.inject({
+        method: 'PATCH',
+        url: `/customers/${id}`,
+        headers: { 'x-test-principal': 'a' },
+        payload: {
+          cpf: '123.456.789-00',
+          passport: 'AB123456',
+          address: { street: 'Rua Teste', city: 'São Paulo' },
+          notes: 'VIP customer',
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = response.json<{
+        customer: { cpf: string; passport: string; address: unknown; notes: string };
+      }>();
+      expect(body.customer.cpf).toBe('123.456.789-00');
+      expect(body.customer.passport).toBe('AB123456');
+      expect(body.customer.address).toMatchObject({ street: 'Rua Teste', city: 'São Paulo' });
+      expect(body.customer.notes).toBe('VIP customer');
+
+      await app.close();
+    });
+
+    it('rejects a non-string cpf with 400', async () => {
+      const id = await seedCustomer(agencyAId, { name: 'Original' });
+
+      const app = buildTestApp(runtimePool);
+      const response = await app.inject({
+        method: 'PATCH',
+        url: `/customers/${id}`,
+        headers: { 'x-test-principal': 'a' },
+        payload: { cpf: 12345 },
+      });
+
+      expect(response.statusCode).toBe(400);
+      expect(response.json()).toMatchObject({ code: 'VALIDATION_ERROR' });
+
+      await app.close();
+    });
+
+    it('returns 409 when updating cpf to one already used by another customer in the same tenant', async () => {
+      await seedCustomer(agencyAId, { name: 'Existing', cpf: '111.111.111-11' });
+      const id = await seedCustomer(agencyAId, { name: 'Other' });
+
+      const app = buildTestApp(runtimePool);
+      const response = await app.inject({
+        method: 'PATCH',
+        url: `/customers/${id}`,
+        headers: { 'x-test-principal': 'a' },
+        payload: { cpf: '111.111.111-11' },
+      });
+
+      expect(response.statusCode).toBe(409);
+
+      await app.close();
+    });
   });
 
   describe('tenant spoof resistance', () => {

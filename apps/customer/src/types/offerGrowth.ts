@@ -174,6 +174,8 @@ export interface Coupon {
   maxUsesPerCustomer?: number;
   campaignId?: string;
   offerId?: string;
+  startsAt?: string;
+  expiresAt?: string;
   active: boolean;
   createdAt: string;
   updatedAt: string;
@@ -189,6 +191,8 @@ export interface CreateCouponInput {
   maxUsesPerCustomer?: number;
   campaignId?: string;
   offerId?: string;
+  startsAt?: string;
+  expiresAt?: string;
 }
 
 export interface AgencyEntitlement {

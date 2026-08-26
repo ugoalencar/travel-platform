@@ -150,6 +150,12 @@ import {
   createPayable,
   createReceivable,
   getCashFlowSummary,
+  getSaleMargin,
+  listAllocationsForTarget,
+  listOperationalCosts,
+  listPaymentAllocations,
+  listPayables,
+  listPayments,
   listReceivables,
   recordPayment,
   type CashFlowPeriod,
@@ -170,6 +176,7 @@ import {
 } from './pescador';
 import {
   getAvailableOfferById,
+  getMyAgencyContact,
   getMyBookingById,
   getMyProfile,
   getMyProposalById,
@@ -356,6 +363,14 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       throw new NotFoundError('Customer profile not found');
     }
     return { profile };
+  });
+
+  app.get('/customer-api/agency-contact', { preHandler: customerHooks }, async () => {
+    const agency = await getMyAgencyContact(options.database);
+    if (!agency) {
+      throw new NotFoundError('Agency not found');
+    }
+    return { agency };
   });
 
   app.get('/customer-api/trips', { preHandler: customerHooks }, async () => {
@@ -1529,6 +1544,54 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     return { receivables };
   });
 
+  app.get('/financial/payables', { preHandler: protectedHooks }, async () => {
+    requireRole(UserRole.MANAGER);
+    const payables = await listPayables(options.database);
+    return { payables };
+  });
+
+  app.get('/financial/payments', { preHandler: protectedHooks }, async () => {
+    requireRole(UserRole.MANAGER);
+    const payments = await listPayments(options.database);
+    return { payments };
+  });
+
+  app.get<{ Params: { id: string } }>(
+    '/financial/payments/:id/allocations',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.MANAGER);
+      const allocations = await listPaymentAllocations(options.database, request.params.id);
+      return { allocations };
+    },
+  );
+
+  app.get('/financial/operational-costs', { preHandler: protectedHooks }, async () => {
+    requireRole(UserRole.MANAGER);
+    const operationalCosts = await listOperationalCosts(options.database);
+    return { operationalCosts };
+  });
+
+  app.get('/financial/allocations', { preHandler: protectedHooks }, async (request) => {
+    requireRole(UserRole.MANAGER);
+    const query = request.query as Record<string, string>;
+    const target: { receivableId?: string; payableId?: string } = {};
+    if (query.receivableId) target.receivableId = query.receivableId;
+    if (query.payableId) target.payableId = query.payableId;
+    const allocations = await listAllocationsForTarget(options.database, target);
+    return { allocations };
+  });
+
+  app.get<{ Params: { id: string } }>(
+    '/financial/sales/:id/margin',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.MANAGER);
+      const margin = await getSaleMargin(options.database, request.params.id);
+      return { margin };
+    },
+  );
+
   app.get('/financial/dashboard', { preHandler: protectedHooks }, async (request) => {
     requireRole(UserRole.MANAGER);
     const period = parseCashFlowPeriod(request.query);
@@ -2018,7 +2081,15 @@ const ALLOWED_CREATE_FIELDS = [
   'notes',
 ] as const;
 
-const ALLOWED_UPDATE_FIELDS = ['name', 'email', 'phone'] as const;
+const ALLOWED_UPDATE_FIELDS = [
+  'name',
+  'email',
+  'phone',
+  'cpf',
+  'passport',
+  'address',
+  'notes',
+] as const;
 
 function parseCreateCustomerInput(body: unknown): CreateCustomerInput {
   if (typeof body !== 'object' || body === null || Array.isArray(body)) {
@@ -2117,6 +2188,30 @@ function parseUpdateCustomerInput(body: unknown): UpdateCustomerInput {
       throw new ValidationError('Field "phone" must be a string');
     }
     data.phone = record.phone;
+  }
+  if (record.cpf !== undefined) {
+    if (typeof record.cpf !== 'string') {
+      throw new ValidationError('Field "cpf" must be a string');
+    }
+    data.cpf = record.cpf;
+  }
+  if (record.passport !== undefined) {
+    if (typeof record.passport !== 'string') {
+      throw new ValidationError('Field "passport" must be a string');
+    }
+    data.passport = record.passport;
+  }
+  if (record.address !== undefined) {
+    if (typeof record.address !== 'object' || record.address === null || Array.isArray(record.address)) {
+      throw new ValidationError('Field "address" must be an object');
+    }
+    data.address = record.address as Record<string, unknown>;
+  }
+  if (record.notes !== undefined) {
+    if (typeof record.notes !== 'string') {
+      throw new ValidationError('Field "notes" must be a string');
+    }
+    data.notes = record.notes;
   }
 
   if (Object.keys(data).length === 0) {

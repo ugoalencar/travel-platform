@@ -108,4 +108,40 @@ describe('OperationsTodayPage', () => {
     renderRouted();
     expect(await screen.findByText('Erro')).toBeInTheDocument();
   });
+
+  it('filters departures to only show those on the current local date', async () => {
+    const now = new Date();
+    const todayLocal = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}T10:00:00`;
+    const yesterdayLocal = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate() - 1).padStart(2, '0')}T10:00:00`;
+
+    const todayDeparture: ScheduledDeparture = {
+      id: 'd-today',
+      agencyId: 'a1',
+      productId: 'p1',
+      departureAt: todayLocal,
+      capacity: 40,
+      serviceType: 'OWN',
+      cancelled: false,
+      createdAt: todayLocal,
+      updatedAt: todayLocal,
+    };
+    const yesterdayDeparture: ScheduledDeparture = {
+      id: 'd-yesterday',
+      agencyId: 'a1',
+      productId: 'p1',
+      departureAt: yesterdayLocal,
+      capacity: 40,
+      serviceType: 'OWN',
+      cancelled: false,
+      createdAt: yesterdayLocal,
+      updatedAt: yesterdayLocal,
+    };
+
+    vi.mocked(listOperations).mockResolvedValue([]);
+    vi.mocked(listDepartures).mockResolvedValue([todayDeparture, yesterdayDeparture]);
+    renderRouted();
+
+    expect(await screen.findByText('Iniciar operação')).toBeInTheDocument();
+    expect(screen.queryByText(yesterdayLocal)).not.toBeInTheDocument();
+  });
 });

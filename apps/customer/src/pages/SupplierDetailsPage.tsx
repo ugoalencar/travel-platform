@@ -69,7 +69,7 @@ export function SupplierDetailsPage() {
       )}
 
       {state.status === 'error' && (
-        <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <div role="alert" aria-live="assertive" className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
           {state.message}
         </div>
       )}
@@ -77,8 +77,8 @@ export function SupplierDetailsPage() {
       {state.status === 'success' && (
         <dl className="grid max-w-lg grid-cols-1 gap-4 rounded-lg border border-slate-200 bg-white p-6 sm:grid-cols-2">
           <Field label="Nome" value={state.supplier.name} />
-          <Field label="Documento" value={state.supplier.document} />
-          <Field label="Contato" value={state.supplier.contact} />
+          <Field label="CNPJ/CPF" value={state.supplier.document} />
+          <Field label="Telefone/e-mail de contato" value={state.supplier.contact} />
           <Field label="Ativo" value={state.supplier.active ? 'Sim' : 'Não'} />
           <Field label="Criado em" value={state.supplier.createdAt} />
           <Field label="Atualizado em" value={state.supplier.updatedAt} />

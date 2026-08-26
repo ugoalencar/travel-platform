@@ -14,6 +14,8 @@ import type {
   ExternalOfferCapture,
   ExternalOfferCaptureStatus,
 } from '../types/pescador';
+import { formatBRL } from '../lib/formatCurrency';
+import { formatDateBR } from '../lib/formatDateBR';
 
 type LoadState =
   | { status: 'loading' }
@@ -41,18 +43,6 @@ const initialFormState: CaptureFormState = {
   currency: 'BRL',
   validUntil: '',
 };
-
-const currencyFormatter = new Intl.NumberFormat('pt-BR', {
-  style: 'currency',
-  currency: 'BRL',
-});
-
-const dateFormatter = new Intl.DateTimeFormat('pt-BR', {
-  day: '2-digit',
-  month: '2-digit',
-  year: 'numeric',
-  timeZone: 'UTC',
-});
 
 export function PescadorPage() {
   const [state, setState] = useState<LoadState>({ status: 'loading' });
@@ -217,7 +207,9 @@ export function PescadorPage() {
             />
           </div>
           <label className="flex flex-col gap-1 lg:col-span-2">
-            <span className="text-sm font-medium text-slate-700">Conteudo bruto</span>
+            <span className="text-sm font-medium text-slate-700">
+              Conteudo bruto <span aria-hidden="true">*</span>
+            </span>
             <textarea
               className="min-h-24 rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-slate-500 focus:outline-none"
               value={form.rawContent}
@@ -244,10 +236,16 @@ export function PescadorPage() {
           </label>
 
           {formError && (
-            <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700 lg:col-span-2">
+            <div
+              role="alert"
+              aria-live="polite"
+              className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700 lg:col-span-2"
+            >
               {formError}
             </div>
           )}
+
+          <p className="text-xs text-slate-500 lg:col-span-2">* campos obrigatórios</p>
 
           <div className="lg:col-span-2">
             <button
@@ -266,7 +264,11 @@ export function PescadorPage() {
       )}
 
       {state.status === 'error' && (
-        <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <div
+          role="alert"
+          aria-live="polite"
+          className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+        >
           {state.message}
         </div>
       )}
@@ -353,13 +355,15 @@ function CapturesTable({
                   {capture.normalizedTitle ?? capture.rawContent}
                 </td>
                 <td className="px-4 py-3 text-slate-600">
-                  {capture.validUntil ? formatDate(capture.validUntil) : '-'}
+                  {capture.validUntil
+                    ? formatDateBR(capture.validUntil, { assumeDateOnly: true })
+                    : '-'}
                 </td>
                 <td className="px-4 py-3">
                   <StatusBadge status={capture.status} />
                 </td>
                 <td className="px-4 py-3 text-right font-medium text-slate-900">
-                  {capture.foundPrice == null ? '-' : formatCurrency(capture.foundPrice)}
+                  {capture.foundPrice == null ? '-' : formatBRL(capture.foundPrice)}
                 </td>
                 <td className="px-4 py-3">
                   <ActionButtons
@@ -461,7 +465,9 @@ function TextField({
 }) {
   return (
     <label className="flex flex-col gap-1">
-      <span className="text-sm font-medium text-slate-700">{label}</span>
+      <span className="text-sm font-medium text-slate-700">
+        {label} {required && <span aria-hidden="true">*</span>}
+      </span>
       <input
         className="rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-slate-500 focus:outline-none"
         type={type}
@@ -524,12 +530,4 @@ function buildStats(captures: ExternalOfferCapture[]) {
     },
     { captured: 0, review: 0, approved: 0, published: 0 },
   );
-}
-
-function formatCurrency(value: number): string {
-  return currencyFormatter.format(value);
-}
-
-function formatDate(value: string): string {
-  return dateFormatter.format(new Date(value));
 }

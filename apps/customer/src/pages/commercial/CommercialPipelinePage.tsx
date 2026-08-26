@@ -389,7 +389,7 @@ function OpportunityCard({
       }}
     >
       <a href={`/customers/${opportunity.customerId}`} className="font-medium text-slate-900 hover:underline">
-        Cliente {opportunity.customerId.slice(0, 8)}
+        {opportunity.customerName ?? `Cliente ${opportunity.customerId.slice(0, 8)}`}
       </a>
       <div className="mt-1 text-xs text-slate-500">{opportunity.destination ?? 'Sem destino'}</div>
       <div className="text-xs text-slate-500">

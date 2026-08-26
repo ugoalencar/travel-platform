@@ -4,6 +4,9 @@ import { ApiError, listCustomers, listSales } from '../lib/api';
 import type { Sale } from '../types/sale';
 import type { Customer } from '../types/customer';
 import { Button } from '../components/ui/button';
+import { formatBRL } from '../lib/formatCurrency';
+import { getSaleStatusLabel } from '../lib/statusLabels';
+import { StatusPill, saleStatusTone } from '../components/ui/StatusPill';
 
 type LoadState =
   | { status: 'loading' }
@@ -53,7 +56,11 @@ export function SalesPage() {
       )}
 
       {state.status === 'error' && (
-        <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <div
+          role="alert"
+          aria-live="polite"
+          className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+        >
           {state.message}
         </div>
       )}
@@ -97,10 +104,14 @@ function SaleTable({
               <td className="px-4 py-3 font-medium text-slate-900">
                 {customersById.get(sale.customerId) ?? sale.customerId}
               </td>
-              <td className="px-4 py-3 text-slate-600">{sale.amount}</td>
-              <td className="px-4 py-3 text-slate-600">{sale.discount}</td>
-              <td className="px-4 py-3 font-medium text-slate-900">{sale.total}</td>
-              <td className="px-4 py-3 text-slate-600">{sale.status}</td>
+              <td className="px-4 py-3 text-slate-600">{formatBRL(sale.amount)}</td>
+              <td className="px-4 py-3 text-slate-600">{formatBRL(sale.discount)}</td>
+              <td className="px-4 py-3 font-medium text-slate-900">{formatBRL(sale.total)}</td>
+              <td className="px-4 py-3">
+                <StatusPill tone={saleStatusTone(sale.status)}>
+                  {getSaleStatusLabel(sale.status)}
+                </StatusPill>
+              </td>
               <td className="px-4 py-3 text-right">
                 <Button
                   variant="ghost"

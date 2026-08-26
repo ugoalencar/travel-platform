@@ -459,6 +459,25 @@ describe.sequential('Commercial cockpit security (IDOR / tenant / RBAC / mass-as
       await app.close();
     });
 
+    it('resolves customerName server-side via join instead of a raw customerId', async () => {
+      const oppId = await seedOpportunity(agencyAId, customerAId, { stage: 'NEGOTIATION' });
+
+      const app = buildTestApp(runtimePool);
+      const response = await app.inject({
+        method: 'GET',
+        url: '/commercial/opportunities',
+        headers: { 'x-test-principal': 'agentA' },
+      });
+      expect(response.statusCode).toBe(200);
+      const opportunities = response.json<{
+        opportunities: Array<{ id: string; customerId: string; customerName?: string }>;
+      }>().opportunities;
+      const found = opportunities.find((o) => o.id === oppId);
+      expect(found?.customerName).toBeTruthy();
+      expect(found?.customerName).not.toBe(found?.customerId);
+      await app.close();
+    });
+
     it('paginates with default limit 50 and honors limit/offset', async () => {
       const app = buildTestApp(runtimePool);
       const response = await app.inject({

@@ -36,7 +36,12 @@ import type { Sale, CreateSaleInput, UpdateSaleInput } from '../types/sale';
 import type {
   CashFlowSummary,
   FinancialPeriod,
+  OperationalCost,
+  Payable,
+  Payment,
+  PaymentAllocation,
   Receivable,
+  SaleMargin,
 } from '../types/financial';
 import type {
   CreateExternalOfferCaptureInput,
@@ -267,6 +272,30 @@ export async function updateProposal(
   return data.proposal;
 }
 
+async function transitionProposal(id: string, action: string): Promise<Proposal> {
+  const data = await request<{ proposal: Proposal }>(
+    `/api/proposals/${encodeURIComponent(id)}/${action}`,
+    { method: 'POST' },
+  );
+  return data.proposal;
+}
+
+export async function sendProposal(id: string): Promise<Proposal> {
+  return transitionProposal(id, 'send');
+}
+
+export async function acceptProposal(id: string): Promise<Proposal> {
+  return transitionProposal(id, 'accept');
+}
+
+export async function declineProposal(id: string): Promise<Proposal> {
+  return transitionProposal(id, 'decline');
+}
+
+export async function cancelProposal(id: string): Promise<Proposal> {
+  return transitionProposal(id, 'cancel');
+}
+
 export async function listSales(): Promise<Sale[]> {
   const data = await request<{ sales: Sale[] }>('/api/sales');
   return data.sales;
@@ -298,9 +327,73 @@ export async function updateSale(id: string, input: UpdateSaleInput): Promise<Sa
   return data.sale;
 }
 
+async function transitionSale(id: string, action: string): Promise<Sale> {
+  const data = await request<{ sale: Sale }>(
+    `/api/sales/${encodeURIComponent(id)}/${action}`,
+    { method: 'POST' },
+  );
+  return data.sale;
+}
+
+export async function confirmSale(id: string): Promise<Sale> {
+  return transitionSale(id, 'confirm');
+}
+
+export async function cancelSale(id: string): Promise<Sale> {
+  return transitionSale(id, 'cancel');
+}
+
+export async function markSalePaid(id: string): Promise<Sale> {
+  return transitionSale(id, 'mark-paid');
+}
+
 export async function listReceivables(): Promise<Receivable[]> {
   const data = await request<{ receivables: Receivable[] }>('/api/financial/receivables');
   return data.receivables;
+}
+
+export async function listPayables(): Promise<Payable[]> {
+  const data = await request<{ payables: Payable[] }>('/api/financial/payables');
+  return data.payables;
+}
+
+export async function listPayments(): Promise<Payment[]> {
+  const data = await request<{ payments: Payment[] }>('/api/financial/payments');
+  return data.payments;
+}
+
+export async function listPaymentAllocations(paymentId: string): Promise<PaymentAllocation[]> {
+  const data = await request<{ allocations: PaymentAllocation[] }>(
+    `/api/financial/payments/${encodeURIComponent(paymentId)}/allocations`,
+  );
+  return data.allocations;
+}
+
+export async function listAllocationsForTarget(target: {
+  receivableId?: string;
+  payableId?: string;
+}): Promise<PaymentAllocation[]> {
+  const params = new URLSearchParams();
+  if (target.receivableId) params.set('receivableId', target.receivableId);
+  if (target.payableId) params.set('payableId', target.payableId);
+  const data = await request<{ allocations: PaymentAllocation[] }>(
+    `/api/financial/allocations?${params.toString()}`,
+  );
+  return data.allocations;
+}
+
+export async function listOperationalCosts(): Promise<OperationalCost[]> {
+  const data = await request<{ operationalCosts: OperationalCost[] }>(
+    '/api/financial/operational-costs',
+  );
+  return data.operationalCosts;
+}
+
+export async function getSaleMargin(saleId: string): Promise<SaleMargin> {
+  const data = await request<{ margin: SaleMargin }>(
+    `/api/financial/sales/${encodeURIComponent(saleId)}/margin`,
+  );
+  return data.margin;
 }
 
 export async function listExternalOfferCaptures(): Promise<ExternalOfferCapture[]> {
@@ -595,6 +688,15 @@ export async function createBooking(
     method: 'POST',
     body: JSON.stringify(input),
   });
+}
+
+export async function cancelBooking(
+  id: string,
+): Promise<{ booking: Booking }> {
+  return request<{ booking: Booking }>(
+    `/api/bookings/${encodeURIComponent(id)}/cancel`,
+    { method: 'POST' },
+  );
 }
 
 // ============================================================

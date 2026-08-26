@@ -586,6 +586,7 @@ export interface OperationCheckpoint {
 // computed at read time and never persisted.
 export interface OperationCheckpointWithExpected extends OperationCheckpoint {
   expectedAt?: Date;
+  routePointName?: string;
 }
 
 // ============================================================
@@ -636,6 +637,11 @@ export interface CommercialOpportunity {
   id: string;
   agencyId: string;
   customerId: string;
+  // Read-model convenience field: the customer's display name, resolved
+  // server-side via a join in listOpportunities so the UI never has to
+  // resolve a raw customerId with an N-requests-per-card pattern. Only
+  // present on read paths that join it; never written to storage.
+  customerName?: string;
   wishId?: string;
   proposalId?: string;
   saleId?: string;
