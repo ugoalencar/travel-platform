@@ -129,6 +129,9 @@ describe('CommercialAgendaPage', () => {
     await screen.findByText('Ligar para o cliente');
     fireEvent.click(screen.getByRole('button', { name: 'Marcar como concluído' }));
 
-    expect(updateTask).toHaveBeenCalledWith('t1', expect.objectContaining({ completedAt: expect.any(String) }));
+    expect(updateTask).toHaveBeenCalledWith(
+      't1',
+      expect.objectContaining({ completedAt: expect.any(String) as string }),
+    );
   });
 });

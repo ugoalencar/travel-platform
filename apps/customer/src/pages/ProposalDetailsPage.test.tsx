@@ -8,7 +8,6 @@ import {
   getOffer,
   sendProposal,
   acceptProposal,
-  declineProposal,
   cancelProposal,
   ApiError,
 } from '../lib/api';
