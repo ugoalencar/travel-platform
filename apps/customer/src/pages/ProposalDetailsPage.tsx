@@ -3,6 +3,10 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ApiError, getCustomer, getOffer, getProposal, getWish } from '../lib/api';
 import type { Proposal } from '../types/proposal';
 import { Button } from '../components/ui/button';
+import { formatBRL } from '../lib/formatCurrency';
+import { formatDateBR } from '../lib/formatDateBR';
+import { getProposalStatusLabel } from '../lib/statusLabels';
+import { StatusPill, proposalStatusTone } from '../components/ui/StatusPill';
 
 type LoadState =
   | { status: 'loading' }
@@ -93,7 +97,11 @@ export function ProposalDetailsPage() {
       )}
 
       {state.status === 'error' && (
-        <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <div
+          role="alert"
+          aria-live="polite"
+          className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+        >
           {state.message}
         </div>
       )}
@@ -103,15 +111,31 @@ export function ProposalDetailsPage() {
           <Field label="Cliente" value={state.customerName ?? state.proposal.customerId} />
           <Field label="Oferta vinculada" value={state.offerName ?? undefined} />
           <Field label="Desejo vinculado" value={state.wishDestination ?? undefined} />
-          <Field label="Preço proposto" value={String(state.proposal.proposedPrice)} />
-          <Field label="Desconto" value={String(state.proposal.discount)} />
-          <Field label="Total" value={String(state.proposal.total)} />
-          <Field label="Status" value={state.proposal.status} />
-          <Field label="Válida até" value={state.proposal.validUntil} />
+          <Field label="Preço proposto" value={formatBRL(state.proposal.proposedPrice)} />
+          <Field label="Desconto" value={formatBRL(state.proposal.discount)} />
+          <Field label="Total" value={formatBRL(state.proposal.total)} />
+          <div className="flex flex-col gap-1">
+            <dt className="text-xs font-medium uppercase tracking-wide text-slate-500">
+              Status
+            </dt>
+            <dd>
+              <StatusPill tone={proposalStatusTone(state.proposal.status)}>
+                {getProposalStatusLabel(state.proposal.status)}
+              </StatusPill>
+            </dd>
+          </div>
+          <Field
+            label="Válida até"
+            value={
+              state.proposal.validUntil
+                ? formatDateBR(state.proposal.validUntil, { assumeDateOnly: true })
+                : undefined
+            }
+          />
           <Field label="Condições" value={state.proposal.conditions} />
           <Field label="Notas" value={state.proposal.notes} />
-          <Field label="Criada em" value={state.proposal.createdAt} />
-          <Field label="Atualizada em" value={state.proposal.updatedAt} />
+          <Field label="Criada em" value={formatDateBR(state.proposal.createdAt)} />
+          <Field label="Atualizada em" value={formatDateBR(state.proposal.updatedAt)} />
         </dl>
       )}
     </div>

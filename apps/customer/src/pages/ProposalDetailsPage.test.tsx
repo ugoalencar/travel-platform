@@ -102,8 +102,8 @@ describe('ProposalDetailsPage', () => {
 
     expect(await screen.findByText('Maria Silva')).toBeInTheDocument();
     expect(screen.getByText('Pacote Paris')).toBeInTheDocument();
-    expect(screen.getByText('90')).toBeInTheDocument();
-    expect(screen.getByText('DRAFT')).toBeInTheDocument();
+    expect(screen.getByText('R$ 90,00')).toBeInTheDocument();
+    expect(screen.getByText('Rascunho')).toBeInTheDocument();
   });
 
   it('shows the optional Offer/Wish relations as absent when not present', async () => {

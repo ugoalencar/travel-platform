@@ -89,8 +89,8 @@ describe('SaleDetailsPage', () => {
     renderRouted();
 
     expect(await screen.findByText('Maria Silva')).toBeInTheDocument();
-    expect(screen.getByText('90')).toBeInTheDocument();
-    expect(screen.getByText('PENDING')).toBeInTheDocument();
+    expect(screen.getByText('R$ 90,00')).toBeInTheDocument();
+    expect(screen.getByText('Pendente')).toBeInTheDocument();
     expect(screen.getByText('p1')).toBeInTheDocument();
   });
 

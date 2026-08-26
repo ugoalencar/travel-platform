@@ -3,6 +3,10 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ApiError, getCustomer, getSale } from '../lib/api';
 import type { Sale } from '../types/sale';
 import { Button } from '../components/ui/button';
+import { formatBRL } from '../lib/formatCurrency';
+import { formatDateBR } from '../lib/formatDateBR';
+import { getSaleStatusLabel } from '../lib/statusLabels';
+import { StatusPill, saleStatusTone } from '../components/ui/StatusPill';
 
 type LoadState =
   | { status: 'loading' }
@@ -79,7 +83,11 @@ export function SaleDetailsPage() {
       )}
 
       {state.status === 'error' && (
-        <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <div
+          role="alert"
+          aria-live="polite"
+          className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+        >
           {state.message}
         </div>
       )}
@@ -88,13 +96,22 @@ export function SaleDetailsPage() {
         <dl className="grid max-w-lg grid-cols-1 gap-4 rounded-lg border border-slate-200 bg-white p-6 sm:grid-cols-2">
           <Field label="Cliente" value={state.customerName ?? state.sale.customerId} />
           <Field label="Proposta vinculada" value={state.sale.proposalId} />
-          <Field label="Valor" value={String(state.sale.amount)} />
-          <Field label="Desconto" value={String(state.sale.discount)} />
-          <Field label="Total" value={String(state.sale.total)} />
-          <Field label="Status" value={state.sale.status} />
+          <Field label="Valor" value={formatBRL(state.sale.amount)} />
+          <Field label="Desconto" value={formatBRL(state.sale.discount)} />
+          <Field label="Total" value={formatBRL(state.sale.total)} />
+          <div className="flex flex-col gap-1">
+            <dt className="text-xs font-medium uppercase tracking-wide text-slate-500">
+              Status
+            </dt>
+            <dd>
+              <StatusPill tone={saleStatusTone(state.sale.status)}>
+                {getSaleStatusLabel(state.sale.status)}
+              </StatusPill>
+            </dd>
+          </div>
           <Field label="Notas" value={state.sale.notes} />
-          <Field label="Criada em" value={state.sale.createdAt} />
-          <Field label="Atualizada em" value={state.sale.updatedAt} />
+          <Field label="Criada em" value={formatDateBR(state.sale.createdAt)} />
+          <Field label="Atualizada em" value={formatDateBR(state.sale.updatedAt)} />
         </dl>
       )}
     </div>

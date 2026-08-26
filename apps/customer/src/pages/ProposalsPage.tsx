@@ -4,6 +4,9 @@ import { ApiError, listCustomers, listProposals } from '../lib/api';
 import type { Proposal } from '../types/proposal';
 import type { Customer } from '../types/customer';
 import { Button } from '../components/ui/button';
+import { formatBRL } from '../lib/formatCurrency';
+import { getProposalStatusLabel } from '../lib/statusLabels';
+import { StatusPill, proposalStatusTone } from '../components/ui/StatusPill';
 
 type LoadState =
   | { status: 'loading' }
@@ -53,7 +56,11 @@ export function ProposalsPage() {
       )}
 
       {state.status === 'error' && (
-        <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <div
+          role="alert"
+          aria-live="polite"
+          className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+        >
           {state.message}
         </div>
       )}
@@ -99,10 +106,14 @@ function ProposalTable({
               <td className="px-4 py-3 font-medium text-slate-900">
                 {customersById.get(proposal.customerId) ?? proposal.customerId}
               </td>
-              <td className="px-4 py-3 text-slate-600">{proposal.proposedPrice}</td>
-              <td className="px-4 py-3 text-slate-600">{proposal.discount}</td>
-              <td className="px-4 py-3 font-medium text-slate-900">{proposal.total}</td>
-              <td className="px-4 py-3 text-slate-600">{proposal.status}</td>
+              <td className="px-4 py-3 text-slate-600">{formatBRL(proposal.proposedPrice)}</td>
+              <td className="px-4 py-3 text-slate-600">{formatBRL(proposal.discount)}</td>
+              <td className="px-4 py-3 font-medium text-slate-900">{formatBRL(proposal.total)}</td>
+              <td className="px-4 py-3">
+                <StatusPill tone={proposalStatusTone(proposal.status)}>
+                  {getProposalStatusLabel(proposal.status)}
+                </StatusPill>
+              </td>
               <td className="px-4 py-3 text-right">
                 <Button
                   variant="ghost"
