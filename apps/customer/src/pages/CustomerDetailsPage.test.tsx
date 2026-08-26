@@ -109,11 +109,16 @@ describe('CustomerDetailsPage', () => {
       createdAt: '2026-01-01T00:00:00.000Z',
       updatedAt: '2026-01-01T00:00:00.000Z',
     });
-    renderRouted(['/customers/c2']);
+    const { container } = renderRouted(['/customers/c2']);
 
     await screen.findByText('João Souza');
-    // email, phone, cpf, passport, notes all missing -> 5 dashes
-    expect(screen.getAllByText('—')).toHaveLength(5);
+    // Scope to the customer details <dl> only — not Customer 360 summary
+    const dl = container.querySelector('dl');
+    expect(dl).toBeInTheDocument();
+    const dashes = Array.from(dl!.querySelectorAll('dd')).filter(
+      (dd) => dd.textContent === '—',
+    );
+    expect(dashes).toHaveLength(5);
   });
 
   it('404 shows a safe generic message, never implying cross-tenant existence', async () => {

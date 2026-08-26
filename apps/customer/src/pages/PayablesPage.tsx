@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { ApiError, listPayables, listAllocationsForTarget } from '../lib/api';
 import type { Payable, PaymentAllocation } from '../types/financial';
 
@@ -149,9 +149,8 @@ export function PayablesPage() {
                 </thead>
                 <tbody>
                   {filtered.map((payable) => (
-                    <>
+                    <Fragment key={payable.id}>
                       <tr
-                        key={payable.id}
                         className={`border-b border-slate-100 last:border-0 ${
                           payable.status === 'PARTIALLY_PAID' ? 'cursor-pointer hover:bg-slate-50' : ''
                         }`}
@@ -191,7 +190,7 @@ export function PayablesPage() {
                           </td>
                         </tr>
                       )}
-                    </>
+                    </Fragment>
                   ))}
                 </tbody>
               </table>
