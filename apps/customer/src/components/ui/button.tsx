@@ -15,6 +15,10 @@ const buttonVariants = cva(
       size: {
         default: 'h-9 px-4 py-2',
         sm: 'h-8 rounded-md px-3 text-xs',
+        // Additive-only opt-in for mobile-critical actions (e.g. field-ops
+        // checkpoint confirmations). Meets the ~44px tap-target guideline.
+        // Does not change the `default` size used everywhere else.
+        'mobile-lg': 'h-11 px-6 py-3 text-base',
       },
     },
     defaultVariants: {

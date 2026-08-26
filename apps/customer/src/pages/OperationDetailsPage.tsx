@@ -106,6 +106,7 @@ export function OperationDetailsPage() {
                     </span>
                   ) : (
                     <Button
+                      size="mobile-lg"
                       className="w-full sm:w-auto"
                       disabled={confirmingId === `${checkpoint.id}-arrival`}
                       onClick={() => void handleConfirm(checkpoint, 'arrival')}
@@ -126,6 +127,7 @@ export function OperationDetailsPage() {
                     </span>
                   ) : (
                     <Button
+                      size="mobile-lg"
                       className="w-full sm:w-auto"
                       disabled={confirmingId === `${checkpoint.id}-departure`}
                       onClick={() => void handleConfirm(checkpoint, 'departure')}
