@@ -236,7 +236,7 @@ describe('ProposalDetailsPage', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
 
       expect(cancelProposal).toHaveBeenCalledWith('p1');
-      await screen.findByText('CANCELLED');
+      await screen.findByText('Cancelada');
       expect(screen.queryByRole('button', { name: 'Cancelar' })).not.toBeInTheDocument();
       confirmSpy.mockRestore();
     });

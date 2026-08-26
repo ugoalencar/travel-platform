@@ -76,7 +76,7 @@ describe('ProposalsPage', () => {
     vi.mocked(listCustomers).mockResolvedValue(customers);
     renderRouted();
 
-    expect(await screen.findByText('Maria Silva')).toBeInTheDocument();
+    await screen.findAllByText('Maria Silva');
     expect(screen.getByText('R$ 100,00')).toBeInTheDocument();
     expect(screen.getByText('R$ 90,00')).toBeInTheDocument();
     expect(screen.getByText('Rascunho')).toBeInTheDocument();
@@ -144,8 +144,8 @@ describe('ProposalsPage', () => {
       await screen.findAllByText('Maria Silva');
       fireEvent.change(screen.getByLabelText('Status'), { target: { value: 'SENT' } });
 
-      expect(screen.queryByText('DRAFT', { selector: 'td' })).not.toBeInTheDocument();
-      expect(screen.getByText('SENT', { selector: 'td' })).toBeInTheDocument();
+      expect(screen.queryByText('Rascunho')).not.toBeInTheDocument();
+      expect(screen.getByText('Enviada')).toBeInTheDocument();
       expect(screen.getAllByText('João Souza').length).toBeGreaterThan(0);
     });
 
@@ -186,8 +186,8 @@ describe('ProposalsPage', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Limpar filtros' }));
 
       expect(screen.getByLabelText('Status')).toHaveValue('');
-      expect(screen.getByText('DRAFT', { selector: 'td' })).toBeInTheDocument();
-      expect(screen.getByText('SENT', { selector: 'td' })).toBeInTheDocument();
+      expect(screen.getByText('Rascunho')).toBeInTheDocument();
+      expect(screen.getByText('Enviada')).toBeInTheDocument();
     });
   });
 });

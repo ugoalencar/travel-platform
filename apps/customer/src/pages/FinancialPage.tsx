@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { ApiError, getFinancialDashboard, listReceivables, listAllocationsForTarget } from '../lib/api';
 import type { CashFlowSummary, PaymentAllocation, Receivable } from '../types/financial';
 import { formatBRL } from '../lib/formatCurrency';
@@ -234,9 +234,8 @@ function ReceivablesTable({
               const overdue = receivable.status !== 'PAID' && receivable.status !== 'CANCELLED' && isOverdue(receivable.dueAt);
               const isExpandable = receivable.status === 'PARTIALLY_PAID';
               return (
-                <>
+                <Fragment key={receivable.id}>
                   <tr
-                    key={receivable.id}
                     className={`border-b border-slate-100 last:border-0 ${
                       overdue ? 'bg-red-50/50' : ''
                     } ${isExpandable ? 'cursor-pointer hover:bg-slate-50' : ''}`}
@@ -277,7 +276,7 @@ function ReceivablesTable({
                       </td>
                     </tr>
                   )}
-                </>
+                </Fragment>
               );
             })}
           </tbody>

@@ -83,3 +83,26 @@ export function getOfferStatusLabel(status: OfferStatus): string {
 export function getBookingStatusLabel(cancelled: boolean): string {
   return cancelled ? 'Cancelada' : 'Ativa';
 }
+
+// Aliases used by customer-portal pages (untyped for simplicity).
+export function tripStatusLabel(status: string): string {
+  return TRIP_STATUS_LABELS[status as TripStatus] ?? status;
+}
+
+export function proposalStatusLabel(status: string): string {
+  return PROPOSAL_STATUS_LABELS[status as ProposalStatus] ?? status;
+}
+
+export function offerStatusLabel(status: string): string {
+  return OFFER_STATUS_LABELS[status as OfferStatus] ?? status;
+}
+
+export function bookingStatusLabel(booking: { cancelled: boolean; isFuture?: boolean }): string {
+  if (booking.cancelled) return 'Cancelada';
+  if (booking.isFuture === false) return 'Realizada';
+  return 'Ativa';
+}
+
+export function tripTypeLabel(tripType: string): string {
+  return tripType === 'ROUND_TRIP' ? 'Ida e volta' : 'Somente ida';
+}
