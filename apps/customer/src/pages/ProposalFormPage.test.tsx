@@ -84,7 +84,7 @@ const createdProposal: Proposal = {
 };
 
 async function fillCustomer(customerId = 'c1') {
-  const select = await screen.findByLabelText('Cliente');
+  const select = await screen.findByLabelText(/Cliente/);
   fireEvent.change(select, { target: { value: customerId } });
 }
 
@@ -94,7 +94,7 @@ describe('ProposalFormPage', () => {
     renderRouted();
 
     expect(screen.getByRole('heading', { name: 'Nova proposta' })).toBeInTheDocument();
-    const select = await screen.findByLabelText('Cliente');
+    const select = await screen.findByLabelText(/Cliente/);
     expect(within(select).getByText('Maria Silva')).toBeInTheDocument();
   });
 
@@ -103,13 +103,13 @@ describe('ProposalFormPage', () => {
     renderRouted();
 
     await fillCustomer('c1');
-    fireEvent.change(screen.getByLabelText('Preço proposto'), { target: { value: '100' } });
+    fireEvent.change(screen.getByLabelText(/Preço proposto/), { target: { value: '100' } });
     fireEvent.change(screen.getByLabelText('Desconto (valor absoluto)'), {
       target: { value: '10' },
     });
 
     expect(screen.getByText(/Total \(prévia\):/)).toBeInTheDocument();
-    expect(screen.getByText('90')).toBeInTheDocument();
+    expect(screen.getByText('R$ 90,00')).toBeInTheDocument();
   });
 
   it('valid submit calls createProposal with only allowed fields, never total/status', async () => {
@@ -118,7 +118,7 @@ describe('ProposalFormPage', () => {
     renderRouted();
 
     await fillCustomer('c1');
-    fireEvent.change(screen.getByLabelText('Preço proposto'), { target: { value: '100' } });
+    fireEvent.change(screen.getByLabelText(/Preço proposto/), { target: { value: '100' } });
     fireEvent.change(screen.getByLabelText('Desconto (valor absoluto)'), {
       target: { value: '10' },
     });
@@ -139,8 +139,8 @@ describe('ProposalFormPage', () => {
     vi.mocked(listCustomers).mockResolvedValue(customers);
     renderRouted();
 
-    await screen.findByLabelText('Cliente');
-    fireEvent.change(screen.getByLabelText('Preço proposto'), { target: { value: '100' } });
+    await screen.findByLabelText(/Cliente/);
+    fireEvent.change(screen.getByLabelText(/Preço proposto/), { target: { value: '100' } });
     fireEvent.click(screen.getByRole('button', { name: 'Salvar' }));
 
     expect(await screen.findByText('Cliente é obrigatório.')).toBeInTheDocument();
@@ -164,7 +164,7 @@ describe('ProposalFormPage', () => {
     renderRouted();
 
     await fillCustomer('c1');
-    fireEvent.change(screen.getByLabelText('Preço proposto'), { target: { value: '100' } });
+    fireEvent.change(screen.getByLabelText(/Preço proposto/), { target: { value: '100' } });
     fireEvent.click(screen.getByRole('button', { name: 'Salvar' }));
 
     expect(await screen.findByText('Detalhes da proposta page')).toBeInTheDocument();
@@ -178,7 +178,7 @@ describe('ProposalFormPage', () => {
     const offerSelect = await screen.findByLabelText('Oferta (opcional)');
     fireEvent.change(offerSelect, { target: { value: 'o1' } });
 
-    const priceInput = screen.getByLabelText('Preço proposto');
+    const priceInput = screen.getByLabelText(/Preço proposto/);
     expect(priceInput).toHaveValue(500);
   });
 
@@ -188,7 +188,7 @@ describe('ProposalFormPage', () => {
     renderRouted();
 
     await fillCustomer('c1');
-    fireEvent.change(screen.getByLabelText('Preço proposto'), { target: { value: '100' } });
+    fireEvent.change(screen.getByLabelText(/Preço proposto/), { target: { value: '100' } });
     fireEvent.click(screen.getByRole('button', { name: 'Salvar' }));
 
     expect(
@@ -202,7 +202,7 @@ describe('ProposalFormPage', () => {
     renderRouted();
 
     await fillCustomer('c1');
-    fireEvent.change(screen.getByLabelText('Preço proposto'), { target: { value: '100' } });
+    fireEvent.change(screen.getByLabelText(/Preço proposto/), { target: { value: '100' } });
     fireEvent.click(screen.getByRole('button', { name: 'Salvar' }));
 
     expect(
