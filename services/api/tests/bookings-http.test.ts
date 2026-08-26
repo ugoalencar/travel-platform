@@ -14,6 +14,7 @@ const migration002 = resolve(repoRoot, 'infrastructure/migrations/002_rls_polici
 const migration003 = resolve(repoRoot, 'infrastructure/migrations/003_transportation.sql');
 const migration004 = resolve(repoRoot, 'infrastructure/migrations/004_route_points.sql');
 const migration005 = resolve(repoRoot, 'infrastructure/migrations/005_booking.sql');
+const migration011 = resolve(repoRoot, 'infrastructure/migrations/011_booking_cancellation.sql');
 const prepareRolesSql = resolve(repoRoot, 'tests/integration/database/002_prepare_local_roles.sql');
 const composeFile = resolve(repoRoot, 'infrastructure/docker-compose.local-postgres.yml');
 
@@ -265,6 +266,145 @@ describe.sequential('Booking HTTP routes', () => {
     });
   });
 
+  describe('POST /bookings/:id/cancel', () => {
+    it('cancels an existing booking, records audit fields, and is idempotent', async () => {
+      const depId = await seedDeparture(agencyAId, productOneWayA, 2);
+      const app = buildTestApp(runtimePool);
+      const create = await app.inject({
+        method: 'POST',
+        url: '/bookings',
+        headers: { 'x-test-principal': 'agent' },
+        payload: {
+          bookerCustomerId: customerAId,
+          tripType: 'ONE_WAY',
+          outboundDepartureId: depId,
+          passengers: [{ name: 'Joao' }, { name: 'Maria' }],
+        },
+      });
+      expect(create.statusCode).toBe(201);
+      const bookingId = create.json<{ booking: { id: string } }>().booking.id;
+
+      const cancel = await app.inject({
+        method: 'POST',
+        url: `/bookings/${bookingId}/cancel`,
+        headers: { 'x-test-principal': 'manager' },
+        payload: { reason: 'Customer requested cancellation' },
+      });
+      expect(cancel.statusCode).toBe(200);
+      const body = cancel.json<{
+        booking: {
+          id: string;
+          cancelled: boolean;
+          cancelledAt: string;
+          cancelledByUserId: string;
+          cancellationReason: string;
+        };
+      }>();
+      expect(body.booking).toMatchObject({
+        id: bookingId,
+        cancelled: true,
+        cancelledByUserId: userAId,
+        cancellationReason: 'Customer requested cancellation',
+      });
+      expect(new Date(body.booking.cancelledAt).getTime()).not.toBeNaN();
+
+      const activeAfterCancel = await countActivePassengersForDeparture(depId);
+      expect(activeAfterCancel).toBe(0);
+
+      const repeat = await app.inject({
+        method: 'POST',
+        url: `/bookings/${bookingId}/cancel`,
+        headers: { 'x-test-principal': 'manager' },
+        payload: { reason: 'Second attempt should not mutate audit' },
+      });
+      expect(repeat.statusCode).toBe(200);
+      const repeatBody = repeat.json<{ booking: { cancelledAt: string; cancellationReason: string } }>();
+      expect(repeatBody.booking.cancelledAt).toBe(body.booking.cancelledAt);
+      expect(repeatBody.booking.cancellationReason).toBe('Customer requested cancellation');
+
+      await app.close();
+    });
+
+    it('releases capacity for a later booking and remains tenant isolated', async () => {
+      const depId = await seedDeparture(agencyAId, productOneWayA, 1);
+      const app = buildTestApp(runtimePool);
+      const create = await app.inject({
+        method: 'POST',
+        url: '/bookings',
+        headers: { 'x-test-principal': 'agent' },
+        payload: {
+          bookerCustomerId: customerAId,
+          tripType: 'ONE_WAY',
+          outboundDepartureId: depId,
+          passengers: [{ name: 'Joao' }],
+        },
+      });
+      expect(create.statusCode).toBe(201);
+      const bookingId = create.json<{ booking: { id: string } }>().booking.id;
+
+      const crossTenant = await app.inject({
+        method: 'POST',
+        url: `/bookings/${bookingId}/cancel`,
+        headers: { 'x-test-principal': 'ownerAgencyB' },
+      });
+      expect(crossTenant.statusCode).toBe(404);
+
+      const cancel = await app.inject({
+        method: 'POST',
+        url: `/bookings/${bookingId}/cancel`,
+        headers: { 'x-test-principal': 'manager' },
+      });
+      expect(cancel.statusCode).toBe(200);
+
+      const replacement = await app.inject({
+        method: 'POST',
+        url: '/bookings',
+        headers: { 'x-test-principal': 'agent' },
+        payload: {
+          bookerCustomerId: customerAId,
+          tripType: 'ONE_WAY',
+          outboundDepartureId: depId,
+          passengers: [{ name: 'Replacement' }],
+        },
+      });
+      expect(replacement.statusCode).toBe(201);
+      expect(await countActivePassengersForDeparture(depId)).toBe(1);
+      await app.close();
+    });
+
+    it('blocks cancellation for VIEWER and anonymous users', async () => {
+      const depId = await seedDeparture(agencyAId, productOneWayA, 1);
+      const app = buildTestApp(runtimePool);
+      const create = await app.inject({
+        method: 'POST',
+        url: '/bookings',
+        headers: { 'x-test-principal': 'agent' },
+        payload: {
+          bookerCustomerId: customerAId,
+          tripType: 'ONE_WAY',
+          outboundDepartureId: depId,
+          passengers: [{ name: 'Joao' }],
+        },
+      });
+      expect(create.statusCode).toBe(201);
+      const bookingId = create.json<{ booking: { id: string } }>().booking.id;
+
+      const anonymous = await app.inject({
+        method: 'POST',
+        url: `/bookings/${bookingId}/cancel`,
+      });
+      expect(anonymous.statusCode).toBe(401);
+
+      const viewer = await app.inject({
+        method: 'POST',
+        url: `/bookings/${bookingId}/cancel`,
+        headers: { 'x-test-principal': 'viewer' },
+      });
+      expect(viewer.statusCode).toBe(403);
+      await app.close();
+    });
+  });
+
   describe('RBAC', () => {
     it('allows VIEWER to read, blocks write with 403', async () => {
       const depId = await seedDeparture(agencyAId, productOneWayA, 10);
@@ -423,6 +563,18 @@ describe.sequential('Booking HTTP routes', () => {
     if (!id) throw new Error('Failed to seed departure');
     return id;
   }
+
+  async function countActivePassengersForDeparture(departureId: string): Promise<number> {
+    const result = await adminPool.query<{ count: string }>(
+      `SELECT COUNT(*)
+       FROM booking_passengers bp
+       JOIN bookings b ON b.agency_id = bp.agency_id AND b.id = bp.booking_id
+       WHERE b.agency_id = $1 AND b.cancelled = false
+         AND (b.outbound_departure_id = $2 OR b.return_departure_id = $2)`,
+      [agencyAId, departureId],
+    );
+    return Number(result.rows[0]?.count ?? 0);
+  }
 });
 
 function assertSafeTestDatabase(): void {
@@ -483,6 +635,7 @@ async function resetDatabase(pool: Pool): Promise<void> {
   await pool.query(readSqlForPg(migration003));
   await pool.query(readSqlForPg(migration004));
   await pool.query(readSqlForPg(migration005));
+  await pool.query(readSqlForPg(migration011));
   await pool.query(readSqlForPg(prepareRolesSql));
   await seedAgenciesAndUsers(pool);
 }

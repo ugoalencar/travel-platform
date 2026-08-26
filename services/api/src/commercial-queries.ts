@@ -42,9 +42,20 @@ export interface FollowUpDue {
   type: string;
 }
 
+export type OverdueFollowUp = FollowUpDue;
+
 export interface ProposalNoResponse {
   id: string;
   customerId: string;
+  total: string;
+  validUntil: string | null;
+  createdAt: string;
+}
+
+export interface CustomerProposalStatus {
+  id: string;
+  customerId: string;
+  status: string;
   total: string;
   validUntil: string | null;
   createdAt: string;
@@ -56,6 +67,41 @@ export interface TravelerToDestination {
   destination: string;
   startDate: string;
   endDate: string;
+}
+
+export interface UpcomingTripSummary {
+  tripId: string;
+  customerId: string;
+  destination: string;
+  startDate: string;
+  endDate: string;
+  status: string;
+}
+
+export interface OverdueReceivableSummary {
+  id: string;
+  saleId: string | null;
+  customerId: string;
+  description: string;
+  amount: string;
+  dueAt: string;
+  status: string;
+}
+
+export interface CancelledBookingSummary {
+  id: string;
+  customerId: string;
+  cancelledAt: string | null;
+  cancellationReason: string | null;
+}
+
+export interface CustomerBookingSummary {
+  id: string;
+  customerId: string;
+  tripType: string;
+  departureAt: string;
+  originDestination: string;
+  cancelled: boolean;
 }
 
 // "Customer's next trip" -- the earliest upcoming (or in-progress) Trip
@@ -140,6 +186,23 @@ export async function listFollowUpsDueTodayForUser(
   return result.rows;
 }
 
+export async function listOverdueFollowUps(
+  client: TenantTransactionClient,
+  agencyId: string,
+): Promise<OverdueFollowUp[]> {
+  const result = await client.query<OverdueFollowUp>(
+    `SELECT id, customer_id AS "customerId", opportunity_id AS "opportunityId",
+            title, due_at::text AS "dueAt", type::text AS type
+     FROM commercial_tasks
+     WHERE agency_id = $1
+       AND completed_at IS NULL
+       AND due_at < now()
+     ORDER BY due_at ASC`,
+    [agencyId],
+  );
+  return result.rows;
+}
+
 // "Which proposals have no response" -- Proposal.status = SENT with no
 // CommercialOpportunity closed (WON/LOST) referencing it. Read-only;
 // never infers or writes a Proposal.status transition.
@@ -160,6 +223,97 @@ export async function listProposalsWithNoResponse(
        )
      ORDER BY p.created_at ASC`,
     [agencyId],
+  );
+  return result.rows;
+}
+
+export async function getCustomerProposalStatus(
+  client: TenantTransactionClient,
+  agencyId: string,
+  customerId: string,
+  proposalId: string,
+): Promise<CustomerProposalStatus | null> {
+  const result = await client.query<CustomerProposalStatus>(
+    `SELECT id, customer_id AS "customerId", status::text AS status,
+            total::text AS total, valid_until::text AS "validUntil",
+            created_at::text AS "createdAt"
+     FROM proposals
+     WHERE agency_id = $1 AND customer_id = $2 AND id = $3`,
+    [agencyId, customerId, proposalId],
+  );
+  return result.rows[0] ?? null;
+}
+
+export async function listOverdueReceivables(
+  client: TenantTransactionClient,
+  agencyId: string,
+): Promise<OverdueReceivableSummary[]> {
+  const result = await client.query<OverdueReceivableSummary>(
+    `SELECT id, sale_id AS "saleId", customer_id AS "customerId",
+            description, amount::text AS amount, due_at::text AS "dueAt",
+            status::text AS status
+     FROM receivables
+     WHERE agency_id = $1
+       AND status IN ('OPEN', 'PARTIALLY_PAID')
+       AND due_at < now()
+     ORDER BY due_at ASC`,
+    [agencyId],
+  );
+  return result.rows;
+}
+
+export async function listUpcomingTrips(
+  client: TenantTransactionClient,
+  agencyId: string,
+): Promise<UpcomingTripSummary[]> {
+  const result = await client.query<UpcomingTripSummary>(
+    `SELECT id AS "tripId", customer_id AS "customerId", destination,
+            start_date::text AS "startDate", end_date::text AS "endDate",
+            status::text AS status
+     FROM trips
+     WHERE agency_id = $1
+       AND status NOT IN ('CANCELLED', 'COMPLETED')
+       AND start_date >= CURRENT_DATE
+     ORDER BY start_date ASC`,
+    [agencyId],
+  );
+  return result.rows;
+}
+
+export async function listCancelledBookings(
+  client: TenantTransactionClient,
+  agencyId: string,
+): Promise<CancelledBookingSummary[]> {
+  const result = await client.query<CancelledBookingSummary>(
+    `SELECT id, booker_customer_id AS "customerId",
+            cancelled_at::text AS "cancelledAt",
+            cancellation_reason AS "cancellationReason"
+     FROM bookings
+     WHERE agency_id = $1 AND cancelled = true
+     ORDER BY cancelled_at DESC NULLS LAST, updated_at DESC`,
+    [agencyId],
+  );
+  return result.rows;
+}
+
+export async function listCustomerBookings(
+  client: TenantTransactionClient,
+  agencyId: string,
+  customerId: string,
+): Promise<CustomerBookingSummary[]> {
+  const result = await client.query<CustomerBookingSummary>(
+    `SELECT b.id, b.booker_customer_id AS "customerId",
+            b.trip_type::text AS "tripType",
+            sd.departure_at::text AS "departureAt",
+            r.origin || ' -> ' || r.destination AS "originDestination",
+            b.cancelled
+     FROM bookings b
+     JOIN scheduled_departures sd ON sd.agency_id = b.agency_id AND sd.id = b.outbound_departure_id
+     JOIN transport_products tp ON tp.agency_id = sd.agency_id AND tp.id = sd.product_id
+     JOIN routes r ON r.agency_id = tp.agency_id AND r.id = tp.outbound_route_id
+     WHERE b.agency_id = $1 AND b.booker_customer_id = $2
+     ORDER BY sd.departure_at ASC`,
+    [agencyId, customerId],
   );
   return result.rows;
 }

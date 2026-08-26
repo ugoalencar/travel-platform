@@ -8,12 +8,18 @@ import { UserRole } from '../../../packages/domain/types';
 import type { AuthenticatedPrincipal } from '../src/auth';
 import { createDatabaseRuntime } from '../src/database';
 import {
+  getCustomerProposalStatus,
   getCustomerNextTrip,
   isProposalStillValid,
+  listCancelledBookings,
+  listCustomerBookings,
   listFollowUpsDueTodayForUser,
+  listOverdueFollowUps,
+  listOverdueReceivables,
   listPostSaleCandidates,
   listProposalsWithNoResponse,
   listTravelersToDestination,
+  listUpcomingTrips,
 } from '../src/commercial-queries';
 import { runWithTenantContext } from '../../../packages/domain/tenant-context';
 
@@ -24,8 +30,12 @@ const migration003 = resolve(repoRoot, 'infrastructure/migrations/003_transporta
 const migration004 = resolve(repoRoot, 'infrastructure/migrations/004_route_points.sql');
 const migration005 = resolve(repoRoot, 'infrastructure/migrations/005_booking.sql');
 const migration006 = resolve(repoRoot, 'infrastructure/migrations/006_field_operations.sql');
+const migration007 = resolve(repoRoot, 'infrastructure/migrations/007_commission_repair.sql');
 const migration008Commercial = resolve(repoRoot, 'infrastructure/migrations/008_commercial_cockpit.sql');
 const migration009Configurable = resolve(repoRoot, 'infrastructure/migrations/009_configurable_pipelines.sql');
+const migration010 = resolve(repoRoot, 'infrastructure/migrations/010_financial_foundation.sql');
+const migration011 = resolve(repoRoot, 'infrastructure/migrations/011_booking_cancellation.sql');
+const migration013 = resolve(repoRoot, 'infrastructure/migrations/013_pescador_foundation.sql');
 const prepareRolesSql = resolve(repoRoot, 'tests/integration/database/002_prepare_local_roles.sql');
 const composeFile = resolve(repoRoot, 'infrastructure/docker-compose.local-postgres.yml');
 
@@ -109,8 +119,10 @@ describe.sequential('Commercial cockpit security (IDOR / tenant / RBAC / mass-as
 
   beforeEach(async () => {
     await adminPool.query(
-      `TRUNCATE TABLE customer_interactions, commercial_tasks, commercial_opportunities,
-                     proposals, trips, wishes, customers
+      `TRUNCATE TABLE external_offer_captures, payment_allocations, payments,
+                     receivables, payables, operational_costs,
+                     customer_interactions, commercial_tasks, commercial_opportunities,
+                     bookings, sales, proposals, trips, wishes, customers
        RESTART IDENTITY CASCADE`,
     );
     customerAId = await seedCustomer(agencyAId, 'Customer A');
@@ -464,6 +476,15 @@ describe.sequential('Commercial cockpit security (IDOR / tenant / RBAC / mass-as
     it('dashboard aggregate returns real counts from seeded data', async () => {
       await seedOpportunity(agencyAId, customerAId, { stage: 'NEGOTIATION' });
       await seedTask(agencyAId, customerAId, userAId, userAId, { dueAt: 'now' });
+      const proposalId = await seedProposal(agencyAId, customerAId, { status: 'SENT', total: '300.00' });
+      const saleId = await seedSale(agencyAId, customerAId, { status: 'CONFIRMED', total: '300.00' });
+      await seedReceivable(agencyAId, saleId, customerAId, {
+        amount: '300.00',
+        dueAt: '2020-01-01T00:00:00Z',
+      });
+      await seedCancelledBooking(agencyAId, customerAId);
+      await seedPescadorCapture(agencyAId, 'UNDER_REVIEW');
+      await seedPescadorCapture(agencyAId, 'APPROVED');
 
       const app = buildTestApp(runtimePool);
       const response = await app.inject({
@@ -472,9 +493,23 @@ describe.sequential('Commercial cockpit security (IDOR / tenant / RBAC / mass-as
         headers: { 'x-test-principal': 'agentA' },
       });
       expect(response.statusCode).toBe(200);
-      const body = response.json<{ openOpportunitiesCount: number; followUpsDueTodayCount: number }>();
+      const body = response.json<{
+        openOpportunitiesCount: number;
+        followUpsDueTodayCount: number;
+        proposalsWaitingCount: number;
+        confirmedSalesCount: number;
+        overdueReceivablesCount: number;
+        cancelledBookingsCount: number;
+        pescadorReviewQueueCount: number;
+      }>();
       expect(body.openOpportunitiesCount).toBeGreaterThanOrEqual(1);
       expect(body.followUpsDueTodayCount).toBeGreaterThanOrEqual(1);
+      expect(body.proposalsWaitingCount).toBeGreaterThanOrEqual(1);
+      expect(body.confirmedSalesCount).toBeGreaterThanOrEqual(1);
+      expect(body.overdueReceivablesCount).toBeGreaterThanOrEqual(1);
+      expect(body.cancelledBookingsCount).toBeGreaterThanOrEqual(1);
+      expect(body.pescadorReviewQueueCount).toBeGreaterThanOrEqual(2);
+      expect(proposalId).toBeTruthy();
       await app.close();
     });
 
@@ -593,6 +628,58 @@ describe.sequential('Commercial cockpit security (IDOR / tenant / RBAC / mass-as
           ),
       );
       expect(candidates.some((c) => c.customerId === customerAId && c.destination === 'Rio')).toBe(true);
+    });
+
+    it('staff bot queries surface overdue follow-ups, overdue receivables, upcoming trips, and cancelled bookings', async () => {
+      await seedTask(agencyAId, customerAId, userAId, userAId, { dueAt: "'2020-01-01T00:00:00Z'" });
+      const saleId = await seedSale(agencyAId, customerAId, { status: 'CONFIRMED', total: '450.00' });
+      const receivableId = await seedReceivable(agencyAId, saleId, customerAId, {
+        amount: '450.00',
+        dueAt: '2020-01-01T00:00:00Z',
+      });
+      await adminPool.query(
+        `INSERT INTO trips (agency_id, customer_id, name, destination, start_date, end_date, status)
+         VALUES ($1, $2, 'Future Staff Trip', 'Porto', '2027-05-01', '2027-05-10', 'PLANNED')`,
+        [agencyAId, customerAId],
+      );
+      const bookingId = await seedCancelledBooking(agencyAId, customerAId);
+
+      const result = await runWithTenantContext(
+        { agencyId: agencyAId, userId: userAId, userRole: UserRole.AGENT, email: 'a@example.test' },
+        () =>
+          createDatabaseRuntime(runtimePool).withTenantTransaction(async (client) => ({
+            overdueFollowUps: await listOverdueFollowUps(client, agencyAId),
+            overdueReceivables: await listOverdueReceivables(client, agencyAId),
+            upcomingTrips: await listUpcomingTrips(client, agencyAId),
+            cancelledBookings: await listCancelledBookings(client, agencyAId),
+          })),
+      );
+
+      expect(result.overdueFollowUps.some((task) => task.customerId === customerAId)).toBe(true);
+      expect(result.overdueReceivables.some((receivable) => receivable.id === receivableId)).toBe(true);
+      expect(result.upcomingTrips.some((trip) => trip.destination === 'Porto')).toBe(true);
+      expect(result.cancelledBookings.some((booking) => booking.id === bookingId)).toBe(true);
+    });
+
+    it('customer-safe bot queries are scoped to the requested customer', async () => {
+      const proposalA = await seedProposal(agencyAId, customerAId, { status: 'SENT', total: '250.00' });
+      const proposalOtherCustomer = await seedProposal(agencyAId, customerA2Id, { status: 'SENT', total: '999.00' });
+      const bookingA = await seedCancelledBooking(agencyAId, customerAId);
+      await seedCancelledBooking(agencyAId, customerA2Id);
+
+      const result = await runWithTenantContext(
+        { agencyId: agencyAId, userId: userAId, userRole: UserRole.AGENT, email: 'a@example.test' },
+        () =>
+          createDatabaseRuntime(runtimePool).withTenantTransaction(async (client) => ({
+            ownProposal: await getCustomerProposalStatus(client, agencyAId, customerAId, proposalA),
+            otherProposal: await getCustomerProposalStatus(client, agencyAId, customerAId, proposalOtherCustomer),
+            bookings: await listCustomerBookings(client, agencyAId, customerAId),
+          })),
+      );
+
+      expect(result.ownProposal?.id).toBe(proposalA);
+      expect(result.otherProposal).toBeNull();
+      expect(result.bookings.map((booking) => booking.id)).toEqual([bookingA]);
     });
   });
 
@@ -912,7 +999,7 @@ describe.sequential('Commercial cockpit security (IDOR / tenant / RBAC / mass-as
     customerId: string,
     assignedUserId: string,
     createdBy: string,
-    overrides: { dueAt?: 'now' } = {},
+    overrides: { dueAt?: 'now' | "'2020-01-01T00:00:00Z'" } = {},
   ): Promise<string> {
     const dueAt = overrides.dueAt === 'now' ? 'now()' : `'2026-01-01T00:00:00Z'`;
     const result = await adminPool.query<{ id: string }>(
@@ -943,17 +1030,107 @@ describe.sequential('Commercial cockpit security (IDOR / tenant / RBAC / mass-as
   async function seedProposal(
     agencyId: string,
     customerId: string,
-    overrides: { status?: string; validUntil?: string } = {},
+    overrides: { status?: string; validUntil?: string; total?: string } = {},
   ): Promise<string> {
+    const total = overrides.total ?? '1000.00';
     const result = await adminPool.query<{ id: string }>(
       `INSERT INTO proposals (agency_id, customer_id, proposed_price, total, status, valid_until)
-       VALUES ($1, $2, 1000, 1000, $3, $4) RETURNING id`,
-      [agencyId, customerId, overrides.status ?? 'DRAFT', overrides.validUntil ?? null],
+       VALUES ($1, $2, $3, $3, $4, $5) RETURNING id`,
+      [agencyId, customerId, total, overrides.status ?? 'DRAFT', overrides.validUntil ?? null],
     );
     const id = result.rows[0]?.id;
     if (!id) {
       throw new Error('Failed to seed proposal');
     }
+    return id;
+  }
+
+  async function seedSale(
+    agencyId: string,
+    customerId: string,
+    overrides: { status?: string; total?: string } = {},
+  ): Promise<string> {
+    const userId = agencyId === agencyAId ? userAId : userBId;
+    const total = overrides.total ?? '1000.00';
+    const result = await adminPool.query<{ id: string }>(
+      `INSERT INTO sales (agency_id, customer_id, user_id, amount, total, status)
+       VALUES ($1, $2, $3, $4, $4, $5) RETURNING id`,
+      [agencyId, customerId, userId, total, overrides.status ?? 'PENDING'],
+    );
+    const id = result.rows[0]?.id;
+    if (!id) throw new Error('Failed to seed sale');
+    return id;
+  }
+
+  async function seedReceivable(
+    agencyId: string,
+    saleId: string,
+    customerId: string,
+    overrides: { amount: string; dueAt: string },
+  ): Promise<string> {
+    const result = await adminPool.query<{ id: string }>(
+      `INSERT INTO receivables (agency_id, sale_id, customer_id, description, amount, due_at)
+       VALUES ($1, $2, $3, 'Overdue receivable', $4, $5) RETURNING id`,
+      [agencyId, saleId, customerId, overrides.amount, overrides.dueAt],
+    );
+    const id = result.rows[0]?.id;
+    if (!id) throw new Error('Failed to seed receivable');
+    return id;
+  }
+
+  async function seedCancelledBooking(agencyId: string, customerId: string): Promise<string> {
+    const outboundDepartureId = await seedDeparture(agencyId);
+    const result = await adminPool.query<{ id: string }>(
+      `INSERT INTO bookings
+         (agency_id, booker_customer_id, trip_type, outbound_departure_id, cancelled, cancelled_at, cancelled_by_user_id, cancellation_reason)
+       VALUES ($1, $2, 'ONE_WAY', $3, true, now(), $4, 'Customer requested cancellation') RETURNING id`,
+      [agencyId, customerId, outboundDepartureId, agencyId === agencyAId ? userAId : userBId],
+    );
+    const id = result.rows[0]?.id;
+    if (!id) throw new Error('Failed to seed cancelled booking');
+    await adminPool.query(
+      `INSERT INTO booking_passengers (agency_id, booking_id, name)
+       VALUES ($1, $2, 'Cancelled Passenger')`,
+      [agencyId, id],
+    );
+    return id;
+  }
+
+  async function seedDeparture(agencyId: string): Promise<string> {
+    const supplier = await adminPool.query<{ id: string }>(
+      `INSERT INTO suppliers (agency_id, name) VALUES ($1, 'Supplier') RETURNING id`,
+      [agencyId],
+    );
+    const route = await adminPool.query<{ id: string }>(
+      `INSERT INTO routes (agency_id, origin, destination, active)
+       VALUES ($1, 'A', 'B', true) RETURNING id`,
+      [agencyId],
+    );
+    const product = await adminPool.query<{ id: string }>(
+      `INSERT INTO transport_products (agency_id, name, trip_type, outbound_route_id, price, active, publicly_bookable)
+       VALUES ($1, 'Product', 'ONE_WAY', $2, 1000, true, true) RETURNING id`,
+      [agencyId, route.rows[0]?.id],
+    );
+    const departure = await adminPool.query<{ id: string }>(
+      `INSERT INTO scheduled_departures (agency_id, product_id, departure_at, capacity, supplier_id, service_type)
+       VALUES ($1, $2, '2027-01-01T10:00:00Z', 10, $3, 'OWN') RETURNING id`,
+      [agencyId, product.rows[0]?.id, supplier.rows[0]?.id],
+    );
+    const id = departure.rows[0]?.id;
+    if (!id) throw new Error('Failed to seed departure');
+    return id;
+  }
+
+  async function seedPescadorCapture(agencyId: string, status: string): Promise<string> {
+    const result = await adminPool.query<{ id: string }>(
+      `INSERT INTO external_offer_captures
+         (agency_id, source_url, source_name, raw_content, normalized_title, found_price, status, reviewed_at, reviewed_by_user_id)
+       VALUES ($1, $2, 'Supplier', 'Raw package', 'Package', 1000, $3, now(), $4)
+       RETURNING id`,
+      [agencyId, `https://supplier.example/${status.toLowerCase()}`, status, agencyId === agencyAId ? userAId : userBId],
+    );
+    const id = result.rows[0]?.id;
+    if (!id) throw new Error('Failed to seed pescador capture');
     return id;
   }
 });
@@ -1037,8 +1214,12 @@ async function resetDatabase(pool: Pool): Promise<void> {
   await pool.query(readSqlForPg(migration004));
   await pool.query(readSqlForPg(migration005));
   await pool.query(readSqlForPg(migration006));
+  await pool.query(readSqlForPg(migration007));
   await pool.query(readSqlForPg(migration008Commercial));
   await pool.query(readSqlForPg(migration009Configurable));
+  await pool.query(readSqlForPg(migration010));
+  await pool.query(readSqlForPg(migration011));
+  await pool.query(readSqlForPg(migration013));
   await pool.query(readSqlForPg(prepareRolesSql));
   await seedAgenciesAndUsers(pool);
 }

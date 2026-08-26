@@ -41,6 +41,49 @@ vi.mock('./lib/api', () => ({
   createSale: vi.fn(),
   getSale: vi.fn(),
   updateSale: vi.fn(),
+  listBookings: vi.fn().mockResolvedValue([]),
+  getFinancialDashboard: vi.fn().mockResolvedValue({
+    projected: { receivablesDue: 1000, payablesDue: 250, balance: 750 },
+    realized: { paymentsIn: 800, paymentsOut: 100, balance: 700 },
+  }),
+  listReceivables: vi.fn().mockResolvedValue([
+    {
+      id: 'r1',
+      agencyId: 'a1',
+      customerId: 'c1',
+      description: 'Entrada pacote',
+      amount: 1000,
+      dueAt: '2027-01-10T00:00:00.000Z',
+      status: 'OPEN',
+      createdAt: '2027-01-01T00:00:00.000Z',
+      updatedAt: '2027-01-01T00:00:00.000Z',
+    },
+  ]),
+  listExternalOfferCaptures: vi.fn().mockResolvedValue([
+    {
+      id: 'cap1',
+      agencyId: 'a1',
+      sourceUrl: 'https://supplier.example/rio',
+      sourceName: 'Fornecedor Rio',
+      capturedAt: '2027-01-01T00:00:00.000Z',
+      rawContent: 'Pacote Rio com hotel e transfer',
+      normalizedTitle: 'Rio Package',
+      normalizedDescription: 'Pacote Rio com hotel e transfer',
+      foundPrice: 1800,
+      currency: 'BRL',
+      validUntil: '2027-02-01T00:00:00.000Z',
+      status: 'APPROVED',
+      reviewedAt: '2027-01-02T00:00:00.000Z',
+      reviewedByUserId: 'u1',
+      createdAt: '2027-01-01T00:00:00.000Z',
+      updatedAt: '2027-01-02T00:00:00.000Z',
+    },
+  ]),
+  createExternalOfferCapture: vi.fn(),
+  reviewExternalOfferCapture: vi.fn(),
+  approveExternalOfferCapture: vi.fn(),
+  rejectExternalOfferCapture: vi.fn(),
+  publishExternalOfferCapture: vi.fn(),
 }));
 
 afterEach(() => {
@@ -353,5 +396,31 @@ describe('App', () => {
     expect(
       await screen.findByRole('heading', { name: 'Detalhes da venda' }),
     ).toBeInTheDocument();
+  });
+
+  it('renders "Financeiro" as a real navigation link', () => {
+    renderApp();
+    const link = screen.getByRole('link', { name: 'Financeiro' });
+    expect(link).toHaveAttribute('href', '/financial');
+  });
+
+  it('renders FinancialPage when navigating to "/financial"', async () => {
+    renderApp(['/financial']);
+    expect(await screen.findByRole('heading', { name: 'Financeiro' })).toBeInTheDocument();
+    expect(await screen.findByText('Recebido no periodo')).toBeInTheDocument();
+    expect(await screen.findByText('Entrada pacote')).toBeInTheDocument();
+  });
+
+  it('renders "Pescador" as a real navigation link', () => {
+    renderApp();
+    const link = screen.getByRole('link', { name: 'Pescador' });
+    expect(link).toHaveAttribute('href', '/pescador');
+  });
+
+  it('renders PescadorPage when navigating to "/pescador"', async () => {
+    renderApp(['/pescador']);
+    expect(await screen.findByRole('heading', { name: 'Pescador' })).toBeInTheDocument();
+    expect(await screen.findByText('Fornecedor Rio')).toBeInTheDocument();
+    expect(await screen.findByText('Rio Package')).toBeInTheDocument();
   });
 });

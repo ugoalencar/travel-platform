@@ -14,6 +14,8 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Propostas', to: '/proposals' },
   { label: 'Reservas', to: '/bookings' },
   { label: 'Vendas', to: '/sales' },
+  { label: 'Financeiro', to: '/financial' },
+  { label: 'Pescador', to: '/pescador' },
   { label: 'Viagens', to: '/trips' },
   { label: 'Rotas', to: '/transport/routes' },
   { label: 'Produtos de transporte', to: '/transport/products' },
@@ -32,6 +34,16 @@ const COMMERCIAL_NAV_ITEMS: NavItem[] = [
   { label: 'Agenda comercial', to: '/commercial/agenda' },
 ];
 
+const OFFER_GROWTH_NAV_ITEMS: NavItem[] = [
+  { label: 'Creative Studio', to: '/offer-growth/studio' },
+  { label: 'Templates', to: '/offer-growth/templates' },
+  { label: 'Editor criativo', to: '/offer-growth/editor' },
+  { label: 'Campanhas', to: '/offer-growth/campaigns' },
+  { label: 'Publicacoes', to: '/offer-growth/publications' },
+  { label: 'Automacoes', to: '/offer-growth/automations' },
+  { label: 'Cupons', to: '/offer-growth/coupons' },
+];
+
 // Minimal "Configurações" nav section (no settings framework existed
 // before this) -- currently just Pipelines. Every write on that page is
 // still enforced server-side by requirePipelineAdmin(); this link is not
@@ -40,25 +52,32 @@ const SETTINGS_NAV_ITEMS: NavItem[] = [{ label: 'Pipelines', to: '/settings/pipe
 
 export function Sidebar() {
   return (
-    <aside className="flex h-full w-56 shrink-0 flex-col overflow-y-auto border-r border-slate-200 bg-white">
+    <aside className="flex max-h-48 w-full shrink-0 flex-col overflow-y-auto border-b border-slate-200 bg-white md:h-full md:max-h-none md:w-56 md:border-b-0 md:border-r">
       <div className="flex h-14 shrink-0 items-center border-b border-slate-200 px-4">
         <span className="text-sm font-semibold tracking-tight text-slate-900">
           Travel Platform
         </span>
       </div>
-      <nav className="flex flex-1 flex-col gap-1 p-3">
+      <nav className="flex flex-row gap-1 overflow-x-auto p-3 md:flex-1 md:flex-col md:overflow-x-visible">
         {NAV_ITEMS.map((item) => (
           <NavItemLink key={`main-${item.label}-${item.to ?? ''}`} item={item} />
         ))}
 
-        <div className="mt-4 px-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
+        <div className="shrink-0 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-400 md:mt-4 md:py-0">
           Comercial
         </div>
         {COMMERCIAL_NAV_ITEMS.map((item) => (
           <NavItemLink key={`commercial-${item.label}`} item={item} />
         ))}
 
-        <div className="mt-4 px-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
+        <div className="shrink-0 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-400 md:mt-4 md:py-0">
+          Offer & Growth
+        </div>
+        {OFFER_GROWTH_NAV_ITEMS.map((item) => (
+          <NavItemLink key={`offer-growth-${item.label}`} item={item} />
+        ))}
+
+        <div className="shrink-0 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-400 md:mt-4 md:py-0">
           Configurações
         </div>
         {SETTINGS_NAV_ITEMS.map((item) => (
@@ -87,7 +106,7 @@ function NavItemLink({ item }: { item: NavItem }) {
       to={item.to}
       className={({ isActive }) =>
         cn(
-          'rounded-md px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100',
+          'shrink-0 rounded-md px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100',
           isActive && 'bg-slate-900 text-white hover:bg-slate-900',
         )
       }

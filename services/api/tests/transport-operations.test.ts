@@ -19,7 +19,8 @@ const migration001 = resolve(repoRoot, 'infrastructure/migrations/001_initial_sc
 const migration002 = resolve(repoRoot, 'infrastructure/migrations/002_rls_policies.sql');
 const migration003 = resolve(repoRoot, 'infrastructure/migrations/003_transportation.sql');
 const migration004 = resolve(repoRoot, 'infrastructure/migrations/004_route_points.sql');
-const migration005 = resolve(repoRoot, 'infrastructure/migrations/006_field_operations.sql');
+const migration006 = resolve(repoRoot, 'infrastructure/migrations/006_field_operations.sql');
+const migration012 = resolve(repoRoot, 'infrastructure/migrations/012_operational_staff_assignments.sql');
 const prepareRolesSql = resolve(repoRoot, 'tests/integration/database/002_prepare_local_roles.sql');
 const composeFile = resolve(repoRoot, 'infrastructure/docker-compose.local-postgres.yml');
 
@@ -385,7 +386,8 @@ async function resetDatabase(pool: Pool): Promise<void> {
   await pool.query(readSqlForPg(migration002));
   await pool.query(readSqlForPg(migration003));
   await pool.query(readSqlForPg(migration004));
-  await pool.query(readSqlForPg(migration005));
+  await pool.query(readSqlForPg(migration006));
+  await pool.query(readSqlForPg(migration012));
   await pool.query(readSqlForPg(prepareRolesSql));
   await seedAgenciesAndUsers(pool);
 }

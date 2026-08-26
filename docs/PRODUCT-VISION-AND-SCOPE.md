@@ -20,6 +20,14 @@
 > PR READY, LOCAL IMPLEMENTED, IN DEVELOPMENT, PLANNED, DEFERRED, DECISION
 > REQUIRED.
 
+> **Adendo Batch 02 (2026-08-25):** no branch atual, Financial Foundation,
+> Booking cancellation, Pescador manual capture, Proposal lifecycle, Sale
+> lifecycle/Sale-to-Receivable, Commercial Cockpit indicators, Customer 360
+> aggregation, and bot-query readiness are LOCAL IMPLEMENTED. This does not
+> implement WhatsApp, production crawling/scraping, payment provider flows,
+> refunds, passenger-level cancellation, Driver/Guide identity (D2), or the
+> broader D3/D4 future work.
+
 ---
 
 ## Sumário Executivo
@@ -101,19 +109,19 @@ código em `origin/main` / branches de feature ainda não integradas.
 | Wish | MERGED | `services/api/src/wishes.ts`, PR #5 merged |
 | Trip | MERGED | `services/api/src/trips.ts`, PR #6 merged |
 | Offer | MERGED | `services/api/src/offers.ts`, PR #7 merged |
-| Proposal | MERGED | `services/api/src/proposals.ts`, PR #8 merged. No accept/decline endpoints found — status field is read/write via generic update only, no lifecycle transition logic in the handler. |
+| Proposal | LOCAL IMPLEMENTED | Batch 02 adds explicit proposal lifecycle transitions locally. Integration into `origin/main` still depends on PR merge. |
 | Transportation (Route/RoutePoint/TransportProduct/Supplier/ScheduledDeparture) | MERGED | PR #9 merged, `services/api/src/transport-*.ts` present on `origin/main` |
-| Booking | MERGED | PR #10 merged, `services/api/src/bookings.ts` present. Handler exports only `listBookings`, `getBookingById`, `createBooking` — **no cancellation endpoint exists** despite the `cancelled` boolean column. |
+| Booking | LOCAL IMPLEMENTED | PR #10 base is merged; Batch 02 adds booking cancellation locally with audit fields and capacity release. Integration into `origin/main` still depends on PR merge. |
 | Field Operations (TransportOperation/OperationCheckpoint) | MERGED | PR #11 merged, `services/api/src/transport-operations.ts` present |
 | Commission (structural repair) | MERGED | PR #12 merged. `UNIQUE(agency_id, id)` added on `commissions`. **No `services/api/src/commissions.ts` handler exists on `origin/main`** — schema only, no API, no calculation logic. |
 | Customer Portal (Customer App) | MERGED | PR #14 merged (`feature/customer-app`). `apps/customer/src/customer-portal/` present with `CustomerPortalShell.tsx`; both staff and customer-portal UIs share one Vite app (see ARCH-CUSTOMER-APP-01). |
 | Sale | MERGED | PR #13 merged in this integration batch. `services/api/src/sales.ts`, Sale API routes, staff UI pages, tests, and docs are on main after the batch. |
 | Commercial Cockpit | MERGED | PR #16 merged in this integration batch. Contains `services/api/src/commercial-cockpit.ts`, `services/api/src/commercial-queries.ts`, `services/api/src/commercial-cockpit-parsers.ts`, migrations `008_commercial_cockpit.sql` and `009_configurable_pipelines.sql`, frontend pages under `apps/customer/src/pages/commercial/`, and real-Postgres security tests. |
 | Configurable Pipeline | MERGED | Included in PR #16 via `009_configurable_pipelines.sql`, `services/api/src/pipeline-config.ts`, PipelineAccess enforcement, and `/settings/pipelines` UI. |
-| Financial model | DECISION REQUIRED | No financial tables in `schema.prisma`. See `docs/decisions/D4-FINANCIAL-DISCOVERY.md`. |
-| Pescador (external offer capture) | DEFERRED | No code anywhere in the repo (verified: no `pescador`, `scraping`, `external-capture` files found). See `docs/decisions/PESCADOR-READINESS.md`. |
+| Financial model | LOCAL IMPLEMENTED | Batch 02 adds receivables, payables, payments, allocations, operational costs, cash-flow summary, and Sale-to-Receivable sync locally. Full accounting/refund/payment-provider scope remains deferred. |
+| Pescador (external offer capture) | LOCAL IMPLEMENTED | Batch 02 adds manual external offer capture/review/publish foundation locally. Production crawling/scraping remains deferred. |
 | Driver/Guide identity | PLANNED | No dedicated model; Field Operations currently attributes all actions to `User`. See `docs/decisions/D2-DRIVER-GUIDE-DISCOVERY.md`. |
-| Booking cancellation | DEFERRED | `cancelled` boolean exists on `Booking`/`ScheduledDeparture`, no cancellation flow/endpoint. See `docs/decisions/D3-BOOKING-CANCELLATION-DISCOVERY.md`. |
+| Booking cancellation | LOCAL IMPLEMENTED | Batch 02 adds whole-booking cancellation locally. Partial passenger cancellation remains deferred. |
 | Location/IBGE autocomplete | DEFERRED | No `LocationAutocomplete.tsx` or IBGE-related file found anywhere in the repo (`find . -iname "LocationAutocomplete*"` returns nothing). Any earlier claim that it exists as an unwired component could not be verified and is treated as not present. |
 | WhatsApp / Bots | DEFERRED | No code. See `docs/decisions/BOT-QUERY-READINESS.md` for a readiness audit against the (unmerged) `commercial-queries.ts`. |
 

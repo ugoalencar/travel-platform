@@ -11,6 +11,11 @@ import { createDatabaseRuntime } from '../src/database';
 const repoRoot = resolve(import.meta.dirname, '../../..');
 const migration001 = resolve(repoRoot, 'infrastructure/migrations/001_initial_schema.sql');
 const migration002 = resolve(repoRoot, 'infrastructure/migrations/002_rls_policies.sql');
+const migration003 = resolve(repoRoot, 'infrastructure/migrations/003_transportation.sql');
+const migration004 = resolve(repoRoot, 'infrastructure/migrations/004_route_points.sql');
+const migration006 = resolve(repoRoot, 'infrastructure/migrations/006_field_operations.sql');
+const migration007 = resolve(repoRoot, 'infrastructure/migrations/007_commission_repair.sql');
+const migration010 = resolve(repoRoot, 'infrastructure/migrations/010_financial_foundation.sql');
 const prepareRolesSql = resolve(repoRoot, 'tests/integration/database/002_prepare_local_roles.sql');
 const composeFile = resolve(repoRoot, 'infrastructure/docker-compose.local-postgres.yml');
 
@@ -78,6 +83,9 @@ describe.sequential('Sale HTTP routes', () => {
   });
 
   beforeEach(async () => {
+    await adminPool.query('TRUNCATE TABLE payment_allocations RESTART IDENTITY CASCADE');
+    await adminPool.query('TRUNCATE TABLE payments RESTART IDENTITY CASCADE');
+    await adminPool.query('TRUNCATE TABLE receivables RESTART IDENTITY CASCADE');
     await adminPool.query('TRUNCATE TABLE sales RESTART IDENTITY CASCADE');
     await adminPool.query('TRUNCATE TABLE proposals RESTART IDENTITY CASCADE');
     await adminPool.query('TRUNCATE TABLE customers RESTART IDENTITY CASCADE');
@@ -402,6 +410,193 @@ describe.sequential('Sale HTTP routes', () => {
     });
   });
 
+  describe('Sale lifecycle and receivable integration', () => {
+    it('keeps an unallocated Sale receivable synchronized when financial fields change', async () => {
+      const app = buildTestApp(runtimePool);
+
+      const create = await app.inject({
+        method: 'POST',
+        url: '/sales',
+        headers: { 'x-test-principal': 'agent' },
+        payload: validSalePayload(customerAId, { amount: 100, discount: 10 }),
+      });
+      expect(create.statusCode).toBe(201);
+      const saleId = create.json<{ sale: { id: string } }>().sale.id;
+
+      const update = await app.inject({
+        method: 'PATCH',
+        url: `/sales/${saleId}`,
+        headers: { 'x-test-principal': 'agent' },
+        payload: { amount: 80, discount: 5 },
+      });
+      expect(update.statusCode).toBe(200);
+      expect(update.json<{ sale: { total: number } }>().sale.total).toBe(75);
+
+      const receivable = await adminPool.query<{ amount: string; status: string }>(
+        'SELECT amount, status FROM receivables WHERE agency_id = $1 AND sale_id = $2',
+        [agencyAId, saleId],
+      );
+      expect(receivable.rows).toHaveLength(1);
+      expect(receivable.rows[0]).toMatchObject({ amount: '75.00', status: 'OPEN' });
+
+      await app.close();
+    });
+
+    it('blocks Sale financial edits once the linked receivable has allocations', async () => {
+      const saleId = await seedSale(agencyAId, customerAId, { amount: '100.00' });
+      const receivableId = await seedReceivableForSale(saleId, customerAId, '100.00');
+      await markReceivableFullyPaid(receivableId, '25.00');
+
+      const app = buildTestApp(runtimePool);
+      const response = await app.inject({
+        method: 'PATCH',
+        url: `/sales/${saleId}`,
+        headers: { 'x-test-principal': 'agent' },
+        payload: { amount: 80 },
+      });
+
+      expect(response.statusCode).toBe(409);
+      expect(response.json()).toMatchObject({ code: 'CONFLICT' });
+
+      const sale = await adminPool.query<{ amount: string; total: string }>(
+        'SELECT amount, total FROM sales WHERE agency_id = $1 AND id = $2',
+        [agencyAId, saleId],
+      );
+      expect(sale.rows[0]).toMatchObject({ amount: '100.00', total: '100.00' });
+
+      await app.close();
+    });
+
+    it('creates a receivable for new positive-total Sales and supports confirm then paid after full allocation', async () => {
+      const app = buildTestApp(runtimePool);
+
+      const create = await app.inject({
+        method: 'POST',
+        url: '/sales',
+        headers: { 'x-test-principal': 'agent' },
+        payload: validSalePayload(customerAId, { amount: 100, discount: 10 }),
+      });
+      expect(create.statusCode).toBe(201);
+      const sale = create.json<{ sale: { id: string; status: string; total: number; paidAt?: string } }>().sale;
+      expect(sale.status).toBe('PENDING');
+      expect(sale.total).toBe(90);
+      expect(sale.paidAt).toBeUndefined();
+
+      const receivable = await adminPool.query<{ id: string; amount: string; status: string }>(
+        'SELECT id, amount, status FROM receivables WHERE agency_id = $1 AND sale_id = $2',
+        [agencyAId, sale.id],
+      );
+      expect(receivable.rows).toHaveLength(1);
+      expect(receivable.rows[0]?.amount).toBe('90.00');
+      expect(receivable.rows[0]?.status).toBe('OPEN');
+
+      const confirm = await app.inject({
+        method: 'POST',
+        url: `/sales/${sale.id}/confirm`,
+        headers: { 'x-test-principal': 'manager' },
+      });
+      expect(confirm.statusCode).toBe(200);
+      expect(confirm.json<{ sale: { status: string } }>().sale.status).toBe('CONFIRMED');
+
+      const paidTooEarly = await app.inject({
+        method: 'POST',
+        url: `/sales/${sale.id}/mark-paid`,
+        headers: { 'x-test-principal': 'manager' },
+      });
+      expect(paidTooEarly.statusCode).toBe(409);
+
+      await markReceivableFullyPaid(receivable.rows[0]!.id, '90.00');
+
+      const paid = await app.inject({
+        method: 'POST',
+        url: `/sales/${sale.id}/mark-paid`,
+        headers: { 'x-test-principal': 'manager' },
+      });
+      expect(paid.statusCode).toBe(200);
+      const paidSale = paid.json<{ sale: { status: string; paidAt?: string } }>().sale;
+      expect(paidSale.status).toBe('PAID');
+      expect(paidSale.paidAt).toBeDefined();
+
+      await app.close();
+    });
+
+    it('cancels PENDING Sales without deleting financial history', async () => {
+      const saleId = await seedSale(agencyAId, customerAId, { amount: '120.00' });
+      await seedReceivableForSale(saleId, customerAId, '120.00');
+
+      const app = buildTestApp(runtimePool);
+      const response = await app.inject({
+        method: 'POST',
+        url: `/sales/${saleId}/cancel`,
+        headers: { 'x-test-principal': 'manager' },
+      });
+      expect(response.statusCode).toBe(200);
+      expect(response.json<{ sale: { status: string } }>().sale.status).toBe('CANCELLED');
+
+      const receivable = await adminPool.query<{ status: string }>(
+        'SELECT status FROM receivables WHERE agency_id = $1 AND sale_id = $2',
+        [agencyAId, saleId],
+      );
+      expect(receivable.rows[0]?.status).toBe('CANCELLED');
+
+      await app.close();
+    });
+
+    it('rejects invalid transitions and client-supplied status/paidAt changes', async () => {
+      const pendingId = await seedSale(agencyAId, customerAId, { amount: '100.00' });
+      const paidId = await seedSale(agencyAId, customerAId, { amount: '100.00', status: 'PAID' });
+
+      const app = buildTestApp(runtimePool);
+
+      const paidFromPending = await app.inject({
+        method: 'POST',
+        url: `/sales/${pendingId}/mark-paid`,
+        headers: { 'x-test-principal': 'manager' },
+      });
+      expect(paidFromPending.statusCode).toBe(409);
+
+      const cancelPaid = await app.inject({
+        method: 'POST',
+        url: `/sales/${paidId}/cancel`,
+        headers: { 'x-test-principal': 'manager' },
+      });
+      expect(cancelPaid.statusCode).toBe(409);
+
+      const statusPatch = await app.inject({
+        method: 'PATCH',
+        url: `/sales/${pendingId}`,
+        headers: { 'x-test-principal': 'agent' },
+        payload: { status: 'PAID', paidAt: '2027-01-01T00:00:00.000Z' },
+      });
+      expect(statusPatch.statusCode).toBe(400);
+
+      await app.close();
+    });
+
+    it('enforces RBAC and tenant isolation on lifecycle actions', async () => {
+      const aId = await seedSale(agencyAId, customerAId, { amount: '100.00' });
+      const bId = await seedSale(agencyBId, customerBId, { amount: '100.00' });
+
+      const app = buildTestApp(runtimePool);
+
+      const viewerConfirm = await app.inject({
+        method: 'POST',
+        url: `/sales/${aId}/confirm`,
+        headers: { 'x-test-principal': 'viewer' },
+      });
+      expect(viewerConfirm.statusCode).toBe(403);
+
+      const crossTenant = await app.inject({
+        method: 'POST',
+        url: `/sales/${bId}/confirm`,
+        headers: { 'x-test-principal': 'owner' },
+      });
+      expect(crossTenant.statusCode).toBe(404);
+
+      await app.close();
+    });
+  });
+
   describe('RBAC', () => {
     it('allows VIEWER to GET /sales and GET /sales/:id (list-floor: lower of the two documented rows)', async () => {
       const id = await seedSale(agencyAId, customerAId, { amount: '100.00' });
@@ -599,22 +794,59 @@ describe.sequential('Sale HTTP routes', () => {
   async function seedSale(
     agencyId: string,
     customerId: string,
-    data: { amount?: string; discount?: string },
+    data: { amount?: string; discount?: string; status?: string },
   ): Promise<string> {
     const userId = agencyId === agencyAId ? userAId : userBId;
     const amount = data.amount ?? '100.00';
     const discount = data.discount ?? '0.00';
     const total = (Number(amount) - Number(discount)).toFixed(2);
+    const status = data.status ?? 'PENDING';
+    const paidAt = status === 'PAID' ? new Date() : null;
     const result = await adminPool.query<{ id: string }>(
-      `INSERT INTO sales (agency_id, customer_id, user_id, amount, discount, total)
-       VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
-      [agencyId, customerId, userId, amount, discount, total],
+      `INSERT INTO sales (agency_id, customer_id, user_id, amount, discount, total, status, paid_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`,
+      [agencyId, customerId, userId, amount, discount, total, status, paidAt],
     );
     const id = result.rows[0]?.id;
     if (!id) {
       throw new Error('Failed to seed sale');
     }
     return id;
+  }
+
+  async function seedReceivableForSale(
+    saleId: string,
+    customerId: string,
+    amount: string,
+  ): Promise<string> {
+    const result = await adminPool.query<{ id: string }>(
+      `INSERT INTO receivables (agency_id, sale_id, customer_id, description, amount, due_at)
+       VALUES ($1, $2, $3, 'Sale receivable', $4, now()) RETURNING id`,
+      [agencyAId, saleId, customerId, amount],
+    );
+    const id = result.rows[0]?.id;
+    if (!id) throw new Error('Failed to seed receivable');
+    return id;
+  }
+
+  async function markReceivableFullyPaid(receivableId: string, amount: string): Promise<void> {
+    const payment = await adminPool.query<{ id: string }>(
+      `INSERT INTO payments (agency_id, direction, amount, occurred_at, created_by)
+       VALUES ($1, 'IN', $2, now(), $3) RETURNING id`,
+      [agencyAId, amount, userAId],
+    );
+    const paymentId = payment.rows[0]?.id;
+    if (!paymentId) throw new Error('Failed to seed payment');
+
+    await adminPool.query(
+      `INSERT INTO payment_allocations (agency_id, payment_id, receivable_id, amount)
+       VALUES ($1, $2, $3, $4)`,
+      [agencyAId, paymentId, receivableId, amount],
+    );
+    await adminPool.query(
+      `UPDATE receivables SET status = 'PAID', updated_at = now() WHERE id = $1`,
+      [receivableId],
+    );
   }
 });
 
@@ -692,6 +924,11 @@ async function resetDatabase(pool: Pool): Promise<void> {
   await pool.query('DROP SCHEMA public CASCADE; CREATE SCHEMA public;');
   await pool.query(readSqlForPg(migration001));
   await pool.query(readSqlForPg(migration002));
+  await pool.query(readSqlForPg(migration003));
+  await pool.query(readSqlForPg(migration004));
+  await pool.query(readSqlForPg(migration006));
+  await pool.query(readSqlForPg(migration007));
+  await pool.query(readSqlForPg(migration010));
   await pool.query(readSqlForPg(prepareRolesSql));
   await seedAgenciesAndUsers(pool);
 }
