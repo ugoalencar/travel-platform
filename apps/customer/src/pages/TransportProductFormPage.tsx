@@ -147,13 +147,13 @@ export function TransportProductFormPage() {
       <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Novo produto</h1>
 
       {error && (
-        <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <div role="alert" aria-live="assertive" className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
           {error}
         </div>
       )}
 
       {routesState.status === 'error' && (
-        <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <div role="alert" aria-live="assertive" className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
           {routesState.message}
         </div>
       )}
@@ -259,15 +259,22 @@ export function TransportProductFormPage() {
           />
         </div>
 
-        <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
-          <input
-            type="checkbox"
-            name="publiclyBookable"
-            checked={fields.publiclyBookable}
-            onChange={(event) => updateField('publiclyBookable', event.target.checked)}
-          />
-          Vendável publicamente
-        </label>
+        <div className="flex flex-col gap-1">
+          <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
+            <input
+              type="checkbox"
+              name="publiclyBookable"
+              checked={fields.publiclyBookable}
+              onChange={(event) => updateField('publiclyBookable', event.target.checked)}
+            />
+            Vendável publicamente
+          </label>
+          <p className="text-xs text-slate-500">
+            {fields.publiclyBookable
+              ? 'Disponível para clientes e canais externos de reserva.'
+              : 'Não aparece em canais externos. Reserva manual interna permitida.'}
+          </p>
+        </div>
 
         <div className="flex flex-col gap-1">
           <label htmlFor="product-notes" className="text-sm font-medium text-slate-700">

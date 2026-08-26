@@ -214,7 +214,7 @@ export function RoutePointsEditor({ routeId }: { routeId: string }) {
       <h2 className="text-lg font-semibold text-slate-900">Pontos da rota</h2>
 
       {error && (
-        <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+        <div role="alert" aria-live="assertive" className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
           {error}
         </div>
       )}
@@ -334,14 +334,16 @@ export function RoutePointsEditor({ routeId }: { routeId: string }) {
               >
                 {point.saving ? 'Salvando...' : point.isNew ? 'Adicionar' : 'Salvar ponto'}
               </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => handleRemovePoint(index)}
-              >
-                Remover
-              </Button>
+              {point.isNew && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleRemovePoint(index)}
+                >
+                  Remover
+                </Button>
+              )}
             </div>
           </li>
         ))}
