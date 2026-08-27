@@ -22,10 +22,23 @@ import {
   PaymentDirection,
   UserRole,
 } from '../../../packages/domain/types';
+import cors from '@fastify/cors';
+import helmet from '@fastify/helmet';
 import { createAuthenticateHook, type AuthProvider } from './auth';
 import { createCustomerAuthenticateHook, type CustomerAuthProvider } from './customer-auth';
 import type { DatabaseRuntime } from './database';
-import { NotFoundError, ValidationError, registerErrorHandler } from './errors';
+import {
+  CorsOriginNotAllowedError,
+  NotFoundError,
+  ValidationError,
+  registerErrorHandler,
+} from './errors';
+import {
+  DEFAULT_BODY_LIMIT_BYTES,
+  isOriginAllowed,
+  resolveCorsPolicy,
+  type CorsPolicy,
+} from './security-config';
 import {
   createCustomer,
   getCustomerById,
@@ -312,6 +325,13 @@ export interface BuildAppOptions {
   // InternalMockConnector per buildApp() call when omitted, so routes
   // that simulate connector events always have something real to call.
   mockConnector?: InternalMockConnector;
+  // SEC-E: override the resolved CORS policy (mainly for tests). Defaults
+  // to resolveCorsPolicy(process.env) -- see security-config.ts. Production
+  // callers should NOT pass this; let it derive from CORS_ALLOWED_ORIGINS.
+  corsPolicy?: CorsPolicy;
+  // SEC-E: override the request body size limit in bytes. Defaults to
+  // DEFAULT_BODY_LIMIT_BYTES (security-config.ts).
+  bodyLimitBytes?: number;
 }
 
 interface AgencyProofRow {
@@ -328,6 +348,106 @@ interface RateLimitOptions {
 export function buildApp(options: BuildAppOptions): FastifyInstance {
   const app = Fastify({
     logger: true,
+    // SEC-E: explicit request body size limit (see security-config.ts for
+    // rationale). Was previously Fastify's implicit 1 MiB default -- now
+    // explicit and slightly larger to comfortably cover legitimate
+    // offer-growth creative-template/asset-metadata JSON payloads.
+    bodyLimit: options.bodyLimitBytes ?? DEFAULT_BODY_LIMIT_BYTES,
+    // SEC-E: `trustProxy` intentionally left at Fastify's default (false).
+    // This service's production deployment topology (what reverse proxy,
+    // if any, terminates TLS and forwards X-Forwarded-* headers) is not
+    // discoverable from this repository -- no nginx/vercel/docker prod
+    // config exists here. Setting trustProxy blanket-true would open
+    // client-IP spoofing (relevant to other streams' rate limiting/audit
+    // logging); guessing a specific proxy count/CIDR could as easily break
+    // a real load balancer. This is called out as a human decision
+    // required in the stream report rather than guessed at here.
+  });
+
+  const corsPolicy = options.corsPolicy ?? resolveCorsPolicy(process.env);
+
+  // SEC-E: CORS. No route ever reflects an arbitrary Origin header back --
+  // isOriginAllowed() only returns true for an explicit allow-list match
+  // (env-sourced in production, localhost:* in dev). `credentials` is false
+  // because this API is bearer/header-token-shaped, not cookie-shaped (see
+  // security-config.ts header comment and the CSRF verdict in the stream
+  // report) -- there is nothing for the browser to attach automatically,
+  // so credentialed CORS is not needed and is not enabled.
+  void app.register(cors, {
+    origin(origin, callback) {
+      // No Origin header (e.g. same-origin, curl, server-to-server) --
+      // allow; this is not a browser cross-origin request needing a CORS
+      // decision at all.
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+      if (isOriginAllowed(origin, corsPolicy)) {
+        callback(null, true);
+        return;
+      }
+      callback(new CorsOriginNotAllowedError('Origin not allowed'), false);
+    },
+    credentials: false,
+    methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'x-dev-user-id',
+      'x-dev-agency-id',
+      'x-dev-role',
+      'x-dev-customer',
+    ],
+    maxAge: 600,
+  });
+
+  // SEC-E: baseline security headers via Helmet. CSP is scoped to what
+  // this JSON API itself serves (it does not render or host the
+  // apps/customer SPA -- no static-file serving exists in this service,
+  // see server.ts) so a strict, near-empty policy is safe here. The SPA's
+  // own CSP delivery (meta tag or hosting-platform response headers) is a
+  // deployment concern of wherever apps/customer's static build is hosted,
+  // outside this repo/service -- flagged separately in the stream report.
+  void app.register(helmet, {
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'"],
+        styleSrc: ["'self'"],
+        imgSrc: ["'self'"],
+        connectSrc: ["'self'"],
+        objectSrc: ["'none'"],
+        baseUri: ["'self'"],
+        formAction: ["'self'"],
+        frameAncestors: ["'none'"],
+      },
+    },
+    // HSTS only makes sense once TLS is actually terminated somewhere in
+    // front of this service; gate it on production so local HTTP dev never
+    // gets an HSTS response (which would make plain-HTTP localhost
+    // unusable in browsers that respect it).
+    hsts:
+      corsPolicy.isProduction
+        ? { maxAge: 15552000, includeSubDomains: true, preload: false }
+        : false,
+    // Deprecated/counterproductive in modern browsers -- explicitly off
+    // rather than relying on Helmet's own default.
+    xXssProtection: false,
+    referrerPolicy: { policy: 'no-referrer' },
+    // frame-ancestors (CSP) above already covers modern clickjacking
+    // protection; keep the legacy header too for older clients.
+    frameguard: { action: 'deny' },
+  });
+
+  // SEC-E: Permissions-Policy is not covered by this helmet version, so
+  // it's set explicitly. This is a pure JSON API -- it has no legitimate
+  // use for any browser feature listed here, so everything is disabled.
+  app.addHook('onSend', (_request, reply, payload, done) => {
+    reply.header(
+      'Permissions-Policy',
+      'geolocation=(), camera=(), microphone=(), payment=(), usb=(), fullscreen=()',
+    );
+    done(null, payload);
   });
 
   app.decorateRequest('auth', undefined);

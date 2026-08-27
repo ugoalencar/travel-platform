@@ -16,6 +16,15 @@ export class ConflictError extends Error {
   readonly statusCode = 409;
 }
 
+// SEC-E: thrown by the @fastify/cors `origin` callback for a rejected
+// Origin. Given its own class (rather than falling through to the
+// generic 500 branch) so a blocked CORS preflight/request gets a clean,
+// specific 403 instead of an internal-error response.
+export class CorsOriginNotAllowedError extends Error {
+  readonly code = 'CORS_ORIGIN_NOT_ALLOWED';
+  readonly statusCode = 403;
+}
+
 export function registerErrorHandler(app: FastifyInstance): void {
   app.setErrorHandler((error, request, reply) => {
     request.log.error(
@@ -41,6 +50,23 @@ export function registerErrorHandler(app: FastifyInstance): void {
       });
     }
 
+    if (error instanceof CorsOriginNotAllowedError) {
+      return reply.code(error.statusCode).send({
+        error: 'Origin not allowed',
+        code: error.code,
+      });
+    }
+
+    // Fastify's built-in body-size guard (from the explicit `bodyLimit`
+    // configured in app.ts) -- surface it as a clean 413 rather than
+    // falling through to the generic 500 branch below.
+    if (isFastifyErrorWithCode(error, 'FST_ERR_CTP_BODY_TOO_LARGE')) {
+      return reply.code(413).send({
+        error: 'Request body too large',
+        code: 'BODY_TOO_LARGE',
+      });
+    }
+
     if (
       error instanceof ValidationError ||
       error instanceof NotFoundError ||
@@ -57,6 +83,15 @@ export function registerErrorHandler(app: FastifyInstance): void {
       code: 'INTERNAL_ERROR',
     });
   });
+}
+
+function isFastifyErrorWithCode(error: unknown, code: string): boolean {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    (error as { code?: unknown }).code === code
+  );
 }
 
 function getErrorName(error: unknown): string {
