@@ -7,6 +7,13 @@ import {
   createServerAuthProvider,
   createServerCustomerAuthProvider,
 } from './dev-auth';
+import { assertSafeDatabaseRole, validateProductionEnvironment } from './env';
+
+// Fail-closed production startup gate: throws synchronously if required
+// config is missing/malformed, or if a prohibited flag (ALLOW_DEV_AUTH) is
+// set in production. No-op outside NODE_ENV=production, so this never
+// affects local dev or test runs.
+validateProductionEnvironment();
 
 const port = Number(process.env.PORT ?? 3000);
 const host = process.env.HOST ?? '127.0.0.1';
@@ -33,6 +40,11 @@ const app = buildApp({
 
 async function main(): Promise<void> {
   try {
+    // DB runtime role guard (production only): refuses to start if the
+    // connected role is superuser or BYPASSRLS, since either would silently
+    // defeat RLS tenant isolation. Does not modify role/RLS architecture --
+    // it only reads the already-configured role's existing privileges.
+    await assertSafeDatabaseRole(pool);
     await app.listen({ port, host });
     app.log.info({ host, port, service: 'api' }, 'service started');
   } catch (error: unknown) {

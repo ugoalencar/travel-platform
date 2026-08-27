@@ -81,3 +81,8 @@ tmp/
 temp/
 .tmp/
 .temp/
+
+# Database backups (SEC-I)
+backups/
+*.sql.gz
+*.sql.bak
