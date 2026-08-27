@@ -28,7 +28,8 @@
     "migrations:validate": "node scripts/validate-migrations.cjs",
     "format": "prettier . --write",
     "format:check": "prettier . --check",
-    "clean": "turbo run clean"
+    "clean": "turbo run clean",
+    "recovery:drill": "node scripts/recovery-drill.js"
   },
   "dependencies": {
     "@fastify/cookie": "^11.0.0",
