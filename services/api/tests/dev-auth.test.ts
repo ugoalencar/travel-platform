@@ -3,6 +3,7 @@ import { UserRole } from '../../../packages/domain/types';
 import {
   createServerAccessValidator,
   createServerAuthProvider,
+  createServerCustomerAuthProvider,
   isDevAuthEnabled,
 } from '../src/dev-auth';
 
@@ -223,5 +224,36 @@ describe('local manual dev auth', () => {
     await expect(enabled(userAId, unknownAgencyId)).resolves.toBe(false);
     await expect(disabled(userAId, agencyAId)).resolves.toBe(false);
     await expect(production(userAId, agencyAId)).resolves.toBe(false);
+  });
+
+  // SEC-H proof (stream brief step 2): confirms the ALLOW_DEV_AUTH +
+  // NODE_ENV dual-gate genuinely holds for every dev-auth surface, not just
+  // isDevAuthEnabled() in isolation -- including the customer-portal dev
+  // auth provider, which is not exercised by any test above.
+  it('PROOF: ALLOW_DEV_AUTH=true combined with NODE_ENV=production does NOT enable dev auth on any surface', async () => {
+    const prodEnv = { NODE_ENV: 'production', ALLOW_DEV_AUTH: 'true' };
+
+    expect(isDevAuthEnabled(prodEnv)).toBe(false);
+
+    const staffAuth = createServerAuthProvider(prodEnv);
+    await expect(
+      staffAuth.authenticate({
+        headers: {
+          'x-dev-user-id': userAId,
+          'x-dev-agency-id': agencyAId,
+          'x-dev-role': UserRole.ADMIN,
+        },
+      }),
+    ).resolves.toBeNull();
+
+    const accessValidator = createServerAccessValidator(prodEnv);
+    await expect(accessValidator(userAId, agencyAId)).resolves.toBe(false);
+
+    const customerAuth = createServerCustomerAuthProvider(prodEnv);
+    await expect(
+      customerAuth.authenticateCustomer({
+        headers: { 'x-dev-customer': 'agency-a' },
+      }),
+    ).resolves.toBeNull();
   });
 });
