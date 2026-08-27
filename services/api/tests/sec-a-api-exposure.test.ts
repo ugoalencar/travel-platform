@@ -17,6 +17,7 @@ import { buildApp } from '../src/app';
 import { UserRole } from '../../../packages/domain/types';
 import type { AuthenticatedPrincipal } from '../src/auth';
 import type { AuthenticatedCustomerPrincipal } from '../src/customer-auth';
+import type { IncomingHttpHeaders } from 'node:http';
 import {
   clearRouteRegistry,
   getRegisteredRoutes,
@@ -28,17 +29,17 @@ import { registerAllRoutes } from '../src/route-inventory';
 
 // Minimal mock database for testing route protection
 const mockDatabase = {
-  withTenantTransaction: async (fn: (client: any) => Promise<any>) => {
+  withTenantTransaction: async (fn: (client: never) => Promise<unknown>) => {
     const mockClient = {
-      query: async () => ({ rows: [] }),
+      query: () => ({ rows: [] }),
     };
-    return fn(mockClient);
+    return fn(mockClient as never);
   },
-  withTransaction: async (fn: (client: any) => Promise<any>) => {
+  withTransaction: async (fn: (client: never) => Promise<unknown>) => {
     const mockClient = {
-      query: async () => ({ rows: [] }),
+      query: () => ({ rows: [] }),
     };
-    return fn(mockClient);
+    return fn(mockClient as never);
   },
 };
 
@@ -51,7 +52,7 @@ const principalA: AuthenticatedPrincipal = {
 };
 
 // Customer principal for Agency A
-const customerPrincipalA: AuthenticatedCustomerPrincipal = {
+const _customerPrincipalA: AuthenticatedCustomerPrincipal = {
   agencyId: '10000000-0000-4000-8000-000000000001',
   customerId: '12000000-0000-4000-8000-000000000001',
 };
@@ -72,62 +73,63 @@ const invalidPrincipal: AuthenticatedPrincipal = {
   email: 'invalid@example.test',
 };
 
-function buildTestApp(runtimePool?: any) {
+function buildTestApp(_runtimePool?: unknown) {
   // In test mode, dev-auth is enabled with ALLOW_DEV_AUTH=true
   const authProvider = {
-    authenticate: async (request: any): Promise<AuthenticatedPrincipal | null> => {
-      const userId = request.headers?.['x-dev-user-id'];
-      const agencyId = request.headers?.['x-dev-agency-id'];
-      const role = request.headers?.['x-dev-role'];
+    authenticate: (request: { headers: IncomingHttpHeaders }): Promise<AuthenticatedPrincipal | null> => {
+      const userId = request.headers['x-dev-user-id'];
+      const agencyId = request.headers['x-dev-agency-id'];
+      const role = request.headers['x-dev-role'];
 
       if (!userId || !agencyId || !role) {
-        return null;
+        return Promise.resolve(null);
       }
 
       // Only allow known principals
       if (userId === principalA.userId && agencyId === principalA.agencyId) {
-        return principalA;
+        return Promise.resolve(principalA);
       }
       if (userId === principalB.userId && agencyId === principalB.agencyId) {
-        return principalB;
+        return Promise.resolve(principalB);
       }
 
-      return null;
+      return Promise.resolve(null);
     },
   };
 
-  const validateUserAgencyAccess = async (userId: string, agencyId: string): Promise<boolean> => {
+  const validateUserAgencyAccess = (_userId: string, _agencyId: string): Promise<boolean> => {
     // In test mode, accept known user/agency pairs
-    if (userId === principalA.userId && agencyId === principalA.agencyId) {
-      return true;
+    if (_userId === principalA.userId && _agencyId === principalA.agencyId) {
+      return Promise.resolve(true);
     }
-    if (userId === principalB.userId && agencyId === principalB.agencyId) {
-      return true;
+    if (_userId === principalB.userId && _agencyId === principalB.agencyId) {
+      return Promise.resolve(true);
     }
-    return false;
+    return Promise.resolve(false);
   };
 
   const customerAuthProvider = {
-    authenticateCustomer: async (request: any): Promise<AuthenticatedCustomerPrincipal | null> => {
-      const customerId = request.headers?.['x-dev-customer'];
+    authenticateCustomer: (request: { headers: IncomingHttpHeaders }): Promise<AuthenticatedCustomerPrincipal | null> => {
+      const raw = request.headers['x-dev-customer'];
+      const customerId = Array.isArray(raw) ? raw[0] : raw;
       if (!customerId) {
-        return null;
+        return Promise.resolve(null);
       }
-      return {
+      return Promise.resolve({
         agencyId: principalA.agencyId,
-        customerId: customerId,
-      };
+        customerId,
+      });
     },
   };
 
-  const validateCustomerAgencyAccess = async (customerId: string, agencyId: string): Promise<boolean> => {
-    return true; // In test mode, accept all
+  const validateCustomerAgencyAccess = (_customerId: string, _agencyId: string): Promise<boolean> => {
+    return Promise.resolve(true); // In test mode, accept all
   };
 
   return buildApp({
     authProvider,
     validateUserAgencyAccess,
-    database: mockDatabase as any,
+    database: mockDatabase as never,
     customerAuthProvider,
     validateCustomerAgencyAccess,
     exposeTestRoutes: true,
@@ -299,7 +301,7 @@ describe('SEC-A: API Exposure & Auth Defaults', () => {
         method: 'GET',
         url: '/customers',
         headers: {
-          'x-dev-customer': customerPrincipalA.customerId,
+          'x-dev-customer': _customerPrincipalA.customerId,
         },
       });
 

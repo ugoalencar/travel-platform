@@ -17,6 +17,7 @@ import { buildApp } from '../src/app';
 import { UserRole } from '../../../packages/domain/types';
 import type { AuthenticatedPrincipal } from '../src/auth';
 import type { AuthenticatedCustomerPrincipal } from '../src/customer-auth';
+import type { IncomingHttpHeaders } from 'node:http';
 
 // Test data
 const agencyAId = '10000000-0000-4000-8000-000000000001';
@@ -43,87 +44,88 @@ const staffPrincipalB: AuthenticatedPrincipal = {
   email: 'admin-b@example.test',
 };
 
-const customerPrincipalA: AuthenticatedCustomerPrincipal = {
+const _customerPrincipalA: AuthenticatedCustomerPrincipal = {
   agencyId: agencyAId,
   customerId: customerAId,
 };
 
-const customerPrincipalB: AuthenticatedCustomerPrincipal = {
+const _customerPrincipalB: AuthenticatedCustomerPrincipal = {
   agencyId: agencyAId,
   customerId: customerBId, // Same agency, different customer
 };
 
-const customerPrincipalC: AuthenticatedCustomerPrincipal = {
+const _customerPrincipalC: AuthenticatedCustomerPrincipal = {
   agencyId: agencyBId,
   customerId: customerCId, // Different agency
 };
 
 // Mock database
 const mockDatabase = {
-  withTenantTransaction: async (fn: (client: any) => Promise<any>) => {
+  withTenantTransaction: async (fn: (client: never) => Promise<unknown>) => {
     const mockClient = {
-      query: async () => ({ rows: [] }),
+      query: () => ({ rows: [] }),
     };
-    return fn(mockClient);
+    return fn(mockClient as never);
   },
-  withTransaction: async (fn: (client: any) => Promise<any>) => {
+  withTransaction: async (fn: (client: never) => Promise<unknown>) => {
     const mockClient = {
-      query: async () => ({ rows: [] }),
+      query: () => ({ rows: [] }),
     };
-    return fn(mockClient);
+    return fn(mockClient as never);
   },
 };
 
 function buildTestApp() {
   const authProvider = {
-    authenticate: async (request: any): Promise<AuthenticatedPrincipal | null> => {
-      const userId = request.headers?.['x-dev-user-id'];
-      const agencyId = request.headers?.['x-dev-agency-id'];
-      const role = request.headers?.['x-dev-role'];
+    authenticate: (request: { headers: IncomingHttpHeaders }): Promise<AuthenticatedPrincipal | null> => {
+      const userId = request.headers['x-dev-user-id'];
+      const agencyId = request.headers['x-dev-agency-id'];
+      const role = request.headers['x-dev-role'];
 
-      if (!userId || !agencyId || !role) return null;
+      if (!userId || !agencyId || !role) return Promise.resolve(null);
 
-      if (userId === userAId && agencyId === agencyAId) return staffPrincipalA;
-      if (userId === userBId && agencyId === agencyBId) return staffPrincipalB;
+      if (userId === userAId && agencyId === agencyAId) return Promise.resolve(staffPrincipalA);
+      if (userId === userBId && agencyId === agencyBId) return Promise.resolve(staffPrincipalB);
 
-      return null;
+      return Promise.resolve(null);
     },
   };
 
-  const validateUserAgencyAccess = async (userId: string, agencyId: string): Promise<boolean> => {
-    if (userId === userAId && agencyId === agencyAId) return true;
-    if (userId === userBId && agencyId === agencyBId) return true;
-    return false;
+  const validateUserAgencyAccess = (_userId: string, _agencyId: string): Promise<boolean> => {
+    if (_userId === userAId && _agencyId === agencyAId) return Promise.resolve(true);
+    if (_userId === userBId && _agencyId === agencyBId) return Promise.resolve(true);
+    return Promise.resolve(false);
   };
 
   const customerAuthProvider = {
-    authenticateCustomer: async (request: any): Promise<AuthenticatedCustomerPrincipal | null> => {
-      const customerId = request.headers?.['x-dev-customer'];
-      if (!customerId) return null;
+    authenticateCustomer: (request: { headers: IncomingHttpHeaders }): Promise<AuthenticatedCustomerPrincipal | null> => {
+      const raw = request.headers['x-dev-customer'];
+      const customerId = Array.isArray(raw) ? raw[0] : raw;
+      if (!customerId) return Promise.resolve(null);
 
       // Map customer to agency based on test data
       if (customerId === customerAId || customerId === customerBId) {
-        return { agencyId: agencyAId, customerId };
+        return Promise.resolve({ agencyId: agencyAId, customerId });
       }
       if (customerId === customerCId) {
-        return { agencyId: agencyBId, customerId };
+        return Promise.resolve({ agencyId: agencyBId, customerId });
       }
 
-      return null;
+      return Promise.resolve(null);
     },
   };
 
-  const validateCustomerAgencyAccess = async (customerId: string, agencyId: string): Promise<boolean> => {
-    if (customerId === customerAId && agencyId === agencyAId) return true;
-    if (customerId === customerBId && agencyId === agencyAId) return true;
-    if (customerId === customerCId && agencyId === agencyBId) return true;
-    return false;
+  const validateCustomerAgencyAccess = (_customerId: string, _agencyId: string): Promise<boolean> => {
+    if (_customerId === customerAId && _agencyId === agencyAId) return Promise.resolve(true);
+    if (_customerId === customerBId && _agencyId === agencyAId) return Promise.resolve(true);
+    if (_customerId === customerCId && _agencyId === agencyBId) return Promise.resolve(true);
+    return Promise.resolve(false);
   };
 
   return buildApp({
     authProvider,
     validateUserAgencyAccess,
-    database: mockDatabase as any,
+    database: mockDatabase as never,
     customerAuthProvider,
     validateCustomerAgencyAccess,
     exposeTestRoutes: true,
@@ -307,7 +309,7 @@ describe('SEC-G: Privacy / IDOR / Payload Hardening', () => {
       });
 
       expect(response.statusCode).toBe(400);
-      const body = response.json();
+      const body: Record<string, unknown> = response.json();
       expect(body.error).toContain('not allowed');
       await app.close();
     });
@@ -399,7 +401,7 @@ describe('SEC-G: Privacy / IDOR / Payload Hardening', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const body = response.json();
+      const body: Record<string, unknown> = response.json();
       // Should return userId, agencyId, role - these are expected
       expect(body.userId).toBe(userAId);
       expect(body.agencyId).toBe(agencyAId);
@@ -436,7 +438,7 @@ describe('SEC-G: Privacy / IDOR / Payload Hardening', () => {
 
       // Should return 404, not expose SQL or internal details
       expect(response.statusCode).toBe(404);
-      const body = response.json();
+      const body: Record<string, unknown> = response.json();
       expect(body.error).not.toContain('SQL');
       expect(body.error).not.toContain('table');
       expect(body.error).not.toContain('column');
@@ -456,7 +458,7 @@ describe('SEC-G: Privacy / IDOR / Payload Hardening', () => {
         },
       });
 
-      const body = response.json();
+      const body: Record<string, unknown> = response.json();
       expect(body.stack).toBeUndefined();
       expect(body.trace).toBeUndefined();
       await app.close();
@@ -501,7 +503,7 @@ describe('SEC-G: Privacy / IDOR / Payload Hardening', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const body = response.json();
+      const body: Record<string, unknown> = response.json();
       expect(body.agencyId).toBeUndefined();
       expect(body.tenantId).toBeUndefined();
       expect(body.userId).toBeUndefined();
@@ -517,7 +519,7 @@ describe('SEC-G: Privacy / IDOR / Payload Hardening', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const body = response.json();
+      const body: Record<string, unknown> = response.json();
       expect(body.agencyId).toBeUndefined();
       expect(body.tenantId).toBeUndefined();
       await app.close();

@@ -13,7 +13,6 @@
 import {
   registerRoute,
   RouteClassification,
-  type RouteMetadata,
 } from './route-classification';
 
 /**
