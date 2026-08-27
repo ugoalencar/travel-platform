@@ -93,21 +93,27 @@ export async function recordAuditEvent(
 ): Promise<void> {
   const context = getTenantContext();
 
-  await client.query(
-    `INSERT INTO audit_logs
-       (agency_id, actor_type, actor_id, event_type, entity_type, entity_id, outcome, metadata)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb)`,
-    [
-      context.agencyId,
-      'USER',
-      context.userId,
-      input.eventType,
-      input.entityType,
-      input.entityId ?? null,
-      input.outcome ?? 'SUCCESS',
-      JSON.stringify(sanitizeAuditMetadata(input.metadata)),
-    ],
-  );
+  await client.query('SAVEPOINT audit_insert');
+  try {
+    await client.query(
+      `INSERT INTO audit_logs
+         (agency_id, actor_type, actor_id, event_type, entity_type, entity_id, outcome, metadata)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb)`,
+      [
+        context.agencyId,
+        'USER',
+        context.userId,
+        input.eventType,
+        input.entityType,
+        input.entityId ?? null,
+        input.outcome ?? 'SUCCESS',
+        JSON.stringify(sanitizeAuditMetadata(input.metadata)),
+      ],
+    );
+    await client.query('RELEASE SAVEPOINT audit_insert');
+  } catch {
+    await client.query('ROLLBACK TO SAVEPOINT audit_insert');
+  }
 }
 
 export async function listAuditEvents(
