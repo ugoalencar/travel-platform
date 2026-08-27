@@ -1,0 +1,220 @@
+import { getTenantContext } from '../../../packages/domain/tenant-context';
+import type { DatabaseRuntime, TenantTransactionClient } from './database';
+
+export const AuditEventType = {
+  AUTH_LOGIN_SUCCEEDED: 'AUTH_LOGIN_SUCCEEDED',
+  AUTH_LOGIN_FAILED: 'AUTH_LOGIN_FAILED',
+  AUTH_LOGOUT: 'AUTH_LOGOUT',
+  AUTH_DEV_AUTH_PRODUCTION_REJECTED: 'AUTH_DEV_AUTH_PRODUCTION_REJECTED',
+  MFA_CHALLENGE_SUCCEEDED: 'MFA_CHALLENGE_SUCCEEDED',
+  MFA_CHALLENGE_FAILED: 'MFA_CHALLENGE_FAILED',
+  SECURITY_RATE_LIMIT_BLOCKED: 'SECURITY_RATE_LIMIT_BLOCKED',
+  SECURITY_CAPTCHA_REQUIRED: 'SECURITY_CAPTCHA_REQUIRED',
+  USER_CREATED: 'USER_CREATED',
+  USER_DISABLED: 'USER_DISABLED',
+  USER_ROLE_CHANGED: 'USER_ROLE_CHANGED',
+  AGENCY_SETTINGS_UPDATED: 'AGENCY_SETTINGS_UPDATED',
+  ENTITLEMENT_CHANGED: 'ENTITLEMENT_CHANGED',
+  PAYMENT_RECORDED: 'PAYMENT_RECORDED',
+  BOOKING_CANCELLED: 'BOOKING_CANCELLED',
+  PROPOSAL_CREATED: 'PROPOSAL_CREATED',
+  PROPOSAL_SENT: 'PROPOSAL_SENT',
+  PROPOSAL_ACCEPTED: 'PROPOSAL_ACCEPTED',
+  PROPOSAL_DECLINED: 'PROPOSAL_DECLINED',
+  PROPOSAL_CANCELLED: 'PROPOSAL_CANCELLED',
+  SALE_CREATED: 'SALE_CREATED',
+  SALE_CONFIRMED: 'SALE_CONFIRMED',
+  SALE_CANCELLED: 'SALE_CANCELLED',
+  SALE_PAID: 'SALE_PAID',
+  CUSTOMER_PROFILE_UPDATED: 'CUSTOMER_PROFILE_UPDATED',
+} as const;
+
+export type AuditEventType = (typeof AuditEventType)[keyof typeof AuditEventType];
+export type AuditOutcome = 'SUCCESS' | 'FAILURE' | 'BLOCKED';
+
+export interface RecordAuditEventInput {
+  eventType: AuditEventType;
+  entityType: string;
+  entityId?: string;
+  outcome?: AuditOutcome;
+  metadata?: Record<string, unknown>;
+}
+
+interface AuditLogRow {
+  id: string;
+  occurred_at: string;
+  agency_id: string;
+  actor_type: string;
+  actor_id: string | null;
+  event_type: AuditEventType;
+  entity_type: string;
+  entity_id: string | null;
+  outcome: AuditOutcome;
+  metadata: unknown;
+}
+
+export interface AuditLogEntry {
+  id: string;
+  occurredAt: Date;
+  agencyId: string;
+  actorType: string;
+  actorId?: string;
+  eventType: AuditEventType;
+  entityType: string;
+  entityId?: string;
+  outcome: AuditOutcome;
+  metadata: unknown;
+}
+
+export interface ListAuditEventsOptions {
+  eventType?: AuditEventType;
+  limit?: number;
+}
+
+const allowedMetadataKeys = new Set([
+  'amount',
+  'currency',
+  'method',
+  'paymentDirection',
+  'status',
+  'fromStatus',
+  'toStatus',
+  'fieldsChanged',
+  'reasonCode',
+  'requestId',
+  'result',
+]);
+
+const maxMetadataStringLength = 128;
+
+export async function recordAuditEvent(
+  client: TenantTransactionClient,
+  input: RecordAuditEventInput,
+): Promise<void> {
+  const context = getTenantContext();
+
+  await client.query(
+    `INSERT INTO audit_logs
+       (agency_id, actor_type, actor_id, event_type, entity_type, entity_id, outcome, metadata)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb)`,
+    [
+      context.agencyId,
+      'USER',
+      context.userId,
+      input.eventType,
+      input.entityType,
+      input.entityId ?? null,
+      input.outcome ?? 'SUCCESS',
+      JSON.stringify(sanitizeAuditMetadata(input.metadata)),
+    ],
+  );
+}
+
+export async function listAuditEvents(
+  client: TenantTransactionClient,
+  options: ListAuditEventsOptions = {},
+): Promise<AuditLogEntry[]> {
+  const agencyId = getTenantContext().agencyId;
+  const values: unknown[] = [agencyId];
+  let filter = 'agency_id = $1';
+
+  if (options.eventType) {
+    values.push(options.eventType);
+    filter += ` AND event_type = $${values.length}`;
+  }
+
+  values.push(normalizeLimit(options.limit));
+  const result = await client.query<AuditLogRow>(
+    `SELECT id, occurred_at, agency_id, actor_type, actor_id, event_type, entity_type,
+            entity_id, outcome, metadata
+     FROM audit_logs
+     WHERE ${filter}
+     ORDER BY occurred_at DESC, id DESC
+     LIMIT $${values.length}`,
+    values,
+  );
+
+  return result.rows.map(toAuditLogEntry);
+}
+
+export async function listTenantAuditEvents(
+  database: DatabaseRuntime,
+  options: ListAuditEventsOptions = {},
+): Promise<AuditLogEntry[]> {
+  return database.withTenantTransaction((client) => listAuditEvents(client, options));
+}
+
+export function sanitizeAuditMetadata(metadata: Record<string, unknown> | undefined): Record<string, unknown> {
+  if (!metadata) {
+    return {};
+  }
+
+  const sanitized: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(metadata)) {
+    if (!allowedMetadataKeys.has(key)) {
+      continue;
+    }
+
+    const safeValue = sanitizeMetadataValue(key, value);
+    if (safeValue !== undefined) {
+      sanitized[key] = safeValue;
+    }
+  }
+
+  return sanitized;
+}
+
+function sanitizeMetadataValue(key: string, value: unknown): string | number | boolean | string[] | undefined {
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? value : undefined;
+  }
+
+  if (typeof value === 'boolean') {
+    return value;
+  }
+
+  if (typeof value === 'string') {
+    return sanitizeMetadataString(value);
+  }
+
+  if (key === 'fieldsChanged' && Array.isArray(value)) {
+    const fields = value
+      .filter((field): field is string => typeof field === 'string')
+      .map(sanitizeMetadataString)
+      .filter((field): field is string => field !== undefined)
+      .slice(0, 20);
+    return fields.length > 0 ? fields : undefined;
+  }
+
+  return undefined;
+}
+
+function sanitizeMetadataString(value: string): string | undefined {
+  const normalized = value.trim();
+  return normalized.length > 0 && normalized.length <= maxMetadataStringLength
+    ? normalized
+    : undefined;
+}
+
+function normalizeLimit(limit: number | undefined): number {
+  if (!Number.isInteger(limit) || limit === undefined) {
+    return 100;
+  }
+
+  return Math.min(Math.max(limit, 1), 100);
+}
+
+function toAuditLogEntry(row: AuditLogRow): AuditLogEntry {
+  return {
+    id: row.id,
+    occurredAt: new Date(row.occurred_at),
+    agencyId: row.agency_id,
+    actorType: row.actor_type,
+    eventType: row.event_type,
+    entityType: row.entity_type,
+    outcome: row.outcome,
+    metadata: row.metadata,
+    ...(row.actor_id ? { actorId: row.actor_id } : {}),
+    ...(row.entity_id ? { entityId: row.entity_id } : {}),
+  };
+}

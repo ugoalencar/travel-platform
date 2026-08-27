@@ -206,6 +206,18 @@ BEGIN
 END;
 $$;
 
+-- audit_logs (migration 015_security_audit_logging.sql) is append-only for
+-- runtime traffic: application code can read tenant-scoped history and
+-- insert a new event, but no runtime path may alter or delete evidence.
+DO $$
+BEGIN
+  IF to_regclass('public.audit_logs') IS NOT NULL THEN
+    GRANT SELECT, INSERT ON audit_logs TO travel_app_runtime_local;
+    REVOKE UPDATE, DELETE ON audit_logs FROM travel_app_runtime_local;
+  END IF;
+END;
+$$;
+
 GRANT EXECUTE ON FUNCTION current_agency_id() TO travel_app_runtime_local;
 GRANT EXECUTE ON FUNCTION current_user_id() TO travel_app_runtime_local;
 GRANT EXECUTE ON FUNCTION set_tenant_context(TEXT, TEXT) TO travel_app_runtime_local;

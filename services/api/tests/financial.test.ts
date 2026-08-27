@@ -6,6 +6,7 @@ import { Pool } from 'pg';
 import { runWithTenantContext } from '../../../packages/domain/tenant-context';
 import { PaymentDirection, UserRole } from '../../../packages/domain/types';
 import { createDatabaseRuntime, type DatabaseRuntime } from '../src/database';
+import { AuditEventType, listTenantAuditEvents } from '../src/audit-log';
 import {
   allocatePayment,
   createOperationalCost,
@@ -29,6 +30,7 @@ const migrations = [
   '008_commercial_cockpit.sql',
   '009_configurable_pipelines.sql',
   '010_financial_foundation.sql',
+  '015_audit_logging.sql',
 ].map((name) => resolve(repoRoot, 'infrastructure/migrations', name));
 const prepareRolesSql = resolve(repoRoot, 'tests/integration/database/002_prepare_local_roles.sql');
 const composeFile = resolve(repoRoot, 'infrastructure/docker-compose.local-postgres.yml');
@@ -194,6 +196,40 @@ describe.sequential('Financial foundation data-access layer', () => {
       allocatePayment(database, payment.id, [{ receivableId: receivable.id, amount: 600 }]),
     );
     expect(final.targets[0]?.status).toBe('PAID');
+  });
+
+  it('stores a tenant-scoped audit event in the payment transaction', async () => {
+    const payment = await runWithTenantContext(contextA, () =>
+      recordPayment(database, {
+        direction: PaymentDirection.IN,
+        amount: 125,
+        occurredAt: new Date('2027-01-05T00:00:00Z'),
+        method: 'PIX',
+      }),
+    );
+
+    const auditEvents = await runWithTenantContext(contextA, () =>
+      listTenantAuditEvents(database, { eventType: AuditEventType.PAYMENT_RECORDED }),
+    );
+
+    expect(auditEvents).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          agencyId: agencyAId,
+          actorId: userAId,
+          eventType: AuditEventType.PAYMENT_RECORDED,
+          entityType: 'payment',
+          entityId: payment.id,
+          outcome: 'SUCCESS',
+          metadata: {
+            amount: 125,
+            currency: 'BRL',
+            method: 'PIX',
+            paymentDirection: PaymentDirection.IN,
+          },
+        }),
+      ]),
+    );
   });
 
   it('rejects over-allocation against both payment amount and receivable amount', async () => {
