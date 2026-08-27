@@ -9,9 +9,9 @@ describe('validateProductionEnvironment', () => {
   });
 
   it('throws when DATABASE_URL is missing in production', () => {
-    expect(() =>
-      validateProductionEnvironment({ NODE_ENV: 'production', PORT: '3000' }),
-    ).toThrow(/DATABASE_URL is required/);
+    expect(() => validateProductionEnvironment({ NODE_ENV: 'production', PORT: '3000' })).toThrow(
+      /DATABASE_URL is required/
+    );
   });
 
   it('throws when DATABASE_URL is blank/whitespace in production', () => {
@@ -19,7 +19,7 @@ describe('validateProductionEnvironment', () => {
       validateProductionEnvironment({
         NODE_ENV: 'production',
         DATABASE_URL: '   ',
-      }),
+      })
     ).toThrow(/DATABASE_URL is required/);
   });
 
@@ -27,35 +27,51 @@ describe('validateProductionEnvironment', () => {
     expect(() =>
       validateProductionEnvironment({
         NODE_ENV: 'production',
-        DATABASE_URL: 'postgresql://app_runtime:example-not-a-real-password@db.internal:5432/travel_platform',
+        DATABASE_URL:
+          'postgresql://app_runtime:example-not-a-real-password@db.internal:5432/travel_platform',
         PORT: '3000',
-      }),
+        RATE_LIMIT_STORE: 'external',
+      })
     ).not.toThrow();
+  });
+
+  it('refuses the process-local rate-limit store in production', () => {
+    expect(() =>
+      validateProductionEnvironment({
+        NODE_ENV: 'production',
+        DATABASE_URL:
+          'postgresql://app_runtime:example-not-a-real-password@db.internal:5432/travel_platform',
+        RATE_LIMIT_STORE: 'memory',
+      })
+    ).toThrow(/RATE_LIMIT_STORE must be "external" in production/);
   });
 
   it('throws when PORT is set but malformed', () => {
     expect(() =>
       validateProductionEnvironment({
         NODE_ENV: 'production',
-        DATABASE_URL: 'postgresql://app_runtime:example-not-a-real-password@db.internal:5432/travel_platform',
+        DATABASE_URL:
+          'postgresql://app_runtime:example-not-a-real-password@db.internal:5432/travel_platform',
         PORT: 'not-a-port',
-      }),
+      })
     ).toThrow(/PORT must be a valid/);
 
     expect(() =>
       validateProductionEnvironment({
         NODE_ENV: 'production',
-        DATABASE_URL: 'postgresql://app_runtime:example-not-a-real-password@db.internal:5432/travel_platform',
+        DATABASE_URL:
+          'postgresql://app_runtime:example-not-a-real-password@db.internal:5432/travel_platform',
         PORT: '0',
-      }),
+      })
     ).toThrow(/PORT must be a valid/);
 
     expect(() =>
       validateProductionEnvironment({
         NODE_ENV: 'production',
-        DATABASE_URL: 'postgresql://app_runtime:example-not-a-real-password@db.internal:5432/travel_platform',
+        DATABASE_URL:
+          'postgresql://app_runtime:example-not-a-real-password@db.internal:5432/travel_platform',
         PORT: '99999',
-      }),
+      })
     ).toThrow(/PORT must be a valid/);
   });
 
@@ -70,9 +86,10 @@ describe('validateProductionEnvironment', () => {
     expect(() =>
       validateProductionEnvironment({
         NODE_ENV: 'production',
-        DATABASE_URL: 'postgresql://app_runtime:example-not-a-real-password@db.internal:5432/travel_platform',
+        DATABASE_URL:
+          'postgresql://app_runtime:example-not-a-real-password@db.internal:5432/travel_platform',
         ALLOW_DEV_AUTH: 'true',
-      }),
+      })
     ).toThrow(/ALLOW_DEV_AUTH must not be "true" in production/);
   });
 
@@ -80,9 +97,11 @@ describe('validateProductionEnvironment', () => {
     expect(() =>
       validateProductionEnvironment({
         NODE_ENV: 'production',
-        DATABASE_URL: 'postgresql://app_runtime:example-not-a-real-password@db.internal:5432/travel_platform',
+        DATABASE_URL:
+          'postgresql://app_runtime:example-not-a-real-password@db.internal:5432/travel_platform',
         ALLOW_DEV_AUTH: 'false',
-      }),
+        RATE_LIMIT_STORE: 'external',
+      })
     ).not.toThrow();
   });
 
@@ -113,36 +132,34 @@ describe('assertSafeDatabaseRole', () => {
   it('is a no-op outside production (never requires DB access for dev/test startup)', async () => {
     const pool = fakePool([]);
     await expect(
-      assertSafeDatabaseRole(pool, { NODE_ENV: 'development' }),
+      assertSafeDatabaseRole(pool, { NODE_ENV: 'development' })
     ).resolves.toBeUndefined();
     await expect(assertSafeDatabaseRole(pool, { NODE_ENV: 'test' })).resolves.toBeUndefined();
   });
 
   it('passes in production for a non-superuser, non-BYPASSRLS role', async () => {
     const pool = fakePool([{ rolsuper: false, rolbypassrls: false }]);
-    await expect(
-      assertSafeDatabaseRole(pool, { NODE_ENV: 'production' }),
-    ).resolves.toBeUndefined();
+    await expect(assertSafeDatabaseRole(pool, { NODE_ENV: 'production' })).resolves.toBeUndefined();
   });
 
   it('refuses to start in production for a superuser role', async () => {
     const pool = fakePool([{ rolsuper: true, rolbypassrls: false }]);
     await expect(assertSafeDatabaseRole(pool, { NODE_ENV: 'production' })).rejects.toThrow(
-      /SUPERUSER/,
+      /SUPERUSER/
     );
   });
 
   it('refuses to start in production for a BYPASSRLS role', async () => {
     const pool = fakePool([{ rolsuper: false, rolbypassrls: true }]);
     await expect(assertSafeDatabaseRole(pool, { NODE_ENV: 'production' })).rejects.toThrow(
-      /BYPASSRLS/,
+      /BYPASSRLS/
     );
   });
 
   it('refuses to start in production when role metadata cannot be read at all', async () => {
     const pool = fakePool([]);
     await expect(assertSafeDatabaseRole(pool, { NODE_ENV: 'production' })).rejects.toThrow(
-      /could not read the connected database role/,
+      /could not read the connected database role/
     );
   });
 });
