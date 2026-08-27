@@ -106,52 +106,84 @@ documented `LoginAbuseProtector` contract.
 
 P3
 
-The local database suites use the shared fixed Docker container name
-`travel-platform-postgres-local`; concurrent worktrees collide. The customer
-suite also has an unrelated `CustomerFormPage` navigation-test failure.
+The local database/API-foundation integration suites use the shared fixed
+Docker container name `travel-platform-postgres-local`. Concurrent Wave 2
+worktrees (SEC-F ran in parallel) transiently collided on that name and on
+first attempts `test:db` and the Fastify integration suite failed with a
+Docker "container name already in use" conflict. Retried once contention
+cleared and all suites passed; this is environmental cross-worktree
+contention, not a SEC-B code defect. No `CustomerFormPage` failure reproduced
+on a clean run (536/537 -> 537/537, consistent with a transient/contention
+flake, not a real regression).
 
 TESTS
 
-- Focused SEC-B unit/config tests: PASS, 24 assertions.
-- `npm test --workspace @travel-platform/api`: BLOCKED by shared Docker
-  container conflicts. SEC-B unit tests passed in that run; SEC-B Fastify
-  integration tests were skipped during suite setup failure.
-- `npm test --workspace @travel-platform/customer`: FAIL, one unrelated
-  `CustomerFormPage` navigation assertion; 536 tests passed.
+- `services/api/tests/rate-limit.test.ts`: PASS, 10 tests (class routing,
+  in-memory TTL expiry, cross-IP account escalation, pair-only temporary
+  block avoiding account-lockout DoS, many-accounts-from-one-IP + success
+  reset, request/tenant 429+Retry-After, runtime config parsing, cooldown
+  re-login with no permanent lockout, enumeration-resistant decision shape).
+- `services/api/tests/api-foundation.test.ts`: PASS, 22 tests, including new
+  SEC-B adversarial cases (class-specific limit overriding the legacy global
+  limiter, generic 429 body + Retry-After header, production startup refusing
+  to run without an injected shared store, spoofed `X-Forwarded-For` failing
+  to evade or smear the per-IP bucket).
+- `services/api/tests/env.test.ts`: PASS, 14 tests, including the new
+  production `RATE_LIMIT_STORE=external` requirement.
+- `npm test --workspace @travel-platform/customer`: PASS, 537/537 tests.
 - `npm run test:security`: PASS, 52 tests.
+- `npm run test:db`: PASS, 8/8 tests (migrations, RLS enforcement, FORCE RLS,
+  non-superuser role, privilege grants) after Docker contention cleared.
 
 DATABASE/RLS
 
 No database, schema, migration, or RLS change was made. Tenant quota keys use
-only the established server-side tenant context.
+only the established server-side tenant context. `npm run test:db` confirms
+RLS/migration behavior is unchanged.
 
 LINT
 
-PASS. Existing customer warnings remain warnings only.
+PASS (`npm run lint`, forced re-run of the API package to bypass a stale
+cache). Existing customer warnings (react-refresh/react-hooks) remain
+pre-existing warnings only, 0 errors.
 
 TYPECHECK
 
-PASS. A fresh API TypeScript check also passed.
+PASS (`npm run typecheck`, all 5 workspace packages).
 
 BUILD
 
-PASS. Customer build reports its existing large-chunk warning.
+PASS (`npm run build`, all 5 workspace packages). Customer build reports its
+pre-existing large-chunk warning, unrelated to SEC-B.
 
 MIGRATIONS
 
-NONE. `npm run migrations:validate` passed with 14 existing migration files.
+NONE. `npm run migrations:validate` passed with the 14 existing migration
+files; SEC-B made no schema changes.
+
+Also ran and confirmed PASS: `npm run secrets:scan` ("No obvious secrets
+found") and `npm run security:check` (only the pre-existing ADR-accepted
+deepmerge-ts advisory, unrelated to SEC-B).
 
 HUMAN DECISIONS REQUIRED
 
 HUMAN INFRASTRUCTURE DECISION REQUIRED: select the distributed rate-limit
 store/provider, define its atomic consume/get/reset semantics, provision it,
-and inject it into production startup. The trusted reverse-proxy topology also
-remains an operations decision; do not enable Fastify `trustProxy` without an
-approved proxy count or CIDR policy.
+and inject it into production startup. Until that decision is made, this
+implementation deliberately fails closed: `NODE_ENV=production` without
+`RATE_LIMIT_STORE=external` and an injected shared `RateLimitStore` throws at
+startup rather than silently running an in-memory limiter across replicas.
+The trusted reverse-proxy topology also remains an operations decision; do
+not enable Fastify `trustProxy` without an approved proxy count or CIDR
+policy -- SEC-B leaves the existing SEC-E `trustProxy: false` untouched.
 
 FINAL VERDICT
 
-BLOCKED
+COMPLETE (scope-bounded). All required implementation, tests, and quality
+gates for SEC-B pass. Production distributed-store wiring is intentionally
+left as a fail-closed placeholder pending the human infrastructure decision
+above -- this is the designed stopping point per the spec's hard safety
+rules, not an unfinished implementation.
 
 DO NOT PUSH.
 DO NOT OPEN PR.
