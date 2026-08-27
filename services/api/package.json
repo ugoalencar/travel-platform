@@ -18,6 +18,8 @@
     "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\""
   },
   "dependencies": {
+    "@fastify/cors": "^11.3.0",
+    "@fastify/helmet": "^13.1.1",
     "@travel-platform/domain": "file:../../packages/domain",
     "fastify": "^5.5.0",
     "pg": "^8.13.0"
