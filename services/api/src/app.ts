@@ -347,7 +347,18 @@ interface RateLimitOptions {
 
 export function buildApp(options: BuildAppOptions): FastifyInstance {
   const app = Fastify({
-    logger: true,
+    // SEC-G: pino redact for sensitive headers (auth tokens, cookies, dev bypass headers)
+    logger: {
+      redact: [
+        'req.headers.authorization',
+        'req.headers.cookie',
+        'req.headers.x-platform-stopgap-key',
+        'req.headers.x-dev-user-id',
+        'req.headers.x-dev-agency-id',
+        'req.headers.x-dev-role',
+        'req.headers.x-dev-customer',
+      ],
+    },
     // SEC-E: explicit request body size limit (see security-config.ts for
     // rationale). Was previously Fastify's implicit 1 MiB default -- now
     // explicit and slightly larger to comfortably cover legitimate
