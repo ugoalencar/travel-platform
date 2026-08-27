@@ -41,9 +41,7 @@ function isValidPort(value: string): boolean {
  * A no-op when NODE_ENV !== 'production' -- local dev and test runs must
  * never be forced to set production secrets just to start or run tests.
  */
-export function validateProductionEnvironment(
-  environment: ServerEnvironment = process.env,
-): void {
+export function validateProductionEnvironment(environment: ServerEnvironment = process.env): void {
   if (environment.NODE_ENV !== 'production') {
     return;
   }
@@ -51,11 +49,15 @@ export function validateProductionEnvironment(
   const issues: string[] = [];
 
   if (!isNonEmptyString(environment.DATABASE_URL)) {
-    issues.push('DATABASE_URL is required in production and must be a non-empty connection string.');
+    issues.push(
+      'DATABASE_URL is required in production and must be a non-empty connection string.'
+    );
   }
 
   if (environment.PORT !== undefined && !isValidPort(environment.PORT)) {
-    issues.push(`PORT must be a valid TCP port number (${MIN_PORT}-${MAX_PORT}) when set; got "${environment.PORT}".`);
+    issues.push(
+      `PORT must be a valid TCP port number (${MIN_PORT}-${MAX_PORT}) when set; got "${environment.PORT}".`
+    );
   }
 
   // PROHIBITED PRODUCTION FLAG: ALLOW_DEV_AUTH must never be active in
@@ -66,12 +68,20 @@ export function validateProductionEnvironment(
   // -- it signals the deploy environment was copied from a dev/staging
   // template without being cleaned up.
   if (environment.ALLOW_DEV_AUTH === 'true') {
-    issues.push('ALLOW_DEV_AUTH must not be "true" in production (dev auth is a development/test-only bypass).');
+    issues.push(
+      'ALLOW_DEV_AUTH must not be "true" in production (dev auth is a development/test-only bypass).'
+    );
+  }
+
+  if (environment.RATE_LIMIT_STORE !== 'external') {
+    issues.push(
+      'RATE_LIMIT_STORE must be "external" in production. A shared distributed rate-limit store is required.'
+    );
   }
 
   if (issues.length > 0) {
     throw new Error(
-      `Refusing to start: invalid production configuration.\n${issues.map((issue) => `  - ${issue}`).join('\n')}`,
+      `Refusing to start: invalid production configuration.\n${issues.map((issue) => `  - ${issue}`).join('\n')}`
     );
   }
 }
@@ -105,21 +115,21 @@ export interface RoleCheckQueryable {
  */
 export async function assertSafeDatabaseRole(
   pool: RoleCheckQueryable,
-  environment: ServerEnvironment = process.env,
+  environment: ServerEnvironment = process.env
 ): Promise<void> {
   if (environment.NODE_ENV !== 'production') {
     return;
   }
 
   const result = await pool.query(
-    'SELECT rolsuper, rolbypassrls FROM pg_roles WHERE rolname = current_user',
+    'SELECT rolsuper, rolbypassrls FROM pg_roles WHERE rolname = current_user'
   );
   const role = result.rows[0];
 
   if (!role) {
     throw new Error(
-      'Refusing to start: could not read the connected database role\'s privileges from pg_roles ' +
-        '(current_user did not match any row). Unable to verify RLS will be enforced.',
+      "Refusing to start: could not read the connected database role's privileges from pg_roles " +
+        '(current_user did not match any row). Unable to verify RLS will be enforced.'
     );
   }
 
@@ -127,14 +137,14 @@ export async function assertSafeDatabaseRole(
     throw new Error(
       'Refusing to start: the database connection uses a SUPERUSER role. Superuser connections ' +
         'bypass Row-Level Security entirely, silently defeating tenant isolation. Configure a ' +
-        'non-superuser application role for production.',
+        'non-superuser application role for production.'
     );
   }
 
   if (role.rolbypassrls) {
     throw new Error(
       'Refusing to start: the database connection role has BYPASSRLS. This silently defeats Row-Level ' +
-        'Security tenant isolation. Configure the production application role without BYPASSRLS.',
+        'Security tenant isolation. Configure the production application role without BYPASSRLS.'
     );
   }
 }
