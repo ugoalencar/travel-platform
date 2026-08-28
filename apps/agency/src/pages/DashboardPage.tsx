@@ -1,16 +1,15 @@
+import { useEffect, useState } from 'react';
 import {
   TrendingUp,
   FileText,
   Map,
   Plane,
-  CalendarCheck,
-  Users,
-  Check,
-  Send,
-  UserPlus,
-  Heart,
-  AlertTriangle,
-  Info,
+  Wallet,
+  CalendarClock,
+  MessageCircle,
+  Phone,
+  Mail,
+  MessagesSquare,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { PageHeader } from '../components/layout/PageHeader';
@@ -20,30 +19,79 @@ import { StatusBadge } from '../components/ui/status-badge';
 import { LoadingState } from '../components/ui/loading-state';
 import { formatBRL } from '../lib/formatCurrency';
 import { formatDateBR } from '../lib/formatDateBR';
-import { getProposalStatusLabel, getTripStatusLabel } from '../lib/statusLabels';
-import { useMockLoading } from '../lib/useMockLoading';
 import {
-  dashboardSummary,
-  recentActions,
-  alerts,
-  proposals,
-  trips as activeTripsList,
-} from '../lib/fixtures';
+  ApiError,
+  getDashboardSummary,
+  getUpcomingTravel,
+  listProposalsWaiting,
+  listRecentInteractions,
+  type CustomerInteraction,
+  type DashboardSummary,
+  type ProposalWaiting,
+} from '../lib/api';
 
-const ACTION_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
-  check: Check,
-  plane: Plane,
-  send: Send,
-  'user-plus': UserPlus,
-  heart: Heart,
+// All figures on this page come from the backend's tenant-scoped
+// aggregates (GET /commercial/dashboard, /commercial/travel-search,
+// /commercial/proposals-waiting, /commercial/interactions). Nothing here
+// is computed or estimated client-side -- if a number isn't returned by
+// one of these endpoints, it is not shown.
+
+const INTERACTION_ICONS: Record<CustomerInteraction['channel'], React.ComponentType<{ className?: string }>> = {
+  EMAIL: Mail,
+  PHONE: Phone,
+  WHATSAPP: MessageCircle,
+  IN_PERSON: MessagesSquare,
+  OTHER: MessagesSquare,
 };
 
-export function DashboardPage() {
-  const d = dashboardSummary;
-  const openProposalsList = proposals.filter((p) => p.status === 'SENT' || p.status === 'DRAFT');
-  const loadState = useMockLoading();
+type LoadState =
+  | { status: 'loading' }
+  | { status: 'error'; message: string }
+  | {
+      status: 'success';
+      summary: DashboardSummary;
+      upcomingDeparturesCount: number;
+      proposalsWaiting: ProposalWaiting[];
+      recentInteractions: CustomerInteraction[];
+    };
 
-  if (loadState === 'loading') {
+export function DashboardPage() {
+  const [state, setState] = useState<LoadState>({ status: 'loading' });
+
+  useEffect(() => {
+    let cancelled = false;
+
+    setState({ status: 'loading' });
+
+    Promise.all([
+      getDashboardSummary(),
+      getUpcomingTravel('week'),
+      listProposalsWaiting(),
+      listRecentInteractions(5),
+    ])
+      .then(([summary, travel, proposalsWaiting, recentInteractions]) => {
+        if (cancelled) return;
+        setState({
+          status: 'success',
+          summary,
+          upcomingDeparturesCount: travel.operational.length + travel.commercial.length,
+          proposalsWaiting,
+          recentInteractions,
+        });
+      })
+      .catch((error: unknown) => {
+        if (cancelled) return;
+        const message =
+          error instanceof ApiError ? error.message : 'Não foi possível carregar o dashboard.';
+        setState({ status: 'error', message });
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (state.status === 'loading') {
     return (
       <div>
         <PageHeader title="Dashboard" description="Visão geral das operações da agência." />
@@ -52,187 +100,127 @@ export function DashboardPage() {
     );
   }
 
+  if (state.status === 'error') {
+    return (
+      <div>
+        <PageHeader title="Dashboard" description="Visão geral das operações da agência." />
+        <div
+          role="alert"
+          aria-live="polite"
+          className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+        >
+          {state.message}
+        </div>
+      </div>
+    );
+  }
+
+  const { summary, upcomingDeparturesCount, proposalsWaiting, recentInteractions } = state;
+
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Dashboard"
-        description="Visão geral das operações da agência."
-      />
+      <PageHeader title="Dashboard" description="Visão geral das operações da agência." />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <StatCard
           label="Vendas (mês)"
-          value={formatBRL(d.totalSales)}
-          delta={d.salesDelta}
-          deltaTone={d.salesTone}
+          value={formatBRL(Number(summary.salesThisMonthTotal))}
           icon={<TrendingUp className="h-4 w-4" />}
         />
         <StatCard
-          label="Propostas abertas"
-          value={String(d.openProposals)}
-          delta={d.proposalsDelta}
-          deltaTone={d.proposalsTone}
+          label="Propostas aguardando resposta"
+          value={String(summary.proposalsWaitingCount)}
           icon={<FileText className="h-4 w-4" />}
         />
         <StatCard
-          label="Viagens ativas"
-          value={String(d.activeTrips)}
-          delta={d.tripsDelta}
-          deltaTone={d.tripsTone}
+          label="Viagens futuras"
+          value={String(summary.upcomingTripsCount)}
           icon={<Map className="h-4 w-4" />}
         />
         <StatCard
-          label="Próximas partidas"
-          value={String(d.upcomingDepartures)}
-          delta={d.departuresDelta}
-          deltaTone={d.departuresTone}
+          label="Próximas partidas (7 dias)"
+          value={String(upcomingDeparturesCount)}
           icon={<Plane className="h-4 w-4" />}
         />
         <StatCard
-          label="Reservas pendentes"
-          value={String(d.pendingBookings)}
-          delta={d.bookingsDelta}
-          deltaTone={d.bookingsTone}
-          icon={<CalendarCheck className="h-4 w-4" />}
+          label="Vendas pendentes"
+          value={String(summary.pendingSalesCount)}
+          icon={<Wallet className="h-4 w-4" />}
         />
         <StatCard
-          label="Clientes ativos"
-          value={String(d.activeCustomers)}
-          delta={d.customersDelta}
-          deltaTone={d.customersTone}
-          icon={<Users className="h-4 w-4" />}
+          label="Follow-ups hoje"
+          value={String(summary.followUpsDueTodayCount)}
+          icon={<CalendarClock className="h-4 w-4" />}
         />
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Ações recentes</CardTitle>
+            <CardTitle>Atividade recente de clientes</CardTitle>
           </CardHeader>
           <CardContent>
-            <ul className="divide-y divide-slate-100">
-              {recentActions.map((action) => {
-                const Icon = ACTION_ICONS[action.icon] ?? Check;
-                return (
-                  <li key={action.id} className="flex items-start gap-3 py-3 first:pt-0 last:pb-0">
-                    <span className="mt-0.5 rounded-md bg-slate-100 p-1.5">
-                      <Icon className="h-3.5 w-3.5 text-slate-500" />
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-slate-900">{action.label}</p>
-                      <p className="text-xs text-slate-500">{action.detail}</p>
-                    </div>
-                    <span className="shrink-0 text-xs text-slate-400">
-                      {formatDateBR(action.timestamp)}
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
+            {recentInteractions.length === 0 ? (
+              <p className="py-4 text-center text-sm text-slate-400">Nenhuma interação registrada</p>
+            ) : (
+              <ul className="divide-y divide-slate-100">
+                {recentInteractions.map((interaction) => {
+                  const Icon = INTERACTION_ICONS[interaction.channel] ?? MessagesSquare;
+                  return (
+                    <li key={interaction.id} className="flex items-start gap-3 py-3 first:pt-0 last:pb-0">
+                      <span className="mt-0.5 rounded-md bg-slate-100 p-1.5">
+                        <Icon className="h-3.5 w-3.5 text-slate-500" />
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium text-slate-900">{interaction.summary}</p>
+                        <p className="text-xs text-slate-500">
+                          {interaction.direction === 'INBOUND' ? 'Recebida' : 'Enviada'}
+                        </p>
+                      </div>
+                      <span className="shrink-0 text-xs text-slate-400">
+                        {formatDateBR(interaction.occurredAt, { includeTime: true })}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
           </CardContent>
         </Card>
 
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Propostas abertas</CardTitle>
-                <Link to="/wishes" className="text-xs font-medium text-slate-600 hover:text-slate-900">
-                  Ver todas
-                </Link>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {openProposalsList.length === 0 ? (
-                <p className="py-4 text-center text-sm text-slate-400">Nenhuma proposta aberta</p>
-              ) : (
-                <ul className="divide-y divide-slate-100">
-                  {openProposalsList.map((p) => (
-                    <li key={p.id} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
-                      <div>
-                        <p className="text-sm font-medium text-slate-900">{p.notes ?? 'Proposta'}</p>
-                        <p className="text-xs text-slate-500">
-                          {formatBRL(p.total)} · Vence em {formatDateBR(p.validUntil, { assumeDateOnly: true })}
-                        </p>
-                      </div>
-                      <StatusBadge tone="neutral">{getProposalStatusLabel(p.status)}</StatusBadge>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Alertas</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {alerts.length === 0 ? (
-                <p className="py-4 text-center text-sm text-slate-400">Tudo em ordem</p>
-              ) : (
-                <ul className="space-y-3">
-                  {alerts.map((alert) => (
-                    <li
-                      key={alert.id}
-                      className="flex items-start gap-2 rounded-md border border-slate-100 p-3"
-                    >
-                      {alert.severity === 'warning' ? (
-                        <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
-                      ) : (
-                        <Info className="mt-0.5 h-4 w-4 shrink-0 text-blue-500" />
-                      )}
-                      <div>
-                        <p className="text-sm font-medium text-slate-900">{alert.label}</p>
-                        <p className="text-xs text-slate-500">{alert.detail}</p>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>Viagens ativas</CardTitle>
-            <Link to="/trips" className="text-xs font-medium text-slate-600 hover:text-slate-900">
-              Ver todas
-            </Link>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            {activeTripsList.map((trip) => (
-              <Link
-                key={trip.id}
-                to={`/trips/${trip.id}`}
-                className="flex items-start gap-3 rounded-md border border-slate-100 p-3 transition-colors hover:bg-slate-50"
-              >
-                <span className="rounded-md bg-blue-50 p-2">
-                  <Map className="h-4 w-4 text-blue-600" />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-slate-900">{trip.name}</p>
-                  <p className="text-xs text-slate-500">{trip.destination}</p>
-                  <p className="mt-1 text-xs text-slate-400">
-                    {formatDateBR(trip.startDate, { assumeDateOnly: true })} —{' '}
-                    {formatDateBR(trip.endDate, { assumeDateOnly: true })}
-                  </p>
-                </div>
-                <StatusBadge tone={trip.status === 'CONFIRMED' ? 'positive' : 'neutral'}>
-                  {getTripStatusLabel(trip.status)}
-                </StatusBadge>
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>Propostas aguardando resposta</CardTitle>
+              <Link to="/wishes" className="text-xs font-medium text-slate-600 hover:text-slate-900">
+                Ver todas
               </Link>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {proposalsWaiting.length === 0 ? (
+              <p className="py-4 text-center text-sm text-slate-400">Nenhuma proposta aguardando</p>
+            ) : (
+              <ul className="divide-y divide-slate-100">
+                {proposalsWaiting.map((p) => (
+                  <li key={p.id} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
+                    <div>
+                      <p className="text-sm font-medium text-slate-900">{p.notes ?? 'Proposta'}</p>
+                      <p className="text-xs text-slate-500">
+                        {formatBRL(Number(p.total))}
+                        {p.validUntil
+                          ? ` · Vence em ${formatDateBR(p.validUntil, { assumeDateOnly: true })}`
+                          : ''}
+                      </p>
+                    </div>
+                    <StatusBadge tone="neutral">Aguardando</StatusBadge>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
