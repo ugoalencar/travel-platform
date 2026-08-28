@@ -562,6 +562,62 @@ describe.sequential('Trip HTTP routes (Package 1)', () => {
     });
   });
 
+  describe('GET /customers/:id/trips', () => {
+    it('returns 401 without auth', async () => {
+      const app = buildTestApp(runtimePool);
+      const response = await app.inject({ method: 'GET', url: `/customers/${customerAId}/trips` });
+      expect(response.statusCode).toBe(401);
+      await app.close();
+    });
+
+    it("returns only this customer's trips, scoped to the caller's tenant", async () => {
+      await seedTrip(agencyAId, customerAId, { name: 'Customer A Trip 1' });
+      await seedTrip(agencyAId, customerAId, { name: 'Customer A Trip 2' });
+      const otherCustomerAId = await seedCustomer(agencyAId, 'Other Customer A');
+      await seedTrip(agencyAId, otherCustomerAId, { name: 'Other Customer Trip' });
+
+      const app = buildTestApp(runtimePool);
+      const response = await app.inject({
+        method: 'GET',
+        url: `/customers/${customerAId}/trips`,
+        headers: { 'x-test-principal': 'a' },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = response.json<{ trips: Array<{ name: string; customerId: string }> }>();
+      expect(body.trips).toHaveLength(2);
+      expect(body.trips.every((t) => t.customerId === customerAId)).toBe(true);
+
+      await app.close();
+    });
+
+    it('404s for a customer that belongs to another tenant (never leaks cross-tenant trips)', async () => {
+      await seedTrip(agencyBId, customerBId, { name: 'B Trip' });
+
+      const app = buildTestApp(runtimePool);
+      const response = await app.inject({
+        method: 'GET',
+        url: `/customers/${customerBId}/trips`,
+        headers: { 'x-test-principal': 'a' },
+      });
+
+      expect(response.statusCode).toBe(404);
+      await app.close();
+    });
+
+    it('404s for a nonexistent customer id', async () => {
+      const app = buildTestApp(runtimePool);
+      const response = await app.inject({
+        method: 'GET',
+        url: `/customers/00000000-0000-4000-8000-000000000000/trips`,
+        headers: { 'x-test-principal': 'a' },
+      });
+
+      expect(response.statusCode).toBe(404);
+      await app.close();
+    });
+  });
+
   function validTripPayload(
     customerId: string,
     overrides: Partial<{ name: string; destination: string; startDate: string; endDate: string }> = {},
