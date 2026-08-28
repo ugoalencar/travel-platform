@@ -61,6 +61,7 @@ import {
   createWish,
   getWishById,
   listWishes,
+  listWishesByCustomer,
   updateWish,
   type CreateWishInput,
   type UpdateWishInput,
@@ -69,6 +70,7 @@ import {
   createTrip,
   getTripById,
   listTrips,
+  listTripsByCustomer,
   updateTrip,
   type CreateTripInput,
   type UpdateTripInput,
@@ -685,6 +687,41 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       }
 
       return { customer };
+    }
+  );
+
+  // CORE-A gap fill: the frontend customer-detail view needs a customer's
+  // wishes/trips scoped by customerId, not the full tenant-wide list. Both
+  // routes 404 (rather than returning an empty array) when the customer
+  // doesn't exist or belongs to another tenant -- same
+  // not-found-vs-empty distinction used by every other :id lookup in this
+  // file, and it keeps this from being usable as a cross-tenant existence
+  // oracle beyond what getCustomerById already exposes.
+  app.get<{ Params: { id: string } }>(
+    '/customers/:id/wishes',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      const customer = await getCustomerById(options.database, request.params.id);
+      if (!customer) {
+        throw new NotFoundError('Customer not found');
+      }
+      const wishes = await listWishesByCustomer(options.database, request.params.id);
+      return { wishes };
+    }
+  );
+
+  app.get<{ Params: { id: string } }>(
+    '/customers/:id/trips',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      const customer = await getCustomerById(options.database, request.params.id);
+      if (!customer) {
+        throw new NotFoundError('Customer not found');
+      }
+      const trips = await listTripsByCustomer(options.database, request.params.id);
+      return { trips };
     }
   );
 

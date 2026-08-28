@@ -3,6 +3,7 @@ import type { Status } from '../../../packages/domain/types';
 import { getAgencyId } from '../../../packages/domain/tenant-context';
 import type { DatabaseRuntime } from './database';
 import { ConflictError } from './errors';
+import { AuditEventType, recordAuditEvent } from './audit-log';
 
 const POSTGRES_UNIQUE_VIOLATION = '23505';
 
@@ -108,7 +109,13 @@ export async function createCustomer(
       if (!row) {
         throw new Error('Customer insert did not return a row');
       }
-      return toCustomer(row);
+      const customer = toCustomer(row);
+      await recordAuditEvent(client, {
+        eventType: AuditEventType.CUSTOMER_CREATED,
+        entityType: 'customer',
+        entityId: customer.id,
+      });
+      return customer;
     } catch (error: unknown) {
       throw mapUniqueViolation(error);
     }
@@ -124,35 +131,43 @@ export async function updateCustomer(
 
   const fields: string[] = [];
   const values: unknown[] = [];
+  const changedFields: string[] = [];
   let index = 1;
 
   if (data.name !== undefined) {
     fields.push(`name = $${++index}`);
     values.push(data.name);
+    changedFields.push('name');
   }
   if (data.email !== undefined) {
     fields.push(`email = $${++index}`);
     values.push(data.email);
+    changedFields.push('email');
   }
   if (data.phone !== undefined) {
     fields.push(`phone = $${++index}`);
     values.push(data.phone);
+    changedFields.push('phone');
   }
   if (data.cpf !== undefined) {
     fields.push(`cpf = $${++index}`);
     values.push(data.cpf);
+    changedFields.push('cpf');
   }
   if (data.passport !== undefined) {
     fields.push(`passport = $${++index}`);
     values.push(data.passport);
+    changedFields.push('passport');
   }
   if (data.address !== undefined) {
     fields.push(`address = $${++index}`);
     values.push(JSON.stringify(data.address));
+    changedFields.push('address');
   }
   if (data.notes !== undefined) {
     fields.push(`notes = $${++index}`);
     values.push(data.notes);
+    changedFields.push('notes');
   }
 
   if (fields.length === 0) {
@@ -171,7 +186,17 @@ export async function updateCustomer(
       );
 
       const row = result.rows[0];
-      return row ? toCustomer(row) : null;
+      if (!row) {
+        return null;
+      }
+      const customer = toCustomer(row);
+      await recordAuditEvent(client, {
+        eventType: AuditEventType.CUSTOMER_UPDATED,
+        entityType: 'customer',
+        entityId: customer.id,
+        metadata: { fieldsChanged: changedFields },
+      });
+      return customer;
     } catch (error: unknown) {
       throw mapUniqueViolation(error);
     }

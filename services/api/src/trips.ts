@@ -2,6 +2,7 @@ import type { Trip } from '../../../packages/domain/types';
 import { getAgencyId } from '../../../packages/domain/tenant-context';
 import type { DatabaseRuntime } from './database';
 import { NotFoundError, ValidationError } from './errors';
+import { AuditEventType, recordAuditEvent } from './audit-log';
 
 interface TripRow {
   id: string;
@@ -50,6 +51,25 @@ export async function listTrips(database: DatabaseRuntime): Promise<Trip[]> {
        WHERE agency_id = $1
        ORDER BY created_at DESC`,
       [agencyId],
+    );
+
+    return result.rows.map(toTrip);
+  });
+}
+
+export async function listTripsByCustomer(
+  database: DatabaseRuntime,
+  customerId: string,
+): Promise<Trip[]> {
+  const agencyId = getAgencyId();
+
+  return database.withTenantTransaction(async (client) => {
+    const result = await client.query<TripRow>(
+      `SELECT ${TRIP_COLUMNS}
+       FROM trips
+       WHERE agency_id = $1 AND customer_id = $2
+       ORDER BY created_at DESC`,
+      [agencyId, customerId],
     );
 
     return result.rows.map(toTrip);
@@ -114,7 +134,13 @@ export async function createTrip(
     if (!row) {
       throw new Error('Trip insert did not return a row');
     }
-    return toTrip(row);
+    const trip = toTrip(row);
+    await recordAuditEvent(client, {
+      eventType: AuditEventType.TRIP_CREATED,
+      entityType: 'trip',
+      entityId: trip.id,
+    });
+    return trip;
   });
 }
 
@@ -127,31 +153,38 @@ export async function updateTrip(
 
   const fields: string[] = [];
   const values: unknown[] = [];
+  const changedFields: string[] = [];
   let index = 1;
 
   if (data.name !== undefined) {
     fields.push(`name = $${++index}`);
     values.push(data.name);
+    changedFields.push('name');
   }
   if (data.destination !== undefined) {
     fields.push(`destination = $${++index}`);
     values.push(data.destination);
+    changedFields.push('destination');
   }
   if (data.startDate !== undefined) {
     fields.push(`start_date = $${++index}`);
     values.push(data.startDate);
+    changedFields.push('startDate');
   }
   if (data.endDate !== undefined) {
     fields.push(`end_date = $${++index}`);
     values.push(data.endDate);
+    changedFields.push('endDate');
   }
   if (data.description !== undefined) {
     fields.push(`description = $${++index}`);
     values.push(data.description);
+    changedFields.push('description');
   }
   if (data.notes !== undefined) {
     fields.push(`notes = $${++index}`);
     values.push(data.notes);
+    changedFields.push('notes');
   }
 
   if (fields.length === 0) {
@@ -190,7 +223,14 @@ export async function updateTrip(
       }
       return null;
     }
-    return toTrip(row);
+    const trip = toTrip(row);
+    await recordAuditEvent(client, {
+      eventType: AuditEventType.TRIP_UPDATED,
+      entityType: 'trip',
+      entityId: trip.id,
+      metadata: { fieldsChanged: changedFields },
+    });
+    return trip;
   });
 }
 

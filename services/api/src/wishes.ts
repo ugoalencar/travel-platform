@@ -2,6 +2,7 @@ import type { Wish } from '../../../packages/domain/types';
 import { getAgencyId } from '../../../packages/domain/tenant-context';
 import type { DatabaseRuntime } from './database';
 import { NotFoundError } from './errors';
+import { AuditEventType, recordAuditEvent } from './audit-log';
 
 interface WishRow {
   id: string;
@@ -128,7 +129,13 @@ export async function createWish(
     if (!row) {
       throw new Error('Wish insert did not return a row');
     }
-    return toWish(row);
+    const wish = toWish(row);
+    await recordAuditEvent(client, {
+      eventType: AuditEventType.WISH_CREATED,
+      entityType: 'wish',
+      entityId: wish.id,
+    });
+    return wish;
   });
 }
 
@@ -141,31 +148,38 @@ export async function updateWish(
 
   const fields: string[] = [];
   const values: unknown[] = [];
+  const changedFields: string[] = [];
   let index = 1;
 
   if (data.destination !== undefined) {
     fields.push(`destination = $${++index}`);
     values.push(data.destination);
+    changedFields.push('destination');
   }
   if (data.startDate !== undefined) {
     fields.push(`start_date = $${++index}`);
     values.push(data.startDate);
+    changedFields.push('startDate');
   }
   if (data.endDate !== undefined) {
     fields.push(`end_date = $${++index}`);
     values.push(data.endDate);
+    changedFields.push('endDate');
   }
   if (data.budget !== undefined) {
     fields.push(`budget = $${++index}`);
     values.push(data.budget);
+    changedFields.push('budget');
   }
   if (data.travelersCount !== undefined) {
     fields.push(`travelers_count = $${++index}`);
     values.push(data.travelersCount);
+    changedFields.push('travelersCount');
   }
   if (data.notes !== undefined) {
     fields.push(`notes = $${++index}`);
     values.push(data.notes);
+    changedFields.push('notes');
   }
 
   if (fields.length === 0) {
@@ -182,7 +196,17 @@ export async function updateWish(
     );
 
     const row = result.rows[0];
-    return row ? toWish(row) : null;
+    if (!row) {
+      return null;
+    }
+    const wish = toWish(row);
+    await recordAuditEvent(client, {
+      eventType: AuditEventType.WISH_UPDATED,
+      entityType: 'wish',
+      entityId: wish.id,
+      metadata: { fieldsChanged: changedFields },
+    });
+    return wish;
   });
 }
 

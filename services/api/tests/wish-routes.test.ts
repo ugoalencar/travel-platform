@@ -533,6 +533,62 @@ describe.sequential('Wish HTTP routes (Task 2)', () => {
     });
   });
 
+  describe('GET /customers/:id/wishes', () => {
+    it('returns 401 without auth', async () => {
+      const app = buildTestApp(runtimePool);
+      const response = await app.inject({ method: 'GET', url: `/customers/${customerAId}/wishes` });
+      expect(response.statusCode).toBe(401);
+      await app.close();
+    });
+
+    it('returns only this customer\'s wishes, scoped to the caller\'s tenant', async () => {
+      await seedWish(agencyAId, customerAId, { destination: 'Customer A Wish 1' });
+      await seedWish(agencyAId, customerAId, { destination: 'Customer A Wish 2' });
+      const otherCustomerAId = await seedCustomer(agencyAId, 'Other Customer A');
+      await seedWish(agencyAId, otherCustomerAId, { destination: 'Other Customer Wish' });
+
+      const app = buildTestApp(runtimePool);
+      const response = await app.inject({
+        method: 'GET',
+        url: `/customers/${customerAId}/wishes`,
+        headers: { 'x-test-principal': 'a' },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = response.json<{ wishes: Array<{ destination: string; customerId: string }> }>();
+      expect(body.wishes).toHaveLength(2);
+      expect(body.wishes.every((w) => w.customerId === customerAId)).toBe(true);
+
+      await app.close();
+    });
+
+    it('404s for a customer that belongs to another tenant (never leaks cross-tenant wishes)', async () => {
+      await seedWish(agencyBId, customerBId, { destination: 'B Wish' });
+
+      const app = buildTestApp(runtimePool);
+      const response = await app.inject({
+        method: 'GET',
+        url: `/customers/${customerBId}/wishes`,
+        headers: { 'x-test-principal': 'a' },
+      });
+
+      expect(response.statusCode).toBe(404);
+      await app.close();
+    });
+
+    it('404s for a nonexistent customer id', async () => {
+      const app = buildTestApp(runtimePool);
+      const response = await app.inject({
+        method: 'GET',
+        url: `/customers/00000000-0000-4000-8000-000000000000/wishes`,
+        headers: { 'x-test-principal': 'a' },
+      });
+
+      expect(response.statusCode).toBe(404);
+      await app.close();
+    });
+  });
+
   function buildTestApp(pool: Pool) {
     return buildApp({
       authProvider: {
