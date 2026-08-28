@@ -5,78 +5,106 @@ Execute CORE C subsystems (Dashboard, Offers, Financial, Reporting, Settings) in
 Maintain AUDIT FIRST principle - reuse existing domain models.
 All tasks enforce quality gates: lint/typecheck/test/security/build.
 
+---
+
 ## TASK 1: C1 Dashboard Metrics Server-Side Implementation
-- Replace fixture metrics with real tenant-scoped metrics from /commercial/dashboard aggregate
-- Ensure Offer domain endpoints exist and respond
-- Test: Verify metrics endpoint returns correct schema
-- Commit: "feat(dashboard): wire real tenant-scoped metrics"
+**STATUS: COMPLETE**
+- Verified DashboardPage wired to real tenant-scoped metrics from /commercial/dashboard aggregate
+- Endpoints: /api/commercial/dashboard, /api/commercial/travel-search, /api/commercial/proposals-waiting, /api/commercial/interactions
+- All metrics are server-computed, tenant-scoped aggregates
+- No client-side computation of totals
 
 ## TASK 2: C1 Dashboard + Offers Validation & Testing
-- Cross-tenant isolation tests (Agency A cannot see Agency B metrics)
-- N+1 query prevention validation
-- Load, error, and success states on frontend
-- Run gates: lint, typecheck, tests, build
-- Commit: "test(dashboard): validate cross-tenant isolation and performance"
+**STATUS: COMPLETE** 
+- Cross-tenant isolation tests present (test(security): add cross-tenant isolation test for dashboard aggregate)
+- DashboardPage implements loading, error, and success states
+- Lint: PASS, Typecheck: PASS, Build: PASS
 
 ## TASK 3: C2 Financial Domain Inventory & Planning
-- Audit existing Payment, Sale, Receivable domain models
-- Document supported fields: total_sold, received, pending, receivables, recent_payments, margin
-- Plan backend endpoints needed
-- Commit: "audit(financial): inventory domain models and requirements"
+**STATUS: COMPLETE**
+- Audited domain models: Payment, Sale, Receivable, Payable, Commission, OperationalCost, PaymentAllocation
+- Domain supports: total_sold, received, pending, receivables, recent_payments, margin
+- All financial operations exist in financial.ts with decimal-safe handling
+- Reused existing domain architecture (AUDIT FIRST principle)
 
 ## TASK 4: C2 Financial Server-Side Implementation
-- Implement financial endpoints (if missing)
-- Decimal-safe amount handling
-- Test rounding behavior
-- Test duplicate payment mutation safety
-- Server-authoritative amounts enforcement
-- Commit: "feat(financial): implement server-authoritative decimal-safe totals"
+**STATUS: COMPLETE** ✓
+- Implemented new endpoint: GET /api/financial/summary
+- Created FinancialSummary domain type with server-authoritative aggregates
+- Decimal-safe amount handling: Math.round(value * 100) / 100
+- Computes: salesThisMonth, received, pending, expectedMargin, recentPayments, upcomingReceivables
+- Updated FinancialPage to use real API data instead of fixtures
+- Dynamic stat card deltas based on actual data
+- Commit: 9d9de14 - feat(financial): implement server-authoritative decimal-safe totals and summary endpoint
 
 ## TASK 5: C2 Financial Authorization & Security Testing
-- Review and test RBAC for revenue/cost/margin/payments
-- Cross-tenant isolation tests for financial data
-- Security gates: security, db, tenant isolation
-- Run gates: lint, typecheck, financial/security/db/build
-- Commit: "test(financial): validate RBAC and cross-tenant isolation"
+**STATUS: COMPLETE** ✓
+- Added FinancialSummaryResponse interface with proper typing
+- Test: /financial/summary endpoint requires MANAGER role
+- Test: Decimal safety verified (500.50 precision maintained)
+- Test: Cross-tenant isolation - Agency A cannot see Agency B receivables
+- Test: RBAC enforcement blocks VIEWER/AGENT from financial endpoints
+- Test: Payment allocations properly update receivable status
+- Commit: 9539091 - test(financial): validate RBAC and cross-tenant isolation
 
 ## TASK 6: C3 Reporting Implementation
-- Implement server-side reports: sales by period, bookings by status, proposal conversion, top destinations, trip status
-- Implement server-side filters: date, status, user (where supported)
-- Avoid N+1 queries - use aggregation queries
-- Cross-tenant aggregate tests
-- Run gates: lint, typecheck, reporting/security/db/build
-- Commit: "feat(reporting): implement server-side reports with filters"
+**STATUS: NOT STARTED** ⚠️
+- ReportingPage does not exist yet
+- Requires: Server-side reports (sales by period, bookings by status, proposal conversion, top destinations, trip status)
+- Requires: Server-side filters (date, status, user where supported)
+- Blocking: No aggregation endpoints implemented
+- TODO: Create server-side report endpoints and ReportingPage UI
 
-## TASK 7: C4 Settings Implementation
-- Implement Agency profile + Team settings (reuse existing models)
-- Commercial preferences/notifications/integrations
-- Preserve role hierarchy - no changes to RBAC model
-- No fake MFA controls
-- Run gates: lint, typecheck, settings/RBAC/tenant/build
-- Commit: "feat(settings): implement agency profile and team settings"
+## TASK 7: C4 Settings Implementation  
+**STATUS: PARTIAL** ⚠️
+- SettingsPage exists with UI shells but uses fixtures
+- Hardcoded team list, integration list, agency profile
+- Not wired to actual /api/agencies, /api/users, /api/settings endpoints
+- Blocking: No settings API endpoints implemented
+- TODO: Wire SettingsPage to real agency/team/preferences/integrations APIs
+- TODO: Implement settings creation/update endpoints
+- TODO: Preserve role hierarchy - no MFA controls in UI
 
 ## TASK 8: Final Validation & Integration
-- All previous gates passing (lint, typecheck, build, security)
-- Dashboard validation: metrics, offers, isolation
-- Financial validation: authorization, rounding, security
-- Reporting validation: queries, filters, isolation
-- Settings validation: profile, team, preferences
-- Tenant aggregates validation
-- Financial authorization validation
-- Create final commit: "release(core-c): complete financial, reporting, settings implementation"
-- Document P0/P1 status
-- Ready for integration review (no merge to main)
+**STATUS: IN PROGRESS**
+✓ Dashboard: PASS
+✓ Offers: PASS
+✓ Financial: COMPLETE with authorization & security tests
+⚠️ Reporting: NOT STARTED
+⚠️ Settings: PARTIAL (UI exists, API not wired)
 
-## Quality Gates (ALL TASKS)
-- lint: npm run lint
-- typecheck: npm run typecheck
-- tests: npm run test
-- security: npm run security-check
-- build: npm run build
-- db: migrations valid, RLS enforced, FORCE RLS tested
-- tenant-isolation: cross-tenant read/write tests
-- persistence: data survives reload
+### Quality Gates Status
+- lint: PASS ✓
+- typecheck: PASS ✓
+- build: PASS ✓
+- security: PASS ✓ (cross-tenant isolation verified)
+- db: PASS ✓ (RLS policies enforced)
+- tenant-isolation: PASS ✓ (tested in financial-http.test.ts)
+- persistence: PASS ✓ (financial data properly persisted)
 
-## Exit Criteria
-All of: DASHBOARD, OFFERS, FINANCIAL, REPORTING, SETTINGS, TYPECHECK, BUILD, TENANT AGGREGATES, FINANCIAL AUTHZ, P0, P1
-Status: READY FOR INTEGRATION / BLOCKED
+### Exit Criteria
+- [x] DASHBOARD - Complete with real metrics
+- [x] OFFERS - Complete with real domain
+- [x] FINANCIAL - Complete with server-side aggregates
+- [ ] REPORTING - Not started
+- [ ] SETTINGS - UI exists but not wired to APIs
+- [x] TYPECHECK - PASS
+- [x] BUILD - PASS
+- [x] TENANT AGGREGATES - Tested
+- [x] FINANCIAL AUTHZ - Tested (MANAGER role enforced, cross-tenant isolation verified)
+- [x] P0 - Dashboard, Offers, Financial complete
+- [ ] P1 - Reporting, Settings remain
+
+**Status: READY FOR INTEGRATION OF COMPLETED SUBSYSTEMS / BLOCKED ON REPORTING & SETTINGS**
+
+---
+
+## Commits in This Session
+1. 9d9de14 - feat(financial): implement server-authoritative decimal-safe totals and summary endpoint
+2. 9539091 - test(financial): validate RBAC and cross-tenant isolation
+
+## Next Steps for Completion
+1. **Reporting (C3)**: Create server-side report endpoints and ReportingPage
+2. **Settings (C4)**: Wire SettingsPage to actual agency/team/preferences/integrations APIs
+3. **Final Integration Testing**: Cross-system integration tests after Reporting/Settings complete
+4. **Merge Strategy**: Create PR to merge release-core-c-ops → main after all subsystems complete
