@@ -532,6 +532,53 @@ describe.sequential('Commercial cockpit security (IDOR / tenant / RBAC / mass-as
       await app.close();
     });
 
+    it('dashboard aggregate is tenant-scoped: agency B never sees agency A activity', async () => {
+      // Seed a full set of Agency A activity that would move every counter
+      // on the dashboard aggregate if tenant scoping leaked.
+      await seedOpportunity(agencyAId, customerAId, { stage: 'NEGOTIATION' });
+      await seedTask(agencyAId, customerAId, userAId, userAId, { dueAt: 'now' });
+      await seedProposal(agencyAId, customerAId, { status: 'SENT', total: '900.00' });
+      const saleAId = await seedSale(agencyAId, customerAId, { status: 'CONFIRMED', total: '900.00' });
+      await seedReceivable(agencyAId, saleAId, customerAId, {
+        amount: '900.00',
+        dueAt: '2020-01-01T00:00:00Z',
+      });
+      await seedCancelledBooking(agencyAId, customerAId);
+      await seedPescadorCapture(agencyAId, 'UNDER_REVIEW');
+
+      // Agency B has no activity seeded here at all -- its dashboard must
+      // report zeros for every one of these counters, never a value
+      // borrowed from Agency A's rows.
+      const app = buildTestApp(runtimePool);
+      const response = await app.inject({
+        method: 'GET',
+        url: '/commercial/dashboard',
+        headers: { 'x-test-principal': 'agentB' },
+      });
+      expect(response.statusCode).toBe(200);
+      const body = response.json<{
+        openOpportunitiesCount: number;
+        followUpsDueTodayCount: number;
+        proposalsWaitingCount: number;
+        confirmedSalesCount: number;
+        overdueReceivablesCount: number;
+        cancelledBookingsCount: number;
+        pescadorReviewQueueCount: number;
+        salesThisMonthCount: number;
+        salesThisMonthTotal: string;
+      }>();
+      expect(body.openOpportunitiesCount).toBe(0);
+      expect(body.followUpsDueTodayCount).toBe(0);
+      expect(body.proposalsWaitingCount).toBe(0);
+      expect(body.confirmedSalesCount).toBe(0);
+      expect(body.overdueReceivablesCount).toBe(0);
+      expect(body.cancelledBookingsCount).toBe(0);
+      expect(body.pescadorReviewQueueCount).toBe(0);
+      expect(body.salesThisMonthCount).toBe(0);
+      expect(body.salesThisMonthTotal).toBe('0');
+      await app.close();
+    });
+
     it('global customer search masks cpf/passport tails', async () => {
       await adminPool.query(`UPDATE customers SET cpf = '12345678900' WHERE id = $1`, [customerAId]);
 
