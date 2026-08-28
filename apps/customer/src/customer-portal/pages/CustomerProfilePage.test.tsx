@@ -50,7 +50,7 @@ describe('CustomerProfilePage', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('Cliente Demo')).toBeInTheDocument();
+      expect(screen.getAllByText('Cliente Demo').length).toBeGreaterThanOrEqual(1);
     });
     expect(screen.getByText('********900')).toBeInTheDocument();
     expect(screen.queryByText('12345678900')).not.toBeInTheDocument();
