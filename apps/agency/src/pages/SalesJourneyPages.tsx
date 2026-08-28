@@ -67,47 +67,47 @@ interface JourneyProposal {
 
 const journeyProposals: JourneyProposal[] = [
   {
-    id: 'proposal-kyoto',
-    title: 'Proposta Kyoto primavera',
-    customer: 'Marina e Pedro Alves',
-    destination: 'Kyoto, Japao',
-    status: 'SENT',
-    expiration: '10/09/2026',
-    dates: '24/03 a 02/04/2027',
-    travelers: '2 viajantes',
-    wishTitle: 'Lua de mel em Kyoto',
+    id: 'prop-001',
+    title: 'Proposta Portugal em família',
+    customer: 'Lucas Martins',
+    destination: 'Lisboa + Porto, Portugal',
+    status: 'ACCEPTED',
+    expiration: '15/09/2026',
+    dates: '15/10 a 28/10/2026',
+    travelers: '4 viajantes (2 adultos, 2 crianças)',
+    wishTitle: 'Família em Portugal',
     tripSummary:
-      'Roteiro romantico com florada, ryokan em Gion, templos classicos e experiencias gastronomicas guiadas.',
+      'Roteiro cultural por Portugal: Lisboa, Sintra e Porto, com degustação de vinhos no Vale do Douro e experiências gastronômicas pensadas para toda a família.',
     heroImage:
-      'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=1600&q=80',
+      'https://images.unsplash.com/photo-1555881400-74d7acaacd8b?auto=format&fit=crop&w=1600&q=80',
     hotel: {
-      name: 'Hotel Gion Riverside',
-      room: 'Suite casal com cafe da manha',
-      nights: '9 noites',
+      name: 'Lisboa: Hotel Alfama Rio · Porto: Hotel Ribeira Collection',
+      room: 'Duas suítes família com café da manhã',
+      nights: '13 noites',
     },
     transport: {
-      name: 'Aereo + trem-bala',
-      route: 'Sao Paulo -> Osaka -> Kyoto',
-      schedule: 'Chegada em Kansai, transfer privativo e JR Pass regional',
+      name: 'Aéreo + trem Alfa Pendular',
+      route: 'São Paulo -> Lisboa -> Porto -> Lisboa',
+      schedule: 'Voo direto LATAM ida/volta, traslados privativos e trem Lisboa-Porto',
     },
-    services: ['Seguro viagem', 'Concierge local', 'Transfer aeroporto', 'Suporte 24h'],
-    activities: ['Cerimonia do cha', 'Passeio noturno em Gion', 'Nara em trem local'],
+    services: ['Seguro viagem família', 'Concierge local', 'Transfer aeroporto', 'Suporte 24h'],
+    activities: ['Degustação de vinhos no Vale do Douro', 'Palácio da Pena em Sintra', 'Tour gastronômico no Porto'],
     pricing: {
-      proposedPrice: 48600,
-      discount: 2100,
-      total: 46500,
-      fees: 1300,
+      proposedPrice: 38500,
+      discount: 3500,
+      total: 35000,
+      fees: 1200,
     },
-    bookingId: 'booking-kyoto',
-    saleId: 'sale-kyoto',
+    bookingId: 'bk-001',
+    saleId: 'sale-001',
     presentationOnly: {
-      internalCost: 37800,
-      margin: 8700,
-      paymentStatus: 'Parcial',
-      supplier: 'Kansai Ground Partners',
-      confirmationStatus: 'Hotel confirmado, aereo em emissao',
-      documents: ['Passaportes recebidos', 'Seguro pendente', 'Voucher hotel pronto'],
-      internalNotes: 'Nota interna: preservar margem minima de 16% no fechamento.',
+      internalCost: 27200,
+      margin: 7800,
+      paymentStatus: 'Pago',
+      supplier: 'Douro Ground Partners',
+      confirmationStatus: 'Hotéis e voos confirmados',
+      documents: ['Passaportes validados', 'Seguro viagem contratado', 'Vouchers de hotel emitidos'],
+      internalNotes: 'Nota interna: cliente VIP, priorizar upgrades quando disponíveis.',
     },
   },
 ];
@@ -191,7 +191,7 @@ export function ProposalListPage() {
         <CardHeader className="flex-row items-center justify-between">
           <CardTitle>Propostas em apresentacao</CardTitle>
           <Link
-            to="/proposals/proposal-kyoto/edit"
+            to="/proposals/prop-001/edit"
             className="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
           >
             <Edit3 className="h-4 w-4" />
@@ -500,10 +500,10 @@ export function ProposalPreviewPage() {
       >
         <div className="max-w-3xl">
           <p className="text-sm font-semibold uppercase tracking-wide text-cyan-100">
-            Aurora Travel Co.
+            Horizonte Viagens
           </p>
           <h1 className="mt-8 text-5xl font-semibold tracking-tight md:text-7xl">
-            Kyoto na florada
+            Portugal em família
           </h1>
           <p className="mt-5 max-w-2xl text-lg text-slate-100">{proposal.tripSummary}</p>
           <div className="mt-8 flex flex-wrap gap-3">

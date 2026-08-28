@@ -251,9 +251,10 @@ export function CustomerDetailPage() {
           ) : (
             <div className="space-y-3">
               {proposals.map((p) => (
-                <div
+                <Link
                   key={p.id}
-                  className="rounded-lg border border-slate-200 bg-white p-4"
+                  to={`/proposals/${p.id}`}
+                  className="block rounded-lg border border-slate-200 bg-white p-4 transition-colors hover:bg-slate-50"
                 >
                   <div className="flex items-start justify-between">
                     <div>
@@ -274,7 +275,7 @@ export function CustomerDetailPage() {
                   {p.conditions && (
                     <p className="mt-2 text-xs text-slate-500 bg-slate-50 rounded p-2">{p.conditions}</p>
                   )}
-                </div>
+                </Link>
               ))}
             </div>
           )}
@@ -294,7 +295,11 @@ export function CustomerDetailPage() {
               {bookings.map((b) => {
                 const passengers = getPassengersByBookingId(b.id);
                 return (
-                  <div key={b.id} className="rounded-lg border border-slate-200 bg-white p-4">
+                  <Link
+                    key={b.id}
+                    to={`/bookings/${b.id}`}
+                    className="block rounded-lg border border-slate-200 bg-white p-4 transition-colors hover:bg-slate-50"
+                  >
                     <div className="flex items-start justify-between">
                       <div>
                         <p className="text-sm font-medium text-slate-900">
@@ -320,7 +325,7 @@ export function CustomerDetailPage() {
                         ))}
                       </div>
                     )}
-                  </div>
+                  </Link>
                 );
               })}
             </div>

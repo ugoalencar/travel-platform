@@ -182,7 +182,11 @@ export function WishDetailPage() {
           ) : (
             <div className="space-y-3">
               {proposals.map((p) => (
-                <div key={p.id} className="rounded-lg border border-slate-200 bg-white p-4">
+                <Link
+                  key={p.id}
+                  to={`/proposals/${p.id}`}
+                  className="block rounded-lg border border-slate-200 bg-white p-4 transition-colors hover:bg-slate-50"
+                >
                   <div className="flex items-start justify-between">
                     <div>
                       <p className="text-sm font-medium text-slate-900">{p.notes ?? 'Proposta'}</p>
@@ -192,7 +196,7 @@ export function WishDetailPage() {
                       {getProposalStatusLabel(p.status)}
                     </StatusBadge>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           )}

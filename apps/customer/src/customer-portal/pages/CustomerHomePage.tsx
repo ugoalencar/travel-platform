@@ -188,7 +188,7 @@ function NextTripHero({ trip }: { trip: Trip | null }) {
     >
       <div className="relative p-6">
         <div className="absolute -right-4 -top-4 text-7xl opacity-10 transition-transform group-hover:scale-110">
-          {trip.destination === 'Maldivas' ? '🏝️' : '🏛️'}
+          {trip.destination === 'Portugal' ? '🇵🇹' : trip.destination === 'Islândia' ? '🌋' : '✈️'}
         </div>
         <div className="relative">
           <div className="flex items-center gap-2">

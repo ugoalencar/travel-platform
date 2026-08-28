@@ -110,7 +110,7 @@ function TripCard({ trip }: { trip: Trip }) {
         }`}
       >
         <div className="absolute inset-0 flex items-center justify-center text-5xl opacity-60">
-          {trip.destination === 'Maldivas' ? '🏝️' : trip.destination === 'Europa' ? '🏛️' : '✈️'}
+          {trip.destination === 'Portugal' ? '🇵🇹' : trip.destination === 'Islândia' ? '🌋' : '✈️'}
         </div>
         <div className="absolute right-3 top-3">
           <span

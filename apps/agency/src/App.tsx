@@ -18,12 +18,10 @@ import {
   SaleSummaryPage,
   SalesListPage,
 } from './pages/SalesJourneyPages';
-import {
-  FinancialPage,
-  OffersPage,
-  ReportsPage,
-  SettingsPage,
-} from './pages/nav-pages';
+import { OffersPage } from './pages/nav-pages';
+import { FinancialPage } from './pages/FinancialPage';
+import { ReportsPage } from './pages/ReportsPage';
+import { SettingsPage } from './pages/SettingsPage';
 
 export function App() {
   return (

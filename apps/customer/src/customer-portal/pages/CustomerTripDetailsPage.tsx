@@ -73,7 +73,7 @@ function TripDetails({ trip }: { trip: Trip }) {
       {/* Hero Section */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-teal-600 to-teal-800 p-8 text-white shadow-xl">
         <div className="absolute -right-8 -top-8 text-8xl opacity-20">
-          {trip.destination === 'Maldivas' ? '🏝️' : trip.destination === 'Europa' ? '🏛️' : '✈️'}
+          {trip.destination === 'Portugal' ? '🇵🇹' : trip.destination === 'Islândia' ? '🌋' : '✈️'}
         </div>
         <div className="relative">
           <div className="flex items-center gap-3">

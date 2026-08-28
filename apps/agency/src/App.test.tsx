@@ -62,4 +62,27 @@ describe('App', () => {
     renderRouted('/unknown-route');
     expect(await screen.findByText('Página não encontrada')).toBeInTheDocument();
   });
+
+  it('renders the financial overview page', async () => {
+    renderRouted('/financial');
+    expect(await screen.findByRole('heading', { name: 'Financeiro' })).toBeInTheDocument();
+  });
+
+  it('renders the reports page', async () => {
+    renderRouted('/reports');
+    expect(await screen.findByRole('heading', { name: 'Relatórios' })).toBeInTheDocument();
+  });
+
+  it('renders the settings page', async () => {
+    renderRouted('/settings');
+    expect(await screen.findByRole('heading', { name: 'Configurações' })).toBeInTheDocument();
+  });
+
+  it('navigates from wish detail to the linked proposal', async () => {
+    renderRouted('/wishes/wish-001');
+    await screen.findByRole('heading', { name: /Portugal/ });
+    fireEvent.click(screen.getByRole('tab', { name: 'Propostas' }));
+    fireEvent.click(await screen.findByText(/Pacote personalizado com voos LATAM/));
+    expect(await screen.findByRole('heading', { name: 'Proposta Portugal em família' })).toBeInTheDocument();
+  });
 });

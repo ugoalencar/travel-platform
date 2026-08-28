@@ -219,14 +219,19 @@ export function TripDetailPage() {
               ) : (
                 <ul className="space-y-2">
                   {proposals.map((p) => (
-                    <li key={p.id} className="flex items-center justify-between rounded-md bg-slate-50 p-3">
-                      <div>
-                        <p className="text-sm font-medium text-slate-900">{p.notes ?? 'Proposta'}</p>
-                        <p className="text-xs text-slate-500">{formatBRL(p.total)}</p>
-                      </div>
-                      <StatusBadge tone={p.status === 'ACCEPTED' ? 'positive' : 'neutral'}>
-                        {getProposalStatusLabel(p.status)}
-                      </StatusBadge>
+                    <li key={p.id}>
+                      <Link
+                        to={`/proposals/${p.id}`}
+                        className="flex items-center justify-between rounded-md bg-slate-50 p-3 transition-colors hover:bg-slate-100"
+                      >
+                        <div>
+                          <p className="text-sm font-medium text-slate-900">{p.notes ?? 'Proposta'}</p>
+                          <p className="text-xs text-slate-500">{formatBRL(p.total)}</p>
+                        </div>
+                        <StatusBadge tone={p.status === 'ACCEPTED' ? 'positive' : 'neutral'}>
+                          {getProposalStatusLabel(p.status)}
+                        </StatusBadge>
+                      </Link>
                     </li>
                   ))}
                 </ul>
@@ -242,18 +247,23 @@ export function TripDetailPage() {
               ) : (
                 <ul className="space-y-2">
                   {bookings.map((b) => (
-                    <li key={b.id} className="flex items-center justify-between rounded-md bg-slate-50 p-3">
-                      <div>
-                        <p className="text-sm font-medium text-slate-900">
-                          {b.tripType === 'ROUND_TRIP' ? 'Ida e volta' : 'Somente ida'}
-                        </p>
-                        <p className="text-xs text-slate-500">
-                          Criada em {formatDateBR(b.createdAt)}
-                        </p>
-                      </div>
-                      <StatusBadge tone={b.cancelled ? 'inactive' : 'positive'}>
-                        {getBookingStatusLabel(b.cancelled)}
-                      </StatusBadge>
+                    <li key={b.id}>
+                      <Link
+                        to={`/bookings/${b.id}`}
+                        className="flex items-center justify-between rounded-md bg-slate-50 p-3 transition-colors hover:bg-slate-100"
+                      >
+                        <div>
+                          <p className="text-sm font-medium text-slate-900">
+                            {b.tripType === 'ROUND_TRIP' ? 'Ida e volta' : 'Somente ida'}
+                          </p>
+                          <p className="text-xs text-slate-500">
+                            Criada em {formatDateBR(b.createdAt)}
+                          </p>
+                        </div>
+                        <StatusBadge tone={b.cancelled ? 'inactive' : 'positive'}>
+                          {getBookingStatusLabel(b.cancelled)}
+                        </StatusBadge>
+                      </Link>
                     </li>
                   ))}
                 </ul>
