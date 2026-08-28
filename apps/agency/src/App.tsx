@@ -1,18 +1,28 @@
 import { Route, Routes } from 'react-router-dom';
 import { AppShell } from './components/layout/AppShell';
 import { DashboardPage } from './pages/DashboardPage';
+import { CustomersPage } from './pages/CustomersPage';
+import { CustomerDetailPage } from './pages/CustomerDetailPage';
+import { WishesPage } from './pages/WishesPage';
+import { WishDetailPage } from './pages/WishDetailPage';
+import { TripsPage } from './pages/TripsPage';
+import { TripDetailPage } from './pages/TripDetailPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import {
-  BookingsPage,
-  CustomersPage,
+  BookingDetailPage,
+  BookingListPage,
+  ProposalBuilderPage,
+  ProposalDetailPage,
+  ProposalListPage,
+  ProposalPreviewPage,
+  SaleSummaryPage,
+  SalesListPage,
+} from './pages/SalesJourneyPages';
+import {
   FinancialPage,
   OffersPage,
-  ProposalsPage,
   ReportsPage,
-  SalesPage,
   SettingsPage,
-  TripsPage,
-  WishesPage,
 } from './pages/nav-pages';
 
 export function App() {
@@ -21,11 +31,19 @@ export function App() {
       <Route element={<AppShell />}>
         <Route index element={<DashboardPage />} />
         <Route path="customers" element={<CustomersPage />} />
+        <Route path="customers/:id" element={<CustomerDetailPage />} />
         <Route path="wishes" element={<WishesPage />} />
+        <Route path="wishes/:id" element={<WishDetailPage />} />
         <Route path="trips" element={<TripsPage />} />
-        <Route path="proposals" element={<ProposalsPage />} />
-        <Route path="bookings" element={<BookingsPage />} />
-        <Route path="sales" element={<SalesPage />} />
+        <Route path="trips/:id" element={<TripDetailPage />} />
+        <Route path="proposals" element={<ProposalListPage />} />
+        <Route path="proposals/:id" element={<ProposalDetailPage />} />
+        <Route path="proposals/:id/edit" element={<ProposalBuilderPage />} />
+        <Route path="proposals/:id/preview" element={<ProposalPreviewPage />} />
+        <Route path="bookings" element={<BookingListPage />} />
+        <Route path="bookings/:id" element={<BookingDetailPage />} />
+        <Route path="sales" element={<SalesListPage />} />
+        <Route path="sales/:id" element={<SaleSummaryPage />} />
         <Route path="offers" element={<OffersPage />} />
         <Route path="financial" element={<FinancialPage />} />
         <Route path="reports" element={<ReportsPage />} />
