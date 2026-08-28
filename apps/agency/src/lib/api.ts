@@ -390,3 +390,62 @@ export async function updateTrip(id: string, input: UpdateTripInput): Promise<Tr
 }
 
 export type { CustomerStatus, WishStatus, TripStatus };
+
+// ============================================================
+// GENERIC API CLIENT
+// For use by pages that need flexible API access beyond
+// the specific functions above. Provides get, post, etc.
+// ============================================================
+
+export const api = {
+  get: async <T = any>(path: string): Promise<{ data: T }> => {
+    const response = await fetch(`${API_BASE_URL}${path}`);
+    if (!response.ok) {
+      const body = (await safeJson(response)) as Partial<ApiErrorBody> | null;
+      throw {
+        status: response.status,
+        data: body,
+      };
+    }
+    const data = (await response.json()) as T;
+    return { data };
+  },
+
+  post: async <T = any>(path: string, body?: any): Promise<{ data: T }> => {
+    const response = await fetch(`${API_BASE_URL}${path}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+    if (!response.ok) {
+      const respBody = (await safeJson(response)) as Partial<ApiErrorBody> | null;
+      throw {
+        status: response.status,
+        data: respBody,
+      };
+    }
+    const data = (await response.json()) as T;
+    return { data };
+  },
+
+  patch: async <T = any>(path: string, body?: any): Promise<{ data: T }> => {
+    const response = await fetch(`${API_BASE_URL}${path}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+    if (!response.ok) {
+      const respBody = (await safeJson(response)) as Partial<ApiErrorBody> | null;
+      throw {
+        status: response.status,
+        data: respBody,
+      };
+    }
+    const data = (await response.json()) as T;
+    return { data };
+  },
+};

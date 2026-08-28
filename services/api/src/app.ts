@@ -242,6 +242,19 @@ import {
   parseUpdateTaskInput,
 } from './commercial-cockpit-parsers';
 import {
+  getSalesByPeriod,
+  getBookingsByStatus,
+  getProposalConversion,
+  getTopDestinations,
+  getTripsByStatus,
+} from './reporting-queries';
+import {
+  getAgencyProfile,
+  getTeamMembers,
+  getNotificationSettings,
+  updateNotificationSettings,
+} from './settings-queries';
+import {
   createPipeline,
   createStage,
   getPipelineById,
@@ -1644,6 +1657,107 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       return null;
     }
   );
+
+  // ============================================================
+  // REPORTING (GET /commercial/reports/*)
+  // All endpoints are tenant-scoped via getAgencyId()
+  // All aggregations happen server-side
+  // ============================================================
+
+  app.get<{ Querystring: { start_date?: string; end_date?: string } }>(
+    '/commercial/reports/sales',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      const startDate = request.query.start_date || '2026-01-01';
+      const endDate = request.query.end_date || '2026-12-31';
+      const sales = await options.database.withTenantTransaction(
+        (client) => getSalesByPeriod(client, startDate, endDate),
+      );
+      return { sales };
+    }
+  );
+
+  app.get('/commercial/reports/bookings', { preHandler: protectedHooks }, async () => {
+    requireRole(UserRole.VIEWER);
+    const bookings = await options.database.withTenantTransaction((client) =>
+      getBookingsByStatus(client),
+    );
+    return { bookings };
+  });
+
+  app.get('/commercial/reports/proposals', { preHandler: protectedHooks }, async () => {
+    requireRole(UserRole.VIEWER);
+    const proposals = await options.database.withTenantTransaction((client) =>
+      getProposalConversion(client),
+    );
+    return { proposals };
+  });
+
+  app.get<{ Querystring: { limit?: string } }>(
+    '/commercial/reports/destinations',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      const limit = Math.min(Math.max(parseInt(request.query.limit || '10', 10), 1), 100);
+      const destinations = await options.database.withTenantTransaction((client) =>
+        getTopDestinations(client, limit),
+      );
+      return { destinations };
+    }
+  );
+
+  app.get('/commercial/reports/trips', { preHandler: protectedHooks }, async () => {
+    requireRole(UserRole.VIEWER);
+    const trips = await options.database.withTenantTransaction((client) =>
+      getTripsByStatus(client),
+    );
+    return { trips };
+  });
+
+  // ============================================================
+  // SETTINGS (GET /settings/*, PATCH /settings/*)
+  // All endpoints are tenant-scoped via getAgencyId()
+  // RBAC: Minimal - all authenticated users can read settings
+  // Update permissions are role-based per endpoint
+  // ============================================================
+
+  app.get('/settings/agency', { preHandler: protectedHooks }, async () => {
+    requireRole(UserRole.VIEWER);
+    const result = await options.database.withTenantTransaction((client) =>
+      getAgencyProfile(client),
+    );
+    return result;
+  });
+
+  app.get('/settings/team', { preHandler: protectedHooks }, async () => {
+    requireRole(UserRole.VIEWER);
+    const team = await options.database.withTenantTransaction((client) => getTeamMembers(client));
+    return { team };
+  });
+
+  app.get('/settings/notifications', { preHandler: protectedHooks }, async () => {
+    requireRole(UserRole.VIEWER);
+    const settings = await options.database.withTenantTransaction((client) =>
+      getNotificationSettings(client),
+    );
+    return { settings };
+  });
+
+  app.patch('/settings/notifications', { preHandler: protectedHooks }, async (request) => {
+    requireRole(UserRole.VIEWER);
+    const body = request.body as Partial<{
+      emailNotifications: boolean;
+      proposalUpdates: boolean;
+      bookingUpdates: boolean;
+      paymentUpdates: boolean;
+    }>;
+    const settings = await options.database.withTenantTransaction((client) =>
+      updateNotificationSettings(client, body),
+    );
+    return { settings };
+  });
+
   // Sale RBAC (docs/03-security/authorization.md): "Listar todas" is
   // OWNER/ADMIN/MANAGER only, "Listar próprias" is all 5 roles. userId is
   // never populated from client input on create in this vertical, so there
