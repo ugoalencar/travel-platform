@@ -16,6 +16,7 @@ vi.mock('../../lib/customerApi', () => {
   }
   return {
     getMyProfile: vi.fn(),
+    getMyAgencyContact: vi.fn().mockResolvedValue(null),
     ApiError: MockApiError,
   };
 });
@@ -32,6 +33,7 @@ const profile: CustomerProfile = {
   phone: '11999990000',
   cpfMasked: '********900',
   passportMasked: null,
+  address: null,
 };
 
 describe('CustomerProfilePage', () => {
@@ -52,5 +54,48 @@ describe('CustomerProfilePage', () => {
     });
     expect(screen.getByText('********900')).toBeInTheDocument();
     expect(screen.queryByText('12345678900')).not.toBeInTheDocument();
+  });
+
+  it('renders the address when present', async () => {
+    const { getMyProfile } = await import('../../lib/customerApi');
+    vi.mocked(getMyProfile).mockResolvedValue({
+      ...profile,
+      address: { street: 'Rua Teste', city: 'São Paulo' },
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/customer-portal/profile']}>
+        <Routes>
+          <Route path="/customer-portal/profile" element={<CustomerProfilePage />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/Rua Teste/)).toBeInTheDocument();
+    });
+  });
+
+  it('renders agency contact info when available', async () => {
+    const { getMyProfile, getMyAgencyContact } = await import('../../lib/customerApi');
+    vi.mocked(getMyProfile).mockResolvedValue(profile);
+    vi.mocked(getMyAgencyContact).mockResolvedValue({
+      name: 'Agência Teste',
+      phone: '11988887777',
+      email: 'contato@agencia.test',
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/customer-portal/profile']}>
+        <Routes>
+          <Route path="/customer-portal/profile" element={<CustomerProfilePage />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('11988887777')).toBeInTheDocument();
+    });
+    expect(screen.getByText('contato@agencia.test')).toBeInTheDocument();
   });
 });

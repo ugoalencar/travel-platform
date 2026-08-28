@@ -246,6 +246,86 @@ export enum CommissionStatus {
   CANCELLED = 'CANCELLED',
 }
 
+export enum FinancialObligationStatus {
+  OPEN = 'OPEN',
+  PARTIALLY_PAID = 'PARTIALLY_PAID',
+  PAID = 'PAID',
+  CANCELLED = 'CANCELLED',
+}
+
+export enum PaymentDirection {
+  IN = 'IN',
+  OUT = 'OUT',
+}
+
+export interface Receivable {
+  id: string;
+  agencyId: string;
+  saleId?: string;
+  customerId: string;
+  description: string;
+  amount: number;
+  dueAt: Date;
+  status: FinancialObligationStatus;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface Payable {
+  id: string;
+  agencyId: string;
+  saleId?: string;
+  supplierId?: string;
+  commissionId?: string;
+  transportOperationId?: string;
+  operationalCostId?: string;
+  description: string;
+  amount: number;
+  dueAt: Date;
+  status: FinancialObligationStatus;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface Payment {
+  id: string;
+  agencyId: string;
+  direction: PaymentDirection;
+  amount: number;
+  occurredAt: Date;
+  method?: string;
+  reference?: string;
+  notes?: string;
+  createdBy: string;
+  createdAt: Date;
+}
+
+export interface PaymentAllocation {
+  id: string;
+  agencyId: string;
+  paymentId: string;
+  receivableId?: string;
+  payableId?: string;
+  amount: number;
+  createdAt: Date;
+}
+
+export interface OperationalCost {
+  id: string;
+  agencyId: string;
+  saleId?: string;
+  transportOperationId?: string;
+  supplierId?: string;
+  description: string;
+  costType: string;
+  expectedAmount?: number;
+  actualAmount?: number;
+  incurredAt: Date;
+  createdBy: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export enum TripStatus {
   PLANNED = 'PLANNED',
   CONFIRMED = 'CONFIRMED',
@@ -360,14 +440,32 @@ export enum CheckpointType {
   BOTH = 'BOTH',
 }
 
+export enum OperationalStaffCapability {
+  DRIVER = 'DRIVER',
+  GUIDE = 'GUIDE',
+}
+
+export enum OperationAssignmentRole {
+  DRIVER = 'DRIVER',
+  GUIDE = 'GUIDE',
+}
+
+export enum ExternalOfferCaptureStatus {
+  CAPTURED = 'CAPTURED',
+  NORMALIZED = 'NORMALIZED',
+  UNDER_REVIEW = 'UNDER_REVIEW',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
+  PUBLISHED = 'PUBLISHED',
+}
+
 // Booking: the operational reservation. Booking != Sale -- Sale (not
 // present in this branch) owns pricing/discount/tax/currency/payment;
 // none of that is modeled here. bookerCustomerId is who owns the
 // reservation and is NOT necessarily traveling; passengers are a
 // separate concept (BookingPassenger), not Customer records.
-// No approved cancellation/refund/no-show workflow exists; `cancelled`
-// is a single boolean (mirrors ScheduledDeparture.cancelled) meaning
-// only "does not consume capacity" -- no other business meaning.
+// Cancellation V1 is whole-booking only. Refund, passenger-level,
+// outbound-only, and return-only cancellation remain outside this model.
 export interface Booking {
   id: string;
   agencyId: string;
@@ -376,6 +474,9 @@ export interface Booking {
   outboundDepartureId: string;
   returnDepartureId?: string;
   cancelled: boolean;
+  cancelledAt?: Date;
+  cancelledByUserId?: string;
+  cancellationReason?: string;
   notes?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -409,6 +510,49 @@ export interface TransportOperation {
   updatedAt: Date;
 }
 
+export interface OperationalStaff {
+  id: string;
+  agencyId: string;
+  userId?: string;
+  name: string;
+  phone?: string;
+  email?: string;
+  active: boolean;
+  capabilities: OperationalStaffCapability[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface OperationAssignment {
+  id: string;
+  agencyId: string;
+  operationId: string;
+  operationalStaffId: string;
+  role: OperationAssignmentRole;
+  createdByUserId: string;
+  createdAt: Date;
+}
+
+export interface ExternalOfferCapture {
+  id: string;
+  agencyId: string;
+  sourceUrl: string;
+  sourceName: string;
+  capturedAt: Date;
+  rawContent: string;
+  normalizedTitle?: string;
+  normalizedDescription?: string;
+  foundPrice?: number;
+  currency?: string;
+  validUntil?: Date;
+  status: ExternalOfferCaptureStatus;
+  reviewedAt?: Date;
+  reviewedByUserId?: string;
+  publishedOfferId?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 // OperationCheckpoint: EXECUTION record generated (one per monitored
 // RoutePoint, i.e. checkpointRequired = true) when a
 // TransportOperation is created. checkpointType is snapshotted from
@@ -427,6 +571,10 @@ export interface OperationCheckpoint {
   checkpointType: CheckpointType;
   arrivalCheckedAt?: Date;
   departureCheckedAt?: Date;
+  arrivalConfirmedByUserId?: string;
+  departureConfirmedByUserId?: string;
+  arrivalOperationalStaffId?: string;
+  departureOperationalStaffId?: string;
   notes?: string;
   location?: string;
   createdAt: Date;
@@ -438,6 +586,182 @@ export interface OperationCheckpoint {
 // computed at read time and never persisted.
 export interface OperationCheckpointWithExpected extends OperationCheckpoint {
   expectedAt?: Date;
+  routePointName?: string;
+}
+
+// ============================================================
+// COMMERCIAL COCKPIT (migration 008_commercial_cockpit.sql)
+// Additive-only. CommercialOpportunity.stage is a separate, independent
+// mutable lifecycle -- never derived from or written back to
+// Wish.status / Proposal.status / Sale.status.
+// ============================================================
+
+export enum CommercialStage {
+  PROSPECTING = 'PROSPECTING',
+  INTEREST = 'INTEREST',
+  QUOTE = 'QUOTE',
+  PROPOSAL_SENT = 'PROPOSAL_SENT',
+  WAITING_CUSTOMER = 'WAITING_CUSTOMER',
+  NEGOTIATION = 'NEGOTIATION',
+  WON = 'WON',
+  POST_SALE = 'POST_SALE',
+  LOST = 'LOST',
+}
+
+export const CLOSED_COMMERCIAL_STAGES: readonly CommercialStage[] = [
+  CommercialStage.WON,
+  CommercialStage.LOST,
+];
+
+export enum CommercialTaskType {
+  FOLLOW_UP = 'FOLLOW_UP',
+  CALL = 'CALL',
+  POST_SALE = 'POST_SALE',
+  OTHER = 'OTHER',
+}
+
+export enum InteractionChannel {
+  PHONE = 'PHONE',
+  WHATSAPP = 'WHATSAPP',
+  EMAIL = 'EMAIL',
+  IN_PERSON = 'IN_PERSON',
+  OTHER = 'OTHER',
+}
+
+export enum InteractionDirection {
+  INBOUND = 'INBOUND',
+  OUTBOUND = 'OUTBOUND',
+}
+
+export interface CommercialOpportunity {
+  id: string;
+  agencyId: string;
+  customerId: string;
+  // Read-model convenience field: the customer's display name, resolved
+  // server-side via a join in listOpportunities so the UI never has to
+  // resolve a raw customerId with an N-requests-per-card pattern. Only
+  // present on read paths that join it; never written to storage.
+  customerName?: string;
+  wishId?: string;
+  proposalId?: string;
+  saleId?: string;
+  responsibleUserId?: string;
+  destination?: string;
+  tripDateFrom?: Date;
+  tripDateTo?: Date;
+  expectedValue?: number;
+  // DEPRECATED: retained only as a read-only historical artifact after
+  // migration 009_configurable_pipelines.sql moved the live lifecycle to
+  // pipelineId/stageId. Never written to by any route after 008. See that
+  // migration's header comment for the "keep vs drop" rationale.
+  stage: CommercialStage;
+  pipelineId: string;
+  stageId: string;
+  nextActionAt?: Date;
+  lastInteractionAt?: Date;
+  lostReason?: string;
+  createdAt: Date;
+  updatedAt: Date;
+  // Additive attribution columns from migration
+  // 014_offer_growth_foundation.sql (Offer & Growth Engine J/K). Never
+  // touches existing semantics above -- populated only when an
+  // opportunity originates from Engagement/Automation.
+  sourceChannel?: string;
+  campaignId?: string;
+  publicationId?: string;
+  offerId?: string;
+  automationId?: string;
+}
+
+// ============================================================
+// CONFIGURABLE MULTI-PIPELINE (migration 009_configurable_pipelines.sql)
+// ============================================================
+
+export enum PipelineStageColor {
+  NEUTRAL = 'NEUTRAL',
+  BLUE = 'BLUE',
+  YELLOW = 'YELLOW',
+  ORANGE = 'ORANGE',
+  RED = 'RED',
+  GREEN = 'GREEN',
+  PURPLE = 'PURPLE',
+}
+
+export enum PipelineStageVisualLevel {
+  NORMAL = 'NORMAL',
+  ATTENTION = 'ATTENTION',
+  SUCCESS = 'SUCCESS',
+}
+
+export interface Pipeline {
+  id: string;
+  agencyId: string;
+  name: string;
+  description?: string;
+  active: boolean;
+  notificationsEnabled: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface PipelineStage {
+  id: string;
+  agencyId: string;
+  pipelineId: string;
+  name: string;
+  sequence: number;
+  colorKey: PipelineStageColor;
+  visualLevel: PipelineStageVisualLevel;
+  active: boolean;
+  notificationsEnabled: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Grants a specific user explicit visibility into a specific pipeline.
+// DEFAULT-OPEN-UNTIL-RESTRICTED: a pipeline with ZERO PipelineAccess rows
+// is visible to every agency staff member (OWNER/ADMIN always see every
+// pipeline regardless of grants). Once at least one PipelineAccess row
+// exists for a pipeline, only OWNER/ADMIN plus the explicitly granted
+// userIds may see it. See services/api/src/pipeline-config.ts
+// resolveVisiblePipelineAccess() for the enforcement point.
+export interface PipelineAccess {
+  id: string;
+  agencyId: string;
+  pipelineId: string;
+  userId: string;
+  createdAt: Date;
+}
+
+export interface CommercialTask {
+  id: string;
+  agencyId: string;
+  customerId: string;
+  opportunityId?: string;
+  assignedUserId: string;
+  type: CommercialTaskType;
+  title: string;
+  dueAt: Date;
+  completedAt?: Date;
+  notes?: string;
+  createdBy: string;
+  createdAt: Date;
+}
+
+export interface CustomerInteraction {
+  id: string;
+  agencyId: string;
+  customerId: string;
+  opportunityId?: string;
+  proposalId?: string;
+  saleId?: string;
+  userId: string;
+  channel: InteractionChannel;
+  direction: InteractionDirection;
+  occurredAt: Date;
+  summary: string;
+  nextActionAt?: Date;
+  createdAt: Date;
 }
 
 // ============================================================
@@ -450,3 +774,497 @@ export type CreateInput<T> = Omit<T, 'id' | 'agencyId' | 'createdAt' | 'updatedA
 export type UpdateInput<T> = Partial<
   Omit<T, 'id' | 'agencyId' | 'createdAt' | 'updatedAt'>
 >;
+
+// ============================================================
+// OFFER & GROWTH ENGINE (migration 014_offer_growth_foundation.sql)
+// Batch 04 backend foundation. See docs/adr/ADR-OFFER-GROWTH-001 and
+// docs/offer-growth/*.md for the architecture contract this implements.
+// No Creative Studio visual editor / no real Meta/WhatsApp/Google SDKs.
+// ============================================================
+
+export enum AssetType {
+  IMAGE = 'IMAGE',
+  VIDEO = 'VIDEO',
+  LOGO = 'LOGO',
+  ICON = 'ICON',
+  DOCUMENT = 'DOCUMENT',
+}
+
+export enum AssetSourceType {
+  PESCADOR = 'PESCADOR',
+  UPLOAD = 'UPLOAD',
+  AGENCY_LIBRARY = 'AGENCY_LIBRARY',
+  SUPPLIER = 'SUPPLIER',
+  GENERATED = 'GENERATED',
+  EXTERNAL_CONNECTOR = 'EXTERNAL_CONNECTOR',
+}
+
+export interface Asset {
+  id: string;
+  agencyId: string;
+  type: AssetType;
+  source: AssetSourceType;
+  sourceConnector?: string;
+  sourceSupplier?: string;
+  sourceOriginalUrl?: string;
+  sourceLicense?: string;
+  sourceAuthor?: string;
+  sourceDedupeHash?: string;
+  sourceUsageRestrictions?: string;
+  sourceCaptureId?: string;
+  metaWidth?: number;
+  metaHeight?: number;
+  metaDurationSeconds?: number;
+  metaMimeType?: string;
+  metaSizeBytes?: number;
+  metaLanguage?: string;
+  metaTags: string[];
+  metaSafeArea?: unknown;
+  metaVariants: unknown[];
+  storageUrl?: string;
+  localReference?: string;
+  createdByUserId?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export enum CampaignStatus {
+  DRAFT = 'DRAFT',
+  SCHEDULED = 'SCHEDULED',
+  ACTIVE = 'ACTIVE',
+  PAUSED = 'PAUSED',
+  FINISHED = 'FINISHED',
+  CANCELLED = 'CANCELLED',
+}
+
+// Explicit lifecycle: only these transitions are valid (campaigns.ts
+// enforces this, never an arbitrary PATCH to any status).
+export const CAMPAIGN_STATUS_TRANSITIONS: Readonly<Record<CampaignStatus, readonly CampaignStatus[]>> = {
+  [CampaignStatus.DRAFT]: [CampaignStatus.SCHEDULED, CampaignStatus.CANCELLED],
+  [CampaignStatus.SCHEDULED]: [CampaignStatus.ACTIVE, CampaignStatus.CANCELLED],
+  [CampaignStatus.ACTIVE]: [CampaignStatus.PAUSED, CampaignStatus.FINISHED, CampaignStatus.CANCELLED],
+  [CampaignStatus.PAUSED]: [CampaignStatus.ACTIVE],
+  [CampaignStatus.FINISHED]: [],
+  [CampaignStatus.CANCELLED]: [],
+};
+
+export interface Campaign {
+  id: string;
+  agencyId: string;
+  name: string;
+  description?: string;
+  startsAt?: Date;
+  endsAt?: Date;
+  publicationStartsAt?: Date;
+  publicationEndsAt?: Date;
+  timezone: string;
+  status: CampaignStatus;
+  createdByUserId?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export enum PublicationStatus {
+  DRAFT = 'DRAFT',
+  SCHEDULED = 'SCHEDULED',
+  PUBLISHING = 'PUBLISHING',
+  PUBLISHED = 'PUBLISHED',
+  FAILED = 'FAILED',
+  CANCELLED = 'CANCELLED',
+  ARCHIVED = 'ARCHIVED',
+}
+
+export const PUBLICATION_STATUS_TRANSITIONS: Readonly<Record<PublicationStatus, readonly PublicationStatus[]>> = {
+  [PublicationStatus.DRAFT]: [PublicationStatus.SCHEDULED, PublicationStatus.CANCELLED],
+  [PublicationStatus.SCHEDULED]: [PublicationStatus.PUBLISHING, PublicationStatus.CANCELLED],
+  [PublicationStatus.PUBLISHING]: [PublicationStatus.PUBLISHED, PublicationStatus.FAILED],
+  [PublicationStatus.PUBLISHED]: [PublicationStatus.ARCHIVED],
+  [PublicationStatus.FAILED]: [PublicationStatus.SCHEDULED, PublicationStatus.CANCELLED],
+  [PublicationStatus.CANCELLED]: [],
+  [PublicationStatus.ARCHIVED]: [],
+};
+
+export interface Publication {
+  id: string;
+  agencyId: string;
+  campaignId: string;
+  offerId: string;
+  creativeTemplateId?: string;
+  channel: string;
+  // Immutable once set. Never re-derived from a later Offer edit.
+  snapshot?: Record<string, unknown>;
+  snapshotGeneratedAt?: Date;
+  scheduledAt?: Date;
+  publishedAt?: Date;
+  status: PublicationStatus;
+  externalPublicationId?: string;
+  createdByUserId?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// PlatformFeature is plaform-controlled (Super Admin layer). Never
+// spread `if plan === X` checks -- use AgencyEntitlement instead.
+export enum PlatformFeature {
+  PESCADOR = 'PESCADOR',
+  CREATIVE_STUDIO = 'CREATIVE_STUDIO',
+  CAMPAIGNS = 'CAMPAIGNS',
+  SOCIAL_PUBLISHING = 'SOCIAL_PUBLISHING',
+  SOCIAL_AUTOMATION = 'SOCIAL_AUTOMATION',
+  // Inert placeholders -- not wired to any capability in this batch.
+  WHATSAPP = 'WHATSAPP',
+  AI_ASSISTANT = 'AI_ASSISTANT',
+  ADVANCED_ANALYTICS = 'ADVANCED_ANALYTICS',
+  GDS = 'GDS',
+}
+
+export interface AgencyEntitlementLimits {
+  executionsPerMonth?: number;
+  automations?: number;
+  publications?: number;
+  storage?: number;
+  connectedChannels?: number;
+  activeCampaigns?: number;
+  generatedAssets?: number;
+}
+
+export interface AgencyEntitlement {
+  id: string;
+  agencyId: string;
+  feature: PlatformFeature;
+  enabled: boolean;
+  limits: AgencyEntitlementLimits;
+  updatedBy: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export enum EngagementType {
+  COMMENT = 'COMMENT',
+  MESSAGE = 'MESSAGE',
+  CLICK = 'CLICK',
+  FORM = 'FORM',
+  QR = 'QR',
+  COUPON_REQUEST = 'COUPON_REQUEST',
+}
+
+export interface Engagement {
+  id: string;
+  agencyId: string;
+  type: EngagementType;
+  channel: string;
+  campaignId?: string;
+  publicationId?: string;
+  offerId?: string;
+  // Opaque external-id string from the channel. Never trusted as
+  // internal identity.
+  externalUserId?: string;
+  customerId?: string;
+  opportunityId?: string;
+  content?: string;
+  occurredAt: Date;
+  rawPayload?: unknown;
+  createdAt: Date;
+}
+
+export enum AutomationTrigger {
+  COMMENT_KEYWORD = 'COMMENT_KEYWORD',
+  DIRECT_MESSAGE_KEYWORD = 'DIRECT_MESSAGE_KEYWORD',
+  // Inert placeholders -- not evaluated by the V1 engine.
+  FORM_SUBMITTED = 'FORM_SUBMITTED',
+  LINK_CLICKED = 'LINK_CLICKED',
+  QR_SCANNED = 'QR_SCANNED',
+  COUPON_REQUESTED = 'COUPON_REQUESTED',
+}
+
+export enum AutomationStatus {
+  DRAFT = 'DRAFT',
+  ACTIVE = 'ACTIVE',
+  PAUSED = 'PAUSED',
+  ARCHIVED = 'ARCHIVED',
+}
+
+export enum AutomationActionType {
+  PUBLIC_REPLY = 'PUBLIC_REPLY',
+  PRIVATE_MESSAGE = 'PRIVATE_MESSAGE',
+  CREATE_COUPON = 'CREATE_COUPON',
+  SEND_COUPON = 'SEND_COUPON',
+  CREATE_OPPORTUNITY = 'CREATE_OPPORTUNITY',
+  ASSIGN_AGENT = 'ASSIGN_AGENT',
+  CREATE_FOLLOWUP = 'CREATE_FOLLOWUP',
+}
+
+export interface AutomationActionPublicReply {
+  type: AutomationActionType.PUBLIC_REPLY;
+  message: string;
+}
+
+export interface AutomationActionPrivateMessage {
+  type: AutomationActionType.PRIVATE_MESSAGE;
+  message: string;
+}
+
+export interface AutomationActionCreateCoupon {
+  type: AutomationActionType.CREATE_COUPON;
+  couponTemplate: {
+    name: string;
+    type: 'FIXED_AMOUNT' | 'PERCENTAGE' | 'BENEFIT';
+    value?: number;
+    benefitDescription?: string;
+    expiresInDays?: number;
+    maxUses?: number;
+    maxUsesPerCustomer?: number;
+  };
+}
+
+export interface AutomationActionSendCoupon {
+  type: AutomationActionType.SEND_COUPON;
+  couponId?: string;
+  deliveryChannel?: string;
+}
+
+export interface AutomationActionCreateOpportunity {
+  type: AutomationActionType.CREATE_OPPORTUNITY;
+  pipelineId?: string;
+  stageId?: string;
+}
+
+export interface AutomationActionAssignAgent {
+  type: AutomationActionType.ASSIGN_AGENT;
+  userId: string;
+}
+
+export interface AutomationActionCreateFollowup {
+  type: AutomationActionType.CREATE_FOLLOWUP;
+  title: string;
+  dueInHours?: number;
+}
+
+export type AutomationAction =
+  | AutomationActionPublicReply
+  | AutomationActionPrivateMessage
+  | AutomationActionCreateCoupon
+  | AutomationActionSendCoupon
+  | AutomationActionCreateOpportunity
+  | AutomationActionAssignAgent
+  | AutomationActionCreateFollowup;
+
+export interface Automation {
+  id: string;
+  agencyId: string;
+  name: string;
+  trigger: AutomationTrigger;
+  status: AutomationStatus;
+  channel?: string;
+  campaignId?: string;
+  publicationId?: string;
+  keyword?: string;
+  caseSensitive: boolean;
+  actions: AutomationAction[];
+  validFrom?: Date;
+  validUntil?: Date;
+  cooldownSeconds: number;
+  maxExecutions?: number;
+  maxExecutionsPerExternalUser?: number;
+  createdByUserId?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface AutomationExecution {
+  id: string;
+  agencyId: string;
+  automationId: string;
+  engagementId?: string;
+  channel: string;
+  externalUserId: string;
+  normalizedKeyword: string;
+  publicationId: string;
+  executedAt: Date;
+  result?: unknown;
+}
+
+export enum CouponType {
+  FIXED_AMOUNT = 'FIXED_AMOUNT',
+  PERCENTAGE = 'PERCENTAGE',
+  BENEFIT = 'BENEFIT',
+}
+
+export enum CouponGrantStatus {
+  ISSUED = 'ISSUED',
+  DELIVERED = 'DELIVERED',
+  REDEEMED = 'REDEEMED',
+  EXPIRED = 'EXPIRED',
+  REVOKED = 'REVOKED',
+}
+
+export interface Coupon {
+  id: string;
+  agencyId: string;
+  code: string;
+  name: string;
+  type: CouponType;
+  value?: number;
+  benefitDescription?: string;
+  startsAt?: Date;
+  expiresAt?: Date;
+  maxUses?: number;
+  maxUsesPerCustomer?: number;
+  campaignId?: string;
+  offerId?: string;
+  active: boolean;
+  createdByUserId?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface CouponGrant {
+  id: string;
+  agencyId: string;
+  couponId: string;
+  campaignId?: string;
+  publicationId?: string;
+  automationId?: string;
+  customerId?: string;
+  externalUserId?: string;
+  issuedAt: Date;
+  expiresAt?: Date;
+  deliveryChannel?: string;
+  status: CouponGrantStatus;
+  createdAt: Date;
+}
+
+export interface CouponRedemption {
+  id: string;
+  agencyId: string;
+  couponId: string;
+  grantId?: string;
+  customerId: string;
+  proposalId?: string;
+  saleId?: string;
+  amountApplied?: number;
+  redeemedAt: Date;
+  reversedAt?: Date;
+  recordedByUserId?: string;
+  createdAt: Date;
+}
+
+export enum ConnectorActionType {
+  PUBLIC_REPLY = 'PUBLIC_REPLY',
+  PRIVATE_MESSAGE = 'PRIVATE_MESSAGE',
+  PUBLISH = 'PUBLISH',
+  UPDATE_PUBLICATION = 'UPDATE_PUBLICATION',
+}
+
+export enum ConnectorActionStatus {
+  PENDING = 'PENDING',
+  SENT = 'SENT',
+  FAILED = 'FAILED',
+}
+
+export interface ConnectorAction {
+  id: string;
+  agencyId: string;
+  channel: string;
+  type: ConnectorActionType;
+  automationId?: string;
+  publicationId?: string;
+  engagementId?: string;
+  externalUserId?: string;
+  payload: Record<string, unknown>;
+  status: ConnectorActionStatus;
+  externalRef?: string;
+  errorMessage?: string;
+  createdAt: Date;
+  sentAt?: Date;
+}
+
+export interface OfferGrowthAuditLogEntry {
+  id: string;
+  agencyId: string;
+  actorUserId?: string;
+  action: string;
+  entityType: string;
+  entityId?: string;
+  metadata: Record<string, unknown>;
+  createdAt: Date;
+}
+
+// ------------------------------------------------------------
+// RBAC permission mapping (entitlements.md). Not a new UserRole -- these
+// map onto the existing UserRole hierarchy via requireRole() in
+// entitlements.ts / automations.ts / campaigns.ts / etc. Order of
+// authorization is ALWAYS: entitlement check first, then RBAC check.
+// ------------------------------------------------------------
+export enum OfferGrowthPermission {
+  CAMPAIGN_READ = 'campaign.read',
+  CAMPAIGN_WRITE = 'campaign.write',
+  CAMPAIGN_PUBLISH = 'campaign.publish',
+  CREATIVE_READ = 'creative.read',
+  CREATIVE_WRITE = 'creative.write',
+  AUTOMATION_READ = 'automation.read',
+  AUTOMATION_WRITE = 'automation.write',
+  AUTOMATION_ACTIVATE = 'automation.activate',
+  COUPON_MANAGE = 'coupon.manage',
+  CONNECTOR_CONFIGURE = 'connector.configure',
+  ANALYTICS_READ = 'analytics.read',
+}
+
+// ------------------------------------------------------------
+// Channel Connector contract (channel-connectors.md), adapted to repo
+// TypeScript conventions. No real Meta/WhatsApp/Google SDK -- see
+// connectors/mock-connector.ts for the one real internal test adapter.
+// ------------------------------------------------------------
+export interface ChannelCapabilities {
+  canPublish: boolean;
+  canUpdatePublication: boolean;
+  canReceiveComments: boolean;
+  canReceiveMessages: boolean;
+  canReceiveLeads: boolean;
+  canTrackClicks: boolean;
+  canReceiveEngagement: boolean;
+}
+
+export interface ConnectorPublishInput {
+  agencyId: string;
+  publicationId: string;
+  channel: string;
+  snapshot: Record<string, unknown>;
+}
+
+export interface ConnectorPublishResult {
+  externalPublicationId: string;
+  publishedAt: Date;
+}
+
+export interface ConnectorUpdatePublicationInput {
+  agencyId: string;
+  publicationId: string;
+  externalPublicationId: string;
+  snapshot: Record<string, unknown>;
+}
+
+export interface ConnectorEvent {
+  agencyId: string;
+  channel: string;
+  type: EngagementType;
+  externalUserId?: string;
+  publicationExternalId?: string;
+  content?: string;
+  occurredAt: Date;
+  rawPayload?: unknown;
+}
+
+export interface ConnectorValidationResult {
+  valid: boolean;
+  errors?: string[];
+}
+
+export interface ChannelConnector {
+  channel: string;
+  capabilities: ChannelCapabilities;
+  publish(input: ConnectorPublishInput): Promise<ConnectorPublishResult>;
+  updatePublication(input: ConnectorUpdatePublicationInput): Promise<ConnectorPublishResult>;
+  receiveEngagement(event: ConnectorEvent): Promise<Omit<Engagement, 'id' | 'createdAt'>>;
+  validateConfiguration(config: unknown): Promise<ConnectorValidationResult>;
+}

@@ -19,9 +19,23 @@ vi.mock('../lib/api', () => {
   return {
     getCustomer: vi.fn(),
     updateCustomer: vi.fn(),
+    listWishes: vi.fn().mockResolvedValue([]),
+    listProposals: vi.fn().mockResolvedValue([]),
+    listSales: vi.fn().mockResolvedValue([]),
+    listBookings: vi.fn().mockResolvedValue([]),
+    listReceivables: vi.fn().mockResolvedValue([]),
+    listTrips: vi.fn().mockResolvedValue([]),
     ApiError: MockApiError,
   };
 });
+
+vi.mock('../lib/commercialApi', () => ({
+  listOpportunities: vi.fn().mockResolvedValue({ opportunities: [], total: 0 }),
+  listInteractions: vi.fn().mockResolvedValue({ interactions: [], total: 0 }),
+  listTasks: vi.fn().mockResolvedValue({ tasks: [], total: 0 }),
+  listPipelines: vi.fn().mockResolvedValue([]),
+  listStages: vi.fn().mockResolvedValue([]),
+}));
 
 afterEach(() => {
   cleanup();
@@ -156,6 +170,62 @@ describe('CustomerEditPage', () => {
 
     resolvePromise(baseCustomer);
     await waitFor(() => expect(updateCustomer).toHaveBeenCalledTimes(1));
+  });
+
+  it('loads and pre-fills cpf, passport, address, and notes', async () => {
+    vi.mocked(getCustomer).mockResolvedValue({
+      ...baseCustomer,
+      cpf: '123.456.789-00',
+      passport: 'AB123456',
+      address: { line: 'Rua Teste, 100' },
+      notes: 'Prefere janela',
+    });
+    renderRouted();
+
+    expect(await screen.findByLabelText(/CPF/)).toHaveValue('123.456.789-00');
+    expect(screen.getByLabelText(/Passaporte/)).toHaveValue('AB123456');
+    expect(screen.getByLabelText(/Endereço/)).toHaveValue('Rua Teste, 100');
+    expect(screen.getByLabelText(/Notas/)).toHaveValue('Prefere janela');
+  });
+
+  it('submitting cpf, passport, address, and notes sends them in the payload', async () => {
+    vi.mocked(getCustomer).mockResolvedValue(baseCustomer);
+    vi.mocked(updateCustomer).mockResolvedValue(baseCustomer);
+    renderRouted();
+
+    await screen.findByLabelText('Nome');
+    fireEvent.change(screen.getByLabelText(/CPF/), { target: { value: '123.456.789-00' } });
+    fireEvent.change(screen.getByLabelText(/Passaporte/), { target: { value: 'AB123456' } });
+    fireEvent.change(screen.getByLabelText(/Endereço/), { target: { value: 'Rua Teste, 100' } });
+    fireEvent.change(screen.getByLabelText(/Notas/), { target: { value: 'Prefere janela' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar' }));
+
+    await waitFor(() => expect(updateCustomer).toHaveBeenCalledTimes(1));
+    expect(updateCustomer).toHaveBeenCalledWith('c1', {
+      name: 'Maria Silva',
+      email: 'maria@example.com',
+      phone: '+55 11 90000-0000',
+      cpf: '123.456.789-00',
+      passport: 'AB123456',
+      address: { line: 'Rua Teste, 100' },
+      notes: 'Prefere janela',
+    });
+  });
+
+  it('409 conflict on cpf/passport uniqueness shows the backend safe message', async () => {
+    vi.mocked(getCustomer).mockResolvedValue(baseCustomer);
+    vi.mocked(updateCustomer).mockRejectedValue(
+      new ApiError('A customer with this CPF or email already exists', 'CONFLICT', 409),
+    );
+    renderRouted();
+
+    await screen.findByLabelText('Nome');
+    fireEvent.change(screen.getByLabelText(/CPF/), { target: { value: '999.999.999-99' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar' }));
+
+    expect(
+      await screen.findByText('A customer with this CPF or email already exists'),
+    ).toBeInTheDocument();
   });
 
   it('cancel does not call updateCustomer, navigates back to details', async () => {

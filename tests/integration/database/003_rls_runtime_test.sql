@@ -42,6 +42,73 @@ DECLARE
   v_count INTEGER;
 BEGIN
   SELECT COUNT(*) INTO v_count
+  FROM audit_logs
+  WHERE agency_id = '20000000-0000-4000-8000-000000000001';
+
+  IF v_count = 0 THEN
+    PERFORM pg_temp.local_record_rls_result('RLS SELECT Audit Log B while tenant A', 'ZERO', 'ZERO');
+  ELSE
+    PERFORM pg_temp.local_record_rls_result('RLS SELECT Audit Log B while tenant A', 'ZERO', 'VISIBLE', 'Rows: ' || v_count::TEXT);
+  END IF;
+END;
+$$;
+
+DO $$
+BEGIN
+  INSERT INTO audit_logs
+    (agency_id, actor_type, actor_id, event_type, entity_type, entity_id, outcome, metadata)
+  VALUES
+    ('10000000-0000-4000-8000-000000000001', 'USER',
+     '11000000-0000-4000-8000-000000000001', 'PAYMENT_RECORDED',
+     'payment', 'audit-payment-a', 'SUCCESS', '{}'::jsonb);
+  PERFORM pg_temp.local_record_rls_result('RLS INSERT Audit Log agency A', 'PASS', 'PASS');
+EXCEPTION WHEN OTHERS THEN
+  PERFORM pg_temp.local_record_rls_result('RLS INSERT Audit Log agency A', 'PASS', 'FAIL', SQLSTATE || ' ' || SQLERRM);
+END;
+$$;
+
+DO $$
+BEGIN
+  INSERT INTO audit_logs
+    (agency_id, actor_type, actor_id, event_type, entity_type, entity_id, outcome, metadata)
+  VALUES
+    ('20000000-0000-4000-8000-000000000001', 'USER',
+     '21000000-0000-4000-8000-000000000001', 'PAYMENT_RECORDED',
+     'payment', 'audit-payment-b-runtime', 'SUCCESS', '{}'::jsonb);
+  PERFORM pg_temp.local_record_rls_result('RLS INSERT Audit Log agency B while tenant A', 'FAIL', 'PASS', 'Unexpectedly inserted');
+EXCEPTION WHEN OTHERS THEN
+  PERFORM pg_temp.local_record_rls_result('RLS INSERT Audit Log agency B while tenant A', 'FAIL', 'FAIL', SQLSTATE || ' ' || SQLERRM);
+END;
+$$;
+
+DO $$
+BEGIN
+  UPDATE audit_logs
+  SET outcome = 'FAILURE'
+  WHERE agency_id = '10000000-0000-4000-8000-000000000001'
+    AND entity_id = 'audit-payment-a';
+  PERFORM pg_temp.local_record_rls_result('Runtime cannot UPDATE Audit Log', 'FAIL', 'PASS', 'Unexpectedly updated');
+EXCEPTION WHEN OTHERS THEN
+  PERFORM pg_temp.local_record_rls_result('Runtime cannot UPDATE Audit Log', 'FAIL', 'FAIL', SQLSTATE || ' ' || SQLERRM);
+END;
+$$;
+
+DO $$
+BEGIN
+  DELETE FROM audit_logs
+  WHERE agency_id = '10000000-0000-4000-8000-000000000001'
+    AND entity_id = 'audit-payment-a';
+  PERFORM pg_temp.local_record_rls_result('Runtime cannot DELETE Audit Log', 'FAIL', 'PASS', 'Unexpectedly deleted');
+EXCEPTION WHEN OTHERS THEN
+  PERFORM pg_temp.local_record_rls_result('Runtime cannot DELETE Audit Log', 'FAIL', 'FAIL', SQLSTATE || ' ' || SQLERRM);
+END;
+$$;
+
+DO $$
+DECLARE
+  v_count INTEGER;
+BEGIN
+  SELECT COUNT(*) INTO v_count
   FROM customers
   WHERE agency_id = '20000000-0000-4000-8000-000000000001';
 

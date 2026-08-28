@@ -92,6 +92,38 @@ describe.sequential('Customer portal HTTP routes (happy path)', () => {
     await app.close();
   });
 
+  it('GET /customer-api/me includes address when the customer has one', async () => {
+    await adminPool.query(
+      `UPDATE customers SET address = $1 WHERE id = $2`,
+      [JSON.stringify({ street: 'Rua Teste', city: 'Sao Paulo' }), customerId],
+    );
+
+    const app = buildTestApp();
+    const response = await app.inject({
+      method: 'GET',
+      url: '/customer-api/me',
+      headers: { 'x-test-customer': 'ok' },
+    });
+    expect(response.statusCode).toBe(200);
+    const body = response.json<{ profile: { address: Record<string, unknown> | null } }>();
+    expect(body.profile.address).toEqual({ street: 'Rua Teste', city: 'Sao Paulo' });
+    await app.close();
+  });
+
+  it('GET /customer-api/agency-contact returns a safe agency contact projection', async () => {
+    const app = buildTestApp();
+    const response = await app.inject({
+      method: 'GET',
+      url: '/customer-api/agency-contact',
+      headers: { 'x-test-customer': 'ok' },
+    });
+    expect(response.statusCode).toBe(200);
+    const body = response.json<{ agency: { name: string; email: string | null } }>();
+    expect(body.agency.name).toBe('Agency A');
+    expect(body.agency.email).toBe('agency-a@example.test');
+    await app.close();
+  });
+
   it('GET /customer-api/trips lists only this customer trips', async () => {
     await adminPool.query(
       `INSERT INTO trips (agency_id, customer_id, name, destination, start_date, end_date)
@@ -107,6 +139,121 @@ describe.sequential('Customer portal HTTP routes (happy path)', () => {
     });
     expect(response.statusCode).toBe(200);
     expect(response.json<{ trips: unknown[] }>().trips).toHaveLength(1);
+    await app.close();
+  });
+
+  it('GET /customer-api/trips never exposes Trip.notes (internal agency notes)', async () => {
+    await adminPool.query(
+      `INSERT INTO trips (agency_id, customer_id, name, destination, start_date, end_date, notes)
+       VALUES ($1, $2, 'My Trip', 'Rio', '2026-01-01', '2026-01-05', 'internal agency note')`,
+      [agencyAId, customerId],
+    );
+
+    const app = buildTestApp();
+    const list = await app.inject({
+      method: 'GET',
+      url: '/customer-api/trips',
+      headers: { 'x-test-customer': 'ok' },
+    });
+    const trips = list.json<{ trips: Array<Record<string, unknown>> }>().trips;
+    expect(trips).toHaveLength(1);
+    expect(trips[0]).not.toHaveProperty('notes');
+    expect(JSON.stringify(trips)).not.toContain('internal agency note');
+
+    const tripId = (trips[0] as { id: string }).id;
+    const detail = await app.inject({
+      method: 'GET',
+      url: `/customer-api/trips/${tripId}`,
+      headers: { 'x-test-customer': 'ok' },
+    });
+    const detailBody = detail.json<{ trip: Record<string, unknown> }>();
+    expect(detailBody.trip).not.toHaveProperty('notes');
+    expect(JSON.stringify(detailBody.trip)).not.toContain('internal agency note');
+    await app.close();
+  });
+
+  it('GET /customer-api/bookings never exposes Booking.notes (internal agency notes)', async () => {
+    const route = await adminPool.query<{ id: string }>(
+      `INSERT INTO routes (agency_id, origin, destination) VALUES ($1, 'A', 'B') RETURNING id`,
+      [agencyAId],
+    );
+    const product = await adminPool.query<{ id: string }>(
+      `INSERT INTO transport_products (agency_id, name, trip_type, outbound_route_id, price)
+       VALUES ($1, 'Product', 'ONE_WAY', $2, 100) RETURNING id`,
+      [agencyAId, route.rows[0]!.id],
+    );
+    const departure = await adminPool.query<{ id: string }>(
+      `INSERT INTO scheduled_departures (agency_id, product_id, departure_at, capacity, service_type)
+       VALUES ($1, $2, '2026-07-01T10:00:00Z', 40, 'OWN') RETURNING id`,
+      [agencyAId, product.rows[0]!.id],
+    );
+    const booking = await adminPool.query<{ id: string }>(
+      `INSERT INTO bookings (agency_id, booker_customer_id, trip_type, outbound_departure_id, notes)
+       VALUES ($1, $2, 'ONE_WAY', $3, 'internal booking note') RETURNING id`,
+      [agencyAId, customerId, departure.rows[0]!.id],
+    );
+
+    const app = buildTestApp();
+
+    // List endpoint
+    const list = await app.inject({
+      method: 'GET',
+      url: '/customer-api/bookings',
+      headers: { 'x-test-customer': 'ok' },
+    });
+    const bookings = list.json<{ bookings: Array<Record<string, unknown>> }>().bookings;
+    expect(bookings).toHaveLength(1);
+    expect(bookings[0]).not.toHaveProperty('notes');
+    expect(JSON.stringify(bookings)).not.toContain('internal booking note');
+
+    // Detail endpoint
+    const detail = await app.inject({
+      method: 'GET',
+      url: `/customer-api/bookings/${booking.rows[0]!.id}`,
+      headers: { 'x-test-customer': 'ok' },
+    });
+    const detailBody = detail.json<{ booking: Record<string, unknown> }>();
+    expect(detailBody.booking).not.toHaveProperty('notes');
+    expect(JSON.stringify(detailBody.booking)).not.toContain('internal booking note');
+    await app.close();
+  });
+
+  it('GET /customer-api/bookings/:id never exposes BookingPassenger.notes (internal agency notes)', async () => {
+    const route = await adminPool.query<{ id: string }>(
+      `INSERT INTO routes (agency_id, origin, destination) VALUES ($1, 'A', 'B') RETURNING id`,
+      [agencyAId],
+    );
+    const product = await adminPool.query<{ id: string }>(
+      `INSERT INTO transport_products (agency_id, name, trip_type, outbound_route_id, price)
+       VALUES ($1, 'Product', 'ONE_WAY', $2, 100) RETURNING id`,
+      [agencyAId, route.rows[0]!.id],
+    );
+    const departure = await adminPool.query<{ id: string }>(
+      `INSERT INTO scheduled_departures (agency_id, product_id, departure_at, capacity, service_type)
+       VALUES ($1, $2, '2026-07-01T10:00:00Z', 40, 'OWN') RETURNING id`,
+      [agencyAId, product.rows[0]!.id],
+    );
+    const booking = await adminPool.query<{ id: string }>(
+      `INSERT INTO bookings (agency_id, booker_customer_id, trip_type, outbound_departure_id)
+       VALUES ($1, $2, 'ONE_WAY', $3) RETURNING id`,
+      [agencyAId, customerId, departure.rows[0]!.id],
+    );
+    await adminPool.query(
+      `INSERT INTO booking_passengers (agency_id, booking_id, name, notes)
+       VALUES ($1, $2, 'Passenger One', 'internal passenger note')`,
+      [agencyAId, booking.rows[0]!.id],
+    );
+
+    const app = buildTestApp();
+    const detail = await app.inject({
+      method: 'GET',
+      url: `/customer-api/bookings/${booking.rows[0]!.id}`,
+      headers: { 'x-test-customer': 'ok' },
+    });
+    const body = detail.json<{ passengers: Array<Record<string, unknown>> }>();
+    expect(body.passengers).toHaveLength(1);
+    expect(body.passengers[0]).not.toHaveProperty('notes');
+    expect(JSON.stringify(body.passengers)).not.toContain('internal passenger note');
     await app.close();
   });
 
@@ -191,6 +338,87 @@ describe.sequential('Customer portal HTTP routes (happy path)', () => {
     const body = detail.json<{ passengers: Array<{ name: string }> }>();
     expect(body.passengers).toHaveLength(1);
     expect(body.passengers[0]?.name).toBe('Passenger One');
+
+    await app.close();
+  });
+
+  it('enriches bookings with route/departure/product context and correct future semantics', async () => {
+    const route = await adminPool.query<{ id: string }>(
+      `INSERT INTO routes (agency_id, origin, destination) VALUES ($1, 'Sao Paulo', 'Rio de Janeiro') RETURNING id`,
+      [agencyAId],
+    );
+    const product = await adminPool.query<{ id: string }>(
+      `INSERT INTO transport_products (agency_id, name, trip_type, outbound_route_id, price)
+       VALUES ($1, 'Van Executiva', 'ONE_WAY', $2, 100) RETURNING id`,
+      [agencyAId, route.rows[0]!.id],
+    );
+
+    const futureDeparture = await adminPool.query<{ id: string }>(
+      `INSERT INTO scheduled_departures (agency_id, product_id, departure_at, capacity, service_type)
+       VALUES ($1, $2, now() + interval '30 days', 40, 'OWN') RETURNING id`,
+      [agencyAId, product.rows[0]!.id],
+    );
+    const pastDeparture = await adminPool.query<{ id: string }>(
+      `INSERT INTO scheduled_departures (agency_id, product_id, departure_at, capacity, service_type)
+       VALUES ($1, $2, now() - interval '30 days', 40, 'OWN') RETURNING id`,
+      [agencyAId, product.rows[0]!.id],
+    );
+    const cancelledFutureDeparture = await adminPool.query<{ id: string }>(
+      `INSERT INTO scheduled_departures (agency_id, product_id, departure_at, capacity, service_type, cancelled)
+       VALUES ($1, $2, now() + interval '30 days', 40, 'OWN', true) RETURNING id`,
+      [agencyAId, product.rows[0]!.id],
+    );
+
+    await adminPool.query(
+      `INSERT INTO bookings (agency_id, booker_customer_id, trip_type, outbound_departure_id)
+       VALUES ($1, $2, 'ONE_WAY', $3)`,
+      [agencyAId, customerId, futureDeparture.rows[0]!.id],
+    );
+    await adminPool.query(
+      `INSERT INTO bookings (agency_id, booker_customer_id, trip_type, outbound_departure_id)
+       VALUES ($1, $2, 'ONE_WAY', $3)`,
+      [agencyAId, customerId, pastDeparture.rows[0]!.id],
+    );
+    await adminPool.query(
+      `INSERT INTO bookings (agency_id, booker_customer_id, trip_type, outbound_departure_id)
+       VALUES ($1, $2, 'ONE_WAY', $3)`,
+      [agencyAId, customerId, cancelledFutureDeparture.rows[0]!.id],
+    );
+    await adminPool.query(
+      `INSERT INTO bookings (agency_id, booker_customer_id, trip_type, outbound_departure_id, cancelled)
+       VALUES ($1, $2, 'ONE_WAY', $3, true)`,
+      [agencyAId, customerId, futureDeparture.rows[0]!.id],
+    );
+
+    const app = buildTestApp();
+    const response = await app.inject({
+      method: 'GET',
+      url: '/customer-api/bookings',
+      headers: { 'x-test-customer': 'ok' },
+    });
+    expect(response.statusCode).toBe(200);
+    const bookings = response.json<{
+      bookings: Array<{
+        origin: string;
+        destination: string;
+        productName: string;
+        isFuture: boolean;
+        cancelled: boolean;
+        passengerCount: number;
+      }>;
+    }>().bookings;
+    expect(bookings).toHaveLength(4);
+    for (const booking of bookings) {
+      expect(booking.origin).toBe('Sao Paulo');
+      expect(booking.destination).toBe('Rio de Janeiro');
+      expect(booking.productName).toBe('Van Executiva');
+      expect(booking.passengerCount).toBe(0);
+    }
+    // "Future" must mean NOT cancelled AND departure in the future -- not
+    // just !cancelled. Exactly one of the four seeded bookings satisfies
+    // both conditions (own booking not cancelled, departure future and
+    // not cancelled).
+    expect(bookings.filter((b) => b.isFuture)).toHaveLength(1);
 
     await app.close();
   });

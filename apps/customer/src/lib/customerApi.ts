@@ -5,8 +5,13 @@
 // from, or is called by api.ts.
 import type { Trip } from '../types/trip';
 import type { Offer } from '../types/offer';
-import type { Booking, BookingPassenger } from '../types/booking';
-import type { CustomerProfile, CustomerProposalView } from '../types/customer-portal';
+import type { BookingPassenger } from '../types/booking';
+import type {
+  CustomerAgencyContact,
+  CustomerBookingView,
+  CustomerProfile,
+  CustomerProposalView,
+} from '../types/customer-portal';
 import { ApiError } from './api';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
@@ -82,17 +87,22 @@ export async function getMyProposal(id: string): Promise<CustomerProposalView> {
   return data.proposal;
 }
 
-export async function listMyBookings(): Promise<Booking[]> {
-  const data = await request<{ bookings: Booking[] }>('/customer-api/bookings');
+export async function listMyBookings(): Promise<CustomerBookingView[]> {
+  const data = await request<{ bookings: CustomerBookingView[] }>('/customer-api/bookings');
   return data.bookings;
 }
 
 export async function getMyBooking(
   id: string,
-): Promise<{ booking: Booking; passengers: BookingPassenger[] }> {
-  return request<{ booking: Booking; passengers: BookingPassenger[] }>(
+): Promise<{ booking: CustomerBookingView; passengers: BookingPassenger[] }> {
+  return request<{ booking: CustomerBookingView; passengers: BookingPassenger[] }>(
     `/customer-api/bookings/${encodeURIComponent(id)}`,
   );
+}
+
+export async function getMyAgencyContact(): Promise<CustomerAgencyContact> {
+  const data = await request<{ agency: CustomerAgencyContact }>('/customer-api/agency-contact');
+  return data.agency;
 }
 
 export { ApiError };

@@ -1,8 +1,16 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { OperationDetailsPage } from './OperationDetailsPage';
-import { confirmArrival, confirmDeparture, getOperation, ApiError } from '../lib/api';
+import {
+  confirmArrival,
+  confirmDeparture,
+  getOperation,
+  getDeparture,
+  getTransportProduct,
+  getRoute,
+  ApiError,
+} from '../lib/api';
 import type { OperationWithCheckpoints } from '../types/operations';
 
 vi.mock('../lib/api', () => {
@@ -19,6 +27,9 @@ vi.mock('../lib/api', () => {
     getOperation: vi.fn(),
     confirmArrival: vi.fn(),
     confirmDeparture: vi.fn(),
+    getDeparture: vi.fn(),
+    getTransportProduct: vi.fn(),
+    getRoute: vi.fn(),
     ApiError: MockApiError,
   };
 });
@@ -42,6 +53,76 @@ const baseOperation: OperationWithCheckpoints = {
   operation: { id: 'op1', agencyId: 'a1', departureId: 'd1', createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z' },
   checkpoints: [],
 };
+
+function setupHeaderMocks() {
+  vi.mocked(getDeparture).mockResolvedValue({
+    id: 'd1',
+    agencyId: 'a1',
+    productId: 'p1',
+    departureAt: '2026-06-15T10:00:00.000Z',
+    capacity: 40,
+    serviceType: 'OWN',
+    cancelled: false,
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
+  });
+  vi.mocked(getTransportProduct).mockResolvedValue({
+    id: 'p1',
+    agencyId: 'a1',
+    name: 'Expresso SP-RJ',
+    tripType: 'ONE_WAY',
+    outboundRouteId: 'r1',
+    price: 150,
+    active: true,
+    publiclyBookable: true,
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
+  });
+  vi.mocked(getRoute).mockResolvedValue({
+    id: 'r1',
+    agencyId: 'a1',
+    origin: 'Sao Paulo',
+    destination: 'Rio de Janeiro',
+    active: true,
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
+  });
+}
+
+beforeEach(() => {
+  vi.mocked(getDeparture).mockResolvedValue({
+    id: 'd1',
+    agencyId: 'a1',
+    productId: 'p1',
+    departureAt: '2026-06-15T10:00:00.000Z',
+    capacity: 40,
+    serviceType: 'OWN',
+    cancelled: false,
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
+  });
+  vi.mocked(getTransportProduct).mockResolvedValue({
+    id: 'p1',
+    agencyId: 'a1',
+    name: 'Produto Teste',
+    tripType: 'ONE_WAY',
+    outboundRouteId: 'r1',
+    price: 100,
+    active: true,
+    publiclyBookable: true,
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
+  });
+  vi.mocked(getRoute).mockResolvedValue({
+    id: 'r1',
+    agencyId: 'a1',
+    origin: 'Origem',
+    destination: 'Destino',
+    active: true,
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
+  });
+});
 
 describe('OperationDetailsPage', () => {
   it('shows a loading state initially', () => {
@@ -90,7 +171,7 @@ describe('OperationDetailsPage', () => {
       ],
     });
     renderRouted();
-    await screen.findByText(/rp1/);
+    await screen.findByText(/Ponto rp1/);
     expect(screen.getAllByRole('button', { name: 'CONFIRMAR CHEGADA' })).toHaveLength(1);
     expect(screen.getAllByRole('button', { name: 'CONFIRMAR SAÍDA' })).toHaveLength(1);
   });
@@ -198,5 +279,36 @@ describe('OperationDetailsPage', () => {
     renderRouted();
     expect(await screen.findByText('Operation not found')).toBeInTheDocument();
     void confirmDeparture;
+  });
+
+  it('displays route point name instead of raw UUID', async () => {
+    setupHeaderMocks();
+    vi.mocked(getOperation).mockResolvedValue({
+      operation: baseOperation.operation,
+      checkpoints: [
+        {
+          id: 'c1',
+          agencyId: 'a1',
+          operationId: 'op1',
+          routePointId: 'rp1',
+          routePointName: 'Terminal Guarulhos',
+          checkpointType: 'ARRIVAL',
+          createdAt: '2026-01-01T00:00:00.000Z',
+          updatedAt: '2026-01-01T00:00:00.000Z',
+        },
+      ],
+    });
+    renderRouted();
+    expect(await screen.findByText('Terminal Guarulhos')).toBeInTheDocument();
+    expect(screen.queryByText(/rp1/)).not.toBeInTheDocument();
+  });
+
+  it('shows operation header with route, product, departure, and status', async () => {
+    setupHeaderMocks();
+    vi.mocked(getOperation).mockResolvedValue(baseOperation);
+    renderRouted();
+    expect(await screen.findByText('Sao Paulo → Rio de Janeiro')).toBeInTheDocument();
+    expect(screen.getByText('Expresso SP-RJ')).toBeInTheDocument();
+    expect(screen.getByText('Operação ativa')).toBeInTheDocument();
   });
 });

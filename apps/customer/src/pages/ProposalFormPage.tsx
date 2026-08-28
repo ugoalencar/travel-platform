@@ -7,6 +7,7 @@ import type { Customer } from '../types/customer';
 import type { Offer } from '../types/offer';
 import type { Wish } from '../types/wish';
 import { Button } from '../components/ui/button';
+import { formatBRL } from '../lib/formatCurrency';
 
 interface FormFields {
   customerId: string;
@@ -163,13 +164,21 @@ export function ProposalFormPage() {
       </h1>
 
       {error && (
-        <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <div
+          role="alert"
+          aria-live="polite"
+          className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+        >
           {error}
         </div>
       )}
 
       {relationsState.status === 'error' && (
-        <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <div
+          role="alert"
+          aria-live="polite"
+          className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+        >
           {relationsState.message}
         </div>
       )}
@@ -196,7 +205,7 @@ export function ProposalFormPage() {
         >
           <div className="flex flex-col gap-1">
             <label htmlFor="proposal-customer" className="text-sm font-medium text-slate-700">
-              Cliente
+              Cliente <span aria-hidden="true">*</span>
             </label>
             <select
               id="proposal-customer"
@@ -264,7 +273,7 @@ export function ProposalFormPage() {
 
           <div className="flex flex-col gap-1">
             <label htmlFor="proposal-price" className="text-sm font-medium text-slate-700">
-              Preço proposto
+              Preço proposto <span aria-hidden="true">*</span>
             </label>
             <input
               id="proposal-price"
@@ -296,7 +305,7 @@ export function ProposalFormPage() {
 
           <div className="rounded-md border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">
             <span className="font-medium">Total (prévia):</span>{' '}
-            {total !== null ? total : '—'}
+            {total !== null ? formatBRL(total) : '—'}
             <p className="mt-1 text-xs text-slate-500">
               Prévia apenas para exibição — o servidor calcula e retorna o total oficial.
             </p>
@@ -343,6 +352,8 @@ export function ProposalFormPage() {
               rows={3}
             />
           </div>
+
+          <p className="text-xs text-slate-500">* campos obrigatórios</p>
 
           <div className="flex gap-3 pt-2">
             <Button type="submit" disabled={submitting}>

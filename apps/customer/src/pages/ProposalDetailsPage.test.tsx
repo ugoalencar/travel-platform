@@ -2,7 +2,15 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { ProposalDetailsPage } from './ProposalDetailsPage';
-import { getProposal, getCustomer, getOffer, ApiError } from '../lib/api';
+import {
+  getProposal,
+  getCustomer,
+  getOffer,
+  sendProposal,
+  acceptProposal,
+  cancelProposal,
+  ApiError,
+} from '../lib/api';
 import type { Proposal } from '../types/proposal';
 import type { Customer } from '../types/customer';
 import type { Offer } from '../types/offer';
@@ -22,6 +30,10 @@ vi.mock('../lib/api', () => {
     getCustomer: vi.fn(),
     getOffer: vi.fn(),
     getWish: vi.fn(),
+    sendProposal: vi.fn(),
+    acceptProposal: vi.fn(),
+    declineProposal: vi.fn(),
+    cancelProposal: vi.fn(),
     ApiError: MockApiError,
   };
 });
@@ -102,8 +114,8 @@ describe('ProposalDetailsPage', () => {
 
     expect(await screen.findByText('Maria Silva')).toBeInTheDocument();
     expect(screen.getByText('Pacote Paris')).toBeInTheDocument();
-    expect(screen.getByText('90')).toBeInTheDocument();
-    expect(screen.getByText('DRAFT')).toBeInTheDocument();
+    expect(screen.getByText('R$ 90,00')).toBeInTheDocument();
+    expect(screen.getByText('Rascunho')).toBeInTheDocument();
   });
 
   it('shows the optional Offer/Wish relations as absent when not present', async () => {
@@ -133,13 +145,159 @@ describe('ProposalDetailsPage', () => {
     expect(await screen.findByText('Editar proposta page')).toBeInTheDocument();
   });
 
-  it('never shows any Sale/Booking/status-transition action', async () => {
+  it('never shows a free-form status select or Sale/Booking action', async () => {
     vi.mocked(getProposal).mockResolvedValue(proposalWithoutOffer);
     vi.mocked(getCustomer).mockResolvedValue(customer);
     renderRouted();
 
     await screen.findByText('Maria Silva');
     expect(screen.queryByText(/Sale|Venda|Booking|Reserva/i)).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /Aceitar|Enviar|Cancelar Proposta/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+  });
+
+  describe('lifecycle actions', () => {
+    it('DRAFT shows Enviar and Cancelar, not Aceitar/Recusar', async () => {
+      vi.mocked(getProposal).mockResolvedValue({ ...proposalWithoutOffer, status: 'DRAFT' });
+      vi.mocked(getCustomer).mockResolvedValue(customer);
+      renderRouted();
+
+      await screen.findByText('Maria Silva');
+      expect(screen.getByRole('button', { name: 'Enviar' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Cancelar' })).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Aceitar' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Recusar' })).not.toBeInTheDocument();
+    });
+
+    it('SENT shows Aceitar, Recusar, and Cancelar, not Enviar', async () => {
+      vi.mocked(getProposal).mockResolvedValue({ ...proposalWithoutOffer, status: 'SENT' });
+      vi.mocked(getCustomer).mockResolvedValue(customer);
+      renderRouted();
+
+      await screen.findByText('Maria Silva');
+      expect(screen.getByRole('button', { name: 'Aceitar' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Recusar' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Cancelar' })).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Enviar' })).not.toBeInTheDocument();
+    });
+
+    it('ACCEPTED (terminal) shows no lifecycle actions', async () => {
+      vi.mocked(getProposal).mockResolvedValue({ ...proposalWithoutOffer, status: 'ACCEPTED' });
+      vi.mocked(getCustomer).mockResolvedValue(customer);
+      renderRouted();
+
+      await screen.findByText('Maria Silva');
+      for (const label of ['Enviar', 'Aceitar', 'Recusar', 'Cancelar']) {
+        expect(screen.queryByRole('button', { name: label })).not.toBeInTheDocument();
+      }
+    });
+
+    it('Enviar calls sendProposal without a confirm prompt and reloads', async () => {
+      vi.mocked(getProposal)
+        .mockResolvedValueOnce({ ...proposalWithoutOffer, status: 'DRAFT' })
+        .mockResolvedValueOnce({ ...proposalWithoutOffer, status: 'SENT' });
+      vi.mocked(getCustomer).mockResolvedValue(customer);
+      vi.mocked(sendProposal).mockResolvedValue({ ...proposalWithoutOffer, status: 'SENT' });
+      const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+      renderRouted();
+
+      await screen.findByText('Maria Silva');
+      fireEvent.click(screen.getByRole('button', { name: 'Enviar' }));
+
+      await screen.findByRole('button', { name: 'Aceitar' });
+      expect(sendProposal).toHaveBeenCalledWith('p1');
+      expect(confirmSpy).not.toHaveBeenCalled();
+      confirmSpy.mockRestore();
+    });
+
+    it('Cancelar asks for confirmation before calling cancelProposal', async () => {
+      vi.mocked(getProposal).mockResolvedValue({ ...proposalWithoutOffer, status: 'DRAFT' });
+      vi.mocked(getCustomer).mockResolvedValue(customer);
+      const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false);
+      renderRouted();
+
+      await screen.findByText('Maria Silva');
+      fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
+
+      expect(confirmSpy).toHaveBeenCalled();
+      expect(cancelProposal).not.toHaveBeenCalled();
+      confirmSpy.mockRestore();
+    });
+
+    it('confirming Cancelar calls cancelProposal and reloads to terminal state', async () => {
+      vi.mocked(getProposal)
+        .mockResolvedValueOnce({ ...proposalWithoutOffer, status: 'DRAFT' })
+        .mockResolvedValueOnce({ ...proposalWithoutOffer, status: 'CANCELLED' });
+      vi.mocked(getCustomer).mockResolvedValue(customer);
+      vi.mocked(cancelProposal).mockResolvedValue({ ...proposalWithoutOffer, status: 'CANCELLED' });
+      const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+      renderRouted();
+
+      await screen.findByText('Maria Silva');
+      fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
+
+      expect(cancelProposal).toHaveBeenCalledWith('p1');
+      await screen.findByText('Cancelada');
+      expect(screen.queryByRole('button', { name: 'Cancelar' })).not.toBeInTheDocument();
+      confirmSpy.mockRestore();
+    });
+
+    it('disables all lifecycle buttons while a mutation is pending', async () => {
+      vi.mocked(getProposal).mockResolvedValue({ ...proposalWithoutOffer, status: 'SENT' });
+      vi.mocked(getCustomer).mockResolvedValue(customer);
+      let resolveAccept: (value: typeof proposalWithoutOffer) => void = () => {};
+      vi.mocked(acceptProposal).mockReturnValue(
+        new Promise((resolve) => {
+          resolveAccept = resolve;
+        }),
+      );
+      const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+      renderRouted();
+
+      await screen.findByText('Maria Silva');
+      fireEvent.click(screen.getByRole('button', { name: 'Aceitar' }));
+
+      expect(await screen.findByRole('button', { name: 'Aguarde...' })).toBeDisabled();
+      expect(screen.getByRole('button', { name: 'Recusar' })).toBeDisabled();
+      expect(screen.getByRole('button', { name: 'Cancelar' })).toBeDisabled();
+
+      resolveAccept({ ...proposalWithoutOffer, status: 'ACCEPTED' });
+      confirmSpy.mockRestore();
+    });
+
+    it('maps a 409 conflict from a stale transition to a safe message', async () => {
+      vi.mocked(getProposal).mockResolvedValue({ ...proposalWithoutOffer, status: 'SENT' });
+      vi.mocked(getCustomer).mockResolvedValue(customer);
+      vi.mocked(acceptProposal).mockRejectedValue(
+        new ApiError('Cannot transition Proposal from ACCEPTED to ACCEPTED', 'CONFLICT', 409),
+      );
+      const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+      renderRouted();
+
+      await screen.findByText('Maria Silva');
+      fireEvent.click(screen.getByRole('button', { name: 'Aceitar' }));
+
+      expect(
+        await screen.findByText(
+          'Esta proposta não está mais em um estado que permite essa ação. Atualize a página.',
+        ),
+      ).toBeInTheDocument();
+      expect(screen.queryByText(/CONFLICT/)).not.toBeInTheDocument();
+      confirmSpy.mockRestore();
+    });
+
+    it('maps a 403 from an action to a safe permission message', async () => {
+      vi.mocked(getProposal).mockResolvedValue({ ...proposalWithoutOffer, status: 'DRAFT' });
+      vi.mocked(getCustomer).mockResolvedValue(customer);
+      vi.mocked(sendProposal).mockRejectedValue(new ApiError('Forbidden', 'FORBIDDEN', 403));
+      renderRouted();
+
+      await screen.findByText('Maria Silva');
+      fireEvent.click(screen.getByRole('button', { name: 'Enviar' }));
+
+      expect(
+        await screen.findByText('Você não tem permissão para alterar esta proposta.'),
+      ).toBeInTheDocument();
+      expect(screen.queryByText(/FORBIDDEN/)).not.toBeInTheDocument();
+    });
   });
 });

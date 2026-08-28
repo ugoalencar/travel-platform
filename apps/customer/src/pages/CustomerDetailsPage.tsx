@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ApiError, getCustomer } from '../lib/api';
 import type { Customer } from '../types/customer';
 import { Button } from '../components/ui/button';
+import { Customer360 } from '../components/commercial/Customer360';
 
 type LoadState =
   | { status: 'loading' }
@@ -87,6 +88,13 @@ export function CustomerDetailsPage() {
           <Field label="Passaporte" value={state.customer.passport} />
           <Field label="Notas" value={state.customer.notes} />
         </dl>
+      )}
+
+      {state.status === 'success' && (
+        <div>
+          <h2 className="mb-3 text-lg font-semibold text-slate-900">Visão 360</h2>
+          <Customer360 customerId={state.customer.id} />
+        </div>
       )}
     </div>
   );

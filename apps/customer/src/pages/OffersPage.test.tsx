@@ -80,7 +80,7 @@ describe('OffersPage', () => {
     renderRouted();
 
     expect(await screen.findByText('Pacote Paris')).toBeInTheDocument();
-    expect(screen.getByText('ACTIVE')).toBeInTheDocument();
+    expect(screen.getByText('Ativa')).toBeInTheDocument();
     expect(screen.getByText('Ofertas')).toBeInTheDocument();
     expect(screen.getByText('Detalhes')).toBeInTheDocument();
   });
@@ -132,15 +132,15 @@ describe('OffersPage', () => {
     renderRouted();
 
     expect(await screen.findByText('Pacote Verao Antigo')).toBeInTheDocument();
-    expect(screen.getByText('EXPIRED')).toBeInTheDocument();
+    expect(screen.getByText('Expirada')).toBeInTheDocument();
   });
 
   it('renders active and expired offers with visually distinguishable status text', async () => {
     vi.mocked(listOffers).mockResolvedValue([activeOffer, expiredOffer]);
     renderRouted();
 
-    expect(await screen.findByText('ACTIVE')).toBeInTheDocument();
-    expect(screen.getByText('EXPIRED')).toBeInTheDocument();
+    expect(await screen.findByText('Ativa')).toBeInTheDocument();
+    expect(screen.getByText('Expirada')).toBeInTheDocument();
   });
 
   it('viewing/listing an expired offer triggers no write call — only the GET/list fetch fires', async () => {

@@ -99,6 +99,163 @@ describe.sequential('P0 Fastify API foundation', () => {
     await app.close();
   });
 
+  it('GET /readiness returns ready after the configured dependency check succeeds', async () => {
+    const app = buildTestApp(runtimePool, {
+      readinessCheck: () => Promise.resolve(),
+    });
+
+    const response = await app.inject({ method: 'GET', url: '/readiness' });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toEqual({ status: 'ready', service: 'api' });
+
+    await app.close();
+  });
+
+  it('GET /readiness returns 503 without leaking dependency details when checks fail', async () => {
+    const app = buildTestApp(runtimePool, {
+      readinessCheck: () => Promise.reject(new Error('database password invalid')),
+    });
+
+    const response = await app.inject({ method: 'GET', url: '/readiness' });
+
+    expect(response.statusCode).toBe(503);
+    expect(response.json()).toEqual({ status: 'not_ready', service: 'api' });
+    expect(response.body).not.toContain('password');
+
+    await app.close();
+  });
+
+  it('rate limits repeated write requests by route and client address', async () => {
+    const app = buildTestApp(runtimePool, {
+      rateLimit: { windowMs: 60_000, max: 1 },
+    });
+
+    const first = await app.inject({
+      method: 'POST',
+      url: '/__test/rate-limit-proof',
+      headers: { 'x-test-principal': 'a' },
+    });
+    const second = await app.inject({
+      method: 'POST',
+      url: '/__test/rate-limit-proof',
+      headers: { 'x-test-principal': 'a' },
+    });
+
+    expect(first.statusCode).toBe(200);
+    expect(second.statusCode).toBe(429);
+    expect(second.headers['retry-after']).toBeDefined();
+    expect(second.json()).toEqual({
+      error: 'Too many requests',
+      code: 'RATE_LIMITED',
+    });
+
+    await app.close();
+  });
+
+  it('applies a class-specific limit instead of the legacy global write limit', async () => {
+    const app = buildTestApp(runtimePool, {
+      rateLimit: {
+        windowMs: 60_000,
+        max: 300,
+        classLimits: {
+          STAFF_WRITE: { windowMs: 60_000, max: 1 },
+        },
+      },
+    });
+
+    const first = await app.inject({
+      method: 'POST',
+      url: '/__test/rate-limit-proof',
+      headers: { 'x-test-principal': 'a' },
+    });
+    const second = await app.inject({
+      method: 'POST',
+      url: '/__test/rate-limit-proof',
+      headers: { 'x-test-principal': 'a' },
+    });
+
+    expect(first.statusCode).toBe(200);
+    expect(second.statusCode).toBe(429);
+
+    await app.close();
+  });
+
+  it('returns a generic 429 body and a Retry-After header, never leaking limiter internals', async () => {
+    const app = buildTestApp(runtimePool, {
+      rateLimit: {
+        classLimits: {
+          STAFF_WRITE: { windowMs: 60_000, max: 1 },
+        },
+      },
+    });
+
+    await app.inject({
+      method: 'POST',
+      url: '/__test/rate-limit-proof',
+      headers: { 'x-test-principal': 'a' },
+    });
+    const blocked = await app.inject({
+      method: 'POST',
+      url: '/__test/rate-limit-proof',
+      headers: { 'x-test-principal': 'a' },
+    });
+
+    expect(blocked.statusCode).toBe(429);
+    expect(blocked.headers['retry-after']).toMatch(/^\d+$/);
+    expect(blocked.json()).toEqual({ error: 'Too many requests', code: 'RATE_LIMITED' });
+
+    await app.close();
+  });
+
+  it('refuses to start rate limiting in production without an injected shared store', async () => {
+    const { buildApp } = await import('../src/app');
+
+    expect(() =>
+      buildApp({
+        authProvider: { authenticate: () => Promise.resolve(null) },
+        validateUserAgencyAccess: () => Promise.resolve(false),
+        database: createDatabaseRuntime(runtimePool),
+        rateLimit: {
+          environment: { NODE_ENV: 'production', RATE_LIMIT_STORE: 'external' },
+          // Intentionally no `store` injected -- production must fail closed
+          // rather than silently fall back to a process-local counter that
+          // would not be shared across replicas/workers.
+        },
+      })
+    ).toThrow(/HUMAN INFRASTRUCTURE DECISION REQUIRED/);
+  });
+
+  it('does not let a spoofed X-Forwarded-For header evade or smear the per-IP abuse bucket', async () => {
+    const app = buildTestApp(runtimePool, {
+      rateLimit: {
+        classLimits: {
+          STAFF_WRITE: { windowMs: 60_000, max: 1 },
+        },
+      },
+    });
+
+    // trustProxy is intentionally left at Fastify's default (false), so
+    // request.ip must come from the socket, never from a client-controlled
+    // header -- otherwise an attacker could rotate X-Forwarded-For on every
+    // request to bypass per-IP throttling entirely.
+    const first = await app.inject({
+      method: 'POST',
+      url: '/__test/rate-limit-proof',
+      headers: { 'x-test-principal': 'a', 'x-forwarded-for': '203.0.113.5' },
+    });
+    const second = await app.inject({
+      method: 'POST',
+      url: '/__test/rate-limit-proof',
+      headers: { 'x-test-principal': 'a', 'x-forwarded-for': '203.0.113.99' },
+    });
+
+    expect(first.statusCode).toBe(200);
+    expect(second.statusCode).toBe(429);
+
+    await app.close();
+  });
+
   it('GET /me returns the authenticated principal inside tenant context', async () => {
     const app = buildTestApp(runtimePool);
 
@@ -221,7 +378,7 @@ describe.sequential('P0 Fastify API foundation', () => {
 
     const rows = await adminPool.query<{ matches: string }>(
       'SELECT COUNT(*)::TEXT AS matches FROM offers WHERE name = $1',
-      ['Rollback Probe'],
+      ['Rollback Probe']
     );
     expect(rows.rows[0]?.matches).toBe('0');
 
@@ -265,7 +422,7 @@ describe.sequential('P0 Fastify API foundation', () => {
             headers: { 'x-test-principal': principal },
           })
           .then((response) => ({ principal, response }));
-      }),
+      })
     );
 
     for (const { principal, response } of results) {
@@ -386,22 +543,23 @@ describe.sequential('P0 Fastify API foundation', () => {
   });
 });
 
-function buildTestApp(pool: Pool) {
+function buildTestApp(pool: Pool, overrides: Partial<Parameters<typeof buildApp>[0]> = {}) {
   return buildApp({
     authProvider: {
       authenticate(request) {
         const key = request.headers['x-test-principal'];
-        return Promise.resolve(typeof key === 'string' ? principals[key] ?? null : null);
+        return Promise.resolve(typeof key === 'string' ? (principals[key] ?? null) : null);
       },
     },
     validateUserAgencyAccess(userId, agencyId) {
       return Promise.resolve(
         (userId === userAId && agencyId === agencyAId) ||
-          (userId === userBId && agencyId === agencyBId),
+          (userId === userBId && agencyId === agencyBId)
       );
     },
     database: createDatabaseRuntime(pool),
     exposeTestRoutes: true,
+    ...overrides,
   });
 }
 
@@ -449,7 +607,7 @@ async function seedFixtures(pool: Pool): Promise<void> {
         ($1, 'Agency A', 'agency-a-p0-api-test', 'agency-a@example.test', 'FREE', 'ACTIVE'),
         ($2, 'Agency B', 'agency-b-p0-api-test', 'agency-b@example.test', 'FREE', 'ACTIVE');
     `,
-    [agencyAId, agencyBId],
+    [agencyAId, agencyBId]
   );
   await pool.query(
     `
@@ -458,7 +616,7 @@ async function seedFixtures(pool: Pool): Promise<void> {
         ($1, $2, 'user-a@example.test', 'User A', 'ADMIN', 'hash-for-p0-api-test-only', 'ACTIVE'),
         ($3, $4, 'user-b@example.test', 'User B', 'ADMIN', 'hash-for-p0-api-test-only', 'ACTIVE');
     `,
-    [userAId, agencyAId, userBId, agencyBId],
+    [userAId, agencyAId, userBId, agencyBId]
   );
 }
 
@@ -503,7 +661,7 @@ async function waitForHealthyContainer(): Promise<void> {
     const result = run(
       'docker',
       ['inspect', '-f', '{{.State.Health.Status}}', containerName],
-      false,
+      false
     );
 
     if (result.stdout.trim() === 'healthy') {
@@ -537,11 +695,7 @@ interface CommandResult {
   stderr: string;
 }
 
-function run(
-  command: string,
-  args: readonly string[],
-  throwOnError = true,
-): CommandResult {
+function run(command: string, args: readonly string[], throwOnError = true): CommandResult {
   const result = spawnSync(command, args, {
     cwd: repoRoot,
     encoding: 'utf8',
@@ -560,7 +714,7 @@ function run(
         stderr,
       ]
         .filter(Boolean)
-        .join('\n'),
+        .join('\n')
     );
   }
 

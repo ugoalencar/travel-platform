@@ -9,6 +9,10 @@ interface FormFields {
   name: string;
   email: string;
   phone: string;
+  cpf: string;
+  passport: string;
+  address: string;
+  notes: string;
 }
 
 type LoadState =
@@ -43,11 +47,29 @@ function mapSubmitErrorToMessage(error: unknown): string {
   return 'Não foi possível salvar o cliente. Tente novamente.';
 }
 
+// The Customer's `address` is stored server-side as a free-form JSON object.
+// Today the only shape the UI writes is a single free-text line, kept under
+// the `line` key so a future richer address form can add sibling keys
+// without breaking this one.
+function addressToLine(address: Record<string, unknown> | undefined): string {
+  if (!address) return '';
+  const line = address.line;
+  return typeof line === 'string' ? line : '';
+}
+
 export function CustomerEditPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [loadState, setLoadState] = useState<LoadState>({ status: 'loading' });
-  const [fields, setFields] = useState<FormFields>({ name: '', email: '', phone: '' });
+  const [fields, setFields] = useState<FormFields>({
+    name: '',
+    email: '',
+    phone: '',
+    cpf: '',
+    passport: '',
+    address: '',
+    notes: '',
+  });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -68,6 +90,10 @@ export function CustomerEditPage() {
           name: customer.name,
           email: customer.email ?? '',
           phone: customer.phone ?? '',
+          cpf: customer.cpf ?? '',
+          passport: customer.passport ?? '',
+          address: addressToLine(customer.address),
+          notes: customer.notes ?? '',
         });
         setLoadState({ status: 'ready' });
       })
@@ -104,8 +130,16 @@ export function CustomerEditPage() {
     const input: UpdateCustomerInput = { name };
     const email = fields.email.trim();
     const phone = fields.phone.trim();
+    const cpf = fields.cpf.trim();
+    const passport = fields.passport.trim();
+    const address = fields.address.trim();
+    const notes = fields.notes.trim();
     if (email) input.email = email;
     if (phone) input.phone = phone;
+    if (cpf) input.cpf = cpf;
+    if (passport) input.passport = passport;
+    if (address) input.address = { line: address };
+    if (notes) input.notes = notes;
 
     try {
       await updateCustomer(id, input);
@@ -194,6 +228,63 @@ export function CustomerEditPage() {
             value={fields.phone}
             onChange={(event) => updateField('phone', event.target.value)}
             className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+          />
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label htmlFor="customer-cpf" className="text-sm font-medium text-slate-700">
+            CPF
+          </label>
+          <input
+            id="customer-cpf"
+            name="cpf"
+            type="text"
+            value={fields.cpf}
+            onChange={(event) => updateField('cpf', event.target.value)}
+            className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+          />
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label htmlFor="customer-passport" className="text-sm font-medium text-slate-700">
+            Passaporte
+          </label>
+          <input
+            id="customer-passport"
+            name="passport"
+            type="text"
+            value={fields.passport}
+            onChange={(event) => updateField('passport', event.target.value)}
+            className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+          />
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label htmlFor="customer-address" className="text-sm font-medium text-slate-700">
+            Endereço
+          </label>
+          <input
+            id="customer-address"
+            name="address"
+            type="text"
+            autoComplete="street-address"
+            value={fields.address}
+            onChange={(event) => updateField('address', event.target.value)}
+            className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+          />
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label htmlFor="customer-notes" className="text-sm font-medium text-slate-700">
+            Notas
+          </label>
+          <textarea
+            id="customer-notes"
+            name="notes"
+            value={fields.notes}
+            onChange={(event) => updateField('notes', event.target.value)}
+            className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+            rows={4}
           />
         </div>
 

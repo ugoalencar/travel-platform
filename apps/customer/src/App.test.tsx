@@ -37,6 +37,60 @@ vi.mock('./lib/api', () => ({
   getDeparture: vi.fn(),
   updateDeparture: vi.fn(),
   getAgenda: vi.fn().mockResolvedValue([]),
+  listSales: vi.fn().mockResolvedValue([]),
+  createSale: vi.fn(),
+  getSale: vi.fn(),
+  updateSale: vi.fn(),
+  listBookings: vi.fn().mockResolvedValue([]),
+  getFinancialDashboard: vi.fn().mockResolvedValue({
+    projected: { receivablesDue: 1000, payablesDue: 250, balance: 750 },
+    realized: { paymentsIn: 800, paymentsOut: 100, balance: 700 },
+  }),
+  listReceivables: vi.fn().mockResolvedValue([
+    {
+      id: 'r1',
+      agencyId: 'a1',
+      customerId: 'c1',
+      description: 'Entrada pacote',
+      amount: 1000,
+      dueAt: '2027-01-10T00:00:00.000Z',
+      status: 'OPEN',
+      createdAt: '2027-01-01T00:00:00.000Z',
+      updatedAt: '2027-01-01T00:00:00.000Z',
+    },
+  ]),
+  listExternalOfferCaptures: vi.fn().mockResolvedValue([
+    {
+      id: 'cap1',
+      agencyId: 'a1',
+      sourceUrl: 'https://supplier.example/rio',
+      sourceName: 'Fornecedor Rio',
+      capturedAt: '2027-01-01T00:00:00.000Z',
+      rawContent: 'Pacote Rio com hotel e transfer',
+      normalizedTitle: 'Rio Package',
+      normalizedDescription: 'Pacote Rio com hotel e transfer',
+      foundPrice: 1800,
+      currency: 'BRL',
+      validUntil: '2027-02-01T00:00:00.000Z',
+      status: 'APPROVED',
+      reviewedAt: '2027-01-02T00:00:00.000Z',
+      reviewedByUserId: 'u1',
+      createdAt: '2027-01-01T00:00:00.000Z',
+      updatedAt: '2027-01-02T00:00:00.000Z',
+    },
+  ]),
+  createExternalOfferCapture: vi.fn(),
+  reviewExternalOfferCapture: vi.fn(),
+  approveExternalOfferCapture: vi.fn(),
+  rejectExternalOfferCapture: vi.fn(),
+  publishExternalOfferCapture: vi.fn(),
+  sendProposal: vi.fn(),
+  acceptProposal: vi.fn(),
+  declineProposal: vi.fn(),
+  cancelProposal: vi.fn(),
+  confirmSale: vi.fn(),
+  cancelSale: vi.fn(),
+  markSalePaid: vi.fn(),
 }));
 
 afterEach(() => {
@@ -78,14 +132,9 @@ describe('App', () => {
     expect(link).toHaveAttribute('href', '/customers');
   });
 
-  it('renders placeholder nav items as non-interactive elements', () => {
+  it('does not render the dead "Dashboard" placeholder nav item (no route exists for it)', () => {
     renderApp();
-    const dashboard = screen.getByText('Dashboard');
-
-    expect(dashboard.tagName).not.toBe('A');
-    expect(dashboard.tagName).not.toBe('BUTTON');
-    expect(dashboard).toHaveAttribute('aria-disabled', 'true');
-    expect(dashboard).not.toHaveAttribute('href');
+    expect(screen.queryByText('Dashboard')).not.toBeInTheDocument();
   });
 
   it('renders "Viagens" as a real navigation link', () => {
@@ -103,16 +152,6 @@ describe('App', () => {
     renderApp();
     const link = screen.getByRole('link', { name: 'Desejos' });
     expect(link).toHaveAttribute('href', '/wishes');
-  });
-
-  it('does not navigate when a placeholder nav item is clicked', async () => {
-    renderApp(['/customers']);
-    const dashboard = screen.getByText('Dashboard');
-    dashboard.click();
-
-    // Still on /customers — the Clientes heading remains rendered and no
-    // navigation occurred since placeholder items carry no routing wiring.
-    expect(await screen.findByRole('heading', { name: 'Clientes' })).toBeInTheDocument();
   });
 
   it('navigates to /customers/new when "+ Novo cliente" is clicked', async () => {
@@ -321,5 +360,59 @@ describe('App', () => {
     expect(
       await screen.findByRole('heading', { name: 'Agenda de saídas' }),
     ).toBeInTheDocument();
+  });
+
+  it('renders "Vendas" as a real navigation link', () => {
+    renderApp();
+    const link = screen.getByRole('link', { name: 'Vendas' });
+    expect(link).toHaveAttribute('href', '/sales');
+  });
+
+  it('renders SalesPage when navigating to "/sales"', async () => {
+    renderApp(['/sales']);
+    expect(await screen.findByRole('heading', { name: 'Vendas' })).toBeInTheDocument();
+  });
+
+  it('renders SaleFormPage when navigating to "/sales/new"', async () => {
+    renderApp(['/sales/new']);
+    expect(
+      await screen.findByRole('heading', { name: 'Nova venda' }),
+    ).toBeInTheDocument();
+  });
+
+  it('renders SaleDetailsPage when navigating to "/sales/:id"', async () => {
+    vi.mocked(
+      (await import('./lib/api')).getSale,
+    ).mockReturnValue(new Promise(() => {}));
+    renderApp(['/sales/s1']);
+    expect(
+      await screen.findByRole('heading', { name: 'Detalhes da venda' }),
+    ).toBeInTheDocument();
+  });
+
+  it('renders "Financeiro" section with link to /financial', () => {
+    renderApp();
+    const link = screen.getByRole('link', { name: 'Financeiro' });
+    expect(link).toHaveAttribute('href', '/financial');
+  });
+
+  it('renders FinancialPage when navigating to "/financial"', async () => {
+    renderApp(['/financial']);
+    expect(await screen.findByRole('heading', { name: 'Financeiro' })).toBeInTheDocument();
+    expect(await screen.findByText('Recebido no periodo')).toBeInTheDocument();
+    expect(await screen.findByText('Entrada pacote')).toBeInTheDocument();
+  });
+
+  it('renders "Pescador" as a real navigation link', () => {
+    renderApp();
+    const link = screen.getByRole('link', { name: 'Pescador' });
+    expect(link).toHaveAttribute('href', '/pescador');
+  });
+
+  it('renders PescadorPage when navigating to "/pescador"', async () => {
+    renderApp(['/pescador']);
+    expect(await screen.findByRole('heading', { name: 'Pescador' })).toBeInTheDocument();
+    expect(await screen.findByText('Fornecedor Rio')).toBeInTheDocument();
+    expect(await screen.findByText('Rio Package')).toBeInTheDocument();
   });
 });

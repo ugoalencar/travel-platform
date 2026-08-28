@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ApiError, getBooking, getCustomer, getDeparture } from '../lib/api';
+import { ApiError, cancelBooking, getBooking, getCustomer, getDeparture } from '../lib/api';
 import type { Booking, BookingPassenger } from '../types/booking';
 import type { ScheduledDeparture } from '../types/transport';
 import { Button } from '../components/ui/button';
@@ -28,6 +28,8 @@ export function BookingDetailsPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [state, setState] = useState<LoadState>({ status: 'loading' });
+  const [cancelling, setCancelling] = useState(false);
+  const [confirmVisible, setConfirmVisible] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -81,7 +83,7 @@ export function BookingDetailsPage() {
   if (state.status === 'error') {
     return (
       <div className="flex flex-col gap-4">
-        <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <div role="alert" aria-live="assertive" className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
           {state.message}
         </div>
         <Button variant="outline" onClick={() => void navigate('/bookings')}>
@@ -93,15 +95,70 @@ export function BookingDetailsPage() {
 
   const { booking, passengers, bookerName, outboundDeparture, returnDeparture } = state;
 
+  const handleCancel = async () => {
+    if (!id) return;
+    setCancelling(true);
+    try {
+      const result = await cancelBooking(id);
+      setState((prev) =>
+        prev.status === 'success'
+          ? { ...prev, booking: result.booking }
+          : prev,
+      );
+      setConfirmVisible(false);
+    } catch (error) {
+      const message =
+        error instanceof ApiError ? error.message : 'Não foi possível cancelar a reserva.';
+      setState({ status: 'error', message });
+    } finally {
+      setCancelling(false);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
           Reserva {booking.cancelled ? '(Cancelada)' : ''}
         </h1>
-        <Button variant="outline" onClick={() => void navigate('/bookings')}>
-          Voltar
-        </Button>
+        <div className="flex gap-3">
+          {!booking.cancelled && (
+            <>
+              {confirmVisible ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-slate-600">Tem certeza?</span>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    disabled={cancelling}
+                    onClick={() => void handleCancel()}
+                  >
+                    {cancelling ? 'Cancelando...' : 'Sim, cancelar'}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={cancelling}
+                    onClick={() => setConfirmVisible(false)}
+                  >
+                    Não
+                  </Button>
+                </div>
+              ) : (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => setConfirmVisible(true)}
+                >
+                  Cancelar reserva
+                </Button>
+              )}
+            </>
+          )}
+          <Button variant="outline" onClick={() => void navigate('/bookings')}>
+            Voltar
+          </Button>
+        </div>
       </div>
 
       <dl className="grid grid-cols-1 gap-4 rounded-lg border border-slate-200 bg-white p-4 sm:grid-cols-2">

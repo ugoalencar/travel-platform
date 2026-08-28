@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -7,8 +7,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 const testDir = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(testDir, '../../..');
 const composeFile = resolve(repoRoot, 'infrastructure/docker-compose.local-postgres.yml');
-const migration001 = resolve(repoRoot, 'infrastructure/migrations/001_initial_schema.sql');
-const migration002 = resolve(repoRoot, 'infrastructure/migrations/002_rls_policies.sql');
+const migrationsDir = resolve(repoRoot, 'infrastructure/migrations');
 const constraintsTestSql = resolve(repoRoot, 'tests/integration/database/001_constraints_test.sql');
 const prepareRolesSql = resolve(repoRoot, 'tests/integration/database/002_prepare_local_roles.sql');
 const rlsRuntimeTestSql = resolve(repoRoot, 'tests/integration/database/003_rls_runtime_test.sql');
@@ -28,13 +27,51 @@ const localPort = process.env.DATABASE_TEST_PORT ?? (isCiMode ? '5432' : '55432'
 
 const expectedTables = [
   'agencies',
+  'agency_entitlements',
+  'assets',
+  'audit_logs',
+  'automation_executions',
+  'automations',
+  'booking_passengers',
+  'bookings',
   'brokers',
+  'campaign_offers',
+  'campaigns',
+  'commercial_opportunities',
+  'commercial_tasks',
   'commissions',
+  'connector_actions',
+  'coupon_grants',
+  'coupon_redemptions',
+  'coupons',
   'customer_accounts',
+  'customer_interactions',
   'customers',
+  'engagements',
+  'external_offer_captures',
+  'offer_growth_audit_log',
   'offers',
+  'operation_assignments',
+  'operation_checkpoints',
+  'operational_costs',
+  'operational_staff',
+  'operational_staff_capabilities',
+  'payables',
+  'payment_allocations',
+  'payments',
+  'pipeline_access',
+  'pipeline_stages',
+  'pipelines',
   'proposals',
+  'publications',
+  'receivables',
+  'route_points',
+  'routes',
   'sales',
+  'scheduled_departures',
+  'suppliers',
+  'transport_operations',
+  'transport_products',
   'trips',
   'users',
   'wishes',
@@ -64,21 +101,20 @@ describe.sequential('database integration migrations and RLS', () => {
     }
   });
 
-  it('applies migration 001 to an empty local database', () => {
-    const result = psqlAdmin(readSql(migration001));
+  it('applies every ordered migration to an empty local database', () => {
+    const result = psqlAdmin(readAllMigrations());
 
     expect(result.stdout).toContain('CREATE TABLE');
+    expect(result.stdout).toContain('CREATE POLICY');
     expect(result.stderr).not.toContain('ERROR');
   });
 
-  it('creates exactly the V1 domain tables and excludes future/removed tables', () => {
+  it('creates exactly the current migrated domain tables', () => {
     const tables = queryAdminLines(
       "SELECT tablename FROM pg_tables WHERE schemaname = 'public' ORDER BY tablename;",
     );
 
     expect(tables).toEqual(expectedTables);
-    expect(tables).not.toContain('bookings');
-    expect(tables).not.toContain('audit_logs');
   });
 
   it('validates constraints, soft delete, tenant-safe FKs, CustomerAccount, and Proposal snapshot', () => {
@@ -97,18 +133,24 @@ describe.sequential('database integration migrations and RLS', () => {
     expect(result.stderr).not.toContain('ERROR');
   });
 
-  it('applies migration 002 after migration 001', () => {
-    const result = psqlAdmin(readSql(migration002));
-
-    expect(result.stdout).toContain('CREATE POLICY');
-    expect(result.stderr).not.toContain('ERROR');
-  });
-
   it('prepares a non-superuser runtime role without BYPASSRLS', () => {
     const result = psqlAdmin(readSql(prepareRolesSql));
 
     expect(result.stdout).toContain(runtimeUser);
     expect(result.stdout).toContain(' f        | f            | f           | f');
+    expect(result.stderr).not.toContain('ERROR');
+  });
+
+  it('seeds a second tenant audit event for runtime read-isolation validation', () => {
+    const result = psqlAdmin(`
+      INSERT INTO audit_logs
+        (agency_id, actor_type, actor_id, event_type, entity_type, entity_id, outcome, metadata)
+      VALUES
+        ('20000000-0000-4000-8000-000000000001', 'USER',
+         '21000000-0000-4000-8000-000000000001', 'PAYMENT_RECORDED',
+         'payment', 'audit-payment-b', 'SUCCESS', '{}'::jsonb);
+    `);
+
     expect(result.stderr).not.toContain('ERROR');
   });
 
@@ -119,6 +161,10 @@ describe.sequential('database integration migrations and RLS', () => {
     expect(result.stdout).toContain('RLS INSERT Customer agency B while tenant A');
     expect(result.stdout).toContain('RLS UPDATE agency_id A to B');
     expect(result.stdout).toContain('RLS DELETE Customer B while tenant A');
+    expect(result.stdout).toContain('RLS SELECT Audit Log B while tenant A');
+    expect(result.stdout).toContain('RLS INSERT Audit Log agency B while tenant A');
+    expect(result.stdout).toContain('Runtime cannot UPDATE Audit Log');
+    expect(result.stdout).toContain('Runtime cannot DELETE Audit Log');
     expect(result.stdout).toContain('Fail closed SELECT without tenant');
     expect(result.stdout).toContain('Invalid tenant INSERT referencing real Customer A');
     expect(result.stdout).toContain('Runtime role rolsuper/rolbypassrls false');
@@ -137,11 +183,11 @@ describe.sequential('database integration migrations and RLS', () => {
     expect(result.stdout).toContain(
       'SEC-01 pool reuse: third reused transaction does not inherit Agency B',
     );
-    expect(result.stdout).toContain('(37 rows)');
+    expect(result.stdout).toContain('(42 rows)');
     expect(result.stderr).not.toContain('ERROR');
   });
 
-  it('keeps FORCE RLS enabled on every V1 table', () => {
+  it('keeps FORCE RLS enabled on every migrated tenant table', () => {
     const rows = queryAdminLines(`
       SELECT relname
       FROM pg_class
@@ -195,7 +241,17 @@ describe.sequential('database integration migrations and RLS', () => {
       ORDER BY routine_name;
     `);
 
-    expect(tableGrantCount).toBe('44');
+    expect(tableGrantCount).toBe(String((expectedTables.length - 1) * 4 + 2));
+    expect(
+      queryAdminLines(`
+        SELECT privilege_type
+        FROM information_schema.role_table_grants
+        WHERE table_schema = 'public'
+          AND grantee = '${runtimeUser}'
+          AND table_name = 'audit_logs'
+        ORDER BY privilege_type;
+      `),
+    ).toEqual(['INSERT', 'SELECT']);
     expect(functionGrants).toEqual([
       'clear_tenant_context',
       'current_agency_id',
@@ -399,6 +455,18 @@ function queryAdmin(sql: string): CommandResult {
 
 function readSql(filePath: string): string {
   return readFileSync(filePath, 'utf8');
+}
+
+function readAllMigrations(): string {
+  const migrationFiles = readdirSync(migrationsDir)
+    .filter((fileName) => /^\d+_.+\.sql$/.test(fileName))
+    .sort();
+
+  expect(migrationFiles).toHaveLength(15);
+
+  return migrationFiles
+    .map((fileName) => readSql(resolve(migrationsDir, fileName)))
+    .join('\n');
 }
 
 async function waitForHealthyContainer(): Promise<void> {

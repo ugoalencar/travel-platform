@@ -124,4 +124,21 @@ describe('RoutePointsEditor', () => {
     expect(await screen.findAllByDisplayValue('B')).toHaveLength(1);
     expect(reorderRoutePoints).toHaveBeenCalledWith('r1', ['p2', 'p1']);
   });
+
+  it('hides Remover button for persisted points but shows it for new points', async () => {
+    vi.mocked(listRoutePoints).mockResolvedValue([
+      { ...basePoint, id: 'p1', sequence: 1, name: 'Persisted', checkpointRequired: false },
+    ]);
+
+    render(<RoutePointsEditor routeId="r1" />);
+    await screen.findByDisplayValue('Persisted');
+
+    const persistedRow = screen.getAllByTestId('route-point-row')[0]!;
+    expect(within(persistedRow).queryByRole('button', { name: 'Remover' })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Adicionar ponto' }));
+    const rows = screen.getAllByTestId('route-point-row');
+    const newRow = rows[rows.length - 1]!;
+    expect(within(newRow).getByRole('button', { name: 'Remover' })).toBeInTheDocument();
+  });
 });

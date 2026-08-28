@@ -26,5 +26,32 @@ if (invalidNames.length > 0) {
   process.exit(1);
 }
 
+const prefixes = new Map();
+for (const file of files) {
+  const prefix = file.slice(0, 3);
+  const existing = prefixes.get(prefix) ?? [];
+  existing.push(file);
+  prefixes.set(prefix, existing);
+}
+
+const duplicatePrefixes = [...prefixes.entries()].filter(([, names]) => names.length > 1);
+
+if (duplicatePrefixes.length > 0) {
+  console.error('Duplicate migration prefixes found:');
+  duplicatePrefixes.forEach(([prefix, names]) => {
+    console.error(`- ${prefix}: ${names.join(', ')}`);
+  });
+  process.exit(1);
+}
+
+const expectedPrefix = (index) => String(index + 1).padStart(3, '0');
+const outOfSequence = files.filter((file, index) => !file.startsWith(`${expectedPrefix(index)}_`));
+
+if (outOfSequence.length > 0) {
+  console.error('Migration files are not sequential:');
+  files.forEach((file, index) => console.error(`- expected ${expectedPrefix(index)}_*, found ${file}`));
+  process.exit(1);
+}
+
 console.log(`Migration files found: ${files.length}`);
 files.forEach((file) => console.log(`- ${file}`));

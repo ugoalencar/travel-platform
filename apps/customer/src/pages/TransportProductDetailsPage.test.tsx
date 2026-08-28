@@ -67,4 +67,49 @@ describe('TransportProductDetailsPage', () => {
     renderRouted();
     expect(await screen.findByText('Produto não encontrado.')).toBeInTheDocument();
   });
+
+  it('displays publiclyBookable semantic copy', async () => {
+    vi.mocked(getTransportProduct).mockResolvedValue({
+      id: 'p1',
+      agencyId: 'a1',
+      name: 'Produto',
+      tripType: 'ONE_WAY',
+      outboundRouteId: 'r1',
+      price: 100,
+      active: true,
+      publiclyBookable: true,
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+    });
+    vi.mocked(getRoute).mockResolvedValue({
+      id: 'r1',
+      agencyId: 'a1',
+      origin: 'A',
+      destination: 'B',
+      active: true,
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+    });
+    renderRouted();
+    expect(
+      await screen.findByText('Sim — disponível para clientes e canais externos'),
+    ).toBeInTheDocument();
+
+    vi.mocked(getTransportProduct).mockResolvedValue({
+      id: 'p1',
+      agencyId: 'a1',
+      name: 'Produto',
+      tripType: 'ONE_WAY',
+      outboundRouteId: 'r1',
+      price: 100,
+      active: true,
+      publiclyBookable: false,
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+    });
+    renderRouted();
+    expect(
+      await screen.findByText('Não — apenas reserva manual interna'),
+    ).toBeInTheDocument();
+  });
 });

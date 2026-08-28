@@ -91,7 +91,7 @@ describe.sequential('Customer portal security (IDOR / tenant / dev-auth gating)'
       await app.close();
     });
 
-    it('returns 401/403 for an unknown customer identity, never data', async () => {
+    it('returns 401 for an unknown customer identity, never data', async () => {
       const app = buildTestApp(
         runtimePool,
         stubCustomerProvider({
@@ -103,13 +103,30 @@ describe.sequential('Customer portal security (IDOR / tenant / dev-auth gating)'
         url: '/customer-api/trips',
         headers: { 'x-test-customer': 'unknown' },
       });
-      expect([401, 403]).toContain(response.statusCode);
+      expect(response.statusCode).toBe(401);
       expect(response.json()).not.toHaveProperty('trips');
       await app.close();
     });
   });
 
   describe('IDOR: same-agency, different customer', () => {
+    it('Customer A1 can fetch their own trip (positive control)', async () => {
+      const tripA1 = await seedTrip(agencyAId, customerA1Id, 'A1 Own Trip');
+
+      const app = buildTestApp(runtimePool, testCustomerProvider());
+      const response = await app.inject({
+        method: 'GET',
+        url: `/customer-api/trips/${tripA1}`,
+        headers: { 'x-test-customer': 'a1' },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = response.json<{ trip: { id: string; name: string } }>();
+      expect(body.trip.id).toBe(tripA1);
+      expect(body.trip.name).toBe('A1 Own Trip');
+      await app.close();
+    });
+
     it('Customer A1 cannot fetch Customer A2 trip by id even though both are Agency A', async () => {
       const tripA2 = await seedTrip(agencyAId, customerA2Id, 'A2 Secret Trip');
 
@@ -120,8 +137,25 @@ describe.sequential('Customer portal security (IDOR / tenant / dev-auth gating)'
         headers: { 'x-test-customer': 'a1' },
       });
 
-      expect([403, 404]).toContain(response.statusCode);
+      expect(response.statusCode).toBe(404);
       expect(response.json()).not.toHaveProperty('trip');
+      await app.close();
+    });
+
+    it('Customer A1 can fetch their own booking (positive control)', async () => {
+      const departureId = await seedDeparture(agencyAId);
+      const bookingA1 = await seedBooking(agencyAId, customerA1Id, departureId);
+
+      const app = buildTestApp(runtimePool, testCustomerProvider());
+      const response = await app.inject({
+        method: 'GET',
+        url: `/customer-api/bookings/${bookingA1}`,
+        headers: { 'x-test-customer': 'a1' },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = response.json<{ booking: { id: string } }>();
+      expect(body.booking.id).toBe(bookingA1);
       await app.close();
     });
 
@@ -136,8 +170,24 @@ describe.sequential('Customer portal security (IDOR / tenant / dev-auth gating)'
         headers: { 'x-test-customer': 'a1' },
       });
 
-      expect([403, 404]).toContain(response.statusCode);
+      expect(response.statusCode).toBe(404);
       expect(response.json()).not.toHaveProperty('booking');
+      await app.close();
+    });
+
+    it('Customer A1 can fetch their own proposal (positive control)', async () => {
+      const proposalA1 = await seedProposal(agencyAId, customerA1Id);
+
+      const app = buildTestApp(runtimePool, testCustomerProvider());
+      const response = await app.inject({
+        method: 'GET',
+        url: `/customer-api/proposals/${proposalA1}`,
+        headers: { 'x-test-customer': 'a1' },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = response.json<{ proposal: { id: string } }>();
+      expect(body.proposal.id).toBe(proposalA1);
       await app.close();
     });
 
@@ -151,7 +201,7 @@ describe.sequential('Customer portal security (IDOR / tenant / dev-auth gating)'
         headers: { 'x-test-customer': 'a1' },
       });
 
-      expect([403, 404]).toContain(response.statusCode);
+      expect(response.statusCode).toBe(404);
       expect(response.json()).not.toHaveProperty('proposal');
       await app.close();
     });
@@ -186,7 +236,54 @@ describe.sequential('Customer portal security (IDOR / tenant / dev-auth gating)'
         headers: { 'x-test-customer': 'a1' },
       });
 
-      expect([403, 404]).toContain(response.statusCode);
+      expect(response.statusCode).toBe(404);
+      await app.close();
+    });
+
+    it('Agency A customer cannot fetch an Agency B booking', async () => {
+      const departureId = await seedDeparture(agencyBId);
+      const bookingB = await seedBooking(agencyBId, customerBId, departureId);
+
+      const app = buildTestApp(runtimePool, testCustomerProvider());
+      const response = await app.inject({
+        method: 'GET',
+        url: `/customer-api/bookings/${bookingB}`,
+        headers: { 'x-test-customer': 'a1' },
+      });
+
+      expect(response.statusCode).toBe(404);
+      await app.close();
+    });
+
+    it('Agency A customer cannot fetch an Agency B proposal', async () => {
+      const proposalB = await seedProposal(agencyBId, customerBId);
+
+      const app = buildTestApp(runtimePool, testCustomerProvider());
+      const response = await app.inject({
+        method: 'GET',
+        url: `/customer-api/proposals/${proposalB}`,
+        headers: { 'x-test-customer': 'a1' },
+      });
+
+      expect(response.statusCode).toBe(404);
+      await app.close();
+    });
+
+    it('Agency A customer trip list does not contain Agency B trips', async () => {
+      await seedTrip(agencyAId, customerA1Id, 'A1 Trip');
+      await seedTrip(agencyBId, customerBId, 'B Secret Trip');
+
+      const app = buildTestApp(runtimePool, testCustomerProvider());
+      const response = await app.inject({
+        method: 'GET',
+        url: '/customer-api/trips',
+        headers: { 'x-test-customer': 'a1' },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const names = response.json<{ trips: Array<{ name: string }> }>().trips.map((t) => t.name);
+      expect(names).toContain('A1 Trip');
+      expect(names).not.toContain('B Secret Trip');
       await app.close();
     });
   });
@@ -202,7 +299,7 @@ describe.sequential('Customer portal security (IDOR / tenant / dev-auth gating)'
         headers: { 'x-test-customer': 'a1' },
       });
 
-      expect([403, 404]).toContain(response.statusCode);
+      expect(response.statusCode).toBe(404);
       await app.close();
     });
   });

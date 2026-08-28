@@ -99,6 +99,125 @@ BEGIN
 END;
 $$;
 
+-- commercial_opportunities/commercial_tasks/customer_interactions
+-- (migration 008_commercial_cockpit.sql) only exist once that migration
+-- has been applied; guard the same way as the blocks above so domains
+-- that only apply earlier migrations are unaffected. Do NOT use an
+-- unconditional GRANT here -- a prior session broke every other
+-- domain's test suite that way.
+DO $$
+BEGIN
+  IF to_regclass('public.commercial_opportunities') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      commercial_opportunities,
+      commercial_tasks,
+      customer_interactions
+    TO travel_app_runtime_local;
+  END IF;
+END;
+$$;
+
+-- pipelines/pipeline_stages/pipeline_access (migration
+-- 009_configurable_pipelines.sql) only exist once that migration has been
+-- applied; guard the same way as the blocks above so domains that only
+-- apply earlier migrations are unaffected. Do NOT use an unconditional
+-- GRANT here -- a prior session broke every other domain's test suite
+-- that way.
+DO $$
+BEGIN
+  IF to_regclass('public.pipelines') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      pipelines,
+      pipeline_stages,
+      pipeline_access
+    TO travel_app_runtime_local;
+  END IF;
+END;
+$$;
+
+-- financial foundation tables (migration 010_financial_foundation.sql) only
+-- exist once that migration has been applied. Keep this guarded so earlier
+-- domain tests can keep applying only the migrations they need.
+DO $$
+BEGIN
+  IF to_regclass('public.receivables') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      receivables,
+      payables,
+      payments,
+      payment_allocations,
+      operational_costs
+    TO travel_app_runtime_local;
+  END IF;
+END;
+$$;
+
+-- operational_staff/operation_assignments (migration
+-- 012_operational_staff_assignments.sql) only exist once that migration
+-- has been applied. Keep this guarded so earlier domain tests can keep
+-- applying only the migrations they need.
+DO $$
+BEGIN
+  IF to_regclass('public.operational_staff') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      operational_staff,
+      operational_staff_capabilities,
+      operation_assignments
+    TO travel_app_runtime_local;
+  END IF;
+END;
+$$;
+
+-- external_offer_captures (migration 013_pescador_foundation.sql) only
+-- exists once Pescador foundation has been applied.
+DO $$
+BEGIN
+  IF to_regclass('public.external_offer_captures') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      external_offer_captures
+    TO travel_app_runtime_local;
+  END IF;
+END;
+$$;
+
+-- Offer & Growth Engine foundation tables (migration
+-- 014_offer_growth_foundation.sql) only exist once that migration has been
+-- applied. Keep this guarded so earlier domain tests can keep applying only
+-- the migrations they need.
+DO $$
+BEGIN
+  IF to_regclass('public.assets') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      assets,
+      campaigns,
+      campaign_offers,
+      publications,
+      agency_entitlements,
+      engagements,
+      automations,
+      automation_executions,
+      coupons,
+      coupon_grants,
+      coupon_redemptions,
+      connector_actions,
+      offer_growth_audit_log
+    TO travel_app_runtime_local;
+  END IF;
+END;
+$$;
+
+-- audit_logs (migration 015_security_audit_logging.sql) is append-only for
+-- runtime traffic: application code can read tenant-scoped history and
+-- insert a new event, but no runtime path may alter or delete evidence.
+DO $$
+BEGIN
+  IF to_regclass('public.audit_logs') IS NOT NULL THEN
+    GRANT SELECT, INSERT ON audit_logs TO travel_app_runtime_local;
+    REVOKE UPDATE, DELETE ON audit_logs FROM travel_app_runtime_local;
+  END IF;
+END;
+$$;
+
 GRANT EXECUTE ON FUNCTION current_agency_id() TO travel_app_runtime_local;
 GRANT EXECUTE ON FUNCTION current_user_id() TO travel_app_runtime_local;
 GRANT EXECUTE ON FUNCTION set_tenant_context(TEXT, TEXT) TO travel_app_runtime_local;

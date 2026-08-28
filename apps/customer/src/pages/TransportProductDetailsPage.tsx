@@ -86,7 +86,7 @@ export function TransportProductDetailsPage() {
       )}
 
       {state.status === 'error' && (
-        <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <div role="alert" aria-live="assertive" className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
           {state.message}
         </div>
       )}
@@ -99,7 +99,7 @@ export function TransportProductDetailsPage() {
           <Field label="Rota de volta" value={state.returnRouteName ?? undefined} />
           <Field label="Preço" value={String(state.product.price)} />
           <Field label="Ativo" value={state.product.active ? 'Sim' : 'Não'} />
-          <Field label="Vendável publicamente" value={state.product.publiclyBookable ? 'Sim' : 'Não'} />
+          <Field label="Vendável publicamente" value={state.product.publiclyBookable ? 'Sim — disponível para clientes e canais externos' : 'Não — apenas reserva manual interna'} />
           <Field label="Notas" value={state.product.notes} />
           <Field label="Criado em" value={state.product.createdAt} />
           <Field label="Atualizado em" value={state.product.updatedAt} />

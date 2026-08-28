@@ -24,6 +24,7 @@ export interface OperationCheckpoint {
   agencyId: string;
   operationId: string;
   routePointId: string;
+  routePointName?: string;
   checkpointType: CheckpointType;
   arrivalCheckedAt?: string;
   departureCheckedAt?: string;

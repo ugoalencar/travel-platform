@@ -1,0 +1,32 @@
+services:
+  source:
+    image: postgres:15
+    container_name: travel-recovery-source
+    restart: "no"
+    ports:
+      - "127.0.0.1:55433:5432"
+    environment:
+      POSTGRES_DB: travel_recovery_source
+      POSTGRES_USER: travel_recovery
+      POSTGRES_PASSWORD: travel_test_password
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U travel_recovery -d travel_recovery_source"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  target:
+    image: postgres:15
+    container_name: travel-recovery-target
+    restart: "no"
+    ports:
+      - "127.0.0.1:55434:5432"
+    environment:
+      POSTGRES_DB: travel_recovery_target
+      POSTGRES_USER: travel_recovery
+      POSTGRES_PASSWORD: travel_test_password
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U travel_recovery -d travel_recovery_target"]
+      interval: 2s
+      timeout: 3s
+      retries: 30

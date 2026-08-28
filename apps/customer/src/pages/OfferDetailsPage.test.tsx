@@ -75,7 +75,7 @@ describe('OfferDetailsPage', () => {
     renderRouted();
 
     expect(await screen.findByText('Pacote Paris')).toBeInTheDocument();
-    expect(screen.getByText('ACTIVE')).toBeInTheDocument();
+    expect(screen.getByText('Ativa')).toBeInTheDocument();
     expect(screen.getByText('Pacote romantico')).toBeInTheDocument();
   });
 
@@ -84,7 +84,7 @@ describe('OfferDetailsPage', () => {
     renderRouted();
 
     expect(await screen.findByText('Pacote Verao Antigo')).toBeInTheDocument();
-    expect(screen.getByText('EXPIRED')).toBeInTheDocument();
+    expect(screen.getByText('Expirada')).toBeInTheDocument();
     // status is displayed as plain text, never as an interactive control
     expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
     expect(screen.queryByLabelText('Status')).not.toBeInTheDocument();

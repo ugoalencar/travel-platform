@@ -376,6 +376,119 @@ describe.sequential('Proposal HTTP routes', () => {
     });
   });
 
+  describe('Proposal lifecycle actions', () => {
+    it('supports valid transitions and idempotent replay without creating a Sale', async () => {
+      const draftToSent = await seedProposal(agencyAId, customerAId);
+      const draftToCancelled = await seedProposal(agencyAId, customerAId);
+      const sentToAccepted = await seedProposal(agencyAId, customerAId, { status: 'SENT' });
+      const sentToDeclined = await seedProposal(agencyAId, customerAId, { status: 'SENT' });
+
+      const app = buildTestApp(runtimePool);
+
+      const send = await app.inject({
+        method: 'POST',
+        url: `/proposals/${draftToSent}/send`,
+        headers: { 'x-test-principal': 'manager' },
+      });
+      expect(send.statusCode).toBe(200);
+      expect(send.json<{ proposal: { status: string } }>().proposal.status).toBe('SENT');
+
+      const sendAgain = await app.inject({
+        method: 'POST',
+        url: `/proposals/${draftToSent}/send`,
+        headers: { 'x-test-principal': 'manager' },
+      });
+      expect(sendAgain.statusCode).toBe(200);
+      expect(sendAgain.json<{ proposal: { status: string } }>().proposal.status).toBe('SENT');
+
+      const cancelDraft = await app.inject({
+        method: 'POST',
+        url: `/proposals/${draftToCancelled}/cancel`,
+        headers: { 'x-test-principal': 'manager' },
+      });
+      expect(cancelDraft.statusCode).toBe(200);
+      expect(cancelDraft.json<{ proposal: { status: string } }>().proposal.status).toBe('CANCELLED');
+
+      const accept = await app.inject({
+        method: 'POST',
+        url: `/proposals/${sentToAccepted}/accept`,
+        headers: { 'x-test-principal': 'manager' },
+      });
+      expect(accept.statusCode).toBe(200);
+      expect(accept.json<{ proposal: { status: string } }>().proposal.status).toBe('ACCEPTED');
+
+      const decline = await app.inject({
+        method: 'POST',
+        url: `/proposals/${sentToDeclined}/decline`,
+        headers: { 'x-test-principal': 'manager' },
+      });
+      expect(decline.statusCode).toBe(200);
+      expect(decline.json<{ proposal: { status: string } }>().proposal.status).toBe('DECLINED');
+
+      const salesCount = await adminPool.query<{ count: string }>(
+        'SELECT count(*) FROM sales WHERE proposal_id = $1',
+        [sentToAccepted],
+      );
+      expect(salesCount.rows[0]?.count).toBe('0');
+
+      await app.close();
+    });
+
+    it('rejects invalid transitions and arbitrary status PATCH', async () => {
+      const draftId = await seedProposal(agencyAId, customerAId);
+      const acceptedId = await seedProposal(agencyAId, customerAId, { status: 'ACCEPTED' });
+
+      const app = buildTestApp(runtimePool);
+
+      const acceptDraft = await app.inject({
+        method: 'POST',
+        url: `/proposals/${draftId}/accept`,
+        headers: { 'x-test-principal': 'manager' },
+      });
+      expect(acceptDraft.statusCode).toBe(409);
+
+      const cancelAccepted = await app.inject({
+        method: 'POST',
+        url: `/proposals/${acceptedId}/cancel`,
+        headers: { 'x-test-principal': 'manager' },
+      });
+      expect(cancelAccepted.statusCode).toBe(409);
+
+      const statusPatch = await app.inject({
+        method: 'PATCH',
+        url: `/proposals/${draftId}`,
+        headers: { 'x-test-principal': 'manager' },
+        payload: { status: 'ACCEPTED' },
+      });
+      expect(statusPatch.statusCode).toBe(400);
+
+      await app.close();
+    });
+
+    it('enforces RBAC and tenant isolation on lifecycle actions', async () => {
+      const aId = await seedProposal(agencyAId, customerAId);
+      const bId = await seedProposal(agencyBId, customerBId);
+
+      const app = buildTestApp(runtimePool);
+
+      const viewerSend = await app.inject({
+        method: 'POST',
+        url: `/proposals/${aId}/send`,
+        headers: { 'x-test-principal': 'viewer' },
+      });
+      expect(viewerSend.statusCode).toBe(403);
+
+      const crossTenant = await app.inject({
+        method: 'POST',
+        url: `/proposals/${bId}/send`,
+        headers: { 'x-test-principal': 'owner' },
+      });
+      expect(crossTenant.statusCode).toBe(404);
+
+      await app.close();
+    });
+  });
+
   describe('RBAC', () => {
     it('allows VIEWER to GET /proposals and GET /proposals/:id', async () => {
       const id = await seedProposal(agencyAId, customerAId);
@@ -602,15 +715,15 @@ describe.sequential('Proposal HTTP routes', () => {
   async function seedProposal(
     agencyId: string,
     customerId: string,
-    data: { proposedPrice?: string; discount?: string } = {},
+    data: { proposedPrice?: string; discount?: string; status?: string } = {},
   ): Promise<string> {
     const proposedPrice = data.proposedPrice ?? '100.00';
     const discount = data.discount ?? '0.00';
     const total = (Number(proposedPrice) - Number(discount)).toFixed(2);
     const result = await adminPool.query<{ id: string }>(
-      `INSERT INTO proposals (agency_id, customer_id, proposed_price, discount, total)
-       VALUES ($1, $2, $3, $4, $5) RETURNING id`,
-      [agencyId, customerId, proposedPrice, discount, total],
+      `INSERT INTO proposals (agency_id, customer_id, proposed_price, discount, total, status)
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
+      [agencyId, customerId, proposedPrice, discount, total, data.status ?? 'DRAFT'],
     );
     const id = result.rows[0]?.id;
     if (!id) throw new Error('Failed to seed proposal');
