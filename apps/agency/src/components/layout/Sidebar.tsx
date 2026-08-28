@@ -16,8 +16,6 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Vendas', to: '/sales' },
   { label: 'Ofertas', to: '/offers' },
   { label: 'Financeiro', to: '/financial' },
-  { label: 'Relatórios', to: '/reports' },
-  { label: 'Configurações', to: '/settings' },
 ];
 
 export interface SidebarProps {

@@ -20,8 +20,6 @@ import {
 } from './pages/SalesJourneyPages';
 import { OffersPage } from './pages/OffersPage';
 import { FinancialPage } from './pages/FinancialPage';
-import { ReportsPage } from './pages/ReportsPage';
-import { SettingsPage } from './pages/SettingsPage';
 
 export function App() {
   return (
@@ -44,8 +42,6 @@ export function App() {
         <Route path="sales/:id" element={<SaleSummaryPage />} />
         <Route path="offers" element={<OffersPage />} />
         <Route path="financial" element={<FinancialPage />} />
-        <Route path="reports" element={<ReportsPage />} />
-        <Route path="settings" element={<SettingsPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>
