@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, Calendar, Users, DollarSign, MapPin, FileText, ArrowRight } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { ArrowLeft, Calendar, Users, DollarSign, MapPin, FileText, ArrowRight, Pencil } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { StatusBadge } from '../components/ui/status-badge';
@@ -11,12 +11,22 @@ import { Modal } from '../components/ui/modal';
 import { Input } from '../components/ui/input';
 import { Select } from '../components/ui/select';
 import { Textarea } from '../components/ui/textarea';
-import { getWishById, getCustomerById, getTripsByCustomerId, getProposalsByCustomerId, customers } from '../lib/fixtures';
+import {
+  ApiError,
+  createWish,
+  getCustomer,
+  getWish,
+  listCustomers,
+  listTripsByCustomer,
+  updateWish,
+} from '../lib/api';
 import { formatDateBR } from '../lib/formatDateBR';
 import { formatBRL } from '../lib/formatCurrency';
-import { getWishStatusLabel, getTripStatusLabel, getProposalStatusLabel } from '../lib/statusLabels';
-import { useMockLoading } from '../lib/useMockLoading';
-import type { WishStatus, TripStatus, ProposalStatus } from '../types';
+import { getWishStatusLabel, getTripStatusLabel } from '../lib/statusLabels';
+import type { WishStatus, TripStatus } from '../types';
+import type { Wish } from '../types/wish';
+import type { Customer } from '../types/customer';
+import type { Trip } from '../types/trip';
 
 const TABS = [
   { value: 'overview', label: 'Visão geral' },
@@ -36,26 +46,76 @@ function tripStatusTone(s: TripStatus) {
   return 'neutral' as const;
 }
 
-function proposalStatusTone(s: ProposalStatus) {
-  if (s === 'ACCEPTED') return 'positive' as const;
-  if (s === 'SENT' || s === 'DRAFT') return 'neutral' as const;
-  return 'inactive' as const;
-}
+const emptyForm = { destination: '', travelersCount: '2', budget: '', notes: '' };
 
 export function WishDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [tab, setTab] = useState('overview');
+  const [wish, setWish] = useState<Wish | null>(null);
+  const [customer, setCustomer] = useState<Customer | null>(null);
+  const [trips, setTrips] = useState<Trip[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [notFound, setNotFound] = useState(false);
+
   const [showNewWish, setShowNewWish] = useState(false);
-  const [newWish, setNewWish] = useState({ destination: '', travelersCount: '2', budget: '', notes: '' });
-  const loadState = useMockLoading();
+  const [showEditWish, setShowEditWish] = useState(false);
+  const [form, setForm] = useState(emptyForm);
+  const [newWishCustomerId, setNewWishCustomerId] = useState('');
+  const [formError, setFormError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
-  const wish = id ? getWishById(id) : undefined;
+  const load = useCallback(() => {
+    if (!id) {
+      setLoading(false);
+      setNotFound(true);
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    setNotFound(false);
+    getWish(id)
+      .then(async (w) => {
+        setWish(w);
+        const [c, t] = await Promise.all([
+          getCustomer(w.customerId),
+          listTripsByCustomer(w.customerId),
+        ]);
+        setCustomer(c);
+        setTrips(t);
+        setLoading(false);
+      })
+      .catch((err: unknown) => {
+        if (err instanceof ApiError && err.status === 404) {
+          setNotFound(true);
+        } else {
+          setError(err instanceof ApiError ? err.message : 'Não foi possível carregar o desejo.');
+        }
+        setLoading(false);
+      });
+  }, [id]);
 
-  if (loadState === 'loading') {
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  useEffect(() => {
+    listCustomers()
+      .then(setCustomers)
+      .catch(() => setCustomers([]));
+  }, []);
+
+  if (loading) {
     return <LoadingState label="Carregando desejo…" />;
   }
 
-  if (!wish) {
+  if (error) {
+    return <ErrorState description={error} onRetry={load} />;
+  }
+
+  if (notFound || !wish) {
     return (
       <div className="space-y-4">
         <Link to="/wishes" className="inline-flex items-center gap-1 text-sm text-slate-600 hover:text-slate-900">
@@ -66,9 +126,74 @@ export function WishDetailPage() {
     );
   }
 
-  const customer = getCustomerById(wish.customerId);
-  const trips = customer ? getTripsByCustomerId(customer.id) : [];
-  const proposals = customer ? getProposalsByCustomerId(customer.id).filter((p) => p.wishId === wish.id) : [];
+  // Proposals are out of CORE-A scope; this tab renders honestly empty.
+  const proposals: never[] = [];
+  const activeCustomers = customers.filter((c) => c.status === 'ACTIVE');
+
+  function openNewWish() {
+    setForm(emptyForm);
+    setNewWishCustomerId(activeCustomers[0]?.id ?? wish!.customerId);
+    setFormError(null);
+    setShowNewWish(true);
+  }
+
+  function openEditWish() {
+    setForm({
+      destination: wish!.destination ?? '',
+      travelersCount: wish!.travelersCount !== undefined ? String(wish!.travelersCount) : '',
+      budget: wish!.budget !== undefined ? String(wish!.budget) : '',
+      notes: wish!.notes ?? '',
+    });
+    setFormError(null);
+    setShowEditWish(true);
+  }
+
+  async function handleCreate() {
+    if (!newWishCustomerId) {
+      setFormError('Selecione um cliente.');
+      return;
+    }
+    setSaving(true);
+    setFormError(null);
+    try {
+      const travelersCount = form.travelersCount ? Number(form.travelersCount) : undefined;
+      const budget = form.budget ? Number(form.budget) : undefined;
+      const created = await createWish({
+        customerId: newWishCustomerId,
+        destination: form.destination.trim() || undefined,
+        travelersCount: Number.isFinite(travelersCount) ? travelersCount : undefined,
+        budget: Number.isFinite(budget) ? budget : undefined,
+        notes: form.notes.trim() || undefined,
+      });
+      setShowNewWish(false);
+      void navigate(`/wishes/${created.id}`);
+    } catch (err: unknown) {
+      setFormError(err instanceof ApiError ? err.message : 'Não foi possível salvar o desejo.');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleEdit() {
+    setSaving(true);
+    setFormError(null);
+    try {
+      const travelersCount = form.travelersCount ? Number(form.travelersCount) : undefined;
+      const budget = form.budget ? Number(form.budget) : undefined;
+      const updated = await updateWish(wish!.id, {
+        destination: form.destination.trim() || undefined,
+        travelersCount: Number.isFinite(travelersCount) ? travelersCount : undefined,
+        budget: Number.isFinite(budget) ? budget : undefined,
+        notes: form.notes.trim() || undefined,
+      });
+      setWish(updated);
+      setShowEditWish(false);
+    } catch (err: unknown) {
+      setFormError(err instanceof ApiError ? err.message : 'Não foi possível salvar as alterações.');
+    } finally {
+      setSaving(false);
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -89,10 +214,16 @@ export function WishDetailPage() {
 
       <div className="flex items-center justify-between">
         <Tabs items={TABS} value={tab} onValueChange={setTab} />
-        <Button size="sm" onClick={() => setShowNewWish(true)}>
-          <FileText className="h-4 w-4" />
-          Criar desejo
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={openEditWish}>
+            <Pencil className="h-4 w-4" />
+            Editar
+          </Button>
+          <Button size="sm" onClick={openNewWish}>
+            <FileText className="h-4 w-4" />
+            Criar desejo
+          </Button>
+        </div>
       </div>
 
       {tab === 'overview' && (
@@ -179,27 +310,7 @@ export function WishDetailPage() {
                 <p className="text-sm font-medium text-slate-500">Nenhuma proposta vinculada</p>
               </CardContent>
             </Card>
-          ) : (
-            <div className="space-y-3">
-              {proposals.map((p) => (
-                <Link
-                  key={p.id}
-                  to={`/proposals/${p.id}`}
-                  className="block rounded-lg border border-slate-200 bg-white p-4 transition-colors hover:bg-slate-50"
-                >
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-slate-900">{p.notes ?? 'Proposta'}</p>
-                      <p className="text-xs text-slate-500">{formatBRL(p.total)}</p>
-                    </div>
-                    <StatusBadge tone={proposalStatusTone(p.status)}>
-                      {getProposalStatusLabel(p.status)}
-                    </StatusBadge>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )}
+          ) : null}
         </div>
       )}
 
@@ -241,20 +352,23 @@ export function WishDetailPage() {
 
       <Modal
         open={showNewWish}
-        onClose={() => setShowNewWish(false)}
+        onClose={() => { setShowNewWish(false); setFormError(null); }}
         title="Novo desejo"
         footer={
           <>
-            <Button variant="outline" size="sm" onClick={() => setShowNewWish(false)}>Cancelar</Button>
-            <Button size="sm" onClick={() => setShowNewWish(false)}>Salvar</Button>
+            <Button variant="outline" size="sm" onClick={() => { setShowNewWish(false); setFormError(null); }} disabled={saving}>Cancelar</Button>
+            <Button size="sm" onClick={() => { void handleCreate(); }} disabled={saving}>{saving ? 'Salvando…' : 'Salvar'}</Button>
           </>
         }
       >
         <div className="space-y-4">
+          {formError && (
+            <p role="alert" className="rounded-md bg-red-50 p-2 text-xs text-red-700">{formError}</p>
+          )}
           <div>
             <label className="mb-1 block text-xs font-medium text-slate-700">Cliente</label>
-            <Select defaultValue={customers[0]?.id}>
-              {customers.filter((c) => c.status === 'ACTIVE').map((c) => (
+            <Select value={newWishCustomerId} onChange={(e) => setNewWishCustomerId(e.target.value)}>
+              {activeCustomers.map((c) => (
                 <option key={c.id} value={c.id}>{c.name}</option>
               ))}
             </Select>
@@ -263,8 +377,8 @@ export function WishDetailPage() {
             <label className="mb-1 block text-xs font-medium text-slate-700">Destino</label>
             <Input
               placeholder="Ex: Portugal, Grécia…"
-              value={newWish.destination}
-              onChange={(e) => setNewWish({ ...newWish, destination: e.target.value })}
+              value={form.destination}
+              onChange={(e) => setForm({ ...form, destination: e.target.value })}
             />
           </div>
           <div className="grid grid-cols-2 gap-3">
@@ -273,8 +387,8 @@ export function WishDetailPage() {
               <Input
                 type="number"
                 min="1"
-                value={newWish.travelersCount}
-                onChange={(e) => setNewWish({ ...newWish, travelersCount: e.target.value })}
+                value={form.travelersCount}
+                onChange={(e) => setForm({ ...form, travelersCount: e.target.value })}
               />
             </div>
             <div>
@@ -282,8 +396,8 @@ export function WishDetailPage() {
               <Input
                 type="number"
                 placeholder="0,00"
-                value={newWish.budget}
-                onChange={(e) => setNewWish({ ...newWish, budget: e.target.value })}
+                value={form.budget}
+                onChange={(e) => setForm({ ...form, budget: e.target.value })}
               />
             </div>
           </div>
@@ -291,8 +405,59 @@ export function WishDetailPage() {
             <label className="mb-1 block text-xs font-medium text-slate-700">Observações</label>
             <Textarea
               placeholder="Preferências, restrições, detalhes…"
-              value={newWish.notes}
-              onChange={(e) => setNewWish({ ...newWish, notes: e.target.value })}
+              value={form.notes}
+              onChange={(e) => setForm({ ...form, notes: e.target.value })}
+            />
+          </div>
+        </div>
+      </Modal>
+
+      <Modal
+        open={showEditWish}
+        onClose={() => { setShowEditWish(false); setFormError(null); }}
+        title="Editar desejo"
+        footer={
+          <>
+            <Button variant="outline" size="sm" onClick={() => { setShowEditWish(false); setFormError(null); }} disabled={saving}>Cancelar</Button>
+            <Button size="sm" onClick={() => { void handleEdit(); }} disabled={saving}>{saving ? 'Salvando…' : 'Salvar'}</Button>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          {formError && (
+            <p role="alert" className="rounded-md bg-red-50 p-2 text-xs text-red-700">{formError}</p>
+          )}
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-700">Destino</label>
+            <Input
+              value={form.destination}
+              onChange={(e) => setForm({ ...form, destination: e.target.value })}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="mb-1 block text-xs font-medium text-slate-700">Viajantes</label>
+              <Input
+                type="number"
+                min="1"
+                value={form.travelersCount}
+                onChange={(e) => setForm({ ...form, travelersCount: e.target.value })}
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-slate-700">Orçamento (R$)</label>
+              <Input
+                type="number"
+                value={form.budget}
+                onChange={(e) => setForm({ ...form, budget: e.target.value })}
+              />
+            </div>
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-700">Observações</label>
+            <Textarea
+              value={form.notes}
+              onChange={(e) => setForm({ ...form, notes: e.target.value })}
             />
           </div>
         </div>

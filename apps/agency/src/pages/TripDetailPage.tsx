@@ -1,29 +1,21 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import {
-  ArrowLeft,
-  Calendar,
-  MapPin,
-  Clock,
-  CheckCircle2,
-} from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, Pencil } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
+import { Button } from '../components/ui/button';
 import { StatusBadge } from '../components/ui/status-badge';
 import { Tabs } from '../components/ui/tabs';
 import { ErrorState } from '../components/ui/error-state';
 import { LoadingState } from '../components/ui/loading-state';
-import {
-  getTripById,
-  getCustomerById,
-  getProposalsByCustomerId,
-  getBookingsByCustomerId,
-  portugalItinerary,
-} from '../lib/fixtures';
+import { Modal } from '../components/ui/modal';
+import { Input } from '../components/ui/input';
+import { Textarea } from '../components/ui/textarea';
+import { ApiError, getCustomer, getTrip, updateTrip } from '../lib/api';
 import { formatDateBR } from '../lib/formatDateBR';
-import { formatBRL } from '../lib/formatCurrency';
-import { getTripStatusLabel, getProposalStatusLabel, getBookingStatusLabel } from '../lib/statusLabels';
-import { useMockLoading } from '../lib/useMockLoading';
+import { getTripStatusLabel } from '../lib/statusLabels';
 import type { TripStatus } from '../types';
+import type { Trip } from '../types/trip';
+import type { Customer } from '../types/customer';
 
 const TABS = [
   { value: 'overview', label: 'Visão geral' },
@@ -37,18 +29,61 @@ function tripStatusTone(s: TripStatus) {
   return 'neutral' as const;
 }
 
+const emptyForm = { name: '', destination: '', startDate: '', endDate: '', description: '' };
+
 export function TripDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [tab, setTab] = useState('overview');
-  const loadState = useMockLoading();
+  const [trip, setTrip] = useState<Trip | null>(null);
+  const [customer, setCustomer] = useState<Customer | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [notFound, setNotFound] = useState(false);
 
-  const trip = id ? getTripById(id) : undefined;
+  const [showEdit, setShowEdit] = useState(false);
+  const [form, setForm] = useState(emptyForm);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
-  if (loadState === 'loading') {
+  const load = useCallback(() => {
+    if (!id) {
+      setLoading(false);
+      setNotFound(true);
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    setNotFound(false);
+    getTrip(id)
+      .then(async (t) => {
+        setTrip(t);
+        const c = await getCustomer(t.customerId);
+        setCustomer(c);
+        setLoading(false);
+      })
+      .catch((err: unknown) => {
+        if (err instanceof ApiError && err.status === 404) {
+          setNotFound(true);
+        } else {
+          setError(err instanceof ApiError ? err.message : 'Não foi possível carregar a viagem.');
+        }
+        setLoading(false);
+      });
+  }, [id]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  if (loading) {
     return <LoadingState label="Carregando viagem…" />;
   }
 
-  if (!trip) {
+  if (error) {
+    return <ErrorState description={error} onRetry={load} />;
+  }
+
+  if (notFound || !trip) {
     return (
       <div className="space-y-4">
         <Link to="/trips" className="inline-flex items-center gap-1 text-sm text-slate-600 hover:text-slate-900">
@@ -59,12 +94,48 @@ export function TripDetailPage() {
     );
   }
 
-  const customer = getCustomerById(trip.customerId);
-  const proposals = customer ? getProposalsByCustomerId(customer.id) : [];
-  const bookings = customer ? getBookingsByCustomerId(customer.id) : [];
+  // Itinerary and Proposals/Bookings ("Relacionados") are out of CORE-A
+  // scope -- no itinerary or cross-domain data source exists yet, so these
+  // tabs render an honest empty state instead of unrelated fixture data.
+  const itinerary: never[] = [];
+  const proposals: never[] = [];
+  const bookings: never[] = [];
 
-  const isPortugalTrip = trip.destination.includes('Portugal');
-  const itinerary = isPortugalTrip ? portugalItinerary : [];
+  function openEdit() {
+    setForm({
+      name: trip!.name,
+      destination: trip!.destination,
+      startDate: trip!.startDate.slice(0, 10),
+      endDate: trip!.endDate.slice(0, 10),
+      description: trip!.description ?? '',
+    });
+    setFormError(null);
+    setShowEdit(true);
+  }
+
+  async function handleEdit() {
+    if (!form.name.trim() || !form.destination.trim()) {
+      setFormError('Informe o nome e o destino da viagem.');
+      return;
+    }
+    setSaving(true);
+    setFormError(null);
+    try {
+      const updated = await updateTrip(trip!.id, {
+        name: form.name.trim(),
+        destination: form.destination.trim(),
+        startDate: form.startDate || undefined,
+        endDate: form.endDate || undefined,
+        description: form.description.trim() || undefined,
+      });
+      setTrip(updated);
+      setShowEdit(false);
+    } catch (err: unknown) {
+      setFormError(err instanceof ApiError ? err.message : 'Não foi possível salvar as alterações.');
+    } finally {
+      setSaving(false);
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -78,12 +149,20 @@ export function TripDetailPage() {
             {customer?.name ?? 'Cliente'} · {trip.destination}
           </p>
         </div>
-        <StatusBadge tone={tripStatusTone(trip.status)}>
-          {getTripStatusLabel(trip.status)}
-        </StatusBadge>
+        <div className="flex items-center gap-2">
+          <StatusBadge tone={tripStatusTone(trip.status)}>
+            {getTripStatusLabel(trip.status)}
+          </StatusBadge>
+        </div>
       </div>
 
-      <Tabs items={TABS} value={tab} onValueChange={setTab} />
+      <div className="flex items-center justify-between">
+        <Tabs items={TABS} value={tab} onValueChange={setTab} />
+        <Button variant="outline" size="sm" onClick={openEdit}>
+          <Pencil className="h-4 w-4" />
+          Editar
+        </Button>
+      </div>
 
       {tab === 'overview' && (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -161,50 +240,13 @@ export function TripDetailPage() {
 
       {tab === 'itinerary' && (
         <div>
-          {itinerary.length === 0 ? (
+          {itinerary.length === 0 && (
             <Card>
               <CardContent className="py-10 text-center">
-                <Clock className="mx-auto mb-2 h-8 w-8 text-slate-300" />
                 <p className="text-sm font-medium text-slate-500">Itinerário não disponível para esta viagem</p>
                 <p className="text-xs text-slate-400 mt-1">O itinerário detalhado será exibido aqui quando disponível.</p>
               </CardContent>
             </Card>
-          ) : (
-            <div className="relative ml-4 border-l-2 border-slate-200 pl-8 space-y-6">
-              {itinerary.map((day, idx) => {
-                const isLast = idx === itinerary.length - 1;
-                return (
-                  <div key={day.date} className="relative">
-                    <div className={`absolute -left-[41px] top-0 flex h-8 w-8 items-center justify-center rounded-full border-2 border-white text-xs font-bold text-white ${idx === 0 ? 'bg-blue-600' : isLast ? 'bg-emerald-600' : 'bg-slate-400'}`}>
-                      {idx + 1}
-                    </div>
-                    <Card>
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="text-xs font-medium text-slate-400">
-                                {formatDateBR(day.date, { assumeDateOnly: true })}
-                              </span>
-                              <StatusBadge tone="neutral">{day.location}</StatusBadge>
-                            </div>
-                            <p className="text-sm font-medium text-slate-900">{day.description}</p>
-                            <div className="mt-2 flex flex-wrap gap-1.5">
-                              {day.highlights.map((h) => (
-                                <span key={h} className="inline-flex items-center gap-1 rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
-                                  <CheckCircle2 className="h-3 w-3 text-emerald-500" />
-                                  {h}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                );
-              })}
-            </div>
           )}
         </div>
       )}
@@ -214,64 +256,58 @@ export function TripDetailPage() {
           <Card>
             <CardHeader><CardTitle>Propostas</CardTitle></CardHeader>
             <CardContent>
-              {proposals.length === 0 ? (
-                <p className="py-4 text-center text-sm text-slate-400">Nenhuma proposta</p>
-              ) : (
-                <ul className="space-y-2">
-                  {proposals.map((p) => (
-                    <li key={p.id}>
-                      <Link
-                        to={`/proposals/${p.id}`}
-                        className="flex items-center justify-between rounded-md bg-slate-50 p-3 transition-colors hover:bg-slate-100"
-                      >
-                        <div>
-                          <p className="text-sm font-medium text-slate-900">{p.notes ?? 'Proposta'}</p>
-                          <p className="text-xs text-slate-500">{formatBRL(p.total)}</p>
-                        </div>
-                        <StatusBadge tone={p.status === 'ACCEPTED' ? 'positive' : 'neutral'}>
-                          {getProposalStatusLabel(p.status)}
-                        </StatusBadge>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              )}
+              {proposals.length === 0 && <p className="py-4 text-center text-sm text-slate-400">Nenhuma proposta</p>}
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader><CardTitle>Reservas</CardTitle></CardHeader>
             <CardContent>
-              {bookings.length === 0 ? (
-                <p className="py-4 text-center text-sm text-slate-400">Nenhuma reserva</p>
-              ) : (
-                <ul className="space-y-2">
-                  {bookings.map((b) => (
-                    <li key={b.id}>
-                      <Link
-                        to={`/bookings/${b.id}`}
-                        className="flex items-center justify-between rounded-md bg-slate-50 p-3 transition-colors hover:bg-slate-100"
-                      >
-                        <div>
-                          <p className="text-sm font-medium text-slate-900">
-                            {b.tripType === 'ROUND_TRIP' ? 'Ida e volta' : 'Somente ida'}
-                          </p>
-                          <p className="text-xs text-slate-500">
-                            Criada em {formatDateBR(b.createdAt)}
-                          </p>
-                        </div>
-                        <StatusBadge tone={b.cancelled ? 'inactive' : 'positive'}>
-                          {getBookingStatusLabel(b.cancelled)}
-                        </StatusBadge>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              )}
+              {bookings.length === 0 && <p className="py-4 text-center text-sm text-slate-400">Nenhuma reserva</p>}
             </CardContent>
           </Card>
         </div>
       )}
+
+      <Modal
+        open={showEdit}
+        onClose={() => { setShowEdit(false); setFormError(null); }}
+        title="Editar viagem"
+        footer={
+          <>
+            <Button variant="outline" size="sm" onClick={() => { setShowEdit(false); setFormError(null); }} disabled={saving}>Cancelar</Button>
+            <Button size="sm" onClick={() => { void handleEdit(); }} disabled={saving}>{saving ? 'Salvando…' : 'Salvar'}</Button>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          {formError && (
+            <p role="alert" className="rounded-md bg-red-50 p-2 text-xs text-red-700">{formError}</p>
+          )}
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-700">Nome da viagem</label>
+            <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-700">Destino</label>
+            <Input value={form.destination} onChange={(e) => setForm({ ...form, destination: e.target.value })} />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="mb-1 block text-xs font-medium text-slate-700">Início</label>
+              <Input type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-slate-700">Fim</label>
+              <Input type="date" value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} />
+            </div>
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-700">Descrição</label>
+            <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

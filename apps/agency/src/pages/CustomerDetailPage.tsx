@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, Map, Heart, FileText, CalendarCheck, Phone, Mail } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
@@ -7,19 +7,14 @@ import { Tabs } from '../components/ui/tabs';
 import { EmptyState } from '../components/ui/empty-state';
 import { ErrorState } from '../components/ui/error-state';
 import { LoadingState } from '../components/ui/loading-state';
-import {
-  getCustomerById,
-  getWishesByCustomerId,
-  getTripsByCustomerId,
-  getProposalsByCustomerId,
-  getBookingsByCustomerId,
-  getPassengersByBookingId,
-} from '../lib/fixtures';
+import { ApiError, getCustomer, listTripsByCustomer, listWishesByCustomer } from '../lib/api';
 import { formatDateBR } from '../lib/formatDateBR';
 import { formatBRL } from '../lib/formatCurrency';
-import { getCustomerStatusLabel, getWishStatusLabel, getTripStatusLabel, getProposalStatusLabel, getBookingStatusLabel } from '../lib/statusLabels';
-import { useMockLoading } from '../lib/useMockLoading';
-import type { CustomerStatus, WishStatus, TripStatus, ProposalStatus } from '../types';
+import { getCustomerStatusLabel, getWishStatusLabel, getTripStatusLabel } from '../lib/statusLabels';
+import type { CustomerStatus, WishStatus, TripStatus } from '../types';
+import type { Customer } from '../types/customer';
+import type { Wish } from '../types/wish';
+import type { Trip } from '../types/trip';
 
 const TABS = [
   { value: 'overview', label: 'Visão geral' },
@@ -42,13 +37,6 @@ function tripStatusTone(s: TripStatus) {
   return 'neutral' as const;
 }
 
-function proposalStatusTone(s: ProposalStatus) {
-  if (s === 'ACCEPTED') return 'positive' as const;
-  if (s === 'SENT' || s === 'DRAFT') return 'neutral' as const;
-  if (s === 'DECLINED' || s === 'CANCELLED' || s === 'EXPIRED') return 'inactive' as const;
-  return 'neutral' as const;
-}
-
 function customerStatusTone(s: CustomerStatus) {
   if (s === 'ACTIVE') return 'positive' as const;
   if (s === 'INACTIVE') return 'inactive' as const;
@@ -58,15 +46,52 @@ function customerStatusTone(s: CustomerStatus) {
 export function CustomerDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [tab, setTab] = useState('overview');
-  const loadState = useMockLoading();
+  const [customer, setCustomer] = useState<Customer | null>(null);
+  const [wishes, setWishes] = useState<Wish[]>([]);
+  const [trips, setTrips] = useState<Trip[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [notFound, setNotFound] = useState(false);
 
-  const customer = id ? getCustomerById(id) : undefined;
+  const load = useCallback(() => {
+    if (!id) {
+      setLoading(false);
+      setNotFound(true);
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    setNotFound(false);
+    Promise.all([getCustomer(id), listWishesByCustomer(id), listTripsByCustomer(id)])
+      .then(([c, w, t]) => {
+        setCustomer(c);
+        setWishes(w);
+        setTrips(t);
+        setLoading(false);
+      })
+      .catch((err: unknown) => {
+        if (err instanceof ApiError && err.status === 404) {
+          setNotFound(true);
+        } else {
+          setError(err instanceof ApiError ? err.message : 'Não foi possível carregar o cliente.');
+        }
+        setLoading(false);
+      });
+  }, [id]);
 
-  if (loadState === 'loading') {
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  if (loading) {
     return <LoadingState label="Carregando cliente…" />;
   }
 
-  if (!customer) {
+  if (error) {
+    return <ErrorState description={error} onRetry={load} />;
+  }
+
+  if (notFound || !customer) {
     return (
       <div className="space-y-4">
         <Link to="/customers" className="inline-flex items-center gap-1 text-sm text-slate-600 hover:text-slate-900">
@@ -77,10 +102,11 @@ export function CustomerDetailPage() {
     );
   }
 
-  const wishes = getWishesByCustomerId(customer.id);
-  const trips = getTripsByCustomerId(customer.id);
-  const proposals = getProposalsByCustomerId(customer.id);
-  const bookings = getBookingsByCustomerId(customer.id);
+  // Proposals/Bookings are out of CORE-A scope (Customers + Wishes + Trips
+  // only) -- these tabs render an honest empty state rather than fixture
+  // data that would no longer correspond to this (now real) customer id.
+  const proposals: never[] = [];
+  const bookings: never[] = [];
 
   return (
     <div className="space-y-6">
@@ -241,96 +267,19 @@ export function CustomerDetailPage() {
       )}
 
       {tab === 'proposals' && (
-        <div>
-          {proposals.length === 0 ? (
-            <EmptyState
-              title="Nenhuma proposta"
-              description="Nenhuma proposta foi criada para este cliente."
-              icon={<FileText className="h-8 w-8" />}
-            />
-          ) : (
-            <div className="space-y-3">
-              {proposals.map((p) => (
-                <Link
-                  key={p.id}
-                  to={`/proposals/${p.id}`}
-                  className="block rounded-lg border border-slate-200 bg-white p-4 transition-colors hover:bg-slate-50"
-                >
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-slate-900">{p.notes ?? 'Proposta'}</p>
-                      <p className="text-xs text-slate-500">
-                        {formatBRL(p.total)} (desconto: {formatBRL(p.discount)})
-                      </p>
-                      {p.validUntil && (
-                        <p className="mt-1 text-xs text-slate-400">
-                          Válida até {formatDateBR(p.validUntil, { assumeDateOnly: true })}
-                        </p>
-                      )}
-                    </div>
-                    <StatusBadge tone={proposalStatusTone(p.status)}>
-                      {getProposalStatusLabel(p.status)}
-                    </StatusBadge>
-                  </div>
-                  {p.conditions && (
-                    <p className="mt-2 text-xs text-slate-500 bg-slate-50 rounded p-2">{p.conditions}</p>
-                  )}
-                </Link>
-              ))}
-            </div>
-          )}
-        </div>
+        <EmptyState
+          title="Nenhuma proposta"
+          description="A integração com propostas para este cliente ainda não está disponível nesta versão."
+          icon={<FileText className="h-8 w-8" />}
+        />
       )}
 
       {tab === 'bookings' && (
-        <div>
-          {bookings.length === 0 ? (
-            <EmptyState
-              title="Nenhuma reserva"
-              description="Nenhuma reserva foi realizada para este cliente."
-              icon={<CalendarCheck className="h-8 w-8" />}
-            />
-          ) : (
-            <div className="space-y-3">
-              {bookings.map((b) => {
-                const passengers = getPassengersByBookingId(b.id);
-                return (
-                  <Link
-                    key={b.id}
-                    to={`/bookings/${b.id}`}
-                    className="block rounded-lg border border-slate-200 bg-white p-4 transition-colors hover:bg-slate-50"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-slate-900">
-                          Reserva {b.tripType === 'ROUND_TRIP' ? 'Ida e volta' : 'Somente ida'}
-                        </p>
-                        <p className="text-xs text-slate-500">
-                          {passengers.length} passageiro{passengers.length !== 1 ? 's' : ''}
-                        </p>
-                        <p className="mt-1 text-xs text-slate-400">
-                          Criada em {formatDateBR(b.createdAt)}
-                        </p>
-                      </div>
-                      <StatusBadge tone={b.cancelled ? 'inactive' : 'positive'}>
-                        {getBookingStatusLabel(b.cancelled)}
-                      </StatusBadge>
-                    </div>
-                    {passengers.length > 0 && (
-                      <div className="mt-3 flex flex-wrap gap-1.5">
-                        {passengers.map((p) => (
-                          <span key={p.id} className="rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
-                            {p.name}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </Link>
-                );
-              })}
-            </div>
-          )}
-        </div>
+        <EmptyState
+          title="Nenhuma reserva"
+          description="A integração com reservas para este cliente ainda não está disponível nesta versão."
+          icon={<CalendarCheck className="h-8 w-8" />}
+        />
       )}
     </div>
   );

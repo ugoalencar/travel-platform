@@ -1,16 +1,20 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Plus, Map } from 'lucide-react';
+import { Search, Plus, Map as MapIcon } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
+import { Textarea } from '../components/ui/textarea';
+import { Select } from '../components/ui/select';
 import { StatusBadge } from '../components/ui/status-badge';
 import { EmptyState } from '../components/ui/empty-state';
+import { ErrorState } from '../components/ui/error-state';
 import { LoadingState } from '../components/ui/loading-state';
-import { trips, getCustomerById } from '../lib/fixtures';
+import { Modal } from '../components/ui/modal';
+import { ApiError, createTrip, listCustomers, listTrips } from '../lib/api';
 import { getTripStatusLabel } from '../lib/statusLabels';
 import { formatDateBR } from '../lib/formatDateBR';
-import { useMockLoading } from '../lib/useMockLoading';
-import type { TripStatus } from '../types';
+import type { Trip, TripStatus } from '../types/trip';
+import type { Customer } from '../types/customer';
 
 function statusTone(s: TripStatus) {
   if (s === 'CONFIRMED' || s === 'COMPLETED') return 'positive' as const;
@@ -19,24 +23,105 @@ function statusTone(s: TripStatus) {
   return 'neutral' as const;
 }
 
+const emptyNewTrip = {
+  customerId: '',
+  name: '',
+  destination: '',
+  startDate: '',
+  endDate: '',
+  description: '',
+};
+
 export function TripsPage() {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'ALL' | TripStatus>('ALL');
-  const loadState = useMockLoading();
+  const [trips, setTrips] = useState<Trip[] | null>(null);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [showNewTrip, setShowNewTrip] = useState(false);
+  const [newTrip, setNewTrip] = useState(emptyNewTrip);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  const customerById = useMemo(
+    () => new Map(customers.map((c) => [c.id, c])),
+    [customers],
+  );
+
+  const load = useCallback(() => {
+    setError(null);
+    setTrips(null);
+    Promise.all([listTrips(), listCustomers()])
+      .then(([t, c]) => {
+        setTrips(t);
+        setCustomers(c);
+      })
+      .catch((err: unknown) => {
+        setError(err instanceof ApiError ? err.message : 'Não foi possível carregar as viagens.');
+      });
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  if (error) {
+    return <ErrorState description={error} onRetry={load} />;
+  }
+
+  if (!trips) {
+    return <LoadingState label="Carregando viagens…" />;
+  }
 
   const filtered = trips.filter((t) => {
-    const customer = getCustomerById(t.customerId);
+    const customer = customerById.get(t.customerId);
     const matchesSearch =
       t.name.toLowerCase().includes(search.toLowerCase()) ||
       t.destination.toLowerCase().includes(search.toLowerCase()) ||
-      customer?.name.toLowerCase().includes(search.toLowerCase()) ||
-      false;
+      (customer?.name.toLowerCase().includes(search.toLowerCase()) ?? false);
     const matchesFilter = filter === 'ALL' || t.status === filter;
     return matchesSearch && matchesFilter;
   });
 
-  if (loadState === 'loading') {
-    return <LoadingState label="Carregando viagens…" />;
+  const activeCustomers = customers.filter((c) => c.status === 'ACTIVE');
+
+  function openCreate() {
+    setNewTrip({ ...emptyNewTrip, customerId: activeCustomers[0]?.id ?? '' });
+    setShowNewTrip(true);
+  }
+
+  async function handleCreate() {
+    if (!newTrip.customerId) {
+      setFormError('Selecione um cliente.');
+      return;
+    }
+    if (!newTrip.name.trim() || !newTrip.destination.trim()) {
+      setFormError('Informe o nome e o destino da viagem.');
+      return;
+    }
+    if (!newTrip.startDate || !newTrip.endDate) {
+      setFormError('Informe as datas de início e fim.');
+      return;
+    }
+    setSaving(true);
+    setFormError(null);
+    try {
+      await createTrip({
+        customerId: newTrip.customerId,
+        name: newTrip.name.trim(),
+        destination: newTrip.destination.trim(),
+        startDate: newTrip.startDate,
+        endDate: newTrip.endDate,
+        description: newTrip.description.trim() || undefined,
+      });
+      setShowNewTrip(false);
+      setNewTrip(emptyNewTrip);
+      load();
+    } catch (err: unknown) {
+      setFormError(err instanceof ApiError ? err.message : 'Não foi possível salvar a viagem.');
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -46,7 +131,7 @@ export function TripsPage() {
           <h1 className="text-xl font-bold text-slate-900">Viagens</h1>
           <p className="text-sm text-slate-500">{trips.length} viagens registradas</p>
         </div>
-        <Button size="sm">
+        <Button size="sm" onClick={openCreate}>
           <Plus className="h-4 w-4" />
           Nova viagem
         </Button>
@@ -84,14 +169,14 @@ export function TripsPage() {
         <EmptyState
           title="Nenhuma viagem encontrada"
           description={search ? 'Tente outro termo de busca.' : 'Crie a primeira viagem a partir de um desejo.'}
-          icon={<Map className="h-8 w-8" />}
+          icon={<MapIcon className="h-8 w-8" />}
           action={
             search ? (
               <Button variant="outline" size="sm" onClick={() => { setSearch(''); setFilter('ALL'); }}>
                 Limpar filtros
               </Button>
             ) : (
-              <Button size="sm">
+              <Button size="sm" onClick={openCreate}>
                 <Plus className="h-4 w-4" />
                 Nova viagem
               </Button>
@@ -101,7 +186,7 @@ export function TripsPage() {
       ) : (
         <div className="space-y-3">
           {filtered.map((trip) => {
-            const customer = getCustomerById(trip.customerId);
+            const customer = customerById.get(trip.customerId);
             return (
               <Link
                 key={trip.id}
@@ -129,6 +214,81 @@ export function TripsPage() {
           })}
         </div>
       )}
+
+      <Modal
+        open={showNewTrip}
+        onClose={() => { setShowNewTrip(false); setFormError(null); }}
+        title="Nova viagem"
+        footer={
+          <>
+            <Button variant="outline" size="sm" onClick={() => { setShowNewTrip(false); setFormError(null); }} disabled={saving}>
+              Cancelar
+            </Button>
+            <Button size="sm" onClick={() => { void handleCreate(); }} disabled={saving}>
+              {saving ? 'Salvando…' : 'Salvar'}
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          {formError && (
+            <p role="alert" className="rounded-md bg-red-50 p-2 text-xs text-red-700">{formError}</p>
+          )}
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-700">Cliente</label>
+            <Select
+              value={newTrip.customerId}
+              onChange={(e) => setNewTrip({ ...newTrip, customerId: e.target.value })}
+            >
+              {activeCustomers.map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </Select>
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-700">Nome da viagem</label>
+            <Input
+              placeholder="Ex: Família Martins — Portugal"
+              value={newTrip.name}
+              onChange={(e) => setNewTrip({ ...newTrip, name: e.target.value })}
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-700">Destino</label>
+            <Input
+              placeholder="Ex: Lisboa + Porto, Portugal"
+              value={newTrip.destination}
+              onChange={(e) => setNewTrip({ ...newTrip, destination: e.target.value })}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="mb-1 block text-xs font-medium text-slate-700">Início</label>
+              <Input
+                type="date"
+                value={newTrip.startDate}
+                onChange={(e) => setNewTrip({ ...newTrip, startDate: e.target.value })}
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-slate-700">Fim</label>
+              <Input
+                type="date"
+                value={newTrip.endDate}
+                onChange={(e) => setNewTrip({ ...newTrip, endDate: e.target.value })}
+              />
+            </div>
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-700">Descrição</label>
+            <Textarea
+              placeholder="Roteiro, hospedagem, detalhes…"
+              value={newTrip.description}
+              onChange={(e) => setNewTrip({ ...newTrip, description: e.target.value })}
+            />
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

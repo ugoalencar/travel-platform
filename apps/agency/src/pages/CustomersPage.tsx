@@ -1,16 +1,19 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, Plus, Users } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
+import { Textarea } from '../components/ui/textarea';
 import { StatusBadge } from '../components/ui/status-badge';
 import { EmptyState } from '../components/ui/empty-state';
+import { ErrorState } from '../components/ui/error-state';
 import { LoadingState } from '../components/ui/loading-state';
-import { customers } from '../lib/fixtures';
+import { Modal } from '../components/ui/modal';
+import { ApiError, createCustomer, listCustomers } from '../lib/api';
 import { getCustomerStatusLabel } from '../lib/statusLabels';
 import { formatDateBR } from '../lib/formatDateBR';
-import { useMockLoading } from '../lib/useMockLoading';
+import type { Customer } from '../types/customer';
 import type { CustomerStatus } from '../types/customer';
 
 function statusTone(status: CustomerStatus) {
@@ -19,22 +22,71 @@ function statusTone(status: CustomerStatus) {
   return 'attention' as const;
 }
 
+const emptyNewCustomer = { name: '', email: '', phone: '', notes: '' };
+
 export function CustomersPage() {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'ALL' | CustomerStatus>('ALL');
-  const loadState = useMockLoading();
+  const [customers, setCustomers] = useState<Customer[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [showNewCustomer, setShowNewCustomer] = useState(false);
+  const [newCustomer, setNewCustomer] = useState(emptyNewCustomer);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  const load = useCallback(() => {
+    setError(null);
+    setCustomers(null);
+    listCustomers()
+      .then(setCustomers)
+      .catch((err: unknown) => {
+        setError(err instanceof ApiError ? err.message : 'Não foi possível carregar os clientes.');
+      });
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  if (error) {
+    return <ErrorState description={error} onRetry={load} />;
+  }
+
+  if (!customers) {
+    return <LoadingState label="Carregando clientes…" />;
+  }
 
   const filtered = customers.filter((c) => {
     const matchesSearch =
       c.name.toLowerCase().includes(search.toLowerCase()) ||
-      c.email?.toLowerCase().includes(search.toLowerCase()) ||
-      c.phone?.includes(search);
+      (c.email?.toLowerCase().includes(search.toLowerCase()) ?? false) ||
+      (c.phone?.includes(search) ?? false);
     const matchesFilter = filter === 'ALL' || c.status === filter;
     return matchesSearch && matchesFilter;
   });
 
-  if (loadState === 'loading') {
-    return <LoadingState label="Carregando clientes…" />;
+  async function handleCreate() {
+    if (!newCustomer.name.trim()) {
+      setFormError('Informe o nome do cliente.');
+      return;
+    }
+    setSaving(true);
+    setFormError(null);
+    try {
+      await createCustomer({
+        name: newCustomer.name.trim(),
+        email: newCustomer.email.trim() || undefined,
+        phone: newCustomer.phone.trim() || undefined,
+        notes: newCustomer.notes.trim() || undefined,
+      });
+      setShowNewCustomer(false);
+      setNewCustomer(emptyNewCustomer);
+      load();
+    } catch (err: unknown) {
+      setFormError(err instanceof ApiError ? err.message : 'Não foi possível salvar o cliente.');
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -44,7 +96,7 @@ export function CustomersPage() {
           <h1 className="text-xl font-bold text-slate-900">Clientes</h1>
           <p className="text-sm text-slate-500">{customers.length} clientes cadastrados</p>
         </div>
-        <Button size="sm">
+        <Button size="sm" onClick={() => setShowNewCustomer(true)}>
           <Plus className="h-4 w-4" />
           Novo cliente
         </Button>
@@ -89,7 +141,7 @@ export function CustomersPage() {
                 Limpar filtros
               </Button>
             ) : (
-              <Button size="sm">
+              <Button size="sm" onClick={() => setShowNewCustomer(true)}>
                 <Plus className="h-4 w-4" />
                 Novo cliente
               </Button>
@@ -146,6 +198,63 @@ export function CustomersPage() {
           </CardContent>
         </Card>
       )}
+
+      <Modal
+        open={showNewCustomer}
+        onClose={() => { setShowNewCustomer(false); setFormError(null); }}
+        title="Novo cliente"
+        footer={
+          <>
+            <Button variant="outline" size="sm" onClick={() => { setShowNewCustomer(false); setFormError(null); }} disabled={saving}>
+              Cancelar
+            </Button>
+            <Button size="sm" onClick={() => { void handleCreate(); }} disabled={saving}>
+              {saving ? 'Salvando…' : 'Salvar'}
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          {formError && (
+            <p role="alert" className="rounded-md bg-red-50 p-2 text-xs text-red-700">{formError}</p>
+          )}
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-700">Nome *</label>
+            <Input
+              placeholder="Nome completo"
+              value={newCustomer.name}
+              onChange={(e) => setNewCustomer({ ...newCustomer, name: e.target.value })}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="mb-1 block text-xs font-medium text-slate-700">E-mail</label>
+              <Input
+                type="email"
+                placeholder="email@exemplo.com"
+                value={newCustomer.email}
+                onChange={(e) => setNewCustomer({ ...newCustomer, email: e.target.value })}
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-slate-700">Telefone</label>
+              <Input
+                placeholder="(11) 99999-9999"
+                value={newCustomer.phone}
+                onChange={(e) => setNewCustomer({ ...newCustomer, phone: e.target.value })}
+              />
+            </div>
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-700">Observações</label>
+            <Textarea
+              placeholder="Preferências, restrições, detalhes…"
+              value={newCustomer.notes}
+              onChange={(e) => setNewCustomer({ ...newCustomer, notes: e.target.value })}
+            />
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
