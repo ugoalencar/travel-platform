@@ -184,3 +184,44 @@ export async function getOffer(id: string): Promise<Offer> {
   const data = await request<{ offer: Offer }>(`/api/offers/${encodeURIComponent(id)}`);
   return data.offer;
 }
+
+// ============================================================
+// FINANCIAL (GET /financial/summary)
+// Server-authoritative financial metrics for the agency.
+// No client-side computation of totals, margins, or receivables.
+// ============================================================
+
+export type FinancialObligationStatus = 'OPEN' | 'PARTIALLY_PAID' | 'PAID' | 'CANCELLED';
+
+export interface FinancialSummary {
+  salesThisMonth: {
+    total: number;
+    count: number;
+  };
+  received: number;
+  pending: number;
+  expectedMargin: number;
+  recentPayments: Array<{
+    id: string;
+    customerId: string;
+    customerName: string;
+    description: string;
+    amount: number;
+    occurredAt: string;
+    status: 'PAID' | 'PENDING';
+  }>;
+  upcomingReceivables: Array<{
+    id: string;
+    customerId: string;
+    customerName: string;
+    description: string;
+    amount: number;
+    dueAt: string;
+    status: FinancialObligationStatus;
+  }>;
+}
+
+export async function getFinancialSummary(): Promise<FinancialSummary> {
+  const data = await request<{ summary: FinancialSummary }>('/api/financial/summary');
+  return data.summary;
+}
