@@ -41,6 +41,34 @@ const agencyBId = '20000000-0000-4000-8000-000000000001';
 const userAId = '11000000-0000-4000-8000-000000000001';
 const userBId = '21000000-0000-4000-8000-000000000001';
 
+interface FinancialSummaryResponse {
+  salesThisMonth: {
+    total: number;
+    count: number;
+  };
+  received: number;
+  pending: number;
+  expectedMargin: number;
+  recentPayments: Array<{
+    id: string;
+    customerId: string;
+    customerName: string;
+    description: string;
+    amount: number;
+    occurredAt: string;
+    status: 'PAID' | 'PENDING';
+  }>;
+  upcomingReceivables: Array<{
+    id: string;
+    customerId: string;
+    customerName: string;
+    description: string;
+    amount: number;
+    dueAt: string;
+    status: 'OPEN' | 'PARTIALLY_PAID' | 'PAID' | 'CANCELLED';
+  }>;
+}
+
 const principals: Record<string, AuthenticatedPrincipal> = {
   viewer: { userId: userAId, agencyId: agencyAId, role: UserRole.VIEWER, email: 'viewer@example.test' },
   agent: { userId: userAId, agencyId: agencyAId, role: UserRole.AGENT, email: 'agent@example.test' },
@@ -245,6 +273,162 @@ describe.sequential('Financial HTTP routes', () => {
     });
 
     expect(allocatedOut.statusCode).toBe(200);
+    await app.close();
+  });
+
+  it('exposes /financial/summary endpoint for MANAGER with server-authoritative data', async () => {
+    const app = buildTestApp(runtimePool);
+
+    // Create a receivable and payment for Agency A
+    const receivableResp = await app.inject({
+      method: 'POST',
+      url: '/financial/receivables',
+      headers: { 'x-test-principal': 'admin' },
+      payload: {
+        saleId: saleA,
+        customerId: customerA,
+        description: 'Test receivable',
+        amount: 500.50,
+        dueAt: '2027-02-10T00:00:00Z',
+      },
+    });
+    const receivableId = receivableResp.json<{ receivable: { id: string } }>().receivable.id;
+
+    // Record a payment
+    const paymentResp = await app.inject({
+      method: 'POST',
+      url: '/financial/payments',
+      headers: { 'x-test-principal': 'admin' },
+      payload: {
+        direction: 'IN',
+        amount: 500.50,
+        occurredAt: '2027-01-05T00:00:00Z',
+      },
+    });
+    const paymentId = paymentResp.json<{ payment: { id: string } }>().payment.id;
+
+    // Allocate payment to receivable
+    await app.inject({
+      method: 'POST',
+      url: `/financial/payments/${paymentId}/allocations`,
+      headers: { 'x-test-principal': 'admin' },
+      payload: { allocations: [{ receivableId, amount: 500.50 }] },
+    });
+
+    // Manager should be able to read financial summary
+    const summary = await app.inject({
+      method: 'GET',
+      url: '/financial/summary',
+      headers: { 'x-test-principal': 'manager' },
+    });
+
+    expect(summary.statusCode).toBe(200);
+    const data = summary.json<{ summary: FinancialSummaryResponse }>();
+    expect(data.summary).toHaveProperty('salesThisMonth');
+    expect(data.summary).toHaveProperty('received');
+    expect(data.summary).toHaveProperty('pending');
+    expect(data.summary).toHaveProperty('expectedMargin');
+    expect(data.summary).toHaveProperty('recentPayments');
+    expect(data.summary).toHaveProperty('upcomingReceivables');
+
+    // Verify decimal safety: amounts should be properly rounded
+    expect(data.summary.received).toBeCloseTo(500.50, 2);
+
+    await app.close();
+  });
+
+  it('enforces cross-tenant isolation: Agency A cannot access Agency B financial data', async () => {
+    const app = buildTestApp(runtimePool);
+
+    // Create receivable for Agency B
+    const customerB = await seedCustomer(agencyBId);
+    const saleB = await seedSale(agencyBId, customerB, userBId);
+    const receivableB = await app.inject({
+      method: 'POST',
+      url: '/financial/receivables',
+      headers: { 'x-test-principal': 'ownerB' },
+      payload: {
+        saleId: saleB,
+        customerId: customerB,
+        description: 'Agency B receivable',
+        amount: 1000,
+        dueAt: '2027-02-10T00:00:00Z',
+      },
+    });
+    expect(receivableB.statusCode).toBe(201);
+
+    // Agency A's manager should not see Agency B's receivable in their summary
+    const summaryA = await app.inject({
+      method: 'GET',
+      url: '/financial/summary',
+      headers: { 'x-test-principal': 'manager' },
+    });
+
+    // Agency A should see only their own data
+    expect(summaryA.statusCode).toBe(200);
+
+    // Create a receivable for Agency A to verify it appears
+    const receivableA = await app.inject({
+      method: 'POST',
+      url: '/financial/receivables',
+      headers: { 'x-test-principal': 'admin' },
+      payload: {
+        saleId: saleA,
+        customerId: customerA,
+        description: 'Agency A receivable',
+        amount: 500,
+        dueAt: '2027-02-15T00:00:00Z',
+      },
+    });
+    expect(receivableA.statusCode).toBe(201);
+
+    const summaryAAfter = await app.inject({
+      method: 'GET',
+      url: '/financial/summary',
+      headers: { 'x-test-principal': 'manager' },
+    });
+
+    const dataAAfter = summaryAAfter.json<{ summary: FinancialSummaryResponse }>();
+    // Agency A's pending should reflect only their receivable
+    expect(dataAAfter.summary.pending).toBe(500);
+
+    // Agency B's manager should not be able to see Agency A's data
+    const summaryB = await app.inject({
+      method: 'GET',
+      url: '/financial/summary',
+      headers: { 'x-test-principal': 'ownerB' },
+    });
+
+    expect(summaryB.statusCode).toBe(200);
+    const dataB = summaryB.json<{ summary: FinancialSummaryResponse }>();
+    // Agency B should only see Agency B's receivable (1000), not Agency A's (500)
+    expect(dataB.summary.pending).toBe(1000);
+
+    await app.close();
+  });
+
+  it('blocks unauthorized roles from accessing /financial/summary', async () => {
+    const app = buildTestApp(runtimePool);
+
+    const unauthenticated = await app.inject({
+      method: 'GET',
+      url: '/financial/summary',
+    });
+    const viewer = await app.inject({
+      method: 'GET',
+      url: '/financial/summary',
+      headers: { 'x-test-principal': 'viewer' },
+    });
+    const agent = await app.inject({
+      method: 'GET',
+      url: '/financial/summary',
+      headers: { 'x-test-principal': 'agent' },
+    });
+
+    expect(unauthenticated.statusCode).toBe(401);
+    expect(viewer.statusCode).toBe(403);
+    expect(agent.statusCode).toBe(403);
+
     await app.close();
   });
 

@@ -175,6 +175,7 @@ import {
   createPayable,
   createReceivable,
   getCashFlowSummary,
+  getFinancialSummary,
   getSaleMargin,
   listAllocationsForTarget,
   listOperationalCosts,
@@ -1791,6 +1792,12 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     const period = parseCashFlowPeriod(request.query);
     const cashFlow = await getCashFlowSummary(options.database, period);
     return { cashFlow };
+  });
+
+  app.get('/financial/summary', { preHandler: protectedHooks }, async () => {
+    requireRole(UserRole.MANAGER);
+    const summary = await getFinancialSummary(options.database);
+    return { summary };
   });
 
   app.post('/financial/receivables', { preHandler: protectedHooks }, async (request, reply) => {

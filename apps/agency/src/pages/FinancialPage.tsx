@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { ArrowDownRight, ArrowUpRight, Clock, Wallet } from 'lucide-react';
 import { PageHeader } from '../components/layout/PageHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
@@ -11,36 +12,108 @@ import {
   TableHeader,
   TableRow,
 } from '../components/ui/table';
+import { LoadingState } from '../components/ui/loading-state';
 import { formatBRL } from '../lib/formatCurrency';
 import { formatDateBR } from '../lib/formatDateBR';
+import {
+  ApiError,
+  getFinancialSummary,
+  type FinancialSummary,
+} from '../lib/api';
 
-// Presentation-only derived values for the prototype -- computed from the
-// shared demo fixtures (bookings/proposals/sales), not a persisted ledger.
-const financialSummary = {
-  totalSold: 63000,
-  received: 35000,
-  pending: 28000,
-  expectedMargin: 16600,
-};
-
-const recentPayments = [
-  { id: 'pay-001', customer: 'Lucas Martins', description: 'Portugal em família — parcela 2/2', amount: 17500, date: '2026-08-05', status: 'Pago' as const },
-  { id: 'pay-002', customer: 'Lucas Martins', description: 'Portugal em família — parcela 1/2', amount: 17500, date: '2026-07-18', status: 'Pago' as const },
-  { id: 'pay-003', customer: 'Ana Beatriz Souza', description: 'Grécia — sinal', amount: 14000, date: '2026-08-01', status: 'Pago' as const },
-];
-
-const upcomingReceivables = [
-  { id: 'rec-001', customer: 'Ricardo Oliveira', description: 'Cancún — saldo restante', amount: 18000, dueDate: '2026-09-30', status: 'Em aberto' as const },
-  { id: 'rec-002', customer: 'Ana Beatriz Souza', description: 'Grécia — saldo restante', amount: 14000, dueDate: '2026-08-25', status: 'Em aberto' as const },
-];
-
-const bookingPaymentSummary = [
-  { label: 'Pago integralmente', count: 1, tone: 'positive' as const },
-  { label: 'Pagamento parcial', count: 1, tone: 'attention' as const },
-  { label: 'Aguardando primeiro pagamento', count: 1, tone: 'neutral' as const },
-];
+// Financial data state shape
+type LoadState =
+  | { status: 'loading' }
+  | { status: 'error'; message: string }
+  | {
+      status: 'success';
+      summary: FinancialSummary;
+    };
 
 export function FinancialPage() {
+  const [state, setState] = useState<LoadState>({ status: 'loading' });
+
+  useEffect(() => {
+    let cancelled = false;
+
+    setState({ status: 'loading' });
+
+    getFinancialSummary()
+      .then((summary) => {
+        if (cancelled) return;
+        setState({
+          status: 'success',
+          summary,
+        });
+      })
+      .catch((error: unknown) => {
+        if (cancelled) return;
+        const message =
+          error instanceof ApiError ? error.message : 'Não foi possível carregar os dados financeiros.';
+        setState({ status: 'error', message });
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (state.status === 'loading') {
+    return (
+      <div>
+        <PageHeader
+          title="Financeiro"
+          description="Visão consolidada de vendas, recebimentos e margem esperada da agência."
+        />
+        <LoadingState label="Carregando dados financeiros…" />
+      </div>
+    );
+  }
+
+  if (state.status === 'error') {
+    return (
+      <div>
+        <PageHeader
+          title="Financeiro"
+          description="Visão consolidada de vendas, recebimentos e margem esperada da agência."
+        />
+        <div
+          role="alert"
+          aria-live="polite"
+          className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+        >
+          {state.message}
+        </div>
+      </div>
+    );
+  }
+
+  const { summary } = state;
+  const financialSummary = {
+    totalSold: summary.salesThisMonth.total,
+    received: summary.received,
+    pending: summary.pending,
+    expectedMargin: summary.expectedMargin,
+  };
+
+  const recentPayments = summary.recentPayments.map((p) => ({
+    id: p.id,
+    customer: p.customerName,
+    description: p.description,
+    amount: p.amount,
+    date: p.occurredAt,
+    status: 'Pago' as const,
+  }));
+
+  const upcomingReceivables = summary.upcomingReceivables.map((r) => ({
+    id: r.id,
+    customer: r.customerName,
+    description: r.description,
+    amount: r.amount,
+    dueDate: r.dueAt,
+    status: r.status === 'OPEN' ? 'Em aberto' : r.status === 'PARTIALLY_PAID' ? 'Pagamento parcial' : 'Pago',
+  }));
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -49,10 +122,34 @@ export function FinancialPage() {
       />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Total vendido (mês)" value={formatBRL(financialSummary.totalSold)} icon={<Wallet className="h-4 w-4" />} />
-        <StatCard label="Recebido" value={formatBRL(financialSummary.received)} delta="55% do total vendido" deltaTone="positive" icon={<ArrowUpRight className="h-4 w-4" />} />
-        <StatCard label="A receber" value={formatBRL(financialSummary.pending)} delta="2 recebíveis em aberto" deltaTone="neutral" icon={<Clock className="h-4 w-4" />} />
-        <StatCard label="Margem esperada" value={formatBRL(financialSummary.expectedMargin)} delta="≈ 26% sobre vendas" deltaTone="positive" icon={<ArrowDownRight className="h-4 w-4" />} />
+        <StatCard
+          label="Total vendido (mês)"
+          value={formatBRL(financialSummary.totalSold)}
+          delta={`${summary.salesThisMonth.count} venda${summary.salesThisMonth.count !== 1 ? 's' : ''}`}
+          deltaTone="positive"
+          icon={<Wallet className="h-4 w-4" />}
+        />
+        <StatCard
+          label="Recebido"
+          value={formatBRL(financialSummary.received)}
+          delta={financialSummary.totalSold > 0 ? `${Math.round((financialSummary.received / financialSummary.totalSold) * 100)}% do total vendido` : 'Nenhum pagamento'}
+          deltaTone="positive"
+          icon={<ArrowUpRight className="h-4 w-4" />}
+        />
+        <StatCard
+          label="A receber"
+          value={formatBRL(financialSummary.pending)}
+          delta={`${summary.upcomingReceivables.length} recebível${summary.upcomingReceivables.length !== 1 ? 'is' : ''} em aberto`}
+          deltaTone="neutral"
+          icon={<Clock className="h-4 w-4" />}
+        />
+        <StatCard
+          label="Margem esperada"
+          value={formatBRL(financialSummary.expectedMargin)}
+          delta={financialSummary.totalSold > 0 ? `≈ ${Math.round((financialSummary.expectedMargin / financialSummary.totalSold) * 100)}% sobre vendas` : 'Sem dados'}
+          deltaTone="positive"
+          icon={<ArrowDownRight className="h-4 w-4" />}
+        />
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
@@ -116,20 +213,6 @@ export function FinancialPage() {
           </CardContent>
         </Card>
       </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Status de pagamento das reservas</CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          {bookingPaymentSummary.map((item) => (
-            <div key={item.label} className="flex items-center justify-between rounded-md border border-slate-200 p-4">
-              <span className="text-sm text-slate-700">{item.label}</span>
-              <StatusBadge tone={item.tone}>{item.count}</StatusBadge>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
     </div>
   );
 }

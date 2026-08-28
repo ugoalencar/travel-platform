@@ -18,7 +18,7 @@ import {
   SaleSummaryPage,
   SalesListPage,
 } from './pages/SalesJourneyPages';
-import { OffersPage } from './pages/nav-pages';
+import { OffersPage } from './pages/OffersPage';
 import { FinancialPage } from './pages/FinancialPage';
 import { ReportsPage } from './pages/ReportsPage';
 import { SettingsPage } from './pages/SettingsPage';
