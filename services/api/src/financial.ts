@@ -9,6 +9,7 @@ import {
 } from '../../../packages/domain/types';
 import { getAgencyId, getUserId } from '../../../packages/domain/tenant-context';
 import type { DatabaseRuntime, TenantTransactionClient } from './database';
+import { AuditEventType, recordAuditEvent } from './audit-log';
 import { NotFoundError, ValidationError } from './errors';
 
 interface ReceivableRow {
@@ -372,6 +373,17 @@ export async function recordPayment(
     );
     const row = result.rows[0];
     if (!row) throw new Error('Payment insert did not return a row');
+    await recordAuditEvent(client, {
+      eventType: AuditEventType.PAYMENT_RECORDED,
+      entityType: 'payment',
+      entityId: row.id,
+      metadata: {
+        amount: Number(row.amount),
+        currency: 'BRL',
+        method: row.method ?? undefined,
+        paymentDirection: row.direction,
+      },
+    });
     return toPayment(row);
   });
 }

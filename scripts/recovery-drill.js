@@ -29,6 +29,7 @@ const runtimePassword = 'travel_app_runtime_local_password';
 const expectedTables = [
   'agencies',
   'agency_entitlements',
+  'audit_logs',
   'assets',
   'automation_executions',
   'automations',
@@ -189,8 +190,8 @@ function readAllMigrations() {
   const files = readdirSync(migrationsDir)
     .filter((f) => /^\d+_.+\.sql$/.test(f))
     .sort();
-  if (files.length !== 14) {
-    throw new Error(`Expected 14 migrations, found ${files.length}`);
+  if (files.length !== 15) {
+    throw new Error(`Expected 15 migrations, found ${files.length}`);
   }
   return files.map((f) => readSql(resolve(migrationsDir, f))).join('\n');
 }

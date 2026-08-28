@@ -40,6 +40,16 @@ import {
   type CorsPolicy,
 } from './security-config';
 import {
+  classifyRateLimitRequest,
+  InMemoryRateLimitStore,
+  RequestRateLimiter,
+  type RateLimitClass,
+  resolveRateLimitRuntimeConfig,
+  type RateLimitRule,
+  type RateLimitRuntimeEnvironment,
+  type RateLimitStore,
+} from './rate-limit';
+import {
   createCustomer,
   getCustomerById,
   listCustomers,
@@ -339,10 +349,13 @@ interface AgencyProofRow {
   name: string;
 }
 
-interface RateLimitOptions {
+export interface RateLimitOptions {
   enabled?: boolean;
   windowMs?: number;
   max?: number;
+  classLimits?: Partial<Record<RateLimitClass, RateLimitRule>>;
+  store?: RateLimitStore;
+  environment?: RateLimitRuntimeEnvironment & { NODE_ENV?: string };
 }
 
 export function buildApp(options: BuildAppOptions): FastifyInstance {
@@ -437,10 +450,9 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     // front of this service; gate it on production so local HTTP dev never
     // gets an HSTS response (which would make plain-HTTP localhost
     // unusable in browsers that respect it).
-    hsts:
-      corsPolicy.isProduction
-        ? { maxAge: 15552000, includeSubDomains: true, preload: false }
-        : false,
+    hsts: corsPolicy.isProduction
+      ? { maxAge: 15552000, includeSubDomains: true, preload: false }
+      : false,
     // Deprecated/counterproductive in modern browsers -- explicitly off
     // rather than relying on Helmet's own default.
     xXssProtection: false,
@@ -456,7 +468,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
   app.addHook('onSend', (_request, reply, payload, done) => {
     reply.header(
       'Permissions-Policy',
-      'geolocation=(), camera=(), microphone=(), payment=(), usb=(), fullscreen=()',
+      'geolocation=(), camera=(), microphone=(), payment=(), usb=(), fullscreen=()'
     );
     done(null, payload);
   });
@@ -468,9 +480,9 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
   const establishTenant = createTenantContextHook({
     validateUserAgencyAccess: options.validateUserAgencyAccess,
   });
-  const protectedHooks = [authenticate, establishTenant];
-  const rateLimit = createRateLimitHook(options.rateLimit);
-  app.addHook('onRequest', rateLimit);
+  const rateLimits = createRateLimitHooks(options.rateLimit);
+  const protectedHooks = [authenticate, establishTenant, rateLimits.onTrustedTenant];
+  app.addHook('onRequest', rateLimits.onRequest);
 
   // ============================================================
   // CUSTOMER PORTAL (end-customer facing, read-only). Entirely separate
@@ -480,13 +492,13 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
   // the staff /api/* surface the frontend proxy uses).
   // ============================================================
   const customerAuthenticate = createCustomerAuthenticateHook(
-    options.customerAuthProvider ?? { authenticateCustomer: () => Promise.resolve(null) },
+    options.customerAuthProvider ?? { authenticateCustomer: () => Promise.resolve(null) }
   );
   const establishCustomerTenant = createCustomerTenantContextHook({
     validateCustomerAgencyAccess:
       options.validateCustomerAgencyAccess ?? (() => Promise.resolve(false)),
   });
-  const customerHooks = [customerAuthenticate, establishCustomerTenant];
+  const customerHooks = [customerAuthenticate, establishCustomerTenant, rateLimits.onTrustedTenant];
 
   app.get('/customer-api/me', { preHandler: customerHooks }, async () => {
     const profile = await getMyProfile(options.database);
@@ -518,7 +530,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
         throw new NotFoundError('Trip not found');
       }
       return { trip };
-    },
+    }
   );
 
   app.get('/customer-api/offers', { preHandler: customerHooks }, async () => {
@@ -535,7 +547,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
         throw new NotFoundError('Offer not found');
       }
       return { offer };
-    },
+    }
   );
 
   app.get('/customer-api/proposals', { preHandler: customerHooks }, async () => {
@@ -552,7 +564,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
         throw new NotFoundError('Proposal not found');
       }
       return { proposal };
-    },
+    }
   );
 
   app.get('/customer-api/bookings', { preHandler: customerHooks }, async () => {
@@ -569,7 +581,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
         throw new NotFoundError('Booking not found');
       }
       return { booking: result.booking, passengers: result.passengers };
-    },
+    }
   );
 
   app.get('/health', () => ({
@@ -585,7 +597,10 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
         service: 'api',
       };
     } catch (error: unknown) {
-      app.log.error({ errorName: error instanceof Error ? error.name : 'UnknownError' }, 'Readiness check failed');
+      app.log.error(
+        { errorName: error instanceof Error ? error.name : 'UnknownError' },
+        'Readiness check failed'
+      );
       reply.code(503);
       return {
         status: 'not_ready',
@@ -609,7 +624,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     const agency = await options.database.withTenantTransaction(async (client) => {
       const result = await client.query<AgencyProofRow>(
         'SELECT id, name FROM agencies WHERE id = $1',
-        [agencyId],
+        [agencyId]
       );
 
       return result.rows[0];
@@ -645,7 +660,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       }
 
       return { customer };
-    },
+    }
   );
 
   app.post('/customers', { preHandler: protectedHooks }, async (request, reply) => {
@@ -670,7 +685,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       }
 
       return { customer };
-    },
+    }
   );
 
   app.get('/wishes', { preHandler: protectedHooks }, async () => {
@@ -691,7 +706,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       }
 
       return { wish };
-    },
+    }
   );
 
   app.post('/wishes', { preHandler: protectedHooks }, async (request, reply) => {
@@ -716,7 +731,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       }
 
       return { wish };
-    },
+    }
   );
 
   app.get('/trips', { preHandler: protectedHooks }, async () => {
@@ -737,7 +752,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       }
 
       return { trip };
-    },
+    }
   );
 
   app.post('/trips', { preHandler: protectedHooks }, async (request, reply) => {
@@ -762,7 +777,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       }
 
       return { trip };
-    },
+    }
   );
 
   app.get('/offers', { preHandler: protectedHooks }, async () => {
@@ -783,7 +798,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       }
 
       return { offer };
-    },
+    }
   );
 
   app.post('/offers', { preHandler: protectedHooks }, async (request, reply) => {
@@ -808,7 +823,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       }
 
       return { offer };
-    },
+    }
   );
 
   app.get('/proposals', { preHandler: protectedHooks }, async () => {
@@ -829,7 +844,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       }
 
       return { proposal };
-    },
+    }
   );
 
   app.post('/proposals', { preHandler: protectedHooks }, async (request, reply) => {
@@ -854,7 +869,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       }
 
       return { proposal };
-    },
+    }
   );
 
   app.post<{ Params: { id: string } }>(
@@ -865,7 +880,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       const proposal = await sendProposal(options.database, request.params.id);
       if (!proposal) throw new NotFoundError('Proposal not found');
       return { proposal };
-    },
+    }
   );
 
   app.post<{ Params: { id: string } }>(
@@ -876,7 +891,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       const proposal = await cancelProposal(options.database, request.params.id);
       if (!proposal) throw new NotFoundError('Proposal not found');
       return { proposal };
-    },
+    }
   );
 
   app.post<{ Params: { id: string } }>(
@@ -887,7 +902,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       const proposal = await acceptProposal(options.database, request.params.id);
       if (!proposal) throw new NotFoundError('Proposal not found');
       return { proposal };
-    },
+    }
   );
 
   app.post<{ Params: { id: string } }>(
@@ -898,7 +913,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       const proposal = await declineProposal(options.database, request.params.id);
       if (!proposal) throw new NotFoundError('Proposal not found');
       return { proposal };
-    },
+    }
   );
 
   app.get('/transport/routes', { preHandler: protectedHooks }, async () => {
@@ -917,7 +932,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
         throw new NotFoundError('Route not found');
       }
       return { route };
-    },
+    }
   );
 
   app.post('/transport/routes', { preHandler: protectedHooks }, async (request, reply) => {
@@ -939,7 +954,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
         throw new NotFoundError('Route not found');
       }
       return { route };
-    },
+    }
   );
 
   app.get<{ Params: { routeId: string } }>(
@@ -949,7 +964,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       requireRole(UserRole.VIEWER);
       const points = await listRoutePoints(options.database, request.params.routeId);
       return { points };
-    },
+    }
   );
 
   app.post<{ Params: { routeId: string } }>(
@@ -961,7 +976,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       const point = await createRoutePoint(options.database, request.params.routeId, data);
       reply.code(201);
       return { point };
-    },
+    }
   );
 
   app.patch<{ Params: { routeId: string; id: string } }>(
@@ -974,13 +989,13 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
         options.database,
         request.params.routeId,
         request.params.id,
-        data,
+        data
       );
       if (!point) {
         throw new NotFoundError('Route point not found');
       }
       return { point };
-    },
+    }
   );
 
   app.post<{ Params: { routeId: string } }>(
@@ -992,10 +1007,10 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       const points = await reorderRoutePoints(
         options.database,
         request.params.routeId,
-        orderedPointIds,
+        orderedPointIds
       );
       return { points };
-    },
+    }
   );
 
   app.get('/transport/suppliers', { preHandler: protectedHooks }, async () => {
@@ -1014,7 +1029,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
         throw new NotFoundError('Supplier not found');
       }
       return { supplier };
-    },
+    }
   );
 
   app.post('/transport/suppliers', { preHandler: protectedHooks }, async (request, reply) => {
@@ -1036,7 +1051,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
         throw new NotFoundError('Supplier not found');
       }
       return { supplier };
-    },
+    }
   );
 
   app.get('/transport/products', { preHandler: protectedHooks }, async () => {
@@ -1055,7 +1070,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
         throw new NotFoundError('Transport product not found');
       }
       return { product };
-    },
+    }
   );
 
   app.post('/transport/products', { preHandler: protectedHooks }, async (request, reply) => {
@@ -1077,7 +1092,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
         throw new NotFoundError('Transport product not found');
       }
       return { product };
-    },
+    }
   );
 
   app.get('/transport/departures', { preHandler: protectedHooks }, async () => {
@@ -1096,7 +1111,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
         throw new NotFoundError('Scheduled departure not found');
       }
       return { departure };
-    },
+    }
   );
 
   app.post('/transport/departures', { preHandler: protectedHooks }, async (request, reply) => {
@@ -1118,7 +1133,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
         throw new NotFoundError('Scheduled departure not found');
       }
       return { departure };
-    },
+    }
   );
 
   app.get<{ Querystring: { from?: string; to?: string } }>(
@@ -1143,7 +1158,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       }
       const agenda = await getAgenda(options.database, filters);
       return { agenda };
-    },
+    }
   );
 
   app.get('/bookings', { preHandler: protectedHooks }, async () => {
@@ -1162,7 +1177,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
         throw new NotFoundError('Booking not found');
       }
       return { booking: result.booking, passengers: result.passengers };
-    },
+    }
   );
 
   // RBAC floor: AGENT, not MANAGER. Transportation's write floor
@@ -1191,7 +1206,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
         userId: getUserId(),
       });
       return { booking };
-    },
+    }
   );
 
   // ============================================================
@@ -1234,7 +1249,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
         throw new NotFoundError('Operation not found');
       }
       return result;
-    },
+    }
   );
 
   app.post('/operations', { preHandler: protectedHooks }, async (request, reply) => {
@@ -1257,7 +1272,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       });
       reply.code(201);
       return { assignment };
-    },
+    }
   );
 
   app.post<{ Params: { id: string; checkpointId: string } }>(
@@ -1268,10 +1283,10 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       const checkpoint = await confirmArrival(
         options.database,
         request.params.id,
-        request.params.checkpointId,
+        request.params.checkpointId
       );
       return { checkpoint };
-    },
+    }
   );
 
   app.post<{ Params: { id: string; checkpointId: string } }>(
@@ -1282,10 +1297,10 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       const checkpoint = await confirmDeparture(
         options.database,
         request.params.id,
-        request.params.checkpointId,
+        request.params.checkpointId
       );
       return { checkpoint };
-    },
+    }
   );
 
   // ============================================================
@@ -1301,9 +1316,13 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       requireRole(UserRole.VIEWER);
       const filters = parseOpportunityFilters(request.query);
       const pagination = parsePagination(request.query);
-      const { opportunities, total } = await listOpportunities(options.database, filters, pagination);
+      const { opportunities, total } = await listOpportunities(
+        options.database,
+        filters,
+        pagination
+      );
       return { opportunities, total, limit: pagination.limit, offset: pagination.offset };
-    },
+    }
   );
 
   app.get<{ Params: { id: string } }>(
@@ -1316,7 +1335,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
         throw new NotFoundError('Opportunity not found');
       }
       return { opportunity };
-    },
+    }
   );
 
   app.post('/commercial/opportunities', { preHandler: protectedHooks }, async (request, reply) => {
@@ -1338,7 +1357,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
         throw new NotFoundError('Opportunity not found');
       }
       return { opportunity };
-    },
+    }
   );
 
   app.get<{ Querystring: Record<string, string> }>(
@@ -1350,7 +1369,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       const pagination = parsePagination(request.query);
       const { tasks, total } = await listTasks(options.database, filters, pagination);
       return { tasks, total, limit: pagination.limit, offset: pagination.offset };
-    },
+    }
   );
 
   app.get<{ Params: { id: string } }>(
@@ -1363,7 +1382,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
         throw new NotFoundError('Task not found');
       }
       return { task };
-    },
+    }
   );
 
   app.post('/commercial/tasks', { preHandler: protectedHooks }, async (request, reply) => {
@@ -1385,7 +1404,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
         throw new NotFoundError('Task not found');
       }
       return { task };
-    },
+    }
   );
 
   app.get<{ Querystring: Record<string, string> }>(
@@ -1397,7 +1416,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       const pagination = parsePagination(request.query);
       const { interactions, total } = await listInteractions(options.database, filters, pagination);
       return { interactions, total, limit: pagination.limit, offset: pagination.offset };
-    },
+    }
   );
 
   app.post('/commercial/interactions', { preHandler: protectedHooks }, async (request, reply) => {
@@ -1420,7 +1439,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       const pagination = parsePagination(request.query);
       const customers = await searchCustomers(options.database, q, pagination);
       return { customers };
-    },
+    }
   );
 
   app.get<{ Querystring: Record<string, string> }>(
@@ -1429,10 +1448,11 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     async (request) => {
       requireRole(UserRole.VIEWER);
       const range = parseTravelSearchRange(request.query);
-      const destination = typeof request.query.destination === 'string' ? request.query.destination : undefined;
+      const destination =
+        typeof request.query.destination === 'string' ? request.query.destination : undefined;
       const result = await travelSearch(options.database, range, destination);
       return result;
-    },
+    }
   );
 
   app.get<{ Querystring: Record<string, string> }>(
@@ -1440,10 +1460,11 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     { preHandler: protectedHooks },
     async (request) => {
       requireRole(UserRole.VIEWER);
-      const pipelineId = typeof request.query.pipelineId === 'string' ? request.query.pipelineId : undefined;
+      const pipelineId =
+        typeof request.query.pipelineId === 'string' ? request.query.pipelineId : undefined;
       const summary = await getDashboardSummary(options.database, getUserId(), pipelineId);
       return summary;
-    },
+    }
   );
 
   // Read-only agenda/dashboard-suggestion lists. Neither ever writes --
@@ -1495,7 +1516,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
         throw new NotFoundError('Pipeline not found');
       }
       return { pipeline };
-    },
+    }
   );
 
   app.patch<{ Params: { id: string } }>(
@@ -1509,7 +1530,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
         throw new NotFoundError('Pipeline not found');
       }
       return { pipeline };
-    },
+    }
   );
 
   app.get<{ Params: { id: string } }>(
@@ -1519,7 +1540,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       requireRole(UserRole.VIEWER);
       const stages = await listStages(options.database, request.params.id);
       return { stages };
-    },
+    }
   );
 
   app.post<{ Params: { id: string } }>(
@@ -1531,7 +1552,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       const stage = await createStage(options.database, request.params.id, data);
       reply.code(201);
       return { stage };
-    },
+    }
   );
 
   app.patch<{ Params: { id: string; stageId: string } }>(
@@ -1540,12 +1561,17 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     async (request) => {
       requireRole(UserRole.ADMIN);
       const data = parseUpdateStageInput(request.body);
-      const stage = await updateStage(options.database, request.params.id, request.params.stageId, data);
+      const stage = await updateStage(
+        options.database,
+        request.params.id,
+        request.params.stageId,
+        data
+      );
       if (!stage) {
         throw new NotFoundError('Stage not found');
       }
       return { stage };
-    },
+    }
   );
 
   app.get<{ Params: { id: string } }>(
@@ -1555,7 +1581,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       requireRole(UserRole.ADMIN);
       const access = await listPipelineAccess(options.database, request.params.id);
       return { access };
-    },
+    }
   );
 
   app.post<{ Params: { id: string } }>(
@@ -1567,7 +1593,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       const access = await grantPipelineAccess(options.database, request.params.id, data.userId);
       reply.code(201);
       return { access };
-    },
+    }
   );
 
   app.delete<{ Params: { id: string; userId: string } }>(
@@ -1578,7 +1604,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       await revokePipelineAccess(options.database, request.params.id, request.params.userId);
       reply.code(204);
       return null;
-    },
+    }
   );
   // Sale RBAC (docs/03-security/authorization.md): "Listar todas" is
   // OWNER/ADMIN/MANAGER only, "Listar próprias" is all 5 roles. userId is
@@ -1608,7 +1634,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       }
 
       return { sale };
-    },
+    }
   );
 
   app.post('/sales', { preHandler: protectedHooks }, async (request, reply) => {
@@ -1633,7 +1659,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       }
 
       return { sale };
-    },
+    }
   );
 
   app.post<{ Params: { id: string } }>(
@@ -1644,7 +1670,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       const sale = await confirmSale(options.database, request.params.id);
       if (!sale) throw new NotFoundError('Sale not found');
       return { sale };
-    },
+    }
   );
 
   app.post<{ Params: { id: string } }>(
@@ -1655,7 +1681,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       const sale = await cancelSale(options.database, request.params.id);
       if (!sale) throw new NotFoundError('Sale not found');
       return { sale };
-    },
+    }
   );
 
   app.post<{ Params: { id: string } }>(
@@ -1666,7 +1692,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       const sale = await markSalePaid(options.database, request.params.id);
       if (!sale) throw new NotFoundError('Sale not found');
       return { sale };
-    },
+    }
   );
 
   app.get('/financial/receivables', { preHandler: protectedHooks }, async () => {
@@ -1694,7 +1720,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       requireRole(UserRole.MANAGER);
       const allocations = await listPaymentAllocations(options.database, request.params.id);
       return { allocations };
-    },
+    }
   );
 
   app.get('/financial/operational-costs', { preHandler: protectedHooks }, async () => {
@@ -1720,7 +1746,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       requireRole(UserRole.MANAGER);
       const margin = await getSaleMargin(options.database, request.params.id);
       return { margin };
-    },
+    }
   );
 
   app.get('/financial/dashboard', { preHandler: protectedHooks }, async (request) => {
@@ -1761,16 +1787,20 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       requireRole(UserRole.ADMIN);
       const allocations = parsePaymentAllocationsInput(request.body);
       return allocatePayment(options.database, request.params.id, allocations);
-    },
+    }
   );
 
-  app.post('/financial/operational-costs', { preHandler: protectedHooks }, async (request, reply) => {
-    requireRole(UserRole.ADMIN);
-    const data = parseCreateOperationalCostInput(request.body);
-    const operationalCost = await createOperationalCost(options.database, data);
-    reply.code(201);
-    return { operationalCost };
-  });
+  app.post(
+    '/financial/operational-costs',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      requireRole(UserRole.ADMIN);
+      const data = parseCreateOperationalCostInput(request.body);
+      const operationalCost = await createOperationalCost(options.database, data);
+      reply.code(201);
+      return { operationalCost };
+    }
+  );
 
   app.get('/pescador/captures', { preHandler: protectedHooks }, async () => {
     requireRole(UserRole.AGENT);
@@ -1793,7 +1823,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       requireRole(UserRole.MANAGER);
       const capture = await moveCaptureToReview(options.database, request.params.id, getUserId());
       return { capture };
-    },
+    }
   );
 
   app.post<{ Params: { id: string } }>(
@@ -1803,7 +1833,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       requireRole(UserRole.MANAGER);
       const capture = await approveCapture(options.database, request.params.id, getUserId());
       return { capture };
-    },
+    }
   );
 
   app.post<{ Params: { id: string } }>(
@@ -1813,7 +1843,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       requireRole(UserRole.MANAGER);
       const capture = await rejectCapture(options.database, request.params.id, getUserId());
       return { capture };
-    },
+    }
   );
 
   app.post<{ Params: { id: string } }>(
@@ -1824,7 +1854,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       const result = await publishCapture(options.database, request.params.id, getUserId());
       reply.code(201);
       return result;
-    },
+    }
   );
 
   // ============================================================
@@ -1858,12 +1888,16 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     return { campaigns };
   });
 
-  app.get<{ Params: { id: string } }>('/campaigns/:id', { preHandler: protectedHooks }, async (request) => {
-    await requireEntitlement(options.database, PlatformFeature.CAMPAIGNS);
-    requireRole(UserRole.VIEWER);
-    const campaign = await getCampaignById(options.database, request.params.id);
-    return { campaign };
-  });
+  app.get<{ Params: { id: string } }>(
+    '/campaigns/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      await requireEntitlement(options.database, PlatformFeature.CAMPAIGNS);
+      requireRole(UserRole.VIEWER);
+      const campaign = await getCampaignById(options.database, request.params.id);
+      return { campaign };
+    }
+  );
 
   app.post('/campaigns', { preHandler: protectedHooks }, async (request, reply) => {
     await requireEntitlement(options.database, PlatformFeature.CAMPAIGNS);
@@ -1883,7 +1917,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       const offerId = requireStringField(request.body, 'offerId');
       await linkOfferToCampaign(options.database, request.params.id, offerId);
       reply.code(204);
-    },
+    }
   );
 
   app.post<{ Params: { id: string }; Body: { status: string } }>(
@@ -1897,7 +1931,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       requireRole(status === CampaignStatus.ACTIVE ? UserRole.MANAGER : UserRole.AGENT);
       const campaign = await transitionCampaignStatus(options.database, request.params.id, status);
       return { campaign };
-    },
+    }
   );
 
   app.get('/publications', { preHandler: protectedHooks }, async () => {
@@ -1915,7 +1949,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       requireRole(UserRole.VIEWER);
       const publication = await getPublicationById(options.database, request.params.id);
       return { publication };
-    },
+    }
   );
 
   app.post('/publications', { preHandler: protectedHooks }, async (request, reply) => {
@@ -1939,10 +1973,10 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       const publication = await generatePublicationSnapshot(
         options.database,
         request.params.id,
-        request.body.snapshot,
+        request.body.snapshot
       );
       return { publication };
-    },
+    }
   );
 
   app.post<{ Params: { id: string } }>(
@@ -1951,9 +1985,13 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     async (request) => {
       await requireEntitlement(options.database, PlatformFeature.SOCIAL_PUBLISHING);
       requireRole(UserRole.MANAGER);
-      const publication = await publishViaConnector(options.database, mockConnector, request.params.id);
+      const publication = await publishViaConnector(
+        options.database,
+        mockConnector,
+        request.params.id
+      );
       return { publication };
-    },
+    }
   );
 
   app.post<{ Params: { id: string }; Body: { status: string } }>(
@@ -1963,9 +2001,13 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       await requireEntitlement(options.database, PlatformFeature.SOCIAL_PUBLISHING);
       requireRole(UserRole.AGENT);
       const status = parsePublicationStatus(request.body?.status);
-      const publication = await transitionPublicationStatus(options.database, request.params.id, status);
+      const publication = await transitionPublicationStatus(
+        options.database,
+        request.params.id,
+        status
+      );
       return { publication };
-    },
+    }
   );
 
   app.get('/engagements', { preHandler: protectedHooks }, async () => {
@@ -1990,7 +2032,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       requireRole(UserRole.VIEWER);
       const automation = await getAutomationById(options.database, request.params.id);
       return { automation };
-    },
+    }
   );
 
   app.post('/automations', { preHandler: protectedHooks }, async (request, reply) => {
@@ -2008,9 +2050,13 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     async (request) => {
       await requireEntitlement(options.database, PlatformFeature.SOCIAL_AUTOMATION);
       requireRole(UserRole.MANAGER);
-      const automation = await setAutomationStatus(options.database, request.params.id, AutomationStatus.ACTIVE);
+      const automation = await setAutomationStatus(
+        options.database,
+        request.params.id,
+        AutomationStatus.ACTIVE
+      );
       return { automation };
-    },
+    }
   );
 
   app.post<{ Params: { id: string } }>(
@@ -2019,9 +2065,13 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     async (request) => {
       await requireEntitlement(options.database, PlatformFeature.SOCIAL_AUTOMATION);
       requireRole(UserRole.MANAGER);
-      const automation = await setAutomationStatus(options.database, request.params.id, AutomationStatus.PAUSED);
+      const automation = await setAutomationStatus(
+        options.database,
+        request.params.id,
+        AutomationStatus.PAUSED
+      );
       return { automation };
-    },
+    }
   );
 
   // Drives the internal mock connector's simulateComment()/
@@ -2044,8 +2094,16 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     const body = request.body ?? ({} as never);
     const event: ConnectorEvent =
       body.kind === 'message'
-        ? mockConnector.simulateMessage({ agencyId, externalUserId: body.externalUserId, content: body.content })
-        : mockConnector.simulateComment({ agencyId, externalUserId: body.externalUserId, content: body.content });
+        ? mockConnector.simulateMessage({
+            agencyId,
+            externalUserId: body.externalUserId,
+            content: body.content,
+          })
+        : mockConnector.simulateComment({
+            agencyId,
+            externalUserId: body.externalUserId,
+            content: body.content,
+          });
 
     const result = await processConnectorEvent(options.database, mockConnector, event, {
       ...(body.campaignId !== undefined ? { campaignId: body.campaignId } : {}),
@@ -2106,26 +2164,33 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
   // entitlements.ts's header comment: this is a documented temporary
   // stopgap (dual-gated like ALLOW_DEV_AUTH), not a real Super Admin
   // boundary, because no real platform-admin identity exists yet.
-  app.post<{ Body: SetAgencyEntitlementInput }>('/platform/entitlements', async (request, reply) => {
-    const stopgap = options.platformStopgap;
-    if (!stopgap || stopgap.enabled !== true) {
-      reply.code(404);
-      return { error: 'Not found' };
+  app.post<{ Body: SetAgencyEntitlementInput }>(
+    '/platform/entitlements',
+    async (request, reply) => {
+      const stopgap = options.platformStopgap;
+      if (!stopgap || stopgap.enabled !== true) {
+        reply.code(404);
+        return { error: 'Not found' };
+      }
+      const providedKey = request.headers['x-platform-stopgap-key'];
+      if (
+        typeof providedKey !== 'string' ||
+        providedKey.length === 0 ||
+        providedKey !== stopgap.sharedKey
+      ) {
+        reply.code(401);
+        return { error: 'Unauthorized' };
+      }
+      const body = request.body ?? ({} as SetAgencyEntitlementInput);
+      const entitlement = await setAgencyEntitlementViaPlatformStopgap(
+        stopgap.database,
+        body,
+        'platform-stopgap'
+      );
+      reply.code(200);
+      return { entitlement };
     }
-    const providedKey = request.headers['x-platform-stopgap-key'];
-    if (typeof providedKey !== 'string' || providedKey.length === 0 || providedKey !== stopgap.sharedKey) {
-      reply.code(401);
-      return { error: 'Unauthorized' };
-    }
-    const body = request.body ?? ({} as SetAgencyEntitlementInput);
-    const entitlement = await setAgencyEntitlementViaPlatformStopgap(
-      stopgap.database,
-      body,
-      'platform-stopgap',
-    );
-    reply.code(200);
-    return { entitlement };
-  });
+  );
 
   if (options.exposeTestRoutes === true) {
     app.post('/__test/rate-limit-proof', { preHandler: protectedHooks }, () => ({
@@ -2136,7 +2201,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       await options.database.withTenantTransaction(async (client) => {
         await client.query(
           'INSERT INTO offers (agency_id, name, price, status) VALUES ($1, $2, $3, $4)',
-          [getAgencyId(), 'Rollback Probe', 1, 'ACTIVE'],
+          [getAgencyId(), 'Rollback Probe', 1, 'ACTIVE']
         );
         throw new Error('Synthetic rollback probe failure');
       });
@@ -2146,49 +2211,101 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
   return app;
 }
 
-function createRateLimitHook(options: RateLimitOptions | undefined) {
-  const enabled = options?.enabled ?? true;
-  const windowMs = options?.windowMs ?? 60_000;
-  const max = options?.max ?? 300;
-  const buckets = new Map<string, { count: number; resetAt: number }>();
+function createRateLimitHooks(options: RateLimitOptions | undefined) {
+  const environment = options?.environment ?? process.env;
+  const runtimeConfig = resolveRateLimitRuntimeConfig(environment);
+  const enabled = options?.enabled ?? runtimeConfig.enabled;
+  const windowMs = options?.windowMs ?? runtimeConfig.windowMs;
+  const max = options?.max ?? runtimeConfig.max;
+  if (environment.NODE_ENV === 'production' && runtimeConfig.store !== 'external') {
+    throw new Error(
+      'Production rate limiting cannot use the process-local store. ' +
+        'HUMAN INFRASTRUCTURE DECISION REQUIRED: choose and wire a distributed provider.'
+    );
+  }
+  if (runtimeConfig.store === 'external' && !options?.store) {
+    throw new Error(
+      'Production rate limiting requires an injected shared RateLimitStore. ' +
+        'HUMAN INFRASTRUCTURE DECISION REQUIRED: choose and wire a distributed provider.'
+    );
+  }
+  const limiter = new RequestRateLimiter({
+    store: options?.store ?? new InMemoryRateLimitStore(),
+    policies: {
+      STAFF_WRITE: { max, windowMs },
+      ...options?.classLimits,
+    },
+  });
 
-  return function rateLimitHook(
+  const onRequest = function rateLimitHook(
     request: FastifyRequest,
     reply: FastifyReply,
-    done: HookHandlerDoneFunction,
+    done: HookHandlerDoneFunction
   ): void {
-    if (!enabled || !isRateLimitedMethod(request.method)) {
+    if (!enabled) {
       done();
       return;
     }
 
-    const now = Date.now();
-    const key = `${request.ip}:${request.method}:${request.url.split('?')[0] ?? request.url}`;
-    const bucket = buckets.get(key);
-
-    if (!bucket || bucket.resetAt <= now) {
-      buckets.set(key, { count: 1, resetAt: now + windowMs });
-      done();
-      return;
-    }
-
-    bucket.count += 1;
-    if (bucket.count <= max) {
-      done();
-      return;
-    }
-
-    const retryAfterSeconds = Math.max(1, Math.ceil((bucket.resetAt - now) / 1000));
-    reply.header('retry-after', String(retryAfterSeconds));
-    reply.code(429).send({
-      error: 'Too many requests',
-      code: 'RATE_LIMITED',
-    });
+    limiter
+      .check({
+        rateLimitClass: classifyRateLimitRequest(request.method, request.url),
+        ip: request.ip,
+        route: request.url.split('?')[0] ?? request.url,
+      })
+      .then((decision) => {
+        if (decision.state === 'allow') {
+          done();
+          return;
+        }
+        if (decision.retryAfterSeconds !== undefined) {
+          reply.header('retry-after', String(decision.retryAfterSeconds));
+        }
+        reply.code(429).send({
+          error: 'Too many requests',
+          code: 'RATE_LIMITED',
+        });
+      })
+      .catch((error: unknown) => {
+        done(error instanceof Error ? error : new Error('Rate limit evaluation failed'));
+      });
   };
-}
 
-function isRateLimitedMethod(method: string): boolean {
-  return ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method);
+  const onTrustedTenant = function trustedTenantRateLimitHook(
+    request: FastifyRequest,
+    reply: FastifyReply,
+    done: HookHandlerDoneFunction
+  ): void {
+    if (!enabled) {
+      done();
+      return;
+    }
+
+    limiter
+      .checkTenant({
+        rateLimitClass: classifyRateLimitRequest(request.method, request.url),
+        tenantId: getAgencyId(),
+        route: request.url.split('?')[0] ?? request.url,
+      })
+      .then((decision) => {
+        if (decision.state === 'allow') {
+          done();
+          return;
+        }
+        if (decision.retryAfterSeconds !== undefined) {
+          reply.header('retry-after', String(decision.retryAfterSeconds));
+        }
+        reply.code(429).send({
+          error: 'Too many requests',
+          code: 'RATE_LIMITED',
+        });
+      })
+      .catch((error: unknown) => {
+        done(error instanceof Error ? error : new Error('Tenant rate limit evaluation failed'));
+      });
+  };
+
+  return { onRequest, onTrustedTenant };
 }
 
 const FORBIDDEN_CREATE_FIELDS = [
@@ -2272,7 +2389,11 @@ function parseCreateCustomerInput(body: unknown): CreateCustomerInput {
     data.passport = record.passport;
   }
   if (record.address !== undefined) {
-    if (typeof record.address !== 'object' || record.address === null || Array.isArray(record.address)) {
+    if (
+      typeof record.address !== 'object' ||
+      record.address === null ||
+      Array.isArray(record.address)
+    ) {
       throw new ValidationError('Field "address" must be an object');
     }
     data.address = record.address as Record<string, unknown>;
@@ -2333,7 +2454,11 @@ function parseUpdateCustomerInput(body: unknown): UpdateCustomerInput {
     data.passport = record.passport;
   }
   if (record.address !== undefined) {
-    if (typeof record.address !== 'object' || record.address === null || Array.isArray(record.address)) {
+    if (
+      typeof record.address !== 'object' ||
+      record.address === null ||
+      Array.isArray(record.address)
+    ) {
       throw new ValidationError('Field "address" must be an object');
     }
     data.address = record.address as Record<string, unknown>;
@@ -3259,7 +3384,9 @@ function parseCreateReceivableInput(body: unknown): CreateReceivableInput {
     description: parseRequiredString(record.description, 'description'),
     amount: parsePositiveNumber(record.amount, 'amount'),
     dueAt: parseRequiredDate(record.dueAt, 'dueAt'),
-    ...(record.saleId !== undefined ? { saleId: parseRequiredString(record.saleId, 'saleId') } : {}),
+    ...(record.saleId !== undefined
+      ? { saleId: parseRequiredString(record.saleId, 'saleId') }
+      : {}),
   };
 }
 
@@ -3271,7 +3398,9 @@ function parseCreatePayableInput(body: unknown): CreatePayableInput {
     description: parseRequiredString(record.description, 'description'),
     amount: parsePositiveNumber(record.amount, 'amount'),
     dueAt: parseRequiredDate(record.dueAt, 'dueAt'),
-    ...(record.saleId !== undefined ? { saleId: parseRequiredString(record.saleId, 'saleId') } : {}),
+    ...(record.saleId !== undefined
+      ? { saleId: parseRequiredString(record.saleId, 'saleId') }
+      : {}),
     ...(record.supplierId !== undefined
       ? { supplierId: parseRequiredString(record.supplierId, 'supplierId') }
       : {}),
@@ -3282,7 +3411,7 @@ function parseCreatePayableInput(body: unknown): CreatePayableInput {
       ? {
           transportOperationId: parseRequiredString(
             record.transportOperationId,
-            'transportOperationId',
+            'transportOperationId'
           ),
         }
       : {}),
@@ -3295,7 +3424,10 @@ function parseCreatePayableInput(body: unknown): CreatePayableInput {
 function parseRecordPaymentInput(body: unknown): RecordPaymentInput {
   const record = parseObjectBody(body);
   assertAllowedFields(record, FORBIDDEN_FINANCIAL_FIELDS, ALLOWED_PAYMENT_CREATE_FIELDS);
-  if (typeof record.direction !== 'string' || !Object.values(PaymentDirection).includes(record.direction as PaymentDirection)) {
+  if (
+    typeof record.direction !== 'string' ||
+    !Object.values(PaymentDirection).includes(record.direction as PaymentDirection)
+  ) {
     throw new ValidationError('Field "direction" must be IN or OUT');
   }
 
@@ -3303,7 +3435,9 @@ function parseRecordPaymentInput(body: unknown): RecordPaymentInput {
     direction: record.direction as PaymentDirection,
     amount: parsePositiveNumber(record.amount, 'amount'),
     occurredAt: parseRequiredDate(record.occurredAt, 'occurredAt'),
-    ...(record.method !== undefined ? { method: parseRequiredString(record.method, 'method') } : {}),
+    ...(record.method !== undefined
+      ? { method: parseRequiredString(record.method, 'method') }
+      : {}),
     ...(record.reference !== undefined
       ? { reference: parseRequiredString(record.reference, 'reference') }
       : {}),
@@ -3319,11 +3453,11 @@ function parsePaymentAllocationsInput(body: unknown): CreatePaymentAllocationInp
   }
   return record.allocations.map((value) => {
     const allocation = parseObjectBody(value);
-    assertAllowedFields(
-      allocation,
-      FORBIDDEN_FINANCIAL_FIELDS,
-      ['receivableId', 'payableId', 'amount'] as const,
-    );
+    assertAllowedFields(allocation, FORBIDDEN_FINANCIAL_FIELDS, [
+      'receivableId',
+      'payableId',
+      'amount',
+    ] as const);
     return {
       amount: parsePositiveNumber(allocation.amount, 'amount'),
       ...(allocation.receivableId !== undefined
@@ -3344,12 +3478,14 @@ function parseCreateOperationalCostInput(body: unknown): CreateOperationalCostIn
     description: parseRequiredString(record.description, 'description'),
     costType: parseRequiredString(record.costType, 'costType'),
     incurredAt: parseRequiredDate(record.incurredAt, 'incurredAt'),
-    ...(record.saleId !== undefined ? { saleId: parseRequiredString(record.saleId, 'saleId') } : {}),
+    ...(record.saleId !== undefined
+      ? { saleId: parseRequiredString(record.saleId, 'saleId') }
+      : {}),
     ...(record.transportOperationId !== undefined
       ? {
           transportOperationId: parseRequiredString(
             record.transportOperationId,
-            'transportOperationId',
+            'transportOperationId'
           ),
         }
       : {}),
@@ -3398,7 +3534,7 @@ function parseCreateExternalOfferCaptureInput(body: unknown): CreateExternalOffe
       'createdAt',
       'updatedAt',
     ],
-    allowed,
+    allowed
   );
 
   const data: CreateExternalOfferCaptureInput = {
@@ -3413,7 +3549,7 @@ function parseCreateExternalOfferCaptureInput(body: unknown): CreateExternalOffe
   if (record.normalizedDescription !== undefined) {
     data.normalizedDescription = parseRequiredString(
       record.normalizedDescription,
-      'normalizedDescription',
+      'normalizedDescription'
     );
   }
   if (record.foundPrice !== undefined) {
@@ -3450,18 +3586,32 @@ function parseCreateAssetInput(body: unknown): CreateAssetInput {
     type: record.type as AssetType,
     source: record.source as AssetSourceType,
   };
-  if (record.storageUrl !== undefined) data.storageUrl = parseRequiredString(record.storageUrl, 'storageUrl');
-  if (record.localReference !== undefined) data.localReference = parseRequiredString(record.localReference, 'localReference');
-  if (record.sourceConnector !== undefined) data.sourceConnector = parseRequiredString(record.sourceConnector, 'sourceConnector');
-  if (record.sourceSupplier !== undefined) data.sourceSupplier = parseRequiredString(record.sourceSupplier, 'sourceSupplier');
-  if (record.sourceOriginalUrl !== undefined) data.sourceOriginalUrl = parseRequiredString(record.sourceOriginalUrl, 'sourceOriginalUrl');
-  if (record.sourceLicense !== undefined) data.sourceLicense = parseRequiredString(record.sourceLicense, 'sourceLicense');
-  if (record.sourceAuthor !== undefined) data.sourceAuthor = parseRequiredString(record.sourceAuthor, 'sourceAuthor');
-  if (record.sourceDedupeHash !== undefined) data.sourceDedupeHash = parseRequiredString(record.sourceDedupeHash, 'sourceDedupeHash');
-  if (record.sourceUsageRestrictions !== undefined) data.sourceUsageRestrictions = parseRequiredString(record.sourceUsageRestrictions, 'sourceUsageRestrictions');
-  if (record.sourceCaptureId !== undefined) data.sourceCaptureId = parseRequiredString(record.sourceCaptureId, 'sourceCaptureId');
+  if (record.storageUrl !== undefined)
+    data.storageUrl = parseRequiredString(record.storageUrl, 'storageUrl');
+  if (record.localReference !== undefined)
+    data.localReference = parseRequiredString(record.localReference, 'localReference');
+  if (record.sourceConnector !== undefined)
+    data.sourceConnector = parseRequiredString(record.sourceConnector, 'sourceConnector');
+  if (record.sourceSupplier !== undefined)
+    data.sourceSupplier = parseRequiredString(record.sourceSupplier, 'sourceSupplier');
+  if (record.sourceOriginalUrl !== undefined)
+    data.sourceOriginalUrl = parseRequiredString(record.sourceOriginalUrl, 'sourceOriginalUrl');
+  if (record.sourceLicense !== undefined)
+    data.sourceLicense = parseRequiredString(record.sourceLicense, 'sourceLicense');
+  if (record.sourceAuthor !== undefined)
+    data.sourceAuthor = parseRequiredString(record.sourceAuthor, 'sourceAuthor');
+  if (record.sourceDedupeHash !== undefined)
+    data.sourceDedupeHash = parseRequiredString(record.sourceDedupeHash, 'sourceDedupeHash');
+  if (record.sourceUsageRestrictions !== undefined)
+    data.sourceUsageRestrictions = parseRequiredString(
+      record.sourceUsageRestrictions,
+      'sourceUsageRestrictions'
+    );
+  if (record.sourceCaptureId !== undefined)
+    data.sourceCaptureId = parseRequiredString(record.sourceCaptureId, 'sourceCaptureId');
   if (record.metaTags !== undefined) {
-    if (!Array.isArray(record.metaTags)) throw new ValidationError('Field "metaTags" must be an array');
+    if (!Array.isArray(record.metaTags))
+      throw new ValidationError('Field "metaTags" must be an array');
     data.metaTags = record.metaTags as string[];
   }
   return data;
@@ -3472,28 +3622,39 @@ function parseCreateCampaignInput(body: unknown): CreateCampaignInput {
   const data: CreateCampaignInput = {
     name: parseRequiredString(record.name, 'name'),
   };
-  if (record.description !== undefined) data.description = parseRequiredString(record.description, 'description');
+  if (record.description !== undefined)
+    data.description = parseRequiredString(record.description, 'description');
   if (record.startsAt !== undefined) data.startsAt = parseRequiredDate(record.startsAt, 'startsAt');
   if (record.endsAt !== undefined) data.endsAt = parseRequiredDate(record.endsAt, 'endsAt');
-  if (record.publicationStartsAt !== undefined) data.publicationStartsAt = parseRequiredDate(record.publicationStartsAt, 'publicationStartsAt');
-  if (record.publicationEndsAt !== undefined) data.publicationEndsAt = parseRequiredDate(record.publicationEndsAt, 'publicationEndsAt');
-  if (record.timezone !== undefined) data.timezone = parseRequiredString(record.timezone, 'timezone');
+  if (record.publicationStartsAt !== undefined)
+    data.publicationStartsAt = parseRequiredDate(record.publicationStartsAt, 'publicationStartsAt');
+  if (record.publicationEndsAt !== undefined)
+    data.publicationEndsAt = parseRequiredDate(record.publicationEndsAt, 'publicationEndsAt');
+  if (record.timezone !== undefined)
+    data.timezone = parseRequiredString(record.timezone, 'timezone');
   if (record.offerIds !== undefined) {
-    if (!Array.isArray(record.offerIds)) throw new ValidationError('Field "offerIds" must be an array');
+    if (!Array.isArray(record.offerIds))
+      throw new ValidationError('Field "offerIds" must be an array');
     data.offerIds = record.offerIds as string[];
   }
   return data;
 }
 
 function parseCampaignStatus(value: unknown): CampaignStatus {
-  if (typeof value !== 'string' || !Object.values(CampaignStatus).includes(value as CampaignStatus)) {
+  if (
+    typeof value !== 'string' ||
+    !Object.values(CampaignStatus).includes(value as CampaignStatus)
+  ) {
     throw new ValidationError('Field "status" must be a valid CampaignStatus');
   }
   return value as CampaignStatus;
 }
 
 function parsePublicationStatus(value: unknown): PublicationStatus {
-  if (typeof value !== 'string' || !Object.values(PublicationStatus).includes(value as PublicationStatus)) {
+  if (
+    typeof value !== 'string' ||
+    !Object.values(PublicationStatus).includes(value as PublicationStatus)
+  ) {
     throw new ValidationError('Field "status" must be a valid PublicationStatus');
   }
   return value as PublicationStatus;
@@ -3506,8 +3667,10 @@ function parseCreatePublicationInput(body: unknown): CreatePublicationInput {
     offerId: parseRequiredString(record.offerId, 'offerId'),
     channel: parseRequiredString(record.channel, 'channel'),
   };
-  if (record.creativeTemplateId !== undefined) data.creativeTemplateId = parseRequiredString(record.creativeTemplateId, 'creativeTemplateId');
-  if (record.scheduledAt !== undefined) data.scheduledAt = parseRequiredDate(record.scheduledAt, 'scheduledAt');
+  if (record.creativeTemplateId !== undefined)
+    data.creativeTemplateId = parseRequiredString(record.creativeTemplateId, 'creativeTemplateId');
+  if (record.scheduledAt !== undefined)
+    data.scheduledAt = parseRequiredDate(record.scheduledAt, 'scheduledAt');
   return data;
 }
 
@@ -3522,18 +3685,29 @@ function parseCreateAutomationInput(body: unknown): CreateAutomationInput {
     actions: record.actions as CreateAutomationInput['actions'],
   };
   if (record.channel !== undefined) data.channel = parseRequiredString(record.channel, 'channel');
-  if (record.campaignId !== undefined) data.campaignId = parseRequiredString(record.campaignId, 'campaignId');
-  if (record.publicationId !== undefined) data.publicationId = parseRequiredString(record.publicationId, 'publicationId');
+  if (record.campaignId !== undefined)
+    data.campaignId = parseRequiredString(record.campaignId, 'campaignId');
+  if (record.publicationId !== undefined)
+    data.publicationId = parseRequiredString(record.publicationId, 'publicationId');
   if (record.keyword !== undefined) data.keyword = parseRequiredString(record.keyword, 'keyword');
   if (record.caseSensitive !== undefined) {
-    if (typeof record.caseSensitive !== 'boolean') throw new ValidationError('Field "caseSensitive" must be a boolean');
+    if (typeof record.caseSensitive !== 'boolean')
+      throw new ValidationError('Field "caseSensitive" must be a boolean');
     data.caseSensitive = record.caseSensitive;
   }
-  if (record.validFrom !== undefined) data.validFrom = parseRequiredDate(record.validFrom, 'validFrom');
-  if (record.validUntil !== undefined) data.validUntil = parseRequiredDate(record.validUntil, 'validUntil');
-  if (record.cooldownSeconds !== undefined) data.cooldownSeconds = parseNonNegativeNumber(record.cooldownSeconds, 'cooldownSeconds');
-  if (record.maxExecutions !== undefined) data.maxExecutions = parsePositiveNumber(record.maxExecutions, 'maxExecutions');
-  if (record.maxExecutionsPerExternalUser !== undefined) data.maxExecutionsPerExternalUser = parsePositiveNumber(record.maxExecutionsPerExternalUser, 'maxExecutionsPerExternalUser');
+  if (record.validFrom !== undefined)
+    data.validFrom = parseRequiredDate(record.validFrom, 'validFrom');
+  if (record.validUntil !== undefined)
+    data.validUntil = parseRequiredDate(record.validUntil, 'validUntil');
+  if (record.cooldownSeconds !== undefined)
+    data.cooldownSeconds = parseNonNegativeNumber(record.cooldownSeconds, 'cooldownSeconds');
+  if (record.maxExecutions !== undefined)
+    data.maxExecutions = parsePositiveNumber(record.maxExecutions, 'maxExecutions');
+  if (record.maxExecutionsPerExternalUser !== undefined)
+    data.maxExecutionsPerExternalUser = parsePositiveNumber(
+      record.maxExecutionsPerExternalUser,
+      'maxExecutionsPerExternalUser'
+    );
   return data;
 }
 
@@ -3545,12 +3719,16 @@ function parseCreateCouponInput(body: unknown): CreateCouponInput {
     type: parseRequiredString(record.type, 'type') as CreateCouponInput['type'],
   };
   if (record.value !== undefined) data.value = parseNonNegativeNumber(record.value, 'value');
-  if (record.benefitDescription !== undefined) data.benefitDescription = parseRequiredString(record.benefitDescription, 'benefitDescription');
+  if (record.benefitDescription !== undefined)
+    data.benefitDescription = parseRequiredString(record.benefitDescription, 'benefitDescription');
   if (record.startsAt !== undefined) data.startsAt = parseRequiredDate(record.startsAt, 'startsAt');
-  if (record.expiresAt !== undefined) data.expiresAt = parseRequiredDate(record.expiresAt, 'expiresAt');
+  if (record.expiresAt !== undefined)
+    data.expiresAt = parseRequiredDate(record.expiresAt, 'expiresAt');
   if (record.maxUses !== undefined) data.maxUses = parsePositiveNumber(record.maxUses, 'maxUses');
-  if (record.maxUsesPerCustomer !== undefined) data.maxUsesPerCustomer = parsePositiveNumber(record.maxUsesPerCustomer, 'maxUsesPerCustomer');
-  if (record.campaignId !== undefined) data.campaignId = parseRequiredString(record.campaignId, 'campaignId');
+  if (record.maxUsesPerCustomer !== undefined)
+    data.maxUsesPerCustomer = parsePositiveNumber(record.maxUsesPerCustomer, 'maxUsesPerCustomer');
+  if (record.campaignId !== undefined)
+    data.campaignId = parseRequiredString(record.campaignId, 'campaignId');
   if (record.offerId !== undefined) data.offerId = parseRequiredString(record.offerId, 'offerId');
   return data;
 }
@@ -3560,12 +3738,18 @@ function parseGrantCouponInput(body: unknown): GrantCouponInput {
   const data: GrantCouponInput = {
     couponId: parseRequiredString(record.couponId, 'couponId'),
   };
-  if (record.campaignId !== undefined) data.campaignId = parseRequiredString(record.campaignId, 'campaignId');
-  if (record.publicationId !== undefined) data.publicationId = parseRequiredString(record.publicationId, 'publicationId');
-  if (record.automationId !== undefined) data.automationId = parseRequiredString(record.automationId, 'automationId');
-  if (record.customerId !== undefined) data.customerId = parseRequiredString(record.customerId, 'customerId');
-  if (record.externalUserId !== undefined) data.externalUserId = parseRequiredString(record.externalUserId, 'externalUserId');
-  if (record.deliveryChannel !== undefined) data.deliveryChannel = parseRequiredString(record.deliveryChannel, 'deliveryChannel');
+  if (record.campaignId !== undefined)
+    data.campaignId = parseRequiredString(record.campaignId, 'campaignId');
+  if (record.publicationId !== undefined)
+    data.publicationId = parseRequiredString(record.publicationId, 'publicationId');
+  if (record.automationId !== undefined)
+    data.automationId = parseRequiredString(record.automationId, 'automationId');
+  if (record.customerId !== undefined)
+    data.customerId = parseRequiredString(record.customerId, 'customerId');
+  if (record.externalUserId !== undefined)
+    data.externalUserId = parseRequiredString(record.externalUserId, 'externalUserId');
+  if (record.deliveryChannel !== undefined)
+    data.deliveryChannel = parseRequiredString(record.deliveryChannel, 'deliveryChannel');
   return data;
 }
 
@@ -3576,9 +3760,11 @@ function parseRecordRedemptionInput(body: unknown): RecordRedemptionInput {
     customerId: parseRequiredString(record.customerId, 'customerId'),
   };
   if (record.grantId !== undefined) data.grantId = parseRequiredString(record.grantId, 'grantId');
-  if (record.proposalId !== undefined) data.proposalId = parseRequiredString(record.proposalId, 'proposalId');
+  if (record.proposalId !== undefined)
+    data.proposalId = parseRequiredString(record.proposalId, 'proposalId');
   if (record.saleId !== undefined) data.saleId = parseRequiredString(record.saleId, 'saleId');
-  if (record.amountApplied !== undefined) data.amountApplied = parseNonNegativeNumber(record.amountApplied, 'amountApplied');
+  if (record.amountApplied !== undefined)
+    data.amountApplied = parseNonNegativeNumber(record.amountApplied, 'amountApplied');
   return data;
 }
 
@@ -3592,7 +3778,7 @@ function parseObjectBody(value: unknown): Record<string, unknown> {
 function assertAllowedFields(
   record: Record<string, unknown>,
   forbidden: readonly string[],
-  allowed: readonly string[],
+  allowed: readonly string[]
 ): void {
   for (const field of forbidden) {
     if (field in record) {
@@ -3642,13 +3828,7 @@ function parseRequiredDate(value: unknown, field: string): Date {
 // TRANSPORTATION: Route
 // ============================================================
 
-const FORBIDDEN_ROUTE_FIELDS = [
-  'agencyId',
-  'tenantId',
-  'id',
-  'createdAt',
-  'updatedAt',
-] as const;
+const FORBIDDEN_ROUTE_FIELDS = ['agencyId', 'tenantId', 'id', 'createdAt', 'updatedAt'] as const;
 
 const ALLOWED_ROUTE_CREATE_FIELDS = [
   'origin',
@@ -3792,7 +3972,7 @@ function parseUpdateRoutePointInput(body: unknown): UpdateRoutePointInput {
         !CHECKPOINT_TYPE_VALUES.includes(record.checkpointType))
     ) {
       throw new ValidationError(
-        'Field "checkpointType" must be one of ARRIVAL, DEPARTURE, BOTH, or null',
+        'Field "checkpointType" must be one of ARRIVAL, DEPARTURE, BOTH, or null'
       );
     }
     data.checkpointType = record.checkpointType as CheckpointType | null;
@@ -3822,7 +4002,7 @@ function parseReorderRoutePointsInput(body: unknown): string[] {
 
   if (!Array.isArray(ids) || ids.length === 0 || !ids.every((id) => typeof id === 'string')) {
     throw new ValidationError(
-      'Field "orderedPointIds" is required and must be a non-empty array of strings',
+      'Field "orderedPointIds" is required and must be a non-empty array of strings'
     );
   }
 
@@ -4280,16 +4460,18 @@ function parseCreateScheduledDepartureInput(body: unknown): CreateScheduledDepar
     throw new ValidationError('Field "productId" is required and must be a non-empty string');
   }
   const departureAt = parseDepartureDate(record.departureAt, 'departureAt');
-  if (typeof record.capacity !== 'number' || !Number.isInteger(record.capacity) || record.capacity < 0) {
+  if (
+    typeof record.capacity !== 'number' ||
+    !Number.isInteger(record.capacity) ||
+    record.capacity < 0
+  ) {
     throw new ValidationError('Field "capacity" is required and must be a non-negative integer');
   }
   if (
     typeof record.serviceType !== 'string' ||
     !(Object.values(DepartureServiceType) as string[]).includes(record.serviceType)
   ) {
-    throw new ValidationError(
-      'Field "serviceType" must be one of OWN, SUBCONTRACTED, RESELL',
-    );
+    throw new ValidationError('Field "serviceType" must be one of OWN, SUBCONTRACTED, RESELL');
   }
 
   const data: CreateScheduledDepartureInput = {
@@ -4405,7 +4587,7 @@ function parseCreateOperationalStaffInput(body: unknown): CreateOperationalStaff
 
 function parseCreateOperationAssignmentInput(
   operationId: string,
-  body: unknown,
+  body: unknown
 ): Omit<CreateOperationAssignmentInput, 'createdByUserId'> {
   if (typeof body !== 'object' || body === null || Array.isArray(body)) {
     throw new ValidationError('Request body must be an object');
@@ -4413,7 +4595,14 @@ function parseCreateOperationAssignmentInput(
   const record = body as Record<string, unknown>;
   const allowed = ['operationalStaffId', 'role'] as const;
 
-  for (const field of ['agencyId', 'tenantId', 'id', 'operationId', 'createdByUserId', 'createdAt'] as const) {
+  for (const field of [
+    'agencyId',
+    'tenantId',
+    'id',
+    'operationId',
+    'createdByUserId',
+    'createdAt',
+  ] as const) {
     if (field in record) {
       throw new ValidationError(`Field "${field}" is not allowed in the request body`);
     }
@@ -4423,8 +4612,13 @@ function parseCreateOperationAssignmentInput(
       throw new ValidationError(`Unknown field "${key}" in request body`);
     }
   }
-  if (typeof record.operationalStaffId !== 'string' || record.operationalStaffId.trim().length === 0) {
-    throw new ValidationError('Field "operationalStaffId" is required and must be a non-empty string');
+  if (
+    typeof record.operationalStaffId !== 'string' ||
+    record.operationalStaffId.trim().length === 0
+  ) {
+    throw new ValidationError(
+      'Field "operationalStaffId" is required and must be a non-empty string'
+    );
   }
   if (
     typeof record.role !== 'string' ||
@@ -4486,9 +4680,7 @@ function parseUpdateScheduledDepartureInput(body: unknown): UpdateScheduledDepar
       typeof record.serviceType !== 'string' ||
       !(Object.values(DepartureServiceType) as string[]).includes(record.serviceType)
     ) {
-      throw new ValidationError(
-        'Field "serviceType" must be one of OWN, SUBCONTRACTED, RESELL',
-      );
+      throw new ValidationError('Field "serviceType" must be one of OWN, SUBCONTRACTED, RESELL');
     }
     data.serviceType = record.serviceType as DepartureServiceType;
   }
@@ -4608,7 +4800,9 @@ function parseCreateBookingInput(body: unknown): CreateBookingInput {
   }
 
   if (typeof record.bookerCustomerId !== 'string' || record.bookerCustomerId.trim().length === 0) {
-    throw new ValidationError('Field "bookerCustomerId" is required and must be a non-empty string');
+    throw new ValidationError(
+      'Field "bookerCustomerId" is required and must be a non-empty string'
+    );
   }
   if (
     typeof record.tripType !== 'string' ||
@@ -4616,8 +4810,13 @@ function parseCreateBookingInput(body: unknown): CreateBookingInput {
   ) {
     throw new ValidationError('Field "tripType" must be one of ONE_WAY, ROUND_TRIP');
   }
-  if (typeof record.outboundDepartureId !== 'string' || record.outboundDepartureId.trim().length === 0) {
-    throw new ValidationError('Field "outboundDepartureId" is required and must be a non-empty string');
+  if (
+    typeof record.outboundDepartureId !== 'string' ||
+    record.outboundDepartureId.trim().length === 0
+  ) {
+    throw new ValidationError(
+      'Field "outboundDepartureId" is required and must be a non-empty string'
+    );
   }
   if (!Array.isArray(record.passengers) || record.passengers.length === 0) {
     throw new ValidationError('Field "passengers" is required and must be a non-empty array');
@@ -4631,7 +4830,10 @@ function parseCreateBookingInput(body: unknown): CreateBookingInput {
   };
 
   if (record.returnDepartureId !== undefined) {
-    if (typeof record.returnDepartureId !== 'string' || record.returnDepartureId.trim().length === 0) {
+    if (
+      typeof record.returnDepartureId !== 'string' ||
+      record.returnDepartureId.trim().length === 0
+    ) {
       throw new ValidationError('Field "returnDepartureId" must be a non-empty string');
     }
     data.returnDepartureId = record.returnDepartureId;

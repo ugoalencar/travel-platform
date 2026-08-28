@@ -29,6 +29,7 @@ const expectedTables = [
   'agencies',
   'agency_entitlements',
   'assets',
+  'audit_logs',
   'automation_executions',
   'automations',
   'booking_passengers',
@@ -114,7 +115,6 @@ describe.sequential('database integration migrations and RLS', () => {
     );
 
     expect(tables).toEqual(expectedTables);
-    expect(tables).not.toContain('audit_logs');
   });
 
   it('validates constraints, soft delete, tenant-safe FKs, CustomerAccount, and Proposal snapshot', () => {
@@ -141,6 +141,19 @@ describe.sequential('database integration migrations and RLS', () => {
     expect(result.stderr).not.toContain('ERROR');
   });
 
+  it('seeds a second tenant audit event for runtime read-isolation validation', () => {
+    const result = psqlAdmin(`
+      INSERT INTO audit_logs
+        (agency_id, actor_type, actor_id, event_type, entity_type, entity_id, outcome, metadata)
+      VALUES
+        ('20000000-0000-4000-8000-000000000001', 'USER',
+         '21000000-0000-4000-8000-000000000001', 'PAYMENT_RECORDED',
+         'payment', 'audit-payment-b', 'SUCCESS', '{}'::jsonb);
+    `);
+
+    expect(result.stderr).not.toContain('ERROR');
+  });
+
   it('enforces RLS for SELECT, INSERT, UPDATE, DELETE, invalid tenants, and fail-closed access', () => {
     const result = psqlRuntime(readSql(rlsRuntimeTestSql));
 
@@ -148,6 +161,10 @@ describe.sequential('database integration migrations and RLS', () => {
     expect(result.stdout).toContain('RLS INSERT Customer agency B while tenant A');
     expect(result.stdout).toContain('RLS UPDATE agency_id A to B');
     expect(result.stdout).toContain('RLS DELETE Customer B while tenant A');
+    expect(result.stdout).toContain('RLS SELECT Audit Log B while tenant A');
+    expect(result.stdout).toContain('RLS INSERT Audit Log agency B while tenant A');
+    expect(result.stdout).toContain('Runtime cannot UPDATE Audit Log');
+    expect(result.stdout).toContain('Runtime cannot DELETE Audit Log');
     expect(result.stdout).toContain('Fail closed SELECT without tenant');
     expect(result.stdout).toContain('Invalid tenant INSERT referencing real Customer A');
     expect(result.stdout).toContain('Runtime role rolsuper/rolbypassrls false');
@@ -166,7 +183,7 @@ describe.sequential('database integration migrations and RLS', () => {
     expect(result.stdout).toContain(
       'SEC-01 pool reuse: third reused transaction does not inherit Agency B',
     );
-    expect(result.stdout).toContain('(37 rows)');
+    expect(result.stdout).toContain('(42 rows)');
     expect(result.stderr).not.toContain('ERROR');
   });
 
@@ -224,7 +241,17 @@ describe.sequential('database integration migrations and RLS', () => {
       ORDER BY routine_name;
     `);
 
-    expect(tableGrantCount).toBe(String(expectedTables.length * 4));
+    expect(tableGrantCount).toBe(String((expectedTables.length - 1) * 4 + 2));
+    expect(
+      queryAdminLines(`
+        SELECT privilege_type
+        FROM information_schema.role_table_grants
+        WHERE table_schema = 'public'
+          AND grantee = '${runtimeUser}'
+          AND table_name = 'audit_logs'
+        ORDER BY privilege_type;
+      `),
+    ).toEqual(['INSERT', 'SELECT']);
     expect(functionGrants).toEqual([
       'clear_tenant_context',
       'current_agency_id',
@@ -435,7 +462,7 @@ function readAllMigrations(): string {
     .filter((fileName) => /^\d+_.+\.sql$/.test(fileName))
     .sort();
 
-  expect(migrationFiles).toHaveLength(14);
+  expect(migrationFiles).toHaveLength(15);
 
   return migrationFiles
     .map((fileName) => readSql(resolve(migrationsDir, fileName)))
