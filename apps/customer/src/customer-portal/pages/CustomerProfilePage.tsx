@@ -121,7 +121,7 @@ export function CustomerProfilePage() {
                   <ProfileField
                     key={key}
                     label={key}
-                    value={typeof value === 'string' ? value : String(value ?? '')}
+                    value={typeof value === 'string' ? value : value != null ? (value as string | number | boolean).toString() : ''}
                   />
                 ))}
               </dl>
