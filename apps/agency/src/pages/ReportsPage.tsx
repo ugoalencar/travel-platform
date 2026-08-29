@@ -64,11 +64,17 @@ export function ReportsPage() {
             api.get('/commercial/reports/trips'),
           ]);
 
-        setSalesData(salesResp.data.sales || []);
-        setBookingsData(bookingsResp.data.bookings || []);
-        setProposalData(proposalsResp.data.proposals);
-        setDestinationsData(destinationsResp.data.destinations || []);
-        setTripsData(tripsResp.data.trips || []);
+        const salesRespData = salesResp.data as { sales?: SalesByPeriod[] };
+        const bookingsRespData = bookingsResp.data as { bookings?: BookingsByStatus[] };
+        const proposalsRespData = proposalsResp.data as { proposals?: ProposalConversion };
+        const destinationsRespData = destinationsResp.data as { destinations?: TopDestination[] };
+        const tripsRespData = tripsResp.data as { trips?: TripsByStatus[] };
+
+        setSalesData(salesRespData.sales || []);
+        setBookingsData(bookingsRespData.bookings || []);
+        setProposalData(proposalsRespData.proposals || null);
+        setDestinationsData(destinationsRespData.destinations || []);
+        setTripsData(tripsRespData.trips || []);
       } catch (err) {
         if (err instanceof Error) {
           setError(err.message);
@@ -89,7 +95,7 @@ export function ReportsPage() {
       }
     };
 
-    fetchReports();
+    void fetchReports();
   }, [dateRange]);
 
   const handleDateChange = (type: 'startDate' | 'endDate', value: string) => {

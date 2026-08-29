@@ -397,21 +397,27 @@ export type { CustomerStatus, WishStatus, TripStatus };
 // the specific functions above. Provides get, post, etc.
 // ============================================================
 
+class ApiError extends Error {
+  constructor(
+    public status: number,
+    public data: Partial<ApiErrorBody> | null,
+  ) {
+    super(`API error: ${status}`);
+  }
+}
+
 export const api = {
-  get: async <T = any>(path: string): Promise<{ data: T }> => {
+  get: async <T>(path: string): Promise<{ data: T }> => {
     const response = await fetch(`${API_BASE_URL}${path}`);
     if (!response.ok) {
       const body = (await safeJson(response)) as Partial<ApiErrorBody> | null;
-      throw {
-        status: response.status,
-        data: body,
-      };
+      throw new ApiError(response.status, body);
     }
     const data = (await response.json()) as T;
     return { data };
   },
 
-  post: async <T = any>(path: string, body?: any): Promise<{ data: T }> => {
+  post: async <T>(path: string, body?: Record<string, unknown>): Promise<{ data: T }> => {
     const response = await fetch(`${API_BASE_URL}${path}`, {
       method: 'POST',
       headers: {
@@ -421,16 +427,13 @@ export const api = {
     });
     if (!response.ok) {
       const respBody = (await safeJson(response)) as Partial<ApiErrorBody> | null;
-      throw {
-        status: response.status,
-        data: respBody,
-      };
+      throw new ApiError(response.status, respBody);
     }
     const data = (await response.json()) as T;
     return { data };
   },
 
-  patch: async <T = any>(path: string, body?: any): Promise<{ data: T }> => {
+  patch: async <T>(path: string, body?: Record<string, unknown>): Promise<{ data: T }> => {
     const response = await fetch(`${API_BASE_URL}${path}`, {
       method: 'PATCH',
       headers: {
@@ -440,10 +443,7 @@ export const api = {
     });
     if (!response.ok) {
       const respBody = (await safeJson(response)) as Partial<ApiErrorBody> | null;
-      throw {
-        status: response.status,
-        data: respBody,
-      };
+      throw new ApiError(response.status, respBody);
     }
     const data = (await response.json()) as T;
     return { data };

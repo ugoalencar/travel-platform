@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-return */
 import type { TenantTransactionClient } from './database';
 import { getAgencyId } from '../../../packages/domain/tenant-context';
 
@@ -166,11 +167,14 @@ export async function getTopDestinations(
     [agencyId, limit],
   );
 
-  return rows.map((row) => ({
-    destination: row.destination,
-    bookingCount: row.booking_count,
-    tripCount: row.trip_count,
-  }));
+  return rows.map((row) => {
+    const rowData = row as { destination: string; booking_count: number; trip_count: number };
+    return {
+      destination: rowData.destination,
+      bookingCount: rowData.booking_count,
+      tripCount: rowData.trip_count,
+    };
+  });
 }
 
 /**

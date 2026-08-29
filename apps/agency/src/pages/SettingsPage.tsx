@@ -71,12 +71,21 @@ export function SettingsPage() {
           api.get('/settings/notifications'),
         ]);
 
+        const profileRespData = profileResp.data as { profile?: AgencyProfile; userRole?: string };
+        const teamRespData = teamResp.data as { team?: TeamMember[] };
+        const notificationsRespData = notificationsResp.data as { settings?: NotificationSettings };
+
         setState({
           status: 'success',
-          profile: profileResp.data.profile,
-          team: teamResp.data.team,
-          notifications: notificationsResp.data.settings,
-          userRole: profileResp.data.userRole,
+          profile: profileRespData.profile || { id: '', name: '' },
+          team: teamRespData.team || [],
+          notifications: notificationsRespData.settings || {
+            emailNotifications: false,
+            proposalUpdates: false,
+            bookingUpdates: false,
+            paymentUpdates: false,
+          },
+          userRole: profileRespData.userRole || 'VIEWER',
         });
       } catch (err) {
         if (err instanceof Error) {
@@ -100,7 +109,7 @@ export function SettingsPage() {
       }
     };
 
-    fetchSettings();
+    void fetchSettings();
   }, []);
 
   if (state.status === 'loading') {

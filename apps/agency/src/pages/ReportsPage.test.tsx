@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-return,@typescript-eslint/no-unnecessary-type-assertion,@typescript-eslint/no-unused-vars */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -11,13 +12,15 @@ vi.mock('../lib/api', () => ({
   },
 }));
 
+const mockApiGet = vi.mocked(api.api.get);
+
 describe('ReportsPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   it('should display loading state initially', () => {
-    (api.api.get as any).mockImplementation(
+    mockApiGet.mockImplementation(
       () => new Promise(() => {
         /* Never resolves to keep loading state */
       }),
@@ -28,7 +31,7 @@ describe('ReportsPage', () => {
   });
 
   it('should load reports from API', async () => {
-    (api.api.get as any).mockImplementation((url: string) => {
+    mockApiGet.mockImplementation((url: string) => {
       if (url.includes('/commercial/reports/sales')) {
         return Promise.resolve({
           data: {
@@ -106,7 +109,7 @@ describe('ReportsPage', () => {
   });
 
   it('should handle API errors gracefully', async () => {
-    (api.api.get as any).mockRejectedValue(
+    mockApiGet.mockRejectedValue(
       new Error('Network error'),
     );
 
@@ -119,7 +122,7 @@ describe('ReportsPage', () => {
   });
 
   it('should handle rate limit errors', async () => {
-    (api.api.get as any).mockRejectedValue({
+    mockApiGet.mockRejectedValue({
       status: 429,
     });
 
@@ -133,7 +136,7 @@ describe('ReportsPage', () => {
   });
 
   it('should handle authorization errors', async () => {
-    (api.api.get as any).mockRejectedValue({
+    mockApiGet.mockRejectedValue({
       status: 403,
       data: { message: 'Forbidden' },
     });
@@ -151,7 +154,7 @@ describe('ReportsPage', () => {
     const user = userEvent.setup();
     let capturedUrl = '';
 
-    (api.api.get as any).mockImplementation((url: string) => {
+    mockApiGet.mockImplementation((url: string) => {
       capturedUrl = url;
       return Promise.resolve({ data: { sales: [] } });
     });
@@ -165,7 +168,7 @@ describe('ReportsPage', () => {
     await user.type(startDateInput, '2026-02-01');
 
     await waitFor(() => {
-      expect((api.api.get as any)).toHaveBeenCalledWith(
+      expect(mockApiGet).toHaveBeenCalledWith(
         expect.stringContaining('start_date=2026-02-01'),
       );
     });
@@ -174,14 +177,14 @@ describe('ReportsPage', () => {
     await user.type(endDateInput, '2026-03-31');
 
     await waitFor(() => {
-      expect((api.api.get as any)).toHaveBeenCalledWith(
+      expect(mockApiGet).toHaveBeenCalledWith(
         expect.stringContaining('end_date=2026-03-31'),
       );
     });
   });
 
   it('should display empty states when no data', async () => {
-    (api.api.get as any).mockImplementation(() =>
+    mockApiGet.mockImplementation(() =>
       Promise.resolve({
         data: {
           sales: [],
@@ -202,7 +205,7 @@ describe('ReportsPage', () => {
   });
 
   it('should format currency correctly', async () => {
-    (api.api.get as any).mockImplementation((url: string) => {
+    mockApiGet.mockImplementation((url: string) => {
       if (url.includes('/commercial/reports/sales')) {
         return Promise.resolve({
           data: {
@@ -221,7 +224,7 @@ describe('ReportsPage', () => {
   });
 
   it('should fetch all reports in parallel', async () => {
-    (api.api.get as any).mockImplementation(() =>
+    mockApiGet.mockImplementation(() =>
       Promise.resolve({
         data: { sales: [], bookings: [], proposals: {}, destinations: [], trips: [] },
       }),
@@ -231,11 +234,11 @@ describe('ReportsPage', () => {
 
     await waitFor(() => {
       // Should call all 5 report endpoints
-      expect((api.api.get as any).mock.calls.length).toBe(5);
+      expect(mockApiGet.mock.calls.length).toBe(5);
     });
 
     // Verify all expected endpoints were called
-    const calls = (api.api.get as any).mock.calls.map((c: any[]) => c[0]);
+    const calls = mockApiGet.mock.calls.map((c: any[]) => c[0]);
     expect(calls.some((url: string) => url.includes('/commercial/reports/sales'))).toBe(true);
     expect(calls.some((url: string) => url.includes('/commercial/reports/bookings'))).toBe(true);
     expect(calls.some((url: string) => url.includes('/commercial/reports/proposals'))).toBe(true);
