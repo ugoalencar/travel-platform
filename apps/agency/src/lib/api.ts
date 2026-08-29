@@ -397,21 +397,16 @@ export type { CustomerStatus, WishStatus, TripStatus };
 // the specific functions above. Provides get, post, etc.
 // ============================================================
 
-class ApiError extends Error {
-  constructor(
-    public status: number,
-    public data: Partial<ApiErrorBody> | null,
-  ) {
-    super(`API error: ${status}`);
-  }
-}
-
 export const api = {
   get: async <T>(path: string): Promise<{ data: T }> => {
     const response = await fetch(`${API_BASE_URL}${path}`);
     if (!response.ok) {
       const body = (await safeJson(response)) as Partial<ApiErrorBody> | null;
-      throw new ApiError(response.status, body);
+      throw new ApiError(
+        body?.error ?? 'Request failed.',
+        body?.code ?? 'UNKNOWN_ERROR',
+        response.status,
+      );
     }
     const data = (await response.json()) as T;
     return { data };
@@ -427,7 +422,11 @@ export const api = {
     });
     if (!response.ok) {
       const respBody = (await safeJson(response)) as Partial<ApiErrorBody> | null;
-      throw new ApiError(response.status, respBody);
+      throw new ApiError(
+        respBody?.error ?? 'Request failed.',
+        respBody?.code ?? 'UNKNOWN_ERROR',
+        response.status,
+      );
     }
     const data = (await response.json()) as T;
     return { data };
@@ -443,7 +442,11 @@ export const api = {
     });
     if (!response.ok) {
       const respBody = (await safeJson(response)) as Partial<ApiErrorBody> | null;
-      throw new ApiError(response.status, respBody);
+      throw new ApiError(
+        respBody?.error ?? 'Request failed.',
+        respBody?.code ?? 'UNKNOWN_ERROR',
+        response.status,
+      );
     }
     const data = (await response.json()) as T;
     return { data };
