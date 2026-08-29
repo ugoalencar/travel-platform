@@ -7,7 +7,7 @@ import { EmptyState } from '../components/ui/empty-state';
 import { StatusBadge } from '../components/ui/status-badge';
 
 export function PescadorPage() {
-  const [captures, setCaptures] = useState<any[]>([]);
+  const [captures] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

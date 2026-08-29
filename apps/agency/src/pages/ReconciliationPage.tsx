@@ -8,7 +8,7 @@ import { StatusBadge } from '../components/ui/status-badge';
 import { formatBRL } from '../lib/formatCurrency';
 
 export function ReconciliationPage() {
-  const [reconciliations, setReconciliations] = useState<any[]>([]);
+  const [reconciliations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

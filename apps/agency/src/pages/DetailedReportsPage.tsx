@@ -1,13 +1,11 @@
 import { useEffect, useState } from 'react';
 import { PageHeader } from '../components/layout/PageHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { useState as useStateAlias } from 'react';
 import { LoadingState } from '../components/ui/loading-state';
 import { formatBRL } from '../lib/formatCurrency';
 
 export function DetailedReportsPage() {
   const [loading, setLoading] = useState(true);
-  const [dreData, setDreData] = useState<any>(null);
 
   useEffect(() => {
     setTimeout(() => setLoading(false), 500);

@@ -16,7 +16,6 @@ import { EmptyState } from '../components/ui/empty-state';
 import { StatusBadge } from '../components/ui/status-badge';
 import { formatBRL } from '../lib/formatCurrency';
 import { formatDateBR } from '../lib/formatDateBR';
-import { ApiError } from '../lib/api';
 
 type LoadState =
   | { status: 'loading' }

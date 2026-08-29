@@ -8,7 +8,7 @@ import { formatBRL } from '../lib/formatCurrency';
 import { formatDateBR } from '../lib/formatDateBR';
 
 export function CashTransactionsPage() {
-  const [transactions, setTransactions] = useState<any[]>([]);
+  const [transactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
