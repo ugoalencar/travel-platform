@@ -107,6 +107,26 @@ CREATE INDEX mfa_totp_secrets_user_active_idx
   ON mfa_totp_secrets (user_id, verified_at DESC)
   WHERE verified_at IS NOT NULL AND disabled_at IS NULL;
 
+ALTER TABLE mfa_totp_secrets ENABLE ROW LEVEL SECURITY;
+ALTER TABLE mfa_totp_secrets FORCE ROW LEVEL SECURITY;
+
+CREATE POLICY mfa_totp_secrets_select_tenant ON mfa_totp_secrets
+  FOR SELECT
+  USING (agency_id = current_agency_id());
+
+CREATE POLICY mfa_totp_secrets_insert_tenant ON mfa_totp_secrets
+  FOR INSERT
+  WITH CHECK (agency_id = current_agency_id());
+
+CREATE POLICY mfa_totp_secrets_update_tenant ON mfa_totp_secrets
+  FOR UPDATE
+  USING (agency_id = current_agency_id())
+  WITH CHECK (agency_id = current_agency_id());
+
+CREATE POLICY mfa_totp_secrets_delete_tenant ON mfa_totp_secrets
+  FOR DELETE
+  USING (agency_id = current_agency_id());
+
 -- TOTP verification audit: every failed and successful attempt for forensics
 CREATE TABLE mfa_totp_attempts (
   id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::TEXT,
@@ -176,6 +196,26 @@ CREATE INDEX mfa_recovery_codes_user_unused_idx
 CREATE INDEX mfa_recovery_codes_code_hash_idx
   ON mfa_recovery_codes (code_hash)
   WHERE used_at IS NULL;
+
+ALTER TABLE mfa_recovery_codes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE mfa_recovery_codes FORCE ROW LEVEL SECURITY;
+
+CREATE POLICY mfa_recovery_codes_select_tenant ON mfa_recovery_codes
+  FOR SELECT
+  USING (agency_id = current_agency_id());
+
+CREATE POLICY mfa_recovery_codes_insert_tenant ON mfa_recovery_codes
+  FOR INSERT
+  WITH CHECK (agency_id = current_agency_id());
+
+CREATE POLICY mfa_recovery_codes_update_tenant ON mfa_recovery_codes
+  FOR UPDATE
+  USING (agency_id = current_agency_id())
+  WITH CHECK (agency_id = current_agency_id());
+
+CREATE POLICY mfa_recovery_codes_delete_tenant ON mfa_recovery_codes
+  FOR DELETE
+  USING (agency_id = current_agency_id());
 
 -- ============================================================
 -- S2: CAPTCHA / ABUSE VERIFICATION
@@ -258,6 +298,26 @@ CROSS JOIN (
   SELECT * FROM (VALUES ('OWNER'), ('ADMIN'), ('MANAGER'), ('AGENT'), ('VIEWER')) AS roles(role)
 ) AS roles
 ON CONFLICT (agency_id, role) DO UPDATE SET required = EXCLUDED.required;
+
+ALTER TABLE mfa_requirements ENABLE ROW LEVEL SECURITY;
+ALTER TABLE mfa_requirements FORCE ROW LEVEL SECURITY;
+
+CREATE POLICY mfa_requirements_select_tenant ON mfa_requirements
+  FOR SELECT
+  USING (agency_id = current_agency_id());
+
+CREATE POLICY mfa_requirements_insert_tenant ON mfa_requirements
+  FOR INSERT
+  WITH CHECK (agency_id = current_agency_id());
+
+CREATE POLICY mfa_requirements_update_tenant ON mfa_requirements
+  FOR UPDATE
+  USING (agency_id = current_agency_id())
+  WITH CHECK (agency_id = current_agency_id());
+
+CREATE POLICY mfa_requirements_delete_tenant ON mfa_requirements
+  FOR DELETE
+  USING (agency_id = current_agency_id());
 
 -- ============================================================
 -- AUDIT LOGGING INTEGRATION
