@@ -302,7 +302,7 @@ export class TotpProvider {
   /**
    * Decodes Base32 data (RFC 4648).
    */
-  private decodeBase32(encoded: string): Buffer {
+  decodeBase32(encoded: string): Buffer {
     const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
     let buffer = 0;
     let bufferLength = 0;

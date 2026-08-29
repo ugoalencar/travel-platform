@@ -88,7 +88,7 @@ describe('S3: MFA — TOTP + Recovery Codes', () => {
       expect(secret.secret).toBeDefined();
       expect(secret.secret).toMatch(/^[A-Z2-7=]+$/);  // Base32 encoded
       expect(secret.provisioningUri).toMatch(/^otpauth:\/\/totp\//);
-      expect(secret.provisioningUri).toContain('user@example.com');
+      expect(secret.provisioningUri).toContain('user%40example.com');  // Email is URL-encoded
       expect(secret.provisioningUri).toContain('MyApp');
       expect(secret.recoveryCodesPlaintext).toHaveLength(16);
     });
@@ -122,17 +122,17 @@ describe('S3: MFA — TOTP + Recovery Codes', () => {
         period: 30,
       });
 
-      // Use RFC 4226 test vector as base32-encoded secret
-      const testSecret = 'GEZDGNBVGY3TQOJQ';  // Binary 123456789012345678 encoded
+      // Generate a fresh secret for testing
+      const testSecret = provider.generateSecret('test@example.com', 'TestApp').secret;
+
       const nowSeconds = Math.floor(Date.now() / 1000);
+
+      // Decode the secret to get the bytes
+      const secretBytes = provider['decodeBase32'](testSecret);  // Access private method for testing
 
       // Generate expected code for current time window
       const expectedCode = HotpProvider.generateHotp(
-        Buffer.from([
-          0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38,
-          0x39, 0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36,
-          0x37, 0x38, 0x39, 0x30,
-        ]),
+        secretBytes,
         Math.floor(nowSeconds / 30),
         6,
         'SHA1'
@@ -166,8 +166,8 @@ describe('S3: MFA — TOTP + Recovery Codes', () => {
         period: 30,
       });
 
-      // Generate a fresh secret
-      const { secret: secretBase32 } = provider.generateSecret('user@example.com', 'TestApp');
+      // Generate a fresh secret for testing
+      const testSecret = provider.generateSecret('test@example.com', 'TestApp').secret;
 
       // Test the verification logic at a fixed point in time
       const testTimeSeconds = 1234567890; // Known time for reproducibility
@@ -176,19 +176,14 @@ describe('S3: MFA — TOTP + Recovery Codes', () => {
       // Window = floor(seconds / 30)
       const currentWindow = Math.floor(testTimeSeconds / 30);
 
-      // Generate HOTP codes for each window using raw secret bytes
-      // The secret is "12345678901234567890" for this test
-      const secretBytes = Buffer.from([
-        0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38,
-        0x39, 0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36,
-        0x37, 0x38, 0x39, 0x30,
-      ]);
+      // Decode the secret to get the bytes
+      const secretBytes = provider.decodeBase32(testSecret);
 
       // Generate a code for the current window
       const currentCode = HotpProvider.generateHotp(secretBytes, currentWindow, 6, 'SHA1');
 
       // Verify that a code for the current window is accepted
-      const resultCurrent = provider.verifyCode('GEZDGNBVGY3TQOJQ', currentCode, testTimeSeconds);
+      const resultCurrent = provider.verifyCode(testSecret, currentCode, testTimeSeconds);
       expect(resultCurrent.valid).toBe(true);
       expect(resultCurrent.timeWindow).toBe(currentWindow);
 
@@ -196,7 +191,7 @@ describe('S3: MFA — TOTP + Recovery Codes', () => {
       const nextCode = HotpProvider.generateHotp(secretBytes, currentWindow + 1, 6, 'SHA1');
 
       // Verify that a code for the next window is accepted at current time (clock skew tolerance)
-      const resultNext = provider.verifyCode('GEZDGNBVGY3TQOJQ', nextCode, testTimeSeconds);
+      const resultNext = provider.verifyCode(testSecret, nextCode, testTimeSeconds);
       expect(resultNext.valid).toBe(true);
       expect(resultNext.timeWindow).toBe(currentWindow + 1);
     });
@@ -208,16 +203,15 @@ describe('S3: MFA — TOTP + Recovery Codes', () => {
         period: 30,
       });
 
-      const testSecret = 'GEZDGNBVGY3TQOJQ';
+      const testSecret = provider.generateSecret('test@example.com', 'TestApp').secret;
       const nowSeconds = Math.floor(Date.now() / 1000);
+
+      // Decode the secret to get the bytes
+      const secretBytes = provider.decodeBase32(testSecret);
 
       // Generate code for 90 seconds in the past (3 windows back)
       const veryOldCode = HotpProvider.generateHotp(
-        Buffer.from([
-          0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38,
-          0x39, 0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36,
-          0x37, 0x38, 0x39, 0x30,
-        ]),
+        secretBytes,
         Math.floor(nowSeconds / 30) - 3,
         6,
         'SHA1'
