@@ -55,24 +55,32 @@ export async function getAgencyProfile(
     [agencyId],
   );
 
-  if (agencyRows.length === 0) {
+  if (agencyRows.rows.length === 0) {
     throw new Error('Agency not found');
   }
 
-  const agency = agencyRows[0] as {
+  const agency = agencyRows.rows[0] as {
     id: string;
     name: string;
     email?: string;
     phone?: string;
   };
 
+  const profile: AgencyProfile = {
+    id: agency.id,
+    name: agency.name,
+  };
+
+  if (agency.email !== undefined) {
+    profile.email = agency.email;
+  }
+
+  if (agency.phone !== undefined) {
+    profile.phone = agency.phone;
+  }
+
   return {
-    profile: {
-      id: agency.id,
-      name: agency.name,
-      email: agency.email,
-      phone: agency.phone,
-    },
+    profile,
     userRole: context.userRole || 'VIEWER',
   };
 }
@@ -98,16 +106,13 @@ export async function getTeamMembers(client: TenantTransactionClient): Promise<T
     [agencyId],
   );
 
-  return rows.map((row) => {
-    const rowData = row as { id: string; name: string; email: string; role: string; joined_at: string };
-    return {
-      id: rowData.id,
-      name: rowData.name,
-      email: rowData.email,
-      role: rowData.role as 'OWNER' | 'ADMIN' | 'MANAGER' | 'AGENT' | 'VIEWER',
-      joinedAt: rowData.joined_at,
-    };
-  });
+  return rows.rows.map((row) => ({
+    id: row.id,
+    name: row.name,
+    email: row.email,
+    role: row.role as 'OWNER' | 'ADMIN' | 'MANAGER' | 'AGENT' | 'VIEWER',
+    joinedAt: row.joined_at,
+  }));
 }
 
 /**
@@ -137,7 +142,7 @@ export async function getNotificationSettings(
     [userId, agencyId],
   );
 
-  if (rows.length === 0) {
+  if (rows.rows.length === 0) {
     // Return defaults if no preferences exist
     return {
       emailNotifications: true,
@@ -147,7 +152,7 @@ export async function getNotificationSettings(
     };
   }
 
-  const prefs = rows[0] as {
+  const prefs = rows.rows[0] as {
     email_notifications: boolean;
     proposal_updates: boolean;
     booking_updates: boolean;

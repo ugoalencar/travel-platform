@@ -66,7 +66,7 @@ export async function getSalesByPeriod(
     [agencyId, startDate, endDate],
   );
 
-  return rows.map((row) => ({
+  return rows.rows.map((row) => ({
     period: row.period,
     count: row.count,
     total: row.total,
@@ -95,7 +95,7 @@ export async function getBookingsByStatus(
     [agencyId],
   );
 
-  return rows;
+  return rows.rows;
 }
 
 /**
@@ -127,7 +127,7 @@ export async function getProposalConversion(
     [agencyId],
   );
 
-  const { sent, accepted } = result[0] || { sent: 0, accepted: 0 };
+  const { sent, accepted } = result.rows[0] || { sent: 0, accepted: 0 };
   const rate = sent > 0 ? ((accepted / sent) * 100).toFixed(2) : '0.00';
 
   return {
@@ -167,14 +167,11 @@ export async function getTopDestinations(
     [agencyId, limit],
   );
 
-  return rows.map((row) => {
-    const rowData = row as { destination: string; booking_count: number; trip_count: number };
-    return {
-      destination: rowData.destination,
-      bookingCount: rowData.booking_count,
-      tripCount: rowData.trip_count,
-    };
-  });
+  return rows.rows.map((row) => ({
+    destination: row.destination,
+    bookingCount: row.booking_count,
+    tripCount: row.trip_count,
+  }));
 }
 
 /**
@@ -198,7 +195,7 @@ export async function getTripsByStatus(
     [agencyId],
   );
 
-  return rows;
+  return rows.rows;
 }
 
 export type { SalesByPeriod, BookingsByStatus, ProposalConversion, TopDestination, TripsByStatus };

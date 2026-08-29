@@ -19,7 +19,7 @@
  * 6. If not verified: record failure, apply throttle/block
  */
 
-export type CaptchaProvider = 'RECAPTCHA_V3' | 'HCAPTCHA' | 'CLOUDFLARE' | 'CUSTOM';
+export type CaptchaProviderType = 'RECAPTCHA_V3' | 'HCAPTCHA' | 'CLOUDFLARE' | 'CUSTOM';
 
 export interface CaptchaVerificationRequest {
   token: string;
@@ -31,7 +31,7 @@ export interface CaptchaVerificationResult {
   verified: boolean;
   score?: number;  // 0.0-1.0 for v3 providers
   errorCodes?: string[];
-  provider: CaptchaProvider;
+  provider: CaptchaProviderType;
   timestamp: Date;
 }
 
@@ -58,7 +58,7 @@ export interface CaptchaProvider {
   /**
    * Provider name for logging and audit events.
    */
-  name(): CaptchaProvider;
+  name(): CaptchaProviderType;
 }
 
 /**
@@ -66,7 +66,7 @@ export interface CaptchaProvider {
  * Always returns verified=true to allow proceeding.
  */
 export class NoOpCaptchaProvider implements CaptchaProvider {
-  verify(): Promise<CaptchaVerificationResult> {
+  verify(_request: CaptchaVerificationRequest): Promise<CaptchaVerificationResult> {
     return Promise.resolve({
       verified: true,
       provider: 'CUSTOM',
@@ -78,7 +78,7 @@ export class NoOpCaptchaProvider implements CaptchaProvider {
     return true;
   }
 
-  name(): CaptchaProvider {
+  name(): CaptchaProviderType {
     return 'CUSTOM';
   }
 }
@@ -139,13 +139,21 @@ export class RecaptchaV3Provider implements CaptchaProvider {
       // Verify score threshold if applicable
       const verified = success && (!score || score >= this.scoreThreshold);
 
-      return {
+      const result: CaptchaVerificationResult = {
         verified,
-        score,
-        errorCodes: errorCodes.length > 0 ? errorCodes : undefined,
         provider: 'RECAPTCHA_V3',
         timestamp: new Date(),
       };
+
+      if (score !== undefined) {
+        result.score = score;
+      }
+
+      if (errorCodes.length > 0) {
+        result.errorCodes = errorCodes;
+      }
+
+      return result;
     } catch (error) {
       // Provider unavailable: fail-closed (not verified)
       return {
@@ -161,7 +169,7 @@ export class RecaptchaV3Provider implements CaptchaProvider {
     return this.secretKey.trim().length > 0;
   }
 
-  name(): CaptchaProvider {
+  name(): CaptchaProviderType {
     return 'RECAPTCHA_V3';
   }
 }
@@ -213,12 +221,17 @@ export class HcaptchaProvider implements CaptchaProvider {
         ? (data['error-codes'] as string[])
         : [];
 
-      return {
+      const result: CaptchaVerificationResult = {
         verified: success,
-        errorCodes: errorCodes.length > 0 ? errorCodes : undefined,
         provider: 'HCAPTCHA',
         timestamp: new Date(),
       };
+
+      if (errorCodes.length > 0) {
+        result.errorCodes = errorCodes;
+      }
+
+      return result;
     } catch (error) {
       return {
         verified: false,
@@ -233,7 +246,7 @@ export class HcaptchaProvider implements CaptchaProvider {
     return this.secret.trim().length > 0;
   }
 
-  name(): CaptchaProvider {
+  name(): CaptchaProviderType {
     return 'HCAPTCHA';
   }
 }
@@ -289,12 +302,17 @@ export class CloudflareProvider implements CaptchaProvider {
         ? (data['error-codes'] as string[])
         : [];
 
-      return {
+      const result: CaptchaVerificationResult = {
         verified: success,
-        errorCodes: errorCodes.length > 0 ? errorCodes : undefined,
         provider: 'CLOUDFLARE',
         timestamp: new Date(),
       };
+
+      if (errorCodes.length > 0) {
+        result.errorCodes = errorCodes;
+      }
+
+      return result;
     } catch (error) {
       return {
         verified: false,
@@ -309,7 +327,7 @@ export class CloudflareProvider implements CaptchaProvider {
     return this.secret.trim().length > 0;
   }
 
-  name(): CaptchaProvider {
+  name(): CaptchaProviderType {
     return 'CLOUDFLARE';
   }
 }

@@ -141,7 +141,7 @@ export function parseIdToken(idToken: string): OAuth2Claims {
     );
   }
 
-  return {
+  const result: OAuth2Claims = {
     sub: claims.sub as string,
     iss: claims.iss as string,
     aud: Array.isArray(claims.aud) ? claims.aud[0] : (claims.aud as string),
@@ -149,8 +149,13 @@ export function parseIdToken(idToken: string): OAuth2Claims {
     iat: iatNum,
     email: claims.email as string,
     email_verified: typeof claims.email_verified === 'boolean' ? claims.email_verified : false,
-    nonce: claims.nonce as string | undefined,
   };
+
+  if (typeof claims.nonce === 'string') {
+    result.nonce = claims.nonce;
+  }
+
+  return result;
 }
 
 /**
@@ -188,23 +193,23 @@ export class ProductionAuthProvider implements AuthProvider {
 
   authenticate(
     request: { headers: IncomingHttpHeaders }
-  ): AuthenticatedPrincipal | null {
+  ): Promise<AuthenticatedPrincipal | null> {
     // Bearer token must be present
     const authorization = this.getAuthorizationHeader(request.headers);
     if (!authorization) {
-      return null;
+      return Promise.resolve(null);
     }
 
     // Extract access token (format: "Bearer <token>")
     const tokenMatch = authorization.match(/^Bearer\s+(.+)$/i);
     if (!tokenMatch) {
-      return null;
+      return Promise.resolve(null);
     }
 
     // In production, access tokens would be validated server-side against
     // the session store and OIDC provider. For now, this is a placeholder
     // that returns null (fail-closed).
-    return null;
+    return Promise.resolve(null);
   }
 
   /**

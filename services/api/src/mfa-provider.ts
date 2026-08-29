@@ -94,12 +94,28 @@ export class HotpProvider {
     const digest = hmac.digest();
 
     // Dynamic truncation: last 4 bits of digest → offset into digest
-    const offset = digest[digest.length - 1] & 0x0f;
+    // RFC 4226: offset is 0-15, guaranteeing offset+3 is within bounds for any HMAC algorithm
+    const lastByte = digest[digest.length - 1];
+    if (lastByte === undefined) {
+      throw new Error('Digest is empty');
+    }
+    const offset = lastByte & 0x0f;
+
+    // Ensure we can safely access offset through offset+3
+    const b1 = digest[offset];
+    const b2 = digest[offset + 1];
+    const b3 = digest[offset + 2];
+    const b4 = digest[offset + 3];
+
+    if (b1 === undefined || b2 === undefined || b3 === undefined || b4 === undefined) {
+      throw new Error('Insufficient digest length for HOTP computation');
+    }
+
     const code =
-      ((digest[offset] & 0x7f) << 24) |
-      ((digest[offset + 1] & 0xff) << 16) |
-      ((digest[offset + 2] & 0xff) << 8) |
-      (digest[offset + 3] & 0xff);
+      ((b1 & 0x7f) << 24) |
+      ((b2 & 0xff) << 16) |
+      ((b3 & 0xff) << 8) |
+      (b4 & 0xff);
 
     const otp = code % Math.pow(10, digits);
     return otp.toString().padStart(digits, '0');
