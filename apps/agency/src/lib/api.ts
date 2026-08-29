@@ -1,6 +1,8 @@
 import type { Customer, CustomerStatus } from '../types/customer';
 import type { Wish, WishStatus } from '../types/wish';
 import type { Trip, TripStatus } from '../types/trip';
+import type { Proposal, ProposalStatus } from '../types/proposal';
+import type { Booking } from '../types/booking';
 
 // Thin API client for the agency staff app, targeting the same backend
 // routes (`/commercial/*`, `/offers`) that apps/customer's staff-facing
@@ -389,7 +391,86 @@ export async function updateTrip(id: string, input: UpdateTripInput): Promise<Tr
   return data.trip;
 }
 
-export type { CustomerStatus, WishStatus, TripStatus };
+// ============================================================
+// PROPOSALS
+// ============================================================
+
+export async function listProposals(): Promise<Proposal[]> {
+  const data = await request<{ proposals: Proposal[] }>('/api/proposals');
+  return data.proposals;
+}
+
+export async function getProposal(id: string): Promise<Proposal> {
+  const data = await request<{ proposal: Proposal }>(`/api/proposals/${encodeURIComponent(id)}`);
+  return data.proposal;
+}
+
+export interface CreateProposalInput {
+  customerId: string;
+  offerId?: string;
+  wishId?: string;
+  proposedPrice: number;
+  discount?: number;
+  validUntil?: string;
+  conditions?: string;
+  notes?: string;
+}
+
+export async function createProposal(input: CreateProposalInput): Promise<Proposal> {
+  const data = await request<{ proposal: Proposal }>('/api/proposals', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+  return data.proposal;
+}
+
+export interface UpdateProposalInput {
+  proposedPrice?: number;
+  discount?: number;
+  validUntil?: string;
+  conditions?: string;
+  notes?: string;
+}
+
+export async function updateProposal(id: string, input: UpdateProposalInput): Promise<Proposal> {
+  const data = await request<{ proposal: Proposal }>(`/api/proposals/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(input),
+  });
+  return data.proposal;
+}
+
+// ============================================================
+// BOOKINGS
+// ============================================================
+
+export async function listBookings(): Promise<Booking[]> {
+  const data = await request<{ bookings: Booking[] }>('/api/bookings');
+  return data.bookings;
+}
+
+export async function getBooking(id: string): Promise<Booking> {
+  const data = await request<{ booking: Booking }>(`/api/bookings/${encodeURIComponent(id)}`);
+  return data.booking;
+}
+
+export interface CreateBookingInput {
+  bookerCustomerId: string;
+  tripType: 'ONE_WAY' | 'ROUND_TRIP';
+  outboundDepartureId: string;
+  returnDepartureId?: string;
+  notes?: string;
+}
+
+export async function createBooking(input: CreateBookingInput): Promise<Booking> {
+  const data = await request<{ booking: Booking }>('/api/bookings', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+  return data.booking;
+}
+
+export type { CustomerStatus, WishStatus, TripStatus, ProposalStatus, Proposal };
 
 // ============================================================
 // GENERIC API CLIENT

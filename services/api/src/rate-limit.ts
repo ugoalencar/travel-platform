@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import type { RedisClientType } from 'redis';
 
 export enum RateLimitClass {
   AUTH_LOGIN = 'AUTH_LOGIN',
@@ -30,6 +31,7 @@ export interface RateLimitRuntimeEnvironment {
   RATE_LIMIT_STORE?: string;
   RATE_LIMIT_MAX?: string;
   RATE_LIMIT_WINDOW_MS?: string;
+  REDIS_URL?: string;
 }
 
 export interface RateLimitRuntimeConfig {
@@ -92,6 +94,91 @@ export class InMemoryRateLimitStore implements RateLimitStore {
   }
 }
 
+/**
+ * Redis-backed distributed rate limit store. Suitable for multi-process,
+ * multi-instance deployments where all processes must observe consistent
+ * abuse state. Connection failures and protocol errors fail safely by
+ * throwing rather than silently falling back to in-memory state.
+ *
+ * Store structure:
+ * - key: rate limit counter key
+ * - value: JSON-encoded {count, resetAt} object with per-key expiration
+ */
+export class RedisRateLimitStore implements RateLimitStore {
+  readonly redisClient: RedisClientType;
+
+  constructor(
+    client: RedisClientType,
+    private readonly keyPrefix: string = 'rate-limit:'
+  ) {
+    this.redisClient = client;
+  }
+
+  async consume(
+    key: string,
+    rule: RateLimitRule & { now: number }
+  ): Promise<RateLimitCounter & { allowed: boolean }> {
+    const fullKey = `${this.keyPrefix}${key}`;
+    const ttlMs = rule.windowMs;
+    const ttlSeconds = Math.ceil(ttlMs / 1000);
+
+    // Fetch existing counter or initialize
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+    const raw = (await (this.redisClient as any).get(fullKey)) as string | null;
+    let previous: RateLimitCounter | undefined;
+    if (raw) {
+      try {
+        previous = JSON.parse(raw) as RateLimitCounter;
+      } catch {
+        // Malformed data: reset and start fresh. Log not required here as
+        // Redis data corruption would appear in application metrics.
+        previous = undefined;
+      }
+    }
+
+    // Calculate new counter state
+    const current =
+      !previous || previous.resetAt <= rule.now
+        ? { count: 1, resetAt: rule.now + ttlMs }
+        : { count: previous.count + 1, resetAt: previous.resetAt };
+
+    // Store with TTL: Redis will automatically remove the key after expiration.
+    // Use the per-key TTL so each window resets independently.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+    await (this.redisClient as any).setEx(fullKey, ttlSeconds, JSON.stringify(current));
+
+    return { ...current, allowed: current.count <= rule.max };
+  }
+
+  async get(key: string, now: number): Promise<RateLimitCounter | undefined> {
+    const fullKey = `${this.keyPrefix}${key}`;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+    const raw = (await (this.redisClient as any).get(fullKey)) as string | null;
+    if (!raw) {
+      return undefined;
+    }
+
+    try {
+      const counter = JSON.parse(raw) as RateLimitCounter;
+      // If the counter's TTL has passed (resetAt <= now), Redis should have
+      // already deleted it via expiration. Treat missing as undefined.
+      if (counter.resetAt <= now) {
+        return undefined;
+      }
+      return counter;
+    } catch {
+      // Malformed data: treat as missing
+      return undefined;
+    }
+  }
+
+  async reset(key: string): Promise<void> {
+    const fullKey = `${this.keyPrefix}${key}`;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+    await (this.redisClient as any).del(fullKey);
+  }
+}
+
 const DEFAULT_POLICIES: Readonly<Record<RateLimitClass, RateLimitRule>> = {
   [RateLimitClass.AUTH_LOGIN]: { max: 10, windowMs: 15 * 60_000 },
   [RateLimitClass.AUTH_RECOVERY]: { max: 5, windowMs: 15 * 60_000 },
@@ -114,6 +201,15 @@ export function resolveRateLimitRuntimeConfig(
   if (store !== 'memory' && store !== 'external') {
     throw new Error('RATE_LIMIT_STORE must be either "memory" or "external".');
   }
+
+  // Validate Redis connection is configured when external store is required
+  if (store === 'external' && !isNonEmptyString(environment.REDIS_URL)) {
+    throw new Error(
+      'RATE_LIMIT_STORE is set to "external" but REDIS_URL is not configured. ' +
+        'REDIS_URL is required when using a distributed rate-limit store.'
+    );
+  }
+
   return {
     enabled,
     store,
@@ -364,4 +460,90 @@ function parsePositiveInteger(value: string | undefined, name: string, fallback:
     throw new Error(`${name} must be a positive integer.`);
   }
   return Number(value);
+}
+
+function isNonEmptyString(value: string | undefined): value is string {
+  return typeof value === 'string' && value.trim().length > 0;
+}
+
+/**
+ * Creates and connects a Redis-backed RateLimitStore from environment variables.
+ * Fails closed: throws if REDIS_URL is invalid or connection cannot be established.
+ *
+ * Connection failure is intentional: a production rate limiter must not silently
+ * degrade to in-memory state when the distributed store is unavailable, as that
+ * would allow unlimited abuse from different processes. Instead, the service
+ * fails to start, alerting infrastructure to the misconfiguration or unavailable
+ * Redis instance.
+ *
+ * @throws Error if REDIS_URL is missing, malformed, or Redis connection fails
+ */
+export async function createRedisRateLimitStore(
+  environment: RateLimitRuntimeEnvironment
+): Promise<RedisRateLimitStore> {
+  const redisUrl = environment.REDIS_URL;
+  if (!isNonEmptyString(redisUrl)) {
+    throw new Error(
+      'createRedisRateLimitStore requires REDIS_URL to be set in the environment.'
+    );
+  }
+
+  // Validate URL format
+  let url: URL;
+  try {
+    url = new URL(redisUrl);
+  } catch {
+    throw new Error(
+      `REDIS_URL is invalid: "${redisUrl.substring(0, 20)}..." does not parse as a valid URL.`
+    );
+  }
+
+  if (url.protocol !== 'redis:' && url.protocol !== 'rediss:') {
+    throw new Error(
+      `REDIS_URL has invalid protocol "${url.protocol}"; must be "redis:" or "rediss:" (TLS).`
+    );
+  }
+
+  // Dynamically import redis module to allow optional dependency loading
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+  const { createClient } = await import('redis');
+
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+  const client = (createClient as any)({
+    url: redisUrl,
+    // Socket options for reliability
+    socket: {
+      // Reconnect up to 10 times before failing, with exponential backoff
+      reconnectStrategy: (retries: number) => {
+        if (retries > 10) {
+          return new Error('Redis reconnection max retries exceeded');
+        }
+        // Exponential backoff: 50ms base, up to 5s max
+        return Math.min(50 * Math.pow(2, retries), 5000);
+      },
+      // Connection timeout: fail fast if Redis does not respond
+      connectTimeout: 10000,
+      // Keep-alive interval to detect stale connections
+      keepAlive: 30000,
+    },
+  }) as RedisClientType;
+
+  // Set up error handler for connection errors
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+  (client as any).on('error', (error: unknown) => {
+    console.error('Redis connection error:', error instanceof Error ? error.message : String(error));
+  });
+
+  // Attempt connection; fail closed if connection cannot be established
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+    await (client as any).connect();
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(
+      `Failed to connect to Redis at ${redisUrl.split('@')[1] || 'configured URL'}: ${message}`
+    );
+  }
+
+  return new RedisRateLimitStore(client);
 }

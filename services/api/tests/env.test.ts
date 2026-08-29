@@ -31,6 +31,7 @@ describe('validateProductionEnvironment', () => {
           'postgresql://app_runtime:example-not-a-real-password@db.internal:5432/travel_platform',
         PORT: '3000',
         RATE_LIMIT_STORE: 'external',
+        REDIS_URL: 'redis://redis.internal:6379',
       })
     ).not.toThrow();
   });
@@ -89,8 +90,21 @@ describe('validateProductionEnvironment', () => {
         DATABASE_URL:
           'postgresql://app_runtime:example-not-a-real-password@db.internal:5432/travel_platform',
         ALLOW_DEV_AUTH: 'true',
+        RATE_LIMIT_STORE: 'external',
+        REDIS_URL: 'redis://localhost:6379',
       })
     ).toThrow(/ALLOW_DEV_AUTH must not be "true" in production/);
+  });
+
+  it('requires REDIS_URL in production when RATE_LIMIT_STORE is external', () => {
+    expect(() =>
+      validateProductionEnvironment({
+        NODE_ENV: 'production',
+        DATABASE_URL:
+          'postgresql://app_runtime:example-not-a-real-password@db.internal:5432/travel_platform',
+        RATE_LIMIT_STORE: 'external',
+      })
+    ).toThrow(/REDIS_URL is required in production when RATE_LIMIT_STORE is "external"/);
   });
 
   it('allows ALLOW_DEV_AUTH=false in production (only the literal "true" flag is prohibited)', () => {
@@ -101,6 +115,7 @@ describe('validateProductionEnvironment', () => {
           'postgresql://app_runtime:example-not-a-real-password@db.internal:5432/travel_platform',
         ALLOW_DEV_AUTH: 'false',
         RATE_LIMIT_STORE: 'external',
+        REDIS_URL: 'redis://redis.internal:6379',
       })
     ).not.toThrow();
   });
