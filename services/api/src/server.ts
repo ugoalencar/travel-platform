@@ -1,5 +1,4 @@
 import { Pool } from 'pg';
-import type { RedisClientType } from 'redis';
 import { buildApp } from './app';
 import { createCustomerAccessValidator } from './customer-portal';
 import { createDatabaseRuntime } from './database';
@@ -9,7 +8,7 @@ import {
   createServerCustomerAuthProvider,
 } from './dev-auth';
 import { assertSafeDatabaseRole, validateProductionEnvironment } from './env';
-import { createRedisRateLimitStore, resolveRateLimitRuntimeConfig } from './rate-limit';
+import { createRedisRateLimitStore, resolveRateLimitRuntimeConfig, type RedisClientInstance } from './rate-limit';
 
 // Fail-closed production startup gate: throws synchronously if required
 // config is missing/malformed, or if a prohibited flag (ALLOW_DEV_AUTH) is
@@ -53,7 +52,7 @@ let app = buildApp({
   },
 });
 
-let redisClientInstance: RedisClientType | undefined = undefined;
+let redisClientInstance: RedisClientInstance | undefined = undefined;
 
 async function gracefulShutdown(signal: string): Promise<void> {
   app.log.info({ signal }, 'graceful shutdown initiated');

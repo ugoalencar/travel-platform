@@ -1,5 +1,7 @@
 import { createHash } from 'node:crypto';
-import type { RedisClientType } from 'redis';
+import { createClient } from 'redis';
+
+export type RedisClientInstance = Awaited<ReturnType<typeof createClient>>;
 
 export enum RateLimitClass {
   AUTH_LOGIN = 'AUTH_LOGIN',
@@ -105,10 +107,10 @@ export class InMemoryRateLimitStore implements RateLimitStore {
  * - value: JSON-encoded {count, resetAt} object with per-key expiration
  */
 export class RedisRateLimitStore implements RateLimitStore {
-  readonly redisClient: RedisClientType;
+  readonly redisClient: RedisClientInstance;
 
   constructor(
-    client: RedisClientType,
+    client: RedisClientInstance,
     private readonly keyPrefix: string = 'rate-limit:'
   ) {
     this.redisClient = client;
@@ -123,8 +125,7 @@ export class RedisRateLimitStore implements RateLimitStore {
     const ttlSeconds = Math.ceil(ttlMs / 1000);
 
     // Fetch existing counter or initialize
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-    const raw = (await (this.redisClient as any).get(fullKey)) as string | null;
+    const raw = await this.redisClient.get(fullKey);
     let previous: RateLimitCounter | undefined;
     if (raw) {
       try {
@@ -144,16 +145,14 @@ export class RedisRateLimitStore implements RateLimitStore {
 
     // Store with TTL: Redis will automatically remove the key after expiration.
     // Use the per-key TTL so each window resets independently.
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-    await (this.redisClient as any).setEx(fullKey, ttlSeconds, JSON.stringify(current));
+    await this.redisClient.setEx(fullKey, ttlSeconds, JSON.stringify(current));
 
     return { ...current, allowed: current.count <= rule.max };
   }
 
   async get(key: string, now: number): Promise<RateLimitCounter | undefined> {
     const fullKey = `${this.keyPrefix}${key}`;
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-    const raw = (await (this.redisClient as any).get(fullKey)) as string | null;
+    const raw = await this.redisClient.get(fullKey);
     if (!raw) {
       return undefined;
     }
@@ -174,8 +173,7 @@ export class RedisRateLimitStore implements RateLimitStore {
 
   async reset(key: string): Promise<void> {
     const fullKey = `${this.keyPrefix}${key}`;
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-    await (this.redisClient as any).del(fullKey);
+    await this.redisClient.del(fullKey);
   }
 }
 
@@ -504,12 +502,8 @@ export async function createRedisRateLimitStore(
     );
   }
 
-  // Dynamically import redis module to allow optional dependency loading
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-  const { createClient } = await import('redis');
-
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-  const client = (createClient as any)({
+  // Create Redis client with connection options
+  const client = createClient({
     url: redisUrl,
     // Socket options for reliability
     socket: {
@@ -526,18 +520,16 @@ export async function createRedisRateLimitStore(
       // Keep-alive interval to detect stale connections
       keepAlive: 30000,
     },
-  }) as RedisClientType;
+  });
 
   // Set up error handler for connection errors
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-  (client as any).on('error', (error: unknown) => {
-    console.error('Redis connection error:', error instanceof Error ? error.message : String(error));
+  client.on('error', (error: Error) => {
+    console.error('Redis connection error:', error.message);
   });
 
   // Attempt connection; fail closed if connection cannot be established
   try {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-    await (client as any).connect();
+    await client.connect();
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
     throw new Error(
