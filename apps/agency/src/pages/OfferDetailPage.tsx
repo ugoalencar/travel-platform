@@ -93,27 +93,29 @@ export function OfferDetailPage() {
 
   function openEdit() {
     if (!offer) return;
-    setEditForm({
+    const form: UpdateOfferInput = {
       name: offer.name,
-      description: offer.description,
       price: offer.price,
-      validFrom: offer.validFrom ? offer.validFrom.split('T')[0] : '',
-      validUntil: offer.validUntil ? offer.validUntil.split('T')[0] : '',
       status: offer.status,
-    });
+    };
+    if (offer.description !== undefined) form.description = offer.description;
+    if (offer.validFrom) form.validFrom = offer.validFrom.split('T')[0];
+    if (offer.validUntil) form.validUntil = offer.validUntil.split('T')[0];
+    setEditForm(form);
     setEditError(null);
     setShowEdit(true);
   }
 
   function openDuplicate() {
     if (!offer) return;
-    setDuplicateForm({
+    const form: CreateOfferInput = {
       name: `${offer.name} (Cópia)`,
-      description: offer.description,
       price: offer.price,
-      validFrom: offer.validFrom ? offer.validFrom.split('T')[0] : '',
-      validUntil: offer.validUntil ? offer.validUntil.split('T')[0] : '',
-    });
+    };
+    if (offer.description !== undefined) form.description = offer.description;
+    if (offer.validFrom) form.validFrom = offer.validFrom.split('T')[0];
+    if (offer.validUntil) form.validUntil = offer.validUntil.split('T')[0];
+    setDuplicateForm(form);
     setDuplicateError(null);
     setShowDuplicate(true);
   }

@@ -11,8 +11,8 @@
 
 ## Phase 2: Remaining Database + API Services (CASCADE)
 
-- [ ] Task 3: OCR-Ready Database Tables (migrations 020-023: dependents, documents, extraction, verification, audit, RLS)
-- [ ] Task 4: API Services Layer (addresses, dependents, documents, OCR provider, extraction/verification)
+- [x] Task 3: OCR-Ready Database Tables (migrations 020-023) — APPROVED
+- [ ] Task 4: API Services Layer (Customer360Service, attachment service, OCR provider, extraction/verification)
 
 ## Phase 3: UI Components (LATER)
 
@@ -22,3 +22,4 @@
 
 - Task 1: ✓ complete (commit d6a5fd53, review clean)
 - Task 2: ✓ complete (commit c6335c6, review clean)
+- Task 3: ✓ complete (migrations 020-023 verified, review clean)

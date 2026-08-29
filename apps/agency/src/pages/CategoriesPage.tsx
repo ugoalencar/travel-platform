@@ -30,6 +30,23 @@ export function CategoriesPage() {
     );
   }
 
+  if (state.status === 'error') {
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          title="Categorias"
+          description="Gerenciar categorias de receitas e despesas."
+          breadcrumbs={[{ label: 'Dashboard', to: '/' }, { label: 'Categorias' }]}
+        />
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-sm text-red-600">{state.message}</div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader

@@ -33,6 +33,23 @@ export function ExpensesPage() {
     );
   }
 
+  if (state.status === 'error') {
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          title="Despesas"
+          description="Gerenciar despesas operacionais."
+          breadcrumbs={[{ label: 'Dashboard', to: '/' }, { label: 'Despesas' }]}
+        />
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-sm text-red-600">{state.message}</div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader
