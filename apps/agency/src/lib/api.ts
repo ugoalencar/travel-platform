@@ -191,6 +191,148 @@ export async function getOffer(id: string): Promise<Offer> {
   return data.offer;
 }
 
+export interface CreateOfferInput {
+  name: string;
+  description?: string;
+  price: number;
+  validFrom?: string;
+  validUntil?: string;
+}
+
+export interface UpdateOfferInput {
+  name?: string;
+  description?: string;
+  price?: number;
+  validFrom?: string;
+  validUntil?: string;
+  status?: OfferStatus;
+}
+
+export async function createOffer(input: CreateOfferInput): Promise<Offer> {
+  const data = await request<{ offer: Offer }>('/api/offers', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+  return data.offer;
+}
+
+export async function updateOffer(id: string, input: UpdateOfferInput): Promise<Offer> {
+  const data = await request<{ offer: Offer }>(`/api/offers/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(input),
+  });
+  return data.offer;
+}
+
+// ============================================================
+// CAMPAIGNS
+// ============================================================
+
+export type CampaignStatus = 'DRAFT' | 'SCHEDULED' | 'ACTIVE' | 'PAUSED' | 'FINISHED' | 'CANCELLED';
+
+export interface Campaign {
+  id: string;
+  agencyId: string;
+  name: string;
+  description?: string;
+  startsAt?: string;
+  endsAt?: string;
+  publicationStartsAt?: string;
+  publicationEndsAt?: string;
+  timezone: string;
+  status: CampaignStatus;
+  createdByUserId?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateCampaignInput {
+  name: string;
+  description?: string;
+  startsAt?: string;
+  endsAt?: string;
+  publicationStartsAt?: string;
+  publicationEndsAt?: string;
+  timezone?: string;
+  offerIds?: string[];
+}
+
+export async function listCampaigns(): Promise<Campaign[]> {
+  const data = await request<{ campaigns: Campaign[] }>('/api/campaigns');
+  return data.campaigns;
+}
+
+export async function getCampaign(id: string): Promise<Campaign> {
+  const data = await request<{ campaign: Campaign }>(`/api/campaigns/${encodeURIComponent(id)}`);
+  return data.campaign;
+}
+
+export async function createCampaign(input: CreateCampaignInput): Promise<Campaign> {
+  const data = await request<{ campaign: Campaign }>('/api/campaigns', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+  return data.campaign;
+}
+
+// ============================================================
+// COUPONS
+// ============================================================
+
+export type CouponType = 'FIXED' | 'PERCENTAGE' | 'BOGO';
+
+export interface Coupon {
+  id: string;
+  agencyId: string;
+  code: string;
+  name: string;
+  type: CouponType;
+  value?: number;
+  benefitDescription?: string;
+  startsAt?: string;
+  expiresAt?: string;
+  maxUses?: number;
+  maxUsesPerCustomer?: number;
+  campaignId?: string;
+  offerId?: string;
+  active: boolean;
+  createdByUserId?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateCouponInput {
+  code: string;
+  name: string;
+  type: CouponType;
+  value?: number;
+  benefitDescription?: string;
+  startsAt?: string;
+  expiresAt?: string;
+  maxUses?: number;
+  maxUsesPerCustomer?: number;
+  campaignId?: string;
+  offerId?: string;
+}
+
+export async function listCoupons(): Promise<Coupon[]> {
+  const data = await request<{ coupons: Coupon[] }>('/api/coupons');
+  return data.coupons;
+}
+
+export async function getCoupon(id: string): Promise<Coupon> {
+  const data = await request<{ coupon: Coupon }>(`/api/coupons/${encodeURIComponent(id)}`);
+  return data.coupon;
+}
+
+export async function createCoupon(input: CreateCouponInput): Promise<Coupon> {
+  const data = await request<{ coupon: Coupon }>('/api/coupons', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+  return data.coupon;
+}
+
 // ============================================================
 // FINANCIAL (GET /financial/summary)
 // Server-authoritative financial metrics for the agency.

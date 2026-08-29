@@ -171,25 +171,56 @@ import {
 } from './sales';
 import {
   allocatePayment,
+  cancelExpense,
+  cancelRevenue,
+  createExpense,
+  createFinancialCategory,
   createOperationalCost,
   createPayable,
   createReceivable,
+  createRevenue,
+  markExpenseAsPaid,
+  markRevenueAsPaid,
+  createReconciliation,
+  createCashTransaction,
   getCashFlowSummary,
+  getCashBalance,
   getFinancialSummary,
   getSaleMargin,
+  getExpense,
+  getRevenue,
+  getDREReport,
+  getOverdueReport,
   listAllocationsForTarget,
+  listCashTransactions,
+  listExpenses,
+  listFinancialCategories,
   listOperationalCosts,
   listPaymentAllocations,
   listPayables,
   listPayments,
   listReceivables,
+  listReconciliations,
+  listRevenues,
+  markReconciliationAsReconciled,
   recordPayment,
+  updateExpense,
+  updateRevenue,
   type CashFlowPeriod,
+  type CreateCashTransactionInput,
+  type CreateExpenseInput,
+  type CreateFinancialCategoryInput,
   type CreateOperationalCostInput,
   type CreatePayableInput,
   type CreatePaymentAllocationInput,
   type CreateReceivableInput,
+  type CreateReconciliationInput,
+  type CreateRevenueInput,
+  type DREReport,
+  type OverdueReport,
   type RecordPaymentInput,
+  type UpdateExpenseInput,
+  type UpdateRevenueInput,
 } from './financial';
 import {
   approveCapture,
@@ -1959,6 +1990,239 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       return { operationalCost };
     }
   );
+
+  // ============================================================
+  // FINANCIAL CATEGORIES
+  // ============================================================
+  app.get('/financial/categories', { preHandler: protectedHooks }, async (request) => {
+    requireRole(UserRole.MANAGER);
+    const query = request.query as Record<string, string>;
+    const type = query.type as any;
+    const categories = await listFinancialCategories(options.database, type);
+    return { categories };
+  });
+
+  app.post('/financial/categories', { preHandler: protectedHooks }, async (request, reply) => {
+    requireRole(UserRole.ADMIN);
+    const data = parseCreateFinancialCategoryInput(request.body);
+    const category = await createFinancialCategory(options.database, data);
+    reply.code(201);
+    return { category };
+  });
+
+  // ============================================================
+  // REVENUES
+  // ============================================================
+  app.get('/financial/revenues', { preHandler: protectedHooks }, async (request) => {
+    requireRole(UserRole.MANAGER);
+    const query = request.query as Record<string, string>;
+    const filters: any = {};
+    if (query.status) filters.status = query.status;
+    if (query.customerId) filters.customerId = query.customerId;
+    if (query.categoryId) filters.categoryId = query.categoryId;
+    if (query.periodFrom) filters.periodFrom = new Date(query.periodFrom);
+    if (query.periodTo) filters.periodTo = new Date(query.periodTo);
+    const revenues = await listRevenues(options.database, filters);
+    return { revenues };
+  });
+
+  app.get<{ Params: { id: string } }>(
+    '/financial/revenues/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.MANAGER);
+      const revenue = await getRevenue(options.database, request.params.id);
+      return { revenue };
+    }
+  );
+
+  app.post('/financial/revenues', { preHandler: protectedHooks }, async (request, reply) => {
+    requireRole(UserRole.ADMIN);
+    const data = parseCreateRevenueInput(request.body);
+    const revenue = await createRevenue(options.database, data);
+    reply.code(201);
+    return { revenue };
+  });
+
+  app.patch<{ Params: { id: string } }>(
+    '/financial/revenues/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.ADMIN);
+      const data = parseUpdateRevenueInput(request.body);
+      const revenue = await updateRevenue(options.database, request.params.id, data);
+      return { revenue };
+    }
+  );
+
+  app.post<{ Params: { id: string } }>(
+    '/financial/revenues/:id/mark-paid',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.ADMIN);
+      const body = request.body as any;
+      const partialAmount = body?.partialAmount;
+      const revenue = await markRevenueAsPaid(options.database, request.params.id, partialAmount);
+      return { revenue };
+    }
+  );
+
+  app.post<{ Params: { id: string } }>(
+    '/financial/revenues/:id/cancel',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.ADMIN);
+      const revenue = await cancelRevenue(options.database, request.params.id);
+      return { revenue };
+    }
+  );
+
+  // ============================================================
+  // EXPENSES
+  // ============================================================
+  app.get('/financial/expenses', { preHandler: protectedHooks }, async (request) => {
+    requireRole(UserRole.MANAGER);
+    const query = request.query as Record<string, string>;
+    const filters: any = {};
+    if (query.status) filters.status = query.status;
+    if (query.supplierId) filters.supplierId = query.supplierId;
+    if (query.categoryId) filters.categoryId = query.categoryId;
+    if (query.periodFrom) filters.periodFrom = new Date(query.periodFrom);
+    if (query.periodTo) filters.periodTo = new Date(query.periodTo);
+    const expenses = await listExpenses(options.database, filters);
+    return { expenses };
+  });
+
+  app.get<{ Params: { id: string } }>(
+    '/financial/expenses/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.MANAGER);
+      const expense = await getExpense(options.database, request.params.id);
+      return { expense };
+    }
+  );
+
+  app.post('/financial/expenses', { preHandler: protectedHooks }, async (request, reply) => {
+    requireRole(UserRole.ADMIN);
+    const data = parseCreateExpenseInput(request.body);
+    const expense = await createExpense(options.database, data);
+    reply.code(201);
+    return { expense };
+  });
+
+  app.patch<{ Params: { id: string } }>(
+    '/financial/expenses/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.ADMIN);
+      const data = parseUpdateExpenseInput(request.body);
+      const expense = await updateExpense(options.database, request.params.id, data);
+      return { expense };
+    }
+  );
+
+  app.post<{ Params: { id: string } }>(
+    '/financial/expenses/:id/mark-paid',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.ADMIN);
+      const body = request.body as any;
+      const partialAmount = body?.partialAmount;
+      const expense = await markExpenseAsPaid(options.database, request.params.id, partialAmount);
+      return { expense };
+    }
+  );
+
+  app.post<{ Params: { id: string } }>(
+    '/financial/expenses/:id/cancel',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.ADMIN);
+      const expense = await cancelExpense(options.database, request.params.id);
+      return { expense };
+    }
+  );
+
+  // ============================================================
+  // CASH TRANSACTIONS
+  // ============================================================
+  app.get('/financial/cash-transactions', { preHandler: protectedHooks }, async (request) => {
+    requireRole(UserRole.MANAGER);
+    const query = request.query as Record<string, string>;
+    const filters: any = {};
+    if (query.type) filters.type = query.type;
+    if (query.periodFrom) filters.periodFrom = new Date(query.periodFrom);
+    if (query.periodTo) filters.periodTo = new Date(query.periodTo);
+    const transactions = await listCashTransactions(options.database, filters);
+    return { transactions };
+  });
+
+  app.post('/financial/cash-transactions', { preHandler: protectedHooks }, async (request, reply) => {
+    requireRole(UserRole.ADMIN);
+    const data = parseCreateCashTransactionInput(request.body);
+    const transaction = await createCashTransaction(options.database, data);
+    reply.code(201);
+    return { transaction };
+  });
+
+  app.get('/financial/cash-balance', { preHandler: protectedHooks }, async (request) => {
+    requireRole(UserRole.MANAGER);
+    const query = request.query as Record<string, string>;
+    const asOf = query.asOf ? new Date(query.asOf) : undefined;
+    const balance = await getCashBalance(options.database, asOf);
+    return { balance };
+  });
+
+  // ============================================================
+  // RECONCILIATIONS
+  // ============================================================
+  app.get('/financial/reconciliations', { preHandler: protectedHooks }, async (request) => {
+    requireRole(UserRole.MANAGER);
+    const query = request.query as Record<string, string>;
+    const filters: any = {};
+    if (query.status) filters.status = query.status;
+    if (query.periodFrom) filters.periodFrom = new Date(query.periodFrom);
+    if (query.periodTo) filters.periodTo = new Date(query.periodTo);
+    const reconciliations = await listReconciliations(options.database, filters);
+    return { reconciliations };
+  });
+
+  app.post('/financial/reconciliations', { preHandler: protectedHooks }, async (request, reply) => {
+    requireRole(UserRole.ADMIN);
+    const data = parseCreateReconciliationInput(request.body);
+    const reconciliation = await createReconciliation(options.database, data);
+    reply.code(201);
+    return { reconciliation };
+  });
+
+  app.post<{ Params: { id: string } }>(
+    '/financial/reconciliations/:id/mark-reconciled',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.ADMIN);
+      const reconciliation = await markReconciliationAsReconciled(options.database, request.params.id);
+      return { reconciliation };
+    }
+  );
+
+  // ============================================================
+  // FINANCIAL REPORTS
+  // ============================================================
+  app.get('/financial/reports/dre', { preHandler: protectedHooks }, async (request) => {
+    requireRole(UserRole.MANAGER);
+    const query = request.query as Record<string, string>;
+    const periodFrom = query.periodFrom ? new Date(query.periodFrom) : new Date(new Date().setDate(1));
+    const periodTo = query.periodTo ? new Date(query.periodTo) : new Date();
+    const report = await getDREReport(options.database, periodFrom, periodTo);
+    return { report };
+  });
+
+  app.get('/financial/reports/overdue', { preHandler: protectedHooks }, async (request) => {
+    requireRole(UserRole.MANAGER);
+    const report = await getOverdueReport(options.database);
+    return { report };
+  });
 
   app.get('/pescador/captures', { preHandler: protectedHooks }, async () => {
     requireRole(UserRole.AGENT);
@@ -5034,4 +5298,222 @@ function parseCancelBookingInput(body: unknown): Omit<CancelBookingInput, 'userI
   }
   const reason = record.reason.trim();
   return reason.length > 0 ? { reason } : {};
+}
+
+// ============================================================
+// FINANCIAL MODULE PARSERS
+// ============================================================
+
+function parseCreateFinancialCategoryInput(body: unknown): CreateFinancialCategoryInput {
+  const record = parseObjectBody(body);
+  const name = parseRequiredString(record.name, 'name');
+  const type = record.type as string;
+  if (!type || !['REVENUE', 'EXPENSE'].includes(type)) {
+    throw new ValidationError('Field "type" must be REVENUE or EXPENSE');
+  }
+  let description: string | undefined;
+  if (typeof record.description === 'string') {
+    const trimmed = record.description.trim();
+    description = trimmed.length > 0 ? trimmed : undefined;
+  }
+
+  return {
+    name,
+    type: type as any,
+    description,
+  };
+}
+
+function parseCreateRevenueInput(body: unknown): CreateRevenueInput {
+  const record = parseObjectBody(body);
+  const customerId = parseRequiredString(record.customerId, 'customerId');
+  const categoryId = parseRequiredString(record.categoryId, 'categoryId');
+  const description = parseRequiredString(record.description, 'description');
+  const amount = parsePositiveNumber(record.amount, 'amount');
+  const competencyDate = parseRequiredDate(record.competencyDate, 'competencyDate');
+  const dueDate = parseRequiredDate(record.dueDate, 'dueDate');
+  const saleId = typeof record.saleId === 'string' ? record.saleId : undefined;
+  const bookingId = typeof record.bookingId === 'string' ? record.bookingId : undefined;
+  const currency = typeof record.currency === 'string' ? record.currency : 'BRL';
+  let paymentMethod: string | undefined;
+  if (typeof record.paymentMethod === 'string') {
+    const trimmed = record.paymentMethod.trim();
+    paymentMethod = trimmed.length > 0 ? trimmed : undefined;
+  }
+  let notes: string | undefined;
+  if (typeof record.notes === 'string') {
+    const trimmed = record.notes.trim();
+    notes = trimmed.length > 0 ? trimmed : undefined;
+  }
+
+  return {
+    customerId,
+    categoryId,
+    description,
+    amount,
+    competencyDate,
+    dueDate,
+    saleId,
+    bookingId,
+    currency,
+    paymentMethod,
+    notes,
+  };
+}
+
+function parseUpdateRevenueInput(body: unknown): UpdateRevenueInput {
+  const record = parseObjectBody(body);
+  const result: UpdateRevenueInput = {};
+
+  if (record.categoryId !== undefined) {
+    result.categoryId = parseRequiredString(record.categoryId, 'categoryId');
+  }
+  if (record.description !== undefined) {
+    result.description = parseRequiredString(record.description, 'description');
+  }
+  if (record.dueDate !== undefined) {
+    result.dueDate = parseRequiredDate(record.dueDate, 'dueDate');
+  }
+  if (record.paymentMethod !== undefined && typeof record.paymentMethod === 'string') {
+    const trimmed = record.paymentMethod.trim();
+    if (trimmed.length > 0) {
+      result.paymentMethod = trimmed;
+    }
+  }
+  if (record.notes !== undefined && typeof record.notes === 'string') {
+    const trimmed = record.notes.trim();
+    if (trimmed.length > 0) {
+      result.notes = trimmed;
+    }
+  }
+
+  return result;
+}
+
+function parseCreateExpenseInput(body: unknown): CreateExpenseInput {
+  const record = parseObjectBody(body);
+  const categoryId = parseRequiredString(record.categoryId, 'categoryId');
+  const description = parseRequiredString(record.description, 'description');
+  const amount = parsePositiveNumber(record.amount, 'amount');
+  const incurredAt = parseRequiredDate(record.incurredAt, 'incurredAt');
+  const dueDate = parseRequiredDate(record.dueDate, 'dueDate');
+  const supplierId = typeof record.supplierId === 'string' ? record.supplierId : undefined;
+  const currency = typeof record.currency === 'string' ? record.currency : 'BRL';
+  let paymentMethod: string | undefined;
+  if (typeof record.paymentMethod === 'string') {
+    const trimmed = record.paymentMethod.trim();
+    paymentMethod = trimmed.length > 0 ? trimmed : undefined;
+  }
+  let recurrence: string | undefined;
+  if (typeof record.recurrence === 'string') {
+    const trimmed = record.recurrence.trim();
+    recurrence = trimmed.length > 0 ? trimmed : undefined;
+  }
+  let notes: string | undefined;
+  if (typeof record.notes === 'string') {
+    const trimmed = record.notes.trim();
+    notes = trimmed.length > 0 ? trimmed : undefined;
+  }
+
+  return {
+    categoryId,
+    description,
+    amount,
+    incurredAt,
+    dueDate,
+    supplierId,
+    currency,
+    paymentMethod,
+    recurrence,
+    notes,
+  };
+}
+
+function parseUpdateExpenseInput(body: unknown): UpdateExpenseInput {
+  const record = parseObjectBody(body);
+  const result: UpdateExpenseInput = {};
+
+  if (record.categoryId !== undefined) {
+    result.categoryId = parseRequiredString(record.categoryId, 'categoryId');
+  }
+  if (record.description !== undefined) {
+    result.description = parseRequiredString(record.description, 'description');
+  }
+  if (record.dueDate !== undefined) {
+    result.dueDate = parseRequiredDate(record.dueDate, 'dueDate');
+  }
+  if (record.paymentMethod !== undefined && typeof record.paymentMethod === 'string') {
+    const trimmed = record.paymentMethod.trim();
+    if (trimmed.length > 0) {
+      result.paymentMethod = trimmed;
+    }
+  }
+  if (record.recurrence !== undefined && typeof record.recurrence === 'string') {
+    const trimmed = record.recurrence.trim();
+    if (trimmed.length > 0) {
+      result.recurrence = trimmed;
+    }
+  }
+  if (record.notes !== undefined && typeof record.notes === 'string') {
+    const trimmed = record.notes.trim();
+    if (trimmed.length > 0) {
+      result.notes = trimmed;
+    }
+  }
+
+  return result;
+}
+
+function parseCreateCashTransactionInput(body: unknown): CreateCashTransactionInput {
+  const record = parseObjectBody(body);
+  const type = record.type as string;
+  if (!type || !['ENTRY', 'EXIT', 'ADJUSTMENT'].includes(type)) {
+    throw new ValidationError('Field "type" must be ENTRY, EXIT, or ADJUSTMENT');
+  }
+  const amount = parsePositiveNumber(record.amount, 'amount');
+  const occurringAt = parseRequiredDate(record.occurringAt, 'occurringAt');
+  const origin = parseRequiredString(record.origin, 'origin');
+  const relatedRecordId =
+    typeof record.relatedRecordId === 'string' ? record.relatedRecordId : undefined;
+  const relatedRecordType =
+    typeof record.relatedRecordType === 'string' ? record.relatedRecordType : undefined;
+  let notes: string | undefined;
+  if (typeof record.notes === 'string') {
+    const trimmed = record.notes.trim();
+    notes = trimmed.length > 0 ? trimmed : undefined;
+  }
+
+  return {
+    type: type as any,
+    amount,
+    occurringAt,
+    origin,
+    relatedRecordId,
+    relatedRecordType,
+    notes,
+  };
+}
+
+function parseCreateReconciliationInput(body: unknown): CreateReconciliationInput {
+  const record = parseObjectBody(body);
+  const reconciliationDate = parseRequiredDate(
+    record.reconciliationDate,
+    'reconciliationDate'
+  );
+  const expectedAmount = parseNonNegativeNumber(record.expectedAmount, 'expectedAmount');
+  const actualAmount = parseNonNegativeNumber(record.actualAmount, 'actualAmount');
+  const paymentId = typeof record.paymentId === 'string' ? record.paymentId : undefined;
+  let notes: string | undefined;
+  if (typeof record.notes === 'string') {
+    const trimmed = record.notes.trim();
+    notes = trimmed.length > 0 ? trimmed : undefined;
+  }
+
+  return {
+    reconciliationDate,
+    expectedAmount,
+    actualAmount,
+    paymentId,
+    notes,
+  };
 }

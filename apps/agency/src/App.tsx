@@ -19,6 +19,9 @@ import {
   SalesListPage,
 } from './pages/SalesJourneyPages';
 import { OffersPage } from './pages/OffersPage';
+import { OfferDetailPage } from './pages/OfferDetailPage';
+import { CampaignsPage } from './pages/CampaignsPage';
+import { CouponsPage } from './pages/CouponsPage';
 import { FinancialPage } from './pages/FinancialPage';
 import { ReportsPage } from './pages/ReportsPage';
 import { SettingsPage } from './pages/SettingsPage';
@@ -43,6 +46,9 @@ export function App() {
         <Route path="sales" element={<SalesListPage />} />
         <Route path="sales/:id" element={<SaleSummaryPage />} />
         <Route path="offers" element={<OffersPage />} />
+        <Route path="offers/:id" element={<OfferDetailPage />} />
+        <Route path="campaigns" element={<CampaignsPage />} />
+        <Route path="coupons" element={<CouponsPage />} />
         <Route path="financial" element={<FinancialPage />} />
         <Route path="reports" element={<ReportsPage />} />
         <Route path="settings" element={<SettingsPage />} />

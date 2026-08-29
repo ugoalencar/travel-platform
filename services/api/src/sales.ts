@@ -1,7 +1,8 @@
-import { SaleStatus, type Sale } from '../../../packages/domain/types';
+import { SaleStatus, type Sale, FinancialCategoryType } from '../../../packages/domain/types';
 import { getAgencyId, getUserId } from '../../../packages/domain/tenant-context';
 import type { DatabaseRuntime, TenantTransactionClient } from './database';
 import { ConflictError, NotFoundError, ValidationError } from './errors';
+import { AuditEventType, recordAuditEvent } from './audit-log';
 
 interface SaleRow {
   id: string;
@@ -188,6 +189,27 @@ export async function createSale(database: DatabaseRuntime, data: CreateSaleInpu
            VALUES ($1, $2, $3, $4, $5, now())`,
           [agencyId, row.id, data.customerId, 'Sale receivable', total],
         );
+
+        // Create corresponding revenue record (idempotent: unique constraint on (agency_id, sale_id))
+        const defaultCategory = await getOrCreateDefaultRevenueCategory(client, agencyId);
+        await client.query(
+          `INSERT INTO revenues
+             (agency_id, sale_id, customer_id, category_id, description, amount, currency,
+              competency_date, due_date, status)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, now(), now(), 'OPEN'::"RevenueStatus")
+           ON CONFLICT (agency_id, sale_id) DO NOTHING`,
+          [agencyId, row.id, data.customerId, defaultCategory.id, 'Sale revenue', total, 'BRL'],
+        );
+
+        await recordAuditEvent(client, {
+          eventType: AuditEventType.SALE_CREATED,
+          entityType: 'sale',
+          entityId: row.id,
+          metadata: {
+            amount: total,
+            customerId: data.customerId,
+          },
+        });
       }
       return toSale(row);
     } catch (error) {
@@ -551,6 +573,36 @@ async function syncUnallocatedSaleReceivable(
      WHERE agency_id = $1 AND id = $2`,
     [agencyId, receivable.id, total],
   );
+}
+
+async function getOrCreateDefaultRevenueCategory(
+  client: TenantTransactionClient,
+  agencyId: string,
+): Promise<{ id: string }> {
+  // Try to get existing default category
+  const existing = await client.query<{ id: string }>(
+    `SELECT id FROM financial_categories
+     WHERE agency_id = $1 AND type = 'REVENUE' AND name = 'Sales'
+     LIMIT 1`,
+    [agencyId],
+  );
+
+  if (existing.rows.length > 0 && existing.rows[0]) {
+    return existing.rows[0];
+  }
+
+  // Create default category if it doesn't exist
+  const result = await client.query<{ id: string }>(
+    `INSERT INTO financial_categories (agency_id, name, type, description)
+     VALUES ($1, $2, 'REVENUE', 'Default category for sales revenue')
+     ON CONFLICT (agency_id, type, name) DO UPDATE SET id = financial_categories.id
+     RETURNING id`,
+    [agencyId, 'Sales'],
+  );
+
+  const row = result.rows[0];
+  if (!row) throw new Error('Failed to create default revenue category');
+  return row;
 }
 
 function toSale(row: SaleRow): Sale {

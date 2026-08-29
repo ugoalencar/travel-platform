@@ -6,11 +6,25 @@ import {
   type Payment,
   type PaymentAllocation,
   type Receivable,
+  FinancialCategoryType,
+  type FinancialCategory,
+  RevenueStatus,
+  type Revenue,
+  ExpenseStatus,
+  type Expense,
+  CashTransactionType,
+  type CashTransaction,
+  ReconciliationStatus,
+  type Reconciliation,
 } from '../../../packages/domain/types';
 import { getAgencyId, getUserId } from '../../../packages/domain/tenant-context';
 import type { DatabaseRuntime, TenantTransactionClient } from './database';
 import { AuditEventType, recordAuditEvent } from './audit-log';
 import { NotFoundError, ValidationError } from './errors';
+
+// ============================================================
+// ROW INTERFACES
+// ============================================================
 
 interface ReceivableRow {
   id: string;
@@ -80,6 +94,87 @@ interface OperationalCostRow {
   updated_at: string;
 }
 
+interface FinancialCategoryRow {
+  id: string;
+  agency_id: string;
+  name: string;
+  type: FinancialCategoryType;
+  description: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+interface RevenueRow {
+  id: string;
+  agency_id: string;
+  sale_id: string | null;
+  booking_id: string | null;
+  customer_id: string;
+  category_id: string;
+  description: string;
+  amount: string;
+  currency: string;
+  competency_date: string;
+  due_date: string;
+  receipt_date: string | null;
+  payment_method: string | null;
+  status: RevenueStatus;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+interface ExpenseRow {
+  id: string;
+  agency_id: string;
+  supplier_id: string | null;
+  category_id: string;
+  description: string;
+  amount: string;
+  currency: string;
+  incurred_at: string;
+  due_date: string;
+  payment_date: string | null;
+  payment_method: string | null;
+  status: ExpenseStatus;
+  recurrence: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+interface CashTransactionRow {
+  id: string;
+  agency_id: string;
+  type: CashTransactionType;
+  amount: string;
+  occurring_at: string;
+  origin: string;
+  related_record_id: string | null;
+  related_record_type: string | null;
+  calculated_balance: string;
+  notes: string | null;
+  created_at: string;
+}
+
+interface ReconciliationRow {
+  id: string;
+  agency_id: string;
+  reconciliation_date: string;
+  expected_amount: string;
+  actual_amount: string;
+  status: ReconciliationStatus;
+  payment_id: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// ============================================================
+// INPUT TYPES
+// ============================================================
+
 export interface CreateReceivableInput {
   saleId?: string;
   customerId: string;
@@ -128,6 +223,74 @@ export interface CreateOperationalCostInput {
   expectedAmount?: number;
   actualAmount?: number;
   incurredAt: Date;
+}
+
+export interface CreateFinancialCategoryInput {
+  name: string;
+  type: FinancialCategoryType;
+  description: string | undefined;
+}
+
+export interface CreateRevenueInput {
+  saleId: string | undefined;
+  bookingId: string | undefined;
+  customerId: string;
+  categoryId: string;
+  description: string;
+  amount: number;
+  currency: string;
+  competencyDate: Date;
+  dueDate: Date;
+  paymentMethod: string | undefined;
+  notes: string | undefined;
+}
+
+export interface UpdateRevenueInput {
+  categoryId?: string;
+  description?: string;
+  dueDate?: Date;
+  paymentMethod?: string;
+  notes?: string;
+}
+
+export interface CreateExpenseInput {
+  supplierId: string | undefined;
+  categoryId: string;
+  description: string;
+  amount: number;
+  currency: string;
+  incurredAt: Date;
+  dueDate: Date;
+  paymentMethod: string | undefined;
+  recurrence: string | undefined;
+  notes: string | undefined;
+}
+
+export interface UpdateExpenseInput {
+  categoryId?: string;
+  description?: string;
+  dueDate?: Date;
+  paymentMethod?: string;
+  recurrence?: string;
+  notes?: string;
+}
+
+export interface CreateCashTransactionInput {
+  type: CashTransactionType;
+  amount: number;
+  occurringAt: Date;
+  origin: string;
+  relatedRecordId: string | undefined;
+  relatedRecordType: string | undefined;
+  notes: string | undefined;
+}
+
+export interface CreateReconciliationInput {
+  reconciliationDate: Date;
+  expectedAmount: number;
+  actualAmount: number;
+  paymentId: string | undefined;
+  notes: string | undefined;
 }
 
 export interface CashFlowPeriod {
@@ -185,6 +348,38 @@ export interface FinancialSummary {
   }>;
 }
 
+export interface DREReport {
+  period: string;
+  revenues: { total: number; count: number };
+  expenses: { total: number; count: number };
+  margin: number;
+  byCategory: Array<{
+    category: string;
+    type: FinancialCategoryType;
+    amount: number;
+  }>;
+}
+
+export interface OverdueReport {
+  receivables: Array<{
+    id: string;
+    customerName: string;
+    amount: number;
+    daysOverdue: number;
+  }>;
+  payables: Array<{
+    id: string;
+    supplierName: string | null;
+    amount: number;
+    daysOverdue: number;
+  }>;
+  total: number;
+}
+
+// ============================================================
+// COLUMN DEFINITIONS
+// ============================================================
+
 const RECEIVABLE_COLUMNS = `id, agency_id, sale_id, customer_id, description, amount,
   due_at, status, created_at, updated_at`;
 const PAYABLE_COLUMNS = `id, agency_id, sale_id, supplier_id, commission_id,
@@ -197,6 +392,896 @@ const ALLOCATION_COLUMNS = `id, agency_id, payment_id, receivable_id, payable_id
 const OPERATIONAL_COST_COLUMNS = `id, agency_id, sale_id, transport_operation_id,
   supplier_id, description, cost_type, expected_amount, actual_amount, incurred_at,
   created_by, created_at, updated_at`;
+const CATEGORY_COLUMNS = `id, agency_id, name, type, description, is_active, created_at, updated_at`;
+const REVENUE_COLUMNS = `id, agency_id, sale_id, booking_id, customer_id, category_id,
+  description, amount, currency, competency_date, due_date, receipt_date, payment_method,
+  status, notes, created_at, updated_at`;
+const EXPENSE_COLUMNS = `id, agency_id, supplier_id, category_id, description, amount,
+  currency, incurred_at, due_date, payment_date, payment_method, status, recurrence,
+  notes, created_at, updated_at`;
+const CASH_TRANSACTION_COLUMNS = `id, agency_id, type, amount, occurring_at, origin,
+  related_record_id, related_record_type, calculated_balance, notes, created_at`;
+const RECONCILIATION_COLUMNS = `id, agency_id, reconciliation_date, expected_amount,
+  actual_amount, status, payment_id, notes, created_at, updated_at`;
+
+// ============================================================
+// FINANCIAL CATEGORIES
+// ============================================================
+
+export async function listFinancialCategories(
+  database: DatabaseRuntime,
+  type?: FinancialCategoryType,
+): Promise<FinancialCategory[]> {
+  const agencyId = getAgencyId();
+  return database.withTenantTransaction(async (client) => {
+    let query = `SELECT ${CATEGORY_COLUMNS}
+       FROM financial_categories
+       WHERE agency_id = $1 AND is_active = true`;
+    const params: any[] = [agencyId];
+
+    if (type !== undefined) {
+      query += ` AND type = $2`;
+      params.push(type);
+    }
+
+    query += ` ORDER BY name ASC`;
+
+    const result = await client.query<FinancialCategoryRow>(query, params);
+    return result.rows.map(toFinancialCategory);
+  });
+}
+
+export async function createFinancialCategory(
+  database: DatabaseRuntime,
+  data: CreateFinancialCategoryInput,
+): Promise<FinancialCategory> {
+  const agencyId = getAgencyId();
+  assertNonEmpty(data.name, 'name');
+  if (!Object.values(FinancialCategoryType).includes(data.type)) {
+    throw new ValidationError('Invalid category type');
+  }
+
+  return database.withTenantTransaction(async (client) => {
+    const result = await client.query<FinancialCategoryRow>(
+      `INSERT INTO financial_categories (agency_id, name, type, description)
+       VALUES ($1, $2, $3, $4)
+       ON CONFLICT (agency_id, type, name) DO UPDATE SET is_active = true
+       RETURNING ${CATEGORY_COLUMNS}`,
+      [agencyId, data.name, data.type, data.description ?? null],
+    );
+    const row = result.rows[0];
+    if (!row) throw new Error('Category insert did not return a row');
+    return toFinancialCategory(row);
+  });
+}
+
+export async function deleteFinancialCategory(
+  database: DatabaseRuntime,
+  categoryId: string,
+): Promise<void> {
+  const agencyId = getAgencyId();
+  return database.withTenantTransaction(async (client) => {
+    await client.query(
+      `UPDATE financial_categories SET is_active = false
+       WHERE agency_id = $1 AND id = $2`,
+      [agencyId, categoryId],
+    );
+  });
+}
+
+// ============================================================
+// REVENUES
+// ============================================================
+
+export async function listRevenues(
+  database: DatabaseRuntime,
+  filters?: {
+    status?: RevenueStatus;
+    customerId?: string;
+    categoryId?: string;
+    periodFrom?: Date;
+    periodTo?: Date;
+  },
+): Promise<Revenue[]> {
+  const agencyId = getAgencyId();
+  return database.withTenantTransaction(async (client) => {
+    let query = `SELECT ${REVENUE_COLUMNS}
+       FROM revenues
+       WHERE agency_id = $1`;
+    const params: any[] = [agencyId];
+    let paramIndex = 2;
+
+    if (filters?.status) {
+      query += ` AND status = $${paramIndex}`;
+      params.push(filters.status);
+      paramIndex++;
+    }
+    if (filters?.customerId) {
+      query += ` AND customer_id = $${paramIndex}`;
+      params.push(filters.customerId);
+      paramIndex++;
+    }
+    if (filters?.categoryId) {
+      query += ` AND category_id = $${paramIndex}`;
+      params.push(filters.categoryId);
+      paramIndex++;
+    }
+    if (filters?.periodFrom) {
+      query += ` AND due_date >= $${paramIndex}`;
+      params.push(filters.periodFrom);
+      paramIndex++;
+    }
+    if (filters?.periodTo) {
+      query += ` AND due_date <= $${paramIndex}`;
+      params.push(filters.periodTo);
+      paramIndex++;
+    }
+
+    query += ` ORDER BY due_date ASC, created_at DESC`;
+
+    const result = await client.query<RevenueRow>(query, params);
+    return result.rows.map(toRevenue);
+  });
+}
+
+export async function getRevenue(database: DatabaseRuntime, revenueId: string): Promise<Revenue> {
+  const agencyId = getAgencyId();
+  return database.withTenantTransaction(async (client) => {
+    const result = await client.query<RevenueRow>(
+      `SELECT ${REVENUE_COLUMNS}
+       FROM revenues
+       WHERE agency_id = $1 AND id = $2`,
+      [agencyId, revenueId],
+    );
+    const row = result.rows[0];
+    if (!row) throw new NotFoundError('Revenue not found');
+    return toRevenue(row);
+  });
+}
+
+export async function createRevenue(
+  database: DatabaseRuntime,
+  data: CreateRevenueInput,
+): Promise<Revenue> {
+  const agencyId = getAgencyId();
+  assertPositiveMoney(data.amount, 'amount');
+  assertNonEmpty(data.customerId, 'customerId');
+  assertNonEmpty(data.categoryId, 'categoryId');
+  assertNonEmpty(data.description, 'description');
+
+  return database.withTenantTransaction(async (client) => {
+    // Idempotency: if sale_id provided, check if revenue already exists
+    if (data.saleId !== undefined) {
+      const existing = await client.query<{ id: string }>(
+        `SELECT id FROM revenues WHERE agency_id = $1 AND sale_id = $2`,
+        [agencyId, data.saleId],
+      );
+      if (existing.rows.length > 0 && existing.rows[0]) {
+        // Return existing revenue
+        return getRevenue(database, existing.rows[0].id);
+      }
+    }
+
+    await assertRef(client, agencyId, 'customers', data.customerId, 'Customer not found');
+    await assertRef(client, agencyId, 'financial_categories', data.categoryId, 'Category not found');
+    if (data.saleId !== undefined) {
+      await assertRef(client, agencyId, 'sales', data.saleId, 'Sale not found');
+    }
+    if (data.bookingId !== undefined) {
+      await assertRef(client, agencyId, 'bookings', data.bookingId, 'Booking not found');
+    }
+
+    const result = await client.query<RevenueRow>(
+      `INSERT INTO revenues
+         (agency_id, sale_id, booking_id, customer_id, category_id, description,
+          amount, currency, competency_date, due_date, payment_method, notes)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+       RETURNING ${REVENUE_COLUMNS}`,
+      [
+        agencyId,
+        data.saleId ?? null,
+        data.bookingId ?? null,
+        data.customerId,
+        data.categoryId,
+        data.description,
+        data.amount,
+        data.currency ?? 'BRL',
+        data.competencyDate,
+        data.dueDate,
+        data.paymentMethod ?? null,
+        data.notes ?? null,
+      ],
+    );
+    const row = result.rows[0];
+    if (!row) throw new Error('Revenue insert did not return a row');
+    await recordAuditEvent(client, {
+      eventType: AuditEventType.REVENUE_CREATED,
+      entityType: 'revenue',
+      entityId: row.id,
+      metadata: {
+        amount: Number(row.amount),
+        saleId: row.sale_id ?? undefined,
+      },
+    });
+    return toRevenue(row);
+  });
+}
+
+export async function updateRevenue(
+  database: DatabaseRuntime,
+  revenueId: string,
+  data: UpdateRevenueInput,
+): Promise<Revenue> {
+  const agencyId = getAgencyId();
+  return database.withTenantTransaction(async (client) => {
+    const existing = await client.query<RevenueRow>(
+      `SELECT ${REVENUE_COLUMNS} FROM revenues WHERE agency_id = $1 AND id = $2`,
+      [agencyId, revenueId],
+    );
+    const row = existing.rows[0];
+    if (!row) throw new NotFoundError('Revenue not found');
+
+    if (row.status === 'PAID') {
+      throw new ValidationError('Cannot update a paid revenue');
+    }
+
+    if (data.categoryId !== undefined) {
+      await assertRef(client, agencyId, 'financial_categories', data.categoryId, 'Category not found');
+    }
+
+    const result = await client.query<RevenueRow>(
+      `UPDATE revenues SET
+         category_id = COALESCE($2, category_id),
+         description = COALESCE($3, description),
+         due_date = COALESCE($4, due_date),
+         payment_method = COALESCE($5, payment_method),
+         notes = COALESCE($6, notes),
+         updated_at = now()
+       WHERE agency_id = $1 AND id = $7
+       RETURNING ${REVENUE_COLUMNS}`,
+      [
+        agencyId,
+        data.categoryId ?? null,
+        data.description ?? null,
+        data.dueDate ?? null,
+        data.paymentMethod ?? null,
+        data.notes ?? null,
+        revenueId,
+      ],
+    );
+
+    const updated = result.rows[0];
+    if (!updated) throw new NotFoundError('Revenue not found');
+    return toRevenue(updated);
+  });
+}
+
+export async function markRevenueAsPaid(
+  database: DatabaseRuntime,
+  revenueId: string,
+  partialAmount?: number,
+): Promise<Revenue> {
+  const agencyId = getAgencyId();
+  if (partialAmount !== undefined) {
+    assertPositiveMoney(partialAmount, 'partialAmount');
+  }
+
+  return database.withTenantTransaction(async (client) => {
+    const existing = await client.query<RevenueRow>(
+      `SELECT ${REVENUE_COLUMNS} FROM revenues WHERE agency_id = $1 AND id = $2 FOR UPDATE`,
+      [agencyId, revenueId],
+    );
+    const row = existing.rows[0];
+    if (!row) throw new NotFoundError('Revenue not found');
+
+    const fullAmount = Number(row.amount);
+    const newStatus = partialAmount === undefined ? 'PAID' : 'PARTIALLY_PAID';
+
+    const result = await client.query<RevenueRow>(
+      `UPDATE revenues SET
+         status = $2::"RevenueStatus",
+         receipt_date = COALESCE(receipt_date, CASE WHEN $2::"RevenueStatus" = 'PAID' THEN now() ELSE NULL END),
+         updated_at = now()
+       WHERE agency_id = $1 AND id = $3
+       RETURNING ${REVENUE_COLUMNS}`,
+      [agencyId, newStatus, revenueId],
+    );
+
+    const updated = result.rows[0];
+    if (!updated) throw new NotFoundError('Revenue not found');
+    return toRevenue(updated);
+  });
+}
+
+export async function cancelRevenue(database: DatabaseRuntime, revenueId: string): Promise<Revenue> {
+  const agencyId = getAgencyId();
+  return database.withTenantTransaction(async (client) => {
+    const result = await client.query<RevenueRow>(
+      `UPDATE revenues SET status = 'CANCELLED'::"RevenueStatus", updated_at = now()
+       WHERE agency_id = $1 AND id = $2
+       RETURNING ${REVENUE_COLUMNS}`,
+      [agencyId, revenueId],
+    );
+    const row = result.rows[0];
+    if (!row) throw new NotFoundError('Revenue not found');
+    return toRevenue(row);
+  });
+}
+
+// ============================================================
+// EXPENSES
+// ============================================================
+
+export async function listExpenses(
+  database: DatabaseRuntime,
+  filters?: {
+    status?: ExpenseStatus;
+    supplierId?: string;
+    categoryId?: string;
+    periodFrom?: Date;
+    periodTo?: Date;
+  },
+): Promise<Expense[]> {
+  const agencyId = getAgencyId();
+  return database.withTenantTransaction(async (client) => {
+    let query = `SELECT ${EXPENSE_COLUMNS}
+       FROM expenses
+       WHERE agency_id = $1`;
+    const params: any[] = [agencyId];
+    let paramIndex = 2;
+
+    if (filters?.status) {
+      query += ` AND status = $${paramIndex}`;
+      params.push(filters.status);
+      paramIndex++;
+    }
+    if (filters?.supplierId) {
+      query += ` AND supplier_id = $${paramIndex}`;
+      params.push(filters.supplierId);
+      paramIndex++;
+    }
+    if (filters?.categoryId) {
+      query += ` AND category_id = $${paramIndex}`;
+      params.push(filters.categoryId);
+      paramIndex++;
+    }
+    if (filters?.periodFrom) {
+      query += ` AND due_date >= $${paramIndex}`;
+      params.push(filters.periodFrom);
+      paramIndex++;
+    }
+    if (filters?.periodTo) {
+      query += ` AND due_date <= $${paramIndex}`;
+      params.push(filters.periodTo);
+      paramIndex++;
+    }
+
+    query += ` ORDER BY due_date ASC, created_at DESC`;
+
+    const result = await client.query<ExpenseRow>(query, params);
+    return result.rows.map(toExpense);
+  });
+}
+
+export async function getExpense(database: DatabaseRuntime, expenseId: string): Promise<Expense> {
+  const agencyId = getAgencyId();
+  return database.withTenantTransaction(async (client) => {
+    const result = await client.query<ExpenseRow>(
+      `SELECT ${EXPENSE_COLUMNS}
+       FROM expenses
+       WHERE agency_id = $1 AND id = $2`,
+      [agencyId, expenseId],
+    );
+    const row = result.rows[0];
+    if (!row) throw new NotFoundError('Expense not found');
+    return toExpense(row);
+  });
+}
+
+export async function createExpense(
+  database: DatabaseRuntime,
+  data: CreateExpenseInput,
+): Promise<Expense> {
+  const agencyId = getAgencyId();
+  assertPositiveMoney(data.amount, 'amount');
+  assertNonEmpty(data.categoryId, 'categoryId');
+  assertNonEmpty(data.description, 'description');
+
+  return database.withTenantTransaction(async (client) => {
+    await assertRef(client, agencyId, 'financial_categories', data.categoryId, 'Category not found');
+    if (data.supplierId !== undefined) {
+      await assertRef(client, agencyId, 'suppliers', data.supplierId, 'Supplier not found');
+    }
+
+    const result = await client.query<ExpenseRow>(
+      `INSERT INTO expenses
+         (agency_id, supplier_id, category_id, description, amount, currency,
+          incurred_at, due_date, payment_method, recurrence, notes)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+       RETURNING ${EXPENSE_COLUMNS}`,
+      [
+        agencyId,
+        data.supplierId ?? null,
+        data.categoryId,
+        data.description,
+        data.amount,
+        data.currency ?? 'BRL',
+        data.incurredAt,
+        data.dueDate,
+        data.paymentMethod ?? null,
+        data.recurrence ?? null,
+        data.notes ?? null,
+      ],
+    );
+    const row = result.rows[0];
+    if (!row) throw new Error('Expense insert did not return a row');
+    await recordAuditEvent(client, {
+      eventType: AuditEventType.EXPENSE_CREATED,
+      entityType: 'expense',
+      entityId: row.id,
+      metadata: {
+        amount: Number(row.amount),
+        supplierId: row.supplier_id ?? undefined,
+      },
+    });
+    return toExpense(row);
+  });
+}
+
+export async function updateExpense(
+  database: DatabaseRuntime,
+  expenseId: string,
+  data: UpdateExpenseInput,
+): Promise<Expense> {
+  const agencyId = getAgencyId();
+  return database.withTenantTransaction(async (client) => {
+    const existing = await client.query<ExpenseRow>(
+      `SELECT ${EXPENSE_COLUMNS} FROM expenses WHERE agency_id = $1 AND id = $2`,
+      [agencyId, expenseId],
+    );
+    const row = existing.rows[0];
+    if (!row) throw new NotFoundError('Expense not found');
+
+    if (row.status === 'PAID') {
+      throw new ValidationError('Cannot update a paid expense');
+    }
+
+    if (data.categoryId !== undefined) {
+      await assertRef(client, agencyId, 'financial_categories', data.categoryId, 'Category not found');
+    }
+
+    const result = await client.query<ExpenseRow>(
+      `UPDATE expenses SET
+         category_id = COALESCE($2, category_id),
+         description = COALESCE($3, description),
+         due_date = COALESCE($4, due_date),
+         payment_method = COALESCE($5, payment_method),
+         recurrence = COALESCE($6, recurrence),
+         notes = COALESCE($7, notes),
+         updated_at = now()
+       WHERE agency_id = $1 AND id = $8
+       RETURNING ${EXPENSE_COLUMNS}`,
+      [
+        agencyId,
+        data.categoryId ?? null,
+        data.description ?? null,
+        data.dueDate ?? null,
+        data.paymentMethod ?? null,
+        data.recurrence ?? null,
+        data.notes ?? null,
+        expenseId,
+      ],
+    );
+
+    const updated = result.rows[0];
+    if (!updated) throw new NotFoundError('Expense not found');
+    return toExpense(updated);
+  });
+}
+
+export async function markExpenseAsPaid(
+  database: DatabaseRuntime,
+  expenseId: string,
+  partialAmount?: number,
+): Promise<Expense> {
+  const agencyId = getAgencyId();
+  if (partialAmount !== undefined) {
+    assertPositiveMoney(partialAmount, 'partialAmount');
+  }
+
+  return database.withTenantTransaction(async (client) => {
+    const existing = await client.query<ExpenseRow>(
+      `SELECT ${EXPENSE_COLUMNS} FROM expenses WHERE agency_id = $1 AND id = $2 FOR UPDATE`,
+      [agencyId, expenseId],
+    );
+    const row = existing.rows[0];
+    if (!row) throw new NotFoundError('Expense not found');
+
+    const newStatus = partialAmount === undefined ? 'PAID' : 'PARTIALLY_PAID';
+
+    const result = await client.query<ExpenseRow>(
+      `UPDATE expenses SET
+         status = $2::"ExpenseStatus",
+         payment_date = COALESCE(payment_date, CASE WHEN $2::"ExpenseStatus" = 'PAID' THEN now() ELSE NULL END),
+         updated_at = now()
+       WHERE agency_id = $1 AND id = $3
+       RETURNING ${EXPENSE_COLUMNS}`,
+      [agencyId, newStatus, expenseId],
+    );
+
+    const updated = result.rows[0];
+    if (!updated) throw new NotFoundError('Expense not found');
+    return toExpense(updated);
+  });
+}
+
+export async function cancelExpense(database: DatabaseRuntime, expenseId: string): Promise<Expense> {
+  const agencyId = getAgencyId();
+  return database.withTenantTransaction(async (client) => {
+    const result = await client.query<ExpenseRow>(
+      `UPDATE expenses SET status = 'CANCELLED'::"ExpenseStatus", updated_at = now()
+       WHERE agency_id = $1 AND id = $2
+       RETURNING ${EXPENSE_COLUMNS}`,
+      [agencyId, expenseId],
+    );
+    const row = result.rows[0];
+    if (!row) throw new NotFoundError('Expense not found');
+    return toExpense(row);
+  });
+}
+
+// ============================================================
+// CASH TRANSACTIONS (Immutable)
+// ============================================================
+
+export async function listCashTransactions(
+  database: DatabaseRuntime,
+  filters?: {
+    type?: CashTransactionType;
+    periodFrom?: Date;
+    periodTo?: Date;
+  },
+): Promise<CashTransaction[]> {
+  const agencyId = getAgencyId();
+  return database.withTenantTransaction(async (client) => {
+    let query = `SELECT ${CASH_TRANSACTION_COLUMNS}
+       FROM cash_transactions
+       WHERE agency_id = $1`;
+    const params: any[] = [agencyId];
+    let paramIndex = 2;
+
+    if (filters?.type) {
+      query += ` AND type = $${paramIndex}`;
+      params.push(filters.type);
+      paramIndex++;
+    }
+    if (filters?.periodFrom) {
+      query += ` AND occurring_at >= $${paramIndex}`;
+      params.push(filters.periodFrom);
+      paramIndex++;
+    }
+    if (filters?.periodTo) {
+      query += ` AND occurring_at <= $${paramIndex}`;
+      params.push(filters.periodTo);
+      paramIndex++;
+    }
+
+    query += ` ORDER BY occurring_at ASC`;
+
+    const result = await client.query<CashTransactionRow>(query, params);
+    return result.rows.map(toCashTransaction);
+  });
+}
+
+export async function createCashTransaction(
+  database: DatabaseRuntime,
+  data: CreateCashTransactionInput,
+): Promise<CashTransaction> {
+  const agencyId = getAgencyId();
+  assertPositiveMoney(data.amount, 'amount');
+  assertNonEmpty(data.origin, 'origin');
+
+  return database.withTenantTransaction(async (client) => {
+    // Calculate running balance
+    const balance = await client.query<{ balance: string }>(
+      `SELECT COALESCE(calculated_balance, 0)::text AS balance
+       FROM cash_transactions
+       WHERE agency_id = $1
+       ORDER BY occurring_at DESC, created_at DESC
+       LIMIT 1`,
+      [agencyId],
+    );
+
+    const currentBalance = Number(balance.rows[0]?.balance ?? 0);
+    const newBalance =
+      data.type === 'ENTRY'
+        ? roundMoney(currentBalance + data.amount)
+        : roundMoney(currentBalance - data.amount);
+
+    const result = await client.query<CashTransactionRow>(
+      `INSERT INTO cash_transactions
+         (agency_id, type, amount, occurring_at, origin, related_record_id,
+          related_record_type, calculated_balance, notes)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+       RETURNING ${CASH_TRANSACTION_COLUMNS}`,
+      [
+        agencyId,
+        data.type,
+        data.amount,
+        data.occurringAt,
+        data.origin,
+        data.relatedRecordId ?? null,
+        data.relatedRecordType ?? null,
+        newBalance,
+        data.notes ?? null,
+      ],
+    );
+    const row = result.rows[0];
+    if (!row) throw new Error('CashTransaction insert did not return a row');
+    return toCashTransaction(row);
+  });
+}
+
+export async function getCashBalance(database: DatabaseRuntime, asOf?: Date): Promise<number> {
+  const agencyId = getAgencyId();
+  return database.withTenantTransaction(async (client) => {
+    let query = `SELECT calculated_balance FROM cash_transactions
+       WHERE agency_id = $1`;
+    const params: any[] = [agencyId];
+
+    if (asOf) {
+      query += ` AND occurring_at <= $2`;
+      params.push(asOf);
+    }
+
+    query += ` ORDER BY occurring_at DESC, created_at DESC LIMIT 1`;
+
+    const result = await client.query<{ calculated_balance: string }>(query, params);
+    return roundMoney(Number(result.rows[0]?.calculated_balance ?? 0));
+  });
+}
+
+// ============================================================
+// RECONCILIATIONS
+// ============================================================
+
+export async function listReconciliations(
+  database: DatabaseRuntime,
+  filters?: {
+    status?: ReconciliationStatus;
+    periodFrom?: Date;
+    periodTo?: Date;
+  },
+): Promise<Reconciliation[]> {
+  const agencyId = getAgencyId();
+  return database.withTenantTransaction(async (client) => {
+    let query = `SELECT ${RECONCILIATION_COLUMNS}
+       FROM reconciliations
+       WHERE agency_id = $1`;
+    const params: any[] = [agencyId];
+    let paramIndex = 2;
+
+    if (filters?.status) {
+      query += ` AND status = $${paramIndex}`;
+      params.push(filters.status);
+      paramIndex++;
+    }
+    if (filters?.periodFrom) {
+      query += ` AND reconciliation_date >= $${paramIndex}`;
+      params.push(filters.periodFrom);
+      paramIndex++;
+    }
+    if (filters?.periodTo) {
+      query += ` AND reconciliation_date <= $${paramIndex}`;
+      params.push(filters.periodTo);
+      paramIndex++;
+    }
+
+    query += ` ORDER BY reconciliation_date DESC`;
+
+    const result = await client.query<ReconciliationRow>(query, params);
+    return result.rows.map(toReconciliation);
+  });
+}
+
+export async function createReconciliation(
+  database: DatabaseRuntime,
+  data: CreateReconciliationInput,
+): Promise<Reconciliation> {
+  const agencyId = getAgencyId();
+  assertNonNegativeMoney(data.expectedAmount, 'expectedAmount');
+  assertNonNegativeMoney(data.actualAmount, 'actualAmount');
+
+  return database.withTenantTransaction(async (client) => {
+    if (data.paymentId !== undefined) {
+      await assertRef(client, agencyId, 'payments', data.paymentId, 'Payment not found');
+    }
+
+    const result = await client.query<ReconciliationRow>(
+      `INSERT INTO reconciliations
+         (agency_id, reconciliation_date, expected_amount, actual_amount, status, payment_id, notes)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       RETURNING ${RECONCILIATION_COLUMNS}`,
+      [
+        agencyId,
+        data.reconciliationDate,
+        data.expectedAmount,
+        data.actualAmount,
+        data.expectedAmount === data.actualAmount ? 'RECONCILED' : 'NOT_RECONCILED',
+        data.paymentId ?? null,
+        data.notes ?? null,
+      ],
+    );
+    const row = result.rows[0];
+    if (!row) throw new Error('Reconciliation insert did not return a row');
+    return toReconciliation(row);
+  });
+}
+
+export async function markReconciliationAsReconciled(
+  database: DatabaseRuntime,
+  reconciliationId: string,
+): Promise<Reconciliation> {
+  const agencyId = getAgencyId();
+  return database.withTenantTransaction(async (client) => {
+    const result = await client.query<ReconciliationRow>(
+      `UPDATE reconciliations SET status = 'RECONCILED'::"ReconciliationStatus", updated_at = now()
+       WHERE agency_id = $1 AND id = $2
+       RETURNING ${RECONCILIATION_COLUMNS}`,
+      [agencyId, reconciliationId],
+    );
+    const row = result.rows[0];
+    if (!row) throw new NotFoundError('Reconciliation not found');
+    return toReconciliation(row);
+  });
+}
+
+// ============================================================
+// REPORTS
+// ============================================================
+
+export async function getDREReport(
+  database: DatabaseRuntime,
+  periodFrom: Date,
+  periodTo: Date,
+): Promise<DREReport> {
+  const agencyId = getAgencyId();
+  return database.withTenantTransaction(async (client) => {
+    // Sum revenues
+    const revResult = await client.query<{ total: string; count: string }>(
+      `SELECT COALESCE(SUM(amount), 0)::text AS total, COUNT(*)::text AS count
+       FROM revenues
+       WHERE agency_id = $1 AND status IN ('PAID', 'PARTIALLY_PAID')
+         AND due_date >= $2 AND due_date <= $3`,
+      [agencyId, periodFrom, periodTo],
+    );
+    const revenues = {
+      total: roundMoney(Number(revResult.rows[0]?.total ?? 0)),
+      count: Number(revResult.rows[0]?.count ?? 0),
+    };
+
+    // Sum expenses
+    const expResult = await client.query<{ total: string; count: string }>(
+      `SELECT COALESCE(SUM(amount), 0)::text AS total, COUNT(*)::text AS count
+       FROM expenses
+       WHERE agency_id = $1 AND status IN ('PAID', 'PARTIALLY_PAID')
+         AND due_date >= $2 AND due_date <= $3`,
+      [agencyId, periodFrom, periodTo],
+    );
+    const expenses = {
+      total: roundMoney(Number(expResult.rows[0]?.total ?? 0)),
+      count: Number(expResult.rows[0]?.count ?? 0),
+    };
+
+    const margin = roundMoney(revenues.total - expenses.total);
+
+    // By category
+    const catResult = await client.query<{
+      category: string;
+      type: FinancialCategoryType;
+      amount: string;
+    }>(
+      `SELECT fc.name AS category, fc.type, COALESCE(SUM(
+         CASE WHEN fc.type = 'REVENUE' THEN r.amount
+              WHEN fc.type = 'EXPENSE' THEN e.amount
+              ELSE 0 END
+       ), 0)::text AS amount
+       FROM financial_categories fc
+       LEFT JOIN revenues r ON fc.agency_id = r.agency_id AND fc.id = r.category_id
+         AND r.status IN ('PAID', 'PARTIALLY_PAID')
+         AND r.due_date >= $2 AND r.due_date <= $3
+       LEFT JOIN expenses e ON fc.agency_id = e.agency_id AND fc.id = e.category_id
+         AND e.status IN ('PAID', 'PARTIALLY_PAID')
+         AND e.due_date >= $2 AND e.due_date <= $3
+       WHERE fc.agency_id = $1
+       GROUP BY fc.id, fc.name, fc.type
+       HAVING SUM(CASE WHEN fc.type = 'REVENUE' THEN r.amount
+                      WHEN fc.type = 'EXPENSE' THEN e.amount
+                      ELSE 0 END) > 0`,
+      [agencyId, periodFrom, periodTo],
+    );
+
+    const byCategory = catResult.rows.map((row) => ({
+      category: row.category,
+      type: row.type,
+      amount: roundMoney(Number(row.amount)),
+    }));
+
+    return {
+      period: `${periodFrom.toISOString().split('T')[0]} to ${periodTo.toISOString().split('T')[0]}`,
+      revenues,
+      expenses,
+      margin,
+      byCategory,
+    };
+  });
+}
+
+export async function getOverdueReport(database: DatabaseRuntime): Promise<OverdueReport> {
+  const agencyId = getAgencyId();
+  const now = new Date();
+
+  return database.withTenantTransaction(async (client) => {
+    const recResult = await client.query<{
+      id: string;
+      customer_name: string;
+      amount: string;
+      days_overdue: string;
+    }>(
+      `SELECT r.id, c.name AS customer_name, r.amount,
+              EXTRACT(DAY FROM $2::timestamp - r.due_at)::text AS days_overdue
+       FROM receivables r
+       LEFT JOIN customers c ON r.agency_id = c.agency_id AND r.customer_id = c.id
+       WHERE r.agency_id = $1 AND r.status IN ('OPEN', 'PARTIALLY_PAID')
+         AND r.due_at < $2
+       ORDER BY days_overdue DESC`,
+      [agencyId, now],
+    );
+
+    const payResult = await client.query<{
+      id: string;
+      supplier_name: string | null;
+      amount: string;
+      days_overdue: string;
+    }>(
+      `SELECT p.id, s.name AS supplier_name, p.amount,
+              EXTRACT(DAY FROM $2::timestamp - p.due_at)::text AS days_overdue
+       FROM payables p
+       LEFT JOIN suppliers s ON p.agency_id = s.agency_id AND p.supplier_id = s.id
+       WHERE p.agency_id = $1 AND p.status IN ('OPEN', 'PARTIALLY_PAID')
+         AND p.due_at < $2
+       ORDER BY days_overdue DESC`,
+      [agencyId, now],
+    );
+
+    const receivables = recResult.rows.map((row) => ({
+      id: row.id,
+      customerName: row.customer_name || 'Unknown',
+      amount: roundMoney(Number(row.amount)),
+      daysOverdue: Number(row.days_overdue),
+    }));
+
+    const payables = payResult.rows.map((row) => ({
+      id: row.id,
+      supplierName: row.supplier_name,
+      amount: roundMoney(Number(row.amount)),
+      daysOverdue: Number(row.days_overdue),
+    }));
+
+    const totalReceivables = roundMoney(receivables.reduce((sum, r) => sum + r.amount, 0));
+    const totalPayables = roundMoney(payables.reduce((sum, p) => sum + p.amount, 0));
+
+    return {
+      receivables,
+      payables,
+      total: roundMoney(totalReceivables + totalPayables),
+    };
+  });
+}
+
+// ============================================================
+// EXISTING FUNCTIONS (Retained for backward compatibility)
+// ============================================================
 
 export async function listReceivables(database: DatabaseRuntime): Promise<Receivable[]> {
   const agencyId = getAgencyId();
@@ -734,6 +1819,10 @@ export async function getFinancialSummary(database: DatabaseRuntime): Promise<Fi
   });
 }
 
+// ============================================================
+// HELPER FUNCTIONS
+// ============================================================
+
 async function assertOptionalRef(
   client: TenantTransactionClient,
   agencyId: string,
@@ -983,6 +2072,10 @@ function roundMoney(value: number): number {
   return Math.round(value * 100) / 100;
 }
 
+// ============================================================
+// CONVERTERS
+// ============================================================
+
 function toReceivable(row: ReceivableRow): Receivable {
   return {
     id: row.id,
@@ -1060,5 +2153,92 @@ function toOperationalCost(row: OperationalCostRow): OperationalCost {
     ...(row.supplier_id !== null ? { supplierId: row.supplier_id } : {}),
     ...(row.expected_amount !== null ? { expectedAmount: Number(row.expected_amount) } : {}),
     ...(row.actual_amount !== null ? { actualAmount: Number(row.actual_amount) } : {}),
+  };
+}
+
+function toFinancialCategory(row: FinancialCategoryRow): FinancialCategory {
+  return {
+    id: row.id,
+    agencyId: row.agency_id,
+    name: row.name,
+    type: row.type,
+    description: row.description || undefined,
+    isActive: row.is_active,
+    createdAt: new Date(row.created_at),
+    updatedAt: new Date(row.updated_at),
+  };
+}
+
+function toRevenue(row: RevenueRow): Revenue {
+  return {
+    id: row.id,
+    agencyId: row.agency_id,
+    customerId: row.customer_id,
+    categoryId: row.category_id,
+    description: row.description,
+    amount: Number(row.amount),
+    currency: row.currency,
+    competencyDate: new Date(row.competency_date),
+    dueDate: new Date(row.due_date),
+    paymentMethod: row.payment_method ?? undefined,
+    status: row.status,
+    notes: row.notes ?? undefined,
+    createdAt: new Date(row.created_at),
+    updatedAt: new Date(row.updated_at),
+    saleId: row.sale_id || undefined,
+    bookingId: row.booking_id || undefined,
+    receiptDate: row.receipt_date ? new Date(row.receipt_date) : undefined,
+  };
+}
+
+function toExpense(row: ExpenseRow): Expense {
+  return {
+    id: row.id,
+    agencyId: row.agency_id,
+    supplierId: row.supplier_id ?? undefined,
+    categoryId: row.category_id,
+    description: row.description,
+    amount: Number(row.amount),
+    currency: row.currency,
+    incurredAt: new Date(row.incurred_at),
+    dueDate: new Date(row.due_date),
+    paymentMethod: row.payment_method || undefined,
+    status: row.status,
+    recurrence: row.recurrence || undefined,
+    notes: row.notes || undefined,
+    createdAt: new Date(row.created_at),
+    updatedAt: new Date(row.updated_at),
+    paymentDate: row.payment_date ? new Date(row.payment_date) : undefined,
+  };
+}
+
+function toCashTransaction(row: CashTransactionRow): CashTransaction {
+  return {
+    id: row.id,
+    agencyId: row.agency_id,
+    type: row.type,
+    amount: Number(row.amount),
+    occurringAt: new Date(row.occurring_at),
+    origin: row.origin,
+    calculatedBalance: Number(row.calculated_balance),
+    notes: row.notes || undefined,
+    createdAt: new Date(row.created_at),
+    relatedRecordId: row.related_record_id || undefined,
+    relatedRecordType: row.related_record_type || undefined,
+  };
+}
+
+function toReconciliation(row: ReconciliationRow): Reconciliation {
+  return {
+    id: row.id,
+    agencyId: row.agency_id,
+    reconciliationDate: new Date(row.reconciliation_date),
+    expectedAmount: Number(row.expected_amount),
+    actualAmount: Number(row.actual_amount),
+    status: row.status,
+    notes: row.notes || undefined,
+    createdAt: new Date(row.created_at),
+    updatedAt: new Date(row.updated_at),
+    paymentId: row.payment_id || undefined,
   };
 }
