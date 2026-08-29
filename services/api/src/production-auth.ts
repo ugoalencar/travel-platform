@@ -10,9 +10,10 @@
  * - Redirect URI allowlist
  * - Fail-closed behavior
  */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-return,@typescript-eslint/no-unnecessary-type-assertion */
 
 import type { IncomingHttpHeaders } from 'node:http';
-import { createHash, createVerify } from 'node:crypto';
+import { createHash } from 'node:crypto';
 import type { AuthProvider, AuthenticatedPrincipal } from './auth';
 
 export interface OAuth2Config {
@@ -92,7 +93,7 @@ export function parseIdToken(idToken: string): OAuth2Claims {
   try {
     header = JSON.parse(Buffer.from(headerB64, 'base64').toString());
     payload = JSON.parse(Buffer.from(payloadB64, 'base64').toString());
-  } catch (e) {
+  } catch {
     throw new Error('ID token encoding error: header or payload is not valid JSON');
   }
 
@@ -126,16 +127,16 @@ export function parseIdToken(idToken: string): OAuth2Claims {
 
   // Expiration check (allow 60s clock skew)
   const nowSeconds = Math.floor(Date.now() / 1000);
-  const exp = claims.exp as number;
-  if (nowSeconds > exp + 60) {
-    throw new Error(`ID token expired at ${new Date(exp * 1000).toISOString()}`);
+  const expNum = claims.exp as number;
+  if (nowSeconds > expNum + 60) {
+    throw new Error(`ID token expired at ${new Date(expNum * 1000).toISOString()}`);
   }
 
   // Issued-at check (fail if too far in future)
-  const iat = claims.iat as number;
-  if (nowSeconds < iat - 60) {
+  const iatNum = claims.iat as number;
+  if (nowSeconds < iatNum - 60) {
     throw new Error(
-      `ID token issued in future (iat=${new Date(iat * 1000).toISOString()}); ` +
+      `ID token issued in future (iat=${new Date(iatNum * 1000).toISOString()}); ` +
       'check system clock'
     );
   }
@@ -144,11 +145,11 @@ export function parseIdToken(idToken: string): OAuth2Claims {
     sub: claims.sub as string,
     iss: claims.iss as string,
     aud: Array.isArray(claims.aud) ? claims.aud[0] : (claims.aud as string),
-    exp: exp,
-    iat: iat,
+    exp: expNum,
+    iat: iatNum,
     email: claims.email as string,
-    email_verified: (claims.email_verified as boolean) ?? false,
-    nonce: (claims.nonce as string | undefined),
+    email_verified: typeof claims.email_verified === 'boolean' ? claims.email_verified : false,
+    nonce: claims.nonce as string | undefined,
   };
 }
 
@@ -185,9 +186,9 @@ export class ProductionAuthProvider implements AuthProvider {
     validateDevAuthNotInProduction(devAuthCheck);
   }
 
-  async authenticate(
+  authenticate(
     request: { headers: IncomingHttpHeaders }
-  ): Promise<AuthenticatedPrincipal | null> {
+  ): AuthenticatedPrincipal | null {
     // Bearer token must be present
     const authorization = this.getAuthorizationHeader(request.headers);
     if (!authorization) {

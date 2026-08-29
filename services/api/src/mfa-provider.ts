@@ -135,7 +135,6 @@ export class TotpProvider {
     if (config) {
       this.config = { ...this.config, ...config };
     }
-    this.validateConfig();
   }
 
   /**

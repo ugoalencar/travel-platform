@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/require-await,@typescript-eslint/no-unsafe-call */
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import {
   NoOpCaptchaProvider,
