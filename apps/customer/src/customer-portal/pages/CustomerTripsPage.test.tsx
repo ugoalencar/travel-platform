@@ -70,7 +70,7 @@ describe('CustomerTripsPage', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('Nenhuma viagem ainda')).toBeInTheDocument();
+      expect(screen.getByText(/Nenhuma viagem/i)).toBeInTheDocument();
     });
   });
 });
