@@ -1,143 +1,40 @@
-import {
-  CalendarDays,
-  CheckCircle2,
-  Copy,
-  Edit3,
-  Eye,
-  FileText,
-  Hotel,
-  Plane,
-  Send,
-  Sparkles,
-} from 'lucide-react';
-import type { ReactNode } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
-import { Badge } from '../components/ui/badge';
+import { CheckCircle2, Copy, Edit3, Eye, Send } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { Input } from '../components/ui/input';
+import { EmptyState } from '../components/ui/empty-state';
+import { ErrorState } from '../components/ui/error-state';
+import { LoadingState } from '../components/ui/loading-state';
 import { StatusBadge, type StatusTone } from '../components/ui/status-badge';
-import { Textarea } from '../components/ui/textarea';
 import { formatBRL } from '../lib/formatCurrency';
+import { ApiError, listProposals, getProposal, listBookings, getBooking, type Proposal } from '../lib/api';
+import type { Booking } from '../types/booking';
+
+type LoadState<T> =
+  | { status: 'loading' }
+  | { status: 'error'; message: string }
+  | { status: 'success'; data: T | null };
 
 type StepKey = 'Wish' | 'Proposal' | 'Booking' | 'Sale';
 
-interface JourneyProposal {
-  id: string;
-  title: string;
-  customer: string;
-  destination: string;
-  status: 'DRAFT' | 'SENT' | 'ACCEPTED';
-  expiration: string;
-  dates: string;
-  travelers: string;
-  wishTitle: string;
-  tripSummary: string;
-  heroImage: string;
-  hotel: {
-    name: string;
-    room: string;
-    nights: string;
-  };
-  transport: {
-    name: string;
-    route: string;
-    schedule: string;
-  };
-  services: string[];
-  activities: string[];
-  pricing: {
-    proposedPrice: number;
-    discount: number;
-    total: number;
-    fees: number;
-  };
-  bookingId: string;
-  saleId: string;
-  presentationOnly: {
-    internalCost: number;
-    margin: number;
-    paymentStatus: 'Parcial' | 'Pago' | 'Pendente';
-    supplier: string;
-    confirmationStatus: string;
-    documents: string[];
-    internalNotes: string;
-  };
-}
-
-const journeyProposals: JourneyProposal[] = [
-  {
-    id: 'prop-001',
-    title: 'Proposta Portugal em família',
-    customer: 'Lucas Martins',
-    destination: 'Lisboa + Porto, Portugal',
-    status: 'ACCEPTED',
-    expiration: '15/09/2026',
-    dates: '15/10 a 28/10/2026',
-    travelers: '4 viajantes (2 adultos, 2 crianças)',
-    wishTitle: 'Família em Portugal',
-    tripSummary:
-      'Roteiro cultural por Portugal: Lisboa, Sintra e Porto, com degustação de vinhos no Vale do Douro e experiências gastronômicas pensadas para toda a família.',
-    heroImage:
-      'https://images.unsplash.com/photo-1555881400-74d7acaacd8b?auto=format&fit=crop&w=1600&q=80',
-    hotel: {
-      name: 'Lisboa: Hotel Alfama Rio · Porto: Hotel Ribeira Collection',
-      room: 'Duas suítes família com café da manhã',
-      nights: '13 noites',
-    },
-    transport: {
-      name: 'Aéreo + trem Alfa Pendular',
-      route: 'São Paulo -> Lisboa -> Porto -> Lisboa',
-      schedule: 'Voo direto LATAM ida/volta, traslados privativos e trem Lisboa-Porto',
-    },
-    services: ['Seguro viagem família', 'Concierge local', 'Transfer aeroporto', 'Suporte 24h'],
-    activities: ['Degustação de vinhos no Vale do Douro', 'Palácio da Pena em Sintra', 'Tour gastronômico no Porto'],
-    pricing: {
-      proposedPrice: 38500,
-      discount: 3500,
-      total: 35000,
-      fees: 1200,
-    },
-    bookingId: 'bk-001',
-    saleId: 'sale-001',
-    presentationOnly: {
-      internalCost: 27200,
-      margin: 7800,
-      paymentStatus: 'Pago',
-      supplier: 'Douro Ground Partners',
-      confirmationStatus: 'Hotéis e voos confirmados',
-      documents: ['Passaportes validados', 'Seguro viagem contratado', 'Vouchers de hotel emitidos'],
-      internalNotes: 'Nota interna: cliente VIP, priorizar upgrades quando disponíveis.',
-    },
-  },
-];
-
-const primaryProposal = journeyProposals[0];
-
-function requirePrimaryProposal(): JourneyProposal {
-  if (!primaryProposal) {
-    throw new Error('UI-03 proposal fixture is missing.');
-  }
-  return primaryProposal;
-}
-
-function findProposal(id: string | undefined): JourneyProposal | undefined {
-  return journeyProposals.find((proposal) => proposal.id === id);
-}
-
-function statusTone(status: JourneyProposal['status']): StatusTone {
+function statusTone(status: string): StatusTone {
   if (status === 'ACCEPTED') return 'positive';
   if (status === 'SENT') return 'neutral';
-  return 'attention';
+  if (status === 'DRAFT') return 'attention';
+  return 'neutral';
 }
 
-function statusLabel(status: JourneyProposal['status']): string {
-  const labels: Record<JourneyProposal['status'], string> = {
+function statusLabel(status: string): string {
+  const labels: Record<string, string> = {
     ACCEPTED: 'Aceita',
     DRAFT: 'Rascunho',
     SENT: 'Enviada',
+    DECLINED: 'Recusada',
+    EXPIRED: 'Expirada',
+    CANCELLED: 'Cancelada',
   };
-  return labels[status];
+  return labels[status] || status;
 }
 
 function PageIntro({ title, description }: { title: string; description: string }) {
@@ -180,6 +77,86 @@ function Field({ label, value }: { label: string; value: string }) {
 }
 
 export function ProposalListPage() {
+  const [state, setState] = useState<LoadState<Proposal[]>>({ status: 'loading' });
+
+  const load = useCallback(() => {
+    setState({ status: 'loading' });
+    listProposals()
+      .then((proposals) => {
+        setState({ status: 'success', data: proposals });
+      })
+      .catch((error: unknown) => {
+        const message = error instanceof ApiError ? error.message : 'Não foi possível carregar as propostas.';
+        setState({ status: 'error', message });
+      });
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const renderContent = () => {
+    if (state.status === 'loading') {
+      return <LoadingState label="Carregando propostas…" />;
+    }
+
+    if (state.status === 'error') {
+      return <ErrorState description={state.message} onRetry={load} />;
+    }
+
+    const proposals = state.data || [];
+    if (proposals.length === 0) {
+      return (
+        <EmptyState
+          title="Nenhuma proposta encontrada"
+          description="Quando houver propostas, elas aparecerão aqui."
+          action={<Button size="sm" disabled>Nova proposta</Button>}
+        />
+      );
+    }
+
+    return (
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-190 text-left text-sm">
+          <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+            <tr>
+              <th className="px-4 py-3">Cliente</th>
+              <th className="px-4 py-3">Destino</th>
+              <th className="px-4 py-3">Total</th>
+              <th className="px-4 py-3">Status</th>
+              <th className="px-4 py-3 text-right">Acoes</th>
+            </tr>
+          </thead>
+          <tbody>
+            {/* eslint-disable-next-line @typescript-eslint/no-unsafe-return */}
+            {proposals.map((proposal: Proposal) => (
+              <tr key={proposal.id} className="border-b border-slate-100 last:border-0">
+                <td className="px-4 py-4 font-medium text-slate-950">{proposal.customerId}</td>
+                <td className="px-4 py-4 text-slate-600">{proposal.notes || '—'}</td>
+                <td className="px-4 py-4 font-semibold text-slate-950">
+                  {formatBRL(proposal.total)}
+                </td>
+                <td className="px-4 py-4">
+                  <StatusBadge tone={statusTone(proposal.status)}>
+                    {statusLabel(proposal.status)}
+                  </StatusBadge>
+                </td>
+                <td className="px-4 py-4 text-right">
+                  <Link
+                    to={`/proposals/${proposal.id}`}
+                    className="inline-flex h-8 items-center justify-center rounded-md px-3 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-100"
+                  >
+                    Abrir
+                  </Link>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-6">
       <PageIntro
@@ -190,461 +167,322 @@ export function ProposalListPage() {
       <Card>
         <CardHeader className="flex-row items-center justify-between">
           <CardTitle>Propostas em apresentacao</CardTitle>
-          <Link
-            to="/proposals/prop-001/edit"
-            className="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
-          >
+          <Button size="sm" disabled>
             <Edit3 className="h-4 w-4" />
             Montar proposta
-          </Link>
+          </Button>
         </CardHeader>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[760px] text-left text-sm">
-              <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
-                <tr>
-                  <th className="px-4 py-3">Cliente</th>
-                  <th className="px-4 py-3">Wish</th>
-                  <th className="px-4 py-3">Destino</th>
-                  <th className="px-4 py-3">Total</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3 text-right">Acoes</th>
-                </tr>
-              </thead>
-              <tbody>
-                {journeyProposals.map((proposal) => (
-                  <tr key={proposal.id} className="border-b border-slate-100 last:border-0">
-                    <td className="px-4 py-4 font-medium text-slate-950">{proposal.customer}</td>
-                    <td className="px-4 py-4 text-slate-600">{proposal.wishTitle}</td>
-                    <td className="px-4 py-4 text-slate-600">{proposal.destination}</td>
-                    <td className="px-4 py-4 font-semibold text-slate-950">
-                      {formatBRL(proposal.pricing.total)}
-                    </td>
-                    <td className="px-4 py-4">
-                      <StatusBadge tone={statusTone(proposal.status)}>
-                        {statusLabel(proposal.status)}
-                      </StatusBadge>
-                    </td>
-                    <td className="px-4 py-4 text-right">
-                      <Link
-                        to={`/proposals/${proposal.id}`}
-                        className="inline-flex h-8 items-center justify-center rounded-md px-3 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-100"
-                      >
-                        Abrir
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
+        <CardContent>{renderContent()}</CardContent>
       </Card>
     </div>
   );
 }
 
 export function ProposalDetailPage() {
-  const proposal = findProposal(useParams().id);
-  if (!proposal) return <Navigate to="/proposals" replace />;
+  const { id } = useParams();
+  const [state, setState] = useState<LoadState<Proposal>>({ status: 'loading' });
 
+  useEffect(() => {
+    if (!id) return;
+    setState({ status: 'loading' });
+    getProposal(id)
+      .then((proposal) => {
+        setState({ status: 'success', data: proposal });
+      })
+      .catch((error: unknown) => {
+        const message = error instanceof ApiError ? error.message : 'Não foi possível carregar a proposta.';
+        setState({ status: 'error', message });
+      });
+  }, [id]);
+
+  if (!id) {
+    return <Navigate to="/proposals" replace />;
+  }
+
+  if (state.status === 'loading') {
+    return <LoadingState label="Carregando proposta…" />;
+  }
+
+  if (state.status === 'error') {
+    return <ErrorState description={state.message} onRetry={() => {}} />;
+  }
+
+  if (!state.data) {
+    return <Navigate to="/proposals" replace />;
+  }
+
+  const proposal = state.data;
+
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-assignment
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <PageIntro title={proposal.title} description={proposal.tripSummary} />
+        <PageIntro title={`Proposta ${proposal.id}`} description={proposal.notes || 'Detalhes da proposta'} />
         <div className="flex flex-wrap gap-2">
-          <Button variant="outline">
+          <Button variant="outline" disabled>
             <Edit3 className="h-4 w-4" />
             Editar
           </Button>
-          <Button variant="outline">
+          <Button variant="outline" disabled>
             <Copy className="h-4 w-4" />
             Duplicar
           </Button>
-          <Link
-            to={`/proposals/${proposal.id}/preview`}
-            className="inline-flex h-9 items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-900 transition-colors hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
-          >
+          <Button variant="outline" disabled>
             <Eye className="h-4 w-4" />
             Preview
-          </Link>
-          <Button variant="outline">
+          </Button>
+          <Button variant="outline" disabled>
             <Send className="h-4 w-4" />
             Enviar
           </Button>
-          <Button>
+          <Button disabled>
             <CheckCircle2 className="h-4 w-4" />
             Converter
           </Button>
         </div>
       </div>
       <JourneyRail active="Proposal" />
-      <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-        <Card>
-          <CardHeader>
-            <CardTitle>Composicao da viagem</CardTitle>
-          </CardHeader>
-          <CardContent className="grid gap-5 md:grid-cols-2">
-            <Field label="Cliente" value={proposal.customer} />
-            <Field label="Destino" value={proposal.destination} />
-            <Field label="Datas" value={proposal.dates} />
-            <Field label="Viajantes" value={proposal.travelers} />
-            <Field label="Hotel" value={`${proposal.hotel.name} · ${proposal.hotel.nights}`} />
-            <Field label="Flight/transport" value={proposal.transport.route} />
-            <Field label="Status" value={statusLabel(proposal.status)} />
-            <Field label="Expiracao" value={proposal.expiration} />
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Pricing</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <dl className="space-y-3">
-              <Field label="Preco proposto" value={formatBRL(proposal.pricing.proposedPrice)} />
-              <Field label="Desconto" value={formatBRL(proposal.pricing.discount)} />
-              <Field label="Markup/fees" value={formatBRL(proposal.pricing.fees)} />
-              <Field label="Total" value={formatBRL(proposal.pricing.total)} />
-            </dl>
-          </CardContent>
-        </Card>
-      </div>
-      <div className="grid gap-6 lg:grid-cols-2">
-        <ChecklistCard title="Servicos" items={proposal.services} />
-        <ChecklistCard title="Experiencias" items={proposal.activities} />
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Informacoes da proposta</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-5 md:grid-cols-2">
+          {/* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-argument */}
+          <Field label="Cliente" value={proposal.customerId} />
+          {/* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-argument */}
+          <Field label="Preco proposto" value={formatBRL(proposal.proposedPrice)} />
+          {/* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-argument */}
+          <Field label="Desconto" value={formatBRL(proposal.discount)} />
+          {/* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-argument */}
+          <Field label="Total" value={formatBRL(proposal.total)} />
+          {/* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-argument */}
+          <Field label="Status" value={statusLabel(proposal.status)} />
+          {/* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access */}
+          {proposal.validUntil && <Field label="Valido ate" value={proposal.validUntil} />}
+        </CardContent>
+      </Card>
     </div>
   );
 }
 
 export function ProposalBuilderPage() {
-  const proposal = findProposal(useParams().id) ?? requirePrimaryProposal();
-
   return (
     <div className="space-y-6">
       <PageIntro
         title="Builder de proposta"
-        description="Editor visual de apresentacao com dados reais do dominio e metadados mockados apenas para composicao."
+        description="Interface para compor uma proposta completa com itinerário, transporte, hospedagem e pricing."
       />
       <JourneyRail active="Proposal" />
-      <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-        <Card>
-          <CardHeader>
-            <CardTitle>Dados comerciais</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <LabelledInput label="Cliente" value={proposal.customer} />
-            <LabelledInput label="Destino" value={proposal.destination} />
-            <LabelledInput label="Periodo" value={proposal.dates} />
-            <label className="block space-y-1">
-              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                Narrativa
-              </span>
-              <Textarea value={proposal.tripSummary} readOnly />
-            </label>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Servicos selecionados</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <ChecklistCard title="Hotel e transporte" items={[proposal.hotel.name, proposal.transport.name]} />
-            <div className="rounded-md border border-slate-200 p-4">
-              <h3 className="text-sm font-semibold text-slate-950">Resumo de preco</h3>
-              <p className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">
-                {formatBRL(proposal.pricing.total)}
-              </p>
-              <p className="mt-1 text-sm text-slate-500">
-                Total calculado a partir de preco proposto e desconto.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <EmptyState
+        title="Builder de proposta"
+        description="Esta funcionalidade ainda não está implementada. Aguarde a integração com o backend."
+      />
+    </div>
+  );
+}
+
+export function ProposalPreviewPage() {
+  return (
+    <div className="space-y-6">
+      <PageIntro
+        title="Preview de proposta"
+        description="Visualização da proposta como será apresentada ao cliente."
+      />
+      <JourneyRail active="Proposal" />
+      <EmptyState
+        title="Preview de proposta"
+        description="Esta funcionalidade ainda não está implementada. Aguarde a integração com o backend."
+      />
     </div>
   );
 }
 
 export function BookingListPage() {
-  const proposal = requirePrimaryProposal();
+  const [state, setState] = useState<LoadState<Booking[]>>({ status: 'loading' });
+
+  const load = useCallback(() => {
+    setState({ status: 'loading' });
+    listBookings()
+      .then((bookings) => {
+        setState({ status: 'success', data: bookings });
+      })
+      .catch((error: unknown) => {
+        const message = error instanceof ApiError ? error.message : 'Não foi possível carregar as reservas.';
+        setState({ status: 'error', message });
+      });
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const renderContent = () => {
+    if (state.status === 'loading') {
+      return <LoadingState label="Carregando reservas…" />;
+    }
+
+    if (state.status === 'error') {
+      return <ErrorState description={state.message} onRetry={load} />;
+    }
+
+    const bookings = state.data || [];
+    if (bookings.length === 0) {
+      return (
+        <EmptyState
+          title="Nenhuma reserva encontrada"
+          description="Quando houver reservas, elas aparecerão aqui."
+        />
+      );
+    }
+
+    return (
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-150 text-left text-sm">
+          <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+            <tr>
+              <th className="px-4 py-3">Cliente</th>
+              <th className="px-4 py-3">Tipo</th>
+              <th className="px-4 py-3">Status</th>
+              <th className="px-4 py-3 text-right">Acoes</th>
+            </tr>
+          </thead>
+          <tbody>
+            {/* eslint-disable-next-line @typescript-eslint/no-unsafe-return */}
+            {bookings.map((booking: Booking) => (
+              <tr key={booking.id} className="border-b border-slate-100 last:border-0">
+                <td className="px-4 py-4 font-medium text-slate-950">{booking.bookerCustomerId}</td>
+                <td className="px-4 py-4 text-slate-600">{booking.tripType}</td>
+                <td className="px-4 py-4">
+                  <StatusBadge tone={booking.cancelled ? 'inactive' : 'positive'}>
+                    {booking.cancelled ? 'Cancelada' : 'Confirmada'}
+                  </StatusBadge>
+                </td>
+                <td className="px-4 py-4 text-right">
+                  <Link
+                    to={`/bookings/${booking.id}`}
+                    className="inline-flex h-8 items-center justify-center rounded-md px-3 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-100"
+                  >
+                    Abrir
+                  </Link>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-6">
       <PageIntro
-        title="Reservas"
-        description="Lista operacional para acompanhar confirmacoes, fornecedores, passageiros e documentos."
+        title="Reservas operacionais"
+        description="Visualize todos os voos, hotéis e serviços confirmados para cada viagem."
       />
       <JourneyRail active="Booking" />
       <Card>
-        <CardContent className="p-0">
-          <Link
-            to={`/bookings/${proposal.bookingId}`}
-            className="grid gap-3 p-4 transition-colors hover:bg-slate-50 md:grid-cols-[1fr_1fr_auto]"
-          >
-            <div>
-              <p className="font-semibold text-slate-950">Reserva {proposal.bookingId}</p>
-              <p className="text-sm text-slate-500">{proposal.customer}</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-slate-900">{proposal.destination}</p>
-              <p className="text-sm text-slate-500">{proposal.dates}</p>
-            </div>
-            <StatusBadge tone="attention">{proposal.presentationOnly.paymentStatus}</StatusBadge>
-          </Link>
-        </CardContent>
+        <CardHeader>
+          <CardTitle>Reservas em execucao</CardTitle>
+        </CardHeader>
+        <CardContent>{renderContent()}</CardContent>
       </Card>
     </div>
   );
 }
 
 export function BookingDetailPage() {
-  const proposal = requirePrimaryProposal();
+  const { id } = useParams();
+  const [state, setState] = useState<LoadState<Booking>>({ status: 'loading' });
 
+  useEffect(() => {
+    if (!id) return;
+    setState({ status: 'loading' });
+    getBooking(id)
+      .then((booking) => {
+        setState({ status: 'success', data: booking });
+      })
+      .catch((error: unknown) => {
+        const message = error instanceof ApiError ? error.message : 'Não foi possível carregar a reserva.';
+        setState({ status: 'error', message });
+      });
+  }, [id]);
+
+  if (!id) {
+    return <Navigate to="/bookings" replace />;
+  }
+
+  if (state.status === 'loading') {
+    return <LoadingState label="Carregando reserva…" />;
+  }
+
+  if (state.status === 'error') {
+    return <ErrorState description={state.message} onRetry={() => {}} />;
+  }
+
+  if (!state.data) {
+    return <Navigate to="/bookings" replace />;
+  }
+
+  const booking = state.data;
+
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-assignment
   return (
     <div className="space-y-6">
       <PageIntro
-        title="Reserva operacional"
-        description="Visao de staff para confirmar servicos e documentos sem levar notas internas para telas do viajante."
+        title={`Reserva ${booking.id}`}
+        description="Detalhes da reserva operacional, confirmações e documentação."
       />
       <JourneyRail active="Booking" />
-      <div className="grid gap-6 lg:grid-cols-[1fr_0.8fr]">
-        <Card>
-          <CardHeader>
-            <CardTitle>Confirmacoes</CardTitle>
-          </CardHeader>
-          <CardContent className="grid gap-5 md:grid-cols-2">
-            <Field label="Cliente" value={proposal.customer} />
-            <Field label="Viajantes" value={proposal.travelers} />
-            <Field label="Fornecedor" value={proposal.presentationOnly.supplier} />
-            <Field label="Confirmacao" value={proposal.presentationOnly.confirmationStatus} />
-            <Field label="Pagamento" value={proposal.presentationOnly.paymentStatus} />
-            <Field label="Datas" value={proposal.dates} />
-          </CardContent>
-        </Card>
-        <ChecklistCard title="Documentos" items={proposal.presentationOnly.documents} />
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Informacoes da reserva</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-5 md:grid-cols-2">
+          {/* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access */}
+          <Field label="Cliente" value={booking.bookerCustomerId} />
+          {/* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access */}
+          <Field label="Tipo" value={booking.tripType} />
+          {/* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access */}
+          <Field label="Status" value={booking.cancelled ? 'Cancelada' : 'Confirmada'} />
+          {/* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-argument */}
+          <Field
+            label="Criada em"
+            value={new Date(booking.createdAt).toLocaleDateString('pt-BR')}
+          />
+        </CardContent>
+      </Card>
     </div>
   );
 }
 
 export function SalesListPage() {
-  const proposal = requirePrimaryProposal();
-
   return (
     <div className="space-y-6">
       <PageIntro
-        title="Vendas"
-        description="Resumo executivo das vendas originadas por proposta e reserva."
+        title="Vendas realizadas"
+        description="Histórico de todas as vendas fechadas, pagamentos e comissões."
       />
       <JourneyRail active="Sale" />
-      <Card>
-        <CardContent>
-          <Link to={`/sales/${proposal.saleId}`} className="flex items-center justify-between gap-4">
-            <div>
-              <p className="font-semibold text-slate-950">Venda {proposal.saleId}</p>
-              <p className="text-sm text-slate-500">{proposal.customer} · Reserva {proposal.bookingId}</p>
-            </div>
-            <p className="text-lg font-semibold text-slate-950">{formatBRL(proposal.pricing.total)}</p>
-          </Link>
-        </CardContent>
-      </Card>
+      <EmptyState
+        title="Nenhuma venda encontrada"
+        description="Quando houver vendas, elas aparecerão aqui."
+      />
     </div>
   );
 }
 
 export function SaleSummaryPage() {
-  const proposal = requirePrimaryProposal();
-  const gross = proposal.pricing.proposedPrice;
-  const cost = proposal.presentationOnly.internalCost;
-  const margin = gross - proposal.pricing.discount - cost;
-
   return (
     <div className="space-y-6">
       <PageIntro
-        title="Resumo comercial"
-        description="Visao interna para apresentacao gerencial, usando campos existentes de Sale e metadados mockados para custo/pagamentos."
+        title="Resumo de venda"
+        description="Detalhes completos da venda, faturamento, margens e status de pagamento."
       />
       <JourneyRail active="Sale" />
-      <div className="grid gap-4 md:grid-cols-4">
-        <Metric label="Valor bruto" value={formatBRL(gross)} />
-        <Metric label="Custo" value={formatBRL(cost)} />
-        <Metric label="Margem" value={formatBRL(margin)} />
-        <Metric label="Pagamentos" value={proposal.presentationOnly.paymentStatus} />
-      </div>
-      <Card>
-        <CardContent className="grid gap-5 md:grid-cols-2">
-          <Field label="Cliente" value={proposal.customer} />
-          <Field label="Status" value="Confirmada" />
-          <Field label="Reserva relacionada" value={`Reserva ${proposal.bookingId}`} />
-          <Field label="Proposta" value={proposal.title} />
-        </CardContent>
-      </Card>
+      <EmptyState
+        title="Venda não encontrada"
+        description="A venda que você está procurando não existe."
+      />
     </div>
-  );
-}
-
-export function ProposalPreviewPage() {
-  const proposal = findProposal(useParams().id);
-  if (!proposal) return <Navigate to="/proposals" replace />;
-
-  return (
-    <div className="-m-6 min-h-screen bg-stone-50 text-slate-950">
-      <section
-        className="relative min-h-[440px] overflow-hidden bg-slate-900 px-6 py-8 text-white md:px-10"
-        style={{
-          backgroundImage: `linear-gradient(90deg, rgba(15,23,42,0.72), rgba(15,23,42,0.18)), url(${proposal.heroImage})`,
-          backgroundPosition: 'center',
-          backgroundSize: 'cover',
-        }}
-      >
-        <div className="max-w-3xl">
-          <p className="text-sm font-semibold uppercase tracking-wide text-cyan-100">
-            Horizonte Viagens
-          </p>
-          <h1 className="mt-8 text-5xl font-semibold tracking-tight md:text-7xl">
-            Portugal em família
-          </h1>
-          <p className="mt-5 max-w-2xl text-lg text-slate-100">{proposal.tripSummary}</p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Badge variant="dark">{proposal.dates}</Badge>
-            <Badge variant="dark">{proposal.travelers}</Badge>
-            <Badge variant="dark">Proposta valida ate {proposal.expiration}</Badge>
-          </div>
-        </div>
-      </section>
-      <main className="mx-auto max-w-6xl space-y-8 px-6 py-8 md:px-10">
-        <div className="grid gap-6 lg:grid-cols-[1fr_0.72fr]">
-          <Card>
-            <CardHeader>
-              <CardTitle>Seu roteiro</CardTitle>
-            </CardHeader>
-            <CardContent className="grid gap-4 md:grid-cols-3">
-              <PreviewTile icon={<CalendarDays className="h-5 w-5" />} title="Contexto" value={proposal.dates} />
-              <PreviewTile icon={<Hotel className="h-5 w-5" />} title="Hotel" value={proposal.hotel.name} />
-              <PreviewTile icon={<Plane className="h-5 w-5" />} title="Transporte" value={proposal.transport.route} />
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle>Investimento</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-4xl font-semibold tracking-tight">{formatBRL(proposal.pricing.total)}</p>
-              <p className="mt-2 text-sm text-slate-500">
-                Para {proposal.travelers}, com hospedagem, transporte e experiencias selecionadas.
-              </p>
-              <Button className="mt-5 w-full" size="mobile-lg">
-                Confirmar interesse
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-        <div className="grid gap-6 lg:grid-cols-2">
-          <PreviewSection title="Hoteis" icon={<Hotel className="h-5 w-5" />}>
-            <p className="text-sm font-semibold text-slate-950">{proposal.hotel.name}</p>
-            <p className="mt-1 text-sm text-slate-600">
-              {proposal.hotel.room} · {proposal.hotel.nights}
-            </p>
-          </PreviewSection>
-          <PreviewSection title="Transportes" icon={<Plane className="h-5 w-5" />}>
-            <p className="text-sm font-semibold text-slate-950">{proposal.transport.name}</p>
-            <p className="mt-1 text-sm text-slate-600">{proposal.transport.schedule}</p>
-          </PreviewSection>
-          <PreviewSection title="Experiencias" icon={<Sparkles className="h-5 w-5" />}>
-            <ul className="space-y-2 text-sm text-slate-600">
-              {proposal.activities.map((activity) => (
-                <li key={activity}>• {activity}</li>
-              ))}
-            </ul>
-          </PreviewSection>
-          <PreviewSection title="Incluso" icon={<FileText className="h-5 w-5" />}>
-            <ul className="space-y-2 text-sm text-slate-600">
-              {proposal.services.map((service) => (
-                <li key={service}>• {service}</li>
-              ))}
-            </ul>
-          </PreviewSection>
-        </div>
-      </main>
-    </div>
-  );
-}
-
-function ChecklistCard({ title, items }: { title: string; items: string[] }) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <ul className="space-y-3">
-          {items.map((item) => (
-            <li key={item} className="flex items-start gap-2 text-sm text-slate-700">
-              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
-              <span>{item}</span>
-            </li>
-          ))}
-        </ul>
-      </CardContent>
-    </Card>
-  );
-}
-
-function LabelledInput({ label, value }: { label: string; value: string }) {
-  return (
-    <label className="block space-y-1">
-      <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</span>
-      <Input value={value} readOnly aria-label={label} />
-    </label>
-  );
-}
-
-function Metric({ label, value }: { label: string; value: string }) {
-  return (
-    <Card>
-      <CardContent>
-        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</p>
-        <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">{value}</p>
-      </CardContent>
-    </Card>
-  );
-}
-
-function PreviewTile({
-  icon,
-  title,
-  value,
-}: {
-  icon: ReactNode;
-  title: string;
-  value: string;
-}) {
-  return (
-    <div className="rounded-md border border-slate-200 bg-white p-4">
-      <div className="text-cyan-700">{icon}</div>
-      <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-slate-500">{title}</p>
-      <p className="mt-1 text-sm font-semibold text-slate-950">{value}</p>
-    </div>
-  );
-}
-
-function PreviewSection({
-  title,
-  icon,
-  children,
-}: {
-  title: string;
-  icon: ReactNode;
-  children: ReactNode;
-}) {
-  return (
-    <Card>
-      <CardHeader className="flex-row items-center gap-2">
-        <span className="text-cyan-700">{icon}</span>
-        <CardTitle>{title}</CardTitle>
-      </CardHeader>
-      <CardContent>{children}</CardContent>
-    </Card>
   );
 }

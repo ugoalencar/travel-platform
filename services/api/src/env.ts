@@ -79,6 +79,11 @@ export function validateProductionEnvironment(environment: ServerEnvironment = p
     );
   }
 
+  // When external store is configured, Redis connection must be available
+  if (environment.RATE_LIMIT_STORE === 'external' && !isNonEmptyString(environment.REDIS_URL)) {
+    issues.push('REDIS_URL is required in production when RATE_LIMIT_STORE is "external".');
+  }
+
   if (issues.length > 0) {
     throw new Error(
       `Refusing to start: invalid production configuration.\n${issues.map((issue) => `  - ${issue}`).join('\n')}`

@@ -1,4 +1,5 @@
 import { Pool } from 'pg';
+import type { RedisClientType } from 'redis';
 import { buildApp } from './app';
 import { createCustomerAccessValidator } from './customer-portal';
 import { createDatabaseRuntime } from './database';
@@ -8,6 +9,7 @@ import {
   createServerCustomerAuthProvider,
 } from './dev-auth';
 import { assertSafeDatabaseRole, validateProductionEnvironment } from './env';
+import { createRedisRateLimitStore, resolveRateLimitRuntimeConfig } from './rate-limit';
 
 // Fail-closed production startup gate: throws synchronously if required
 // config is missing/malformed, or if a prohibited flag (ALLOW_DEV_AUTH) is
@@ -35,7 +37,7 @@ const pool = new Pool({
   connectionTimeoutMillis: Number(process.env.DB_POOL_CONNECTION_TIMEOUT ?? 5000),
 });
 
-const app = buildApp({
+let app = buildApp({
   authProvider: createServerAuthProvider(),
   validateUserAgencyAccess: createServerAccessValidator(),
   database: createDatabaseRuntime(pool),
@@ -51,6 +53,8 @@ const app = buildApp({
   },
 });
 
+let redisClientInstance: RedisClientType | undefined = undefined;
+
 async function gracefulShutdown(signal: string): Promise<void> {
   app.log.info({ signal }, 'graceful shutdown initiated');
 
@@ -60,6 +64,12 @@ async function gracefulShutdown(signal: string): Promise<void> {
     // in-flight request completion and SIGTERM coordination.
     await app.close();
     app.log.info({}, 'HTTP server closed');
+
+    // Close Redis connection if established
+    if (redisClientInstance) {
+      await redisClientInstance.quit();
+      app.log.info({}, 'Redis connection closed');
+    }
 
     // Drain the database connection pool: waits for in-flight queries
     // to complete, then closes all idle connections. Does not kill
@@ -76,6 +86,27 @@ async function gracefulShutdown(signal: string): Promise<void> {
 
 async function main(): Promise<void> {
   try {
+    // Initialize rate limit store if external store is configured
+    const runtimeConfig = resolveRateLimitRuntimeConfig(process.env);
+    if (runtimeConfig.store === 'external') {
+      const store = await createRedisRateLimitStore(process.env);
+      redisClientInstance = store.redisClient;
+      // Recreate app with Redis store if configured
+      app = buildApp({
+        authProvider: createServerAuthProvider(),
+        validateUserAgencyAccess: createServerAccessValidator(),
+        database: createDatabaseRuntime(pool),
+        customerAuthProvider: createServerCustomerAuthProvider(),
+        validateCustomerAgencyAccess: createCustomerAccessValidator(pool),
+        readinessCheck: async () => {
+          await pool.query('SELECT 1');
+        },
+        rateLimit: {
+          store,
+        },
+      });
+    }
+
     // DB runtime role guard (production only): refuses to start if the
     // connected role is superuser or BYPASSRLS, since either would silently
     // defeat RLS tenant isolation. Does not modify role/RLS architecture --
