@@ -98,9 +98,9 @@ export function OfferDetailPage() {
       price: offer.price,
       status: offer.status,
     };
-    if (offer.description !== undefined) form.description = offer.description;
-    if (offer.validFrom) form.validFrom = offer.validFrom.split('T')[0];
-    if (offer.validUntil) form.validUntil = offer.validUntil.split('T')[0];
+    if (offer.description) form.description = offer.description;
+    if (offer.validFrom) form.validFrom = offer.validFrom.split('T')[0] as string;
+    if (offer.validUntil) form.validUntil = offer.validUntil.split('T')[0] as string;
     setEditForm(form);
     setEditError(null);
     setShowEdit(true);
@@ -112,9 +112,9 @@ export function OfferDetailPage() {
       name: `${offer.name} (Cópia)`,
       price: offer.price,
     };
-    if (offer.description !== undefined) form.description = offer.description;
-    if (offer.validFrom) form.validFrom = offer.validFrom.split('T')[0];
-    if (offer.validUntil) form.validUntil = offer.validUntil.split('T')[0];
+    if (offer.description) form.description = offer.description;
+    if (offer.validFrom) form.validFrom = offer.validFrom.split('T')[0] as string;
+    if (offer.validUntil) form.validUntil = offer.validUntil.split('T')[0] as string;
     setDuplicateForm(form);
     setDuplicateError(null);
     setShowDuplicate(true);
