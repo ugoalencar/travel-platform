@@ -2,6 +2,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import type { ProxyOptions } from 'vite';
+import type { Connect } from 'vite';
 
 // Dev-only synthetic principal (User A / Agency A / ADMIN) matching the
 // backend's fail-closed dev-auth allowlist in services/api/src/dev-auth.ts.
@@ -30,9 +31,11 @@ function devAuthProxyConfig(): ProxyOptions {
     target: API_PROXY_TARGET,
     changeOrigin: true,
     rewrite: (path) => path.replace(/^\/api/, ''),
-    configure: (proxy) => {
-      proxy.on('proxyReq', (proxyReq) => {
+    configure: (proxy, _env) => {
+      proxy.on('proxyReq', (proxyReq, req, _res) => {
+        console.log('[DEV-AUTH] Intercepted request:', req.method, req.url);
         for (const [name, value] of Object.entries(DEV_AUTH_HEADERS)) {
+          console.log(`[DEV-AUTH] Setting header: ${name}=${value}`);
           proxyReq.setHeader(name, value);
         }
       });
@@ -47,9 +50,11 @@ function devCustomerAuthProxyConfig(): ProxyOptions {
   return {
     target: API_PROXY_TARGET,
     changeOrigin: true,
-    configure: (proxy) => {
-      proxy.on('proxyReq', (proxyReq) => {
+    configure: (proxy, _env) => {
+      proxy.on('proxyReq', (proxyReq, req, _res) => {
+        console.log('[DEV-CUSTOMER-AUTH] Intercepted request:', req.method, req.url);
         for (const [name, value] of Object.entries(DEV_CUSTOMER_AUTH_HEADERS)) {
+          console.log(`[DEV-CUSTOMER-AUTH] Setting header: ${name}=${value}`);
           proxyReq.setHeader(name, value);
         }
       });
@@ -67,12 +72,29 @@ export default defineConfig(({ command }) => {
   return {
     plugins: [react(), tailwindcss()],
     server: {
+      port: 5174,
       ...(isDevServer
         ? {
             proxy: {
               '/api': devAuthProxyConfig(),
               '/customer-api': devCustomerAuthProxyConfig(),
             },
+            middlewares: [
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              (req: any, res: any, next: Connect.NextFunction) => {
+                if (req.url?.startsWith('/api')) {
+                  Object.entries(DEV_AUTH_HEADERS).forEach(([name, value]) => {
+                    req.headers[name] = value;
+                  });
+                }
+                if (req.url?.startsWith('/customer-api')) {
+                  Object.entries(DEV_CUSTOMER_AUTH_HEADERS).forEach(([name, value]) => {
+                    req.headers[name] = value;
+                  });
+                }
+                next();
+              },
+            ],
           }
         : {}),
     },
