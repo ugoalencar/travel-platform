@@ -63,6 +63,11 @@ export interface Customer {
   phone?: string;
   cpf?: string;
   passport?: string;
+  rg?: string;
+  nationalIdType?: string;
+  birthDate?: Date;
+  nationality?: string;
+  whatsapp?: string;
   address?: Record<string, unknown>;
   notes?: string;
   status: Status;
@@ -322,6 +327,114 @@ export interface OperationalCost {
   actualAmount?: number;
   incurredAt: Date;
   createdBy: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export enum FinancialCategoryType {
+  REVENUE = 'REVENUE',
+  EXPENSE = 'EXPENSE',
+}
+
+export interface FinancialCategory {
+  id: string;
+  agencyId: string;
+  name: string;
+  type: FinancialCategoryType;
+  description: string | undefined;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export enum RevenueStatus {
+  OPEN = 'OPEN',
+  PARTIALLY_PAID = 'PARTIALLY_PAID',
+  PAID = 'PAID',
+  OVERDUE = 'OVERDUE',
+  CANCELLED = 'CANCELLED',
+}
+
+export interface Revenue {
+  id: string;
+  agencyId: string;
+  saleId: string | undefined;
+  bookingId: string | undefined;
+  customerId: string;
+  categoryId: string;
+  description: string;
+  amount: number;
+  currency: string;
+  competencyDate: Date;
+  dueDate: Date;
+  receiptDate: Date | undefined;
+  paymentMethod: string | undefined;
+  status: RevenueStatus;
+  notes: string | undefined;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export enum ExpenseStatus {
+  OPEN = 'OPEN',
+  PARTIALLY_PAID = 'PARTIALLY_PAID',
+  PAID = 'PAID',
+  CANCELLED = 'CANCELLED',
+}
+
+export interface Expense {
+  id: string;
+  agencyId: string;
+  supplierId: string | undefined;
+  categoryId: string;
+  description: string;
+  amount: number;
+  currency: string;
+  incurredAt: Date;
+  dueDate: Date;
+  paymentDate: Date | undefined;
+  paymentMethod: string | undefined;
+  status: ExpenseStatus;
+  recurrence: string | undefined;
+  notes: string | undefined;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export enum CashTransactionType {
+  ENTRY = 'ENTRY',
+  EXIT = 'EXIT',
+  ADJUSTMENT = 'ADJUSTMENT',
+}
+
+export interface CashTransaction {
+  id: string;
+  agencyId: string;
+  type: CashTransactionType;
+  amount: number;
+  occurringAt: Date;
+  origin: string;
+  relatedRecordId: string | undefined;
+  relatedRecordType: string | undefined;
+  calculatedBalance: number;
+  notes: string | undefined;
+  createdAt: Date;
+}
+
+export enum ReconciliationStatus {
+  RECONCILED = 'RECONCILED',
+  NOT_RECONCILED = 'NOT_RECONCILED',
+}
+
+export interface Reconciliation {
+  id: string;
+  agencyId: string;
+  reconciliationDate: Date;
+  expectedAmount: number;
+  actualAmount: number;
+  status: ReconciliationStatus;
+  paymentId: string | undefined;
+  notes: string | undefined;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -1267,4 +1380,183 @@ export interface ChannelConnector {
   updatePublication(input: ConnectorUpdatePublicationInput): Promise<ConnectorPublishResult>;
   receiveEngagement(event: ConnectorEvent): Promise<Omit<Engagement, 'id' | 'createdAt'>>;
   validateConfiguration(config: unknown): Promise<ConnectorValidationResult>;
+}
+
+// ============================================================
+// CUSTOMER 360 DOMAIN (Task 2: Domain Types)
+// Address, Dependent, Document, and OCR-related types
+// ============================================================
+
+export enum AddressType {
+  RESIDENTIAL = 'RESIDENTIAL',
+  COMMERCIAL = 'COMMERCIAL',
+  TEMPORARY = 'TEMPORARY',
+}
+
+export interface CustomerAddress {
+  id: string;
+  agencyId: string;
+  customerId: string;
+  type: AddressType;
+  isPrimary: boolean;
+  cep?: string;
+  street: string;
+  number: string;
+  complement?: string;
+  district: string;
+  city: string;
+  state: string;
+  country: string;
+  createdAt: Date;
+  updatedAt: Date;
+  deletedAt?: Date;
+}
+
+export enum RelationshipType {
+  SPOUSE = 'SPOUSE',
+  CHILD = 'CHILD',
+  PARENT = 'PARENT',
+  COMPANION = 'COMPANION',
+  OTHER = 'OTHER',
+}
+
+export interface CustomerDependent {
+  id: string;
+  agencyId: string;
+  customerId: string;
+  name: string;
+  relationshipType: RelationshipType;
+  birthDate?: Date;
+  cpf?: string;
+  nationality?: string;
+  notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
+  deletedAt?: Date;
+}
+
+export enum DocumentType {
+  PASSAPORTE = 'PASSAPORTE',
+  RG = 'RG',
+  CNH = 'CNH',
+  CPF = 'CPF',
+  VISTO = 'VISTO',
+  CERTIDAO = 'CERTIDAO',
+  OUTRO = 'OUTRO',
+}
+
+export enum DocumentVerificationStatus {
+  PENDING = 'PENDING',
+  VERIFIED = 'VERIFIED',
+  MISMATCH = 'MISMATCH',
+  EXPIRED = 'EXPIRED',
+  MANUAL_REVIEW = 'MANUAL_REVIEW',
+}
+
+export interface CustomerDocument {
+  id: string;
+  agencyId: string;
+  customerId: string;
+  documentType: DocumentType;
+  documentNumber: string;
+  holderName?: string;
+  holderBirthDate?: Date;
+  holderNationality?: string;
+  issuingCountry?: string;
+  issuingAuthority?: string;
+  issuedDate?: Date;
+  expiryDate?: Date;
+  isExpired: boolean;
+  verificationStatus: DocumentVerificationStatus;
+  verifiedAt?: Date;
+  verifiedByUserId?: string;
+  notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
+  deletedAt?: Date;
+}
+
+export enum DocumentAttachmentType {
+  FRONT = 'FRONT',
+  BACK = 'BACK',
+  PASSPORT_PAGE = 'PASSPORT_PAGE',
+  VISA = 'VISA',
+  OTHER = 'OTHER',
+}
+
+export interface DocumentAttachment {
+  id: string;
+  agencyId: string;
+  documentId: string;
+  attachmentType: DocumentAttachmentType;
+  fileName: string;
+  fileSizeBytes: number;
+  fileMimeType: string;
+  secureFileKey: string;
+  fileHash?: string;
+  createdAt: Date;
+  deletedAt?: Date;
+}
+
+export enum OcrProcessingStatus {
+  PENDING = 'PENDING',
+  PROCESSING = 'PROCESSING',
+  COMPLETED = 'COMPLETED',
+  FAILED = 'FAILED',
+  MANUAL_REVIEW = 'MANUAL_REVIEW',
+}
+
+export interface DocumentExtraction {
+  id: string;
+  agencyId: string;
+  documentId: string;
+  provider: string;
+  extractedData: Record<string, unknown>;
+  confidence?: number;
+  processingStatus: OcrProcessingStatus;
+  processedAt?: Date;
+  errorMessage?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface DocumentVerification {
+  id: string;
+  agencyId: string;
+  documentId: string;
+  extractionId?: string;
+  holderNameMatch?: boolean;
+  holderBirthDateMatch?: boolean;
+  holderNationalityMatch?: boolean;
+  documentNumberMatch?: boolean;
+  discrepancies?: Record<string, unknown>;
+  manualReviewNotes?: string;
+  reviewedAt?: Date;
+  reviewedByUserId?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export enum DocumentAuditEventType {
+  DOCUMENT_CREATED = 'DOCUMENT_CREATED',
+  DOCUMENT_UPDATED = 'DOCUMENT_UPDATED',
+  ATTACHMENT_UPLOADED = 'ATTACHMENT_UPLOADED',
+  ATTACHMENT_DELETED = 'ATTACHMENT_DELETED',
+  DOCUMENT_VIEWED = 'DOCUMENT_VIEWED',
+  EXTRACTION_STARTED = 'EXTRACTION_STARTED',
+  EXTRACTION_COMPLETED = 'EXTRACTION_COMPLETED',
+  VERIFICATION_COMPLETED = 'VERIFICATION_COMPLETED',
+  DOCUMENT_SOFT_DELETED = 'DOCUMENT_SOFT_DELETED',
+}
+
+export interface DocumentAuditEvent {
+  id: string;
+  agencyId: string;
+  documentId?: string;
+  attachmentId?: string;
+  userId?: string;
+  customerId?: string;
+  eventType: DocumentAuditEventType;
+  metadata?: Record<string, unknown>;
+  createdAt: Date;
 }
