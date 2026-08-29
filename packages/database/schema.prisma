@@ -93,6 +93,12 @@ model Agency {
   couponRedemptions       CouponRedemption[]
   connectorActions        ConnectorAction[]
   offerGrowthAuditLog     OfferGrowthAuditLog[]
+  dependents              CustomerDependent[] @relation("AgencyDependents")
+  customerDocuments       CustomerDocument[] @relation("AgencyDocuments")
+  documentAttachments     DocumentAttachment[] @relation("AgencyAttachments")
+  documentExtractions     DocumentExtraction[] @relation("AgencyExtractions")
+  documentVerifications   DocumentVerification[] @relation("AgencyVerifications")
+  documentAuditEvents     DocumentAuditEvent[]
 
   @@map("agencies")
 }
@@ -132,6 +138,9 @@ model User {
   createdCoupons          Coupon[]
   recordedCouponRedemptions CouponRedemption[]
   offerGrowthAuditLogEntries OfferGrowthAuditLog[]
+  verifiedDocuments       CustomerDocument[] @relation("DocumentsVerifiedByUser")
+  reviewedDocuments       DocumentVerification[] @relation("DocumentsReviewedByUser")
+  documentAuditEvents     DocumentAuditEvent[] @relation("DocumentAuditEvents")
 
   @@unique([agencyId, email], map: "users_agency_email_key")
   @@unique([agencyId, id], map: "users_agency_id_key")
@@ -193,6 +202,9 @@ model Customer {
   engagements             Engagement[]
   couponGrants            CouponGrant[]
   couponRedemptions       CouponRedemption[]
+  dependents              CustomerDependent[] @relation("CustomerDependents")
+  documents               CustomerDocument[] @relation("CustomerDocuments")
+  documentAuditEvents     DocumentAuditEvent[] @relation("DocumentAuditEvents")
 
   // Migration 001 also enforces active-customer uniqueness with partial
   // indexes not representable here:
@@ -1789,4 +1801,221 @@ model CustomerAddress {
 
   // Partial unique constraint enforced in migration 019:
   // UNIQUE (agency_id, customer_id, is_primary) WHERE is_primary = true
+}
+
+// ============================================================
+// CUSTOMER 360: DEPENDENTS / COMPANIONS
+// ============================================================
+
+enum RelationshipType {
+  SPOUSE
+  CHILD
+  PARENT
+  COMPANION
+  OTHER
+}
+
+model CustomerDependent {
+  id               String           @id @default(dbgenerated("(gen_random_uuid())::text"))
+  agencyId         String           @map("agency_id")
+  customerId       String           @map("customer_id")
+  name             String
+  relationshipType RelationshipType @map("relationship_type")
+  birthDate        DateTime?        @map("birth_date") @db.Date
+  cpf              String?
+  nationality      String?
+  notes            String?
+  createdAt        DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime         @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt        DateTime?        @map("deleted_at") @db.Timestamptz(6)
+
+  agency   Agency   @relation("AgencyDependents", fields: [agencyId], references: [id], onDelete: Restrict, map: "customer_dependents_agency_fk")
+  customer Customer @relation("CustomerDependents", fields: [agencyId, customerId], references: [agencyId, id], onDelete: Restrict, map: "customer_dependents_customer_tenant_fk")
+
+  @@unique([agencyId, id], map: "customer_dependents_agency_id_key")
+  @@index([agencyId, customerId], map: "customer_dependents_agency_customer_idx")
+  @@map("customer_dependents")
+}
+
+// ============================================================
+// CUSTOMER 360: DOCUMENTS + OCR
+// ============================================================
+
+enum DocumentType {
+  PASSAPORTE
+  RG
+  CNH
+  CPF
+  VISTO
+  CERTIDAO
+  OUTRO
+}
+
+enum DocumentVerificationStatus {
+  PENDING
+  VERIFIED
+  MISMATCH
+  EXPIRED
+  MANUAL_REVIEW
+}
+
+enum DocumentAttachmentType {
+  FRONT
+  BACK
+  PASSPORT_PAGE
+  VISA
+  OTHER
+}
+
+enum OcrProcessingStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  MANUAL_REVIEW
+}
+
+model CustomerDocument {
+  id                  String                     @id @default(dbgenerated("(gen_random_uuid())::text"))
+  agencyId            String                     @map("agency_id")
+  customerId          String                     @map("customer_id")
+  documentType        DocumentType               @map("document_type")
+  documentNumber      String                     @map("document_number")
+  holderName          String?                    @map("holder_name")
+  holderBirthDate     DateTime?                  @map("holder_birth_date") @db.Date
+  holderNationality   String?                    @map("holder_nationality")
+  issuingCountry      String?                    @map("issuing_country")
+  issuingAuthority    String?                    @map("issuing_authority")
+  issuedDate          DateTime?                  @map("issued_date") @db.Date
+  expiryDate          DateTime?                  @map("expiry_date") @db.Date
+  isExpired           Boolean                    @map("is_expired")
+  verificationStatus  DocumentVerificationStatus @map("verification_status") @default(PENDING)
+  verifiedAt          DateTime?                  @map("verified_at") @db.Timestamptz(6)
+  verifiedByUserId    String?                    @map("verified_by_user_id")
+  notes               String?
+  createdAt           DateTime                   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime                   @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt           DateTime?                  @map("deleted_at") @db.Timestamptz(6)
+
+  agency              Agency                    @relation("AgencyDocuments", fields: [agencyId], references: [id], onDelete: Restrict, map: "customer_documents_agency_fk")
+  customer            Customer                  @relation("CustomerDocuments", fields: [agencyId, customerId], references: [agencyId, id], onDelete: Restrict, map: "customer_documents_customer_tenant_fk")
+  verifiedByUser      User?                     @relation("DocumentsVerifiedByUser", fields: [agencyId, verifiedByUserId], references: [agencyId, id], onDelete: Restrict, map: "customer_documents_verified_by_user_tenant_fk")
+  attachments         DocumentAttachment[]
+  extractions         DocumentExtraction[]
+  verifications       DocumentVerification[]
+  auditEvents         DocumentAuditEvent[] @relation("DocumentAuditEvents")
+
+  @@unique([agencyId, id], map: "customer_documents_agency_id_key")
+  @@index([agencyId, customerId], map: "customer_documents_agency_customer_idx")
+  @@index([agencyId, customerId, documentType], map: "customer_documents_agency_customer_type_idx")
+  @@index([agencyId, expiryDate], map: "customer_documents_expiry_idx")
+  @@map("customer_documents")
+}
+
+model DocumentAttachment {
+  id              String                  @id @default(dbgenerated("(gen_random_uuid())::text"))
+  agencyId        String                  @map("agency_id")
+  documentId      String                  @map("document_id")
+  attachmentType  DocumentAttachmentType  @map("attachment_type")
+  fileName        String                  @map("file_name")
+  fileSizeBytes   Int                     @map("file_size_bytes")
+  fileMimeType    String                  @map("file_mime_type")
+  secureFileKey   String                  @unique @map("secure_file_key")
+  fileHash        String?                 @map("file_hash")
+  createdAt       DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
+  deletedAt       DateTime?               @map("deleted_at") @db.Timestamptz(6)
+
+  agency    Agency           @relation("AgencyAttachments", fields: [agencyId], references: [id], onDelete: Restrict, map: "document_attachments_agency_fk")
+  document  CustomerDocument @relation(fields: [agencyId, documentId], references: [agencyId, id], onDelete: Restrict, map: "document_attachments_document_tenant_fk")
+
+  @@unique([agencyId, id], map: "document_attachments_agency_id_key")
+  @@index([agencyId, documentId], map: "document_attachments_agency_document_idx")
+  @@map("document_attachments")
+}
+
+model DocumentExtraction {
+  id                String              @id @default(dbgenerated("(gen_random_uuid())::text"))
+  agencyId          String              @map("agency_id")
+  documentId        String              @map("document_id")
+  provider          String
+  extractedData     Json                @map("extracted_data") @db.JsonB
+  confidence        Decimal?            @db.Decimal(5, 2)
+  processingStatus  OcrProcessingStatus @map("processing_status") @default(PENDING)
+  processedAt       DateTime?           @map("processed_at") @db.Timestamptz(6)
+  errorMessage      String?             @map("error_message")
+  createdAt         DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  agency            Agency                  @relation("AgencyExtractions", fields: [agencyId], references: [id], onDelete: Restrict, map: "document_extractions_agency_fk")
+  document          CustomerDocument        @relation(fields: [agencyId, documentId], references: [agencyId, id], onDelete: Restrict, map: "document_extractions_document_tenant_fk")
+  verifications     DocumentVerification[]
+
+  @@unique([agencyId, id], map: "document_extractions_agency_id_key")
+  @@index([agencyId, documentId], map: "document_extractions_agency_document_idx")
+  @@index([agencyId, provider, processingStatus], map: "document_extractions_agency_provider_status_idx")
+  @@map("document_extractions")
+}
+
+model DocumentVerification {
+  id                       String           @id @default(dbgenerated("(gen_random_uuid())::text"))
+  agencyId                 String           @map("agency_id")
+  documentId               String           @map("document_id")
+  extractionId             String?          @map("extraction_id")
+  holderNameMatch          Boolean?         @map("holder_name_match")
+  holderBirthDateMatch     Boolean?         @map("holder_birth_date_match")
+  holderNationalityMatch   Boolean?         @map("holder_nationality_match")
+  documentNumberMatch      Boolean?         @map("document_number_match")
+  discrepancies            Json?            @db.JsonB
+  manualReviewNotes        String?          @map("manual_review_notes")
+  reviewedAt               DateTime?        @map("reviewed_at") @db.Timestamptz(6)
+  reviewedByUserId         String?          @map("reviewed_by_user_id")
+  createdAt                DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                DateTime         @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  agency            Agency                @relation("AgencyVerifications", fields: [agencyId], references: [id], onDelete: Restrict, map: "document_verifications_agency_fk")
+  document          CustomerDocument      @relation(fields: [agencyId, documentId], references: [agencyId, id], onDelete: Restrict, map: "document_verifications_document_tenant_fk")
+  extraction        DocumentExtraction?   @relation(fields: [agencyId, extractionId], references: [agencyId, id], onDelete: Restrict, map: "document_verifications_extraction_tenant_fk")
+  reviewedByUser    User?                 @relation("DocumentsReviewedByUser", fields: [agencyId, reviewedByUserId], references: [agencyId, id], onDelete: Restrict, map: "document_verifications_reviewed_by_user_tenant_fk")
+
+  @@unique([agencyId, id], map: "document_verifications_agency_id_key")
+  @@index([agencyId, documentId], map: "document_verifications_agency_document_idx")
+  @@map("document_verifications")
+}
+
+// ============================================================
+// CUSTOMER 360: DOCUMENT AUDIT TRAIL
+// ============================================================
+
+enum DocumentAuditEventType {
+  DOCUMENT_CREATED
+  DOCUMENT_UPDATED
+  ATTACHMENT_UPLOADED
+  ATTACHMENT_DELETED
+  DOCUMENT_VIEWED
+  EXTRACTION_STARTED
+  EXTRACTION_COMPLETED
+  VERIFICATION_COMPLETED
+  DOCUMENT_SOFT_DELETED
+}
+
+model DocumentAuditEvent {
+  id           String                   @id @default(dbgenerated("(gen_random_uuid())::text"))
+  agencyId     String                   @map("agency_id")
+  documentId   String?                  @map("document_id")
+  attachmentId String?                  @map("attachment_id")
+  userId       String?                  @map("user_id")
+  customerId   String?                  @map("customer_id")
+  eventType    DocumentAuditEventType   @map("event_type")
+  metadata     Json?                    @db.JsonB
+  createdAt    DateTime                 @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  agency    Agency           @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "document_audit_events_agency_fk")
+  document  CustomerDocument? @relation("DocumentAuditEvents", fields: [agencyId, documentId], references: [agencyId, id], onDelete: Restrict, map: "document_audit_events_document_tenant_fk")
+  customer  Customer?        @relation("DocumentAuditEvents", fields: [agencyId, customerId], references: [agencyId, id], onDelete: Restrict, map: "document_audit_events_customer_tenant_fk")
+  user      User?            @relation("DocumentAuditEvents", fields: [agencyId, userId], references: [agencyId, id], onDelete: Restrict, map: "document_audit_events_user_tenant_fk")
+
+  @@index([agencyId, documentId], map: "document_audit_events_agency_document_idx")
+  @@index([agencyId, customerId], map: "document_audit_events_agency_customer_idx")
+  @@index([agencyId, createdAt(sort: Desc)], map: "document_audit_events_agency_created_idx")
+  @@map("document_audit_events")
 }
