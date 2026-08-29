@@ -55,4 +55,12 @@ export interface CustomerProposalView {
   status: string;
   createdAt: string;
   updatedAt: string;
+  includes?: string[];
+}
+
+export interface CustomerPassenger {
+  id: string;
+  name: string;
+  documentType: string;
+  documentLastDigits: string;
 }

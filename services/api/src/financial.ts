@@ -157,6 +157,34 @@ export interface SaleMargin {
   margin: number;
 }
 
+export interface FinancialSummary {
+  salesThisMonth: {
+    total: number;
+    count: number;
+  };
+  received: number;
+  pending: number;
+  expectedMargin: number;
+  recentPayments: Array<{
+    id: string;
+    customerId: string;
+    customerName: string;
+    description: string;
+    amount: number;
+    occurredAt: Date;
+    status: 'PAID' | 'PENDING';
+  }>;
+  upcomingReceivables: Array<{
+    id: string;
+    customerId: string;
+    customerName: string;
+    description: string;
+    amount: number;
+    dueAt: Date;
+    status: FinancialObligationStatus;
+  }>;
+}
+
 const RECEIVABLE_COLUMNS = `id, agency_id, sale_id, customer_id, description, amount,
   due_at, status, created_at, updated_at`;
 const PAYABLE_COLUMNS = `id, agency_id, sale_id, supplier_id, commission_id,
@@ -562,6 +590,146 @@ export async function getSaleMargin(database: DatabaseRuntime, saleId: string): 
       operationalCosts,
       commission,
       margin: roundMoney(revenue - supplierCosts - operationalCosts - commission),
+    };
+  });
+}
+
+export async function getFinancialSummary(database: DatabaseRuntime): Promise<FinancialSummary> {
+  const agencyId = getAgencyId();
+  return database.withTenantTransaction(async (client) => {
+    // This month's sales (PAID or CONFIRMED)
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+    const salesResult = await client.query<{ total: string; count: string }>(
+      `SELECT COALESCE(SUM(total), 0)::text AS total, COUNT(*)::text AS count
+       FROM sales
+       WHERE agency_id = $1
+         AND status IN ('PAID', 'CONFIRMED')
+         AND created_at >= $2
+         AND created_at <= $3`,
+      [agencyId, monthStart, monthEnd],
+    );
+    const salesRow = salesResult.rows[0];
+    const salesThisMonth = {
+      total: roundMoney(Number(salesRow?.total ?? 0)),
+      count: Number(salesRow?.count ?? 0),
+    };
+
+    // Total received (payments with direction IN)
+    const receivedResult = await client.query<{ total: string }>(
+      `SELECT COALESCE(SUM(amount), 0)::text AS total
+       FROM payments
+       WHERE agency_id = $1 AND direction = 'IN'`,
+      [agencyId],
+    );
+    const received = roundMoney(Number(receivedResult.rows[0]?.total ?? 0));
+
+    // Pending receivables (OPEN or PARTIALLY_PAID)
+    const pendingResult = await client.query<{ total: string }>(
+      `SELECT COALESCE(SUM(amount), 0)::text AS total
+       FROM receivables
+       WHERE agency_id = $1 AND status IN ('OPEN', 'PARTIALLY_PAID')`,
+      [agencyId],
+    );
+    const pending = roundMoney(Number(pendingResult.rows[0]?.total ?? 0));
+
+    // Expected margin (total revenue - total costs - commissions) for this month
+    const marginResult = await client.query<{
+      revenue: string;
+      supplier_costs: string;
+      operational_costs: string;
+      commissions: string;
+    }>(
+      `SELECT
+        COALESCE(SUM(s.total), 0)::text AS revenue,
+        COALESCE(SUM(CASE WHEN p.sale_id = s.id THEN p.amount ELSE 0 END), 0)::text AS supplier_costs,
+        COALESCE(SUM(CASE WHEN oc.sale_id = s.id THEN COALESCE(oc.actual_amount, oc.expected_amount, 0) ELSE 0 END), 0)::text AS operational_costs,
+        COALESCE(SUM(CASE WHEN c.sale_id = s.id THEN c.amount ELSE 0 END), 0)::text AS commissions
+       FROM sales s
+       LEFT JOIN payables p ON s.agency_id = p.agency_id AND s.id = p.sale_id
+       LEFT JOIN operational_costs oc ON s.agency_id = oc.agency_id AND s.id = oc.sale_id
+       LEFT JOIN commissions c ON s.agency_id = c.agency_id AND s.id = c.sale_id
+       WHERE s.agency_id = $1
+         AND s.status IN ('PAID', 'CONFIRMED')
+         AND s.created_at >= $2
+         AND s.created_at <= $3`,
+      [agencyId, monthStart, monthEnd],
+    );
+    const marginRow = marginResult.rows[0];
+    const revenue = Number(marginRow?.revenue ?? 0);
+    const supplierCosts = Number(marginRow?.supplier_costs ?? 0);
+    const operationalCosts = Number(marginRow?.operational_costs ?? 0);
+    const commissions = Number(marginRow?.commissions ?? 0);
+    const expectedMargin = roundMoney(revenue - supplierCosts - operationalCosts - commissions);
+
+    // Recent payments (last 10, ordered by date DESC)
+    const recentPaymentsResult = await client.query<{
+      id: string;
+      customer_id: string;
+      customer_name: string;
+      description: string;
+      amount: string;
+      occurred_at: string;
+    }>(
+      `SELECT p.id, r.customer_id, c.name AS customer_name,
+              r.description, p.amount, p.occurred_at
+       FROM payments p
+       LEFT JOIN payment_allocations pa ON p.agency_id = pa.agency_id AND p.id = pa.payment_id
+       LEFT JOIN receivables r ON p.agency_id = r.agency_id AND pa.receivable_id = r.id
+       LEFT JOIN customers c ON r.agency_id = c.agency_id AND r.customer_id = c.id
+       WHERE p.agency_id = $1 AND p.direction = 'IN'
+       ORDER BY p.occurred_at DESC
+       LIMIT 10`,
+      [agencyId],
+    );
+    const recentPayments = recentPaymentsResult.rows.map((row) => ({
+      id: row.id,
+      customerId: row.customer_id,
+      customerName: row.customer_name,
+      description: row.description || 'Pagamento',
+      amount: roundMoney(Number(row.amount)),
+      occurredAt: new Date(row.occurred_at),
+      status: 'PAID' as const,
+    }));
+
+    // Upcoming receivables (OPEN or PARTIALLY_PAID, ordered by due date)
+    const upcomingReceivablesResult = await client.query<{
+      id: string;
+      customer_id: string;
+      customer_name: string;
+      description: string;
+      amount: string;
+      due_at: string;
+      status: FinancialObligationStatus;
+    }>(
+      `SELECT r.id, r.customer_id, c.name AS customer_name, r.description,
+              r.amount, r.due_at, r.status
+       FROM receivables r
+       LEFT JOIN customers c ON r.agency_id = c.agency_id AND r.customer_id = c.id
+       WHERE r.agency_id = $1 AND r.status IN ('OPEN', 'PARTIALLY_PAID')
+       ORDER BY r.due_at ASC
+       LIMIT 10`,
+      [agencyId],
+    );
+    const upcomingReceivables = upcomingReceivablesResult.rows.map((row) => ({
+      id: row.id,
+      customerId: row.customer_id,
+      customerName: row.customer_name,
+      description: row.description,
+      amount: roundMoney(Number(row.amount)),
+      dueAt: new Date(row.due_at),
+      status: row.status,
+    }));
+
+    return {
+      salesThisMonth,
+      received,
+      pending,
+      expectedMargin,
+      recentPayments,
+      upcomingReceivables,
     };
   });
 }

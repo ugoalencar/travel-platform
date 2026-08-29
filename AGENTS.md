@@ -31,6 +31,7 @@ changes. Security and tenant isolation take priority over speed.
 - AI policies and restrictions: `.ai/policies/`
 - Operational AI checklists: `.ai/checklists/`
 - Product scope: `docs/00-product/`
+- Product vision and scope: `docs/PRODUCT-VISION-AND-SCOPE.md`
 - Architecture: `docs/01-architecture/`
 - Domain model: `docs/02-domain/`
 - Security: `docs/03-security/`
