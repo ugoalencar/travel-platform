@@ -166,24 +166,39 @@ describe('S3: MFA — TOTP + Recovery Codes', () => {
         period: 30,
       });
 
-      const testSecret = 'GEZDGNBVGY3TQOJQ';
-      const nowSeconds = Math.floor(Date.now() / 1000);
+      // Generate a fresh secret
+      const { secret: secretBase32 } = provider.generateSecret('user@example.com', 'TestApp');
 
-      // Generate code for 30 seconds in the future
-      const futureCode = HotpProvider.generateHotp(
-        Buffer.from([
-          0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38,
-          0x39, 0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36,
-          0x37, 0x38, 0x39, 0x30,
-        ]),
-        Math.floor(nowSeconds / 30) + 1,  // Next window
-        6,
-        'SHA1'
-      );
+      // Test the verification logic at a fixed point in time
+      const testTimeSeconds = 1234567890; // Known time for reproducibility
 
-      // Verify with current time (should accept due to ±1 skew)
-      const result = provider.verifyCode(testSecret, futureCode, nowSeconds);
-      expect(result.valid).toBe(true);
+      // Generate codes for past, current, and future windows
+      // Window = floor(seconds / 30)
+      const currentWindow = Math.floor(testTimeSeconds / 30);
+
+      // Generate HOTP codes for each window using raw secret bytes
+      // The secret is "12345678901234567890" for this test
+      const secretBytes = Buffer.from([
+        0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38,
+        0x39, 0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36,
+        0x37, 0x38, 0x39, 0x30,
+      ]);
+
+      // Generate a code for the current window
+      const currentCode = HotpProvider.generateHotp(secretBytes, currentWindow, 6, 'SHA1');
+
+      // Verify that a code for the current window is accepted
+      const resultCurrent = provider.verifyCode('GEZDGNBVGY3TQOJQ', currentCode, testTimeSeconds);
+      expect(resultCurrent.valid).toBe(true);
+      expect(resultCurrent.timeWindow).toBe(currentWindow);
+
+      // Generate a code for the next window (+30 seconds)
+      const nextCode = HotpProvider.generateHotp(secretBytes, currentWindow + 1, 6, 'SHA1');
+
+      // Verify that a code for the next window is accepted at current time (clock skew tolerance)
+      const resultNext = provider.verifyCode('GEZDGNBVGY3TQOJQ', nextCode, testTimeSeconds);
+      expect(resultNext.valid).toBe(true);
+      expect(resultNext.timeWindow).toBe(currentWindow + 1);
     });
 
     it('should reject codes outside tolerance window', () => {
