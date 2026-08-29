@@ -23,6 +23,13 @@ import { OfferDetailPage } from './pages/OfferDetailPage';
 import { CampaignsPage } from './pages/CampaignsPage';
 import { CouponsPage } from './pages/CouponsPage';
 import { FinancialPage } from './pages/FinancialPage';
+import { RevenuesPage } from './pages/RevenuesPage';
+import { ExpensesPage } from './pages/ExpensesPage';
+import { CategoriesPage } from './pages/CategoriesPage';
+import { CashTransactionsPage } from './pages/CashTransactionsPage';
+import { ReconciliationPage } from './pages/ReconciliationPage';
+import { DetailedReportsPage } from './pages/DetailedReportsPage';
+import { PescadorPage } from './pages/PescadorPage';
 import { ReportsPage } from './pages/ReportsPage';
 import { SettingsPage } from './pages/SettingsPage';
 
@@ -50,6 +57,13 @@ export function App() {
         <Route path="campaigns" element={<CampaignsPage />} />
         <Route path="coupons" element={<CouponsPage />} />
         <Route path="financial" element={<FinancialPage />} />
+        <Route path="financial/revenues" element={<RevenuesPage />} />
+        <Route path="financial/expenses" element={<ExpensesPage />} />
+        <Route path="financial/categories" element={<CategoriesPage />} />
+        <Route path="financial/cash-transactions" element={<CashTransactionsPage />} />
+        <Route path="financial/reconciliation" element={<ReconciliationPage />} />
+        <Route path="financial/reports" element={<DetailedReportsPage />} />
+        <Route path="pescador" element={<PescadorPage />} />
         <Route path="reports" element={<ReportsPage />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route path="*" element={<NotFoundPage />} />

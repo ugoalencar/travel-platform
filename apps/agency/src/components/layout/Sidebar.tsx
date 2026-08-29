@@ -15,7 +15,14 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Reservas', to: '/bookings' },
   { label: 'Vendas', to: '/sales' },
   { label: 'Ofertas', to: '/offers' },
+  { label: 'Pescador', to: '/pescador' },
   { label: 'Financeiro', to: '/financial' },
+  { label: '  Receitas', to: '/financial/revenues' },
+  { label: '  Despesas', to: '/financial/expenses' },
+  { label: '  Categorias', to: '/financial/categories' },
+  { label: '  Caixa', to: '/financial/cash-transactions' },
+  { label: '  Reconciliação', to: '/financial/reconciliation' },
+  { label: '  Relatórios', to: '/financial/reports' },
 ];
 
 export interface SidebarProps {
