@@ -30,40 +30,91 @@ export function CustomerTripsPage() {
   }, []);
 
   return (
-    <div className="flex flex-col gap-4">
-      <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Minhas viagens</h1>
+    <div className="flex flex-col gap-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight text-slate-900">Minhas viagens</h1>
+        <p className="mt-2 text-slate-600">Explore e gerencie todas as suas aventuras planejadas</p>
+      </div>
 
       <div aria-live="polite">
-        {state.status === 'loading' && <p className="text-sm text-slate-500">Carregando...</p>}
+        {state.status === 'loading' && (
+          <div className="flex items-center gap-2 text-sm text-slate-500">
+            <div className="h-2 w-2 rounded-full bg-slate-300 animate-pulse"></div>
+            Carregando...
+          </div>
+        )}
         {state.status === 'error' && (
-          <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-            {state.message}
+          <div className="rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-800">
+            <p className="font-medium">Ocorreu um erro</p>
+            <p className="mt-1">{state.message}</p>
           </div>
         )}
         {state.status === 'success' && state.trips.length === 0 && (
-          <p className="text-sm text-slate-500">Nenhuma viagem por aqui ainda.</p>
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-8 text-center">
+            <p className="text-2xl" aria-hidden="true">🌍</p>
+            <p className="mt-2 text-sm font-medium text-slate-600">Nenhuma viagem por aqui ainda.</p>
+            <p className="mt-1 text-xs text-slate-500">Fale com sua agência para agendar sua próxima aventura!</p>
+          </div>
         )}
       </div>
       {state.status === 'success' && (
-        <ul className="flex flex-col gap-3">
+        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {state.trips.map((trip) => (
             <li key={trip.id}>
-              <Link
-                to={`/customer-portal/trips/${trip.id}`}
-                className="block rounded-lg border border-slate-200 bg-white p-4 shadow-sm hover:border-teal-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
-              >
-                <p className="font-medium text-slate-900">{trip.name}</p>
-                <p className="text-sm text-slate-600">{trip.destination}</p>
-                <p className="text-xs text-slate-500">
-                  {new Date(trip.startDate).toLocaleDateString('pt-BR')} –{' '}
-                  {new Date(trip.endDate).toLocaleDateString('pt-BR')} ·{' '}
-                  {tripStatusLabel(trip.status)}
-                </p>
-              </Link>
+              <TripCard trip={trip} />
             </li>
           ))}
         </ul>
       )}
     </div>
   );
+}
+
+function TripCard({ trip }: { trip: Trip }) {
+  const startDate = new Date(trip.startDate);
+  const endDate = new Date(trip.endDate);
+  const isUpcoming = startDate.getTime() > Date.now();
+  const statusColorClass = getStatusColor(trip.status);
+
+  return (
+    <Link
+      to={`/customer-portal/trips/${trip.id}`}
+      className={`block rounded-xl border-2 p-5 shadow-md hover:shadow-lg transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${
+        isUpcoming
+          ? 'border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 hover:border-blue-300 focus-visible:outline-blue-600'
+          : 'border-slate-200 bg-white hover:border-slate-300 focus-visible:outline-slate-600'
+      }`}
+    >
+      <div className="flex items-start justify-between gap-2 mb-3">
+        <span className="text-2xl" aria-hidden="true">🧳</span>
+        <span className={`inline-block rounded-full px-2 py-1 text-xs font-semibold ${statusColorClass}`}>
+          {tripStatusLabel(trip.status)}
+        </span>
+      </div>
+      <h3 className="text-lg font-bold text-slate-900">{trip.name}</h3>
+      <p className="mt-1 text-sm font-medium text-slate-700">{trip.destination}</p>
+      <div className="mt-3 flex items-center gap-1 text-xs text-slate-600">
+        <span aria-hidden="true">📅</span>
+        <span>
+          {startDate.toLocaleDateString('pt-BR', { month: 'short', day: 'numeric' })} –{' '}
+          {endDate.toLocaleDateString('pt-BR', { month: 'short', day: 'numeric' })}
+        </span>
+      </div>
+      <div className="mt-2 flex items-center gap-1 text-xs text-slate-500">
+        <span aria-hidden="true">⏱️</span>
+        <span>{Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))} dias</span>
+      </div>
+    </Link>
+  );
+}
+
+function getStatusColor(status: string): string {
+  const colors: Record<string, string> = {
+    PLANNED: 'bg-slate-100 text-slate-800',
+    CONFIRMED: 'bg-green-100 text-green-800',
+    IN_PROGRESS: 'bg-blue-100 text-blue-800',
+    COMPLETED: 'bg-purple-100 text-purple-800',
+    CANCELLED: 'bg-red-100 text-red-800',
+  };
+  return colors[status] || 'bg-slate-100 text-slate-800';
 }
