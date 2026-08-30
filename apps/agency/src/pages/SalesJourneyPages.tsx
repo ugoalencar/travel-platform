@@ -265,7 +265,131 @@ export function ProposalDetailPage() {
   );
 }
 
+interface ItineraryItem {
+  type: 'transport' | 'accommodation' | 'activity';
+  description: string;
+  price: number;
+}
+
 export function ProposalBuilderPage() {
+  const navigate = useNavigate();
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [offers, setOffers] = useState<Offer[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  const [selectedBookingId, setSelectedBookingId] = useState('');
+  const [selectedOfferId, setSelectedOfferId] = useState('');
+  const [itineraryItems, setItineraryItems] = useState<ItineraryItem[]>([]);
+  const [proposedPrice, setProposedPrice] = useState<number>(0);
+  const [markupPercentage, setMarkupPercentage] = useState<number>(0);
+  const [conditions, setConditions] = useState('');
+  const [notes, setNotes] = useState('');
+
+  const [itemType, setItemType] = useState<'transport' | 'accommodation' | 'activity'>('transport');
+  const [itemDescription, setItemDescription] = useState('');
+  const [itemPrice, setItemPrice] = useState<number>(0);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const [bookingsData, offersData] = await Promise.all([
+          listBookings(),
+          listOffers(),
+        ]);
+        setBookings(bookingsData || []);
+        setOffers(offersData || []);
+      } catch (err) {
+        const message = err instanceof ApiError ? err.message : 'Não foi possível carregar os dados.';
+        setError(message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
+
+  const handleBookingChange = (bookingId: string) => {
+    setSelectedBookingId(bookingId);
+    setSelectedOfferId('');
+  };
+
+  const calculateTotal = (): number => {
+    const baseTotal = proposedPrice + itineraryItems.reduce((sum, item) => sum + item.price, 0);
+    const markupAmount = baseTotal * (markupPercentage / 100);
+    return baseTotal + markupAmount;
+  };
+
+  const addItineraryItem = () => {
+    if (itemDescription && itemPrice > 0) {
+      setItineraryItems([
+        ...itineraryItems,
+        { type: itemType, description: itemDescription, price: itemPrice },
+      ]);
+      setItemDescription('');
+      setItemPrice(0);
+      setItemType('transport');
+    }
+  };
+
+  const removeItineraryItem = (index: number) => {
+    setItineraryItems(itineraryItems.filter((_, i) => i !== index));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!selectedBookingId) {
+      setError('Selecione uma reserva.');
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      setError(null);
+
+      const selectedBooking = bookings.find(b => b.id === selectedBookingId);
+      if (!selectedBooking) {
+        throw new Error('Reserva não encontrada.');
+      }
+
+      const input: Parameters<typeof createProposal>[0] = {
+        customerId: selectedBooking.bookerCustomerId,
+        proposedPrice,
+      };
+
+      if (selectedOfferId) input.offerId = selectedOfferId;
+      if (markupPercentage < 0) input.discount = Math.abs(markupPercentage * proposedPrice / 100);
+      if (conditions) input.conditions = conditions;
+      if (notes) input.notes = notes;
+
+      const proposal = await createProposal(input);
+      navigate(`/proposals/${proposal.id}`);
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : 'Não foi possível criar a proposta.';
+      setError(message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <PageIntro
+          title="Builder de proposta"
+          description="Interface para compor uma proposta completa com itinerário, transporte, hospedagem e pricing."
+        />
+        <JourneyRail active="Proposal" />
+        <LoadingState label="Carregando dados..." />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <PageIntro
@@ -273,10 +397,250 @@ export function ProposalBuilderPage() {
         description="Interface para compor uma proposta completa com itinerário, transporte, hospedagem e pricing."
       />
       <JourneyRail active="Proposal" />
-      <EmptyState
-        title="Builder de proposta"
-        description="Esta funcionalidade ainda não está implementada. Aguarde a integração com o backend."
-      />
+
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {error && (
+          <Card className="border-red-200 bg-red-50">
+            <CardContent className="flex gap-3 pt-6">
+              <AlertCircle className="h-5 w-5 shrink-0 text-red-600" />
+              <p className="text-sm text-red-800">{error}</p>
+            </CardContent>
+          </Card>
+        )}
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Dados da reserva</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <label className="text-sm font-medium text-slate-700">Reserva *</label>
+              <Select
+                value={selectedBookingId}
+                onChange={(e) => handleBookingChange(e.target.value)}
+                required
+                className="mt-1"
+              >
+                <option value="">Selecione uma reserva</option>
+                {bookings.map((booking) => (
+                  <option key={booking.id} value={booking.id}>
+                    {booking.id} - {booking.bookerCustomerId}
+                  </option>
+                ))}
+              </Select>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-slate-700">Oferta</label>
+              <Select
+                value={selectedOfferId}
+                onChange={(e) => setSelectedOfferId(e.target.value)}
+                className="mt-1"
+              >
+                <option value="">Selecione uma oferta (opcional)</option>
+                {offers.map((offer) => (
+                  <option key={offer.id} value={offer.id}>
+                    {offer.name} - {formatBRL(offer.price)}
+                  </option>
+                ))}
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Preço</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <label className="text-sm font-medium text-slate-700">Preço proposto (BRL) *</label>
+              <Input
+                type="number"
+                step="0.01"
+                min="0"
+                value={proposedPrice}
+                onChange={(e) => setProposedPrice(parseFloat(e.target.value) || 0)}
+                required
+                className="mt-1"
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-slate-700">Markup/Desconto (%)</label>
+              <Input
+                type="number"
+                step="0.01"
+                value={markupPercentage}
+                onChange={(e) => setMarkupPercentage(parseFloat(e.target.value) || 0)}
+                className="mt-1"
+              />
+              <p className="mt-1 text-xs text-slate-500">Positivo para markup, negativo para desconto</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Itinerário</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-12">
+              <div className="md:col-span-3">
+                <label className="text-sm font-medium text-slate-700">Tipo</label>
+                <Select
+                  value={itemType}
+                  onChange={(e) => setItemType(e.target.value as 'transport' | 'accommodation' | 'activity')}
+                  className="mt-1"
+                >
+                  <option value="transport">Transporte</option>
+                  <option value="accommodation">Hospedagem</option>
+                  <option value="activity">Atividade</option>
+                </Select>
+              </div>
+
+              <div className="md:col-span-5">
+                <label className="text-sm font-medium text-slate-700">Descrição</label>
+                <Input
+                  type="text"
+                  value={itemDescription}
+                  onChange={(e) => setItemDescription(e.target.value)}
+                  placeholder="Ex: Voo São Paulo - Rio de Janeiro"
+                  className="mt-1"
+                />
+              </div>
+
+              <div className="md:col-span-3">
+                <label className="text-sm font-medium text-slate-700">Preço (BRL)</label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={itemPrice}
+                  onChange={(e) => setItemPrice(parseFloat(e.target.value) || 0)}
+                  className="mt-1"
+                />
+              </div>
+
+              <div className="flex items-end md:col-span-1">
+                <Button
+                  type="button"
+                  onClick={addItineraryItem}
+                  size="sm"
+                  variant="outline"
+                  className="w-full"
+                >
+                  Adicionar
+                </Button>
+              </div>
+            </div>
+
+            {itineraryItems.length > 0 && (
+              <div className="mt-6 space-y-2 border-t border-slate-200 pt-4">
+                <h4 className="text-sm font-medium text-slate-700">Itens adicionados</h4>
+                {itineraryItems.map((item, index) => (
+                  <div key={index} className="flex items-center justify-between rounded-md border border-slate-200 p-3">
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-slate-900">
+                        {item.type === 'transport' && 'Transporte'}
+                        {item.type === 'accommodation' && 'Hospedagem'}
+                        {item.type === 'activity' && 'Atividade'}: {item.description}
+                      </p>
+                      <p className="text-sm text-slate-600">{formatBRL(item.price)}</p>
+                    </div>
+                    <Button
+                      type="button"
+                      onClick={() => removeItineraryItem(index)}
+                      size="sm"
+                      variant="outline"
+                      className="ml-4 text-red-600 hover:bg-red-50"
+                    >
+                      Remover
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="border-slate-300 bg-slate-50">
+          <CardHeader>
+            <CardTitle>Resumo do preço</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-slate-600">Preço proposto:</span>
+              <span className="font-medium text-slate-950">{formatBRL(proposedPrice)}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-slate-600">Itinerário:</span>
+              <span className="font-medium text-slate-950">
+                {formatBRL(itineraryItems.reduce((sum, item) => sum + item.price, 0))}
+              </span>
+            </div>
+            {markupPercentage !== 0 && (
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-600">Markup/Desconto:</span>
+                <span className={`font-medium ${markupPercentage > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {markupPercentage > 0 ? '+' : ''}{formatBRL((proposedPrice + itineraryItems.reduce((sum, item) => sum + item.price, 0)) * (markupPercentage / 100))}
+                </span>
+              </div>
+            )}
+            <div className="border-t border-slate-300 pt-2">
+              <div className="flex justify-between">
+                <span className="font-semibold text-slate-950">Total:</span>
+                <span className="text-lg font-bold text-slate-950">{formatBRL(calculateTotal())}</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Termos e condições</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <label className="text-sm font-medium text-slate-700">Condições da proposta</label>
+              <Textarea
+                value={conditions}
+                onChange={(e) => setConditions(e.target.value)}
+                placeholder="Descreva as condições e termos da proposta..."
+                className="mt-1"
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-slate-700">Observações</label>
+              <Textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Adicione observações adicionais..."
+                className="mt-1"
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="flex gap-3">
+          <Button
+            type="submit"
+            disabled={submitting || !selectedBookingId}
+            className="bg-slate-950 text-white hover:bg-slate-800"
+          >
+            {submitting ? 'Salvando...' : 'Salvar proposta'}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => navigate('/proposals')}
+            disabled={submitting}
+          >
+            Cancelar
+          </Button>
+        </div>
+      </form>
     </div>
   );
 }
