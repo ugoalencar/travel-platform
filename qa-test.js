@@ -246,8 +246,7 @@ async function runQATests() {
   ];
 
   const browser = await chromium.launch({ headless: true });
-  const context = await browser.createBrowserContext();
-  const page = await context.newPage();
+  const page = await browser.newPage();
 
   // Test Agency Portal
   console.log('\n' + '='.repeat(60));
@@ -267,7 +266,6 @@ async function runQATests() {
     await testPage(page, pageConfig.url, pageConfig.name, screenshotDir);
   }
 
-  await context.close();
   await browser.close();
 
   // Generate report
