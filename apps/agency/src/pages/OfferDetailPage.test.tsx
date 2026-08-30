@@ -104,11 +104,11 @@ describe('OfferDetailPage', () => {
     const editButton = screen.getByRole('button', { name: /editar/i });
     await user.click(editButton);
 
-    const nameInput = screen.getAllByPlaceholderText(/ex: pacote portugal/i)[0];
+    const nameInput = screen.getAllByPlaceholderText(/ex: pacote portugal/i)[0]!;
     await user.clear(nameInput);
     await user.type(nameInput, 'Portugal Atualizado');
 
-    const priceInput = screen.getAllByPlaceholderText('0,00')[0];
+    const priceInput = screen.getAllByPlaceholderText('0,00')[0]!;
     await user.clear(priceInput);
     await user.type(priceInput, '1800');
 
@@ -162,7 +162,7 @@ describe('OfferDetailPage', () => {
     const nameInput = screen.getAllByPlaceholderText(/ex: pacote portugal/i)[1];
     expect(nameInput).toHaveValue('Portugal em família (Cópia)');
 
-    const duplicateCreateButton = screen.getAllByRole('button', { name: /duplicar/i })[1];
+    const duplicateCreateButton = screen.getAllByRole('button', { name: /duplicar/i })[1]!;
     await user.click(duplicateCreateButton);
 
     await waitFor(() => {
@@ -200,7 +200,7 @@ describe('OfferDetailPage', () => {
     const archiveButton = screen.getByRole('button', { name: /arquivar/i });
     await user.click(archiveButton);
 
-    const confirmArchiveButton = screen.getAllByRole('button', { name: /arquivar/i })[1];
+    const confirmArchiveButton = screen.getAllByRole('button', { name: /arquivar/i })[1]!;
     await user.click(confirmArchiveButton);
 
     await waitFor(() => {
@@ -233,8 +233,8 @@ describe('OfferDetailPage', () => {
     const editButton = screen.getByRole('button', { name: /editar/i });
     await user.click(editButton);
 
-    const fromInput = screen.getAllByDisplayValue('2026-01-01')[0];
-    const toInput = screen.getAllByDisplayValue('2026-11-30')[0];
+    const fromInput = screen.getAllByDisplayValue('2026-01-01')[0]!;
+    const toInput = screen.getAllByDisplayValue('2026-11-30')[0]!;
 
     await user.clear(toInput);
     await user.type(toInput, '2025-12-31');
