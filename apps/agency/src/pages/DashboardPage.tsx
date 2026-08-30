@@ -118,39 +118,39 @@ export function DashboardPage() {
   const { summary, upcomingDeparturesCount, proposalsWaiting, recentInteractions } = state;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader title="Dashboard" description="Visão geral das operações da agência." />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         <StatCard
           label="Vendas (mês)"
           value={formatBRL(Number(summary.salesThisMonthTotal))}
-          icon={<TrendingUp className="h-4 w-4" />}
+          icon={<TrendingUp className="h-5 w-5" />}
         />
         <StatCard
           label="Propostas aguardando resposta"
           value={String(summary.proposalsWaitingCount)}
-          icon={<FileText className="h-4 w-4" />}
+          icon={<FileText className="h-5 w-5" />}
         />
         <StatCard
           label="Viagens futuras"
           value={String(summary.upcomingTripsCount)}
-          icon={<Map className="h-4 w-4" />}
+          icon={<Map className="h-5 w-5" />}
         />
         <StatCard
           label="Próximas partidas (7 dias)"
           value={String(upcomingDeparturesCount)}
-          icon={<Plane className="h-4 w-4" />}
+          icon={<Plane className="h-5 w-5" />}
         />
         <StatCard
           label="Vendas pendentes"
           value={String(summary.pendingSalesCount)}
-          icon={<Wallet className="h-4 w-4" />}
+          icon={<Wallet className="h-5 w-5" />}
         />
         <StatCard
           label="Follow-ups hoje"
           value={String(summary.followUpsDueTodayCount)}
-          icon={<CalendarClock className="h-4 w-4" />}
+          icon={<CalendarClock className="h-5 w-5" />}
         />
       </div>
 
