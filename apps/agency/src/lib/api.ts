@@ -778,6 +778,69 @@ export async function listRevenueCategories(): Promise<RevenueCategory[]> {
 }
 
 // ============================================================
+// FINANCIAL CATEGORIES (GET /financial/categories)
+// ============================================================
+
+export type CategoryType = 'REVENUE' | 'EXPENSE';
+
+export interface FinancialCategory {
+  id: string;
+  agencyId: string;
+  name: string;
+  type: CategoryType;
+  description?: string;
+  is_active: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateCategoryInput {
+  name: string;
+  type: CategoryType;
+  description?: string;
+  is_active?: boolean;
+}
+
+export interface UpdateCategoryInput {
+  name?: string;
+  type?: CategoryType;
+  description?: string;
+  is_active?: boolean;
+}
+
+export async function listCategories(): Promise<FinancialCategory[]> {
+  const data = await request<{ categories: FinancialCategory[] }>('/api/financial/categories');
+  return data.categories;
+}
+
+export async function getCategory(id: string): Promise<FinancialCategory> {
+  const data = await request<{ category: FinancialCategory }>(`/api/financial/categories/${encodeURIComponent(id)}`);
+  return data.category;
+}
+
+export async function createCategory(input: CreateCategoryInput): Promise<FinancialCategory> {
+  const data = await request<{ category: FinancialCategory }>('/api/financial/categories', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+  return data.category;
+}
+
+export async function updateCategory(id: string, input: UpdateCategoryInput): Promise<FinancialCategory> {
+  const data = await request<{ category: FinancialCategory }>(`/api/financial/categories/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(input),
+  });
+  return data.category;
+}
+
+export async function deleteCategory(id: string): Promise<void> {
+  await request<void>(`/api/financial/categories/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  });
+}
+
+// ============================================================
 // EXPENSES (GET /financial/expenses)
 // ============================================================
 
