@@ -27,6 +27,8 @@ import helmet from '@fastify/helmet';
 import { createAuthenticateHook, type AuthProvider } from './auth';
 import { createCustomerAuthenticateHook, type CustomerAuthProvider } from './customer-auth';
 import type { DatabaseRuntime } from './database';
+import { registerCustomerDocumentRoutes } from './routes/customer-documents';
+import type { OcrProviderContract } from './ocr-provider';
 import {
   CorsOriginNotAllowedError,
   NotFoundError,
@@ -364,6 +366,11 @@ export interface BuildAppOptions {
   // stays exercisable and reviewable even before a caller opts in.
   customerAuthProvider?: CustomerAuthProvider;
   validateCustomerAgencyAccess?: ValidateCustomerAgencyAccess;
+  // Customer 360: OCR backend for the document-extraction endpoints. The
+  // contract lives in ocr-provider.ts and no vendor SDK is referenced here;
+  // when omitted, the in-memory MockOcrProvider is used so the extraction
+  // route surface stays exercisable before a real provider is configured.
+  ocrProvider?: OcrProviderContract;
   readinessCheck?: () => Promise<void>;
   rateLimit?: RateLimitOptions;
   // Offer & Growth Engine: platform-scoped entitlement-write stopgap
@@ -687,6 +694,15 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
         name: agency.name,
       },
     };
+  });
+
+  // Customer 360 (Task 4): addresses, dependents, documents, attachments,
+  // OCR extraction, verification and the document audit trail. Registered as
+  // one unit from its own module -- see routes/customer-documents.ts.
+  registerCustomerDocumentRoutes(app, {
+    database: options.database,
+    protectedHooks,
+    ...(options.ocrProvider ? { ocrProvider: options.ocrProvider } : {}),
   });
 
   app.get('/customers', { preHandler: protectedHooks }, async () => {
