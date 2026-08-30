@@ -128,7 +128,7 @@ export function ProposalListPage() {
             </tr>
           </thead>
           <tbody>
-            {/* eslint-disable-next-line @typescript-eslint/no-unsafe-return */}
+            { }
             {proposals.map((proposal: Proposal) => (
               <tr key={proposal.id} className="border-b border-slate-100 last:border-0">
                 <td className="px-4 py-4 font-medium text-slate-950">{proposal.customerId}</td>
@@ -213,7 +213,7 @@ export function ProposalDetailPage() {
 
   const proposal = state.data;
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-assignment
+   
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -247,17 +247,17 @@ export function ProposalDetailPage() {
           <CardTitle>Informacoes da proposta</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-5 md:grid-cols-2">
-          {/* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-argument */}
+          { }
           <Field label="Cliente" value={proposal.customerId} />
-          {/* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-argument */}
+          { }
           <Field label="Preco proposto" value={formatBRL(proposal.proposedPrice)} />
-          {/* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-argument */}
+          { }
           <Field label="Desconto" value={formatBRL(proposal.discount)} />
-          {/* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-argument */}
+          { }
           <Field label="Total" value={formatBRL(proposal.total)} />
-          {/* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-argument */}
+          { }
           <Field label="Status" value={statusLabel(proposal.status)} />
-          {/* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access */}
+          { }
           {proposal.validUntil && <Field label="Valido ate" value={proposal.validUntil} />}
         </CardContent>
       </Card>
@@ -347,7 +347,7 @@ export function BookingListPage() {
             </tr>
           </thead>
           <tbody>
-            {/* eslint-disable-next-line @typescript-eslint/no-unsafe-return */}
+            { }
             {bookings.map((booking: Booking) => (
               <tr key={booking.id} className="border-b border-slate-100 last:border-0">
                 <td className="px-4 py-4 font-medium text-slate-950">{booking.bookerCustomerId}</td>
@@ -425,7 +425,7 @@ export function BookingDetailPage() {
 
   const booking = state.data;
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-assignment
+   
   return (
     <div className="space-y-6">
       <PageIntro
@@ -438,13 +438,13 @@ export function BookingDetailPage() {
           <CardTitle>Informacoes da reserva</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-5 md:grid-cols-2">
-          {/* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access */}
+          { }
           <Field label="Cliente" value={booking.bookerCustomerId} />
-          {/* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access */}
+          { }
           <Field label="Tipo" value={booking.tripType} />
-          {/* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access */}
+          { }
           <Field label="Status" value={booking.cancelled ? 'Cancelada' : 'Confirmada'} />
-          {/* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-argument */}
+          { }
           <Field
             label="Criada em"
             value={new Date(booking.createdAt).toLocaleDateString('pt-BR')}

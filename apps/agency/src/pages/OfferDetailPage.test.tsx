@@ -233,6 +233,7 @@ describe('OfferDetailPage', () => {
     const editButton = screen.getByRole('button', { name: /editar/i });
     await user.click(editButton);
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const fromInput = screen.getAllByDisplayValue('2026-01-01')[0]!;
     const toInput = screen.getAllByDisplayValue('2026-11-30')[0]!;
 

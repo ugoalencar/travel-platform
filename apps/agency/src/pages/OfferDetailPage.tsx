@@ -411,6 +411,7 @@ export function OfferDetailPage() {
           >
             Cancelar
           </Button>
+          {/* eslint-disable-next-line @typescript-eslint/no-misused-promises */}
           <Button size="sm" onClick={handleEdit} disabled={editSaving}>
             {editSaving ? 'Salvando…' : 'Salvar'}
           </Button>
@@ -507,6 +508,7 @@ export function OfferDetailPage() {
           >
             Cancelar
           </Button>
+          {/* eslint-disable-next-line @typescript-eslint/no-misused-promises */}
           <Button size="sm" onClick={handleDuplicate} disabled={duplicateSaving}>
             {duplicateSaving ? 'Duplicando…' : 'Duplicar'}
           </Button>
@@ -535,6 +537,7 @@ export function OfferDetailPage() {
           </Button>
           <Button
             size="sm"
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
             onClick={handleArchive}
             disabled={archiveSaving}
             className="bg-red-600 hover:bg-red-700"

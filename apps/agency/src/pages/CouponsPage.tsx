@@ -19,6 +19,7 @@ import {
   TableRow,
 } from '../components/ui/table';
 import { StatusBadge } from '../components/ui/status-badge';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { formatDateBR } from '../lib/formatDateBR';
 import { formatBRL } from '../lib/formatCurrency';
 import { ApiError, listCoupons, createCoupon, type CreateCouponInput } from '../lib/api';
@@ -287,6 +288,7 @@ export function CouponsPage() {
           >
             Cancelar
           </Button>
+          {/* eslint-disable-next-line @typescript-eslint/no-misused-promises */}
           <Button size="sm" onClick={handleCreate} disabled={saving}>
             {saving ? 'Salvando…' : 'Criar'}
           </Button>

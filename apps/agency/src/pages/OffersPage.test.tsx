@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { cleanup, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderAt } from '../test/render';

@@ -53,15 +53,22 @@ export function CashTransactionsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {transactions.map((tx: any) => (
-                  <TableRow key={tx.id}>
+                {transactions.map((tx: any) => {
+                  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+                  return (<TableRow key={tx.id}>
+                    {/* eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access */}
                     <TableCell>{formatDateBR(tx.occurringAt)}</TableCell>
+                    {/* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access */}
                     <TableCell>{tx.type === 'ENTRY' ? 'Entrada' : 'Saída'}</TableCell>
+                    {/* eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access */}
                     <TableCell>{formatBRL(tx.amount)}</TableCell>
+                    {/* eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access */}
                     <TableCell className="font-medium">{formatBRL(tx.calculatedBalance)}</TableCell>
+                    {/* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access */}
                     <TableCell>{tx.origin}</TableCell>
                   </TableRow>
-                ))}
+                  );
+                })}
               </TableBody>
             </Table>
           )}

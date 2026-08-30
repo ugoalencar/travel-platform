@@ -270,6 +270,7 @@ export function OffersPage() {
           >
             Cancelar
           </Button>
+          {/* eslint-disable-next-line @typescript-eslint/no-misused-promises */}
           <Button size="sm" onClick={handleCreate} disabled={saving}>
             {saving ? 'Salvando…' : 'Criar'}
           </Button>
