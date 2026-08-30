@@ -979,8 +979,8 @@ export interface CreateReconciliationInput {
   reconciliation_date: string;
   expected_amount: number;
   actual_amount: number;
-  payment_id?: string;
-  notes?: string;
+  payment_id?: string | undefined;
+  notes?: string | undefined;
 }
 
 export interface UpdateReconciliationInput {
