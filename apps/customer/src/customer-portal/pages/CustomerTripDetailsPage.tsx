@@ -51,36 +51,53 @@ export function CustomerTripDetailsPage() {
 }
 
 function TripDetails({ trip }: { trip: Trip }) {
+  const startDate = new Date(trip.startDate);
+  const endDate = new Date(trip.endDate);
+  const durationDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+
   return (
-    <>
-      <h1 className="text-2xl font-semibold tracking-tight text-slate-900">{trip.name}</h1>
-      <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-        <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <Detail label="Destino" value={trip.destination} />
-          <Detail label="Status" value={tripStatusLabel(trip.status)} />
-          <Detail label="Início" value={new Date(trip.startDate).toLocaleDateString('pt-BR')} />
-          <Detail label="Fim" value={new Date(trip.endDate).toLocaleDateString('pt-BR')} />
-          {trip.description && (
-            <div className="sm:col-span-2">
-              <Detail label="Descrição" value={trip.description} />
-            </div>
-          )}
-        </dl>
+    <div className="flex flex-col gap-6">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900">{trip.name}</h1>
+          <p className="mt-2 text-xl text-slate-700">{trip.destination}</p>
+        </div>
+        <span className="inline-block rounded-full bg-blue-100 px-4 py-2 text-sm font-semibold text-blue-900">
+          {tripStatusLabel(trip.status)}
+        </span>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="rounded-xl border-2 border-slate-200 bg-gradient-to-br from-blue-50 to-indigo-50 p-5 shadow-sm">
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-600 mb-3">📅 Datas</h3>
+          <div className="space-y-3">
+            <DetailItem label="Início" value={startDate.toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} />
+            <DetailItem label="Fim" value={endDate.toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} />
+            <DetailItem label="Duração" value={`${durationDays} dias`} />
+          </div>
+        </div>
+
+        {trip.description && (
+          <div className="rounded-xl border-2 border-slate-200 bg-white p-5 shadow-sm">
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-600 mb-3">📝 Descrição</h3>
+            <p className="text-slate-700 leading-relaxed">{trip.description}</p>
+          </div>
+        )}
       </div>
       {/* Trip.notes (internal agency notes) is intentionally never rendered
           here -- the backend already excludes it from the response (see
           services/api/src/customer-portal.ts toTrip), so it isn't even
           available on this object, but this component also never reads a
           `notes` field as defense in depth. */}
-    </>
+    </div>
   );
 }
 
-function Detail({ label, value }: { label: string; value: string }) {
+function DetailItem({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <dt className="text-xs font-medium uppercase tracking-wide text-slate-500">{label}</dt>
-      <dd className="text-sm text-slate-900">{value}</dd>
+      <dt className="text-xs font-semibold uppercase tracking-wide text-slate-600">{label}</dt>
+      <dd className="mt-1 text-sm font-medium text-slate-900">{value}</dd>
     </div>
   );
 }

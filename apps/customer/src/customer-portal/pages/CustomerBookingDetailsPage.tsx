@@ -60,57 +60,80 @@ function BookingDetails({
   booking: CustomerBookingView;
   passengers: BookingPassenger[];
 }) {
+  const departureDate = new Date(booking.departureAt);
+  const isFuture = booking.isFuture !== false;
+  const statusLabel = bookingStatusLabel(booking);
+
   return (
-    <>
-      <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
-        {booking.origin} → {booking.destination}
-      </h1>
-      <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-        <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <Detail label="Produto" value={booking.productName} />
-          <Detail label="Tipo de viagem" value={tripTypeLabel(booking.tripType)} />
-          <Detail
-            label="Data de partida"
-            value={new Date(booking.departureAt).toLocaleDateString('pt-BR')}
-          />
-          <Detail
-            label="Horário de partida"
-            value={new Date(booking.departureAt).toLocaleTimeString('pt-BR', {
-              hour: '2-digit',
-              minute: '2-digit',
-            })}
-          />
-          <Detail label="Status" value={bookingStatusLabel(booking)} />
-          <Detail label="Passageiros" value={String(booking.passengerCount)} />
-        </dl>
-        {booking.notes && <p className="mt-3 text-sm text-slate-600">{booking.notes}</p>}
+    <div className="flex flex-col gap-6">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900">
+            {booking.origin} <span className="text-slate-400">→</span> {booking.destination}
+          </h1>
+          <p className="mt-2 text-lg text-slate-700">{booking.productName}</p>
+        </div>
+        <span className={`inline-block rounded-full px-4 py-2 text-sm font-semibold ${
+          isFuture && !booking.cancelled
+            ? 'bg-green-100 text-green-900'
+            : 'bg-slate-100 text-slate-900'
+        }`}>
+          {statusLabel}
+        </span>
       </div>
 
-      <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-        <h2 className="mb-2 text-sm font-medium uppercase tracking-wide text-slate-500">
-          Passageiros
-        </h2>
-        {passengers.length === 0 && (
-          <p className="text-sm text-slate-500">Nenhum passageiro cadastrado.</p>
-        )}
-        <ul className="flex flex-col gap-1">
-          {passengers.map((passenger) => (
-            <li key={passenger.id} className="text-sm text-slate-900">
-              {passenger.name}
-            </li>
-          ))}
-        </ul>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="rounded-xl border-2 border-slate-200 bg-gradient-to-br from-green-50 to-emerald-50 p-5 shadow-sm">
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-600 mb-3">✈️ Detalhes da viagem</h3>
+          <div className="space-y-3">
+            <DetailItem label="Tipo de viagem" value={tripTypeLabel(booking.tripType)} />
+            <DetailItem
+              label="Data de partida"
+              value={departureDate.toLocaleDateString('pt-BR', { weekday: 'short', year: 'numeric', month: 'long', day: 'numeric' })}
+            />
+            <DetailItem
+              label="Horário de partida"
+              value={departureDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+            />
+          </div>
+        </div>
+
+        <div className="rounded-xl border-2 border-slate-200 bg-white p-5 shadow-sm">
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-600 mb-3">👥 Passageiros</h3>
+          {passengers.length === 0 ? (
+            <p className="text-sm text-slate-500">Nenhum passageiro cadastrado.</p>
+          ) : (
+            <ul className="space-y-2">
+              {passengers.map((passenger) => (
+                <li key={passenger.id} className="flex items-center gap-2">
+                  <span className="text-slate-400" aria-hidden="true">•</span>
+                  <span className="text-sm font-medium text-slate-900">{passenger.name}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+          <p className="mt-3 text-xs text-slate-500 pt-3 border-t border-slate-200">
+            Total: {booking.passengerCount} {booking.passengerCount === 1 ? 'passageiro' : 'passageiros'}
+          </p>
+        </div>
       </div>
+
+      {booking.notes && (
+        <div className="rounded-xl border-2 border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 p-5 shadow-sm">
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-amber-900 mb-2">📌 Observações</h3>
+          <p className="text-sm text-amber-800">{booking.notes}</p>
+        </div>
+      )}
       {/* Deliberately no cancel button in this vertical. */}
-    </>
+    </div>
   );
 }
 
-function Detail({ label, value }: { label: string; value: string }) {
+function DetailItem({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <dt className="text-xs font-medium uppercase tracking-wide text-slate-500">{label}</dt>
-      <dd className="text-sm text-slate-900">{value}</dd>
+      <dt className="text-xs font-semibold uppercase tracking-wide text-slate-600">{label}</dt>
+      <dd className="mt-1 text-sm font-medium text-slate-900">{value}</dd>
     </div>
   );
 }

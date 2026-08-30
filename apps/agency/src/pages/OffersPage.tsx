@@ -190,9 +190,9 @@ export function OffersPage() {
         }}
         title="Nova Oferta"
       >
-        <div className="space-y-4">
+        <div className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label className="block text-sm font-semibold text-slate-900 mb-2">
               Nome da Oferta *
             </label>
             <Input
@@ -203,7 +203,7 @@ export function OffersPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label className="block text-sm font-semibold text-slate-900 mb-2">
               Descrição
             </label>
             <Textarea
@@ -215,7 +215,7 @@ export function OffersPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label className="block text-sm font-semibold text-slate-900 mb-2">
               Preço (BRL) *
             </label>
             <Input
@@ -230,7 +230,7 @@ export function OffersPage() {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
+              <label className="block text-sm font-semibold text-slate-900 mb-2">
                 Válida de
               </label>
               <Input
@@ -240,7 +240,7 @@ export function OffersPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
+              <label className="block text-sm font-semibold text-slate-900 mb-2">
                 Válida até
               </label>
               <Input
@@ -252,12 +252,12 @@ export function OffersPage() {
           </div>
 
           {formError && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-700">
+            <div className="p-3 bg-red-50 border border-red-200 rounded-md text-sm font-medium text-red-700">
               {formError}
             </div>
           )}
         </div>
-        <div className="flex gap-3 justify-end border-t border-slate-200 p-4">
+        <div className="flex gap-3 justify-end border-t border-slate-100 bg-slate-50/50 p-5">
           <Button
             variant="outline"
             size="sm"

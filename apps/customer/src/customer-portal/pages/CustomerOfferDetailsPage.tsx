@@ -51,21 +51,51 @@ export function CustomerOfferDetailsPage() {
 }
 
 function OfferDetails({ offer }: { offer: Offer }) {
+  const validFromDate = offer.validFrom ? new Date(offer.validFrom) : null;
+  const validUntilDate = offer.validUntil ? new Date(offer.validUntil) : null;
+
   return (
-    <>
-      <OfferImagePlaceholder name={offer.name} className="h-40 rounded-lg text-4xl" />
-      <h1 className="text-2xl font-semibold tracking-tight text-slate-900">{offer.name}</h1>
-      <p className="text-lg font-medium text-teal-700">
-        {offer.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-      </p>
-      {(offer.validFrom || offer.validUntil) && (
-        <p className="text-sm text-slate-500">
-          Válida{offer.validFrom ? ` de ${new Date(offer.validFrom).toLocaleDateString('pt-BR')}` : ''}
-          {offer.validUntil ? ` até ${new Date(offer.validUntil).toLocaleDateString('pt-BR')}` : ''}
-        </p>
+    <div className="flex flex-col gap-6">
+      <div>
+        <OfferImagePlaceholder name={offer.name} className="h-48 rounded-xl text-5xl" />
+      </div>
+
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex-1">
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900">{offer.name}</h1>
+          <p className="mt-2 text-3xl font-bold text-purple-700">
+            {offer.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+          </p>
+        </div>
+      </div>
+
+      {offer.description && (
+        <div className="rounded-xl border-2 border-slate-200 bg-white p-5 shadow-sm">
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-600 mb-3">📝 Descrição</h3>
+          <p className="text-slate-700 leading-relaxed">{offer.description}</p>
+        </div>
       )}
-      {offer.description && <p className="text-sm text-slate-600">{offer.description}</p>}
+
+      {(validFromDate || validUntilDate) && (
+        <div className="rounded-xl border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-indigo-50 p-5 shadow-sm">
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-600 mb-3">⏰ Validade</h3>
+          <div className="space-y-2 text-sm">
+            {validFromDate && (
+              <p>
+                <span className="font-medium text-slate-600">Válida a partir de: </span>
+                <span className="text-slate-900">{validFromDate.toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+              </p>
+            )}
+            {validUntilDate && (
+              <p>
+                <span className="font-medium text-slate-600">Válida até: </span>
+                <span className="text-slate-900">{validUntilDate.toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+              </p>
+            )}
+          </div>
+        </div>
+      )}
       {/* No purchase/checkout flow yet -- this vertical is informational only. */}
-    </>
+    </div>
   );
 }

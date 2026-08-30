@@ -163,7 +163,7 @@ export function PescadorPage() {
   const captures = state.status === 'success' ? state.captures : null;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader
         title="Captura de Ofertas"
         description="Importar ofertas de URLs externas."
@@ -174,9 +174,9 @@ export function PescadorPage() {
         <CardHeader>
           <CardTitle>Nova Captura</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label className="block text-sm font-semibold text-slate-900 mb-2">
               URL da Oferta *
             </label>
             <div className="flex gap-2">
@@ -237,14 +237,14 @@ export function PescadorPage() {
                 <TableBody>
                   {captures.map((capture) => (
                     <TableRow key={capture.id}>
-                      <TableCell className="text-xs font-mono max-w-xs truncate">
+                      <TableCell className="text-xs font-mono max-w-xs truncate text-slate-600">
                         {capture.sourceUrl}
                       </TableCell>
-                      <TableCell className="text-sm">{capture.sourceName}</TableCell>
-                      <TableCell className="text-sm">
+                      <TableCell className="text-sm font-medium">{capture.sourceName}</TableCell>
+                      <TableCell className="text-sm text-slate-900">
                         {capture.normalizedTitle || '—'}
                       </TableCell>
-                      <TableCell className="text-sm">
+                      <TableCell className="text-sm font-medium">
                         {capture.foundPrice || '—'}
                       </TableCell>
                       <TableCell>
@@ -275,7 +275,7 @@ export function PescadorPage() {
                         <button
                           onClick={() => void handleDeleteCapture(capture.id)}
                           disabled={deletingId === capture.id || savingOffer}
-                          className="inline-flex h-8 items-center justify-center gap-2 rounded-md px-3 text-red-600 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="inline-flex h-8 items-center justify-center gap-2 rounded-md px-3 text-red-600 hover:bg-red-50 hover:text-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
                           aria-label="Deletar captura"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -300,13 +300,14 @@ export function PescadorPage() {
         }}
         title="Criar Oferta"
       >
-        <div className="space-y-4">
-          <div className="p-3 bg-slate-50 rounded-md text-sm text-slate-600">
-            <strong>URL:</strong> {selectedCapture?.sourceUrl}
+        <div className="space-y-5">
+          <div className="p-3 bg-slate-50 rounded-md text-sm text-slate-600 border border-slate-200">
+            <p className="font-medium">URL da captura:</p>
+            <p className="text-xs font-mono break-all mt-1">{selectedCapture?.sourceUrl}</p>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label className="block text-sm font-semibold text-slate-900 mb-2">
               Nome da Oferta *
             </label>
             <Input
@@ -317,7 +318,7 @@ export function PescadorPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label className="block text-sm font-semibold text-slate-900 mb-2">
               Descrição
             </label>
             <Textarea
@@ -329,7 +330,7 @@ export function PescadorPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label className="block text-sm font-semibold text-slate-900 mb-2">
               Preço (BRL) *
             </label>
             <Input
@@ -344,7 +345,7 @@ export function PescadorPage() {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
+              <label className="block text-sm font-semibold text-slate-900 mb-2">
                 Válida de
               </label>
               <Input
@@ -354,7 +355,7 @@ export function PescadorPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
+              <label className="block text-sm font-semibold text-slate-900 mb-2">
                 Válida até
               </label>
               <Input
@@ -366,12 +367,12 @@ export function PescadorPage() {
           </div>
 
           {formError && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-700">
+            <div className="p-3 bg-red-50 border border-red-200 rounded-md text-sm font-medium text-red-700">
               {formError}
             </div>
           )}
         </div>
-        <div className="flex gap-3 justify-end border-t border-slate-200 p-4">
+        <div className="flex gap-3 justify-end border-t border-slate-100 bg-slate-50/50 p-5">
           <Button
             variant="outline"
             size="sm"
