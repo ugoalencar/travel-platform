@@ -81,11 +81,6 @@ CREATE TABLE IF NOT EXISTS customer_addresses (
   CONSTRAINT customer_addresses_agency_id_key
     UNIQUE (agency_id, id),
 
-  -- One primary address per customer per tenant (WHERE is_primary = true)
-  CONSTRAINT customer_addresses_one_primary_per_customer
-    UNIQUE (agency_id, customer_id, is_primary)
-    WHERE is_primary = true,
-
   -- CHECK: Required fields are not blank
   CONSTRAINT customer_addresses_not_blank_check
     CHECK (
@@ -111,3 +106,14 @@ CREATE INDEX IF NOT EXISTS customer_addresses_agency_customer_idx
 CREATE INDEX IF NOT EXISTS customer_addresses_agency_customer_primary_idx
   ON customer_addresses (agency_id, customer_id, is_primary)
   WHERE deleted_at IS NULL AND is_primary = true;
+
+-- ============================================================
+-- PART 5: PRIMARY ADDRESS UNIQUENESS CONSTRAINT
+-- ============================================================
+-- Ensure only one primary address per customer per tenant.
+-- Uses partial unique index instead of table-level constraint
+-- (PostgreSQL 15 syntax requirement).
+
+CREATE UNIQUE INDEX IF NOT EXISTS customer_addresses_one_primary_per_customer_idx
+  ON customer_addresses (agency_id, customer_id)
+  WHERE is_primary = true;

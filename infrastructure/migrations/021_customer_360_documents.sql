@@ -20,7 +20,6 @@ CREATE TABLE customer_documents (
   issuing_authority TEXT,
   issued_date DATE,
   expiry_date DATE,
-  is_expired BOOLEAN GENERATED ALWAYS AS (CASE WHEN expiry_date IS NOT NULL AND expiry_date < CURRENT_DATE THEN true ELSE false END) STORED,
   verification_status "DocumentVerificationStatus" NOT NULL DEFAULT 'PENDING',
   verified_at TIMESTAMPTZ,
   verified_by_user_id TEXT,
