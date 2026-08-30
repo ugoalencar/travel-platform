@@ -240,16 +240,16 @@ export function CustomerDetailPage() {
                 <Link
                   key={w.id}
                   to={`/wishes/${w.id}`}
-                  className="block rounded-lg border border-slate-200 bg-white p-4 transition-colors hover:bg-slate-50"
+                  className="block rounded-lg border border-slate-200 bg-white p-4 transition-all duration-200 hover:bg-slate-50 hover:border-slate-300 hover:shadow-sm"
                 >
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-slate-900">{w.destination ?? 'Destino não definido'}</p>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-slate-900">{w.destination ?? 'Destino não definido'}</p>
                       <p className="text-xs text-slate-500">
                         {w.travelersCount ?? '—'} viajantes · {formatBRL(w.budget)}
                       </p>
                       {w.startDate && (
-                        <p className="mt-1 text-xs text-slate-400">
+                        <p className="mt-2 text-xs text-slate-400">
                           {formatDateBR(w.startDate, { assumeDateOnly: true })} —{' '}
                           {w.endDate ? formatDateBR(w.endDate, { assumeDateOnly: true }) : '—'}
                         </p>
@@ -278,4 +278,9 @@ export function CustomerDetailPage() {
         <EmptyState
           title="Nenhuma reserva"
           description="A integração com reservas para este cliente ainda não está disponível nesta versão."
-          icon={<Calend
+          icon={<CalendarCheck className="h-8 w-8" />}
+        />
+      )}
+    </div>
+  );
+}

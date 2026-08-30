@@ -115,7 +115,7 @@ export function OffersPage() {
   const offers = state.status === 'success' ? state.offers : null;
 
   return (
-    <div>
+    <div className="space-y-8">
       <PageHeader
         title="Ofertas"
         description="Ofertas e pacotes publicados pela agência."
@@ -155,20 +155,20 @@ export function OffersPage() {
                 <TableBody>
                   {offers.map((offer) => (
                     <TableRow key={offer.id}>
-                      <TableCell className="font-medium text-slate-900">{offer.name}</TableCell>
-                      <TableCell>{formatBRL(offer.price)}</TableCell>
+                      <TableCell className="font-semibold text-slate-900">{offer.name}</TableCell>
+                      <TableCell className="font-medium">{formatBRL(offer.price)}</TableCell>
                       <TableCell>
                         <StatusBadge tone={OFFER_STATUS_TONES[offer.status]}>
                           {OFFER_STATUS_LABELS[offer.status]}
                         </StatusBadge>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="text-slate-600">
                         {offer.validUntil
                           ? formatDateBR(offer.validUntil, { assumeDateOnly: true })
                           : '—'}
                       </TableCell>
                       <TableCell className="text-right">
-                        <Link to={`/offers/${offer.id}`} className="text-sm text-blue-600 hover:text-blue-700">
+                        <Link to={`/offers/${offer.id}`} className="text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors">
                           Detalhe
                         </Link>
                       </TableCell>
