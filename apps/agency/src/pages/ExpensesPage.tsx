@@ -20,7 +20,6 @@ import {
   listSuppliers,
   listCategories,
   createExpense,
-  updateExpense,
   cancelExpense,
   type Expense,
   type Supplier,
