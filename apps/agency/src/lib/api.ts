@@ -778,6 +778,110 @@ export async function listRevenueCategories(): Promise<RevenueCategory[]> {
 }
 
 // ============================================================
+// EXPENSES (GET /financial/expenses)
+// ============================================================
+
+export type ExpenseStatus = 'OPEN' | 'PARTIALLY_PAID' | 'PAID' | 'CANCELLED';
+
+export interface Expense {
+  id: string;
+  agencyId: string;
+  supplierId?: string;
+  supplierName?: string;
+  categoryId: string;
+  categoryName?: string;
+  description: string;
+  amount: number;
+  currency: string;
+  incurredAt: string;
+  dueDate: string;
+  paymentDate?: string;
+  paymentMethod?: string;
+  recurrence?: string;
+  status: ExpenseStatus;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateExpenseInput {
+  supplierId?: string;
+  categoryId: string;
+  description: string;
+  amount: number;
+  currency?: string;
+  incurredAt: string;
+  dueDate: string;
+  paymentMethod?: string;
+  recurrence?: string;
+  notes?: string;
+}
+
+export interface UpdateExpenseInput {
+  supplierId?: string;
+  categoryId?: string;
+  description?: string;
+  dueDate?: string;
+  paymentMethod?: string;
+  recurrence?: string;
+  notes?: string;
+}
+
+export async function listExpenses(): Promise<Expense[]> {
+  const data = await request<{ expenses: Expense[] }>('/api/financial/expenses');
+  return data.expenses;
+}
+
+export async function getExpense(id: string): Promise<Expense> {
+  const data = await request<{ expense: Expense }>(`/api/financial/expenses/${encodeURIComponent(id)}`);
+  return data.expense;
+}
+
+export async function createExpense(input: CreateExpenseInput): Promise<Expense> {
+  const data = await request<{ expense: Expense }>('/api/financial/expenses', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+  return data.expense;
+}
+
+export async function updateExpense(id: string, input: UpdateExpenseInput): Promise<Expense> {
+  const data = await request<{ expense: Expense }>(`/api/financial/expenses/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(input),
+  });
+  return data.expense;
+}
+
+export async function cancelExpense(id: string): Promise<Expense> {
+  const data = await request<{ expense: Expense }>(`/api/financial/expenses/${encodeURIComponent(id)}/cancel`, {
+    method: 'POST',
+  });
+  return data.expense;
+}
+
+// ============================================================
+// SUPPLIERS (GET /transport/suppliers)
+// ============================================================
+
+export interface Supplier {
+  id: string;
+  agencyId: string;
+  name: string;
+  contactName?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export async function listSuppliers(): Promise<Supplier[]> {
+  const data = await request<{ suppliers: Supplier[] }>('/api/transport/suppliers');
+  return data.suppliers;
+}
+
+// ============================================================
 // FINANCIAL CATEGORIES (GET /financial/categories)
 // ============================================================
 
