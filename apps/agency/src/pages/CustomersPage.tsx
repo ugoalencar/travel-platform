@@ -104,12 +104,17 @@ export function CustomersPage() {
 
       <div className="flex items-center gap-3">
         <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <label htmlFor="customers-search" className="sr-only">
+            Buscar clientes
+          </label>
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />
           <Input
+            id="customers-search"
             placeholder="Buscar por nome, e-mail ou telefone…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9"
+            aria-label="Buscar clientes"
           />
         </div>
         <div className="flex rounded-md border border-slate-200 bg-white p-0.5">

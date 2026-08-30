@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ApiError, listMyBookings } from '../../lib/customerApi';
 import type { CustomerBookingView } from '../../types/customer-portal';
-import { bookingStatusLabel, tripTypeLabel } from '../../lib/statusLabels';
+import { bookingStatusLabel } from '../../lib/statusLabels';
 
 type LoadState =
   | { status: 'loading' }
