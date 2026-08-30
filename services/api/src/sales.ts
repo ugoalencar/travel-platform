@@ -1,4 +1,4 @@
-import { SaleStatus, type Sale, FinancialCategoryType } from '../../../packages/domain/types';
+import { SaleStatus, type Sale } from '../../../packages/domain/types';
 import { getAgencyId, getUserId } from '../../../packages/domain/tenant-context';
 import type { DatabaseRuntime, TenantTransactionClient } from './database';
 import { ConflictError, NotFoundError, ValidationError } from './errors';

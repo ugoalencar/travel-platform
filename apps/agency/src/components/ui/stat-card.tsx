@@ -19,13 +19,15 @@ const DELTA_CLASSES: Record<NonNullable<StatCardProps['deltaTone']>, string> = {
 
 export function StatCard({ label, value, delta, deltaTone = 'neutral', icon, className }: StatCardProps) {
   return (
-    <Card className={cn('flex flex-col gap-2 p-4', className)}>
+    <Card className={cn('flex flex-col gap-3 p-5 transition-all duration-200 hover:shadow-md hover:border-slate-300', className)}>
       <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-slate-500">{label}</span>
-        {icon && <span className="text-slate-400">{icon}</span>}
+        <span className="text-xs font-medium uppercase tracking-wider text-slate-500">{label}</span>
+        {icon && <span className="text-slate-300">{icon}</span>}
       </div>
-      <span className="text-2xl font-semibold text-slate-900">{value}</span>
-      {delta && <span className={cn('text-xs font-medium', DELTA_CLASSES[deltaTone])}>{delta}</span>}
+      <div className="space-y-1">
+        <span className="block text-3xl font-bold text-slate-900">{value}</span>
+        {delta && <span className={cn('text-xs font-medium leading-relaxed', DELTA_CLASSES[deltaTone])}>{delta}</span>}
+      </div>
     </Card>
   );
 }

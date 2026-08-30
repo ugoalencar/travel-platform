@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/consistent-type-imports */
 import {
   PaymentDirection,
   type FinancialObligationStatus,
@@ -410,7 +411,7 @@ const RECONCILIATION_COLUMNS = `id, agency_id, reconciliation_date, expected_amo
 
 export async function listFinancialCategories(
   database: DatabaseRuntime,
-  type?: FinancialCategoryType,
+  type?: string,
 ): Promise<FinancialCategory[]> {
   const agencyId = getAgencyId();
   return database.withTenantTransaction(async (client) => {
@@ -621,6 +622,7 @@ export async function updateRevenue(
     const row = existing.rows[0];
     if (!row) throw new NotFoundError('Revenue not found');
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
     if (row.status === 'PAID') {
       throw new ValidationError('Cannot update a paid revenue');
     }
@@ -674,7 +676,11 @@ export async function markRevenueAsPaid(
     const row = existing.rows[0];
     if (!row) throw new NotFoundError('Revenue not found');
 
-    const fullAmount = Number(row.amount);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
+    if (row.status === 'PAID') {
+      throw new ValidationError('Cannot update a paid revenue');
+    }
+
     const newStatus = partialAmount === undefined ? 'PAID' : 'PARTIALLY_PAID';
 
     const result = await client.query<RevenueRow>(
@@ -842,6 +848,7 @@ export async function updateExpense(
     const row = existing.rows[0];
     if (!row) throw new NotFoundError('Expense not found');
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
     if (row.status === 'PAID') {
       throw new ValidationError('Cannot update a paid expense');
     }
@@ -993,8 +1000,9 @@ export async function createCashTransaction(
     );
 
     const currentBalance = Number(balance.rows[0]?.balance ?? 0);
-    const newBalance =
-      data.type === 'ENTRY'
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
+    const isEntry = data.type === 'ENTRY';
+    const newBalance = isEntry
         ? roundMoney(currentBalance + data.amount)
         : roundMoney(currentBalance - data.amount);
 

@@ -371,7 +371,7 @@ export function ProposalBuilderPage() {
       if (notes) input.notes = notes;
 
       const proposal = await createProposal(input);
-      navigate(`/proposals/${proposal.id}`);
+      void navigate(`/proposals/${proposal.id}`);
     } catch (err) {
       const message = err instanceof ApiError ? err.message : 'Não foi possível criar a proposta.';
       setError(message);

@@ -16,7 +16,9 @@ import {
   type ValidateUserAgencyAccess,
 } from '../../../packages/domain/tenant-context';
 import {
+  type CashTransactionType,
   CheckpointType,
+  type FinancialCategoryType,
   OperationAssignmentRole,
   OperationalStaffCapability,
   PaymentDirection,
@@ -218,8 +220,6 @@ import {
   type CreateReceivableInput,
   type CreateReconciliationInput,
   type CreateRevenueInput,
-  type DREReport,
-  type OverdueReport,
   type RecordPaymentInput,
   type UpdateExpenseInput,
   type UpdateRevenueInput,
@@ -2013,7 +2013,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
   app.get('/financial/categories', { preHandler: protectedHooks }, async (request) => {
     requireRole(UserRole.MANAGER);
     const query = request.query as Record<string, string>;
-    const type = query.type as any;
+    const type = query.type;
     const categories = await listFinancialCategories(options.database, type);
     return { categories };
   });
@@ -2032,13 +2032,19 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
   app.get('/financial/revenues', { preHandler: protectedHooks }, async (request) => {
     requireRole(UserRole.MANAGER);
     const query = request.query as Record<string, string>;
-    const filters: any = {};
+    const filters: {
+      status?: string;
+      customerId?: string;
+      categoryId?: string;
+      periodFrom?: Date;
+      periodTo?: Date;
+    } = {};
     if (query.status) filters.status = query.status;
     if (query.customerId) filters.customerId = query.customerId;
     if (query.categoryId) filters.categoryId = query.categoryId;
     if (query.periodFrom) filters.periodFrom = new Date(query.periodFrom);
     if (query.periodTo) filters.periodTo = new Date(query.periodTo);
-    const revenues = await listRevenues(options.database, filters);
+    const revenues = await listRevenues(options.database, filters as Parameters<typeof listRevenues>[1]);
     return { revenues };
   });
 
@@ -2076,7 +2082,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     { preHandler: protectedHooks },
     async (request) => {
       requireRole(UserRole.ADMIN);
-      const body = request.body as any;
+      const body = request.body as { partialAmount?: number };
       const partialAmount = body?.partialAmount;
       const revenue = await markRevenueAsPaid(options.database, request.params.id, partialAmount);
       return { revenue };
@@ -2099,13 +2105,19 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
   app.get('/financial/expenses', { preHandler: protectedHooks }, async (request) => {
     requireRole(UserRole.MANAGER);
     const query = request.query as Record<string, string>;
-    const filters: any = {};
+    const filters: {
+      status?: string;
+      supplierId?: string;
+      categoryId?: string;
+      periodFrom?: Date;
+      periodTo?: Date;
+    } = {};
     if (query.status) filters.status = query.status;
     if (query.supplierId) filters.supplierId = query.supplierId;
     if (query.categoryId) filters.categoryId = query.categoryId;
     if (query.periodFrom) filters.periodFrom = new Date(query.periodFrom);
     if (query.periodTo) filters.periodTo = new Date(query.periodTo);
-    const expenses = await listExpenses(options.database, filters);
+    const expenses = await listExpenses(options.database, filters as Parameters<typeof listExpenses>[1]);
     return { expenses };
   });
 
@@ -2143,7 +2155,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     { preHandler: protectedHooks },
     async (request) => {
       requireRole(UserRole.ADMIN);
-      const body = request.body as any;
+      const body = request.body as { partialAmount?: number };
       const partialAmount = body?.partialAmount;
       const expense = await markExpenseAsPaid(options.database, request.params.id, partialAmount);
       return { expense };
@@ -2166,11 +2178,15 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
   app.get('/financial/cash-transactions', { preHandler: protectedHooks }, async (request) => {
     requireRole(UserRole.MANAGER);
     const query = request.query as Record<string, string>;
-    const filters: any = {};
+    const filters: {
+      type?: string;
+      periodFrom?: Date;
+      periodTo?: Date;
+    } = {};
     if (query.type) filters.type = query.type;
     if (query.periodFrom) filters.periodFrom = new Date(query.periodFrom);
     if (query.periodTo) filters.periodTo = new Date(query.periodTo);
-    const transactions = await listCashTransactions(options.database, filters);
+    const transactions = await listCashTransactions(options.database, filters as Parameters<typeof listCashTransactions>[1]);
     return { transactions };
   });
 
@@ -2196,11 +2212,15 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
   app.get('/financial/reconciliations', { preHandler: protectedHooks }, async (request) => {
     requireRole(UserRole.MANAGER);
     const query = request.query as Record<string, string>;
-    const filters: any = {};
+    const filters: {
+      status?: string;
+      periodFrom?: Date;
+      periodTo?: Date;
+    } = {};
     if (query.status) filters.status = query.status;
     if (query.periodFrom) filters.periodFrom = new Date(query.periodFrom);
     if (query.periodTo) filters.periodTo = new Date(query.periodTo);
-    const reconciliations = await listReconciliations(options.database, filters);
+    const reconciliations = await listReconciliations(options.database, filters as Parameters<typeof listReconciliations>[1]);
     return { reconciliations };
   });
 
@@ -2234,7 +2254,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     return { report };
   });
 
-  app.get('/financial/reports/overdue', { preHandler: protectedHooks }, async (request) => {
+  app.get('/financial/reports/overdue', { preHandler: protectedHooks }, async (_request) => {
     requireRole(UserRole.MANAGER);
     const report = await getOverdueReport(options.database);
     return { report };
@@ -5335,7 +5355,8 @@ function parseCreateFinancialCategoryInput(body: unknown): CreateFinancialCatego
 
   return {
     name,
-    type: type as any,
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    type: type as FinancialCategoryType,
     description,
   };
 }
@@ -5500,7 +5521,8 @@ function parseCreateCashTransactionInput(body: unknown): CreateCashTransactionIn
   }
 
   return {
-    type: type as any,
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    type: type as CashTransactionType,
     amount,
     occurringAt,
     origin,
