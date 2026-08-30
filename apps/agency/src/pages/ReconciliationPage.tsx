@@ -188,7 +188,7 @@ export function ReconciliationPage() {
       />
 
       <Modal open={showModal} onClose={() => setShowModal(false)} title="Nova Conciliação">
-        <form onSubmit={handleCreateReconciliation} className="space-y-4">
+        <form onSubmit={(e) => void handleCreateReconciliation(e)} className="space-y-4">
           {formError && (
             <div
               role="alert"
@@ -345,7 +345,7 @@ export function ReconciliationPage() {
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => handleMarkAsReconciled(r.id)}
+                          onClick={() => void handleMarkAsReconciled(r.id)}
                         >
                           <Check className="h-4 w-4" />
                         </Button>

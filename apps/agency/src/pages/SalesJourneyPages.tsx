@@ -401,7 +401,7 @@ export function ProposalBuilderPage() {
       />
       <JourneyRail active="Proposal" />
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={(e) => void handleSubmit(e)} className="space-y-6">
         {error && (
           <Card className="border-red-200 bg-red-50">
             <CardContent className="flex gap-3 pt-6">

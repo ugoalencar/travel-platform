@@ -241,7 +241,7 @@ export function RevenuesPage() {
                       </TableCell>
                       <TableCell>
                         <button
-                          onClick={() => handleDelete(revenue.id)}
+                          onClick={() => void handleDelete(revenue.id)}
                           disabled={deleting === revenue.id}
                           className="p-1 hover:bg-gray-100 rounded disabled:opacity-50"
                           aria-label="Deletar receita"
