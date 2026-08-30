@@ -3,6 +3,7 @@ import type { Wish, WishStatus } from '../types/wish';
 import type { Trip, TripStatus } from '../types/trip';
 import type { Proposal, ProposalStatus } from '../types/proposal';
 import type { Booking } from '../types/booking';
+import type { Sale, SaleStatus } from '../types/sale';
 
 // Thin API client for the agency staff app, targeting the same backend
 // routes (`/commercial/*`, `/offers`) that apps/customer's staff-facing
@@ -582,6 +583,13 @@ export async function updateProposal(id: string, input: UpdateProposalInput): Pr
   return data.proposal;
 }
 
+export async function sendProposal(id: string): Promise<Proposal> {
+  const data = await request<{ proposal: Proposal }>(`/api/proposals/${encodeURIComponent(id)}/send`, {
+    method: 'POST',
+  });
+  return data.proposal;
+}
+
 // ============================================================
 // BOOKINGS
 // ============================================================
@@ -612,7 +620,378 @@ export async function createBooking(input: CreateBookingInput): Promise<Booking>
   return data.booking;
 }
 
-export type { CustomerStatus, WishStatus, TripStatus, ProposalStatus, Proposal };
+// ============================================================
+// SALES
+// ============================================================
+
+export interface CreateSaleInput {
+  bookingId: string;
+  amount: number;
+  commission?: number;
+  status?: SaleStatus;
+}
+
+export interface UpdateSaleInput {
+  amount?: number;
+  commission?: number;
+  status?: SaleStatus;
+}
+
+export async function listSales(): Promise<Sale[]> {
+  const data = await request<{ sales: Sale[] }>('/api/commercial/sales');
+  return data.sales;
+}
+
+export async function getSale(id: string): Promise<Sale> {
+  const data = await request<{ sale: Sale }>(`/api/commercial/sales/${encodeURIComponent(id)}`);
+  return data.sale;
+}
+
+export async function createSale(input: CreateSaleInput): Promise<Sale> {
+  const data = await request<{ sale: Sale }>('/api/commercial/sales', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+  return data.sale;
+}
+
+export async function updateSale(id: string, input: UpdateSaleInput): Promise<Sale> {
+  const data = await request<{ sale: Sale }>(`/api/commercial/sales/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(input),
+  });
+  return data.sale;
+}
+
+export async function deleteSale(id: string): Promise<void> {
+  await request<void>(`/api/commercial/sales/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  });
+}
+
+// ============================================================
+// PESCADOR (URL Capture for Offers)
+// ============================================================
+
+export interface Capture {
+  id: string;
+  agencyId: string;
+  sourceUrl: string;
+  sourceName: string;
+  normalizedTitle?: string;
+  foundPrice?: string;
+  status: 'PENDING' | 'PROCESSED' | 'FAILED';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export async function listCaptures(): Promise<Capture[]> {
+  const data = await request<{ captures: Capture[] }>('/api/pescador/captures');
+  return data.captures;
+}
+
+export async function captureUrl(url: string): Promise<Capture> {
+  const data = await request<{ capture: Capture }>('/api/pescador/captures', {
+    method: 'POST',
+    body: JSON.stringify({ sourceUrl: url }),
+  });
+  return data.capture;
+}
+
+export async function deleteCapture(id: string): Promise<void> {
+  await request<void>(`/api/pescador/captures/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  });
+}
+
+export type { CustomerStatus, WishStatus, TripStatus, ProposalStatus, Proposal, Sale, SaleStatus };
+
+// ============================================================
+// REVENUES (GET /financial/revenues)
+// ============================================================
+
+export type RevenueStatus = 'OPEN' | 'PARTIALLY_PAID' | 'PAID' | 'OVERDUE' | 'CANCELLED';
+
+export interface Revenue {
+  id: string;
+  agencyId: string;
+  description: string;
+  amount: number;
+  currency: string;
+  competencyDate?: string;
+  dueDate: string;
+  receiptDate?: string;
+  paymentMethod?: string;
+  status: RevenueStatus;
+  categoryId?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface RevenueCategory {
+  id: string;
+  agencyId: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateRevenueInput {
+  description: string;
+  category_id?: string;
+  amount: number;
+  currency?: string;
+  competency_date?: string;
+  due_date: string;
+  receipt_date?: string;
+  payment_method?: string;
+  status?: RevenueStatus;
+}
+
+export async function listRevenues(): Promise<Revenue[]> {
+  const data = await request<{ revenues: Revenue[] }>('/api/financial/revenues');
+  return data.revenues;
+}
+
+export async function getRevenue(id: string): Promise<Revenue> {
+  const data = await request<{ revenue: Revenue }>(`/api/financial/revenues/${encodeURIComponent(id)}`);
+  return data.revenue;
+}
+
+export async function createRevenue(input: CreateRevenueInput): Promise<Revenue> {
+  const data = await request<{ revenue: Revenue }>('/api/financial/revenues', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+  return data.revenue;
+}
+
+export async function deleteRevenue(id: string): Promise<void> {
+  await request<void>(`/api/financial/revenues/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  });
+}
+
+export async function listRevenueCategories(): Promise<RevenueCategory[]> {
+  const data = await request<{ categories: RevenueCategory[] }>('/api/financial/categories');
+  return data.categories;
+}
+
+// ============================================================
+// FINANCIAL CATEGORIES (GET /financial/categories)
+// ============================================================
+
+export type CategoryType = 'REVENUE' | 'EXPENSE';
+
+export interface FinancialCategory {
+  id: string;
+  agencyId: string;
+  name: string;
+  type: CategoryType;
+  description?: string;
+  is_active: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateCategoryInput {
+  name: string;
+  type: CategoryType;
+  description?: string;
+  is_active?: boolean;
+}
+
+export interface UpdateCategoryInput {
+  name?: string;
+  type?: CategoryType;
+  description?: string;
+  is_active?: boolean;
+}
+
+export async function listCategories(): Promise<FinancialCategory[]> {
+  const data = await request<{ categories: FinancialCategory[] }>('/api/financial/categories');
+  return data.categories;
+}
+
+export async function getCategory(id: string): Promise<FinancialCategory> {
+  const data = await request<{ category: FinancialCategory }>(`/api/financial/categories/${encodeURIComponent(id)}`);
+  return data.category;
+}
+
+export async function createCategory(input: CreateCategoryInput): Promise<FinancialCategory> {
+  const data = await request<{ category: FinancialCategory }>('/api/financial/categories', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+  return data.category;
+}
+
+export async function updateCategory(id: string, input: UpdateCategoryInput): Promise<FinancialCategory> {
+  const data = await request<{ category: FinancialCategory }>(`/api/financial/categories/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(input),
+  });
+  return data.category;
+}
+
+export async function deleteCategory(id: string): Promise<void> {
+  await request<void>(`/api/financial/categories/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  });
+}
+
+// ============================================================
+// RECONCILIATIONS (GET /financial/reconciliations)
+// ============================================================
+
+export type ReconciliationStatus = 'RECONCILED' | 'NOT_RECONCILED';
+
+export interface Reconciliation {
+  id: string;
+  agencyId: string;
+  reconciliationDate: string;
+  expectedAmount: number;
+  actualAmount: number;
+  paymentId?: string;
+  notes?: string;
+  status: ReconciliationStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Payment {
+  id: string;
+  agencyId: string;
+  description: string;
+  amount: number;
+  paymentDate: string;
+  paymentMethod?: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateReconciliationInput {
+  reconciliation_date: string;
+  expected_amount: number;
+  actual_amount: number;
+  payment_id?: string;
+  notes?: string;
+}
+
+export interface UpdateReconciliationInput {
+  status?: ReconciliationStatus;
+  notes?: string;
+}
+
+export async function listReconciliations(): Promise<Reconciliation[]> {
+  const data = await request<{ reconciliations: Reconciliation[] }>('/api/financial/reconciliations');
+  return data.reconciliations;
+}
+
+export async function getReconciliation(id: string): Promise<Reconciliation> {
+  const data = await request<{ reconciliation: Reconciliation }>(`/api/financial/reconciliations/${encodeURIComponent(id)}`);
+  return data.reconciliation;
+}
+
+export async function createReconciliation(input: CreateReconciliationInput): Promise<Reconciliation> {
+  const data = await request<{ reconciliation: Reconciliation }>('/api/financial/reconciliations', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+  return data.reconciliation;
+}
+
+export async function updateReconciliation(id: string, input: UpdateReconciliationInput): Promise<Reconciliation> {
+  const data = await request<{ reconciliation: Reconciliation }>(`/api/financial/reconciliations/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(input),
+  });
+  return data.reconciliation;
+}
+
+export async function listPayments(): Promise<Payment[]> {
+  const data = await request<{ payments: Payment[] }>('/api/payments');
+  return data.payments;
+}
+
+// ============================================================
+// FINANCIAL REPORTS (GET /financial/reports/*)
+// Detailed financial reports for the agency
+// ============================================================
+
+export interface DREReport {
+  receitas_totais: number;
+  despesas_totais: number;
+  resultado_liquido: number;
+  periodo: string;
+}
+
+export interface OverdueReport {
+  count: number;
+  total_amount: number;
+  aging_breakdown: Array<{
+    days_overdue_start: number;
+    days_overdue_end: number;
+    count: number;
+    amount: number;
+  }>;
+}
+
+export interface MarginReport {
+  margin_percentage: number;
+  margin_amount: number;
+  receitas: number;
+  custos: number;
+}
+
+export interface CashFlowReport {
+  current_balance: number;
+  projection_30_days: number;
+  projection_60_days: number;
+  projection_90_days: number;
+  projected_balance: number;
+}
+
+export async function getDREReport(startDate?: string, endDate?: string): Promise<DREReport> {
+  const params = new URLSearchParams();
+  if (startDate) params.append('start_date', startDate);
+  if (endDate) params.append('end_date', endDate);
+  const queryString = params.toString();
+  const path = `/api/financial/reports/dre${queryString ? `?${queryString}` : ''}`;
+  const data = await request<{ report: DREReport }>(path);
+  return data.report;
+}
+
+export async function getOverdueReport(startDate?: string, endDate?: string): Promise<OverdueReport> {
+  const params = new URLSearchParams();
+  if (startDate) params.append('start_date', startDate);
+  if (endDate) params.append('end_date', endDate);
+  const queryString = params.toString();
+  const path = `/api/financial/reports/overdue${queryString ? `?${queryString}` : ''}`;
+  const data = await request<{ report: OverdueReport }>(path);
+  return data.report;
+}
+
+export async function getMarginReport(startDate?: string, endDate?: string): Promise<MarginReport> {
+  const params = new URLSearchParams();
+  if (startDate) params.append('start_date', startDate);
+  if (endDate) params.append('end_date', endDate);
+  const queryString = params.toString();
+  const path = `/api/financial/reports/margin${queryString ? `?${queryString}` : ''}`;
+  const data = await request<{ report: MarginReport }>(path);
+  return data.report;
+}
+
+export async function getCashFlowReport(startDate?: string, endDate?: string): Promise<CashFlowReport> {
+  const params = new URLSearchParams();
+  if (startDate) params.append('start_date', startDate);
+  if (endDate) params.append('end_date', endDate);
+  const queryString = params.toString();
+  const path = `/api/financial/reports/cash-flow${queryString ? `?${queryString}` : ''}`;
+  const data = await request<{ report: CashFlowReport }>(path);
+  return data.report;
+}
 
 // ============================================================
 // GENERIC API CLIENT
