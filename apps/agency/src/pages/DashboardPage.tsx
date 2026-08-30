@@ -161,15 +161,15 @@ export function DashboardPage() {
           </CardHeader>
           <CardContent>
             {recentInteractions.length === 0 ? (
-              <p className="py-4 text-center text-sm text-slate-400">Nenhuma interação registrada</p>
+              <p className="py-6 text-center text-sm text-slate-400">Nenhuma interação registrada</p>
             ) : (
               <ul className="divide-y divide-slate-100">
                 {recentInteractions.map((interaction) => {
                   const Icon = INTERACTION_ICONS[interaction.channel] ?? MessagesSquare;
                   return (
-                    <li key={interaction.id} className="flex items-start gap-3 py-3 first:pt-0 last:pb-0">
-                      <span className="mt-0.5 rounded-md bg-slate-100 p-1.5">
-                        <Icon className="h-3.5 w-3.5 text-slate-500" />
+                    <li key={interaction.id} className="flex items-start gap-3 py-4 first:pt-0 last:pb-0">
+                      <span className="mt-0.5 rounded-md bg-slate-100 p-2">
+                        <Icon className="h-4 w-4 text-slate-500" />
                       </span>
                       <div className="min-w-0 flex-1">
                         <p className="text-sm font-medium text-slate-900">{interaction.summary}</p>
@@ -192,18 +192,18 @@ export function DashboardPage() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle>Propostas aguardando resposta</CardTitle>
-              <Link to="/wishes" className="text-xs font-medium text-slate-600 hover:text-slate-900">
+              <Link to="/wishes" className="text-xs font-semibold text-blue-600 hover:text-blue-700">
                 Ver todas
               </Link>
             </div>
           </CardHeader>
           <CardContent>
             {proposalsWaiting.length === 0 ? (
-              <p className="py-4 text-center text-sm text-slate-400">Nenhuma proposta aguardando</p>
+              <p className="py-6 text-center text-sm text-slate-400">Nenhuma proposta aguardando</p>
             ) : (
               <ul className="divide-y divide-slate-100">
                 {proposalsWaiting.map((p) => (
-                  <li key={p.id} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
+                  <li key={p.id} className="flex items-center justify-between py-4 first:pt-0 last:pb-0">
                     <div>
                       <p className="text-sm font-medium text-slate-900">{p.notes ?? 'Proposta'}</p>
                       <p className="text-xs text-slate-500">

@@ -109,13 +109,13 @@ export function CustomerDetailPage() {
   const bookings: never[] = [];
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="space-y-1">
-          <Link to="/customers" className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-700">
+    <div className="space-y-8">
+      <div className="flex items-start justify-between gap-4">
+        <div className="space-y-2">
+          <Link to="/customers" className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-700">
             <ArrowLeft className="h-3 w-3" /> Clientes
           </Link>
-          <h1 className="text-xl font-bold text-slate-900">{customer.name}</h1>
+          <h1 className="text-2xl font-bold text-slate-900">{customer.name}</h1>
         </div>
         <StatusBadge tone={customerStatusTone(customer.status)}>
           {getCustomerStatusLabel(customer.status)}
@@ -204,13 +204,13 @@ export function CustomerDetailPage() {
                 <Link
                   key={trip.id}
                   to={`/trips/${trip.id}`}
-                  className="block rounded-lg border border-slate-200 bg-white p-4 transition-colors hover:bg-slate-50"
+                  className="block rounded-lg border border-slate-200 bg-white p-4 transition-all duration-200 hover:bg-slate-50 hover:border-slate-300 hover:shadow-sm"
                 >
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-slate-900">{trip.name}</p>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-slate-900">{trip.name}</p>
                       <p className="text-xs text-slate-500">{trip.destination}</p>
-                      <p className="mt-1 text-xs text-slate-400">
+                      <p className="mt-2 text-xs text-slate-400">
                         {formatDateBR(trip.startDate, { assumeDateOnly: true })} —{' '}
                         {formatDateBR(trip.endDate, { assumeDateOnly: true })}
                       </p>
@@ -278,9 +278,4 @@ export function CustomerDetailPage() {
         <EmptyState
           title="Nenhuma reserva"
           description="A integração com reservas para este cliente ainda não está disponível nesta versão."
-          icon={<CalendarCheck className="h-8 w-8" />}
-        />
-      )}
-    </div>
-  );
-}
+          icon={<Calend

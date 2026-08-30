@@ -115,40 +115,40 @@ export function FinancialPage() {
   }));
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader
         title="Financeiro"
         description="Visão consolidada de vendas, recebimentos e margem esperada da agência."
       />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           label="Total vendido (mês)"
           value={formatBRL(financialSummary.totalSold)}
           delta={`${summary.salesThisMonth.count} venda${summary.salesThisMonth.count !== 1 ? 's' : ''}`}
           deltaTone="positive"
-          icon={<Wallet className="h-4 w-4" />}
+          icon={<Wallet className="h-5 w-5" />}
         />
         <StatCard
           label="Recebido"
           value={formatBRL(financialSummary.received)}
           delta={financialSummary.totalSold > 0 ? `${Math.round((financialSummary.received / financialSummary.totalSold) * 100)}% do total vendido` : 'Nenhum pagamento'}
           deltaTone="positive"
-          icon={<ArrowUpRight className="h-4 w-4" />}
+          icon={<ArrowUpRight className="h-5 w-5" />}
         />
         <StatCard
           label="A receber"
           value={formatBRL(financialSummary.pending)}
           delta={`${summary.upcomingReceivables.length} recebível${summary.upcomingReceivables.length !== 1 ? 'is' : ''} em aberto`}
           deltaTone="neutral"
-          icon={<Clock className="h-4 w-4" />}
+          icon={<Clock className="h-5 w-5" />}
         />
         <StatCard
           label="Margem esperada"
           value={formatBRL(financialSummary.expectedMargin)}
           delta={financialSummary.totalSold > 0 ? `≈ ${Math.round((financialSummary.expectedMargin / financialSummary.totalSold) * 100)}% sobre vendas` : 'Sem dados'}
           deltaTone="positive"
-          icon={<ArrowDownRight className="h-4 w-4" />}
+          icon={<ArrowDownRight className="h-5 w-5" />}
         />
       </div>
 
