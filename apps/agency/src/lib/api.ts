@@ -868,16 +868,16 @@ export interface Expense {
 }
 
 export interface CreateExpenseInput {
-  supplierId?: string;
+  supplierId?: string | undefined;
   categoryId: string;
   description: string;
   amount: number;
-  currency?: string;
+  currency?: string | undefined;
   incurredAt: string;
   dueDate: string;
-  paymentMethod?: string;
-  recurrence?: string;
-  notes?: string;
+  paymentMethod?: string | undefined;
+  recurrence?: string | undefined;
+  notes?: string | undefined;
 }
 
 export interface UpdateExpenseInput {
