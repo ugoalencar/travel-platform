@@ -9,13 +9,13 @@ export function LoadingState({ label = 'Carregando…', className }: LoadingStat
   return (
     <div
       role="status"
-      className={cn('flex flex-col items-center justify-center gap-3 p-10 text-slate-500', className)}
+      className={cn('flex flex-col items-center justify-center gap-4 px-6 py-12 text-slate-500', className)}
     >
       <span
         aria-hidden="true"
-        className="h-6 w-6 animate-spin rounded-full border-2 border-slate-300 border-t-slate-900"
+        className="h-8 w-8 animate-spin rounded-full border-3 border-slate-300 border-t-slate-900"
       />
-      <span className="text-sm">{label}</span>
+      <span className="text-sm font-medium">{label}</span>
     </div>
   );
 }
