@@ -42,9 +42,9 @@ const REVENUE_STATUS_LABELS: Record<RevenueStatus, string> = {
 
 const REVENUE_STATUS_TONES: Record<RevenueStatus, StatusTone> = {
   OPEN: 'attention',
-  PARTIALLY_PAID: 'warning',
+  PARTIALLY_PAID: 'attention',
   PAID: 'positive',
-  OVERDUE: 'critical',
+  OVERDUE: 'attention',
   CANCELLED: 'inactive',
 };
 

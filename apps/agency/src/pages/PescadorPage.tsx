@@ -254,7 +254,7 @@ export function PescadorPage() {
                               ? 'attention'
                               : capture.status === 'PROCESSED'
                                 ? 'positive'
-                                : 'destructive'
+                                : 'attention'
                           }
                         >
                           {capture.status === 'PENDING'

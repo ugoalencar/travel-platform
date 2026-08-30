@@ -40,9 +40,9 @@ function getTypeLabel(type: CashTransaction['type']): string {
 
 function getTypeTone(
   type: CashTransaction['type'],
-): 'positive' | 'negative' | 'attention' {
+): 'positive' | 'attention' | 'neutral' | 'inactive' {
   if (type === 'ENTRY') return 'positive';
-  if (type === 'EXIT') return 'negative';
+  if (type === 'EXIT') return 'attention';
   return 'attention';
 }
 

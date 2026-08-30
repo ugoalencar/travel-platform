@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Link, Navigate, useParams } from 'react-router-dom';
+import { Link, Navigate, useParams, useNavigate } from 'react-router-dom';
 import { CheckCircle2, Copy, Edit3, Eye, Send, AlertCircle } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
@@ -7,8 +7,11 @@ import { EmptyState } from '../components/ui/empty-state';
 import { ErrorState } from '../components/ui/error-state';
 import { LoadingState } from '../components/ui/loading-state';
 import { StatusBadge, type StatusTone } from '../components/ui/status-badge';
+import { Input } from '../components/ui/input';
+import { Select } from '../components/ui/select';
+import { Textarea } from '../components/ui/textarea';
 import { formatBRL } from '../lib/formatCurrency';
-import { ApiError, listProposals, getProposal, listBookings, getBooking, type Proposal } from '../lib/api';
+import { ApiError, listProposals, getProposal, listBookings, getBooking, listOffers, createProposal, type Proposal, type Offer } from '../lib/api';
 import type { Booking } from '../types/booking';
 
 type LoadState<T> =
