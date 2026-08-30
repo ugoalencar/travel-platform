@@ -15,6 +15,10 @@ export function renderAt(element: ReactElement, initialEntry = '/'): ReturnType<
   return render(
     <MemoryRouter initialEntries={[initialEntry]}>
       <Routes>
+        <Route path="/offers/:id" element={element} />
+        <Route path="/customers/:id" element={element} />
+        <Route path="/wishes/:id" element={element} />
+        <Route path="/trips/:id" element={element} />
         <Route path="*" element={element} />
       </Routes>
     </MemoryRouter>,
