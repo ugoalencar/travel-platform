@@ -190,12 +190,12 @@ export function PescadorPage() {
                 disabled={capturingUrl}
                 onKeyPress={(e) => {
                   if (e.key === 'Enter' && !capturingUrl) {
-                    handleCaptureUrl();
+                    void handleCaptureUrl();
                   }
                 }}
               />
               <Button
-                onClick={handleCaptureUrl}
+                onClick={() => void handleCaptureUrl()}
                 disabled={capturingUrl}
                 size="sm"
               >
@@ -273,7 +273,7 @@ export function PescadorPage() {
                           Criar Oferta
                         </Button>
                         <button
-                          onClick={() => handleDeleteCapture(capture.id)}
+                          onClick={() => void handleDeleteCapture(capture.id)}
                           disabled={deletingId === capture.id || savingOffer}
                           className="inline-flex h-8 items-center justify-center gap-2 rounded-md px-3 text-red-600 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
                           aria-label="Deletar captura"
@@ -385,8 +385,7 @@ export function PescadorPage() {
           >
             Cancelar
           </Button>
-          {/* eslint-disable-next-line @typescript-eslint/no-misused-promises */}
-          <Button size="sm" onClick={handleCreateOffer} disabled={savingOffer}>
+          <Button size="sm" onClick={() => void handleCreateOffer()} disabled={savingOffer}>
             {savingOffer ? 'Salvando…' : 'Criar'}
           </Button>
         </div>
