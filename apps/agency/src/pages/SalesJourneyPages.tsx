@@ -313,7 +313,7 @@ export function ProposalBuilderPage() {
       }
     };
 
-    loadData();
+    void loadData();
   }, []);
 
   const handleBookingChange = (bookingId: string) => {
@@ -637,7 +637,7 @@ export function ProposalBuilderPage() {
           <Button
             type="button"
             variant="outline"
-            onClick={() => navigate('/proposals')}
+            onClick={() => void navigate('/proposals')}
             disabled={submitting}
           >
             Cancelar
