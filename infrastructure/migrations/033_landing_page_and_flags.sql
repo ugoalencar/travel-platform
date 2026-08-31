@@ -133,13 +133,22 @@ CREATE INDEX feature_flag_audit_changed_at_idx ON feature_flag_audit(changed_at)
 
 -- No RLS on landing page/flags tables (platform-scoped)
 
--- Seed default feature flags
-INSERT INTO feature_flags (name, scope, enabled, description, created_by)
-VALUES
-  ('saas_control_plane_enabled', 'GLOBAL', true, 'Enable SaaS control plane for all users', (SELECT id FROM platform_users LIMIT 1)),
-  ('landing_page_promotions', 'GLOBAL', true, 'Show promotional banners on landing page', (SELECT id FROM platform_users LIMIT 1)),
-  ('billing_webhooks_enabled', 'GLOBAL', true, 'Process billing provider webhooks', (SELECT id FROM platform_users LIMIT 1))
-ON CONFLICT (name) DO NOTHING;
+-- Seed default feature flags (only if platform_users exist)
+DO $$
+DECLARE
+  default_user_id TEXT;
+BEGIN
+  SELECT id INTO default_user_id FROM platform_users LIMIT 1;
+
+  IF default_user_id IS NOT NULL THEN
+    INSERT INTO feature_flags (name, scope, enabled, description, created_by)
+    VALUES
+      ('saas_control_plane_enabled', 'GLOBAL', true, 'Enable SaaS control plane for all users', default_user_id),
+      ('landing_page_promotions', 'GLOBAL', true, 'Show promotional banners on landing page', default_user_id),
+      ('billing_webhooks_enabled', 'GLOBAL', true, 'Process billing provider webhooks', default_user_id)
+    ON CONFLICT (name) DO NOTHING;
+  END IF;
+END $$;
 
 -- Down: Rollback
 -- DROP TABLE feature_flag_audit;

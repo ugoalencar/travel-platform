@@ -50,10 +50,10 @@ async function main() {
   try {
     const url = new URL(databaseUrl);
     const isLocal = ['127.0.0.1', 'localhost'].includes(url.hostname);
-    const isTest = url.pathname.includes('test');
-    
-    if (!isLocal || !isTest) {
-      console.error('❌ ERROR: Database URL is not a local test database.\n');
+    const isDev = url.pathname.includes('test') || url.pathname.includes('dev');
+
+    if (!isLocal || !isDev) {
+      console.error('❌ ERROR: Database URL is not a local test/dev database.\n');
       console.error(`   URL: ${databaseUrl}\n`);
       process.exit(1);
     }

@@ -1,40 +1,50 @@
--- Migration: Coupons and Promotional Campaigns
--- Purpose: Discount codes and marketing campaigns
+-- Migration: Platform Promotional Campaigns
+-- Purpose: Platform-scoped discount codes and marketing campaigns (SaaS layer)
 -- Status: SaaS marketing/sales
 -- Created: 2026-08-30
+-- Note: Tenant-scoped coupons live in migration 014_offer_growth_foundation.sql
 
--- Discount type for coupons
-CREATE TYPE discount_type AS ENUM (
-  'PERCENTAGE',
-  'FIXED_AMOUNT',
-  'FREE_TRIAL_EXTENSION'
-);
+-- Discount type for platform coupons
+DO $$ BEGIN
+  CREATE TYPE platform_discount_type AS ENUM (
+    'PERCENTAGE',
+    'FIXED_AMOUNT',
+    'FREE_TRIAL_EXTENSION'
+  );
+EXCEPTION WHEN duplicate_object THEN null;
+END $$;
 
--- Coupon status
-CREATE TYPE coupon_status AS ENUM (
-  'ACTIVE',
-  'INACTIVE',
-  'EXPIRED',
-  'EXHAUSTED'
-);
+-- Platform coupon status
+DO $$ BEGIN
+  CREATE TYPE platform_coupon_status AS ENUM (
+    'ACTIVE',
+    'INACTIVE',
+    'EXPIRED',
+    'EXHAUSTED'
+  );
+EXCEPTION WHEN duplicate_object THEN null;
+END $$;
 
 -- Campaign status
-CREATE TYPE campaign_status AS ENUM (
-  'DRAFT',
-  'ACTIVE',
-  'PAUSED',
-  'COMPLETED'
-);
+DO $$ BEGIN
+  CREATE TYPE campaign_status AS ENUM (
+    'DRAFT',
+    'ACTIVE',
+    'PAUSED',
+    'COMPLETED'
+  );
+EXCEPTION WHEN duplicate_object THEN null;
+END $$;
 
--- Coupons: Promotional discount codes
-CREATE TABLE coupons (
+-- Platform Coupons: SaaS-level promotional discount codes
+CREATE TABLE IF NOT EXISTS platform_coupons (
   id TEXT PRIMARY KEY DEFAULT (gen_random_uuid()::text),
 
   -- Coupon code
   code TEXT NOT NULL UNIQUE,                   -- "LAUNCH20", "BLACKFRIDAY"
 
   -- Discount
-  discount_type discount_type NOT NULL,        -- PERCENTAGE, FIXED_AMOUNT, FREE_TRIAL_EXTENSION
+  discount_type platform_discount_type NOT NULL,        -- PERCENTAGE, FIXED_AMOUNT, FREE_TRIAL_EXTENSION
   discount_value DECIMAL(12,2) NOT NULL,       -- 20 for 20%, or 100 for 100 BRL off, or 30 for 30 days trial extension
   currency TEXT DEFAULT 'BRL',
 
@@ -55,7 +65,7 @@ CREATE TABLE coupons (
   referrer_id TEXT REFERENCES platform_users(id),  -- Who created/is responsible for this coupon
 
   -- Status
-  status coupon_status NOT NULL DEFAULT 'ACTIVE',
+  status platform_coupon_status NOT NULL DEFAULT 'ACTIVE',
 
   -- Metadata
   metadata JSONB DEFAULT '{}',
@@ -66,15 +76,15 @@ CREATE TABLE coupons (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE INDEX coupons_code_idx ON coupons(code);
-CREATE INDEX coupons_status_idx ON coupons(status);
-CREATE INDEX coupons_valid_until_idx ON coupons(valid_until);
-CREATE INDEX coupons_created_at_idx ON coupons(created_at);
+CREATE INDEX IF NOT EXISTS platform_coupons_code_idx ON platform_coupons(code);
+CREATE INDEX IF NOT EXISTS platform_coupons_status_idx ON platform_coupons(status);
+CREATE INDEX IF NOT EXISTS platform_coupons_valid_until_idx ON platform_coupons(valid_until);
+CREATE INDEX IF NOT EXISTS platform_coupons_created_at_idx ON platform_coupons(created_at);
 
--- Coupon redemptions: Track which tenants used which coupons
-CREATE TABLE coupon_redemptions (
+-- Platform Coupon Redemptions: Track which tenants used which platform coupons
+CREATE TABLE IF NOT EXISTS platform_coupon_redemptions (
   id TEXT PRIMARY KEY DEFAULT (gen_random_uuid()::text),
-  coupon_id TEXT NOT NULL REFERENCES coupons(id) ON DELETE CASCADE,
+  coupon_id TEXT NOT NULL REFERENCES platform_coupons(id) ON DELETE CASCADE,
   subscriber_tenant_id TEXT NOT NULL REFERENCES subscriber_tenants(id) ON DELETE CASCADE,
 
   redemption_date TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -92,12 +102,12 @@ CREATE TABLE coupon_redemptions (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE INDEX coupon_redemptions_coupon_idx ON coupon_redemptions(coupon_id);
-CREATE INDEX coupon_redemptions_subscriber_idx ON coupon_redemptions(subscriber_tenant_id);
-CREATE INDEX coupon_redemptions_date_idx ON coupon_redemptions(redemption_date);
+CREATE INDEX IF NOT EXISTS platform_coupon_redemptions_coupon_idx ON platform_coupon_redemptions(coupon_id);
+CREATE INDEX IF NOT EXISTS platform_coupon_redemptions_subscriber_idx ON platform_coupon_redemptions(subscriber_tenant_id);
+CREATE INDEX IF NOT EXISTS platform_coupon_redemptions_date_idx ON platform_coupon_redemptions(redemption_date);
 
--- Promotional campaigns: Marketing campaigns using coupons
-CREATE TABLE promotional_campaigns (
+-- Promotional campaigns: Marketing campaigns using platform coupons
+CREATE TABLE IF NOT EXISTS promotional_campaigns (
   id TEXT PRIMARY KEY DEFAULT (gen_random_uuid()::text),
 
   -- Campaign info
@@ -128,12 +138,12 @@ CREATE TABLE promotional_campaigns (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE INDEX promotional_campaigns_status_idx ON promotional_campaigns(status);
-CREATE INDEX promotional_campaigns_start_date_idx ON promotional_campaigns(start_date);
-CREATE INDEX promotional_campaigns_end_date_idx ON promotional_campaigns(end_date);
+CREATE INDEX IF NOT EXISTS promotional_campaigns_status_idx ON promotional_campaigns(status);
+CREATE INDEX IF NOT EXISTS promotional_campaigns_start_date_idx ON promotional_campaigns(start_date);
+CREATE INDEX IF NOT EXISTS promotional_campaigns_end_date_idx ON promotional_campaigns(end_date);
 
 -- Campaign audit: Track campaign changes
-CREATE TABLE campaign_audit (
+CREATE TABLE IF NOT EXISTS campaign_audit (
   id TEXT PRIMARY KEY DEFAULT (gen_random_uuid()::text),
   campaign_id TEXT NOT NULL REFERENCES promotional_campaigns(id) ON DELETE CASCADE,
 
@@ -145,16 +155,16 @@ CREATE TABLE campaign_audit (
   changed_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE INDEX campaign_audit_campaign_idx ON campaign_audit(campaign_id);
-CREATE INDEX campaign_audit_changed_at_idx ON campaign_audit(changed_at);
+CREATE INDEX IF NOT EXISTS campaign_audit_campaign_idx ON campaign_audit(campaign_id);
+CREATE INDEX IF NOT EXISTS campaign_audit_changed_at_idx ON campaign_audit(changed_at);
 
--- No RLS on coupon/campaign tables (platform-scoped)
+-- No RLS on campaign tables (platform-scoped)
 
 -- Down: Rollback
 -- DROP TABLE campaign_audit;
 -- DROP TABLE promotional_campaigns;
--- DROP TABLE coupon_redemptions;
--- DROP TABLE coupons;
+-- DROP TABLE platform_coupon_redemptions;
+-- DROP TABLE platform_coupons;
 -- DROP TYPE campaign_status;
--- DROP TYPE coupon_status;
--- DROP TYPE discount_type;
+-- DROP TYPE platform_coupon_status;
+-- DROP TYPE platform_discount_type;
