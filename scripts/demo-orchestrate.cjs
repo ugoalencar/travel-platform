@@ -59,8 +59,8 @@ if (migrationsResult.status !== 0) {
   process.exit(1);
 }
 
-// Step 3: Seed demo data
-console.log('\nStep 3/5: Seeding demo data...\n');
+// Step 3: Seed tenant demo data
+console.log('\nStep 3/6: Seeding tenant demo data...\n');
 const seedResult = spawnSync('node', [resolve(repoRoot, 'scripts/seed-demo-data.cjs')], {
   cwd: repoRoot,
   stdio: 'inherit',
@@ -71,25 +71,42 @@ const seedResult = spawnSync('node', [resolve(repoRoot, 'scripts/seed-demo-data.
 });
 
 if (seedResult.status !== 0) {
-  console.error('\n❌ Demo data seeding failed. Exiting.\n');
+  console.error('\n❌ Tenant demo data seeding failed. Exiting.\n');
   process.exit(1);
 }
 
-// Step 4-8: Start services
-console.log('\nStep 4/8: Starting API Server (port 4000)...\n');
-console.log('Step 5/8: Starting Agency Portal (port 5173)...\n');
-console.log('Step 6/8: Starting Customer Portal (port 5174)...\n');
-console.log('Step 7/8: Starting Marketing App (port 5175)...\n');
-console.log('Step 8/8: Starting Platform Admin (port 5176)...\n');
+// Step 4: Seed platform SaaS demo data
+console.log('\nStep 4/6: Seeding platform SaaS demo data...\n');
+const platformSeedResult = spawnSync('node', [resolve(repoRoot, 'scripts/seed-platform-demo-data.cjs')], {
+  cwd: repoRoot,
+  stdio: 'inherit',
+  env: {
+    ...process.env,
+    DATABASE_URL: process.env.DATABASE_URL || 'postgresql://travel_test:travel_test_password@127.0.0.1:55432/travel_platform_test',
+  },
+});
+
+if (platformSeedResult.status !== 0) {
+  console.error('\n❌ Platform SaaS demo data seeding failed. Exiting.\n');
+  process.exit(1);
+}
+
+// Step 5-9: Start services
+console.log('\nStep 5/9: Starting API Server (port 4000)...\n');
+console.log('Step 6/9: Starting Agency Portal (port 5173)...\n');
+console.log('Step 7/9: Starting Customer Portal (port 5174)...\n');
+console.log('Step 8/9: Starting Marketing App (port 5175)...\n');
+console.log('Step 9/9: Starting Platform Admin (port 5176)...\n');
 
 console.log('========================================');
 console.log('✅ DEMO READY - All 5 services starting...');
 console.log('========================================\n');
-console.log('API Server:      http://127.0.0.1:4000');
-console.log('Agency Portal:   http://localhost:5173');
-console.log('Customer Portal: http://localhost:5174');
-console.log('Marketing App:   http://localhost:5175');
-console.log('Platform Admin:  http://localhost:5176\n');
+console.log('API Server:      http://127.0.0.1:4000\n');
+console.log('Apps:');
+console.log('  Agency Portal:   http://localhost:5173');
+console.log('  Customer Portal: http://localhost:5174');
+console.log('  Marketing App:   http://localhost:5175');
+console.log('  Platform Admin:  http://localhost:5176\n');
 console.log('Press Ctrl+C to stop all services.\n');
 
 // Start all services in parallel

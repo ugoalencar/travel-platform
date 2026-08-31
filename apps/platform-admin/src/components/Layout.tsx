@@ -1,5 +1,5 @@
 import { Link, Outlet } from 'react-router-dom';
-import { BarChart3, Users, Package, CreditCard, TrendingUp, Zap, Megaphone, MessageSquare, Settings } from 'lucide-react';
+import { BarChart3, Users, Package, CreditCard, TrendingUp, Zap, Megaphone, MessageSquare, Settings, AlertCircle, Flag, Heart, FileText } from 'lucide-react';
 
 export function Layout() {
   return (
@@ -20,6 +20,16 @@ export function Layout() {
           <NavLink to="/leads" icon={Zap} label="Leads" />
           <NavLink to="/marketing" icon={Megaphone} label="Marketing" />
           <NavLink to="/support" icon={MessageSquare} label="Support" />
+
+          <hr className="my-4 border-slate-700" />
+
+          <NavLink to="/incidents" icon={AlertCircle} label="Incidents" />
+          <NavLink to="/feature-flags" icon={Flag} label="Feature Flags" />
+          <NavLink to="/health" icon={Heart} label="Health" />
+          <NavLink to="/audit" icon={FileText} label="Audit" />
+
+          <hr className="my-4 border-slate-700" />
+
           <NavLink to="/settings" icon={Settings} label="Settings" />
         </nav>
       </aside>

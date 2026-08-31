@@ -696,6 +696,40 @@ model LoginAudit {
   @@map("login_audit")
 }
 
+model PlatformSettings {
+  id                        String              @id @default(dbgenerated("(gen_random_uuid())::text"))
+  enableTrials              Boolean             @default(true) @map("enable_trials")
+  trialDurationDays         Int                 @default(14) @map("trial_duration_days")
+  autoSuspendPastDue        Boolean             @default(true) @map("auto_suspend_past_due")
+  suspendAfterDaysPastDue   Int                 @default(30) @map("suspend_after_days_past_due")
+  requireMfaForPlatform     Boolean             @default(false) @map("require_mfa_for_platform")
+  maxStorageGbDefault       Int                 @default(100) @map("max_storage_gb_default")
+  maxUsersDefault           Int                 @default(10) @map("max_users_default")
+  maxCustomersDefault       Int                 @default(100) @map("max_customers_default")
+  createdAt                 DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                 DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("platform_settings")
+}
+
+model SupportCases {
+  id                    String              @id @default(dbgenerated("(gen_random_uuid())::text"))
+  subscriberTenantId    String              @map("subscriber_tenant_id")
+  title                 String
+  description           String
+  status                String              @default("OPEN") // OPEN, IN_PROGRESS, RESOLVED, CLOSED
+  priority              String              @default("MEDIUM") // LOW, MEDIUM, HIGH, CRITICAL
+  assignedToId          String?             @map("assigned_to_id")
+  createdAt             DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relations
+  subscriberTenant      SubscriberTenants   @relation(fields: [subscriberTenantId], references: [id], onDelete: Cascade)
+  assignedTo            PlatformUsers?      @relation(fields: [assignedToId], references: [id], onDelete: SetNull)
+
+  @@map("support_cases")
+}
+
 model Agency {
   id                   String                @id @default(dbgenerated("(gen_random_uuid())::text"))
   name                 String

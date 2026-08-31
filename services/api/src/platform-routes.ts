@@ -20,6 +20,16 @@ import {
   listInvoices,
   listAuditLogs,
   createAuditLog,
+  getSubscriberGrowth,
+  getMrrEvolution,
+  getLeadFunnel,
+  getPlanDistribution,
+  getSettings,
+  updateSettings,
+  listSupportCases,
+  createSupportCase,
+  getSupportCaseById,
+  updateSupportCase,
 } from './platform-services';
 
 interface PlanCreateRequest {
@@ -50,6 +60,29 @@ interface SubscriptionCreateRequest {
   billingInterval: string;
   amount: number;
   currency: string;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function registerPublicPlatformRoutes(
+  app: FastifyInstance,
+  database: PrismaClient
+): void {
+  // ==================== PUBLIC LEADS ====================
+
+  // POST /public/leads - Create a lead (public endpoint, no auth required)
+  app.post<{ Body: LeadCreateRequest }>(
+    '/public/leads',
+    async (request, reply) => {
+      try {
+        const lead = await createLead(database, request.body);
+        reply.code(201);
+        return { lead };
+      } catch (error) {
+        reply.code(400);
+        return { error: 'Failed to create lead' };
+      }
+    }
+  );
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -240,4 +273,99 @@ export function registerPlatformRoutes(
     const logs = await listAuditLogs(database);
     return { logs };
   });
+
+  // ==================== ANALYTICS ====================
+
+  // GET /platform/analytics/subscriber-growth - 12-month subscriber growth
+  app.get('/platform/analytics/subscriber-growth', { preHandler: platformAuthHooks }, async () => {
+    const data = await getSubscriberGrowth(database);
+    return { data };
+  });
+
+  // GET /platform/analytics/mrr-evolution - 12-month MRR evolution
+  app.get('/platform/analytics/mrr-evolution', { preHandler: platformAuthHooks }, async () => {
+    const data = await getMrrEvolution(database);
+    return { data };
+  });
+
+  // GET /platform/analytics/lead-funnel - Lead funnel by stage
+  app.get('/platform/analytics/lead-funnel', { preHandler: platformAuthHooks }, async () => {
+    const data = await getLeadFunnel(database);
+    return { data };
+  });
+
+  // GET /platform/analytics/plan-distribution - Subscriptions by plan
+  app.get('/platform/analytics/plan-distribution', { preHandler: platformAuthHooks }, async () => {
+    const data = await getPlanDistribution(database);
+    return { data };
+  });
+
+  // ==================== SETTINGS ====================
+
+  // GET /platform/settings - Retrieve platform settings
+  app.get('/platform/settings', { preHandler: platformAuthHooks }, async () => {
+    const settings = await getSettings(database);
+    return { settings };
+  });
+
+  // POST /platform/settings - Create default settings (if not exists)
+  app.post<{ Body: any }>(
+    '/platform/settings',
+    { preHandler: platformAuthHooks },
+    async (request) => {
+      const settings = await updateSettings(database, request.body as any);
+      return { settings };
+    }
+  );
+
+  // PATCH /platform/settings - Update settings
+  app.patch<{ Body: any }>(
+    '/platform/settings',
+    { preHandler: platformAuthHooks },
+    async (request) => {
+      const settings = await updateSettings(database, request.body as any);
+      return { settings };
+    }
+  );
+
+  // ==================== SUPPORT CASES ====================
+
+  // GET /platform/support - List all support cases
+  app.get('/platform/support', { preHandler: platformAuthHooks }, async () => {
+    const cases = await listSupportCases(database);
+    return { cases };
+  });
+
+  // POST /platform/support - Create support case
+  app.post<{ Body: any }>(
+    '/platform/support',
+    { preHandler: platformAuthHooks },
+    async (request) => {
+      const supportCase = await createSupportCase(database, request.body as any);
+      return { supportCase };
+    }
+  );
+
+  // GET /platform/support/:id - Get support case detail
+  app.get<{ Params: { id: string } }>(
+    '/platform/support/:id',
+    { preHandler: platformAuthHooks },
+    async (request) => {
+      const supportCase = await getSupportCaseById(database, request.params.id);
+      if (!supportCase) {
+        throw new Error('Support case not found');
+      }
+      return { supportCase };
+    }
+  );
+
+  // PATCH /platform/support/:id - Update support case
+  app.patch<{ Params: { id: string }; Body: any }>(
+    '/platform/support/:id',
+    { preHandler: platformAuthHooks },
+    async (request) => {
+      const supportCase = await updateSupportCase(database, request.params.id, request.body as any);
+      return { supportCase };
+    }
+  );
 }

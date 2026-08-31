@@ -355,7 +355,7 @@ import { InternalMockConnector } from './connectors/mock-connector';
 import type { ConnectorEvent } from '../../../packages/domain/types';
 import { createPlatformAuthenticateHook, type PlatformAuthProvider } from './platform-auth';
 import { PlatformDevAuthProvider } from './platform-dev-auth';
-import { registerPlatformRoutes } from './platform-routes';
+import { registerPlatformRoutes, registerPublicPlatformRoutes } from './platform-routes';
 
 export interface BuildAppOptions {
   authProvider: AuthProvider;
@@ -2676,7 +2676,10 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     });
   }
 
-  // Register platform admin routes
+  // Register public platform routes (no auth required)
+  registerPublicPlatformRoutes(app, options.database);
+
+  // Register platform admin routes (auth required)
   registerPlatformRoutes(app, options.database, platformProtectedHooks);
 
   return app;

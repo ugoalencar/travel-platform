@@ -324,3 +324,287 @@ export async function createAuditLog(
     },
   });
 }
+
+// ==================== ANALYTICS ====================
+
+export async function getSubscriberGrowth(database: PrismaClient) {
+  const now = new Date();
+  const monthsBack = Array.from({ length: 12 }, (_, i) => {
+    const d = new Date(now);
+    d.setMonth(d.getMonth() - (11 - i));
+    d.setDate(1);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  });
+
+  const data = await Promise.all(
+    monthsBack.map(async (month) => {
+      const nextMonth = new Date(month);
+      nextMonth.setMonth(nextMonth.getMonth() + 1);
+
+      const count = await database.subscriberTenants.count({
+        where: { createdAt: { gte: month, lt: nextMonth } },
+      });
+
+      return {
+        month: month.toISOString().substring(0, 7),
+        count,
+      };
+    })
+  );
+
+  return data;
+}
+
+export async function getMrrEvolution(database: PrismaClient) {
+  const now = new Date();
+  const monthsBack = Array.from({ length: 12 }, (_, i) => {
+    const d = new Date(now);
+    d.setMonth(d.getMonth() - (11 - i));
+    d.setDate(1);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  });
+
+  const data = await Promise.all(
+    monthsBack.map(async (month) => {
+      const nextMonth = new Date(month);
+      nextMonth.setMonth(nextMonth.getMonth() + 1);
+
+      const subscriptions = await database.subscriptions.findMany({
+        where: {
+          status: { in: ['ACTIVE', 'TRIAL'] },
+          createdAt: { lt: nextMonth },
+        },
+        include: { plan: true },
+      });
+
+      const mrr = subscriptions
+        .filter((s: any) => s.billingInterval === 'MONTHLY')
+        .reduce((sum: number, s: any) => sum + s.amount, 0);
+
+      return {
+        month: month.toISOString().substring(0, 7),
+        mrr: Math.round(mrr * 100) / 100,
+      };
+    })
+  );
+
+  return data;
+}
+
+export async function getLeadFunnel(database: PrismaClient) {
+  const stages = ['NEW', 'CONTACTED', 'QUALIFIED', 'DEMO_SCHEDULED', 'TRIAL', 'WON', 'LOST'];
+
+  const data = await Promise.all(
+    stages.map(async (stage) => {
+      const count = await database.leads.count({
+        where: { status: stage },
+      });
+      return { stage, count };
+    })
+  );
+
+  return data;
+}
+
+export async function getPlanDistribution(database: PrismaClient) {
+  const plans = await database.plans.findMany();
+
+  const data = await Promise.all(
+    plans.map(async (plan: any) => {
+      const count = await database.subscriptions.count({
+        where: { planId: plan.id },
+      });
+      return {
+        planName: plan.name,
+        planId: plan.id,
+        count,
+      };
+    })
+  );
+
+  return data;
+}
+
+// ==================== SETTINGS ====================
+
+export async function getSettings(database: PrismaClient) {
+  let settings = await database.platformSettings.findFirst();
+
+  if (!settings) {
+    settings = await database.platformSettings.create({
+      data: {
+        enableTrials: true,
+        trialDurationDays: 14,
+        autoSuspendPastDue: true,
+        suspendAfterDaysPastDue: 30,
+        requireMfaForPlatform: false,
+        maxStorageGbDefault: 100,
+        maxUsersDefault: 10,
+        maxCustomersDefault: 100,
+      },
+    });
+  }
+
+  return settings;
+}
+
+export async function updateSettings(
+  database: PrismaClient,
+  data: Partial<{
+    enableTrials: boolean;
+    trialDurationDays: number;
+    autoSuspendPastDue: boolean;
+    suspendAfterDaysPastDue: number;
+    requireMfaForPlatform: boolean;
+    maxStorageGbDefault: number;
+    maxUsersDefault: number;
+    maxCustomersDefault: number;
+  }>
+) {
+  let settings = await database.platformSettings.findFirst();
+
+  if (!settings) {
+    settings = await database.platformSettings.create({
+      data: {
+        enableTrials: true,
+        trialDurationDays: 14,
+        autoSuspendPastDue: true,
+        suspendAfterDaysPastDue: 30,
+        requireMfaForPlatform: false,
+        maxStorageGbDefault: 100,
+        maxUsersDefault: 10,
+        maxCustomersDefault: 100,
+      },
+    });
+  }
+
+  return database.platformSettings.update({
+    where: { id: settings.id },
+    data,
+  });
+}
+
+// ==================== SUPPORT CASES ====================
+
+export async function listSupportCases(database: PrismaClient) {
+  const cases = await database.supportCases.findMany({
+    include: {
+      subscriberTenant: true,
+      assignedTo: true,
+    },
+    orderBy: { createdAt: 'desc' },
+  });
+
+  return cases.map((c: any) => ({
+    id: c.id,
+    subscriberTenantId: c.subscriberTenantId,
+    subscriberTenantName: c.subscriberTenant.contactName,
+    title: c.title,
+    description: c.description,
+    status: c.status,
+    priority: c.priority,
+    assignedToId: c.assignedToId,
+    assignedToEmail: c.assignedTo?.email,
+    createdAt: c.createdAt.toISOString(),
+    updatedAt: c.updatedAt.toISOString(),
+  }));
+}
+
+export async function createSupportCase(
+  database: PrismaClient,
+  data: {
+    subscriberTenantId: string;
+    title: string;
+    description: string;
+    priority?: string;
+  }
+) {
+  const supportCase = await database.supportCases.create({
+    data: {
+      subscriberTenantId: data.subscriberTenantId,
+      title: data.title,
+      description: data.description,
+      priority: data.priority || 'MEDIUM',
+      status: 'OPEN',
+    },
+    include: {
+      subscriberTenant: true,
+      assignedTo: true,
+    },
+  });
+
+  return {
+    id: supportCase.id,
+    subscriberTenantId: supportCase.subscriberTenantId,
+    subscriberTenantName: supportCase.subscriberTenant.contactName,
+    title: supportCase.title,
+    description: supportCase.description,
+    status: supportCase.status,
+    priority: supportCase.priority,
+    assignedToId: supportCase.assignedToId,
+    assignedToEmail: supportCase.assignedTo?.email,
+    createdAt: supportCase.createdAt.toISOString(),
+    updatedAt: supportCase.updatedAt.toISOString(),
+  };
+}
+
+export async function getSupportCaseById(database: PrismaClient, id: string) {
+  const supportCase = await database.supportCases.findUnique({
+    where: { id },
+    include: {
+      subscriberTenant: true,
+      assignedTo: true,
+    },
+  });
+
+  if (!supportCase) return null;
+
+  return {
+    id: supportCase.id,
+    subscriberTenantId: supportCase.subscriberTenantId,
+    subscriberTenantName: supportCase.subscriberTenant.contactName,
+    title: supportCase.title,
+    description: supportCase.description,
+    status: supportCase.status,
+    priority: supportCase.priority,
+    assignedToId: supportCase.assignedToId,
+    assignedToEmail: supportCase.assignedTo?.email,
+    createdAt: supportCase.createdAt.toISOString(),
+    updatedAt: supportCase.updatedAt.toISOString(),
+  };
+}
+
+export async function updateSupportCase(
+  database: PrismaClient,
+  id: string,
+  data: Partial<{
+    status: string;
+    priority: string;
+    assignedToId: string;
+  }>
+) {
+  const supportCase = await database.supportCases.update({
+    where: { id },
+    data,
+    include: {
+      subscriberTenant: true,
+      assignedTo: true,
+    },
+  });
+
+  return {
+    id: supportCase.id,
+    subscriberTenantId: supportCase.subscriberTenantId,
+    subscriberTenantName: supportCase.subscriberTenant.contactName,
+    title: supportCase.title,
+    description: supportCase.description,
+    status: supportCase.status,
+    priority: supportCase.priority,
+    assignedToId: supportCase.assignedToId,
+    assignedToEmail: supportCase.assignedTo?.email,
+    createdAt: supportCase.createdAt.toISOString(),
+    updatedAt: supportCase.updatedAt.toISOString(),
+  };
+}

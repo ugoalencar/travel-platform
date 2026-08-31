@@ -126,10 +126,10 @@ async function main() {
     const wishesResult = await verifyPool.query('SELECT COUNT(*) as count FROM wishes;');
 
     // Verify platform SaaS data
-    const subscribersResult = await verifyPool.query('SELECT COUNT(*) as count FROM "SubscriberTenants";');
-    const plansResult = await verifyPool.query('SELECT COUNT(*) as count FROM "Plans";');
-    const subscriptionsResult = await verifyPool.query('SELECT COUNT(*) as count FROM "Subscriptions";');
-    const leadsResult = await verifyPool.query('SELECT COUNT(*) as count FROM "Leads";');
+    const subscribersResult = await verifyPool.query('SELECT COUNT(*) as count FROM subscriber_tenants;');
+    const plansResult = await verifyPool.query('SELECT COUNT(*) as count FROM plans;');
+    const subscriptionsResult = await verifyPool.query('SELECT COUNT(*) as count FROM subscriptions;');
+    const leadsResult = await verifyPool.query('SELECT COUNT(*) as count FROM leads;');
 
     const agencies = parseInt(agenciesResult.rows[0].count, 10);
     const customers = parseInt(customersResult.rows[0].count, 10);

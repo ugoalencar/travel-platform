@@ -9,6 +9,10 @@ import { LeadsPage } from './pages/LeadsPage';
 import { MarketingPage } from './pages/MarketingPage';
 import { SupportPage } from './pages/SupportPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { IncidentsPage } from './pages/IncidentsPage';
+import { FeatureFlagsPage } from './pages/FeatureFlagsPage';
+import { HealthPage } from './pages/HealthPage';
+import { AuditPage } from './pages/AuditPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
 export function App() {
@@ -24,6 +28,10 @@ export function App() {
         <Route path="marketing" element={<MarketingPage />} />
         <Route path="support" element={<SupportPage />} />
         <Route path="settings" element={<SettingsPage />} />
+        <Route path="incidents" element={<IncidentsPage />} />
+        <Route path="feature-flags" element={<FeatureFlagsPage />} />
+        <Route path="health" element={<HealthPage />} />
+        <Route path="audit" element={<AuditPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>
