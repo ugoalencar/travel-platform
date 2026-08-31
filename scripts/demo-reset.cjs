@@ -16,10 +16,23 @@ const { spawnSync } = require('node:child_process');
 const { Pool } = require('pg');
 const { resolve } = require('node:path');
 const { URL } = require('node:url');
+const { existsSync, readFileSync } = require('node:fs');
 
 const repoRoot = resolve(__dirname, '..');
 
-const databaseUrl = process.env.DATABASE_URL || 
+// Load .env.local if it exists
+const envLocalPath = resolve(repoRoot, '.env.local');
+if (existsSync(envLocalPath)) {
+  const envContent = readFileSync(envLocalPath, 'utf8');
+  envContent.split('\n').forEach(line => {
+    const [key, ...valueParts] = line.split('=');
+    if (key && !process.env[key.trim()]) {
+      process.env[key.trim()] = valueParts.join('=').trim();
+    }
+  });
+}
+
+const databaseUrl = process.env.DATABASE_URL ||
   'postgresql://travel_test:travel_test_password@127.0.0.1:55432/travel_platform_test';
 
 async function main() {
@@ -76,8 +89,8 @@ async function main() {
     process.exit(1);
   }
 
-  // Step 3: Seed demo data
-  console.log('\nStep 3/4: Seeding demo data...\n');
+  // Step 3: Seed tenant demo data (agencies, customers, offers, trips)
+  console.log('\nStep 3/5: Seeding tenant demo data...\n');
   const seedResult = spawnSync('node', [resolve(repoRoot, 'scripts/seed-demo-data.cjs')], {
     cwd: repoRoot,
     stdio: 'inherit',
@@ -85,34 +98,66 @@ async function main() {
   });
 
   if (seedResult.status !== 0) {
-    console.error('\n❌ Seeding failed.\n');
+    console.error('\n❌ Tenant seeding failed.\n');
     process.exit(1);
   }
 
-  // Step 4: Verify
-  console.log('\nStep 4/4: Verifying demo data...\n');
+  // Step 4: Seed platform SaaS demo data
+  console.log('\nStep 4/5: Seeding platform SaaS demo data...\n');
+  const platformSeedResult = spawnSync('node', [resolve(repoRoot, 'scripts/seed-platform-demo-data.cjs')], {
+    cwd: repoRoot,
+    stdio: 'inherit',
+    env: { ...process.env, DATABASE_URL: databaseUrl },
+  });
+
+  if (platformSeedResult.status !== 0) {
+    console.error('\n❌ Platform seeding failed.\n');
+    process.exit(1);
+  }
+
+  // Step 5: Verify
+  console.log('\nStep 5/5: Verifying demo data...\n');
   const verifyPool = new Pool({ connectionString: databaseUrl });
-  
+
   try {
+    // Verify tenant data
     const agenciesResult = await verifyPool.query('SELECT COUNT(*) as count FROM agencies;');
     const customersResult = await verifyPool.query('SELECT COUNT(*) as count FROM customers;');
     const wishesResult = await verifyPool.query('SELECT COUNT(*) as count FROM wishes;');
-    
+
+    // Verify platform SaaS data
+    const subscribersResult = await verifyPool.query('SELECT COUNT(*) as count FROM "SubscriberTenants";');
+    const plansResult = await verifyPool.query('SELECT COUNT(*) as count FROM "Plans";');
+    const subscriptionsResult = await verifyPool.query('SELECT COUNT(*) as count FROM "Subscriptions";');
+    const leadsResult = await verifyPool.query('SELECT COUNT(*) as count FROM "Leads";');
+
     const agencies = parseInt(agenciesResult.rows[0].count, 10);
     const customers = parseInt(customersResult.rows[0].count, 10);
     const wishes = parseInt(wishesResult.rows[0].count, 10);
-    
-    console.log(`✅ Agencies: ${agencies}`);
-    console.log(`✅ Customers: ${customers}`);
-    console.log(`✅ Wishes: ${wishes}`);
-    
-    if (agencies > 0 && customers > 0 && wishes > 0) {
+    const subscribers = parseInt(subscribersResult.rows[0].count, 10);
+    const plans = parseInt(plansResult.rows[0].count, 10);
+    const subscriptions = parseInt(subscriptionsResult.rows[0].count, 10);
+    const leads = parseInt(leadsResult.rows[0].count, 10);
+
+    console.log('   Tenant Data:');
+    console.log(`   ✅ Agencies: ${agencies}`);
+    console.log(`   ✅ Customers: ${customers}`);
+    console.log(`   ✅ Wishes: ${wishes}`);
+    console.log('\n   Platform SaaS Data:');
+    console.log(`   ✅ Subscriber Tenants: ${subscribers}`);
+    console.log(`   ✅ Plans: ${plans}`);
+    console.log(`   ✅ Subscriptions: ${subscriptions}`);
+    console.log(`   ✅ Leads: ${leads}`);
+
+    if (agencies > 0 && customers > 0 && wishes > 0 && subscribers >= 12 && plans >= 4 && subscriptions >= 20 && leads >= 25) {
       console.log('\n========================================');
       console.log('✅ DEMO RESET COMPLETE');
       console.log('========================================\n');
       process.exit(0);
     } else {
       console.error('\n❌ Verification failed: insufficient data.\n');
+      process.error(`   Min required: agencies > 0, customers > 0, wishes > 0`);
+      console.error(`   Min platform: subscribers >= 12, plans >= 4, subscriptions >= 20, leads >= 25`);
       process.exit(1);
     }
   } catch (err) {
