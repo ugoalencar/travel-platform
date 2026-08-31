@@ -353,12 +353,17 @@ import { listEngagements } from './engagements';
 import { listAuditLog } from './offer-growth-audit';
 import { InternalMockConnector } from './connectors/mock-connector';
 import type { ConnectorEvent } from '../../../packages/domain/types';
+import { createPlatformAuthenticateHook, type PlatformAuthProvider } from './platform-auth';
+import { PlatformDevAuthProvider } from './platform-dev-auth';
+import { registerPlatformRoutes } from './platform-routes';
 
 export interface BuildAppOptions {
   authProvider: AuthProvider;
   validateUserAgencyAccess: ValidateUserAgencyAccess;
   database: DatabaseRuntime;
   exposeTestRoutes?: boolean;
+  // Platform admin auth provider for /platform/* routes
+  platformAuthProvider?: PlatformAuthProvider;
   // Customer-portal auth. Optional so every existing caller of buildApp()
   // (all staff/admin tests and server.ts's prior wiring) keeps working
   // unchanged; when omitted, the customer-portal routes below fail closed
@@ -537,6 +542,11 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
   const rateLimits = createRateLimitHooks(options.rateLimit);
   const protectedHooks = [authenticate, establishTenant, rateLimits.onTrustedTenant];
   app.addHook('onRequest', rateLimits.onRequest);
+
+  // Platform admin authentication for /platform/* routes
+  const platformAuthProvider = options.platformAuthProvider ?? new PlatformDevAuthProvider();
+  const platformAuthenticate = createPlatformAuthenticateHook(platformAuthProvider);
+  const platformProtectedHooks = [platformAuthenticate, rateLimits.onTrustedTenant];
 
   // ============================================================
   // CUSTOMER PORTAL (end-customer facing, read-only). Entirely separate
@@ -2665,6 +2675,9 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       });
     });
   }
+
+  // Register platform admin routes
+  registerPlatformRoutes(app, options.database, platformProtectedHooks);
 
   return app;
 }

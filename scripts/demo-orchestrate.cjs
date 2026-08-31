@@ -16,7 +16,6 @@
 
 const { spawn, spawnSync } = require('node:child_process');
 const { resolve } = require('node:path');
-const { existsSync } = require('node:fs');
 
 const repoRoot = resolve(__dirname, '..');
 const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';

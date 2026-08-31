@@ -18,7 +18,6 @@ const { resolve } = require('node:path');
 const { URL } = require('node:url');
 
 const repoRoot = resolve(__dirname, '..');
-const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 
 const databaseUrl = process.env.DATABASE_URL || 
   'postgresql://travel_test:travel_test_password@127.0.0.1:55432/travel_platform_test';
@@ -45,7 +44,7 @@ async function main() {
       console.error(`   URL: ${databaseUrl}\n`);
       process.exit(1);
     }
-  } catch (err) {
+  } catch {
     console.error('❌ ERROR: Invalid DATABASE_URL.\n');
     process.exit(1);
   }
