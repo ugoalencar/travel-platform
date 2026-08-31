@@ -75,16 +75,21 @@ if (seedResult.status !== 0) {
   process.exit(1);
 }
 
-// Step 4-6: Start services
-console.log('\nStep 4/5: Starting API Server...\n');
-console.log('Step 5/5: Starting Agency Portal (5173) and Customer Portal (5174)...\n');
+// Step 4-8: Start services
+console.log('\nStep 4/8: Starting API Server (port 4000)...\n');
+console.log('Step 5/8: Starting Agency Portal (port 5173)...\n');
+console.log('Step 6/8: Starting Customer Portal (port 5174)...\n');
+console.log('Step 7/8: Starting Marketing App (port 5175)...\n');
+console.log('Step 8/8: Starting Platform Admin (port 5176)...\n');
 
 console.log('========================================');
-console.log('✅ DEMO READY - Services starting...');
+console.log('✅ DEMO READY - All 5 services starting...');
 console.log('========================================\n');
+console.log('API Server:      http://127.0.0.1:4000');
 console.log('Agency Portal:   http://localhost:5173');
 console.log('Customer Portal: http://localhost:5174');
-console.log('API Server:      http://127.0.0.1:4000\n');
+console.log('Marketing App:   http://localhost:5175');
+console.log('Platform Admin:  http://localhost:5176\n');
 console.log('Press Ctrl+C to stop all services.\n');
 
 // Start all services in parallel
@@ -106,9 +111,21 @@ const customerPortal = spawn(npmCommand, ['run', 'dev'], {
   shell: process.platform === 'win32',
 });
 
+const marketingApp = spawn(npmCommand, ['run', 'dev'], {
+  cwd: resolve(repoRoot, 'apps/marketing'),
+  stdio: 'inherit',
+  shell: process.platform === 'win32',
+});
+
+const platformAdminApp = spawn(npmCommand, ['run', 'dev'], {
+  cwd: resolve(repoRoot, 'apps/platform-admin'),
+  stdio: 'inherit',
+  shell: process.platform === 'win32',
+});
+
 const handleExit = (signal) => {
   console.log('\n\nShutting down services...');
-  [apiServer, agencyPortal, customerPortal].forEach((proc) => {
+  [apiServer, agencyPortal, customerPortal, marketingApp, platformAdminApp].forEach((proc) => {
     if (!proc.killed) proc.kill(signal || 'SIGTERM');
   });
 };
@@ -116,7 +133,7 @@ const handleExit = (signal) => {
 process.on('SIGINT', () => handleExit('SIGINT'));
 process.on('SIGTERM', () => handleExit('SIGTERM'));
 
-[apiServer, agencyPortal, customerPortal].forEach((proc) => {
+[apiServer, agencyPortal, customerPortal, marketingApp, platformAdminApp].forEach((proc) => {
   proc.on('exit', (code) => {
     if (code !== 0) {
       console.error(`Process exited with code ${code}`);
