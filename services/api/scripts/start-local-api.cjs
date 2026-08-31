@@ -13,10 +13,10 @@ const env = {
   ...process.env,
   NODE_ENV: nodeEnv,
   HOST: process.env.HOST ?? '127.0.0.1',
-  PORT: process.env.PORT ?? '3000',
+  PORT: process.env.PORT ?? '4000',
   DATABASE_URL:
     process.env.DATABASE_URL ??
-    'postgresql://travel_app_runtime_local:travel_app_runtime_local_password@127.0.0.1:55432/travel_platform_test',
+    'postgresql://travel_test:travel_test_password@127.0.0.1:55432/travel_platform_test',
 };
 
 const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';

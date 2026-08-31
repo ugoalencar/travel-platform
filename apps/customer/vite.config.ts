@@ -24,7 +24,7 @@ const DEV_CUSTOMER_AUTH_HEADERS = {
   'x-dev-customer': 'agency-a',
 } as const;
 
-const API_PROXY_TARGET = process.env.VITE_API_PROXY_TARGET ?? 'http://127.0.0.1:3000';
+const API_PROXY_TARGET = process.env.VITE_API_PROXY_TARGET ?? 'http://127.0.0.1:4000';
 
 function devAuthProxyConfig(): ProxyOptions {
   return {
