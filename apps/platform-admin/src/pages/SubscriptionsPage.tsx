@@ -159,34 +159,38 @@ export function SubscriptionsPage() {
             </div>
           </div>
 
-          {VALID_TRANSITIONS[selectedSub.status]?.length > 0 && (
-            <div className="mt-4 pt-4 border-t">
-              <label className="block text-sm font-medium mb-2">
-                Change Status To:
-              </label>
-              <div className="flex gap-2">
-                <select
-                  value={transitionStatus}
-                  onChange={(e) => setTransitionStatus(e.target.value)}
-                  className="px-3 py-2 border rounded-lg flex-1"
-                >
-                  <option value="">-- Select new status --</option>
-                  {VALID_TRANSITIONS[selectedSub.status].map((status) => (
-                    <option key={status} value={status}>
-                      {status}
-                    </option>
-                  ))}
-                </select>
-                <button
-                  onClick={handleStatusTransition}
-                  disabled={!transitionStatus}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
-                >
-                  Update Status
-                </button>
+          {(() => {
+            const transitions = VALID_TRANSITIONS[selectedSub.status as keyof typeof VALID_TRANSITIONS];
+            if (!transitions || transitions.length === 0) return null;
+            return (
+              <div className="mt-4 pt-4 border-t">
+                <label className="block text-sm font-medium mb-2">
+                  Change Status To:
+                </label>
+                <div className="flex gap-2">
+                  <select
+                    value={transitionStatus}
+                    onChange={(e) => setTransitionStatus(e.target.value)}
+                    className="px-3 py-2 border rounded-lg flex-1"
+                  >
+                    <option value="">-- Select new status --</option>
+                    {transitions.map((status) => (
+                      <option key={status} value={status}>
+                        {status}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    onClick={handleStatusTransition}
+                    disabled={!transitionStatus}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                  >
+                    Update Status
+                  </button>
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
         </div>
       )}
 
