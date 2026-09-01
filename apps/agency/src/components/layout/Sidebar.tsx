@@ -19,6 +19,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Financeiro', to: '/financial' },
   { label: '  Receitas', to: '/financial/revenues' },
   { label: '  Despesas', to: '/financial/expenses' },
+  { label: '  Contas a Receber', to: '/financial/receivables' },
   { label: '  Categorias', to: '/financial/categories' },
   { label: '  Caixa', to: '/financial/cash-transactions' },
   { label: '  Reconciliação', to: '/financial/reconciliation' },

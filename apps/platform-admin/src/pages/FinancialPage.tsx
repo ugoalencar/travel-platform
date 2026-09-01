@@ -71,11 +71,11 @@ export function FinancialPage() {
   }
 
   if (loading) {
-    return <div className="text-center py-8">Loading financial data...</div>;
+    return <div className="text-center py-8">Carregando dados financeiros...</div>;
   }
 
   if (!metrics) {
-    return <div className="text-center py-8 text-red-600">Unable to load financial data</div>;
+    return <div className="text-center py-8 text-red-600">Não foi possível carregar dados financeiros</div>;
   }
 
   const invoiceCounts = {
@@ -93,7 +93,7 @@ export function FinancialPage() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-8">Financial Dashboard</h1>
+      <h1 className="text-3xl font-bold mb-8">Painel Financeiro</h1>
 
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
@@ -104,24 +104,24 @@ export function FinancialPage() {
       {/* Main Metrics */}
       <div className="grid grid-cols-4 gap-6 mb-8">
         <StatCard
-          title="MRR"
+          title="Receita Recorrente Mensal"
           value={`R$ ${metrics.mrr.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
-          subtitle="Monthly Recurring Revenue"
+          subtitle="MRR"
         />
         <StatCard
-          title="ARR"
+          title="Receita Recorrente Anual"
           value={`R$ ${metrics.arr.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
-          subtitle="Annual Recurring Revenue"
+          subtitle="ARR"
         />
         <StatCard
-          title="Active Subscriptions"
+          title="Assinaturas Ativas"
           value={metrics.activeSubscriptions.toString()}
-          subtitle={`${metrics.trialCount} on trial`}
+          subtitle={`${metrics.trialCount} em teste`}
         />
         <StatCard
-          title="Churn Rate"
+          title="Taxa de Cancelamento"
           value={`${metrics.churnRate.toFixed(2)}%`}
-          subtitle="30-day churn"
+          subtitle="Cancelamento 30 dias"
         />
       </div>
 
@@ -136,7 +136,7 @@ export function FinancialPage() {
                 : 'text-gray-600 hover:text-gray-900'
             }`}
           >
-            Overview
+            Visão Geral
           </button>
           <button
             onClick={() => setActiveTab('invoices')}
@@ -146,7 +146,7 @@ export function FinancialPage() {
                 : 'text-gray-600 hover:text-gray-900'
             }`}
           >
-            Invoices ({invoices.length})
+            Faturas ({invoices.length})
           </button>
           <button
             onClick={() => setActiveTab('payments')}
@@ -156,7 +156,7 @@ export function FinancialPage() {
                 : 'text-gray-600 hover:text-gray-900'
             }`}
           >
-            Payments ({payments.length})
+            Pagamentos ({payments.length})
           </button>
         </div>
       </div>
@@ -166,40 +166,40 @@ export function FinancialPage() {
         <div>
           <div className="grid grid-cols-2 gap-6 mb-8">
             <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-lg font-semibold mb-4">Invoice Status</h3>
+              <h3 className="text-lg font-semibold mb-4">Status de Faturas</h3>
               <div className="space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Paid</span>
+                  <span className="text-gray-600">Pago</span>
                   <span className="font-medium">{invoiceCounts.PAID}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Open</span>
+                  <span className="text-gray-600">Aberto</span>
                   <span className="font-medium text-yellow-600">{invoiceCounts.OPEN}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Overdue</span>
+                  <span className="text-gray-600">Vencido</span>
                   <span className="font-medium text-red-600">{invoiceCounts.OVERDUE}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Refunded</span>
+                  <span className="text-gray-600">Reembolsado</span>
                   <span className="font-medium">{invoiceCounts.REFUNDED}</span>
                 </div>
               </div>
             </div>
 
             <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-lg font-semibold mb-4">Payment Status</h3>
+              <h3 className="text-lg font-semibold mb-4">Status de Pagamentos</h3>
               <div className="space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Successful</span>
+                  <span className="text-gray-600">Bem-sucedido</span>
                   <span className="font-medium text-green-600">{paymentCounts.SUCCESSFUL}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Failed</span>
+                  <span className="text-gray-600">Falhou</span>
                   <span className="font-medium text-red-600">{paymentCounts.FAILED}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Refunded</span>
+                  <span className="text-gray-600">Reembolsado</span>
                   <span className="font-medium">{paymentCounts.REFUNDED}</span>
                 </div>
               </div>
@@ -214,18 +214,18 @@ export function FinancialPage() {
           <table className="w-full">
             <thead className="bg-gray-50 border-b">
               <tr>
-                <th className="px-6 py-3 text-left text-sm font-semibold">Tenant</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold">Amount</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold">Inquilino</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold">Valor</th>
                 <th className="px-6 py-3 text-left text-sm font-semibold">Status</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold">Issued</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold">Due</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold">Emitida</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold">Vencimento</th>
               </tr>
             </thead>
             <tbody className="divide-y">
               {invoices.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-6 py-4 text-center text-gray-600">
-                    No invoices found
+                    Nenhuma fatura encontrada
                   </td>
                 </tr>
               ) : (

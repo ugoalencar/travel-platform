@@ -29,6 +29,7 @@ import { CategoriesPage } from './pages/CategoriesPage';
 import { CashTransactionsPage } from './pages/CashTransactionsPage';
 import { ReconciliationPage } from './pages/ReconciliationPage';
 import { DetailedReportsPage } from './pages/DetailedReportsPage';
+import { ReceivablesPage } from './pages/ReceivablesPage';
 import { PescadorPage } from './pages/PescadorPage';
 import { ReportsPage } from './pages/ReportsPage';
 import { SettingsPage } from './pages/SettingsPage';
@@ -59,6 +60,7 @@ export function App() {
         <Route path="financial" element={<FinancialPage />} />
         <Route path="financial/revenues" element={<RevenuesPage />} />
         <Route path="financial/expenses" element={<ExpensesPage />} />
+        <Route path="financial/receivables" element={<ReceivablesPage />} />
         <Route path="financial/categories" element={<CategoriesPage />} />
         <Route path="financial/cash-transactions" element={<CashTransactionsPage />} />
         <Route path="financial/reconciliation" element={<ReconciliationPage />} />

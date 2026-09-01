@@ -778,6 +778,43 @@ export async function listRevenueCategories(): Promise<RevenueCategory[]> {
 }
 
 // ============================================================
+// RECEIVABLES (GET /financial/receivables)
+// ============================================================
+
+export type ReceivableStatus = 'OPEN' | 'PARTIAL' | 'PAID' | 'OVERDUE' | 'CANCELLED';
+
+export interface Receivable {
+  id: string;
+  agencyId: string;
+  description: string;
+  customer_name: string;
+  amount: number;
+  currency: string;
+  due_at: string;
+  status: ReceivableStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export async function listReceivables(): Promise<Receivable[]> {
+  const data = await request<{ receivables: Receivable[] }>('/api/financial/receivables');
+  return data.receivables;
+}
+
+export async function getReceivable(id: string): Promise<Receivable> {
+  const data = await request<{ receivable: Receivable }>(`/api/financial/receivables/${encodeURIComponent(id)}`);
+  return data.receivable;
+}
+
+export async function markReceivableAsPaid(id: string, amountPaid: number): Promise<Receivable> {
+  const data = await request<{ receivable: Receivable }>(`/api/financial/receivables/${encodeURIComponent(id)}/mark-paid`, {
+    method: 'POST',
+    body: JSON.stringify({ amount_paid: amountPaid }),
+  });
+  return data.receivable;
+}
+
+// ============================================================
 // FINANCIAL CATEGORIES (GET /financial/categories)
 // ============================================================
 

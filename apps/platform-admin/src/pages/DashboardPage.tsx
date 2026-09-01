@@ -86,32 +86,32 @@ export function DashboardPage() {
   }, []);
 
   if (loading) {
-    return <div className="text-center py-8">Loading dashboard...</div>;
+    return <div className="text-center py-8">Carregando painel...</div>;
   }
 
   if (error) {
-    return <div className="text-center py-8 text-red-600">Error: {error}</div>;
+    return <div className="text-center py-8 text-red-600">Erro: {error}</div>;
   }
 
   if (!metrics) {
-    return <div className="text-center py-8">No data available</div>;
+    return <div className="text-center py-8">Nenhum dado disponível</div>;
   }
 
   return (
     <div className="space-y-8">
-      <h1 className="text-3xl font-bold">Dashboard</h1>
+      <h1 className="text-3xl font-bold">Painel</h1>
 
       {/* Key Metrics Grid */}
       <div className="grid grid-cols-4 gap-6">
-        <StatCard title="Active Subscriptions" value={metrics.activeSubscriptions.toString()} />
+        <StatCard title="Assinaturas Ativas" value={metrics.activeSubscriptions.toString()} />
         <StatCard title="MRR" value={`R$ ${metrics.mrr.toLocaleString('pt-BR')}`} />
         <StatCard title="ARR" value={`R$ ${metrics.arr.toLocaleString('pt-BR')}`} />
-        <StatCard title="Churn Rate" value={`${metrics.churnRate.toFixed(2)}%`} />
+        <StatCard title="Taxa de Cancelamento" value={`${metrics.churnRate.toFixed(2)}%`} />
       </div>
 
       {/* 12-Month Growth */}
       <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-lg font-semibold mb-4">Subscriber Growth (12 months)</h2>
+        <h2 className="text-lg font-semibold mb-4">Crescimento de Assinantes (12 meses)</h2>
         <div className="space-y-2 max-h-64 overflow-y-auto">
           {growth.map((g) => (
             <div key={g.month} className="flex items-center justify-between">
@@ -131,7 +131,7 @@ export function DashboardPage() {
       <div className="grid grid-cols-2 gap-6">
         {/* MRR Evolution */}
         <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold mb-4">MRR Evolution</h2>
+          <h2 className="text-lg font-semibold mb-4">Evolução MRR</h2>
           <div className="space-y-2 max-h-48 overflow-y-auto">
             {mrrEvolution.map((m) => (
               <div key={m.month} className="flex items-center justify-between">
@@ -146,7 +146,7 @@ export function DashboardPage() {
 
         {/* Lead Funnel */}
         <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold mb-4">Lead Funnel</h2>
+          <h2 className="text-lg font-semibold mb-4">Funil de Leads</h2>
           <div className="space-y-2">
             {leadFunnel.map((f) => (
               <div key={f.stage} className="flex items-center justify-between">
@@ -166,7 +166,7 @@ export function DashboardPage() {
 
       {/* Plan Distribution */}
       <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-lg font-semibold mb-4">Subscriptions by Plan</h2>
+        <h2 className="text-lg font-semibold mb-4">Assinaturas por Plano</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {planDist.map((p) => (
             <div key={p.planId} className="p-4 bg-gray-50 rounded">
