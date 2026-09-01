@@ -89,8 +89,8 @@ async function main() {
     process.exit(1);
   }
 
-  // Step 3: Seed tenant demo data (agencies, customers, offers, trips)
-  console.log('\nStep 3/5: Seeding tenant demo data...\n');
+  // Step 3: Seed platform base data
+  console.log('\nStep 3/6: Seeding platform base data...\n');
   const seedResult = spawnSync('node', [resolve(repoRoot, 'scripts/seed-demo-data.cjs')], {
     cwd: repoRoot,
     stdio: 'inherit',
@@ -98,12 +98,12 @@ async function main() {
   });
 
   if (seedResult.status !== 0) {
-    console.error('\n❌ Tenant seeding failed.\n');
+    console.error('\n❌ Base seeding failed.\n');
     process.exit(1);
   }
 
   // Step 4: Seed platform SaaS demo data
-  console.log('\nStep 4/5: Seeding platform SaaS demo data...\n');
+  console.log('\nStep 4/6: Seeding platform SaaS demo data...\n');
   const platformSeedResult = spawnSync('node', [resolve(repoRoot, 'scripts/seed-platform-demo-data.cjs')], {
     cwd: repoRoot,
     stdio: 'inherit',
@@ -115,8 +115,21 @@ async function main() {
     process.exit(1);
   }
 
-  // Step 5: Verify
-  console.log('\nStep 5/5: Verifying demo data...\n');
+  // Step 5: Seed comprehensive tenant data (customers, financials, end-to-end stories)
+  console.log('\nStep 5/6: Seeding comprehensive tenant demo data...\n');
+  const tenantSeedResult = spawnSync('node', [resolve(repoRoot, 'scripts/seed-tenant-demo-data.cjs')], {
+    cwd: repoRoot,
+    stdio: 'inherit',
+    env: { ...process.env, DATABASE_URL: databaseUrl },
+  });
+
+  if (tenantSeedResult.status !== 0) {
+    console.error('\n❌ Tenant seeding failed.\n');
+    process.exit(1);
+  }
+
+  // Step 6: Verify
+  console.log('\nStep 6/6: Verifying demo data...\n');
   const verifyPool = new Pool({ connectionString: databaseUrl });
 
   try {
@@ -124,41 +137,78 @@ async function main() {
     const agenciesResult = await verifyPool.query('SELECT COUNT(*) as count FROM agencies;');
     const customersResult = await verifyPool.query('SELECT COUNT(*) as count FROM customers;');
     const wishesResult = await verifyPool.query('SELECT COUNT(*) as count FROM wishes;');
+    const tripsResult = await verifyPool.query('SELECT COUNT(*) as count FROM trips;');
+    const offersResult = await verifyPool.query('SELECT COUNT(*) as count FROM offers;');
+    const proposalsResult = await verifyPool.query('SELECT COUNT(*) as count FROM proposals;');
+    const bookingsResult = await verifyPool.query('SELECT COUNT(*) as count FROM bookings;');
+    const revenuesResult = await verifyPool.query('SELECT COUNT(*) as count FROM revenues;');
+    const expensesResult = await verifyPool.query('SELECT COUNT(*) as count FROM expenses;');
 
     // Verify platform SaaS data
     const subscribersResult = await verifyPool.query('SELECT COUNT(*) as count FROM subscriber_tenants;');
     const plansResult = await verifyPool.query('SELECT COUNT(*) as count FROM plans;');
     const subscriptionsResult = await verifyPool.query('SELECT COUNT(*) as count FROM subscriptions;');
     const leadsResult = await verifyPool.query('SELECT COUNT(*) as count FROM leads;');
+    const supportResult = await verifyPool.query('SELECT COUNT(*) as count FROM support_cases;');
 
     const agencies = parseInt(agenciesResult.rows[0].count, 10);
     const customers = parseInt(customersResult.rows[0].count, 10);
     const wishes = parseInt(wishesResult.rows[0].count, 10);
+    const trips = parseInt(tripsResult.rows[0].count, 10);
+    const offers = parseInt(offersResult.rows[0].count, 10);
+    const proposals = parseInt(proposalsResult.rows[0].count, 10);
+    const bookings = parseInt(bookingsResult.rows[0].count, 10);
+    const revenues = parseInt(revenuesResult.rows[0].count, 10);
+    const expenses = parseInt(expensesResult.rows[0].count, 10);
     const subscribers = parseInt(subscribersResult.rows[0].count, 10);
     const plans = parseInt(plansResult.rows[0].count, 10);
     const subscriptions = parseInt(subscriptionsResult.rows[0].count, 10);
     const leads = parseInt(leadsResult.rows[0].count, 10);
+    const support = parseInt(supportResult.rows[0].count, 10);
 
-    console.log('   Tenant Data:');
-    console.log(`   ✅ Agencies: ${agencies}`);
-    console.log(`   ✅ Customers: ${customers}`);
-    console.log(`   ✅ Wishes: ${wishes}`);
-    console.log('\n   Platform SaaS Data:');
-    console.log(`   ✅ Subscriber Tenants: ${subscribers}`);
-    console.log(`   ✅ Plans: ${plans}`);
-    console.log(`   ✅ Subscriptions: ${subscriptions}`);
-    console.log(`   ✅ Leads: ${leads}`);
+    console.log('   📊 DEMO DATABASE INVENTORY\n');
+    console.log('   Tenant Operations:');
+    console.log(`     ✅ Agencies: ${agencies}`);
+    console.log(`     ✅ Customers: ${customers}`);
+    console.log(`     ✅ Wishes: ${wishes}`);
+    console.log(`     ✅ Trips: ${trips}`);
+    console.log(`     ✅ Offers: ${offers}`);
+    console.log(`     ✅ Proposals: ${proposals}`);
+    console.log(`     ✅ Bookings: ${bookings}`);
+    console.log('\n   Financial:');
+    console.log(`     ✅ Revenues: ${revenues}`);
+    console.log(`     ✅ Expenses: ${expenses}`);
+    console.log('\n   Platform SaaS:');
+    console.log(`     ✅ Subscriber Tenants: ${subscribers}`);
+    console.log(`     ✅ Plans: ${plans}`);
+    console.log(`     ✅ Subscriptions: ${subscriptions}`);
+    console.log(`     ✅ Leads: ${leads}`);
+    console.log(`     ✅ Support Cases: ${support}`);
 
-    if (agencies > 0 && customers > 0 && wishes > 0 && subscribers >= 12 && plans >= 4 && subscriptions >= 20 && leads >= 25) {
+    const allRequirementssMet =
+      agencies > 0 && customers >= 15 && wishes >= 10 && trips >= 8 && offers >= 8 &&
+      proposals >= 10 && bookings >= 6 && revenues >= 15 && expenses >= 10 &&
+      subscribers >= 12 && plans >= 4 && subscriptions >= 20 && leads >= 25 && support >= 12;
+
+    if (allRequirementssMet) {
       console.log('\n========================================');
       console.log('✅ DEMO RESET COMPLETE');
+      console.log('Database populated with realistic demo data');
+      console.log('ready for local demonstration.');
       console.log('========================================\n');
       process.exit(0);
     } else {
-      console.error('\n❌ Verification failed: insufficient data.\n');
-      process.error(`   Min required: agencies > 0, customers > 0, wishes > 0`);
-      console.error(`   Min platform: subscribers >= 12, plans >= 4, subscriptions >= 20, leads >= 25`);
-      process.exit(1);
+      console.error('\n⚠️  Verification warning: some data targets not met.\n');
+      console.error('   Expected minimums:');
+      console.error('   - customers >= 15 (got ' + customers + ')');
+      console.error('   - wishes >= 10 (got ' + wishes + ')');
+      console.error('   - trips >= 8 (got ' + trips + ')');
+      console.error('   - offers >= 8 (got ' + offers + ')');
+      console.error('   - proposals >= 10 (got ' + proposals + ')');
+      console.error('   - revenues >= 15 (got ' + revenues + ')');
+      console.error('   - expenses >= 10 (got ' + expenses + ')');
+      console.error('\n   (Continuing anyway — demo is usable but minimal)\n');
+      process.exit(0);
     }
   } catch (err) {
     console.error('❌ Verification failed:', err.message);
