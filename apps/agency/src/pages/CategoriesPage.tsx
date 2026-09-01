@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Plus } from 'lucide-react';
 import { PageHeader } from '../components/layout/PageHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
@@ -6,20 +6,32 @@ import { Button } from '../components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { LoadingState } from '../components/ui/loading-state';
 import { EmptyState } from '../components/ui/empty-state';
+import { ErrorState } from '../components/ui/error-state';
+import { ApiError, listCategories, type FinancialCategory } from '../lib/api';
 
 type LoadState =
   | { status: 'loading' }
   | { status: 'error'; message: string }
-  | { status: 'success'; categories: any[] };
+  | { status: 'success'; categories: FinancialCategory[] };
 
 export function CategoriesPage() {
   const [state, setState] = useState<LoadState>({ status: 'loading' });
 
-  useEffect(() => {
-    setTimeout(() => {
-      setState({ status: 'success', categories: [] });
-    }, 500);
+  const load = useCallback(() => {
+    setState({ status: 'loading' });
+    listCategories()
+      .then((categories) => {
+        setState({ status: 'success', categories });
+      })
+      .catch((err: unknown) => {
+        const message = err instanceof ApiError ? err.message : 'Não foi possível carregar categorias.';
+        setState({ status: 'error', message });
+      });
   }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
 
   if (state.status === 'loading') {
     return (
@@ -32,18 +44,7 @@ export function CategoriesPage() {
 
   if (state.status === 'error') {
     return (
-      <div className="space-y-6">
-        <PageHeader
-          title="Categorias"
-          description="Gerenciar categorias de receitas e despesas."
-          breadcrumbs={[{ label: 'Dashboard', to: '/' }, { label: 'Categorias' }]}
-        />
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-sm text-red-600">{state.message}</div>
-          </CardContent>
-        </Card>
-      </div>
+      <ErrorState description={state.message} onRetry={load} />
     );
   }
 
@@ -53,7 +54,6 @@ export function CategoriesPage() {
         title="Categorias"
         description="Gerenciar categorias de receitas e despesas."
         breadcrumbs={[{ label: 'Dashboard', to: '/' }, { label: 'Categorias' }]}
-        actions={<Button size="sm"><Plus className="mr-2 h-4 w-4" />Nova Categoria</Button>}
       />
       <Card>
         <CardHeader>
@@ -76,18 +76,13 @@ export function CategoriesPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {state.categories.map((cat: any) => {
-                  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-                  return (<TableRow key={cat.id}>
-                    {/* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access */}
-                    <TableCell className="font-medium">{cat.name}</TableCell>
-                    {/* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access */}
-                    <TableCell>{cat.type === 'REVENUE' ? 'Receita' : 'Despesa'}</TableCell>
-                    {/* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access */}
-                    <TableCell>{cat.description || '-'}</TableCell>
-                  </TableRow>
-                  );
-                })}
+                {state.categories.map((cat) => (
+                    <TableRow key={cat.id}>
+                      <TableCell className="font-medium">{cat.name}</TableCell>
+                      <TableCell>{cat.type === 'REVENUE' ? 'Receita' : 'Despesa'}</TableCell>
+                      <TableCell>{cat.description || '-'}</TableCell>
+                    </TableRow>
+                  ))}
               </TableBody>
             </Table>
           )}
