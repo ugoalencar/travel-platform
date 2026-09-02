@@ -43,18 +43,18 @@ export function LeadsPage() {
   const [note, setNote] = useState('');
 
   useEffect(() => {
-    fetchLeads();
+    void fetchLeads();
   }, []);
 
   async function fetchLeads() {
     try {
       setLoading(true);
-      const response = await fetch('http://127.0.0.1:4000/platform/leads');
-      if (!response.ok) throw new Error('Failed to fetch leads');
-      const data = await response.json();
+      const response = await fetch('/api/platform/leads');
+      if (!response.ok) throw new Error('Nao foi possivel carregar os leads');
+      const data = (await response.json()) as { leads?: Lead[] };
       setLeads(data.leads || []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch leads');
+      setError(err instanceof Error ? err.message : 'Nao foi possivel carregar os leads');
     } finally {
       setLoading(false);
     }
@@ -65,7 +65,7 @@ export function LeadsPage() {
 
     try {
       const response = await fetch(
-        `http://127.0.0.1:4000/platform/leads/${selectedLead.id}/status`,
+        `/api/platform/leads/${selectedLead.id}/status`,
         {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
@@ -73,7 +73,7 @@ export function LeadsPage() {
         }
       );
 
-      if (!response.ok) throw new Error('Failed to update lead status');
+      if (!response.ok) throw new Error('Nao foi possivel atualizar o status do lead');
 
       if (note) {
         // Add note would go here if API supports it
@@ -85,7 +85,7 @@ export function LeadsPage() {
       setSelectedLead(null);
       await fetchLeads();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update lead');
+      setError(err instanceof Error ? err.message : 'Nao foi possivel atualizar o lead');
     }
   }
 
@@ -107,12 +107,12 @@ export function LeadsPage() {
   );
 
   if (loading) {
-    return <div className="text-center py-8">Loading leads...</div>;
+    return <div className="text-center py-8">Carregando leads...</div>;
   }
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-8">Sales Leads</h1>
+      <h1 className="text-3xl font-bold mb-8">Leads de Vendas</h1>
 
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
@@ -132,7 +132,7 @@ export function LeadsPage() {
           >
             <p className="text-xs text-gray-600 font-medium">{status}</p>
             <p className="text-xl font-bold text-center">
-              {statusCounts[status as keyof typeof statusCounts]}
+              {statusCounts[status]}
             </p>
           </div>
         ))}
@@ -142,7 +142,7 @@ export function LeadsPage() {
       <div className="mb-6">
         <input
           type="text"
-          placeholder="Search by company, contact, or email..."
+          placeholder="Buscar por empresa, contato ou email..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="w-full px-4 py-2 border rounded-lg"
@@ -165,7 +165,7 @@ export function LeadsPage() {
               }}
               className="text-gray-500 hover:text-gray-700"
             >
-              Close
+              Fechar
             </button>
           </div>
 
@@ -175,11 +175,11 @@ export function LeadsPage() {
               <p className="font-medium">{selectedLead.email}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-600">Phone</p>
+              <p className="text-sm text-gray-600">Telefone</p>
               <p className="font-medium">{selectedLead.phone}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-600">Current Status</p>
+              <p className="text-sm text-gray-600">Status atual</p>
               <span
                 className={`${STATUS_COLORS[selectedLead.status]} px-2 py-1 rounded text-sm font-medium inline-block`}
               >
@@ -187,11 +187,11 @@ export function LeadsPage() {
               </span>
             </div>
             <div>
-              <p className="text-sm text-gray-600">Lead Source</p>
+              <p className="text-sm text-gray-600">Fonte do lead</p>
               <p className="font-medium">{selectedLead.source}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-600">Created</p>
+              <p className="text-sm text-gray-600">Criado</p>
               <p className="font-medium">
                 {new Date(selectedLead.created_at).toLocaleDateString()}
               </p>
@@ -201,14 +201,14 @@ export function LeadsPage() {
           <div className="mt-4 pt-4 border-t space-y-3">
             <div>
               <label className="block text-sm font-medium mb-2">
-                Update Status:
+                Atualizar status:
               </label>
               <select
                 value={newStatus}
                 onChange={(e) => setNewStatus(e.target.value)}
                 className="w-full px-3 py-2 border rounded-lg"
               >
-                <option value="">-- Select new status --</option>
+                <option value="">-- Selecionar novo status --</option>
                 {LEAD_STATUSES.map((status) => (
                   <option key={status} value={status}>
                     {status}
@@ -219,23 +219,23 @@ export function LeadsPage() {
 
             <div>
               <label className="block text-sm font-medium mb-2">
-                Add Note (optional):
+                Adicionar nota (opcional):
               </label>
               <textarea
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 className="w-full px-3 py-2 border rounded-lg"
                 rows={3}
-                placeholder="Add internal notes about this lead..."
+                placeholder="Adicionar notas internas sobre este lead..."
               />
             </div>
 
             <button
-              onClick={handleStatusChange}
+              onClick={() => void handleStatusChange()}
               disabled={!newStatus}
               className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
             >
-              Update Lead Status
+              Atualizar Status do Lead
             </button>
           </div>
         </div>
@@ -247,10 +247,10 @@ export function LeadsPage() {
           <thead className="bg-gray-50 border-b">
             <tr>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
-                Company
+                Empresa
               </th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
-                Contact
+                Contato
               </th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
                 Email
@@ -259,13 +259,13 @@ export function LeadsPage() {
                 Status
               </th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
-                Source
+                Fonte
               </th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
-                Created
+                Criado
               </th>
               <th className="px-6 py-3 text-right text-sm font-semibold text-gray-900">
-                Actions
+                Acoes
               </th>
             </tr>
           </thead>
@@ -273,7 +273,7 @@ export function LeadsPage() {
             {filtered.length === 0 ? (
               <tr>
                 <td colSpan={7} className="px-6 py-4 text-center text-gray-600">
-                  No leads found
+                  Nenhum lead encontrado
                 </td>
               </tr>
             ) : (
@@ -298,7 +298,7 @@ export function LeadsPage() {
                       onClick={() => setSelectedLead(lead)}
                       className="text-blue-600 hover:text-blue-800 text-sm font-medium"
                     >
-                      Edit
+                      Editar
                     </button>
                   </td>
                 </tr>
@@ -309,7 +309,7 @@ export function LeadsPage() {
       </div>
 
       <div className="mt-4 text-sm text-gray-600">
-        Showing {filtered.length} of {leads.length} leads
+        Mostrando {filtered.length} de {leads.length} leads
       </div>
     </div>
   );

@@ -18,6 +18,7 @@ const { URL } = require('node:url');
 
 const databaseUrl = process.env.DATABASE_URL ||
   'postgresql://travel_test:travel_test_password@127.0.0.1:55432/travel_platform_test';
+const localDevAgencyId = '10000000-0000-4000-8000-000000000001';
 
 // Safety guards: refuse to run against non-dev/non-local DB
 if (process.env.NODE_ENV === 'production') {
@@ -46,6 +47,12 @@ function generateId() {
   return crypto.randomUUID();
 }
 
+function relationshipType(value) {
+  if (value === 'CONJUGE') return 'SPOUSE';
+  if (value === 'FILHO' || value === 'FILHA') return 'CHILD';
+  return 'OTHER';
+}
+
 async function seedTenantData() {
   console.log('\n========================================');
   console.log('Seeding Tenant-Level Demo Data');
@@ -69,31 +76,31 @@ async function seedTenantData() {
     console.log(`   ✓ Tenant: ${tenant.id}\n`);
 
     console.log('2. Creating Agency Users...');
-    await seedAgencyUsers(agency.id);
+    const agencyUsers = await seedAgencyUsers(agency.id);
 
     console.log('3. Creating Customers...');
     const customers = await seedCustomers(agency.id);
 
     console.log('4. Creating Wishes...');
-    const wishes = await seedWishes(agency.id, customers);
+    await seedWishes(agency.id, customers);
 
     console.log('5. Creating Offers (Catalog)...');
     const offers = await seedOffers(agency.id);
 
     console.log('6. Creating External Offer Captures (Pescador)...');
-    await seedExternalCaptures(agency.id, offers);
+    await seedExternalCaptures(agency.id);
 
     console.log('7. Creating Proposals...');
-    const proposals = await seedProposals(agency.id, customers, offers);
+    const proposals = await seedProposals(agency.id, customers, offers, agencyUsers[0].id);
 
     console.log('8. Creating Sales...');
-    const sales = await seedSales(agency.id, proposals, customers);
+    const sales = await seedSales(agency.id, proposals, customers, agencyUsers[0].id);
 
     console.log('9. Creating Trips...');
-    const trips = await seedTrips(agency.id, sales);
+    await seedTrips(agency.id, sales);
 
     console.log('10. Creating Financial Records (Revenues)...');
-    await seedRevenues(agency.id, tenant.id, sales);
+    await seedRevenues(agency.id, sales);
 
     console.log('11. Creating Financial Records (Expenses)...');
     await seedExpenses(agency.id);
@@ -105,13 +112,13 @@ async function seedTenantData() {
     await seedPayables(agency.id);
 
     console.log('14. Creating Campaigns...');
-    await seedCampaigns(agency.id);
+    await seedCampaigns(agency.id, agencyUsers[0].id);
 
     console.log('15. Creating Customer Interactions...');
-    await seedInteractions(agency.id, customers);
+    await seedInteractions(agency.id, customers, agencyUsers[0].id);
 
     console.log('16. Creating Bookings...');
-    await seedBookings(agency.id, customers, offers);
+    await seedBookings(agency.id, customers);
 
     console.log('\n17. Verifying tenant data...');
     await verifyTenantData(agency.id);
@@ -127,12 +134,25 @@ async function seedTenantData() {
 
 async function fetchDemoAgency() {
   const result = await pool.query(
-    `SELECT id, name, slug, email FROM agencies WHERE name = 'Alpha Viagens' LIMIT 1`
+    `SELECT id, name, slug, email
+       FROM agencies
+      WHERE id = $1 OR name = 'Alpha Viagens'
+      ORDER BY CASE WHEN id = $1 THEN 0 ELSE 1 END
+      LIMIT 1`,
+    [localDevAgencyId]
   );
   return result.rows[0] || null;
 }
 
 async function fetchSubscriberTenant(agencyId) {
+  await pool.query(
+    `INSERT INTO subscriber_tenants
+       (id, agency_id, legal_name, contact_email, contact_name, billing_status, subscription_status, created_at, updated_at)
+     VALUES ($1, $2, 'Agency A Demo Ltda', 'billing@agency-a-demo.example.test', 'Demo Admin', 'ACTIVE', 'ACTIVE', NOW(), NOW())
+     ON CONFLICT DO NOTHING`,
+    ['30000000-0000-4000-8000-000000000001', agencyId]
+  );
+
   const result = await pool.query(
     `SELECT id FROM subscriber_tenants WHERE agency_id = $1 LIMIT 1`,
     [agencyId]
@@ -149,14 +169,19 @@ async function seedAgencyUsers(agencyId) {
     { name: 'Carlos Ferreira', email: 'carlos@alpha.test', role: 'AGENT', active: true },
   ];
 
+  const result = [];
   for (const user of users) {
-    await pool.query(
-      `INSERT INTO "User" (id, agency_id, name, email, role, status, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, 'ACTIVE', NOW(), NOW()) ON CONFLICT DO NOTHING`,
+    const inserted = await pool.query(
+      `INSERT INTO users (id, agency_id, name, email, role, password_hash, status, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, 'demo-only-hash', 'ACTIVE', NOW(), NOW())
+       ON CONFLICT (agency_id, email) DO UPDATE SET name = EXCLUDED.name, role = EXCLUDED.role
+       RETURNING id`,
       [generateId(), agencyId, user.name, user.email, user.role]
     );
+    result.push({ id: inserted.rows[0].id, name: user.name, role: user.role });
     console.log(`   ✓ ${user.name} (${user.role})`);
   }
+  return result;
 }
 
 async function seedCustomers(agencyId) {
@@ -332,30 +357,45 @@ async function seedCustomers(agencyId) {
   const result = [];
 
   for (const customerData of customers) {
-    const customerId = generateId();
+    let customerId = generateId();
 
     // Insert customer
-    await pool.query(
-      `INSERT INTO "Customer" (id, agency_id, name, email, phone, cpf, rg, status, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, 'ACTIVE', NOW(), NOW()) ON CONFLICT DO NOTHING`,
+    const insertedCustomer = await pool.query(
+      `INSERT INTO customers (id, agency_id, name, email, phone, cpf, rg, status, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, 'ACTIVE', NOW(), NOW())
+       ON CONFLICT DO NOTHING
+       RETURNING id`,
       [customerId, agencyId, customerData.name, customerData.email, customerData.phone, customerData.cpf, customerData.rg]
     );
+    if (insertedCustomer.rows[0]?.id) {
+      customerId = insertedCustomer.rows[0].id;
+    } else {
+      const existingCustomer = await pool.query(
+        'SELECT id FROM customers WHERE agency_id = $1 AND email = $2 LIMIT 1',
+        [agencyId, customerData.email]
+      );
+      if (!existingCustomer.rows[0]?.id) {
+        console.log(`   Skipped duplicate customer seed: ${customerData.name}`);
+        continue;
+      }
+      customerId = existingCustomer.rows[0].id;
+    }
 
     // Insert address
     const addressId = generateId();
     await pool.query(
-      `INSERT INTO "CustomerAddress" (id, customer_id, street, city, state, zip_code, country, type, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, '00000-000', 'Brasil', 'RESIDENTIAL', NOW(), NOW()) ON CONFLICT DO NOTHING`,
-      [addressId, customerId, `Rua ${customerData.name}`, customerData.city, customerData.state]
+      `INSERT INTO customer_addresses (id, agency_id, customer_id, street, number, district, city, state, cep, country, type, is_primary, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, '100', 'Centro', $5, $6, '00000-000', 'Brasil', 'RESIDENTIAL', true, NOW(), NOW()) ON CONFLICT DO NOTHING`,
+      [addressId, agencyId, customerId, `Rua ${customerData.name}`, customerData.city, customerData.state]
     );
 
     // Insert dependents
     for (const dependent of customerData.dependents) {
       const dependentId = generateId();
       await pool.query(
-        `INSERT INTO "CustomerDependent" (id, customer_id, name, relationship, birth_date, created_at, updated_at)
-         VALUES ($1, $2, $3, $4, $5, NOW(), NOW()) ON CONFLICT DO NOTHING`,
-        [dependentId, customerId, dependent.name, dependent.relationship, new Date(dependent.birthDate)]
+        `INSERT INTO customer_dependents (id, agency_id, customer_id, name, relationship_type, birth_date, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW()) ON CONFLICT DO NOTHING`,
+        [dependentId, agencyId, customerId, dependent.name, relationshipType(dependent.relationship), new Date(dependent.birthDate)]
       );
     }
 
@@ -392,9 +432,9 @@ async function seedWishes(agencyId, customers) {
     const wish = wishes[i];
 
     await pool.query(
-      `INSERT INTO "Wish" (id, customer_id, destination, description, status, priority, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, 'ACTIVE', 'MEDIUM', NOW(), NOW()) ON CONFLICT DO NOTHING`,
-      [wishId, customer.id, wish.destination, wish.description]
+      `INSERT INTO wishes (id, agency_id, customer_id, destination, notes, status, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, 'ACTIVE', NOW(), NOW()) ON CONFLICT DO NOTHING`,
+      [wishId, agencyId, customer.id, wish.destination, wish.description]
     );
 
     result.push({ id: wishId, destination: wish.destination });
@@ -510,9 +550,9 @@ async function seedOffers(agencyId) {
     const offerId = generateId();
 
     await pool.query(
-      `INSERT INTO "Offer" (id, agency_id, title, destination, description, base_price, currency, valid_from, valid_to, inclusions, exclusions, hotel_name, status, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6, 'BRL', $7, $8, $9, $10, $11, 'ACTIVE', NOW(), NOW()) ON CONFLICT DO NOTHING`,
-      [offerId, agencyId, offer.title, offer.destination, offer.description, offer.price, offer.validFrom, offer.validTo, offer.inclusions, offer.exclusions, offer.hotelName]
+      `INSERT INTO offers (id, agency_id, name, description, price, valid_from, valid_until, status, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, 'ACTIVE', NOW(), NOW()) ON CONFLICT DO NOTHING`,
+      [offerId, agencyId, offer.title, `${offer.destination} - ${offer.description}`, offer.price, offer.validFrom, offer.validTo]
     );
 
     result.push({ id: offerId, title: offer.title, price: offer.price });
@@ -522,7 +562,7 @@ async function seedOffers(agencyId) {
   return result;
 }
 
-async function seedExternalCaptures(agencyId, offers) {
+async function seedExternalCaptures(agencyId) {
   const captures = [
     { url: 'https://booking.com/cancun-resort', source: 'Booking.com', title: 'Cancún Resort 3 stars', price: 3200 },
     { url: 'https://expedia.com/paris-hotel', source: 'Expedia', title: 'Paris 4-star central', price: 7500 },
@@ -532,17 +572,17 @@ async function seedExternalCaptures(agencyId, offers) {
 
   for (const capture of captures) {
     await pool.query(
-      `INSERT INTO "ExternalOfferCapture" (id, agency_id, url, source, title, extracted_price, currency, status, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6, 'BRL', 'CAPTURED', NOW(), NOW()) ON CONFLICT DO NOTHING`,
-      [generateId(), agencyId, capture.url, capture.source, capture.title, capture.price]
+      `INSERT INTO external_offer_captures (id, agency_id, source_url, source_name, raw_content, normalized_title, found_price, currency, status, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, 'BRL', 'CAPTURED', NOW(), NOW()) ON CONFLICT DO NOTHING`,
+      [generateId(), agencyId, capture.url, capture.source, JSON.stringify(capture), capture.title, capture.price]
     );
   }
 
   console.log(`   ✓ Created ${captures.length} external captures`);
 }
 
-async function seedProposals(agencyId, customers, offers) {
-  const statuses = ['DRAFT', 'SENT', 'VIEWED', 'ACCEPTED'];
+async function seedProposals(agencyId, customers, offers, userId) {
+  const statuses = ['DRAFT', 'SENT', 'ACCEPTED', 'DECLINED'];
   const result = [];
 
   // Create proposals: each 3 customers get 1 proposal for now
@@ -557,9 +597,9 @@ async function seedProposals(agencyId, customers, offers) {
     const totalPrice = unitPrice * totalPassengers;
 
     await pool.query(
-      `INSERT INTO "Proposal" (id, customer_id, offer_id, status, total_passengers, unit_price, total_price, currency, valid_until, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, 'BRL', NOW() + INTERVAL '30 days', NOW(), NOW()) ON CONFLICT DO NOTHING`,
-      [proposalId, customer.id, offer.id, status, totalPassengers, unitPrice, totalPrice]
+      `INSERT INTO proposals (id, agency_id, customer_id, offer_id, user_id, proposed_price, discount, total, valid_until, notes, status, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, 0, $7, NOW() + INTERVAL '30 days', $8, $9, NOW(), NOW()) ON CONFLICT DO NOTHING`,
+      [proposalId, agencyId, customer.id, offer.id, userId, unitPrice, totalPrice, `${totalPassengers} passageiros`, status]
     );
 
     result.push({ id: proposalId, customerId: customer.id, status });
@@ -569,20 +609,19 @@ async function seedProposals(agencyId, customers, offers) {
   return result;
 }
 
-async function seedSales(agencyId, proposals, customers) {
+async function seedSales(agencyId, proposals, customers, userId) {
   const result = [];
 
   // Convert accepted/viewed proposals to sales
   for (let i = 0; i < 8; i++) {
     const customer = customers[i % customers.length];
     const saleId = generateId();
-    const saleDate = new Date(Date.now() - Math.random() * 90 * 24 * 60 * 60 * 1000);
     const totalPrice = 5000 + Math.random() * 15000;
 
     await pool.query(
-      `INSERT INTO "Sale" (id, customer_id, status, sale_date, amount, currency, payment_status, created_at, updated_at)
-       VALUES ($1, $2, 'CONFIRMED', $3, $4, 'BRL', 'PARTIAL', NOW(), NOW()) ON CONFLICT DO NOTHING`,
-      [saleId, customer.id, saleDate, totalPrice]
+      `INSERT INTO sales (id, agency_id, customer_id, proposal_id, user_id, amount, discount, total, status, notes, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, 0, $6, 'CONFIRMED', 'Venda demo', NOW(), NOW()) ON CONFLICT DO NOTHING`,
+      [saleId, agencyId, customer.id, proposals[i % proposals.length].id, userId, totalPrice]
     );
 
     result.push({ id: saleId, customerId: customer.id, amount: totalPrice });
@@ -593,7 +632,7 @@ async function seedSales(agencyId, proposals, customers) {
 }
 
 async function seedTrips(agencyId, sales) {
-  const statuses = ['PLANNING', 'CONFIRMED', 'IN_PROGRESS', 'COMPLETED'];
+  const statuses = ['PLANNED', 'CONFIRMED', 'IN_PROGRESS', 'COMPLETED'];
 
   for (let i = 0; i < 6; i++) {
     const sale = sales[i % sales.length];
@@ -603,46 +642,46 @@ async function seedTrips(agencyId, sales) {
     const endDate = new Date(startDate.getTime() + (5 + Math.random() * 9) * 24 * 60 * 60 * 1000);
 
     await pool.query(
-      `INSERT INTO "Trip" (id, sale_id, destination, status, start_date, end_date, created_at, updated_at)
-       VALUES ($1, $2, 'Destino Viagem', $3, $4, $5, NOW(), NOW()) ON CONFLICT DO NOTHING`,
-      [tripId, sale.id, status, startDate, endDate]
+      `INSERT INTO trips (id, agency_id, customer_id, sale_id, name, destination, status, start_date, end_date, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, 'Destino Viagem', $6, $7, $8, NOW(), NOW()) ON CONFLICT DO NOTHING`,
+      [tripId, agencyId, sale.customerId, sale.id, `Viagem demo ${i + 1}`, status, startDate, endDate]
     );
 
     console.log(`   ✓ Viagem: ${status}`);
   }
 }
 
-async function seedRevenues(agencyId, tenantId, sales) {
-  // Each sale generates a revenue
-  for (let i = 0; i < sales.length; i++) {
-    const sale = sales[i];
+async function seedRevenues(agencyId, sales) {
+  const categoryId = await getOrCreateFinancialCategory(agencyId, 'Pacotes', 'REVENUE');
+  const revenueCount = Math.max(15, sales.length);
+  for (let i = 0; i < revenueCount; i++) {
+    const sale = sales[i % sales.length];
+    const saleId = i < sales.length ? sale.id : null;
     const revenueDate = new Date(Date.now() - Math.random() * 60 * 24 * 60 * 60 * 1000);
     const amount = sale.amount * 0.95; // 95% after commission
 
     await pool.query(
-      `INSERT INTO "commercial"."revenues" (id, subscriber_tenant_id, amount, currency, revenue_date, category, customer_id, reference_type, reference_id, status, created_at, updated_at)
-       VALUES ($1, $2, $3, 'BRL', $4, 'PACOTES', $5, 'SALE', $6, 'RECEIVED', NOW(), NOW()) ON CONFLICT DO NOTHING`,
-      [generateId(), tenantId, amount, revenueDate, sale.customerId, sale.id]
+      `INSERT INTO revenues (id, agency_id, sale_id, customer_id, category_id, description, amount, currency, competency_date, due_date, status, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, 'Receita de pacote demo', $6, 'BRL', $7, $7, 'OPEN', NOW(), NOW()) ON CONFLICT DO NOTHING`,
+      [generateId(), agencyId, saleId, sale.customerId, categoryId, amount, revenueDate]
     );
   }
 
-  console.log(`   ✓ Created ${sales.length} revenue records`);
+  console.log(`   ✓ Created ${revenueCount} revenue records`);
 }
 
 async function seedExpenses(agencyId) {
+  const categoryId = await getOrCreateFinancialCategory(agencyId, 'Operacional', 'EXPENSE');
   const categories = ['HOSPEDAGEM', 'PASSAGENS', 'OPERACIONAL', 'MARKETING', 'COMISSOES', 'IMPOSTOS'];
-  const suppliers = ['Hotel Global', 'GOL Linhas', 'Agência Admin', 'Google Ads', 'Fornecedor XYZ', 'Governo Federal'];
-
   for (let i = 0; i < 15; i++) {
     const category = categories[i % categories.length];
-    const supplier = suppliers[i % suppliers.length];
     const expenseDate = new Date(Date.now() - Math.random() * 60 * 24 * 60 * 60 * 1000);
     const amount = 500 + Math.random() * 3000;
 
     await pool.query(
-      `INSERT INTO "commercial"."expenses" (id, subscriber_tenant_id, amount, currency, expense_date, category, supplier_id, description, status, created_at, updated_at)
-       VALUES ($1, $2, $3, 'BRL', $4, $5, $6, $7, 'APPROVED', NOW(), NOW()) ON CONFLICT DO NOTHING`,
-      [generateId(), agencyId, amount, expenseDate, category, generateId(), `Despesa de ${category}`]
+      `INSERT INTO expenses (id, agency_id, category_id, description, amount, currency, incurred_at, due_date, status, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, 'BRL', $6, $6, 'OPEN', NOW(), NOW()) ON CONFLICT DO NOTHING`,
+      [generateId(), agencyId, categoryId, `Despesa de ${category}`, amount, expenseDate]
     );
   }
 
@@ -653,15 +692,15 @@ async function seedReceivables(agencyId, sales) {
   // 80% of sales should have receivables
   for (let i = 0; i < Math.floor(sales.length * 0.8); i++) {
     const sale = sales[i];
-    const statuses = ['OPEN', 'PARTIAL', 'RECEIVED'];
+    const statuses = ['OPEN', 'PARTIALLY_PAID', 'PAID'];
     const status = statuses[Math.floor(i / 3) % statuses.length];
     const amount = sale.amount;
     const dueDate = new Date(Date.now() + Math.random() * 30 * 24 * 60 * 60 * 1000);
 
     await pool.query(
-      `INSERT INTO "commercial"."receivables" (id, subscriber_tenant_id, customer_id, amount, currency, due_date, status, reference_type, reference_id, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, 'BRL', $5, $6, 'SALE', $7, NOW(), NOW()) ON CONFLICT DO NOTHING`,
-      [generateId(), agencyId, sale.customerId, amount, dueDate, status, sale.id]
+      `INSERT INTO receivables (id, agency_id, sale_id, customer_id, description, amount, due_at, status, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, 'Parcela demo', $5, $6, $7, NOW(), NOW()) ON CONFLICT DO NOTHING`,
+      [generateId(), agencyId, sale.id, sale.customerId, amount, dueDate, status]
     );
   }
 
@@ -670,7 +709,7 @@ async function seedReceivables(agencyId, sales) {
 
 async function seedPayables(agencyId) {
   const categories = ['HOSPEDAGEM', 'PASSAGENS', 'COMISSOES'];
-  const statuses = ['OPEN', 'PARTIAL', 'PAID'];
+  const statuses = ['OPEN', 'PARTIALLY_PAID', 'PAID'];
 
   for (let i = 0; i < 12; i++) {
     const category = categories[i % categories.length];
@@ -679,16 +718,28 @@ async function seedPayables(agencyId) {
     const dueDate = new Date(Date.now() + (10 + Math.random() * 50) * 24 * 60 * 60 * 1000);
 
     await pool.query(
-      `INSERT INTO "commercial"."payables" (id, subscriber_tenant_id, amount, currency, due_date, category, status, created_at, updated_at)
-       VALUES ($1, $2, $3, 'BRL', $4, $5, $6, NOW(), NOW()) ON CONFLICT DO NOTHING`,
-      [generateId(), agencyId, amount, dueDate, category, status]
+      `INSERT INTO payables (id, agency_id, description, amount, due_at, status, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW()) ON CONFLICT DO NOTHING`,
+      [generateId(), agencyId, `Conta a pagar demo - ${category}`, amount, dueDate, status]
     );
   }
 
   console.log(`   ✓ Created 12 payable records`);
 }
 
-async function seedCampaigns(agencyId) {
+async function getOrCreateFinancialCategory(agencyId, name, type) {
+  const result = await pool.query(
+    `INSERT INTO financial_categories (id, agency_id, name, type, description, is_active, created_at, updated_at)
+     VALUES ($1, $2, $3, $4, $5, true, NOW(), NOW())
+     ON CONFLICT (agency_id, type, name) DO UPDATE SET is_active = true
+     RETURNING id`,
+    [generateId(), agencyId, name, type, `${name} demo`]
+  );
+
+  return result.rows[0].id;
+}
+
+async function seedCampaigns(agencyId, userId) {
   const campaigns = [
     { name: 'Férias no Caribe', status: 'ACTIVE', offers: 2 },
     { name: 'Descobrindo Europa', status: 'ACTIVE', offers: 2 },
@@ -701,66 +752,75 @@ async function seedCampaigns(agencyId) {
     const campaignId = generateId();
 
     await pool.query(
-      `INSERT INTO "Campaign" (id, agency_id, name, status, start_date, end_date, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, NOW(), NOW() + INTERVAL '90 days', NOW(), NOW()) ON CONFLICT DO NOTHING`,
-      [campaignId, agencyId, campaign.name, campaign.status]
+      `INSERT INTO campaigns (id, agency_id, name, status, starts_at, ends_at, created_by_user_id, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, NOW(), NOW() + INTERVAL '90 days', $5, NOW(), NOW()) ON CONFLICT DO NOTHING`,
+      [campaignId, agencyId, campaign.name, campaign.status, userId]
     );
 
     console.log(`   ✓ Campanha: ${campaign.name}`);
   }
 }
 
-async function seedInteractions(agencyId, customers) {
+async function seedInteractions(agencyId, customers, userId) {
   const channels = ['EMAIL', 'PHONE', 'WHATSAPP', 'IN_PERSON'];
+  const directions = ['INBOUND', 'OUTBOUND'];
   const types = ['INQUIRY', 'FOLLOW_UP', 'PROPOSAL_SENT', 'NEGOTIATION', 'CONFIRMATION'];
 
   for (let i = 0; i < 20; i++) {
     const customer = customers[i % customers.length];
     const channel = channels[i % channels.length];
+    const direction = directions[i % directions.length];
     const type = types[Math.floor(Math.random() * types.length)];
     const notes = `Interação ${type} via ${channel}`;
 
     await pool.query(
-      `INSERT INTO "CustomerInteraction" (id, customer_id, channel, type, notes, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, NOW(), NOW()) ON CONFLICT DO NOTHING`,
-      [generateId(), customer.id, channel, type, notes]
+      `INSERT INTO customer_interactions (id, agency_id, customer_id, user_id, channel, direction, occurred_at, summary, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, NOW(), $7, NOW()) ON CONFLICT DO NOTHING`,
+      [generateId(), agencyId, customer.id, userId, channel, direction, notes]
     );
   }
 
   console.log(`   ✓ Created 20 customer interactions`);
 }
 
-async function seedBookings(agencyId, customers, offers) {
+async function seedBookings(agencyId, customers) {
+  const departures = await pool.query(
+    `SELECT id FROM scheduled_departures
+     WHERE agency_id = $1 AND cancelled = false
+     ORDER BY departure_at ASC
+     LIMIT 8`,
+    [agencyId]
+  );
+
+  if (departures.rows.length === 0) {
+    console.log('   No scheduled departures found; skipped bookings');
+    return;
+  }
+
   for (let i = 0; i < 8; i++) {
     const customer = customers[i % customers.length];
-    const offer = offers[i % offers.length];
+    const departure = departures.rows[i % departures.rows.length];
     const bookingId = generateId();
-    const bookingDate = new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000);
-    const departureDate = new Date(Date.now() + Math.random() * 180 * 24 * 60 * 60 * 1000);
-    const returnDate = new Date(departureDate.getTime() + 7 * 24 * 60 * 60 * 1000);
-    const statuses = ['CONFIRMED', 'CONFIRMED', 'PENDING'];
-    const status = statuses[i % statuses.length];
-
     await pool.query(
-      `INSERT INTO "Booking" (id, customer_id, offer_id, booking_date, departure_date, return_date, status, total_passengers, amount, currency, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'BRL', NOW(), NOW()) ON CONFLICT DO NOTHING`,
-      [bookingId, customer.id, offer.id, bookingDate, departureDate, returnDate, status, 2, offer.price * 2]
+      `INSERT INTO bookings (id, agency_id, booker_customer_id, trip_type, outbound_departure_id, notes, created_at, updated_at)
+       VALUES ($1, $2, $3, 'ONE_WAY', $4, 'Reserva demo tenant', NOW(), NOW()) ON CONFLICT DO NOTHING`,
+      [bookingId, agencyId, customer.id, departure.id]
     );
 
-    console.log(`   ✓ Booking: ${status}`);
+    console.log('   ✓ Booking: ONE_WAY');
   }
 }
 
 async function verifyTenantData(agencyId) {
   const queries = [
-    ['Customers', `SELECT COUNT(*) as count FROM "Customer" WHERE agency_id = $1`],
-    ['Wishes', `SELECT COUNT(*) as count FROM "Wish" WHERE customer_id IN (SELECT id FROM "Customer" WHERE agency_id = $1)`],
-    ['Offers', `SELECT COUNT(*) as count FROM "Offer" WHERE agency_id = $1`],
-    ['Proposals', `SELECT COUNT(*) as count FROM "Proposal" WHERE customer_id IN (SELECT id FROM "Customer" WHERE agency_id = $1)`],
-    ['Sales', `SELECT COUNT(*) as count FROM "Sale" WHERE customer_id IN (SELECT id FROM "Customer" WHERE agency_id = $1)`],
-    ['Trips', `SELECT COUNT(*) as count FROM "Trip"`],
-    ['Campaigns', `SELECT COUNT(*) as count FROM "Campaign" WHERE agency_id = $1`],
-    ['Bookings', `SELECT COUNT(*) as count FROM "Booking"`],
+    ['Customers', 'SELECT COUNT(*) as count FROM customers WHERE agency_id = $1'],
+    ['Wishes', 'SELECT COUNT(*) as count FROM wishes WHERE agency_id = $1'],
+    ['Offers', 'SELECT COUNT(*) as count FROM offers WHERE agency_id = $1'],
+    ['Proposals', 'SELECT COUNT(*) as count FROM proposals WHERE agency_id = $1'],
+    ['Sales', 'SELECT COUNT(*) as count FROM sales WHERE agency_id = $1'],
+    ['Trips', 'SELECT COUNT(*) as count FROM trips WHERE agency_id = $1'],
+    ['Campaigns', 'SELECT COUNT(*) as count FROM campaigns WHERE agency_id = $1'],
+    ['Bookings', 'SELECT COUNT(*) as count FROM bookings WHERE agency_id = $1'],
   ];
 
   for (const [label, sql] of queries) {

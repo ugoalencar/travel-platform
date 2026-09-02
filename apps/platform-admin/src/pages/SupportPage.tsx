@@ -14,6 +14,8 @@ interface SupportCase {
   updatedAt: string;
 }
 
+type SupportCasePriority = SupportCase['priority'];
+
 export function SupportPage() {
   const [cases, setCases] = useState<SupportCase[]>([]);
   const [loading, setLoading] = useState(true);
@@ -24,22 +26,22 @@ export function SupportPage() {
     subscriberTenantId: '',
     title: '',
     description: '',
-    priority: 'MEDIUM' as const,
+    priority: 'MEDIUM' as SupportCasePriority,
   });
 
   useEffect(() => {
-    fetchCases();
+    void fetchCases();
   }, []);
 
   async function fetchCases() {
     try {
       setLoading(true);
-      const response = await fetch('http://127.0.0.1:4000/platform/support');
-      if (!response.ok) throw new Error('Failed to fetch cases');
-      const data = await response.json();
+      const response = await fetch('/api/platform/support');
+      if (!response.ok) throw new Error('Nao foi possivel carregar os casos');
+      const data = (await response.json()) as { cases?: SupportCase[] };
       setCases(data.cases || []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch cases');
+      setError(err instanceof Error ? err.message : 'Nao foi possivel carregar os casos');
     } finally {
       setLoading(false);
     }
@@ -48,13 +50,13 @@ export function SupportPage() {
   async function handleCreateCase(e: React.FormEvent) {
     e.preventDefault();
     try {
-      const response = await fetch('http://127.0.0.1:4000/platform/support', {
+      const response = await fetch('/api/platform/support', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
 
-      if (!response.ok) throw new Error('Failed to create case');
+      if (!response.ok) throw new Error('Nao foi possivel criar o caso');
       await fetchCases();
       setShowForm(false);
       setFormData({
@@ -64,28 +66,28 @@ export function SupportPage() {
         priority: 'MEDIUM',
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create case');
+      setError(err instanceof Error ? err.message : 'Nao foi possivel criar o caso');
     }
   }
 
   async function handleUpdateStatus(caseId: string, newStatus: SupportCase['status']) {
     try {
-      const response = await fetch(`http://127.0.0.1:4000/platform/support/${caseId}`, {
+      const response = await fetch(`/api/platform/support/${caseId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus }),
       });
 
-      if (!response.ok) throw new Error('Failed to update case');
+      if (!response.ok) throw new Error('Nao foi possivel atualizar o caso');
       await fetchCases();
       setSelectedCase(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update case');
+      setError(err instanceof Error ? err.message : 'Nao foi possivel atualizar o caso');
     }
   }
 
   if (loading) {
-    return <div className="text-center py-8">Loading support cases...</div>;
+    return <div className="text-center py-8">Carregando casos de suporte...</div>;
   }
 
   const statusColors: Record<string, string> = {
@@ -105,12 +107,12 @@ export function SupportPage() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Support Cases</h1>
+        <h1 className="text-3xl font-bold">Chamados de Suporte</h1>
         <button
           onClick={() => setShowForm(!showForm)}
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
         >
-          {showForm ? 'Cancel' : 'New Case'}
+          {showForm ? 'Cancelar' : 'Novo Caso'}
         </button>
       </div>
 
@@ -123,11 +125,11 @@ export function SupportPage() {
       {/* Create Form */}
       {showForm && (
         <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold mb-4">Create Support Case</h2>
-          <form onSubmit={handleCreateCase} className="space-y-4">
+          <h2 className="text-lg font-semibold mb-4">Criar Caso de Suporte</h2>
+          <form onSubmit={(event) => void handleCreateCase(event)} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Subscriber Tenant ID
+                ID do inquilino assinante
               </label>
               <input
                 type="text"
@@ -135,49 +137,49 @@ export function SupportPage() {
                 value={formData.subscriberTenantId}
                 onChange={(e) => setFormData({ ...formData, subscriberTenantId: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                placeholder="e.g., tenant-id-here"
+                placeholder="Ex: tenant-id-aqui"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Titulo</label>
               <input
                 type="text"
                 required
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                placeholder="Issue title"
+                placeholder="Titulo do problema"
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Description
+                Descricao
               </label>
               <textarea
                 required
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                placeholder="Describe the issue"
+                placeholder="Descreva o problema"
                 rows={4}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Prioridade</label>
               <select
                 value={formData.priority}
                 onChange={(e) =>
-                  setFormData({ ...formData, priority: e.target.value as any })
+                  setFormData({ ...formData, priority: e.target.value as SupportCase['priority'] })
                 }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               >
-                <option value="LOW">Low</option>
-                <option value="MEDIUM">Medium</option>
-                <option value="HIGH">High</option>
-                <option value="CRITICAL">Critical</option>
+                <option value="LOW">Baixa</option>
+                <option value="MEDIUM">Media</option>
+                <option value="HIGH">Alta</option>
+                <option value="CRITICAL">Critica</option>
               </select>
             </div>
 
@@ -186,14 +188,14 @@ export function SupportPage() {
                 type="submit"
                 className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
               >
-                Create Case
+                Criar Caso
               </button>
               <button
                 type="button"
                 onClick={() => setShowForm(false)}
                 className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
               >
-                Cancel
+                Cancelar
               </button>
             </div>
           </form>
@@ -208,7 +210,7 @@ export function SupportPage() {
               onClick={() => setSelectedCase(null)}
               className="text-gray-600 hover:text-gray-900"
             >
-              ← Back to List
+              Voltar para a lista
             </button>
           </div>
 
@@ -220,7 +222,7 @@ export function SupportPage() {
               <p className="font-mono text-sm">{selectedCase.id}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-600">Subscriber</p>
+              <p className="text-sm text-gray-600">Assinante</p>
               <p className="font-semibold">{selectedCase.subscriberTenantName}</p>
             </div>
             <div>
@@ -228,20 +230,20 @@ export function SupportPage() {
               <select
                 value={selectedCase.status}
                 onChange={(e) =>
-                  handleUpdateStatus(selectedCase.id, e.target.value as SupportCase['status'])
+                  void handleUpdateStatus(selectedCase.id, e.target.value as SupportCase['status'])
                 }
                 className={`mt-1 px-3 py-1 rounded text-sm font-semibold ${
                   statusColors[selectedCase.status]
                 }`}
               >
-                <option value="OPEN">Open</option>
-                <option value="IN_PROGRESS">In Progress</option>
-                <option value="RESOLVED">Resolved</option>
-                <option value="CLOSED">Closed</option>
+                <option value="OPEN">Aberto</option>
+                <option value="IN_PROGRESS">Em andamento</option>
+                <option value="RESOLVED">Resolvido</option>
+                <option value="CLOSED">Fechado</option>
               </select>
             </div>
             <div>
-              <p className="text-sm text-gray-600">Priority</p>
+              <p className="text-sm text-gray-600">Prioridade</p>
               <p className={`mt-1 px-3 py-1 rounded text-sm font-semibold w-fit ${
                 priorityColors[selectedCase.priority]
               }`}>
@@ -249,17 +251,17 @@ export function SupportPage() {
               </p>
             </div>
             <div>
-              <p className="text-sm text-gray-600">Created</p>
+              <p className="text-sm text-gray-600">Criado</p>
               <p className="text-sm">{new Date(selectedCase.createdAt).toLocaleString()}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-600">Updated</p>
+              <p className="text-sm text-gray-600">Atualizado</p>
               <p className="text-sm">{new Date(selectedCase.updatedAt).toLocaleString()}</p>
             </div>
           </div>
 
           <div className="bg-gray-50 rounded p-4">
-            <p className="text-sm font-semibold mb-2">Description</p>
+            <p className="text-sm font-semibold mb-2">Descricao</p>
             <p className="text-gray-700 whitespace-pre-wrap">{selectedCase.description}</p>
           </div>
         </div>
@@ -268,15 +270,15 @@ export function SupportPage() {
           <table className="w-full">
             <thead className="bg-gray-50 border-b">
               <tr>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Title</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Titulo</th>
                 <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
-                  Subscriber
+                  Assinante
                 </th>
                 <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Status</th>
                 <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
-                  Priority
+                  Prioridade
                 </th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Created</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Criado</th>
               </tr>
             </thead>
             <tbody className="divide-y">
@@ -312,7 +314,7 @@ export function SupportPage() {
 
           {cases.length === 0 && (
             <div className="text-center py-12 text-gray-600">
-              No support cases yet. Click "New Case" to create one.
+              Nenhum caso de suporte ainda. Clique em "Novo Caso" para criar um.
             </div>
           )}
         </div>

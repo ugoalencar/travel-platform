@@ -6,24 +6,58 @@ interface NavItem {
   to: string;
 }
 
-const NAV_ITEMS: NavItem[] = [
-  { label: 'Dashboard', to: '/' },
-  { label: 'Clientes', to: '/customers' },
-  { label: 'Desejos', to: '/wishes' },
-  { label: 'Viagens', to: '/trips' },
-  { label: 'Propostas', to: '/proposals' },
-  { label: 'Reservas', to: '/bookings' },
-  { label: 'Vendas', to: '/sales' },
-  { label: 'Ofertas', to: '/offers' },
-  { label: 'Pescador', to: '/pescador' },
-  { label: 'Financeiro', to: '/financial' },
-  { label: '  Receitas', to: '/financial/revenues' },
-  { label: '  Despesas', to: '/financial/expenses' },
-  { label: '  Contas a Receber', to: '/financial/receivables' },
-  { label: '  Categorias', to: '/financial/categories' },
-  { label: '  Caixa', to: '/financial/cash-transactions' },
-  { label: '  Reconciliação', to: '/financial/reconciliation' },
-  { label: '  Relatórios', to: '/financial/reports' },
+interface NavSection {
+  label: string;
+  items: NavItem[];
+}
+
+const NAV_SECTIONS: NavSection[] = [
+  {
+    label: 'INÍCIO',
+    items: [{ label: 'Painel', to: '/' }],
+  },
+  {
+    label: 'RELACIONAMENTO',
+    items: [
+      { label: 'Clientes', to: '/customers' },
+      { label: 'Desejos', to: '/wishes' },
+      { label: 'Viagens', to: '/trips' },
+    ],
+  },
+  {
+    label: 'COMERCIAL',
+    items: [
+      { label: 'Pescador', to: '/pescador' },
+      { label: 'Ofertas', to: '/offers' },
+      { label: 'Propostas', to: '/proposals' },
+      { label: 'Reservas', to: '/bookings' },
+      { label: 'Vendas', to: '/sales' },
+    ],
+  },
+  {
+    label: 'MARKETING',
+    items: [
+      { label: 'Campanhas', to: '/campaigns' },
+      { label: 'Cupons', to: '/coupons' },
+    ],
+  },
+  {
+    label: 'FINANCEIRO',
+    items: [
+      { label: 'Visão Geral', to: '/financial' },
+      { label: 'Receitas', to: '/financial/revenues' },
+      { label: 'Despesas', to: '/financial/expenses' },
+      { label: 'Contas a Receber', to: '/financial/receivables' },
+      { label: 'Contas a Pagar', to: '/financial/payables' },
+      { label: 'Caixa', to: '/financial/cash-transactions' },
+      { label: 'Conciliação', to: '/financial/reconciliation' },
+      { label: 'Relatórios', to: '/financial/reports' },
+    ],
+  },
+  {
+    label: 'GESTÃO',
+    items: [{ label: 'Configurações', to: '/settings' }],
+  },
 ];
 
 export interface SidebarProps {
@@ -52,22 +86,31 @@ export function Sidebar({ mobileOpen, onClose }: SidebarProps) {
             Travel Platform
           </span>
         </div>
-        <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-3">
-          {NAV_ITEMS.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.to === '/'}
-              onClick={onClose}
-              className={({ isActive }) =>
-                cn(
-                  'rounded-md px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100',
-                  isActive && 'bg-slate-900 text-white hover:bg-slate-900',
-                )
-              }
-            >
-              {item.label}
-            </NavLink>
+        <nav className="flex flex-1 flex-col gap-4 overflow-y-auto p-3">
+          {NAV_SECTIONS.map((section) => (
+            <div key={section.label} className="space-y-1">
+              <p className="px-3 text-[0.68rem] font-bold uppercase tracking-wide text-slate-400">
+                {section.label}
+              </p>
+              <div className="flex flex-col gap-1">
+                {section.items.map((item) => (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    end={item.to === '/'}
+                    onClick={onClose}
+                    className={({ isActive }) =>
+                      cn(
+                        'rounded-md px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100',
+                        isActive && 'bg-slate-900 text-white hover:bg-slate-900',
+                      )
+                    }
+                  >
+                    {item.label}
+                  </NavLink>
+                ))}
+              </div>
+            </div>
           ))}
         </nav>
       </aside>

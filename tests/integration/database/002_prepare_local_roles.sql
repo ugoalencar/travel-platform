@@ -180,6 +180,26 @@ BEGIN
 END;
 $$;
 
+-- Customer 360 tables (migrations 019-023) are tenant-scoped and guarded so
+-- earlier domain suites can still apply only their needed migration range.
+DO $$
+BEGIN
+  IF to_regclass('public.customer_addresses') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      customer_addresses,
+      customer_dependents,
+      customer_documents,
+      document_attachments,
+      document_extractions,
+      document_verifications
+    TO travel_app_runtime_local;
+
+    GRANT SELECT, INSERT ON document_audit_events TO travel_app_runtime_local;
+    REVOKE UPDATE, DELETE ON document_audit_events FROM travel_app_runtime_local;
+  END IF;
+END;
+$$;
+
 -- Offer & Growth Engine foundation tables (migration
 -- 014_offer_growth_foundation.sql) only exist once that migration has been
 -- applied. Keep this guarded so earlier domain tests can keep applying only
@@ -214,6 +234,50 @@ BEGIN
   IF to_regclass('public.audit_logs') IS NOT NULL THEN
     GRANT SELECT, INSERT ON audit_logs TO travel_app_runtime_local;
     REVOKE UPDATE, DELETE ON audit_logs FROM travel_app_runtime_local;
+  END IF;
+END;
+$$;
+
+-- Extended financial module tables (migration 024).
+DO $$
+BEGIN
+  IF to_regclass('public.financial_categories') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      financial_categories,
+      revenues,
+      expenses,
+      reconciliations
+    TO travel_app_runtime_local;
+
+    GRANT SELECT, INSERT ON cash_transactions TO travel_app_runtime_local;
+    REVOKE UPDATE, DELETE ON cash_transactions FROM travel_app_runtime_local;
+  END IF;
+END;
+$$;
+
+-- Production auth/captcha/MFA tables (migration
+-- 016_production_auth_captcha_mfa.sql) hold security-sensitive state.
+-- Grant only the operations required by runtime flows and rely on RLS
+-- policies for tenant enforcement.
+DO $$
+BEGIN
+  IF to_regclass('public.auth_sessions') IS NOT NULL THEN
+    GRANT SELECT, INSERT ON
+      auth_sessions,
+      captcha_verifications,
+      mfa_totp_attempts
+    TO travel_app_runtime_local;
+    REVOKE UPDATE, DELETE ON
+      auth_sessions,
+      captcha_verifications,
+      mfa_totp_attempts
+    FROM travel_app_runtime_local;
+
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      mfa_totp_secrets,
+      mfa_recovery_codes,
+      mfa_requirements
+    TO travel_app_runtime_local;
   END IF;
 END;
 $$;

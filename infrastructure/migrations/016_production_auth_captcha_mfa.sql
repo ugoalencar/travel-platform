@@ -97,11 +97,14 @@ CREATE TABLE mfa_totp_secrets (
 
   CONSTRAINT mfa_totp_secrets_user_agency_fk
     FOREIGN KEY (agency_id, user_id) REFERENCES users (agency_id, id)
-    ON DELETE CASCADE ON UPDATE CASCADE,
-  -- Enforce one active TOTP per user
-  CONSTRAINT mfa_totp_secrets_one_active_per_user
-    UNIQUE (agency_id, user_id) WHERE verified_at IS NOT NULL AND disabled_at IS NULL
+    ON DELETE CASCADE ON UPDATE CASCADE
 );
+
+-- Enforce one active TOTP per user. PostgreSQL requires partial uniqueness
+-- to be declared as an index, not an inline table constraint.
+CREATE UNIQUE INDEX mfa_totp_secrets_one_active_per_user
+  ON mfa_totp_secrets (agency_id, user_id)
+  WHERE verified_at IS NOT NULL AND disabled_at IS NULL;
 
 CREATE INDEX mfa_totp_secrets_user_active_idx
   ON mfa_totp_secrets (user_id, verified_at DESC)

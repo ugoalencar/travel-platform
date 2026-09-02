@@ -128,11 +128,11 @@ cat /tmp/secrets.env
 ### Step 2.2: Verify Secrets
 
 ```bash
-echo "JWT_SECRET: $TF_VAR_jwt_secret"
-echo "MFA_ENCRYPTION_KEY: $TF_VAR_mfa_encryption_key"
-echo "DB_PASSWORD_RUNTIME: $TF_VAR_db_password_runtime"
-echo "DB_PASSWORD_MIGRATIONS: $TF_VAR_db_password_migrations"
-echo "REDIS_PASSWORD: $TF_VAR_redis_password"
+test -n "$TF_VAR_jwt_secret" && echo "JWT_SECRET is set"
+test -n "$TF_VAR_mfa_encryption_key" && echo "MFA_ENCRYPTION_KEY is set"
+test -n "$TF_VAR_db_password_runtime" && echo "DB_PASSWORD_RUNTIME is set"
+test -n "$TF_VAR_db_password_migrations" && echo "DB_PASSWORD_MIGRATIONS is set"
+test -n "$TF_VAR_redis_password" && echo "REDIS_PASSWORD is set"
 ```
 
 ---
@@ -259,8 +259,8 @@ echo "Connection Name: $CONNECTION_NAME"
 
 ```bash
 # Set environment variables
-export DATABASE_URL="postgresql://travel_app_runtime:$TF_VAR_db_password_runtime@${PRIVATE_IP}:5432/travel_platform_prod"
-export DATABASE_MIGRATION_URL="postgresql://travel_migrations:$TF_VAR_db_password_migrations@${PRIVATE_IP}:5432/travel_platform_prod"
+export DATABASE_URL="postgresql://travel_app_runtime:${TF_VAR_db_password_runtime}@${PRIVATE_IP}:5432/travel_platform_prod"
+export DATABASE_MIGRATION_URL="postgresql://travel_migrations:${TF_VAR_db_password_migrations}@${PRIVATE_IP}:5432/travel_platform_prod"
 
 # Run migrations validation
 npm run migrations:validate
@@ -414,10 +414,11 @@ gcloud secrets list --filter="labels.app:travel-platform"
 ### Step 9.2: Verify Secret Values
 
 ```bash
-# Test secret retrieval (don't expose in production)
-gcloud secrets versions access latest --secret="travel-platform-database-url-prod" --project=$PROJECT_ID | head -c 50
-gcloud secrets versions access latest --secret="travel-platform-redis-url-prod" --project=$PROJECT_ID | head -c 50
-gcloud secrets versions access latest --secret="travel-platform-jwt-secret-prod" --project=$PROJECT_ID | head -c 50
+# Test secret retrieval without printing values.
+for name in travel-platform-database-url-prod travel-platform-redis-url-prod travel-platform-jwt-secret-prod; do
+  gcloud secrets versions access latest --secret="$name" --project="$PROJECT_ID" >/dev/null
+  echo "$name is readable"
+done
 ```
 
 ---

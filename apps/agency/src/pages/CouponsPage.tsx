@@ -116,7 +116,7 @@ export function CouponsPage() {
       <PageHeader
         title="Cupons"
         description="Crie e gerencie cupons promocionais."
-        breadcrumbs={[{ label: 'Dashboard', to: '/' }, { label: 'Cupons' }]}
+        breadcrumbs={[{ label: 'Painel', to: '/' }, { label: 'Cupons' }]}
         actions={
           <Button size="sm" onClick={() => setShowNewCoupon(true)}>
             <Plus className="h-4 w-4" />

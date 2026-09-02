@@ -176,7 +176,7 @@ export function ExpensesPage() {
       <PageHeader
         title="Despesas"
         description="Gerenciar despesas operacionais."
-        breadcrumbs={[{ label: 'Dashboard', to: '/' }, { label: 'Despesas' }]}
+        breadcrumbs={[{ label: 'Painel', to: '/' }, { label: 'Despesas' }]}
         actions={
           <Button size="sm" onClick={() => { setModal({ type: 'create' }); setFormError(null); }}>
             <Plus className="mr-2 h-4 w-4" />

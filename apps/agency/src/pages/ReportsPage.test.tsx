@@ -129,7 +129,7 @@ describe('ReportsPage', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText(/Rate limit exceeded/i),
+        screen.getByText(/Limite de requisicoes excedido/i),
       ).toBeInTheDocument();
     });
   });
@@ -144,7 +144,7 @@ describe('ReportsPage', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText(/You do not have permission/i),
+        screen.getByText(/Voce nao tem permissao/i),
       ).toBeInTheDocument();
     });
   });

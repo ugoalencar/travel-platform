@@ -53,7 +53,7 @@ export function CategoriesPage() {
       <PageHeader
         title="Categorias"
         description="Gerenciar categorias de receitas e despesas."
-        breadcrumbs={[{ label: 'Dashboard', to: '/' }, { label: 'Categorias' }]}
+        breadcrumbs={[{ label: 'Painel', to: '/' }, { label: 'Categorias' }]}
       />
       <Card>
         <CardHeader>

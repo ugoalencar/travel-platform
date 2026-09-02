@@ -95,16 +95,16 @@ export function SettingsPage() {
           if (httpErr.status === 403) {
             setState({
               status: 'error',
-              message: 'You do not have permission to access settings.',
+              message: 'Voce nao tem permissao para acessar as configuracoes.',
             });
           } else {
             setState({
               status: 'error',
-              message: httpErr.data?.message || 'Failed to load settings',
+              message: httpErr.data?.message || 'Nao foi possivel carregar as configuracoes.',
             });
           }
         } else {
-          setState({ status: 'error', message: 'An unexpected error occurred' });
+          setState({ status: 'error', message: 'Ocorreu um erro inesperado.' });
         }
       }
     };

@@ -158,7 +158,7 @@ export function ReconciliationPage() {
         <PageHeader
           title="Reconciliações"
           description="Conciliar entradas e saídas de caixa."
-          breadcrumbs={[{ label: 'Dashboard', to: '/' }, { label: 'Reconciliações' }]}
+          breadcrumbs={[{ label: 'Painel', to: '/' }, { label: 'Reconciliações' }]}
         />
         <div
           role="alert"
@@ -178,7 +178,7 @@ export function ReconciliationPage() {
       <PageHeader
         title="Reconciliações"
         description="Conciliar entradas e saídas de caixa."
-        breadcrumbs={[{ label: 'Dashboard', to: '/' }, { label: 'Reconciliações' }]}
+        breadcrumbs={[{ label: 'Painel', to: '/' }, { label: 'Reconciliações' }]}
         actions={
           <Button size="sm" onClick={() => setShowModal(true)}>
             <Plus className="mr-2 h-4 w-4" />

@@ -72,7 +72,7 @@ describe('UI-03 sales journey prototype', () => {
     renderRoute('/proposals/test-id/preview');
 
     await waitFor(() => {
-      expect(screen.getByRole('heading', { name: 'Preview de proposta' })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Prévia de proposta' })).toBeInTheDocument();
     });
   });
 });

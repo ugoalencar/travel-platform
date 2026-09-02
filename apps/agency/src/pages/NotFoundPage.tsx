@@ -15,7 +15,7 @@ export function NotFoundPage() {
             void navigate('/');
           }}
         >
-          Voltar ao Dashboard
+          Voltar ao Painel
         </Button>
       }
     />

@@ -4,8 +4,9 @@ import { spawnSync } from 'node:child_process';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { Pool } from 'pg';
 import { buildApp } from '../src/app';
-import { UserRole } from '../../../packages/domain/types';
+import { PlatformUserRole, UserRole } from '../../../packages/domain/types';
 import type { AuthenticatedPrincipal } from '../src/auth';
+import type { DatabaseRuntime } from '../src/database';
 import { createDatabaseRuntime } from '../src/database';
 import { createServerAccessValidator, createServerAuthProvider } from '../src/dev-auth';
 
@@ -126,6 +127,44 @@ describe.sequential('P0 Fastify API foundation', () => {
     await app.close();
   });
 
+  it('serves platform-admin routes with platform auth and without staff tenant context', async () => {
+    const app = buildApp({
+      authProvider: { authenticate: () => Promise.resolve(null) },
+      validateUserAgencyAccess: () => Promise.resolve(false),
+      database: {
+        withTenantTransaction: () => {
+          throw new Error('staff tenant database runtime must not be used by platform routes');
+        },
+        withPlatformTransaction() {
+          return Promise.resolve([]);
+        },
+      } as unknown as DatabaseRuntime,
+      platformAuthProvider: {
+        authenticate: () =>
+          Promise.resolve({
+            platformUserId: 'platform-user-1',
+            role: PlatformUserRole.PLATFORM_ADMIN,
+            email: 'platform-admin@example.test',
+          }),
+      },
+      rateLimit: {
+        classLimits: {
+          SYSTEM_INTERNAL: { windowMs: 60_000, max: 10 },
+        },
+      },
+    });
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/platform/plans',
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toEqual({ plans: [] });
+
+    await app.close();
+  });
+
   it('rate limits repeated write requests by route and client address', async () => {
     const app = buildTestApp(runtimePool, {
       rateLimit: { windowMs: 60_000, max: 1 },
@@ -223,7 +262,7 @@ describe.sequential('P0 Fastify API foundation', () => {
           // would not be shared across replicas/workers.
         },
       })
-    ).toThrow(/HUMAN INFRASTRUCTURE DECISION REQUIRED/);
+    ).toThrow(/REDIS_URL is required when using a distributed rate-limit store/);
   });
 
   it('does not let a spoofed X-Forwarded-For header evade or smear the per-IP abuse bucket', async () => {

@@ -19,7 +19,7 @@ export function PlansPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
+  const [, setSelectedPlan] = useState<Plan | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -31,18 +31,18 @@ export function PlansPage() {
   });
 
   useEffect(() => {
-    fetchPlans();
+    void fetchPlans();
   }, []);
 
   async function fetchPlans() {
     try {
       setLoading(true);
-      const response = await fetch('http://127.0.0.1:4000/platform/plans');
-      if (!response.ok) throw new Error('Failed to fetch plans');
-      const data = await response.json();
+      const response = await fetch('/api/platform/plans');
+      if (!response.ok) throw new Error('Nao foi possivel carregar os planos');
+      const data = (await response.json()) as { plans?: Plan[] };
       setPlans(data.plans || []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch plans');
+      setError(err instanceof Error ? err.message : 'Nao foi possivel carregar os planos');
     } finally {
       setLoading(false);
     }
@@ -51,7 +51,7 @@ export function PlansPage() {
   async function handleCreatePlan(e: React.FormEvent) {
     e.preventDefault();
     try {
-      const response = await fetch('http://127.0.0.1:4000/platform/plans', {
+      const response = await fetch('/api/platform/plans', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -66,7 +66,7 @@ export function PlansPage() {
         }),
       });
 
-      if (!response.ok) throw new Error('Failed to create plan');
+      if (!response.ok) throw new Error('Nao foi possivel criar o plano');
 
       setFormData({
         name: '',
@@ -80,38 +80,38 @@ export function PlansPage() {
       setShowForm(false);
       await fetchPlans();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create plan');
+      setError(err instanceof Error ? err.message : 'Nao foi possivel criar o plano');
     }
   }
 
   async function handleDeletePlan(planId: string) {
-    if (!confirm('Are you sure you want to delete this plan?')) return;
+    if (!confirm('Tem certeza de que deseja excluir este plano?')) return;
 
     try {
-      const response = await fetch(`http://127.0.0.1:4000/platform/plans/${planId}`, {
+      const response = await fetch(`/api/platform/plans/${planId}`, {
         method: 'DELETE',
       });
 
-      if (!response.ok) throw new Error('Failed to delete plan');
+      if (!response.ok) throw new Error('Nao foi possivel excluir o plano');
       await fetchPlans();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete plan');
+      setError(err instanceof Error ? err.message : 'Nao foi possivel excluir o plano');
     }
   }
 
   if (loading) {
-    return <div className="text-center py-8">Loading plans...</div>;
+    return <div className="text-center py-8">Carregando planos...</div>;
   }
 
   return (
     <div>
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Billing Plans</h1>
+        <h1 className="text-3xl font-bold">Planos de Cobranca</h1>
         <button
           onClick={() => setShowForm(!showForm)}
           className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
         >
-          {showForm ? 'Cancel' : 'Create Plan'}
+          {showForm ? 'Cancelar' : 'Criar Plano'}
         </button>
       </div>
 
@@ -123,54 +123,54 @@ export function PlansPage() {
 
       {showForm && (
         <div className="bg-white rounded-lg shadow p-6 mb-8">
-          <h2 className="text-xl font-bold mb-4">Create New Plan</h2>
-          <form onSubmit={handleCreatePlan} className="space-y-4">
+          <h2 className="text-xl font-bold mb-4">Criar Novo Plano</h2>
+          <form onSubmit={(event) => void handleCreatePlan(event)} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Plan Name</label>
+                <label className="block text-sm font-medium mb-1">Nome do plano</label>
                 <input
                   type="text"
                   required
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className="w-full px-3 py-2 border rounded-lg"
-                  placeholder="e.g., Premium"
+                  placeholder="Ex: Premium"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Description</label>
+                <label className="block text-sm font-medium mb-1">Descricao</label>
                 <input
                   type="text"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   className="w-full px-3 py-2 border rounded-lg"
-                  placeholder="Brief description"
+                  placeholder="Descricao breve"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Monthly Price (BRL)</label>
+                <label className="block text-sm font-medium mb-1">Preco mensal (BRL)</label>
                 <input
                   type="number"
                   step="0.01"
                   value={formData.price_monthly}
                   onChange={(e) => setFormData({ ...formData, price_monthly: e.target.value })}
                   className="w-full px-3 py-2 border rounded-lg"
-                  placeholder="Optional"
+                  placeholder="Opcional"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Annual Price (BRL)</label>
+                <label className="block text-sm font-medium mb-1">Preco anual (BRL)</label>
                 <input
                   type="number"
                   step="0.01"
                   value={formData.price_annual}
                   onChange={(e) => setFormData({ ...formData, price_annual: e.target.value })}
                   className="w-full px-3 py-2 border rounded-lg"
-                  placeholder="Optional"
+                  placeholder="Opcional"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Max Users</label>
+                <label className="block text-sm font-medium mb-1">Maximo de usuarios</label>
                 <input
                   type="number"
                   value={formData.max_users}
@@ -179,7 +179,7 @@ export function PlansPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Max Customers</label>
+                <label className="block text-sm font-medium mb-1">Maximo de clientes</label>
                 <input
                   type="number"
                   value={formData.max_customers}
@@ -188,7 +188,7 @@ export function PlansPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Storage (GB)</label>
+                <label className="block text-sm font-medium mb-1">Armazenamento (GB)</label>
                 <input
                   type="number"
                   value={formData.max_storage_gb}
@@ -201,7 +201,7 @@ export function PlansPage() {
               type="submit"
               className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
             >
-              Create Plan
+              Criar Plano
             </button>
           </form>
         </div>
@@ -209,19 +209,19 @@ export function PlansPage() {
 
       {plans.length === 0 ? (
         <div className="bg-gray-50 rounded-lg p-8 text-center">
-          <p className="text-gray-600">No plans yet. Create one to get started.</p>
+          <p className="text-gray-600">Nenhum plano ainda. Crie um para comecar.</p>
         </div>
       ) : (
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <table className="w-full">
             <thead className="bg-gray-50 border-b">
               <tr>
-                <th className="px-6 py-3 text-left text-sm font-semibold">Name</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold">Description</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold">Monthly Price</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold">Max Users</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold">Storage (GB)</th>
-                <th className="px-6 py-3 text-right text-sm font-semibold">Actions</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold">Nome</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold">Descricao</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold">Preco mensal</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold">Maximo de usuarios</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold">Armazenamento (GB)</th>
+                <th className="px-6 py-3 text-right text-sm font-semibold">Acoes</th>
               </tr>
             </thead>
             <tbody className="divide-y">
@@ -230,7 +230,7 @@ export function PlansPage() {
                   <td className="px-6 py-3 font-medium">{plan.name}</td>
                   <td className="px-6 py-3 text-sm text-gray-600">{plan.description || '-'}</td>
                   <td className="px-6 py-3">
-                    {plan.price_monthly ? `R$ ${plan.price_monthly.toLocaleString()}` : 'Custom'}
+                    {plan.price_monthly ? `R$ ${plan.price_monthly.toLocaleString()}` : 'Personalizado'}
                   </td>
                   <td className="px-6 py-3">{plan.max_users}</td>
                   <td className="px-6 py-3">{plan.max_storage_gb}</td>
@@ -239,13 +239,13 @@ export function PlansPage() {
                       onClick={() => setSelectedPlan(plan)}
                       className="text-blue-600 hover:text-blue-800 text-sm"
                     >
-                      View
+                      Ver
                     </button>
                     <button
-                      onClick={() => handleDeletePlan(plan.id)}
+                      onClick={() => void handleDeletePlan(plan.id)}
                       className="text-red-600 hover:text-red-800 text-sm"
                     >
-                      Delete
+                      Excluir
                     </button>
                   </td>
                 </tr>

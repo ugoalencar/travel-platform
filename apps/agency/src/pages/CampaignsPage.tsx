@@ -124,7 +124,7 @@ export function CampaignsPage() {
       <PageHeader
         title="Campanhas"
         description="Crie e gerencie campanhas de marketing."
-        breadcrumbs={[{ label: 'Dashboard', to: '/' }, { label: 'Campanhas' }]}
+        breadcrumbs={[{ label: 'Painel', to: '/' }, { label: 'Campanhas' }]}
         actions={
           <Button size="sm" onClick={() => setShowNewCampaign(true)}>
             <Plus className="h-4 w-4" />

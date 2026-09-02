@@ -165,7 +165,7 @@ export function RevenuesPage() {
       <PageHeader
         title="Receitas"
         description="Gerenciar receitas de vendas e serviços."
-        breadcrumbs={[{ label: 'Dashboard', to: '/' }, { label: 'Receitas' }]}
+        breadcrumbs={[{ label: 'Painel', to: '/' }, { label: 'Receitas' }]}
         actions={
           <Button size="sm" onClick={() => setShowNewRevenue(true)}>
             <Plus className="h-4 w-4 mr-2" />

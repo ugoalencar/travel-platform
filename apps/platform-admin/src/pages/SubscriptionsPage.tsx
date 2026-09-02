@@ -30,18 +30,18 @@ export function SubscriptionsPage() {
   const [transitionStatus, setTransitionStatus] = useState<string>('');
 
   useEffect(() => {
-    fetchSubscriptions();
+    void fetchSubscriptions();
   }, []);
 
   async function fetchSubscriptions() {
     try {
       setLoading(true);
-      const response = await fetch('http://127.0.0.1:4000/platform/subscriptions');
-      if (!response.ok) throw new Error('Failed to fetch subscriptions');
-      const data = await response.json();
+      const response = await fetch('/api/platform/subscriptions');
+      if (!response.ok) throw new Error('Nao foi possivel carregar as assinaturas');
+      const data = (await response.json()) as { subscriptions?: Subscription[] };
       setSubscriptions(data.subscriptions || []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch subscriptions');
+      setError(err instanceof Error ? err.message : 'Nao foi possivel carregar as assinaturas');
     } finally {
       setLoading(false);
     }
@@ -52,7 +52,7 @@ export function SubscriptionsPage() {
 
     try {
       const response = await fetch(
-        `http://127.0.0.1:4000/platform/subscriptions/${selectedSub.id}/status`,
+        `/api/platform/subscriptions/${selectedSub.id}/status`,
         {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
@@ -60,13 +60,13 @@ export function SubscriptionsPage() {
         }
       );
 
-      if (!response.ok) throw new Error('Failed to update subscription status');
+      if (!response.ok) throw new Error('Nao foi possivel atualizar o status da assinatura');
 
       setTransitionStatus('');
       setSelectedSub(null);
       await fetchSubscriptions();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update subscription');
+      setError(err instanceof Error ? err.message : 'Nao foi possivel atualizar a assinatura');
     }
   }
 
@@ -92,12 +92,12 @@ export function SubscriptionsPage() {
   };
 
   if (loading) {
-    return <div className="text-center py-8">Loading subscriptions...</div>;
+    return <div className="text-center py-8">Carregando assinaturas...</div>;
   }
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-8">Subscriptions</h1>
+      <h1 className="text-3xl font-bold mb-8">Assinaturas</h1>
 
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
@@ -127,7 +127,7 @@ export function SubscriptionsPage() {
           <div className="flex justify-between items-start mb-4">
             <div>
               <h2 className="text-2xl font-bold">{selectedSub.tenant_name}</h2>
-              <p className="text-gray-600">Plan: {selectedSub.plan_name}</p>
+              <p className="text-gray-600">Plano: {selectedSub.plan_name}</p>
             </div>
             <button
               onClick={() => {
@@ -136,13 +136,13 @@ export function SubscriptionsPage() {
               }}
               className="text-gray-500 hover:text-gray-700"
             >
-              Close
+              Fechar
             </button>
           </div>
 
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
-              <p className="text-sm text-gray-600">Current Status</p>
+              <p className="text-sm text-gray-600">Status atual</p>
               <p>
                 <span
                   className={`${statusColors[selectedSub.status]} px-2 py-1 rounded text-sm font-medium`}
@@ -152,7 +152,7 @@ export function SubscriptionsPage() {
               </p>
             </div>
             <div>
-              <p className="text-sm text-gray-600">Started</p>
+              <p className="text-sm text-gray-600">Inicio</p>
               <p className="font-medium">
                 {new Date(selectedSub.started_at).toLocaleDateString()}
               </p>
@@ -165,7 +165,7 @@ export function SubscriptionsPage() {
             return (
               <div className="mt-4 pt-4 border-t">
                 <label className="block text-sm font-medium mb-2">
-                  Change Status To:
+                  Alterar status para:
                 </label>
                 <div className="flex gap-2">
                   <select
@@ -173,7 +173,7 @@ export function SubscriptionsPage() {
                     onChange={(e) => setTransitionStatus(e.target.value)}
                     className="px-3 py-2 border rounded-lg flex-1"
                   >
-                    <option value="">-- Select new status --</option>
+                    <option value="">-- Selecionar novo status --</option>
                     {transitions.map((status) => (
                       <option key={status} value={status}>
                         {status}
@@ -181,11 +181,11 @@ export function SubscriptionsPage() {
                     ))}
                   </select>
                   <button
-                    onClick={handleStatusTransition}
+                    onClick={() => void handleStatusTransition()}
                     disabled={!transitionStatus}
                     className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
                   >
-                    Update Status
+                    Atualizar Status
                   </button>
                 </div>
               </div>
@@ -200,19 +200,19 @@ export function SubscriptionsPage() {
           <thead className="bg-gray-50 border-b">
             <tr>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
-                Tenant
+                Inquilino
               </th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
-                Plan
+                Plano
               </th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
                 Status
               </th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
-                Started
+                Inicio
               </th>
               <th className="px-6 py-3 text-right text-sm font-semibold text-gray-900">
-                Actions
+                Acoes
               </th>
             </tr>
           </thead>
@@ -220,7 +220,7 @@ export function SubscriptionsPage() {
             {filtered.length === 0 ? (
               <tr>
                 <td colSpan={5} className="px-6 py-4 text-center text-gray-600">
-                  No subscriptions found
+                  Nenhuma assinatura encontrada
                 </td>
               </tr>
             ) : (
@@ -246,7 +246,7 @@ export function SubscriptionsPage() {
                       }}
                       className="text-blue-600 hover:text-blue-800 text-sm font-medium"
                     >
-                      Manage
+                      Gerenciar
                     </button>
                   </td>
                 </tr>
@@ -257,7 +257,7 @@ export function SubscriptionsPage() {
       </div>
 
       <div className="mt-4 text-sm text-gray-600">
-        Showing {filtered.length} of {subscriptions.length} subscriptions
+        Mostrando {filtered.length} de {subscriptions.length} assinaturas
       </div>
     </div>
   );

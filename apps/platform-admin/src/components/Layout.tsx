@@ -7,30 +7,30 @@ export function Layout() {
       {/* Sidebar */}
       <aside className="w-64 bg-slate-900 text-white shadow-lg">
         <div className="p-6">
-          <h1 className="text-2xl font-bold">Travel Admin</h1>
-          <p className="text-slate-400 text-sm mt-2">Platform Control</p>
+          <h1 className="text-2xl font-bold">Admin da Plataforma</h1>
+          <p className="text-slate-400 text-sm mt-2">Controle Central</p>
         </div>
 
         <nav className="space-y-2 px-4">
-          <NavLink to="/" icon={BarChart3} label="Dashboard" />
-          <NavLink to="/subscribers" icon={Users} label="Subscribers" />
-          <NavLink to="/plans" icon={Package} label="Plans" />
-          <NavLink to="/subscriptions" icon={CreditCard} label="Subscriptions" />
-          <NavLink to="/financial" icon={TrendingUp} label="Financial" />
+          <NavLink to="/" icon={BarChart3} label="Painel" />
+          <NavLink to="/subscribers" icon={Users} label="Assinantes" />
+          <NavLink to="/plans" icon={Package} label="Planos" />
+          <NavLink to="/subscriptions" icon={CreditCard} label="Assinaturas" />
+          <NavLink to="/financial" icon={TrendingUp} label="Financeiro" />
           <NavLink to="/leads" icon={Zap} label="Leads" />
           <NavLink to="/marketing" icon={Megaphone} label="Marketing" />
-          <NavLink to="/support" icon={MessageSquare} label="Support" />
+          <NavLink to="/support" icon={MessageSquare} label="Suporte" />
 
           <hr className="my-4 border-slate-700" />
 
-          <NavLink to="/incidents" icon={AlertCircle} label="Incidents" />
-          <NavLink to="/feature-flags" icon={Flag} label="Feature Flags" />
-          <NavLink to="/health" icon={Heart} label="Health" />
-          <NavLink to="/audit" icon={FileText} label="Audit" />
+          <NavLink to="/incidents" icon={AlertCircle} label="Incidentes" />
+          <NavLink to="/feature-flags" icon={Flag} label="Recursos Experimentais" />
+          <NavLink to="/health" icon={Heart} label="Saúde do Sistema" />
+          <NavLink to="/audit" icon={FileText} label="Auditoria" />
 
           <hr className="my-4 border-slate-700" />
 
-          <NavLink to="/settings" icon={Settings} label="Settings" />
+          <NavLink to="/settings" icon={Settings} label="Configurações" />
         </nav>
       </aside>
 

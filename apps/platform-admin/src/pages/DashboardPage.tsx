@@ -45,44 +45,44 @@ export function DashboardPage() {
         setLoading(true);
 
         const [metricsRes, growthRes, mrrRes, funnelRes, distRes] = await Promise.all([
-          fetch('http://127.0.0.1:4000/platform/financial'),
-          fetch('http://127.0.0.1:4000/platform/analytics/subscriber-growth'),
-          fetch('http://127.0.0.1:4000/platform/analytics/mrr-evolution'),
-          fetch('http://127.0.0.1:4000/platform/analytics/lead-funnel'),
-          fetch('http://127.0.0.1:4000/platform/analytics/plan-distribution'),
+          fetch('/api/platform/financial'),
+          fetch('/api/platform/analytics/subscriber-growth'),
+          fetch('/api/platform/analytics/mrr-evolution'),
+          fetch('/api/platform/analytics/lead-funnel'),
+          fetch('/api/platform/analytics/plan-distribution'),
         ]);
 
-        if (!metricsRes.ok) throw new Error('Failed to fetch metrics');
-        const metricsData = await metricsRes.json();
+        if (!metricsRes.ok) throw new Error('Nao foi possivel carregar as metricas');
+        const metricsData = (await metricsRes.json()) as { metrics: FinancialMetrics };
         setMetrics(metricsData.metrics);
 
         if (growthRes.ok) {
-          const growthData = await growthRes.json();
+          const growthData = (await growthRes.json()) as { data?: GrowthData[] };
           setGrowth(growthData.data || []);
         }
 
         if (mrrRes.ok) {
-          const mrrData = await mrrRes.json();
+          const mrrData = (await mrrRes.json()) as { data?: MrrData[] };
           setMrrEvolution(mrrData.data || []);
         }
 
         if (funnelRes.ok) {
-          const funnelData = await funnelRes.json();
+          const funnelData = (await funnelRes.json()) as { data?: FunnelData[] };
           setLeadFunnel(funnelData.data || []);
         }
 
         if (distRes.ok) {
-          const distData = await distRes.json();
+          const distData = (await distRes.json()) as { data?: PlanData[] };
           setPlanDist(distData.data || []);
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch data');
+        setError(err instanceof Error ? err.message : 'Nao foi possivel carregar os dados');
       } finally {
         setLoading(false);
       }
     }
 
-    fetchData();
+    void fetchData();
   }, []);
 
   if (loading) {

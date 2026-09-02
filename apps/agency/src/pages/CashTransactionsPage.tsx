@@ -134,7 +134,7 @@ export function CashTransactionsPage() {
       <PageHeader
         title="Movimentações"
         description="Extrato de caixa (imutável)."
-        breadcrumbs={[{ label: 'Dashboard', to: '/' }, { label: 'Movimentações' }]}
+        breadcrumbs={[{ label: 'Painel', to: '/' }, { label: 'Movimentações' }]}
       />
 
       <Card>

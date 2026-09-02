@@ -8,12 +8,16 @@ const migrationDir = resolve(repoRoot, 'infrastructure/migrations');
 
 const databaseUrl = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5433/travel_platform_dev';
 
+function maskConnectionString(value) {
+  return value.replace(/:\/\/([^:/@\s]+):([^@/\s]+)@/, '://$1:***@');
+}
+
 async function main() {
   const pool = new Pool({ connectionString: databaseUrl });
 
   try {
     console.log('Applying all migrations to dev database...');
-    console.log(`Database: ${databaseUrl}`);
+    console.log(`Database: ${maskConnectionString(databaseUrl)}`);
 
     // Get all migration files in order
     const files = readdirSync(migrationDir)

@@ -180,8 +180,8 @@ Sensitive values are stored in GCP Secret Manager:
 # List all secrets
 gcloud secrets list --filter="labels.app:travel-platform"
 
-# Access secret value
-gcloud secrets versions access latest --secret="travel-platform-database-url-prod"
+# Verify secret access without printing the value
+gcloud secrets versions access latest --secret "travel-platform-database-url-prod" >/dev/null
 
 # Rotate secret
 gcloud secrets versions add travel-platform-database-url-prod \

@@ -291,7 +291,7 @@ Run migrations **before** starting the application:
 
 ```bash
 # Connect to production database
-export DATABASE_URL="postgresql://user:password@prod-db.example.com:5432/travel_platform_prod"
+export DATABASE_URL="postgresql://user:<password>@prod-db.example.com:5432/travel_platform_prod"
 
 # Run migrations (Prisma)
 npx prisma migrate deploy --skip-generate
@@ -1082,7 +1082,7 @@ tail -f /var/log/travel-platform/api.log | grep ERROR
 
 ```bash
 # Connect to database
-psql postgresql://user:password@host:5432/travel_platform_prod
+psql postgresql://user:<password>@host:5432/travel_platform_prod
 
 # Backup database
 pg_dump -d travel_platform_prod -U postgres -h localhost > backup_$(date +%s).sql

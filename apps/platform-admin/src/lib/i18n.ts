@@ -210,9 +210,10 @@ export const translations = {
 
 export function t(path: string, defaultValue?: string): string {
   const keys = path.split('.');
-  let value: any = translations;
+  let value: unknown = translations;
   for (const key of keys) {
-    value = value?.[key];
+    if (!value || typeof value !== 'object') return defaultValue || path;
+    value = (value as Record<string, unknown>)[key];
   }
   return (typeof value === 'string' ? value : undefined) || defaultValue || path;
 }

@@ -61,7 +61,7 @@ describe('CustomerBookingsPage', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('São Paulo → Rio de Janeiro')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: /São Paulo.*Rio de Janeiro/ })).toBeInTheDocument();
     });
     expect(screen.getByText('Van Executiva')).toBeInTheDocument();
     expect(screen.getByText(/2 passageiros/)).toBeInTheDocument();

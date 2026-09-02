@@ -28,18 +28,18 @@ export function SubscribersPage() {
   const [selectedSubscriber, setSelectedSubscriber] = useState<SubscriberWithSubscription | null>(null);
 
   useEffect(() => {
-    fetchSubscribers();
+    void fetchSubscribers();
   }, []);
 
   async function fetchSubscribers() {
     try {
       setLoading(true);
-      const response = await fetch('http://127.0.0.1:4000/platform/subscribers');
-      if (!response.ok) throw new Error('Failed to fetch subscribers');
-      const data = await response.json();
+      const response = await fetch('/api/platform/subscribers');
+      if (!response.ok) throw new Error('Nao foi possivel carregar os assinantes');
+      const data = (await response.json()) as { subscribers?: SubscriberWithSubscription[] };
       setSubscribers(data.subscribers || []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch subscribers');
+      setError(err instanceof Error ? err.message : 'Nao foi possivel carregar os assinantes');
     } finally {
       setLoading(false);
     }
@@ -58,16 +58,16 @@ export function SubscribersPage() {
   };
 
   if (loading) {
-    return <div className="text-center py-8">Loading subscribers...</div>;
+    return <div className="text-center py-8">Carregando assinantes...</div>;
   }
 
   return (
     <div>
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Subscriber Agencies</h1>
+        <h1 className="text-3xl font-bold">Agencias Assinantes</h1>
         <input
           type="text"
-          placeholder="Search by name or email..."
+          placeholder="Buscar por nome ou email..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="px-4 py-2 border rounded-lg w-64"
@@ -88,7 +88,7 @@ export function SubscribersPage() {
               onClick={() => setSelectedSubscriber(null)}
               className="text-gray-500 hover:text-gray-700"
             >
-              Close
+              Fechar
             </button>
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -97,11 +97,11 @@ export function SubscribersPage() {
               <p className="font-medium">{selectedSubscriber.email}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-600">Phone</p>
+              <p className="text-sm text-gray-600">Telefone</p>
               <p className="font-medium">{selectedSubscriber.phone || '-'}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-600">City</p>
+              <p className="text-sm text-gray-600">Cidade</p>
               <p className="font-medium">{selectedSubscriber.city || '-'}</p>
             </div>
             <div>
@@ -113,14 +113,14 @@ export function SubscribersPage() {
               </p>
             </div>
             <div>
-              <p className="text-sm text-gray-600">Joined</p>
+              <p className="text-sm text-gray-600">Desde</p>
               <p className="font-medium">
                 {new Date(selectedSubscriber.created_at).toLocaleDateString()}
               </p>
             </div>
             {selectedSubscriber.subscription && (
               <div>
-                <p className="text-sm text-gray-600">Current Plan</p>
+                <p className="text-sm text-gray-600">Plano atual</p>
                 <p className="font-medium">{selectedSubscriber.subscription.plan_name}</p>
               </div>
             )}
@@ -132,19 +132,19 @@ export function SubscribersPage() {
         <table className="w-full">
           <thead className="bg-gray-50 border-b">
             <tr>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Agency Name</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Agencia</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Email</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">City</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Cidade</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Status</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Joined</th>
-              <th className="px-6 py-3 text-right text-sm font-semibold text-gray-900">Actions</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Desde</th>
+              <th className="px-6 py-3 text-right text-sm font-semibold text-gray-900">Acoes</th>
             </tr>
           </thead>
           <tbody className="divide-y">
             {filteredSubscribers.length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-6 py-4 text-center text-gray-600">
-                  No subscribers found
+                  Nenhum assinante encontrado
                 </td>
               </tr>
             ) : (
@@ -166,7 +166,7 @@ export function SubscribersPage() {
                       onClick={() => setSelectedSubscriber(subscriber)}
                       className="text-blue-600 hover:text-blue-800 text-sm font-medium"
                     >
-                      View Details
+                      Ver detalhes
                     </button>
                   </td>
                 </tr>
@@ -177,7 +177,7 @@ export function SubscribersPage() {
       </div>
 
       <div className="mt-4 text-sm text-gray-600">
-        Showing {filteredSubscribers.length} of {subscribers.length} subscribers
+        Mostrando {filteredSubscribers.length} de {subscribers.length} assinantes
       </div>
     </div>
   );

@@ -652,12 +652,12 @@ export function ProposalPreviewPage() {
   return (
     <div className="space-y-6">
       <PageIntro
-        title="Preview de proposta"
+        title="Prévia de proposta"
         description="Visualização da proposta como será apresentada ao cliente."
       />
       <JourneyRail active="Proposal" />
       <EmptyState
-        title="Preview de proposta"
+        title="Prévia de proposta"
         description="Esta funcionalidade ainda não está implementada. Aguarde a integração com o backend."
       />
     </div>

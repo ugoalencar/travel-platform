@@ -1,91 +1,124 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Plus } from 'lucide-react';
+import { CheckCircle2, Search } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { StatusBadge } from '../components/ui/status-badge';
+import { Textarea } from '../components/ui/textarea';
+import { StatusBadge, type StatusTone } from '../components/ui/status-badge';
 import { EmptyState } from '../components/ui/empty-state';
 import { ErrorState } from '../components/ui/error-state';
 import { LoadingState } from '../components/ui/loading-state';
 import { Modal } from '../components/ui/modal';
-import { ApiError, type Receivable } from '../lib/api';
+import {
+  ApiError,
+  allocatePayment,
+  listCustomers,
+  listReceivables,
+  recordPayment,
+  type Receivable,
+  type ReceivableStatus,
+} from '../lib/api';
+import type { Customer } from '../types/customer';
 import { formatBRL } from '../lib/formatCurrency';
 import { formatDateBR } from '../lib/formatDateBR';
 
-type ReceivableStatus = 'OPEN' | 'PARTIAL' | 'PAID' | 'OVERDUE' | 'CANCELLED';
+type LoadState =
+  | { status: 'loading' }
+  | { status: 'error'; message: string }
+  | { status: 'success'; receivables: Receivable[]; customers: Customer[] };
 
-interface ReceivableWithStatus extends Receivable {
-  status: ReceivableStatus;
-}
+const RECEIVABLE_STATUS_LABELS: Record<ReceivableStatus, string> = {
+  OPEN: 'Aberto',
+  PARTIAL: 'Parcial',
+  PAID: 'Pago',
+  OVERDUE: 'Vencido',
+  CANCELLED: 'Cancelado',
+};
 
-function getReceivableStatusLabel(status: ReceivableStatus): string {
-  const labels: Record<ReceivableStatus, string> = {
-    OPEN: 'Aberto',
-    PARTIAL: 'Parcialmente Pago',
-    PAID: 'Pago',
-    OVERDUE: 'Vencido',
-    CANCELLED: 'Cancelado',
-  };
-  return labels[status] ?? status;
-}
+const RECEIVABLE_STATUS_TONES: Record<ReceivableStatus, StatusTone> = {
+  OPEN: 'neutral',
+  PARTIAL: 'attention',
+  PAID: 'positive',
+  OVERDUE: 'attention',
+  CANCELLED: 'inactive',
+};
 
-function statusTone(status: ReceivableStatus) {
-  if (status === 'PAID') return 'positive';
-  if (status === 'CANCELLED') return 'inactive';
-  if (status === 'OVERDUE') return 'attention';
-  return 'neutral' as const;
-}
+const emptyPaymentForm = {
+  amount: 0,
+  occurredAt: new Date().toISOString().slice(0, 10),
+  method: '',
+  notes: '',
+};
 
 export function ReceivablesPage() {
   const [search, setSearch] = useState('');
-  const [receivables, setReceivables] = useState<ReceivableWithStatus[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [showMarkPaid, setShowMarkPaid] = useState(false);
-  const [selectedReceivable, setSelectedReceivable] = useState<ReceivableWithStatus | null>(null);
-  const [amountPaid, setAmountPaid] = useState('');
+  const [state, setState] = useState<LoadState>({ status: 'loading' });
+  const [selectedReceivable, setSelectedReceivable] = useState<Receivable | null>(null);
+  const [paymentForm, setPaymentForm] = useState(emptyPaymentForm);
+  const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   const load = useCallback(() => {
-    setError(null);
-    setReceivables(null);
-    // TODO: Replace with real API call once backend is ready
-    // For now, return empty list to show the structure
-    setTimeout(() => {
-      setReceivables([]);
-    }, 300);
+    setState({ status: 'loading' });
+    Promise.all([listReceivables(), listCustomers()])
+      .then(([receivables, customers]) => setState({ status: 'success', receivables, customers }))
+      .catch((err: unknown) => {
+        const message = err instanceof ApiError ? err.message : 'Nao foi possivel carregar as contas a receber.';
+        setState({ status: 'error', message });
+      });
   }, []);
 
   useEffect(() => {
     load();
   }, [load]);
 
-  if (error) {
-    return <ErrorState description={error} onRetry={load} />;
+  if (state.status === 'error') {
+    return <ErrorState description={state.message} onRetry={load} />;
   }
 
-  if (!receivables) {
-    return <LoadingState label="Carregando contas a receber…" />;
+  if (state.status === 'loading') {
+    return <LoadingState label="Carregando contas a receber..." />;
   }
 
-  const filtered = receivables.filter((r) =>
-    r.description.toLowerCase().includes(search.toLowerCase()) ||
-    r.customer_name.toLowerCase().includes(search.toLowerCase())
-  );
+  const customerNames = new Map(state.customers.map((customer) => [customer.id, customer.name]));
+  const normalizedSearch = search.trim().toLowerCase();
+  const filtered = state.receivables.filter((receivable) => {
+    const customerName = customerNames.get(receivable.customerId) ?? '';
+    return (
+      normalizedSearch.length === 0 ||
+      receivable.description.toLowerCase().includes(normalizedSearch) ||
+      customerName.toLowerCase().includes(normalizedSearch)
+    );
+  });
 
-  async function handleMarkPaid() {
-    if (!selectedReceivable || !amountPaid.trim()) return;
+  async function handleReceivePayment() {
+    if (!selectedReceivable) return;
+    if (paymentForm.amount <= 0) {
+      setFormError('Informe um valor recebido maior que zero.');
+      return;
+    }
+    if (!paymentForm.occurredAt) {
+      setFormError('Informe a data de recebimento.');
+      return;
+    }
+
     setSubmitting(true);
+    setFormError(null);
     try {
-      // TODO: Call real API
-      // await markReceivableAsPaid(selectedReceivable.id, parseFloat(amountPaid));
-      setShowMarkPaid(false);
-      setAmountPaid('');
+      const payment = await recordPayment({
+        direction: 'IN',
+        amount: paymentForm.amount,
+        occurredAt: paymentForm.occurredAt,
+        ...(paymentForm.method.trim() ? { method: paymentForm.method.trim() } : {}),
+        ...(paymentForm.notes.trim() ? { notes: paymentForm.notes.trim() } : {}),
+      });
+      await allocatePayment(payment.id, [{ receivableId: selectedReceivable.id, amount: paymentForm.amount }]);
       setSelectedReceivable(null);
+      setPaymentForm(emptyPaymentForm);
       load();
     } catch (err: unknown) {
-      const message = err instanceof ApiError ? err.message : 'Não foi possível atualizar.';
-      setError(message);
+      setFormError(err instanceof ApiError ? err.message : 'Nao foi possivel registrar o recebimento.');
     } finally {
       setSubmitting(false);
     }
@@ -93,40 +126,36 @@ export function ReceivablesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-slate-900">Contas a Receber</h1>
-          <p className="text-sm text-slate-500">{receivables.length} contas registradas</p>
+          <p className="text-sm text-slate-500">{state.receivables.length} contas registradas</p>
         </div>
         <Link to="/financial">
           <Button size="sm" variant="outline">
-            ← Voltar
+            Voltar
           </Button>
         </Link>
       </div>
 
-      <div className="flex items-center gap-3">
-        <div className="relative flex-1 max-w-sm">
-          <label htmlFor="receivables-search" className="sr-only">
-            Buscar contas
-          </label>
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />
-          <Input
-            id="receivables-search"
-            placeholder="Buscar por cliente ou descrição…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
-            aria-label="Buscar contas a receber"
-          />
-        </div>
+      <div className="relative max-w-sm">
+        <label htmlFor="receivables-search" className="sr-only">
+          Buscar contas a receber
+        </label>
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />
+        <Input
+          id="receivables-search"
+          placeholder="Buscar por cliente ou descricao"
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          className="pl-9"
+        />
       </div>
 
       {filtered.length === 0 ? (
         <EmptyState
           title="Nenhuma conta a receber"
           description={search ? 'Tente outro termo de busca.' : 'Nenhuma conta registrada no momento.'}
-          icon={<Plus className="h-8 w-8" />}
         />
       ) : (
         <Card>
@@ -136,43 +165,50 @@ export function ReceivablesPage() {
                 <thead className="border-b bg-slate-50">
                   <tr>
                     <th className="px-4 py-3 text-left font-medium text-slate-700">Cliente</th>
-                    <th className="px-4 py-3 text-left font-medium text-slate-700">Descrição</th>
+                    <th className="px-4 py-3 text-left font-medium text-slate-700">Descricao</th>
                     <th className="px-4 py-3 text-right font-medium text-slate-700">Valor</th>
                     <th className="px-4 py-3 text-left font-medium text-slate-700">Vencimento</th>
                     <th className="px-4 py-3 text-left font-medium text-slate-700">Status</th>
-                    <th className="px-4 py-3 text-left font-medium text-slate-700">Ações</th>
+                    <th className="px-4 py-3 text-left font-medium text-slate-700">Acoes</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
-                  {filtered.map((receivable) => (
-                    <tr key={receivable.id} className="hover:bg-slate-50">
-                      <td className="px-4 py-3 font-medium text-slate-900">{receivable.customer_name}</td>
-                      <td className="px-4 py-3 text-slate-600">{receivable.description}</td>
-                      <td className="px-4 py-3 text-right font-medium">{formatBRL(receivable.amount)}</td>
-                      <td className="px-4 py-3 text-sm text-slate-600">
-                        {formatDateBR(receivable.due_at, { assumeDateOnly: true })}
-                      </td>
-                      <td className="px-4 py-3">
-                        <StatusBadge tone={statusTone(receivable.status)}>
-                          {getReceivableStatusLabel(receivable.status)}
-                        </StatusBadge>
-                      </td>
-                      <td className="px-4 py-3">
-                        {receivable.status !== 'PAID' && receivable.status !== 'CANCELLED' && (
-                          <button
-                            onClick={() => {
-                              setSelectedReceivable(receivable);
-                              setAmountPaid(String(receivable.amount));
-                              setShowMarkPaid(true);
-                            }}
-                            className="text-xs font-semibold text-blue-600 hover:text-blue-700"
-                          >
-                            Marcar pago
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
+                  {filtered.map((receivable) => {
+                    const customerName = customerNames.get(receivable.customerId) ?? 'Cliente nao identificado';
+                    return (
+                      <tr key={receivable.id} className="hover:bg-slate-50">
+                        <td className="px-4 py-3 font-medium text-slate-900">{customerName}</td>
+                        <td className="px-4 py-3 text-slate-600">{receivable.description}</td>
+                        <td className="px-4 py-3 text-right font-medium">{formatBRL(receivable.amount)}</td>
+                        <td className="px-4 py-3 text-sm text-slate-600">
+                          {formatDateBR(receivable.dueAt, { assumeDateOnly: true })}
+                        </td>
+                        <td className="px-4 py-3">
+                          <StatusBadge tone={RECEIVABLE_STATUS_TONES[receivable.status]}>
+                            {RECEIVABLE_STATUS_LABELS[receivable.status]}
+                          </StatusBadge>
+                        </td>
+                        <td className="px-4 py-3">
+                          {receivable.status !== 'PAID' && receivable.status !== 'CANCELLED' && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                setSelectedReceivable(receivable);
+                                setPaymentForm({ ...emptyPaymentForm, amount: receivable.amount });
+                                setFormError(null);
+                              }}
+                              disabled={submitting}
+                              aria-label={`Registrar recebimento ${receivable.description}`}
+                            >
+                              <CheckCircle2 className="h-4 w-4" />
+                              Registrar recebimento
+                            </Button>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -180,25 +216,64 @@ export function ReceivablesPage() {
         </Card>
       )}
 
-      <Modal open={showMarkPaid} onClose={() => setShowMarkPaid(false)} title="Marcar como Pago">
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-slate-900">Valor Recebido</label>
-            <input
-              type="number"
-              step="0.01"
-              value={amountPaid}
-              onChange={(e) => setAmountPaid(e.target.value)}
-              className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-            />
-          </div>
-          <div className="flex justify-end gap-3">
-            <Button variant="outline" onClick={() => setShowMarkPaid(false)} disabled={submitting}>
+      <Modal
+        open={selectedReceivable !== null}
+        onClose={() => {
+          setSelectedReceivable(null);
+          setFormError(null);
+          setPaymentForm(emptyPaymentForm);
+        }}
+        title="Registrar Recebimento"
+        footer={
+          <>
+            <Button variant="outline" size="sm" onClick={() => setSelectedReceivable(null)} disabled={submitting}>
               Cancelar
             </Button>
-            <Button onClick={handleMarkPaid} disabled={submitting}>
-              {submitting ? 'Salvando...' : 'Confirmar'}
+            <Button size="sm" onClick={() => { void handleReceivePayment(); }} disabled={submitting}>
+              {submitting ? 'Registrando...' : 'Confirmar recebimento'}
             </Button>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          {formError && <p role="alert" className="rounded-md bg-red-50 p-3 text-sm text-red-700">{formError}</p>}
+          <div>
+            <label htmlFor="received-amount" className="mb-1 block text-sm font-medium text-slate-700">Valor recebido *</label>
+            <Input
+              id="received-amount"
+              type="number"
+              min="0"
+              step="0.01"
+              value={paymentForm.amount || ''}
+              onChange={(event) => setPaymentForm({ ...paymentForm, amount: Number(event.target.value) })}
+            />
+          </div>
+          <div>
+            <label htmlFor="received-date" className="mb-1 block text-sm font-medium text-slate-700">Data de recebimento *</label>
+            <Input
+              id="received-date"
+              type="date"
+              value={paymentForm.occurredAt}
+              onChange={(event) => setPaymentForm({ ...paymentForm, occurredAt: event.target.value })}
+            />
+          </div>
+          <div>
+            <label htmlFor="received-method" className="mb-1 block text-sm font-medium text-slate-700">Metodo de pagamento</label>
+            <Input
+              id="received-method"
+              value={paymentForm.method}
+              onChange={(event) => setPaymentForm({ ...paymentForm, method: event.target.value })}
+              placeholder="PIX, cartao, transferencia"
+            />
+          </div>
+          <div>
+            <label htmlFor="received-notes" className="mb-1 block text-sm font-medium text-slate-700">Observacoes</label>
+            <Textarea
+              id="received-notes"
+              value={paymentForm.notes}
+              onChange={(event) => setPaymentForm({ ...paymentForm, notes: event.target.value })}
+              placeholder="Detalhes do recebimento"
+            />
           </div>
         </div>
       </Modal>

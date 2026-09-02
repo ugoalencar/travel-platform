@@ -77,6 +77,12 @@ export function createFakeDatabase(responder: QueryResponder = () => undefined):
       transactionCount += 1;
       return operation(client);
     },
+    async withPlatformTransaction<T>(
+      operation: (c: TenantTransactionClient) => Promise<T>,
+    ): Promise<T> {
+      transactionCount += 1;
+      return operation(client);
+    },
     find(fragment: string): RecordedQuery[] {
       const needle = fragment.toLowerCase();
       return queries.filter((query) => query.text.toLowerCase().includes(needle));

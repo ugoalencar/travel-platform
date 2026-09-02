@@ -119,7 +119,7 @@ export function OffersPage() {
       <PageHeader
         title="Ofertas"
         description="Ofertas e pacotes publicados pela agência."
-        breadcrumbs={[{ label: 'Dashboard', to: '/' }, { label: 'Ofertas' }]}
+        breadcrumbs={[{ label: 'Painel', to: '/' }, { label: 'Ofertas' }]}
         actions={
           <Button size="sm" onClick={() => setShowNewOffer(true)}>
             <Plus className="h-4 w-4" />

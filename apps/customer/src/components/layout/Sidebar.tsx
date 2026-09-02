@@ -27,7 +27,7 @@ const COMERCIAL_NAV_ITEMS: NavItem[] = [
   { label: 'Reservas', to: '/bookings' },
   { label: 'Vendas', to: '/sales' },
   { label: 'Viagens', to: '/trips' },
-  { label: 'Dashboard comercial', to: '/commercial/dashboard' },
+  { label: 'Painel comercial', to: '/commercial/dashboard' },
   { label: 'Pipeline', to: '/commercial/pipeline' },
   { label: 'Agenda comercial', to: '/commercial/agenda' },
 ];

@@ -40,12 +40,14 @@ interface ApiErrorBody {
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const headers = new Headers(init?.headers);
+  if (init?.body !== undefined && !headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json');
+  }
+
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
-    headers: {
-      'Content-Type': 'application/json',
-      ...init?.headers,
-    },
+    headers,
   });
 
   if (!response.ok) {
@@ -678,9 +680,17 @@ export interface Capture {
   agencyId: string;
   sourceUrl: string;
   sourceName: string;
+  capturedAt: string;
+  rawContent: string;
   normalizedTitle?: string;
-  foundPrice?: string;
-  status: 'PENDING' | 'PROCESSED' | 'FAILED';
+  normalizedDescription?: string;
+  foundPrice?: number;
+  currency?: string;
+  validUntil?: string;
+  status: 'CAPTURED' | 'NORMALIZED' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED' | 'PUBLISHED';
+  reviewedAt?: string;
+  reviewedByUserId?: string;
+  publishedOfferId?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -691,9 +701,10 @@ export async function listCaptures(): Promise<Capture[]> {
 }
 
 export async function captureUrl(url: string): Promise<Capture> {
+  const extracted = buildDeterministicCapture(url);
   const data = await request<{ capture: Capture }>('/api/pescador/captures', {
     method: 'POST',
-    body: JSON.stringify({ sourceUrl: url }),
+    body: JSON.stringify(extracted),
   });
   return data.capture;
 }
@@ -702,6 +713,75 @@ export async function deleteCapture(id: string): Promise<void> {
   await request<void>(`/api/pescador/captures/${encodeURIComponent(id)}`, {
     method: 'DELETE',
   });
+}
+
+export async function reviewCapture(id: string): Promise<Capture> {
+  const data = await request<{ capture: Capture }>(
+    `/api/pescador/captures/${encodeURIComponent(id)}/review`,
+    { method: 'POST' },
+  );
+  return data.capture;
+}
+
+export async function approveCapture(id: string): Promise<Capture> {
+  const data = await request<{ capture: Capture }>(
+    `/api/pescador/captures/${encodeURIComponent(id)}/approve`,
+    { method: 'POST' },
+  );
+  return data.capture;
+}
+
+export interface PublishCaptureResult {
+  capture: Capture;
+  offer: Offer;
+}
+
+export async function publishCapture(id: string): Promise<PublishCaptureResult> {
+  return request<PublishCaptureResult>(`/api/pescador/captures/${encodeURIComponent(id)}/publish`, {
+    method: 'POST',
+  });
+}
+
+function buildDeterministicCapture(url: string) {
+  const parsed = new URL(url);
+  const host = parsed.hostname.replace(/^www\./, '');
+  const price = 1800 + (stableHash(url) % 4200);
+  const readablePath = parsed.pathname
+    .split('/')
+    .filter(Boolean)
+    .slice(-2)
+    .join(' ')
+    .replace(/[-_]+/g, ' ')
+    .trim();
+  const title = readablePath
+    ? readablePath.replace(/\b\w/g, (char) => char.toUpperCase())
+    : `Oferta ${host}`;
+
+  return {
+    sourceUrl: url,
+    sourceName: host,
+    rawContent: JSON.stringify({
+      url,
+      mode: 'demo-deterministic',
+      destination: 'Destino a revisar',
+      hotel: 'Hotel a confirmar',
+      dates: 'Datas a confirmar',
+      transport: 'Transporte a confirmar',
+      inclusions: 'Inclusoes a revisar',
+    }),
+    normalizedTitle: title,
+    normalizedDescription: `Oferta capturada de ${host}. Revise os dados antes de criar a oferta.`,
+    foundPrice: price,
+    currency: 'BRL',
+  };
+}
+
+function stableHash(value: string): number {
+  let hash = 0;
+  for (let index = 0; index < value.length; index += 1) {
+    hash = (hash * 31 + value.charCodeAt(index)) >>> 0;
+  }
+  return hash;
 }
 
 export type { CustomerStatus, WishStatus, TripStatus, ProposalStatus, Proposal, Sale, SaleStatus };
@@ -786,11 +866,11 @@ export type ReceivableStatus = 'OPEN' | 'PARTIAL' | 'PAID' | 'OVERDUE' | 'CANCEL
 export interface Receivable {
   id: string;
   agencyId: string;
+  saleId?: string;
+  customerId: string;
   description: string;
-  customer_name: string;
   amount: number;
-  currency: string;
-  due_at: string;
+  dueAt: string;
   status: ReceivableStatus;
   createdAt: string;
   updatedAt: string;
@@ -806,12 +886,106 @@ export async function getReceivable(id: string): Promise<Receivable> {
   return data.receivable;
 }
 
-export async function markReceivableAsPaid(id: string, amountPaid: number): Promise<Receivable> {
-  const data = await request<{ receivable: Receivable }>(`/api/financial/receivables/${encodeURIComponent(id)}/mark-paid`, {
+// ============================================================
+// PAYABLES (GET /financial/payables)
+// ============================================================
+
+export type PayableStatus = 'OPEN' | 'PARTIALLY_PAID' | 'PAID' | 'CANCELLED';
+export type PaymentDirection = 'IN' | 'OUT';
+
+export interface Payable {
+  id: string;
+  agencyId: string;
+  saleId?: string;
+  supplierId?: string;
+  commissionId?: string;
+  transportOperationId?: string;
+  operationalCostId?: string;
+  description: string;
+  amount: number;
+  dueAt: string;
+  status: PayableStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreatePayableInput {
+  saleId?: string | undefined;
+  supplierId?: string | undefined;
+  commissionId?: string | undefined;
+  transportOperationId?: string | undefined;
+  operationalCostId?: string | undefined;
+  description: string;
+  amount: number;
+  dueAt: string;
+}
+
+export async function listPayables(): Promise<Payable[]> {
+  const data = await request<{ payables: Payable[] }>('/api/financial/payables');
+  return data.payables;
+}
+
+export async function createPayable(input: CreatePayableInput): Promise<Payable> {
+  const data = await request<{ payable: Payable }>('/api/financial/payables', {
     method: 'POST',
-    body: JSON.stringify({ amount_paid: amountPaid }),
+    body: JSON.stringify(input),
   });
-  return data.receivable;
+  return data.payable;
+}
+
+export interface RecordPaymentInput {
+  direction: PaymentDirection;
+  amount: number;
+  occurredAt: string;
+  method?: string;
+  reference?: string;
+  notes?: string;
+}
+
+export interface FinancialPayment {
+  id: string;
+  agencyId: string;
+  direction: PaymentDirection;
+  amount: number;
+  occurredAt: string;
+  method?: string;
+  reference?: string;
+  notes?: string;
+  createdBy: string;
+  createdAt: string;
+}
+
+export interface PaymentAllocation {
+  id: string;
+  agencyId: string;
+  paymentId: string;
+  receivableId?: string;
+  payableId?: string;
+  amount: number;
+  createdAt: string;
+}
+
+export interface AllocationResult {
+  allocations: PaymentAllocation[];
+  targets: Array<Receivable | Payable>;
+}
+
+export async function recordPayment(input: RecordPaymentInput): Promise<FinancialPayment> {
+  const data = await request<{ payment: FinancialPayment }>('/api/financial/payments', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+  return data.payment;
+}
+
+export async function allocatePayment(
+  paymentId: string,
+  allocations: Array<{ receivableId?: string; payableId?: string; amount: number }>,
+): Promise<AllocationResult> {
+  return request<AllocationResult>(`/api/financial/payments/${encodeURIComponent(paymentId)}/allocations`, {
+    method: 'POST',
+    body: JSON.stringify({ allocations }),
+  });
 }
 
 // ============================================================
@@ -1052,7 +1226,7 @@ export async function updateReconciliation(id: string, input: UpdateReconciliati
 }
 
 export async function listPayments(): Promise<Payment[]> {
-  const data = await request<{ payments: Payment[] }>('/api/payments');
+  const data = await request<{ payments: Payment[] }>('/api/financial/payments');
   return data.payments;
 }
 

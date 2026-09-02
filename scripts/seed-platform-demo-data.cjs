@@ -11,10 +11,6 @@ const databaseUrl = process.env.DATABASE_URL ||
 
 const pool = new Pool({ connectionString: databaseUrl });
 
-function generateId() {
-  return crypto.randomUUID();
-}
-
 async function seedPlatformData() {
   console.log('\n========================================');
   console.log('Seeding Platform SaaS Demo Data');
@@ -31,7 +27,7 @@ async function seedPlatformData() {
     const agencies = await seedAgencies();
 
     console.log('4. Creating Subscriber Tenants...');
-    const tenants = await seedSubscriberTenants(agencies, plans);
+    const tenants = await seedSubscriberTenants(agencies);
 
     console.log('5. Creating Subscriptions...');
     await seedSubscriptions(tenants, plans);
@@ -141,12 +137,11 @@ async function seedAgencies() {
   return result;
 }
 
-async function seedSubscriberTenants(agencies, plans) {
+async function seedSubscriberTenants(agencies) {
   const result = [];
 
   for (let i = 0; i < agencies.length; i++) {
     const agency = agencies[i];
-    const plan = plans[i % plans.length];
     const id = crypto.randomUUID();
     const email = `billing@${agency.name.toLowerCase().replace(/\s+/g, '-')}.test`;
 
@@ -164,14 +159,12 @@ async function seedSubscriberTenants(agencies, plans) {
 }
 
 async function seedSubscriptions(tenants, plans) {
-  const statuses = ['ACTIVE', 'ACTIVE', 'ACTIVE', 'TRIAL', 'TRIAL', 'PAST_DUE'];
   const now = new Date();
   let count = 0;
 
   for (let i = 0; i < tenants.length; i++) {
     const tenant = tenants[i];
     const plan = plans[i % plans.length];
-    const status = statuses[i % statuses.length];
     const startDate = new Date(now.getTime() - Math.random() * 180 * 24 * 60 * 60 * 1000);
     const currentPeriodStart = new Date(startDate);
     const currentPeriodEnd = new Date(currentPeriodStart.getTime() + 30 * 24 * 60 * 60 * 1000);

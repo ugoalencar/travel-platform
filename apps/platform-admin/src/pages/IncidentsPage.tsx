@@ -14,16 +14,16 @@ export function IncidentsPage() {
   const [incidents] = useState<Incident[]>([
     {
       id: '1',
-      title: 'API Latency Spike',
+      title: 'Pico de latencia na API',
       status: 'RESOLVED',
       severity: 'HIGH',
-      affectedSystems: ['API', 'Database'],
+      affectedSystems: ['API', 'Banco de dados'],
       startTime: '2026-08-29T14:30:00Z',
       resolvedAt: '2026-08-29T15:45:00Z',
     },
     {
       id: '2',
-      title: 'Redis Connection Issues',
+      title: 'Problemas de conexao com Redis',
       status: 'MONITORING',
       severity: 'MEDIUM',
       affectedSystems: ['Cache'],
@@ -47,17 +47,17 @@ export function IncidentsPage() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-8">Incidents</h1>
+      <h1 className="text-3xl font-bold mb-8">Incidentes</h1>
 
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <table className="w-full">
           <thead className="bg-gray-50 border-b">
             <tr>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Title</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Titulo</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Status</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Severity</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Systems</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Started</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Severidade</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Sistemas</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Inicio</th>
             </tr>
           </thead>
           <tbody className="divide-y">

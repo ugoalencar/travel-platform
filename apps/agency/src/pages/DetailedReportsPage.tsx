@@ -118,7 +118,7 @@ export function DetailedReportsPage() {
       <PageHeader
         title="Relatórios Detalhados"
         description="Análise financeira completa."
-        breadcrumbs={[{ label: 'Dashboard', to: '/' }, { label: 'Relatórios' }]}
+        breadcrumbs={[{ label: 'Painel', to: '/' }, { label: 'Relatórios' }]}
       />
 
       {/* Date Range Filter */}

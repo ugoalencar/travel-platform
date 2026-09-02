@@ -82,7 +82,7 @@ export function DashboardPage() {
       .catch((error: unknown) => {
         if (cancelled) return;
         const message =
-          error instanceof ApiError ? error.message : 'Não foi possível carregar o dashboard.';
+          error instanceof ApiError ? error.message : 'Não foi possível carregar o painel.';
         setState({ status: 'error', message });
       });
 
@@ -94,7 +94,7 @@ export function DashboardPage() {
   if (state.status === 'loading') {
     return (
       <div>
-        <PageHeader title="Dashboard" description="Visão geral das operações da agência." />
+        <PageHeader title="Painel" description="Visão geral das operações da agência." />
         <LoadingState label="Carregando resumo da agência…" />
       </div>
     );
@@ -103,7 +103,7 @@ export function DashboardPage() {
   if (state.status === 'error') {
     return (
       <div>
-        <PageHeader title="Dashboard" description="Visão geral das operações da agência." />
+        <PageHeader title="Painel" description="Visão geral das operações da agência." />
         <div
           role="alert"
           aria-live="polite"
@@ -119,7 +119,7 @@ export function DashboardPage() {
 
   return (
     <div className="space-y-8">
-      <PageHeader title="Dashboard" description="Visão geral das operações da agência." />
+      <PageHeader title="Painel" description="Visão geral das operações da agência." />
 
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         <StatCard

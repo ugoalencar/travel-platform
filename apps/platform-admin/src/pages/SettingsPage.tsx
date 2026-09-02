@@ -22,26 +22,26 @@ export function SettingsPage() {
   const [formData, setFormData] = useState<Partial<PlatformSettings>>({});
 
   useEffect(() => {
-    fetchSettings();
+    void fetchSettings();
   }, []);
 
   async function fetchSettings() {
     try {
       setLoading(true);
-      const response = await fetch('http://127.0.0.1:4000/platform/settings');
+      const response = await fetch('/api/platform/settings');
       if (!response.ok) {
         if (response.status === 404) {
           // Create default settings
           await createDefaultSettings();
           return;
         }
-        throw new Error('Failed to fetch settings');
+        throw new Error('Nao foi possivel carregar as configuracoes');
       }
-      const data = await response.json();
+      const data = (await response.json()) as { settings: PlatformSettings };
       setSettings(data.settings);
       setFormData(data.settings);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch settings');
+      setError(err instanceof Error ? err.message : 'Nao foi possivel carregar as configuracoes');
     } finally {
       setLoading(false);
     }
@@ -60,18 +60,18 @@ export function SettingsPage() {
         maxCustomersDefault: 100,
       };
 
-      const response = await fetch('http://127.0.0.1:4000/platform/settings', {
+      const response = await fetch('/api/platform/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(defaultSettings),
       });
 
-      if (!response.ok) throw new Error('Failed to create settings');
-      const data = await response.json();
+      if (!response.ok) throw new Error('Nao foi possivel criar as configuracoes');
+      const data = (await response.json()) as { settings: PlatformSettings };
       setSettings(data.settings);
       setFormData(data.settings);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create settings');
+      setError(err instanceof Error ? err.message : 'Nao foi possivel criar as configuracoes');
     }
   }
 
@@ -82,25 +82,25 @@ export function SettingsPage() {
       setError(null);
       setSuccess(null);
 
-      const response = await fetch('http://127.0.0.1:4000/platform/settings', {
+      const response = await fetch('/api/platform/settings', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
 
-      if (!response.ok) throw new Error('Failed to save settings');
-      const data = await response.json();
+      if (!response.ok) throw new Error('Nao foi possivel salvar as configuracoes');
+      const data = (await response.json()) as { settings: PlatformSettings };
       setSettings(data.settings);
       setFormData(data.settings);
-      setSuccess('Settings saved successfully!');
+      setSuccess('Configuracoes salvas com sucesso!');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save settings');
+      setError(err instanceof Error ? err.message : 'Nao foi possivel salvar as configuracoes');
     } finally {
       setSaving(false);
     }
   }
 
-  function handleChange(field: keyof PlatformSettings, value: any) {
+  function handleChange(field: keyof PlatformSettings, value: PlatformSettings[keyof PlatformSettings]) {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
@@ -108,12 +108,12 @@ export function SettingsPage() {
   }
 
   if (loading) {
-    return <div className="text-center py-8">Loading settings...</div>;
+    return <div className="text-center py-8">Carregando configuracoes...</div>;
   }
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-8">Platform Settings</h1>
+      <h1 className="text-3xl font-bold mb-8">Configuracoes da Plataforma</h1>
 
       {error && (
         <div className="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
@@ -127,14 +127,14 @@ export function SettingsPage() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow p-8 max-w-2xl space-y-6">
+      <form onSubmit={(event) => void handleSubmit(event)} className="bg-white rounded-lg shadow p-8 max-w-2xl space-y-6">
         {/* Trial Settings */}
         <div className="border-b pb-6">
-          <h2 className="text-lg font-semibold mb-4">Trial Settings</h2>
+          <h2 className="text-lg font-semibold mb-4">Configuracoes de teste</h2>
 
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <label className="text-sm font-medium text-gray-700">Enable Free Trials</label>
+              <label className="text-sm font-medium text-gray-700">Ativar testes gratuitos</label>
               <input
                 type="checkbox"
                 checked={formData.enableTrials || false}
@@ -145,7 +145,7 @@ export function SettingsPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Trial Duration (days)
+                Duracao do teste (dias)
               </label>
               <input
                 type="number"
@@ -161,11 +161,11 @@ export function SettingsPage() {
 
         {/* Billing Settings */}
         <div className="border-b pb-6">
-          <h2 className="text-lg font-semibold mb-4">Billing & Collections</h2>
+          <h2 className="text-lg font-semibold mb-4">Cobranca e recebimentos</h2>
 
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <label className="text-sm font-medium text-gray-700">Auto-suspend Past Due</label>
+              <label className="text-sm font-medium text-gray-700">Suspender vencidos automaticamente</label>
               <input
                 type="checkbox"
                 checked={formData.autoSuspendPastDue || false}
@@ -176,7 +176,7 @@ export function SettingsPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Days Past Due Before Suspension
+                Dias vencidos antes da suspensao
               </label>
               <input
                 type="number"
@@ -192,11 +192,11 @@ export function SettingsPage() {
 
         {/* Security Settings */}
         <div className="border-b pb-6">
-          <h2 className="text-lg font-semibold mb-4">Security</h2>
+          <h2 className="text-lg font-semibold mb-4">Seguranca</h2>
 
           <div>
             <div className="flex items-center justify-between">
-              <label className="text-sm font-medium text-gray-700">Require MFA for Platform Admins</label>
+              <label className="text-sm font-medium text-gray-700">Exigir MFA para administradores da plataforma</label>
               <input
                 type="checkbox"
                 checked={formData.requireMfaForPlatform || false}
@@ -209,12 +209,12 @@ export function SettingsPage() {
 
         {/* Default Limits */}
         <div>
-          <h2 className="text-lg font-semibold mb-4">Default Plan Limits</h2>
+          <h2 className="text-lg font-semibold mb-4">Limites padrao de plano</h2>
 
           <div className="grid grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Storage (GB)
+                Armazenamento (GB)
               </label>
               <input
                 type="number"
@@ -226,7 +226,7 @@ export function SettingsPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Max Users</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Maximo de usuarios</label>
               <input
                 type="number"
                 min="1"
@@ -237,7 +237,7 @@ export function SettingsPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Max Customers</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Maximo de clientes</label>
               <input
                 type="number"
                 min="1"
@@ -256,14 +256,14 @@ export function SettingsPage() {
             disabled={saving}
             className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
-            {saving ? 'Saving...' : 'Save Settings'}
+            {saving ? 'Salvando...' : 'Salvar Configuracoes'}
           </button>
           <button
             type="button"
             onClick={() => setFormData(settings || {})}
             className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
           >
-            Cancel
+            Cancelar
           </button>
         </div>
       </form>

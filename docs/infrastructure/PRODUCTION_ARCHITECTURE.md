@@ -102,7 +102,7 @@ postgresql://travel_app_runtime:PASSWORD@host:5432/travel_platform_prod
 
 **Connection string:**
 ```
-redis://[:password@]host:6379/0
+redis://[:<password>@]host:6379/0
 ```
 
 ### 4. Object Storage (Documents)

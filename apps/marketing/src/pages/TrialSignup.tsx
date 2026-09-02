@@ -67,7 +67,7 @@ export function TrialSignup() {
 
       // Redirect to login after 2 seconds
       setTimeout(() => {
-        navigate(`/login?email=${encodeURIComponent(form.email)}`);
+        void navigate(`/login?email=${encodeURIComponent(form.email)}`);
       }, 2000);
     } catch (err) {
       setError(
@@ -109,7 +109,7 @@ export function TrialSignup() {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={(event) => void handleSubmit(event)} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Nome da Agência

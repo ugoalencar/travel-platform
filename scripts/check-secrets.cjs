@@ -9,6 +9,15 @@ const ignoredDirs = new Set([
   'dist',
   'build',
   'coverage',
+  '.claude',
+  'core-integration-phase',
+  'release-core-a',
+  'release-core-b',
+  'release-prodops-db',
+  'release-security-prodops',
+  'reporting-phase',
+  'security-mfa-phase',
+  'uat-phase',
 ]);
 
 // Files whose entire purpose is to contain example/placeholder secret-like
@@ -217,6 +226,9 @@ const KNOWN_PLACEHOLDER_VALUES = new Set([
   'dummy-secret',
   'fake-secret',
   'sample-secret',
+  'pass',
+  'pw',
+  'postgres',
   // Local-only, disposable Postgres fixtures (infrastructure/docker-compose.local-postgres.yml,
   // .github/workflows/ci.yml, tests/integration/database/database.integration.test.ts).
   // Never valid outside a throwaway local/CI database.
@@ -244,6 +256,9 @@ const PLACEHOLDER_PATTERNS = [
   // A ${VAR}-style templated reference (docker-compose, shell, CI YAML) is
   // a pointer to a value defined elsewhere, not a literal secret itself.
   /^\$\{.*\}$/,
+  // A $VAR-style shell reference in docs/scripts is also a pointer, not the
+  // secret value.
+  /^\$[A-Za-z_][A-Za-z0-9_]*$/,
 ];
 
 function isKnownPlaceholder(value) {

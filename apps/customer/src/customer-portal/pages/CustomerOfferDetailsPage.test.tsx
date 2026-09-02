@@ -55,7 +55,8 @@ describe('CustomerOfferDetailsPage', () => {
       expect(screen.getByText('Pacote Cancún')).toBeInTheDocument();
     });
     expect(screen.getByText('Sete noites com café da manhã')).toBeInTheDocument();
-    expect(screen.getByText(/Válida de.*até/)).toBeInTheDocument();
+    expect(screen.getByText(/Válida a partir de:/)).toBeInTheDocument();
+    expect(screen.getByText(/Válida até:/)).toBeInTheDocument();
     expect(screen.getByText('Voltar para ofertas')).toBeInTheDocument();
   });
 });

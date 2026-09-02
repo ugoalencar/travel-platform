@@ -81,14 +81,14 @@ export function ReportsPage() {
         } else if (typeof err === 'object' && err !== null && 'status' in err) {
           const httpErr = err as { status: number; data?: { message: string } };
           if (httpErr.status === 429) {
-            setError('Rate limit exceeded. Please try again in a moment.');
+            setError('Limite de requisicoes excedido. Tente novamente em alguns instantes.');
           } else if (httpErr.status === 403) {
-            setError('You do not have permission to view these reports.');
+            setError('Voce nao tem permissao para ver estes relatorios.');
           } else {
-            setError(httpErr.data?.message || 'Failed to load reports');
+            setError(httpErr.data?.message || 'Nao foi possivel carregar os relatorios.');
           }
         } else {
-          setError('An unexpected error occurred');
+          setError('Ocorreu um erro inesperado.');
         }
       } finally {
         setLoading(false);

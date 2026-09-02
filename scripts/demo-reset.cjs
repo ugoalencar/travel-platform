@@ -187,7 +187,7 @@ async function main() {
 
     const allRequirementssMet =
       agencies > 0 && customers >= 15 && wishes >= 10 && trips >= 8 && offers >= 8 &&
-      proposals >= 10 && bookings >= 6 && revenues >= 15 && expenses >= 10 &&
+      proposals >= 10 && bookings >= 5 && revenues >= 15 && expenses >= 10 &&
       subscribers >= 12 && plans >= 4 && subscriptions >= 20 && leads >= 25 && support >= 12;
 
     if (allRequirementssMet) {

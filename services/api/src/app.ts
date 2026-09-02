@@ -428,6 +428,8 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
         'req.headers.x-dev-user-id',
         'req.headers.x-dev-agency-id',
         'req.headers.x-dev-role',
+        'req.headers.x-dev-platform-user-id',
+        'req.headers.x-dev-platform-user-role',
         'req.headers.x-dev-customer',
       ],
     },
@@ -479,6 +481,8 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       'x-dev-user-id',
       'x-dev-agency-id',
       'x-dev-role',
+      'x-dev-platform-user-id',
+      'x-dev-platform-user-role',
       'x-dev-customer',
     ],
     maxAge: 600,
@@ -546,7 +550,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
   // Platform admin authentication for /platform/* routes
   const platformAuthProvider = options.platformAuthProvider ?? new PlatformDevAuthProvider();
   const platformAuthenticate = createPlatformAuthenticateHook(platformAuthProvider);
-  const platformProtectedHooks = [platformAuthenticate, rateLimits.onTrustedTenant];
+  const platformProtectedHooks = [platformAuthenticate, rateLimits.onTrustedPlatformPrincipal];
 
   // ============================================================
   // CUSTOMER PORTAL (end-customer facing, read-only). Entirely separate
@@ -2779,7 +2783,47 @@ function createRateLimitHooks(options: RateLimitOptions | undefined) {
       });
   };
 
-  return { onRequest, onTrustedTenant };
+  const onTrustedPlatformPrincipal = function trustedPlatformRateLimitHook(
+    request: FastifyRequest,
+    reply: FastifyReply,
+    done: HookHandlerDoneFunction
+  ): void {
+    if (!enabled) {
+      done();
+      return;
+    }
+
+    const platformUserId = request.platformAuth?.sub;
+    if (!platformUserId) {
+      done(new Error('Platform rate limit requires an authenticated platform principal'));
+      return;
+    }
+
+    limiter
+      .checkTenant({
+        rateLimitClass: classifyRateLimitRequest(request.method, request.url),
+        tenantId: platformUserId,
+        route: request.url.split('?')[0] ?? request.url,
+      })
+      .then((decision) => {
+        if (decision.state === 'allow') {
+          done();
+          return;
+        }
+        if (decision.retryAfterSeconds !== undefined) {
+          reply.header('retry-after', String(decision.retryAfterSeconds));
+        }
+        reply.code(429).send({
+          error: 'Too many requests',
+          code: 'RATE_LIMITED',
+        });
+      })
+      .catch((error: unknown) => {
+        done(error instanceof Error ? error : new Error('Platform rate limit evaluation failed'));
+      });
+  };
+
+  return { onRequest, onTrustedTenant, onTrustedPlatformPrincipal };
 }
 
 const FORBIDDEN_CREATE_FIELDS = [

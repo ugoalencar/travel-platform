@@ -133,7 +133,7 @@ describe('CustomerHomePage', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('Olá, Maria!')).toBeInTheDocument();
+      expect(screen.getByText(/Bem-vindo, Maria!/)).toBeInTheDocument();
     });
     expect(screen.getByText('Viagem a Fortaleza')).toBeInTheDocument();
     // Only 1 of the 2 mocked bookings is future/active -- the counter must

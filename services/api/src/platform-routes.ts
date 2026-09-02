@@ -1,8 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unnecessary-type-assertion */
 import type { FastifyInstance } from 'fastify';
 import type { PrismaClient } from '@prisma/client';
 import {
   listPlans,
   createPlan,
+  deletePlan,
   getPlanById,
   updatePlan,
   listSubscriptions,
@@ -18,8 +20,8 @@ import {
   createSubscriberTenant,
   getFinancialMetrics,
   listInvoices,
+  listPayments,
   listAuditLogs,
-  createAuditLog,
   getSubscriberGrowth,
   getMrrEvolution,
   getLeadFunnel,
@@ -62,7 +64,6 @@ interface SubscriptionCreateRequest {
   currency: string;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function registerPublicPlatformRoutes(
   app: FastifyInstance,
   database: PrismaClient
@@ -77,7 +78,7 @@ export function registerPublicPlatformRoutes(
         const lead = await createLead(database, request.body);
         reply.code(201);
         return { lead };
-      } catch (error) {
+      } catch {
         reply.code(400);
         return { error: 'Failed to create lead' };
       }
@@ -85,11 +86,9 @@ export function registerPublicPlatformRoutes(
   );
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function registerPlatformRoutes(
   app: FastifyInstance,
   database: PrismaClient,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   platformAuthHooks: any[]
 ): void {
   // ==================== PLANS ====================
@@ -129,6 +128,16 @@ export function registerPlatformRoutes(
     { preHandler: platformAuthHooks },
     async (request) => {
       const plan = await updatePlan(database, request.params.id, request.body as any);
+      return { plan };
+    }
+  );
+
+  // DELETE /platform/plans/:id - Soft-delete a plan from admin listings
+  app.delete<{ Params: { id: string } }>(
+    '/platform/plans/:id',
+    { preHandler: platformAuthHooks },
+    async (request) => {
+      const plan = await deletePlan(database, request.params.id);
       return { plan };
     }
   );
@@ -264,6 +273,12 @@ export function registerPlatformRoutes(
   app.get('/platform/invoices', { preHandler: platformAuthHooks }, async () => {
     const invoices = await listInvoices(database);
     return { invoices };
+  });
+
+  // GET /platform/payments - List billing payments
+  app.get('/platform/payments', { preHandler: platformAuthHooks }, async () => {
+    const payments = await listPayments(database);
+    return { payments };
   });
 
   // ==================== AUDIT ====================

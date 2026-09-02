@@ -38,7 +38,7 @@ export function FinancialPage() {
   const [activeTab, setActiveTab] = useState<TabType>('overview');
 
   useEffect(() => {
-    fetchFinancialData();
+    void fetchFinancialData();
   }, []);
 
   async function fetchFinancialData() {
@@ -46,25 +46,25 @@ export function FinancialPage() {
       setLoading(true);
 
       // Fetch metrics
-      const metricsResponse = await fetch('http://127.0.0.1:4000/platform/financial');
-      if (!metricsResponse.ok) throw new Error('Failed to fetch financial metrics');
-      const metricsData = await metricsResponse.json();
+      const metricsResponse = await fetch('/api/platform/financial');
+      if (!metricsResponse.ok) throw new Error('Nao foi possivel carregar as metricas financeiras');
+      const metricsData = (await metricsResponse.json()) as { metrics: FinancialMetrics };
       setMetrics(metricsData.metrics);
 
       // Fetch invoices
-      const invoicesResponse = await fetch('http://127.0.0.1:4000/platform/invoices');
-      if (!invoicesResponse.ok) throw new Error('Failed to fetch invoices');
-      const invoicesData = await invoicesResponse.json();
+      const invoicesResponse = await fetch('/api/platform/invoices');
+      if (!invoicesResponse.ok) throw new Error('Nao foi possivel carregar as faturas');
+      const invoicesData = (await invoicesResponse.json()) as { invoices?: Invoice[] };
       setInvoices(invoicesData.invoices || []);
 
       // Fetch payments
-      const paymentsResponse = await fetch('http://127.0.0.1:4000/platform/payments');
+      const paymentsResponse = await fetch('/api/platform/payments');
       if (paymentsResponse.ok) {
-        const paymentsData = await paymentsResponse.json();
+        const paymentsData = (await paymentsResponse.json()) as { payments?: Payment[] };
         setPayments(paymentsData.payments || []);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch financial data');
+      setError(err instanceof Error ? err.message : 'Nao foi possivel carregar dados financeiros');
     } finally {
       setLoading(false);
     }
@@ -269,17 +269,17 @@ export function FinancialPage() {
           <table className="w-full">
             <thead className="bg-gray-50 border-b">
               <tr>
-                <th className="px-6 py-3 text-left text-sm font-semibold">Invoice</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold">Amount</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold">Fatura</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold">Valor</th>
                 <th className="px-6 py-3 text-left text-sm font-semibold">Status</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold">Paid At</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold">Pago em</th>
               </tr>
             </thead>
             <tbody className="divide-y">
               {payments.length === 0 ? (
                 <tr>
                   <td colSpan={4} className="px-6 py-4 text-center text-gray-600">
-                    No payments found
+                    Nenhum pagamento encontrado
                   </td>
                 </tr>
               ) : (
