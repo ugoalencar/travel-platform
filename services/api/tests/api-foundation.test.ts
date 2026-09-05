@@ -664,8 +664,8 @@ function assertSafeTestDatabase(): void {
     throw new Error('P0 API database tests require localhost only.');
   }
 
-  if (databasePort !== 55432) {
-    throw new Error('P0 API database tests require local port 55432.');
+  if (!Number.isInteger(databasePort) || databasePort < 1024 || databasePort > 65535) {
+    throw new Error('P0 API database tests require a safe local database test port.');
   }
 
   if (!databaseName.includes('test')) {
@@ -676,7 +676,7 @@ function assertSafeTestDatabase(): void {
     const url = new URL(process.env.DATABASE_URL);
     const safeHost = ['127.0.0.1', 'localhost'].includes(url.hostname);
     const safeDatabase = url.pathname.replace('/', '').includes('test');
-    const safePort = url.port === '55432' || url.port === '';
+    const safePort = url.port === String(databasePort) || url.port === '';
 
     if (!safeHost || !safeDatabase || !safePort) {
       throw new Error('Refusing to run P0 API tests against unsafe DATABASE_URL.');
@@ -739,16 +739,19 @@ function run(command: string, args: readonly string[], throwOnError = true): Com
     cwd: repoRoot,
     encoding: 'utf8',
     maxBuffer: 1024 * 1024 * 20,
+    timeout: 45_000,
   });
 
   const stdout = result.stdout.toString();
   const stderr = result.stderr.toString();
 
-  if (throwOnError && result.status !== 0) {
+  if (throwOnError && (result.status !== 0 || result.error)) {
     throw new Error(
       [
         `Command failed: ${command} ${args.join(' ')}`,
         `Exit code: ${result.status ?? 'unknown'}`,
+        result.signal ? `Signal: ${result.signal}` : '',
+        result.error ? `Error: ${result.error.message}` : '',
         stdout,
         stderr,
       ]
