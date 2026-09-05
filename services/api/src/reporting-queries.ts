@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-return */
 import type { TenantTransactionClient } from './database';
 import { getAgencyId } from '../../../packages/domain/tenant-context';
 
@@ -54,7 +53,7 @@ export async function getSalesByPeriod(
     SELECT
       TO_CHAR(s.created_at, 'Mon/YYYY') as period,
       COUNT(s.id)::integer as count,
-      COALESCE(SUM(s.total_amount), '0')::text as total
+      COALESCE(SUM(s.total), '0')::text as total
     FROM sales s
     WHERE s.agency_id = $1
       AND s.created_at >= $2::timestamp
@@ -85,11 +84,11 @@ export async function getBookingsByStatus(
   const rows = await client.query<{ status: string; count: number }>(
     `
     SELECT
-      COALESCE(b.status, 'ACTIVE')::text as status,
+      CASE WHEN b.cancelled THEN 'CANCELLED' ELSE 'ACTIVE' END as status,
       COUNT(b.id)::integer as count
     FROM bookings b
     WHERE b.agency_id = $1
-    GROUP BY b.status
+    GROUP BY status
     ORDER BY count DESC
     `,
     [agencyId],
@@ -151,17 +150,38 @@ export async function getTopDestinations(
     { destination: string; booking_count: number; trip_count: number }
   >(
     `
-    SELECT
-      t.destination,
-      COUNT(DISTINCT b.id)::integer as booking_count,
-      COUNT(DISTINCT t.id)::integer as trip_count
-    FROM trips t
-    LEFT JOIN bookings b ON t.id = b.trip_id OR t.id = (
-      SELECT t2.id FROM trips t2 WHERE t2.id = b.trip_id
+    WITH trip_counts AS (
+      SELECT
+        t.destination,
+        COUNT(t.id)::integer as trip_count
+      FROM trips t
+      WHERE t.agency_id = $1
+      GROUP BY t.destination
+    ),
+    booking_counts AS (
+      SELECT
+        r.destination,
+        COUNT(b.id)::integer as booking_count
+      FROM bookings b
+      JOIN scheduled_departures sd
+        ON sd.agency_id = b.agency_id
+       AND sd.id = b.outbound_departure_id
+      JOIN transport_products tp
+        ON tp.agency_id = sd.agency_id
+       AND tp.id = sd.product_id
+      JOIN routes r
+        ON r.agency_id = tp.agency_id
+       AND r.id = tp.outbound_route_id
+      WHERE b.agency_id = $1
+      GROUP BY r.destination
     )
-    WHERE t.agency_id = $1
-    GROUP BY t.destination
-    ORDER BY booking_count DESC
+    SELECT
+      COALESCE(tc.destination, bc.destination) as destination,
+      COALESCE(bc.booking_count, 0)::integer as booking_count,
+      COALESCE(tc.trip_count, 0)::integer as trip_count
+    FROM trip_counts tc
+    FULL OUTER JOIN booking_counts bc ON bc.destination = tc.destination
+    ORDER BY booking_count DESC, trip_count DESC, destination ASC
     LIMIT $2
     `,
     [agencyId, limit],

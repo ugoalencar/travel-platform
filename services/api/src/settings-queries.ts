@@ -97,11 +97,10 @@ export async function getTeamMembers(client: TenantTransactionClient): Promise<T
     { id: string; name: string; email: string; role: string; joined_at: string }
   >(
     `
-    SELECT u.id, u.name, u.email, a.role, a.created_at as joined_at
-    FROM user_agencies a
-    INNER JOIN users u ON a.user_id = u.id
-    WHERE a.agency_id = $1
-    ORDER BY a.created_at DESC
+    SELECT u.id, u.name, u.email, u.role, u.created_at as joined_at
+    FROM users u
+    WHERE u.agency_id = $1
+    ORDER BY u.created_at DESC
     `,
     [agencyId],
   );

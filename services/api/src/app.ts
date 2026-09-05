@@ -196,6 +196,8 @@ import {
   getRevenue,
   getDREReport,
   getOverdueReport,
+  getMarginReport,
+  getCashFlowReport,
   listAllocationsForTarget,
   listCashTransactions,
   listExpenses,
@@ -2274,15 +2276,62 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
   app.get('/financial/reports/dre', { preHandler: protectedHooks }, async (request) => {
     requireRole(UserRole.MANAGER);
     const query = request.query as Record<string, string>;
-    const periodFrom = query.periodFrom ? new Date(query.periodFrom) : new Date(new Date().setDate(1));
-    const periodTo = query.periodTo ? new Date(query.periodTo) : new Date();
-    const report = await getDREReport(options.database, periodFrom, periodTo);
-    return { report };
+    const periodFrom = query.start_date ? new Date(query.start_date) : new Date(new Date().setDate(1));
+    const periodTo = query.end_date ? new Date(query.end_date) : new Date();
+    const dre = await getDREReport(options.database, periodFrom, periodTo);
+    return {
+      report: {
+        receitas_totais: dre.revenues.total,
+        despesas_totais: dre.expenses.total,
+        resultado_liquido: dre.margin,
+        periodo: dre.period,
+      },
+    };
   });
 
   app.get('/financial/reports/overdue', { preHandler: protectedHooks }, async (_request) => {
     requireRole(UserRole.MANAGER);
-    const report = await getOverdueReport(options.database);
+    const overdue = await getOverdueReport(options.database);
+    const allOverdue = [...overdue.receivables, ...overdue.payables];
+    const agingBuckets: Array<{ start: number; end: number }> = [
+      { start: 0, end: 30 },
+      { start: 31, end: 60 },
+      { start: 61, end: 90 },
+      { start: 91, end: Infinity },
+    ];
+    const agingBreakdown = agingBuckets.map((bucket) => {
+      const inBucket = allOverdue.filter(
+        (item) => item.daysOverdue >= bucket.start && item.daysOverdue <= bucket.end,
+      );
+      return {
+        days_overdue_start: bucket.start,
+        days_overdue_end: bucket.end === Infinity ? 9999 : bucket.end,
+        count: inBucket.length,
+        amount: Math.round(inBucket.reduce((sum, item) => sum + item.amount, 0) * 100) / 100,
+      };
+    });
+
+    return {
+      report: {
+        count: allOverdue.length,
+        total_amount: overdue.total,
+        aging_breakdown: agingBreakdown,
+      },
+    };
+  });
+
+  app.get('/financial/reports/margin', { preHandler: protectedHooks }, async (request) => {
+    requireRole(UserRole.MANAGER);
+    const query = request.query as Record<string, string>;
+    const periodFrom = query.start_date ? new Date(query.start_date) : new Date(new Date().setDate(1));
+    const periodTo = query.end_date ? new Date(query.end_date) : new Date();
+    const report = await getMarginReport(options.database, periodFrom, periodTo);
+    return { report };
+  });
+
+  app.get('/financial/reports/cash-flow', { preHandler: protectedHooks }, async (_request) => {
+    requireRole(UserRole.MANAGER);
+    const report = await getCashFlowReport(options.database);
     return { report };
   });
 

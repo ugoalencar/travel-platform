@@ -1316,6 +1316,111 @@ export async function getOverdueReport(database: DatabaseRuntime): Promise<Overd
   });
 }
 
+export interface MarginReport {
+  margin_percentage: number;
+  margin_amount: number;
+  receitas: number;
+  custos: number;
+}
+
+export async function getMarginReport(
+  database: DatabaseRuntime,
+  periodFrom: Date,
+  periodTo: Date,
+): Promise<MarginReport> {
+  const agencyId = getAgencyId();
+  return database.withTenantTransaction(async (client) => {
+    const revResult = await client.query<{ total: string }>(
+      `SELECT COALESCE(SUM(amount), 0)::text AS total
+       FROM revenues
+       WHERE agency_id = $1 AND status IN ('PAID', 'PARTIALLY_PAID')
+         AND due_date >= $2 AND due_date <= $3`,
+      [agencyId, periodFrom, periodTo],
+    );
+    const expResult = await client.query<{ total: string }>(
+      `SELECT COALESCE(SUM(amount), 0)::text AS total
+       FROM expenses
+       WHERE agency_id = $1 AND status IN ('PAID', 'PARTIALLY_PAID')
+         AND due_date >= $2 AND due_date <= $3`,
+      [agencyId, periodFrom, periodTo],
+    );
+
+    const receitas = roundMoney(Number(revResult.rows[0]?.total ?? 0));
+    const custos = roundMoney(Number(expResult.rows[0]?.total ?? 0));
+    const marginAmount = roundMoney(receitas - custos);
+    const marginPercentage = receitas > 0 ? roundMoney((marginAmount / receitas) * 100) : 0;
+
+    return {
+      margin_percentage: marginPercentage,
+      margin_amount: marginAmount,
+      receitas,
+      custos,
+    };
+  });
+}
+
+export interface CashFlowReport {
+  current_balance: number;
+  projection_30_days: number;
+  projection_60_days: number;
+  projection_90_days: number;
+  projected_balance: number;
+}
+
+export async function getCashFlowReport(database: DatabaseRuntime): Promise<CashFlowReport> {
+  const agencyId = getAgencyId();
+  const now = new Date();
+
+  return database.withTenantTransaction(async (client) => {
+    const balanceResult = await client.query<{ calculated_balance: string }>(
+      `SELECT calculated_balance::text
+       FROM cash_transactions
+       WHERE agency_id = $1
+       ORDER BY occurring_at DESC, created_at DESC
+       LIMIT 1`,
+      [agencyId],
+    );
+    const currentBalance = roundMoney(Number(balanceResult.rows[0]?.calculated_balance ?? 0));
+
+    async function projectedNetForDays(days: number): Promise<number> {
+      const horizon = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
+
+      const recResult = await client.query<{ total: string }>(
+        `SELECT COALESCE(SUM(amount), 0)::text AS total
+         FROM receivables
+         WHERE agency_id = $1 AND status IN ('OPEN', 'PARTIALLY_PAID')
+           AND due_at >= $2 AND due_at <= $3`,
+        [agencyId, now, horizon],
+      );
+      const payResult = await client.query<{ total: string }>(
+        `SELECT COALESCE(SUM(amount), 0)::text AS total
+         FROM payables
+         WHERE agency_id = $1 AND status IN ('OPEN', 'PARTIALLY_PAID')
+           AND due_at >= $2 AND due_at <= $3`,
+        [agencyId, now, horizon],
+      );
+
+      const expectedIn = roundMoney(Number(recResult.rows[0]?.total ?? 0));
+      const expectedOut = roundMoney(Number(payResult.rows[0]?.total ?? 0));
+      return roundMoney(expectedIn - expectedOut);
+    }
+
+    const [net30, net60, net90] = await Promise.all([
+      projectedNetForDays(30),
+      projectedNetForDays(60),
+      projectedNetForDays(90),
+    ]);
+
+    return {
+      current_balance: currentBalance,
+      projection_30_days: roundMoney(currentBalance + net30),
+      projection_60_days: roundMoney(currentBalance + net60),
+      projection_90_days: roundMoney(currentBalance + net90),
+      projected_balance: roundMoney(currentBalance + net90),
+    };
+  });
+}
+
 // ============================================================
 // EXISTING FUNCTIONS (Retained for backward compatibility)
 // ============================================================
