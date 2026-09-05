@@ -28,12 +28,19 @@ type LoadState =
       cashFlow: CashFlowReport;
     };
 
+function toISODate(date: Date): string {
+  return date.toISOString().slice(0, 10);
+}
+
+function defaultDateRange(): { startDate: string; endDate: string } {
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  return { startDate: toISODate(startOfMonth), endDate: toISODate(now) };
+}
+
 export function DetailedReportsPage() {
   const [state, setState] = useState<LoadState>({ status: 'loading' });
-  const [dateRange, setDateRange] = useState({
-    startDate: '2026-01-01',
-    endDate: '2026-08-31',
-  });
+  const [dateRange, setDateRange] = useState(defaultDateRange);
 
   useEffect(() => {
     let cancelled = false;
