@@ -10,6 +10,7 @@ export interface Proposal {
   id: string;
   agencyId: string;
   customerId: string;
+  customerName: string;
   offerId?: string;
   wishId?: string;
   userId?: string;

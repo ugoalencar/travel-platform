@@ -663,30 +663,32 @@ export async function createBooking(input: CreateBookingInput): Promise<Booking>
 // ============================================================
 
 export interface CreateSaleInput {
-  bookingId: string;
+  customerId: string;
+  proposalId?: string;
+  brokerId?: string;
   amount: number;
-  commission?: number;
-  status?: SaleStatus;
+  discount?: number;
+  notes?: string;
 }
 
 export interface UpdateSaleInput {
   amount?: number;
-  commission?: number;
-  status?: SaleStatus;
+  discount?: number;
+  notes?: string;
 }
 
 export async function listSales(): Promise<Sale[]> {
-  const data = await request<{ sales: Sale[] }>('/api/commercial/sales');
+  const data = await request<{ sales: Sale[] }>('/api/sales');
   return data.sales;
 }
 
 export async function getSale(id: string): Promise<Sale> {
-  const data = await request<{ sale: Sale }>(`/api/commercial/sales/${encodeURIComponent(id)}`);
+  const data = await request<{ sale: Sale }>(`/api/sales/${encodeURIComponent(id)}`);
   return data.sale;
 }
 
 export async function createSale(input: CreateSaleInput): Promise<Sale> {
-  const data = await request<{ sale: Sale }>('/api/commercial/sales', {
+  const data = await request<{ sale: Sale }>('/api/sales', {
     method: 'POST',
     body: JSON.stringify(input),
   });
@@ -694,17 +696,11 @@ export async function createSale(input: CreateSaleInput): Promise<Sale> {
 }
 
 export async function updateSale(id: string, input: UpdateSaleInput): Promise<Sale> {
-  const data = await request<{ sale: Sale }>(`/api/commercial/sales/${encodeURIComponent(id)}`, {
+  const data = await request<{ sale: Sale }>(`/api/sales/${encodeURIComponent(id)}`, {
     method: 'PATCH',
     body: JSON.stringify(input),
   });
   return data.sale;
-}
-
-export async function deleteSale(id: string): Promise<void> {
-  await request<void>(`/api/commercial/sales/${encodeURIComponent(id)}`, {
-    method: 'DELETE',
-  });
 }
 
 // ============================================================

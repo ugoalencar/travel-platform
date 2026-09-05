@@ -1,27 +1,37 @@
-export type SaleStatus = 'OPEN' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED';
+export type SaleStatus = 'PENDING' | 'CONFIRMED' | 'PAID' | 'CANCELLED' | 'REFUNDED';
 
 export interface Sale {
   id: string;
   agencyId: string;
-  bookingId: string;
   customerId: string;
+  customerName: string;
+  salespersonName: string | null;
+  tripId: string | null;
+  tripName: string | null;
+  proposalId?: string;
+  brokerId?: string;
+  userId: string;
   amount: number;
-  currency: string;
+  discount: number;
+  total: number;
   status: SaleStatus;
-  commissionPercentage?: number;
-  commissionAmount?: number;
+  notes?: string;
+  paidAt?: string;
   createdAt: string;
   updatedAt: string;
 }
 
-export type CreateSaleInput = {
-  bookingId: string;
+export interface CreateSaleInput {
+  customerId: string;
+  proposalId?: string;
+  brokerId?: string;
   amount: number;
-  currency?: string;
-  commissionPercentage?: number;
-};
+  discount?: number;
+  notes?: string;
+}
 
-export type UpdateSaleInput = {
-  status?: SaleStatus;
-  commissionPercentage?: number;
-};
+export interface UpdateSaleInput {
+  amount?: number;
+  discount?: number;
+  notes?: string;
+}

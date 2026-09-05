@@ -2,6 +2,7 @@ export interface Booking {
   id: string;
   agencyId: string;
   bookerCustomerId: string;
+  customerName: string;
   tripType: 'ONE_WAY' | 'ROUND_TRIP';
   outboundDepartureId: string;
   returnDepartureId?: string;

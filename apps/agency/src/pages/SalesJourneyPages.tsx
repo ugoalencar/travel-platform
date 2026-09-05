@@ -11,8 +11,24 @@ import { Input } from '../components/ui/input';
 import { Select } from '../components/ui/select';
 import { Textarea } from '../components/ui/textarea';
 import { formatBRL } from '../lib/formatCurrency';
-import { ApiError, listProposals, getProposal, listBookings, getBooking, listOffers, createProposal, type Proposal, type Offer } from '../lib/api';
+import { formatDateBR } from '../lib/formatDateBR';
+import {
+  ApiError,
+  listProposals,
+  getProposal,
+  listBookings,
+  getBooking,
+  listOffers,
+  createProposal,
+  listSales,
+  getSale,
+  getSaleFinancialStory,
+  type Proposal,
+  type Offer,
+  type SaleFinancialStory,
+} from '../lib/api';
 import type { Booking } from '../types/booking';
+import type { Sale, SaleStatus } from '../types/sale';
 
 type LoadState<T> =
   | { status: 'loading' }
@@ -134,7 +150,7 @@ export function ProposalListPage() {
             { }
             {proposals.map((proposal: Proposal) => (
               <tr key={proposal.id} className="border-b border-slate-100 last:border-0">
-                <td className="px-4 py-4 font-medium text-slate-950">{proposal.customerId}</td>
+                <td className="px-4 py-4 font-medium text-slate-950">{proposal.customerName || proposal.customerId}</td>
                 <td className="px-4 py-4 text-slate-600">{proposal.notes || '—'}</td>
                 <td className="px-4 py-4 font-semibold text-slate-950">
                   {formatBRL(proposal.total)}
@@ -251,7 +267,7 @@ export function ProposalDetailPage() {
         </CardHeader>
         <CardContent className="grid gap-5 md:grid-cols-2">
           { }
-          <Field label="Cliente" value={proposal.customerId} />
+          <Field label="Cliente" value={proposal.customerName || proposal.customerId} />
           { }
           <Field label="Preco proposto" value={formatBRL(proposal.proposedPrice)} />
           { }
@@ -427,7 +443,7 @@ export function ProposalBuilderPage() {
                 <option value="">Selecione uma reserva</option>
                 {bookings.map((booking) => (
                   <option key={booking.id} value={booking.id}>
-                    {booking.id} - {booking.bookerCustomerId}
+                    {booking.customerName || booking.bookerCustomerId} - {booking.id}
                   </option>
                 ))}
               </Select>
@@ -717,7 +733,7 @@ export function BookingListPage() {
             { }
             {bookings.map((booking: Booking) => (
               <tr key={booking.id} className="border-b border-slate-100 last:border-0">
-                <td className="px-4 py-4 font-medium text-slate-950">{booking.bookerCustomerId}</td>
+                <td className="px-4 py-4 font-medium text-slate-950">{booking.customerName || booking.bookerCustomerId}</td>
                 <td className="px-4 py-4 text-slate-600">{booking.tripType}</td>
                 <td className="px-4 py-4">
                   <StatusBadge tone={booking.cancelled ? 'inactive' : 'positive'}>
@@ -806,7 +822,7 @@ export function BookingDetailPage() {
         </CardHeader>
         <CardContent className="grid gap-5 md:grid-cols-2">
           { }
-          <Field label="Cliente" value={booking.bookerCustomerId} />
+          <Field label="Cliente" value={booking.customerName || booking.bookerCustomerId} />
           { }
           <Field label="Tipo" value={booking.tripType} />
           { }
@@ -822,7 +838,101 @@ export function BookingDetailPage() {
   );
 }
 
+function saleStatusTone(status: SaleStatus): StatusTone {
+  if (status === 'PAID') return 'positive';
+  if (status === 'CONFIRMED') return 'neutral';
+  if (status === 'CANCELLED' || status === 'REFUNDED') return 'inactive';
+  return 'attention';
+}
+
+function saleStatusLabel(status: SaleStatus): string {
+  const labels: Record<SaleStatus, string> = {
+    PENDING: 'Pendente',
+    CONFIRMED: 'Confirmada',
+    PAID: 'Paga',
+    CANCELLED: 'Cancelada',
+    REFUNDED: 'Reembolsada',
+  };
+  return labels[status] || status;
+}
+
 export function SalesListPage() {
+  const [state, setState] = useState<LoadState<Sale[]>>({ status: 'loading' });
+
+  const load = useCallback(() => {
+    setState({ status: 'loading' });
+    listSales()
+      .then((sales) => {
+        setState({ status: 'success', data: sales });
+      })
+      .catch((error: unknown) => {
+        const message = error instanceof ApiError ? error.message : 'Não foi possível carregar as vendas.';
+        setState({ status: 'error', message });
+      });
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const renderContent = () => {
+    if (state.status === 'loading') {
+      return <LoadingState label="Carregando vendas…" />;
+    }
+
+    if (state.status === 'error') {
+      return <ErrorState description={state.message} onRetry={load} />;
+    }
+
+    const sales = state.data || [];
+    if (sales.length === 0) {
+      return (
+        <EmptyState
+          title="Nenhuma venda encontrada"
+          description="Quando houver vendas, elas aparecerão aqui."
+        />
+      );
+    }
+
+    return (
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-190 text-left text-sm">
+          <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+            <tr>
+              <th className="px-4 py-3">Cliente</th>
+              <th className="px-4 py-3">Data</th>
+              <th className="px-4 py-3">Total</th>
+              <th className="px-4 py-3">Status</th>
+              <th className="px-4 py-3 text-right">Acoes</th>
+            </tr>
+          </thead>
+          <tbody>
+            {sales.map((sale) => (
+              <tr key={sale.id} className="border-b border-slate-100 last:border-0">
+                <td className="px-4 py-4 font-medium text-slate-950">{sale.customerName || sale.customerId}</td>
+                <td className="px-4 py-4 text-slate-600">{formatDateBR(sale.createdAt)}</td>
+                <td className="px-4 py-4 font-semibold text-slate-950">{formatBRL(sale.total)}</td>
+                <td className="px-4 py-4">
+                  <StatusBadge tone={saleStatusTone(sale.status)}>
+                    {saleStatusLabel(sale.status)}
+                  </StatusBadge>
+                </td>
+                <td className="px-4 py-4 text-right">
+                  <Link
+                    to={`/sales/${sale.id}`}
+                    className="inline-flex h-8 items-center justify-center rounded-md px-3 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-100"
+                  >
+                    Abrir
+                  </Link>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-6">
       <PageIntro
@@ -830,26 +940,207 @@ export function SalesListPage() {
         description="Histórico de todas as vendas fechadas, pagamentos e comissões."
       />
       <JourneyRail active="Sale" />
-      <EmptyState
-        title="Nenhuma venda encontrada"
-        description="Quando houver vendas, elas aparecerão aqui."
-      />
+      <Card>
+        <CardHeader>
+          <CardTitle>Vendas</CardTitle>
+        </CardHeader>
+        <CardContent>{renderContent()}</CardContent>
+      </Card>
     </div>
   );
 }
 
+interface SaleDetail {
+  sale: Sale;
+  story: SaleFinancialStory | null;
+}
+
 export function SaleSummaryPage() {
+  const { id } = useParams();
+  const [state, setState] = useState<LoadState<SaleDetail>>({ status: 'loading' });
+
+  const load = useCallback(() => {
+    if (!id) return;
+    setState({ status: 'loading' });
+    Promise.all([getSale(id), getSaleFinancialStory(id).catch(() => null)])
+      .then(([sale, story]) => {
+        setState({ status: 'success', data: { sale, story } });
+      })
+      .catch((error: unknown) => {
+        if (error instanceof ApiError && error.code === 'NOT_FOUND') {
+          setState({ status: 'success', data: null });
+          return;
+        }
+        const message = error instanceof ApiError ? error.message : 'Não foi possível carregar a venda.';
+        setState({ status: 'error', message });
+      });
+  }, [id]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  if (!id) {
+    return <Navigate to="/sales" replace />;
+  }
+
+  if (state.status === 'loading') {
+    return <LoadingState label="Carregando venda…" />;
+  }
+
+  if (state.status === 'error') {
+    return (
+      <div className="space-y-6">
+        <PageIntro
+          title="Resumo de venda"
+          description="Detalhes completos da venda, faturamento, margens e status de pagamento."
+        />
+        <JourneyRail active="Sale" />
+        <ErrorState description={state.message} onRetry={load} />
+      </div>
+    );
+  }
+
+  if (!state.data) {
+    return (
+      <div className="space-y-6">
+        <PageIntro
+          title="Resumo de venda"
+          description="Detalhes completos da venda, faturamento, margens e status de pagamento."
+        />
+        <JourneyRail active="Sale" />
+        <EmptyState
+          title="Venda não encontrada"
+          description="A venda que você está procurando não existe."
+        />
+      </div>
+    );
+  }
+
+  const { sale, story } = state.data;
+
   return (
     <div className="space-y-6">
-      <PageIntro
-        title="Resumo de venda"
-        description="Detalhes completos da venda, faturamento, margens e status de pagamento."
-      />
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <PageIntro
+          title={`Venda ${sale.customerName || sale.customerId}`}
+          description="Detalhes completos da venda, faturamento, margens e status de pagamento."
+        />
+        <div className="flex flex-wrap gap-2">
+          <Link to={`/customers/${sale.customerId}`}>
+            <Button size="sm" variant="outline">Abrir cliente</Button>
+          </Link>
+          {sale.tripId && (
+            <Link to={`/trips/${sale.tripId}`}>
+              <Button size="sm" variant="outline">Abrir viagem</Button>
+            </Link>
+          )}
+          <Link to={`/financial/sales/${sale.id}/story`}>
+            <Button size="sm" variant="outline">Historia financeira</Button>
+          </Link>
+        </div>
+      </div>
       <JourneyRail active="Sale" />
-      <EmptyState
-        title="Venda não encontrada"
-        description="A venda que você está procurando não existe."
-      />
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Informacoes da venda</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-5 md:grid-cols-2">
+          <Field label="Identificador" value={sale.id} />
+          <Field label="Data da venda" value={formatDateBR(sale.createdAt)} />
+          <Field label="Cliente" value={sale.customerName || sale.customerId} />
+          <Field label="Vendedor" value={sale.salespersonName || '—'} />
+          <Field label="Viagem" value={sale.tripName || '—'} />
+          <Field label="Status" value={saleStatusLabel(sale.status)} />
+          <Field label="Valor bruto" value={formatBRL(sale.amount)} />
+          <Field label="Desconto" value={formatBRL(sale.discount)} />
+          <Field label="Total" value={formatBRL(sale.total)} />
+          {sale.notes && <Field label="Observacoes" value={sale.notes} />}
+        </CardContent>
+      </Card>
+
+      {story ? (
+        <>
+          <section className="grid gap-4 md:grid-cols-4">
+            <Metric label="Venda bruta" value={formatBRL(story.grossSale)} />
+            <Metric label="Recebido" value={formatBRL(story.received)} />
+            <Metric label="A receber" value={formatBRL(story.remainingReceivable)} />
+            <Metric label="Margem liquida" value={formatBRL(story.margin.netMargin)} />
+          </section>
+          <Card>
+            <CardHeader className="flex-row items-center justify-between">
+              <CardTitle>Compromissos com fornecedores</CardTitle>
+              <Link to="/financial/payables">
+                <Button size="sm" variant="outline">Ver contas a pagar</Button>
+              </Link>
+            </CardHeader>
+            <CardContent>
+              {story.supplierPayables.length === 0 ? (
+                <p className="text-sm text-slate-500">Nenhum compromisso com fornecedores para esta venda.</p>
+              ) : (
+                story.supplierPayables.map((item) => (
+                  <Row
+                    key={`${item.description}-${item.dueAt}`}
+                    left={item.description}
+                    middle={formatDateBR(item.dueAt, { assumeDateOnly: true })}
+                    right={formatBRL(item.amount)}
+                  />
+                ))
+              )}
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex-row items-center justify-between">
+              <CardTitle>Parcelas do cliente</CardTitle>
+              <Link to="/financial/receivables">
+                <Button size="sm" variant="outline">Ver contas a receber</Button>
+              </Link>
+            </CardHeader>
+            <CardContent>
+              {story.installmentSchedule.length === 0 ? (
+                <p className="text-sm text-slate-500">Nenhuma parcela registrada para esta venda.</p>
+              ) : (
+                story.installmentSchedule.map((item) => (
+                  <Row
+                    key={`${item.description}-${item.dueDate}`}
+                    left={item.description}
+                    middle={formatDateBR(item.dueDate, { assumeDateOnly: true })}
+                    right={formatBRL(item.amount)}
+                  />
+                ))
+              )}
+            </CardContent>
+          </Card>
+        </>
+      ) : (
+        <Card>
+          <CardContent className="pt-6">
+            <p className="text-sm text-slate-500">
+              Não foi possível carregar o resumo financeiro detalhado desta venda.
+            </p>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
+
+function Metric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-md border border-slate-200 bg-white p-4">
+      <p className="text-xs font-medium uppercase text-slate-500">{label}</p>
+      <p className="mt-2 text-xl font-semibold text-slate-900">{value}</p>
+    </div>
+  );
+}
+
+function Row({ left, middle, right }: { left: string; middle: string; right: string }) {
+  return (
+    <div className="grid grid-cols-[1fr_auto] gap-x-3 gap-y-1 border-b border-slate-100 py-3 text-sm last:border-0 md:grid-cols-[1fr_220px_auto] md:items-center">
+      <span className="min-w-0 text-slate-900">{left}</span>
+      <span className="text-slate-500 md:text-center">{middle}</span>
+      <span className="col-span-2 text-slate-900 md:col-span-1 md:text-right">{right}</span>
     </div>
   );
 }
