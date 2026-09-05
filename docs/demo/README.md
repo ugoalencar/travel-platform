@@ -48,7 +48,8 @@ npm run demo:reset
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    Your Browser                             │
-│  Agency Portal (5173) | Customer Portal (5174)              │
+│  Agency (5173) | Platform Admin (5174) | Marketing (5175)   │
+│  | Customer Portal (5176)                                    │
 └──────────────────┬──────────────────────────────────────────┘
                    │ HTTP + Dev-Auth Headers
                    ↓
@@ -83,7 +84,7 @@ npm run demo:reset
 - **Auth**: Dev-mode header injection (no password)
 
 ### Customer Portal (Traveler)
-- **URL**: http://localhost:5174
+- **URL**: http://localhost:5176
 - **Customer**: Cliente Demo
 - **Agency**: Agency A (Demo)
 - **Auth**: Dev-mode header injection (no login)
@@ -106,7 +107,7 @@ All data is realistic but **100% fictional**:
 ### 1 Hour Before Demo
 - [ ] Run `npm run demo:reset`
 - [ ] Verify all services start: `npm run demo`
-- [ ] Check both portals load (5173 and 5174)
+- [ ] Check all four apps load (5173, 5174, 5175, 5176)
 - [ ] Verify demo data is visible
 - [ ] No console errors (F12)
 
