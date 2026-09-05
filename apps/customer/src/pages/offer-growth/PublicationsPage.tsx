@@ -77,7 +77,7 @@ export function PublicationsPage() {
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Offer & Growth</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Ofertas e crescimento</p>
           <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Publicações</h1>
           <p className="mt-1 text-sm text-slate-500">
             Uma publicação é uma instância específica de um canal dentro de uma campanha — data,
@@ -235,7 +235,7 @@ export function PublicationsPage() {
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-xs font-medium uppercase text-slate-500">Snapshot</dt>
+                    <dt className="text-xs font-medium uppercase text-slate-500">Instantâneo</dt>
                     <dd className="text-slate-700">
                       {publication.snapshot ? 'Gerado e congelado' : 'Ainda não gerado'}
                     </dd>

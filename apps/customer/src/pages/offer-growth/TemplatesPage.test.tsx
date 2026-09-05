@@ -39,23 +39,23 @@ describe('TemplatesPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(store.listTemplates).mockReturnValue([template]);
-    vi.mocked(store.createBlankTemplate).mockReturnValue({ ...template, id: 'tpl-2', name: 'Novo template' });
+    vi.mocked(store.createBlankTemplate).mockReturnValue({ ...template, id: 'tpl-2', name: 'Novo modelo' });
   });
 
   it('lists templates without exposing raw JSON', () => {
     renderPage();
     expect(screen.getByText('Carrossel promoção verão')).toBeInTheDocument();
-    expect(screen.getByText(/1 slide\(s\) · 0 vínculo\(s\)/)).toBeInTheDocument();
+    expect(screen.getByText(/1 página\(s\) · 0 vínculo\(s\)/)).toBeInTheDocument();
     expect(screen.queryByText(/"pages":/)).not.toBeInTheDocument();
     expect(screen.queryByText(/"bindings":/)).not.toBeInTheDocument();
   });
 
   it('creates a new template and opens it in the editor', () => {
     renderPage();
-    fireEvent.change(screen.getByLabelText('Nome do novo template'), {
+    fireEvent.change(screen.getByLabelText('Nome do novo modelo'), {
       target: { value: 'Nova campanha' },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Criar template' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Criar modelo' }));
 
     expect(store.createBlankTemplate).toHaveBeenCalledWith('Nova campanha');
     expect(navigateMock).toHaveBeenCalledWith('/offer-growth/studio?templateId=tpl-2');

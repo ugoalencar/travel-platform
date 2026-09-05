@@ -16,6 +16,20 @@ interface SupportCase {
 
 type SupportCasePriority = SupportCase['priority'];
 
+const STATUS_LABELS: Record<SupportCase['status'], string> = {
+  OPEN: 'Aberto',
+  IN_PROGRESS: 'Em andamento',
+  RESOLVED: 'Resolvido',
+  CLOSED: 'Fechado',
+};
+
+const PRIORITY_LABELS: Record<SupportCasePriority, string> = {
+  LOW: 'Baixa',
+  MEDIUM: 'Média',
+  HIGH: 'Alta',
+  CRITICAL: 'Crítica',
+};
+
 export function SupportPage() {
   const [cases, setCases] = useState<SupportCase[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,11 +51,11 @@ export function SupportPage() {
     try {
       setLoading(true);
       const response = await fetch('/api/platform/support');
-      if (!response.ok) throw new Error('Nao foi possivel carregar os casos');
+      if (!response.ok) throw new Error('Não foi possível carregar os casos');
       const data = (await response.json()) as { cases?: SupportCase[] };
       setCases(data.cases || []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Nao foi possivel carregar os casos');
+      setError(err instanceof Error ? err.message : 'Não foi possível carregar os casos');
     } finally {
       setLoading(false);
     }
@@ -56,7 +70,7 @@ export function SupportPage() {
         body: JSON.stringify(formData),
       });
 
-      if (!response.ok) throw new Error('Nao foi possivel criar o caso');
+      if (!response.ok) throw new Error('Não foi possível criar o caso');
       await fetchCases();
       setShowForm(false);
       setFormData({
@@ -66,7 +80,7 @@ export function SupportPage() {
         priority: 'MEDIUM',
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Nao foi possivel criar o caso');
+      setError(err instanceof Error ? err.message : 'Não foi possível criar o caso');
     }
   }
 
@@ -78,11 +92,11 @@ export function SupportPage() {
         body: JSON.stringify({ status: newStatus }),
       });
 
-      if (!response.ok) throw new Error('Nao foi possivel atualizar o caso');
+      if (!response.ok) throw new Error('Não foi possível atualizar o caso');
       await fetchCases();
       setSelectedCase(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Nao foi possivel atualizar o caso');
+      setError(err instanceof Error ? err.message : 'Não foi possível atualizar o caso');
     }
   }
 
@@ -142,20 +156,20 @@ export function SupportPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Titulo</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Título</label>
               <input
                 type="text"
                 required
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                placeholder="Titulo do problema"
+                placeholder="Título do problema"
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Descricao
+                Descrição
               </label>
               <textarea
                 required
@@ -177,9 +191,9 @@ export function SupportPage() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               >
                 <option value="LOW">Baixa</option>
-                <option value="MEDIUM">Media</option>
+                <option value="MEDIUM">Média</option>
                 <option value="HIGH">Alta</option>
-                <option value="CRITICAL">Critica</option>
+                <option value="CRITICAL">Crítica</option>
               </select>
             </div>
 
@@ -247,7 +261,7 @@ export function SupportPage() {
               <p className={`mt-1 px-3 py-1 rounded text-sm font-semibold w-fit ${
                 priorityColors[selectedCase.priority]
               }`}>
-                {selectedCase.priority}
+                {PRIORITY_LABELS[selectedCase.priority]}
               </p>
             </div>
             <div>
@@ -261,7 +275,7 @@ export function SupportPage() {
           </div>
 
           <div className="bg-gray-50 rounded p-4">
-            <p className="text-sm font-semibold mb-2">Descricao</p>
+            <p className="text-sm font-semibold mb-2">Descrição</p>
             <p className="text-gray-700 whitespace-pre-wrap">{selectedCase.description}</p>
           </div>
         </div>
@@ -270,7 +284,7 @@ export function SupportPage() {
           <table className="w-full">
             <thead className="bg-gray-50 border-b">
               <tr>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Titulo</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Título</th>
                 <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
                   Assinante
                 </th>
@@ -294,14 +308,14 @@ export function SupportPage() {
                     <span className={`px-2 py-1 rounded text-xs font-semibold ${
                       statusColors[c.status]
                     }`}>
-                      {c.status}
+                      {STATUS_LABELS[c.status]}
                     </span>
                   </td>
                   <td className="px-6 py-4">
                     <span className={`px-2 py-1 rounded text-xs font-semibold ${
                       priorityColors[c.priority]
                     }`}>
-                      {c.priority}
+                      {PRIORITY_LABELS[c.priority]}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600">

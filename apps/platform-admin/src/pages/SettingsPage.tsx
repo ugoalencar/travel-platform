@@ -35,13 +35,13 @@ export function SettingsPage() {
           await createDefaultSettings();
           return;
         }
-        throw new Error('Nao foi possivel carregar as configuracoes');
+        throw new Error('Não foi possível carregar as configurações');
       }
       const data = (await response.json()) as { settings: PlatformSettings };
       setSettings(data.settings);
       setFormData(data.settings);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Nao foi possivel carregar as configuracoes');
+      setError(err instanceof Error ? err.message : 'Não foi possível carregar as configurações');
     } finally {
       setLoading(false);
     }
@@ -66,12 +66,12 @@ export function SettingsPage() {
         body: JSON.stringify(defaultSettings),
       });
 
-      if (!response.ok) throw new Error('Nao foi possivel criar as configuracoes');
+      if (!response.ok) throw new Error('Não foi possível criar as configurações');
       const data = (await response.json()) as { settings: PlatformSettings };
       setSettings(data.settings);
       setFormData(data.settings);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Nao foi possivel criar as configuracoes');
+      setError(err instanceof Error ? err.message : 'Não foi possível criar as configurações');
     }
   }
 
@@ -88,13 +88,13 @@ export function SettingsPage() {
         body: JSON.stringify(formData),
       });
 
-      if (!response.ok) throw new Error('Nao foi possivel salvar as configuracoes');
+      if (!response.ok) throw new Error('Não foi possível salvar as configurações');
       const data = (await response.json()) as { settings: PlatformSettings };
       setSettings(data.settings);
       setFormData(data.settings);
-      setSuccess('Configuracoes salvas com sucesso!');
+      setSuccess('Configurações salvas com sucesso!');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Nao foi possivel salvar as configuracoes');
+      setError(err instanceof Error ? err.message : 'Não foi possível salvar as configurações');
     } finally {
       setSaving(false);
     }
@@ -108,12 +108,12 @@ export function SettingsPage() {
   }
 
   if (loading) {
-    return <div className="text-center py-8">Carregando configuracoes...</div>;
+    return <div className="text-center py-8">Carregando configurações...</div>;
   }
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-8">Configuracoes da Plataforma</h1>
+      <h1 className="text-3xl font-bold mb-8">Configurações da Plataforma</h1>
 
       {error && (
         <div className="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
@@ -130,7 +130,7 @@ export function SettingsPage() {
       <form onSubmit={(event) => void handleSubmit(event)} className="bg-white rounded-lg shadow p-8 max-w-2xl space-y-6">
         {/* Trial Settings */}
         <div className="border-b pb-6">
-          <h2 className="text-lg font-semibold mb-4">Configuracoes de teste</h2>
+          <h2 className="text-lg font-semibold mb-4">Configurações de teste</h2>
 
           <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -145,7 +145,7 @@ export function SettingsPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Duracao do teste (dias)
+                Duração do teste (dias)
               </label>
               <input
                 type="number"
@@ -161,7 +161,7 @@ export function SettingsPage() {
 
         {/* Billing Settings */}
         <div className="border-b pb-6">
-          <h2 className="text-lg font-semibold mb-4">Cobranca e recebimentos</h2>
+          <h2 className="text-lg font-semibold mb-4">Cobrança e recebimentos</h2>
 
           <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -176,7 +176,7 @@ export function SettingsPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Dias vencidos antes da suspensao
+                Dias vencidos antes da suspensão
               </label>
               <input
                 type="number"
@@ -192,7 +192,7 @@ export function SettingsPage() {
 
         {/* Security Settings */}
         <div className="border-b pb-6">
-          <h2 className="text-lg font-semibold mb-4">Seguranca</h2>
+          <h2 className="text-lg font-semibold mb-4">Segurança</h2>
 
           <div>
             <div className="flex items-center justify-between">
@@ -209,7 +209,7 @@ export function SettingsPage() {
 
         {/* Default Limits */}
         <div>
-          <h2 className="text-lg font-semibold mb-4">Limites padrao de plano</h2>
+          <h2 className="text-lg font-semibold mb-4">Limites padrão de plano</h2>
 
           <div className="grid grid-cols-3 gap-4">
             <div>
@@ -226,7 +226,7 @@ export function SettingsPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Maximo de usuarios</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Máximo de usuários</label>
               <input
                 type="number"
                 min="1"
@@ -237,7 +237,7 @@ export function SettingsPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Maximo de clientes</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Máximo de clientes</label>
               <input
                 type="number"
                 min="1"
@@ -256,7 +256,7 @@ export function SettingsPage() {
             disabled={saving}
             className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
-            {saving ? 'Salvando...' : 'Salvar Configuracoes'}
+            {saving ? 'Salvando...' : 'Salvar Configurações'}
           </button>
           <button
             type="button"

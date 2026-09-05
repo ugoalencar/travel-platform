@@ -32,7 +32,7 @@ export function SaleMarginPage() {
         const message =
           error instanceof ApiError
             ? error.message
-            : 'Nao foi possivel carregar a margem.';
+            : 'Não foi possível carregar a margem.';
         setState({ status: 'error', message });
       });
 
@@ -78,7 +78,7 @@ function MarginDetail({ margin }: { margin: SaleMargin }) {
     { label: 'Receita', value: margin.revenue, highlight: false },
     { label: 'Custos com fornecedores', value: -margin.supplierCosts, highlight: false },
     { label: 'Custos operacionais', value: -margin.operationalCosts, highlight: false },
-    { label: 'Comissao', value: -margin.commission, highlight: false },
+    { label: 'Comissão', value: -margin.commission, highlight: false },
   ];
 
   return (

@@ -32,6 +32,16 @@ const STATUS_COLORS: Record<string, string> = {
   LOST: 'bg-red-100 text-red-800',
 };
 
+const STATUS_LABELS: Record<string, string> = {
+  NEW: 'Novo',
+  CONTACTED: 'Contatado',
+  QUALIFIED: 'Qualificado',
+  DEMO_SCHEDULED: 'Demo agendada',
+  TRIAL: 'Teste',
+  WON: 'Ganho',
+  LOST: 'Perdido',
+};
+
 export function LeadsPage() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
@@ -50,11 +60,11 @@ export function LeadsPage() {
     try {
       setLoading(true);
       const response = await fetch('/api/platform/leads');
-      if (!response.ok) throw new Error('Nao foi possivel carregar os leads');
+      if (!response.ok) throw new Error('Não foi possível carregar os leads');
       const data = (await response.json()) as { leads?: Lead[] };
       setLeads(data.leads || []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Nao foi possivel carregar os leads');
+      setError(err instanceof Error ? err.message : 'Não foi possível carregar os leads');
     } finally {
       setLoading(false);
     }
@@ -73,7 +83,7 @@ export function LeadsPage() {
         }
       );
 
-      if (!response.ok) throw new Error('Nao foi possivel atualizar o status do lead');
+      if (!response.ok) throw new Error('Não foi possível atualizar o status do lead');
 
       if (note) {
         // Add note would go here if API supports it
@@ -85,7 +95,7 @@ export function LeadsPage() {
       setSelectedLead(null);
       await fetchLeads();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Nao foi possivel atualizar o lead');
+      setError(err instanceof Error ? err.message : 'Não foi possível atualizar o lead');
     }
   }
 
@@ -130,7 +140,7 @@ export function LeadsPage() {
               setFilterStatus(filterStatus === status ? 'ALL' : status)
             }
           >
-            <p className="text-xs text-gray-600 font-medium">{status}</p>
+            <p className="text-xs text-gray-600 font-medium">{STATUS_LABELS[status]}</p>
             <p className="text-xl font-bold text-center">
               {statusCounts[status]}
             </p>
@@ -183,7 +193,7 @@ export function LeadsPage() {
               <span
                 className={`${STATUS_COLORS[selectedLead.status]} px-2 py-1 rounded text-sm font-medium inline-block`}
               >
-                {selectedLead.status}
+                {STATUS_LABELS[selectedLead.status]}
               </span>
             </div>
             <div>
@@ -211,7 +221,7 @@ export function LeadsPage() {
                 <option value="">-- Selecionar novo status --</option>
                 {LEAD_STATUSES.map((status) => (
                   <option key={status} value={status}>
-                    {status}
+                    {STATUS_LABELS[status]}
                   </option>
                 ))}
               </select>
@@ -265,7 +275,7 @@ export function LeadsPage() {
                 Criado
               </th>
               <th className="px-6 py-3 text-right text-sm font-semibold text-gray-900">
-                Acoes
+                Ações
               </th>
             </tr>
           </thead>
@@ -286,7 +296,7 @@ export function LeadsPage() {
                     <span
                       className={`${STATUS_COLORS[lead.status]} px-2 py-1 rounded text-xs font-medium`}
                     >
-                      {lead.status}
+                      {STATUS_LABELS[lead.status]}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-sm">{lead.source}</td>

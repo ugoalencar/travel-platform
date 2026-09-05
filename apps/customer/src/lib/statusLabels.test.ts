@@ -35,8 +35,8 @@ describe('statusLabels', () => {
   });
 
   it('maps every real FinancialObligationStatus (Receivable) value to a Portuguese label', () => {
-    expect(getReceivableStatusLabel('OPEN')).toBe('Em aberto');
-    expect(getReceivableStatusLabel('PARTIALLY_PAID')).toBe('Parcialmente paga');
+    expect(getReceivableStatusLabel('OPEN')).toBe('Aberto');
+    expect(getReceivableStatusLabel('PARTIALLY_PAID')).toBe('Parcial');
     expect(getReceivableStatusLabel('PAID')).toBe('Paga');
     expect(getReceivableStatusLabel('CANCELLED')).toBe('Cancelada');
   });

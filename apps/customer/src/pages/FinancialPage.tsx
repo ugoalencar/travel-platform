@@ -43,7 +43,7 @@ export function FinancialPage() {
         const message =
           error instanceof ApiError
             ? error.message
-            : 'Nao foi possivel carregar o financeiro.';
+            : 'Não foi possível carregar o financeiro.';
         setState({ status: 'error', message });
       });
 
@@ -95,7 +95,7 @@ export function FinancialPage() {
           Financeiro
         </h1>
         <p className="text-sm text-slate-500">
-          Caixa projetado, caixa realizado e recebiveis em aberto.
+          Caixa projetado, caixa realizado e recebíveis em aberto.
         </p>
       </div>
 
@@ -124,7 +124,7 @@ export function FinancialPage() {
                 {overdueReceivables.length > 0 && (
                   <div className="rounded-md border border-red-200 bg-red-50 p-3">
                     <p className="text-sm font-medium text-red-700">
-                      {overdueReceivables.length} recebivel(is) vencido(s)
+                      {overdueReceivables.length} recebível(is) vencido(s)
                     </p>
                     <p className="text-xs text-red-600">
                       Valor total: {formatBRL(overdueReceivables.reduce((s, r) => s + r.amount, 0))}
@@ -134,7 +134,7 @@ export function FinancialPage() {
                 {upcomingReceivables.length > 0 && (
                   <div className="rounded-md border border-amber-200 bg-amber-50 p-3">
                     <p className="text-sm font-medium text-amber-700">
-                      {upcomingReceivables.length} recebivel(is) vencendo em breve
+                      {upcomingReceivables.length} recebível(is) vencendo em breve
                     </p>
                     <p className="text-xs text-amber-600">
                       Valor total: {formatBRL(upcomingReceivables.reduce((s, r) => s + r.amount, 0))}
@@ -201,16 +201,16 @@ function ReceivablesTable({
   onToggleAllocations: (receivable: Receivable) => void;
 }) {
   if (receivables.length === 0) {
-    return <p className="text-sm text-slate-500">Nenhum recebivel encontrado.</p>;
+    return <p className="text-sm text-slate-500">Nenhum recebível encontrado.</p>;
   }
 
   return (
     <section className="flex flex-col gap-3">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold text-slate-900">Recebiveis</h2>
+          <h2 className="text-lg font-semibold text-slate-900">Recebíveis</h2>
           <p className="text-sm text-slate-500">
-            Titulo, vencimento, valor e status financeiro.
+            Título, vencimento, valor e status financeiro.
           </p>
         </div>
         <span className="rounded-md bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
@@ -222,7 +222,7 @@ function ReceivablesTable({
         <table className="w-full min-w-[800px] text-left text-sm">
           <thead className="border-b border-slate-200 bg-slate-50 text-xs font-medium uppercase tracking-wide text-slate-500">
             <tr>
-              <th className="px-4 py-3">Descricao</th>
+              <th className="px-4 py-3">Descrição</th>
               <th className="px-4 py-3">Cliente</th>
               <th className="px-4 py-3">Vencimento</th>
               <th className="px-4 py-3">Status</th>
@@ -308,7 +308,7 @@ function PartialPaymentDetail({
           <span className="font-medium text-slate-900">{formatBRL(amount)}</span>
         </div>
         <div>
-          <span className="text-slate-500">Ja pago: </span>
+          <span className="text-slate-500">Já pago: </span>
           <span className="font-medium text-blue-700">{formatBRL(paid)}</span>
         </div>
         <div>
@@ -325,7 +325,7 @@ function PartialPaymentDetail({
           <span className="font-medium text-slate-600">Pagamentos relacionados:</span>
           {allocations.map((alloc) => (
             <div key={alloc.id} className="flex gap-4 text-slate-600">
-              <span>Alocacao</span>
+              <span>Alocação</span>
               <span className="font-medium">{formatBRL(alloc.amount)}</span>
             </div>
           ))}

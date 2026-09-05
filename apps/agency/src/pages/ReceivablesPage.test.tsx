@@ -83,8 +83,8 @@ describe('ReceivablesPage', () => {
     fireEvent.click(screen.getByRole('button', { name: /Registrar recebimento/i }));
     fireEvent.change(screen.getByLabelText('Valor recebido *'), { target: { value: '3490' } });
     fireEvent.change(screen.getByLabelText('Data de recebimento *'), { target: { value: '2026-09-01' } });
-    fireEvent.change(screen.getByLabelText('Metodo de pagamento'), { target: { value: 'PIX' } });
-    fireEvent.change(screen.getByLabelText('Observacoes'), { target: { value: 'Recebido no UAT' } });
+    fireEvent.change(screen.getByLabelText('Método de pagamento'), { target: { value: 'PIX' } });
+    fireEvent.change(screen.getByLabelText('Observações'), { target: { value: 'Recebido no UAT' } });
     fireEvent.click(screen.getByRole('button', { name: 'Confirmar recebimento' }));
 
     await waitFor(() =>

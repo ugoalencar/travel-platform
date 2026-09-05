@@ -14,7 +14,7 @@ interface FeatureFlag {
 const scopeLabels: Record<FeatureFlag['scope'], string> = {
   GLOBAL: 'Global',
   PLAN: 'Plano',
-  TENANT: 'Agencia',
+  TENANT: 'Agência',
 };
 
 export function FeatureFlagsPage() {
@@ -23,7 +23,7 @@ export function FeatureFlagsPage() {
       id: '1',
       name: 'Novo Painel',
       key: 'feature_new_dashboard',
-      description: 'Painel aprimorado com metricas em tempo real',
+      description: 'Painel aprimorado com métricas em tempo real',
       enabled: true,
       scope: 'GLOBAL',
       rolloutPercentage: 100,
@@ -41,9 +41,9 @@ export function FeatureFlagsPage() {
     },
     {
       id: '3',
-      name: 'Analise Avancada',
+      name: 'Análise Avançada',
       key: 'feature_advanced_analytics',
-      description: 'Analise preditiva para previsao de receita',
+      description: 'Análise preditiva para previsão de receita',
       enabled: false,
       scope: 'TENANT',
       rolloutPercentage: 0,
@@ -62,7 +62,7 @@ export function FeatureFlagsPage() {
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Nome</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Chave</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Escopo</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Implantacao</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Implantação</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Status</th>
             </tr>
           </thead>

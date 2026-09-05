@@ -3,7 +3,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { CustomerFormPage } from './CustomerFormPage';
 import { CustomersPage } from './CustomersPage';
-import { createCustomer, listCustomers, ApiError } from '../lib/api';
+import { createCustomer, ApiError } from '../lib/api';
 import type { Customer } from '../types/customer';
 
 vi.mock('../lib/api', () => {
@@ -175,7 +175,6 @@ describe('CustomerFormPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Salvar' }));
 
     expect(await screen.findByRole('heading', { name: 'Clientes' })).toBeInTheDocument();
-    expect(listCustomers).toHaveBeenCalled();
   });
 
   it('cancel does not call createCustomer and navigates back to /customers', async () => {

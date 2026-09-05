@@ -79,7 +79,7 @@ function ProposalDetails({ proposal }: { proposal: CustomerProposalView }) {
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="rounded-xl border-2 border-slate-200 bg-white p-5 shadow-sm">
-          <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-600 mb-3">💰 Pricing</h3>
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-600 mb-3">💰 Valores</h3>
           <div className="space-y-3">
             <DetailItem
               label="Preço proposto"
@@ -119,7 +119,7 @@ function ProposalDetails({ proposal }: { proposal: CustomerProposalView }) {
           </div>
         )}
       </div>
-      {/* Deliberately no accept/decline controls in this vertical. */}
+      {/* Sem controles de aceitar/recusar nesta vertical. */}
     </div>
   );
 }

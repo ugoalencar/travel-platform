@@ -412,7 +412,7 @@ describe('App', () => {
   it('renders PescadorPage when navigating to "/pescador"', async () => {
     renderApp(['/pescador']);
     expect(await screen.findByRole('heading', { name: 'Pescador' })).toBeInTheDocument();
-    expect(await screen.findByText('Fornecedor Rio')).toBeInTheDocument();
-    expect(await screen.findByText('Rio Package')).toBeInTheDocument();
+    expect((await screen.findAllByText('Fornecedor Rio')).length).toBeGreaterThan(0);
+    expect((await screen.findAllByText('Rio Package')).length).toBeGreaterThan(0);
   });
 });

@@ -38,11 +38,11 @@ export function PlansPage() {
     try {
       setLoading(true);
       const response = await fetch('/api/platform/plans');
-      if (!response.ok) throw new Error('Nao foi possivel carregar os planos');
+      if (!response.ok) throw new Error('Não foi possível carregar os planos');
       const data = (await response.json()) as { plans?: Plan[] };
       setPlans(data.plans || []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Nao foi possivel carregar os planos');
+      setError(err instanceof Error ? err.message : 'Não foi possível carregar os planos');
     } finally {
       setLoading(false);
     }
@@ -66,7 +66,7 @@ export function PlansPage() {
         }),
       });
 
-      if (!response.ok) throw new Error('Nao foi possivel criar o plano');
+      if (!response.ok) throw new Error('Não foi possível criar o plano');
 
       setFormData({
         name: '',
@@ -80,7 +80,7 @@ export function PlansPage() {
       setShowForm(false);
       await fetchPlans();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Nao foi possivel criar o plano');
+      setError(err instanceof Error ? err.message : 'Não foi possível criar o plano');
     }
   }
 
@@ -92,10 +92,10 @@ export function PlansPage() {
         method: 'DELETE',
       });
 
-      if (!response.ok) throw new Error('Nao foi possivel excluir o plano');
+      if (!response.ok) throw new Error('Não foi possível excluir o plano');
       await fetchPlans();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Nao foi possivel excluir o plano');
+      setError(err instanceof Error ? err.message : 'Não foi possível excluir o plano');
     }
   }
 
@@ -106,7 +106,7 @@ export function PlansPage() {
   return (
     <div>
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Planos de Cobranca</h1>
+        <h1 className="text-3xl font-bold">Planos de Cobrança</h1>
         <button
           onClick={() => setShowForm(!showForm)}
           className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
@@ -138,17 +138,17 @@ export function PlansPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Descricao</label>
+                <label className="block text-sm font-medium mb-1">Descrição</label>
                 <input
                   type="text"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   className="w-full px-3 py-2 border rounded-lg"
-                  placeholder="Descricao breve"
+                  placeholder="Descrição breve"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Preco mensal (BRL)</label>
+                <label className="block text-sm font-medium mb-1">Preço mensal (BRL)</label>
                 <input
                   type="number"
                   step="0.01"
@@ -159,7 +159,7 @@ export function PlansPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Preco anual (BRL)</label>
+                <label className="block text-sm font-medium mb-1">Preço anual (BRL)</label>
                 <input
                   type="number"
                   step="0.01"
@@ -170,7 +170,7 @@ export function PlansPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Maximo de usuarios</label>
+                <label className="block text-sm font-medium mb-1">Máximo de usuários</label>
                 <input
                   type="number"
                   value={formData.max_users}
@@ -179,7 +179,7 @@ export function PlansPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Maximo de clientes</label>
+                <label className="block text-sm font-medium mb-1">Máximo de clientes</label>
                 <input
                   type="number"
                   value={formData.max_customers}
@@ -209,7 +209,7 @@ export function PlansPage() {
 
       {plans.length === 0 ? (
         <div className="bg-gray-50 rounded-lg p-8 text-center">
-          <p className="text-gray-600">Nenhum plano ainda. Crie um para comecar.</p>
+          <p className="text-gray-600">Nenhum plano ainda. Crie um para começar.</p>
         </div>
       ) : (
         <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -217,11 +217,11 @@ export function PlansPage() {
             <thead className="bg-gray-50 border-b">
               <tr>
                 <th className="px-6 py-3 text-left text-sm font-semibold">Nome</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold">Descricao</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold">Preco mensal</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold">Maximo de usuarios</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold">Descrição</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold">Preço mensal</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold">Máximo de usuários</th>
                 <th className="px-6 py-3 text-left text-sm font-semibold">Armazenamento (GB)</th>
-                <th className="px-6 py-3 text-right text-sm font-semibold">Acoes</th>
+                <th className="px-6 py-3 text-right text-sm font-semibold">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y">

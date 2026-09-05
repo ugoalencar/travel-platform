@@ -95,12 +95,12 @@ export function SettingsPage() {
           if (httpErr.status === 403) {
             setState({
               status: 'error',
-              message: 'Voce nao tem permissao para acessar as configuracoes.',
+              message: 'Você não tem permissão para acessar as configurações.',
             });
           } else {
             setState({
               status: 'error',
-              message: httpErr.data?.message || 'Nao foi possivel carregar as configuracoes.',
+              message: httpErr.data?.message || 'Não foi possível carregar as configurações.',
             });
           }
         } else {

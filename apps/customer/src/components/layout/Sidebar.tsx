@@ -48,8 +48,8 @@ const FINANCEIRO_NAV_ITEMS: NavItem[] = [
 ];
 
 const OFERTAS_MARKETING_NAV_ITEMS: NavItem[] = [
-  { label: 'Creative Studio', to: '/offer-growth/studio' },
-  { label: 'Templates', to: '/offer-growth/templates' },
+  { label: 'Estudio criativo', to: '/offer-growth/studio' },
+  { label: 'Modelos', to: '/offer-growth/templates' },
   { label: 'Editor criativo', to: '/offer-growth/editor' },
   { label: 'Campanhas', to: '/offer-growth/campaigns' },
   { label: 'Publicações', to: '/offer-growth/publications' },
@@ -69,7 +69,7 @@ const NAV_SECTIONS: Array<{ key: string; heading: string; items: NavItem[] }> = 
   { key: 'financeiro', heading: 'Financeiro', items: FINANCEIRO_NAV_ITEMS },
   {
     key: 'ofertas-marketing',
-    heading: 'Ofertas & Marketing',
+    heading: 'Ofertas e marketing',
     items: OFERTAS_MARKETING_NAV_ITEMS,
   },
   { key: 'configuracoes', heading: 'Configurações', items: CONFIGURACOES_NAV_ITEMS },

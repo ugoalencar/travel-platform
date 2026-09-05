@@ -1352,7 +1352,7 @@ export async function getCashFlowReport(startDate?: string, endDate?: string): P
 
 export const api = {
   get: async <T>(path: string): Promise<{ data: T }> => {
-    const response = await fetch(`${API_BASE_URL}${path}`);
+    const response = await fetch(`${API_BASE_URL}/api${path}`);
     if (!response.ok) {
       const body = (await safeJson(response)) as Partial<ApiErrorBody> | null;
       throw new ApiError(
@@ -1366,7 +1366,7 @@ export const api = {
   },
 
   post: async <T>(path: string, body?: Record<string, unknown>): Promise<{ data: T }> => {
-    const response = await fetch(`${API_BASE_URL}${path}`, {
+    const response = await fetch(`${API_BASE_URL}/api${path}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -1386,7 +1386,7 @@ export const api = {
   },
 
   patch: async <T>(path: string, body?: Record<string, unknown>): Promise<{ data: T }> => {
-    const response = await fetch(`${API_BASE_URL}${path}`, {
+    const response = await fetch(`${API_BASE_URL}/api${path}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',

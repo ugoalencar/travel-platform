@@ -64,7 +64,7 @@ export function ReceivablesPage() {
     Promise.all([listReceivables(), listCustomers()])
       .then(([receivables, customers]) => setState({ status: 'success', receivables, customers }))
       .catch((err: unknown) => {
-        const message = err instanceof ApiError ? err.message : 'Nao foi possivel carregar as contas a receber.';
+        const message = err instanceof ApiError ? err.message : 'Não foi possível carregar as contas a receber.';
         setState({ status: 'error', message });
       });
   }, []);
@@ -118,7 +118,7 @@ export function ReceivablesPage() {
       setPaymentForm(emptyPaymentForm);
       load();
     } catch (err: unknown) {
-      setFormError(err instanceof ApiError ? err.message : 'Nao foi possivel registrar o recebimento.');
+      setFormError(err instanceof ApiError ? err.message : 'Não foi possível registrar o recebimento.');
     } finally {
       setSubmitting(false);
     }
@@ -145,7 +145,7 @@ export function ReceivablesPage() {
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />
         <Input
           id="receivables-search"
-          placeholder="Buscar por cliente ou descricao"
+          placeholder="Buscar por cliente ou descrição"
           value={search}
           onChange={(event) => setSearch(event.target.value)}
           className="pl-9"
@@ -165,7 +165,7 @@ export function ReceivablesPage() {
                 <thead className="border-b bg-slate-50">
                   <tr>
                     <th className="px-4 py-3 text-left font-medium text-slate-700">Cliente</th>
-                    <th className="px-4 py-3 text-left font-medium text-slate-700">Descricao</th>
+                    <th className="px-4 py-3 text-left font-medium text-slate-700">Descrição</th>
                     <th className="px-4 py-3 text-right font-medium text-slate-700">Valor</th>
                     <th className="px-4 py-3 text-left font-medium text-slate-700">Vencimento</th>
                     <th className="px-4 py-3 text-left font-medium text-slate-700">Status</th>
@@ -174,7 +174,7 @@ export function ReceivablesPage() {
                 </thead>
                 <tbody className="divide-y">
                   {filtered.map((receivable) => {
-                    const customerName = customerNames.get(receivable.customerId) ?? 'Cliente nao identificado';
+                    const customerName = customerNames.get(receivable.customerId) ?? 'Cliente não identificado';
                     return (
                       <tr key={receivable.id} className="hover:bg-slate-50">
                         <td className="px-4 py-3 font-medium text-slate-900">{customerName}</td>
@@ -258,16 +258,16 @@ export function ReceivablesPage() {
             />
           </div>
           <div>
-            <label htmlFor="received-method" className="mb-1 block text-sm font-medium text-slate-700">Metodo de pagamento</label>
+            <label htmlFor="received-method" className="mb-1 block text-sm font-medium text-slate-700">Método de pagamento</label>
             <Input
               id="received-method"
               value={paymentForm.method}
               onChange={(event) => setPaymentForm({ ...paymentForm, method: event.target.value })}
-              placeholder="PIX, cartao, transferencia"
+              placeholder="PIX, cartão, transferência"
             />
           </div>
           <div>
-            <label htmlFor="received-notes" className="mb-1 block text-sm font-medium text-slate-700">Observacoes</label>
+            <label htmlFor="received-notes" className="mb-1 block text-sm font-medium text-slate-700">Observações</label>
             <Textarea
               id="received-notes"
               value={paymentForm.notes}

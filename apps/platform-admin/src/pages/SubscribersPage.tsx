@@ -20,6 +20,12 @@ interface SubscriberWithSubscription extends Subscriber {
   };
 }
 
+const STATUS_LABELS: Record<Subscriber['status'], string> = {
+  ACTIVE: 'Ativo',
+  SUSPENDED: 'Suspenso',
+  INACTIVE: 'Inativo',
+};
+
 export function SubscribersPage() {
   const [subscribers, setSubscribers] = useState<SubscriberWithSubscription[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,11 +41,11 @@ export function SubscribersPage() {
     try {
       setLoading(true);
       const response = await fetch('/api/platform/subscribers');
-      if (!response.ok) throw new Error('Nao foi possivel carregar os assinantes');
+      if (!response.ok) throw new Error('Não foi possível carregar os assinantes');
       const data = (await response.json()) as { subscribers?: SubscriberWithSubscription[] };
       setSubscribers(data.subscribers || []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Nao foi possivel carregar os assinantes');
+      setError(err instanceof Error ? err.message : 'Não foi possível carregar os assinantes');
     } finally {
       setLoading(false);
     }
@@ -64,7 +70,7 @@ export function SubscribersPage() {
   return (
     <div>
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Agencias Assinantes</h1>
+        <h1 className="text-3xl font-bold">Agências Assinantes</h1>
         <input
           type="text"
           placeholder="Buscar por nome ou email..."
@@ -108,7 +114,7 @@ export function SubscribersPage() {
               <p className="text-sm text-gray-600">Status</p>
               <p>
                 <span className={`${statusColors[selectedSubscriber.status]} px-2 py-1 rounded text-sm font-medium`}>
-                  {selectedSubscriber.status}
+                  {STATUS_LABELS[selectedSubscriber.status]}
                 </span>
               </p>
             </div>
@@ -132,12 +138,12 @@ export function SubscribersPage() {
         <table className="w-full">
           <thead className="bg-gray-50 border-b">
             <tr>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Agencia</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Agência</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Email</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Cidade</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Status</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Desde</th>
-              <th className="px-6 py-3 text-right text-sm font-semibold text-gray-900">Acoes</th>
+              <th className="px-6 py-3 text-right text-sm font-semibold text-gray-900">Ações</th>
             </tr>
           </thead>
           <tbody className="divide-y">
@@ -155,7 +161,7 @@ export function SubscribersPage() {
                   <td className="px-6 py-4 text-sm">{subscriber.city || '-'}</td>
                   <td className="px-6 py-4">
                     <span className={`${statusColors[subscriber.status]} px-2 py-1 rounded text-sm font-medium`}>
-                      {subscriber.status}
+                      {STATUS_LABELS[subscriber.status]}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-sm">

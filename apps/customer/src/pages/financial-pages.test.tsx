@@ -161,7 +161,7 @@ describe('FinancialPage', () => {
       expect(screen.getByText('Pacote Cancun')).toBeInTheDocument();
     });
     expect(screen.getByText('R$ 1.000,00')).toBeInTheDocument();
-    expect(screen.getByText('Em aberto')).toBeInTheDocument();
+    expect(screen.getByText('Aberto')).toBeInTheDocument();
   });
 
   it('shows overdue alert for past-due receivables', async () => {
@@ -173,7 +173,7 @@ describe('FinancialPage', () => {
     vi.mocked(listReceivables).mockResolvedValue([overdue]);
     renderPage(<FinancialPage />);
     await waitFor(() => {
-      expect(screen.getByText(/recebivel\(is\) vencido\(s\)/)).toBeInTheDocument();
+      expect(screen.getByText(/recebível\(is\) vencido\(s\)/)).toBeInTheDocument();
     });
   });
 
@@ -182,7 +182,7 @@ describe('FinancialPage', () => {
     vi.mocked(listReceivables).mockResolvedValue([]);
     renderPage(<FinancialPage />);
     await waitFor(() => {
-      expect(screen.getByText('Nenhum recebivel encontrado.')).toBeInTheDocument();
+      expect(screen.getByText('Nenhum recebível encontrado.')).toBeInTheDocument();
     });
   });
 
@@ -207,7 +207,7 @@ describe('FinancialPage', () => {
     screen.getByText('Pacote Bali').closest('tr')!.click();
     await waitFor(() => {
       expect(screen.getByText('Valor original:')).toBeInTheDocument();
-      expect(screen.getByText('Ja pago:')).toBeInTheDocument();
+      expect(screen.getByText('Já pago:')).toBeInTheDocument();
       expect(screen.getByText('Saldo restante:')).toBeInTheDocument();
     });
     expect(screen.getAllByText('R$ 2.000,00').length).toBeGreaterThanOrEqual(1);
@@ -238,14 +238,14 @@ describe('PayablesPage', () => {
       expect(screen.getByText('Hotel Fornecedor')).toBeInTheDocument();
     });
     expect(screen.getByText('R$ 800,00')).toBeInTheDocument();
-    expect(screen.getAllByText('Em aberto').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Aberto').length).toBeGreaterThanOrEqual(1);
   });
 
   it('shows empty state', async () => {
     vi.mocked(listPayables).mockResolvedValue([]);
     renderPage(<PayablesPage />, ['/financial/payables']);
     await waitFor(() => {
-      expect(screen.getByText('Nenhum payable encontrado.')).toBeInTheDocument();
+      expect(screen.getByText('Nenhuma conta a pagar encontrada.')).toBeInTheDocument();
     });
   });
 
@@ -258,7 +258,7 @@ describe('PayablesPage', () => {
     const paidFilter = screen.getByRole('button', { name: 'Pago' });
     paidFilter.click();
     await waitFor(() => {
-      expect(screen.getByText('Nenhum payable encontrado.')).toBeInTheDocument();
+      expect(screen.getByText('Nenhuma conta a pagar encontrada.')).toBeInTheDocument();
     });
   });
 
@@ -311,7 +311,7 @@ describe('OperationalCostsPage', () => {
     await waitFor(() => {
       expect(screen.getByText('Taxa airport')).toBeInTheDocument();
     });
-    expect(screen.getByText('TRANSPORT')).toBeInTheDocument();
+    expect(screen.getByText('Transporte')).toBeInTheDocument();
     expect(screen.getByText('R$ 150,00')).toBeInTheDocument();
     expect(screen.getByText('R$ 160,00')).toBeInTheDocument();
   });

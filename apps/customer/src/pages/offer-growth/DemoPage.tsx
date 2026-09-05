@@ -86,7 +86,7 @@ export function OfferGrowthDemoPage() {
     try {
       const campaign = await createCampaign({
         name: 'CANCUN SETEMBRO (DEMO)',
-        description: 'Campanha demo para validar Offer & Growth E2E.',
+        description: 'Campanha demo para validar Ofertas e crescimento E2E.',
         startsAt: '2026-09-01T00:00:00.000Z',
         endsAt: '2026-09-30T23:59:59.000Z',
         publicationStartsAt: '2026-09-01T00:00:00.000Z',

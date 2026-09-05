@@ -4,53 +4,53 @@ import { ArrowRight, CheckCircle } from 'lucide-react';
 export function LandingPage() {
   return (
     <div className="bg-white">
-      {/* Navigation */}
-      <nav className="flex justify-between items-center px-8 py-4 border-b">
+      {/* Navegação */}
+      <nav className="flex flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-8 border-b">
         <h1 className="text-2xl font-bold text-blue-600">Travel Platform</h1>
-        <div className="flex gap-6">
-          <Link to="/pricing" className="text-gray-700 hover:text-blue-600">Pricing</Link>
-          <button className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
-            Get Started
+        <div className="flex flex-wrap items-center gap-4 sm:gap-6">
+          <Link to="/pricing" className="text-gray-700 hover:text-blue-600">Preços</Link>
+          <button className="bg-blue-600 text-white px-4 py-2 sm:px-6 rounded-lg hover:bg-blue-700">
+            Começar agora
           </button>
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="px-8 py-20 text-center">
-        <h2 className="text-5xl font-bold mb-6 text-gray-900">
-          Manage Your Travel Agency with Ease
+      {/* Hero */}
+      <section className="px-4 py-16 text-center sm:px-8 sm:py-20">
+        <h2 className="text-4xl font-bold mb-6 text-gray-900 sm:text-5xl">
+          Gerencie sua agência de viagens com facilidade
         </h2>
         <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-          A comprehensive SaaS platform for travel agencies to manage bookings, customers, and operations in one place.
+          Uma plataforma SaaS completa para agências controlarem reservas, clientes e operações em um só lugar.
         </p>
         <button className="bg-blue-600 text-white px-8 py-4 rounded-lg hover:bg-blue-700 flex items-center gap-2 mx-auto">
-          Start Free Trial
+          Iniciar teste grátis
           <ArrowRight size={20} />
         </button>
       </section>
 
-      {/* Features Section */}
-      <section className="px-8 py-20 bg-gray-50">
-        <h2 className="text-4xl font-bold mb-12 text-center">Powerful Features</h2>
-        <div className="grid grid-cols-3 gap-8 max-w-6xl mx-auto">
-          <FeatureCard title="Customer Management" desc="Organize and track all your customers in one place" />
-          <FeatureCard title="Booking System" desc="Streamline travel bookings with our intuitive interface" />
-          <FeatureCard title="Financial Reports" desc="Get detailed insights into your revenue and expenses" />
+      {/* Recursos */}
+      <section className="px-4 py-16 bg-gray-50 sm:px-8 sm:py-20">
+        <h2 className="text-3xl font-bold mb-10 text-center sm:text-4xl sm:mb-12">Recursos poderosos</h2>
+        <div className="grid gap-6 max-w-6xl mx-auto md:grid-cols-3 md:gap-8">
+          <FeatureCard title="Gestão de clientes" desc="Organize e acompanhe todos os clientes em um só lugar" />
+          <FeatureCard title="Sistema de reservas" desc="Simplifique reservas de viagem com uma interface intuitiva" />
+          <FeatureCard title="Relatórios financeiros" desc="Veja detalhes de receitas, despesas e desempenho" />
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="px-8 py-20 text-center bg-blue-600 text-white">
-        <h2 className="text-4xl font-bold mb-6">Ready to Transform Your Agency?</h2>
-        <p className="text-lg mb-8">Join hundreds of travel agencies using our platform.</p>
+      {/* Chamada final */}
+      <section className="px-4 py-16 text-center bg-blue-600 text-white sm:px-8 sm:py-20">
+        <h2 className="text-3xl font-bold mb-6 sm:text-4xl">Pronto para transformar sua agência?</h2>
+        <p className="text-lg mb-8">Junte-se a agências de viagens que já usam nossa plataforma.</p>
         <button className="bg-white text-blue-600 px-8 py-4 rounded-lg font-semibold hover:bg-gray-100">
-          Start Your Free Trial Today
+          Comece seu teste grátis hoje
         </button>
       </section>
 
-      {/* Footer */}
+      {/* Rodapé */}
       <footer className="bg-gray-900 text-white px-8 py-8 text-center">
-        <p>&copy; 2025 Travel Platform. All rights reserved.</p>
+        <p>&copy; 2025 Travel Platform. Todos os direitos reservados.</p>
       </footer>
     </div>
   );

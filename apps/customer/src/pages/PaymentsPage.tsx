@@ -21,7 +21,7 @@ const dateFormatter = new Intl.DateTimeFormat('pt-BR', {
 
 const DIRECTION_LABELS: Record<string, string> = {
   IN: 'Entrada',
-  OUT: 'Saida',
+  OUT: 'Saída',
 };
 
 const DIRECTION_STYLES: Record<string, string> = {
@@ -50,7 +50,7 @@ export function PaymentsPage() {
         const message =
           error instanceof ApiError
             ? error.message
-            : 'Nao foi possivel carregar os pagamentos.';
+            : 'Não foi possível carregar os pagamentos.';
         setState({ status: 'error', message });
       });
 
@@ -91,7 +91,7 @@ export function PaymentsPage() {
           Pagamentos
         </h1>
         <p className="text-sm text-slate-500">
-          Entradas e saidas de recursos financeiros.
+          Entradas e saídas de recursos financeiros.
         </p>
       </div>
 
@@ -139,9 +139,9 @@ export function PaymentsPage() {
                     <th className="px-4 py-3">Tipo</th>
                     <th className="px-4 py-3">Data</th>
                     <th className="px-4 py-3">Valor</th>
-                    <th className="px-4 py-3">Metodo</th>
-                    <th className="px-4 py-3">Referencia</th>
-                    <th className="px-4 py-3">Alocacoes</th>
+                    <th className="px-4 py-3">Método</th>
+                    <th className="px-4 py-3">Referência</th>
+                    <th className="px-4 py-3">Alocações</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -177,15 +177,15 @@ export function PaymentsPage() {
                         <tr key={`${payment.id}-alloc`}>
                           <td colSpan={6} className="px-4 py-3 bg-slate-50">
                             {loadingAllocations ? (
-                              <p className="text-xs text-slate-500">Carregando alocacoes...</p>
+                              <p className="text-xs text-slate-500">Carregando alocações...</p>
                             ) : allocations.length === 0 ? (
-                              <p className="text-xs text-slate-500">Nenhuma alocacao vinculada.</p>
+                              <p className="text-xs text-slate-500">Nenhuma alocação vinculada.</p>
                             ) : (
                               <div className="flex flex-col gap-1">
-                                <p className="text-xs font-medium text-slate-600">Alocacoes:</p>
+                                <p className="text-xs font-medium text-slate-600">Alocações:</p>
                                 {allocations.map((alloc) => (
                                   <div key={alloc.id} className="flex gap-4 text-xs text-slate-600">
-                                    <span>{alloc.receivableId ? `Recebivel` : `Payable`}</span>
+                                    <span>{alloc.receivableId ? 'Recebível' : 'Conta a pagar'}</span>
                                     <span className="font-medium">{formatCurrency(alloc.amount)}</span>
                                   </div>
                                 ))}

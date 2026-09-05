@@ -1,15 +1,15 @@
 #!/usr/bin/env node
 /**
- * Travel Platform — Tenant-Level Demo Data Seeder
+ * Travel Platform — seed de dados de demonstração do tenant
  *
- * Populates a single agency (Alpha Viagens) with realistic end-to-end demo data:
- * - Customers with documents and dependents
- * - Travel wishes and desires
- * - Offers (catalog)
- * - Proposals and sales
- * - Trips and operations
- * - Financial records (revenues, expenses, receivables, payables)
- * - Campaigns and interactions
+ * Popula uma agência (Alpha Viagens) com dados realistas de demonstração E2E:
+ * - Clientes com documentos e dependentes
+ * - Desejos e preferências de viagem
+ * - Ofertas (catálogo)
+ * - Propostas e vendas
+ * - Viagens e operações
+ * - Registros financeiros (receitas, despesas, recebíveis, contas a pagar)
+ * - Campanhas e interações
  */
 
 const { Pool } = require('pg');
@@ -23,7 +23,7 @@ const localDevAgencyId = '10000000-0000-4000-8000-000000000001';
 
 // Safety guards: refuse to run against non-dev/non-local DB
 if (process.env.NODE_ENV === 'production') {
-  console.error('❌ ERROR: Cannot seed production database.\n');
+  console.error('❌ ERRO: Não é permitido executar seed no banco de produção.\n');
   process.exit(1);
 }
 
@@ -33,12 +33,12 @@ try {
   const isDev = url.pathname.includes('test') || url.pathname.includes('dev');
 
   if (!isLocal || !isDev) {
-    console.error('❌ ERROR: Database URL is not a local test/dev database.\n');
+    console.error('❌ ERRO: DATABASE_URL não aponta para um banco local de teste/dev.\n');
     console.error(`   URL: ${databaseUrl}\n`);
     process.exit(1);
   }
 } catch {
-  console.error('❌ ERROR: Invalid DATABASE_URL.\n');
+  console.error('❌ ERRO: DATABASE_URL inválida.\n');
   process.exit(1);
 }
 
@@ -56,80 +56,92 @@ function relationshipType(value) {
 
 async function seedTenantData() {
   console.log('\n========================================');
-  console.log('Seeding Tenant-Level Demo Data');
+  console.log('Populando dados de demonstração do tenant');
   console.log('========================================\n');
 
   try {
-    // Get the first agency (Alpha Viagens) - should already exist from platform seed
-    console.log('0. Fetching demo agency...');
+    // Busca a primeira agência (Alpha Viagens), que já deve existir pelo seed da plataforma.
+    console.log('0. Buscando agência de demonstração...');
     const agency = await fetchDemoAgency();
     if (!agency) {
-      throw new Error('Demo agency not found. Run seed-platform-demo-data.cjs first.');
+      throw new Error('Agência de demonstração não encontrada. Execute seed-platform-demo-data.cjs primeiro.');
     }
-    console.log(`   ✓ Using agency: ${agency.name} (${agency.id})\n`);
+    console.log(`   ✓ Usando agência: ${agency.name} (${agency.id})\n`);
 
-    // Get subscriber tenant for this agency
-    console.log('1. Fetching subscriber tenant...');
+    // Busca o tenant assinante desta agência.
+    console.log('1. Buscando tenant assinante...');
     const tenant = await fetchSubscriberTenant(agency.id);
     if (!tenant) {
-      throw new Error('Subscriber tenant not found for demo agency.');
+      throw new Error('Tenant assinante não encontrado para a agência de demonstração.');
     }
     console.log(`   ✓ Tenant: ${tenant.id}\n`);
 
-    console.log('2. Creating Agency Users...');
+    console.log('2. Criando usuários da agência...');
     const agencyUsers = await seedAgencyUsers(agency.id);
 
-    console.log('3. Creating Customers...');
+    console.log('3. Criando clientes...');
     const customers = await seedCustomers(agency.id);
 
-    console.log('3.1 Creating Deterministic Business Stories...');
+    console.log('3.1 Criando histórias de negócio determinísticas...');
     await seedBusinessStories(pool, { agencyId: agency.id, userId: agencyUsers[0].id });
 
-    console.log('4. Creating Wishes...');
+    console.log('4. Criando desejos...');
     await seedWishes(agency.id, customers);
 
-    console.log('5. Creating Offers (Catalog)...');
+    console.log('5. Criando ofertas (catálogo)...');
     const offers = await seedOffers(agency.id);
 
-    console.log('6. Creating External Offer Captures (Pescador)...');
+    console.log('6. Criando capturas externas de ofertas (Pescador)...');
     await seedExternalCaptures(agency.id);
 
-    console.log('7. Creating Proposals...');
+    console.log('7. Criando propostas...');
     const proposals = await seedProposals(agency.id, customers, offers, agencyUsers[0].id);
 
-    console.log('8. Creating Sales...');
+    console.log('8. Criando vendas...');
     const sales = await seedSales(agency.id, proposals, customers, agencyUsers[0].id);
 
-    console.log('9. Creating Trips...');
+    console.log('9. Criando viagens...');
     await seedTrips(agency.id, sales);
 
-    console.log('10. Creating Financial Records (Revenues)...');
+    console.log('10. Criando registros financeiros (receitas)...');
     await seedRevenues(agency.id, sales);
 
-    console.log('11. Creating Financial Records (Expenses)...');
+    console.log('11. Criando registros financeiros (despesas)...');
     await seedExpenses(agency.id);
 
-    console.log('12. Creating Financial Records (Receivables)...');
+    console.log('12. Criando registros financeiros (recebíveis)...');
     await seedReceivables(agency.id, sales);
 
-    console.log('13. Creating Financial Records (Payables)...');
+    console.log('13. Criando registros financeiros (contas a pagar)...');
     await seedPayables(agency.id);
 
-    console.log('14. Creating Campaigns...');
+    console.log('13b. Habilitando permissões da plataforma...');
+    await seedEntitlements(agency.id);
+
+    console.log('14. Criando campanhas...');
     await seedCampaigns(agency.id, agencyUsers[0].id);
 
-    console.log('15. Creating Customer Interactions...');
+    console.log('15. Criando interações com clientes...');
     await seedInteractions(agency.id, customers, agencyUsers[0].id);
 
-    console.log('16. Creating Bookings...');
+    console.log('16. Criando reservas...');
     await seedBookings(agency.id, customers);
 
-    console.log('\n17. Verifying tenant data...');
+    console.log('17. Criando movimentações de caixa...');
+    await seedCashTransactions(agency.id);
+
+    console.log('18. Criando conciliações...');
+    await seedReconciliations(agency.id);
+
+    console.log('19. Criando documentos de clientes...');
+    await seedCustomerDocuments(agency.id, customers);
+
+    console.log('\n20. Verificando dados do tenant...');
     await verifyTenantData(agency.id);
 
-    console.log('\n✅ TENANT SEEDING COMPLETE\n');
+    console.log('\n✅ SEED DO TENANT CONCLUÍDO\n');
   } catch (error) {
-    console.error('\n❌ Seeding failed:', error.message);
+    console.error('\n❌ Falha no seed:', error.message);
     process.exit(1);
   } finally {
     await pool.end();
@@ -382,7 +394,7 @@ async function seedCustomers(agencyId) {
         [agencyId, customerData.email]
       );
       if (!existingCustomer.rows[0]?.id) {
-        console.log(`   Skipped duplicate customer seed: ${customerData.name}`);
+        console.log(`   Seed de cliente duplicado ignorado: ${customerData.name}`);
         continue;
       }
       customerId = existingCustomer.rows[0].id;
@@ -447,7 +459,7 @@ async function seedWishes(agencyId, customers) {
     result.push({ id: wishId, destination: wish.destination });
   }
 
-  console.log(`   ✓ Created ${result.length} wishes`);
+  console.log(`   ✓ ${result.length} desejos criados`);
   return result;
 }
 
@@ -585,7 +597,7 @@ async function seedExternalCaptures(agencyId) {
     );
   }
 
-  console.log(`   ✓ Created ${captures.length} external captures`);
+  console.log(`   ✓ ${captures.length} capturas externas criadas`);
 }
 
 async function seedProposals(agencyId, customers, offers, userId) {
@@ -674,7 +686,7 @@ async function seedRevenues(agencyId, sales) {
     );
   }
 
-  console.log(`   ✓ Created ${revenueCount} revenue records`);
+  console.log(`   ✓ ${revenueCount} registros de receita criados`);
 }
 
 async function seedExpenses(agencyId) {
@@ -692,7 +704,7 @@ async function seedExpenses(agencyId) {
     );
   }
 
-  console.log(`   ✓ Created 15 expense records`);
+  console.log('   ✓ 15 registros de despesa criados');
 }
 
 async function seedReceivables(agencyId, sales) {
@@ -711,7 +723,7 @@ async function seedReceivables(agencyId, sales) {
     );
   }
 
-  console.log(`   ✓ Created receivables for ${Math.floor(sales.length * 0.8)} sales`);
+  console.log(`   ✓ Recebíveis criados para ${Math.floor(sales.length * 0.8)} vendas`);
 }
 
 async function seedPayables(agencyId) {
@@ -731,7 +743,94 @@ async function seedPayables(agencyId) {
     );
   }
 
-  console.log(`   ✓ Created 12 payable records`);
+  console.log('   ✓ 12 contas a pagar criadas');
+}
+
+async function seedCashTransactions(agencyId) {
+  const types = ['ENTRY', 'EXIT', 'ENTRY', 'ENTRY', 'EXIT', 'ADJUSTMENT'];
+  let balance = 15000;
+
+  for (let i = 0; i < types.length; i++) {
+    const type = types[i];
+    const amount = type === 'ADJUSTMENT' ? 50 + Math.random() * 200 : 500 + Math.random() * 3000;
+    const signedDelta = type === 'EXIT' ? -amount : amount;
+    balance += signedDelta;
+    const occurringAt = new Date(Date.now() - (types.length - i) * 24 * 60 * 60 * 1000);
+
+    await pool.query(
+      `INSERT INTO cash_transactions (id, agency_id, type, amount, occurring_at, origin, calculated_balance, notes, created_at)
+       VALUES ($1, $2, $3, $4, $5, 'MANUAL', $6, $7, NOW()) ON CONFLICT DO NOTHING`,
+      [generateId(), agencyId, type, amount, occurringAt, balance, `Movimentação demo #${i + 1}`]
+    );
+  }
+
+  console.log(`   ✓ ${types.length} movimentações de caixa criadas`);
+}
+
+async function seedReconciliations(agencyId) {
+  const statuses = ['RECONCILED', 'RECONCILED', 'NOT_RECONCILED'];
+
+  for (let i = 0; i < statuses.length; i++) {
+    const status = statuses[i];
+    const expected = 1000 + Math.random() * 4000;
+    const actual = status === 'RECONCILED' ? expected : expected - (50 + Math.random() * 200);
+    const reconciliationDate = new Date(Date.now() - (statuses.length - i) * 5 * 24 * 60 * 60 * 1000);
+
+    await pool.query(
+      `INSERT INTO reconciliations (id, agency_id, reconciliation_date, expected_amount, actual_amount, status, notes, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW()) ON CONFLICT DO NOTHING`,
+      [generateId(), agencyId, reconciliationDate, expected, actual, status, `Conciliação demo #${i + 1}`]
+    );
+  }
+
+  console.log(`   ✓ ${statuses.length} conciliações criadas`);
+}
+
+async function seedCustomerDocuments(agencyId, customers) {
+  const docTypes = ['PASSAPORTE', 'RG', 'CPF'];
+  let count = 0;
+
+  for (let i = 0; i < Math.min(customers.length, 8); i++) {
+    const customer = customers[i];
+    const documentType = docTypes[i % docTypes.length];
+    const verificationStatus = i % 4 === 0 ? 'PENDING' : 'VERIFIED';
+
+    await pool.query(
+      `INSERT INTO customer_documents
+         (id, agency_id, customer_id, document_type, document_number, holder_name,
+          issuing_country, issued_date, expiry_date, verification_status, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, 'BR', $7, $8, $9, NOW(), NOW()) ON CONFLICT DO NOTHING`,
+      [
+        generateId(),
+        agencyId,
+        customer.id,
+        documentType,
+        `DEMO-${String(1000 + i)}`,
+        customer.name,
+        new Date(Date.now() - 3 * 365 * 24 * 60 * 60 * 1000),
+        new Date(Date.now() + 5 * 365 * 24 * 60 * 60 * 1000),
+        verificationStatus,
+      ]
+    );
+    count += 1;
+  }
+
+  console.log(`   ✓ ${count} documentos de clientes criados`);
+}
+
+async function seedEntitlements(agencyId) {
+  const features = ['PESCADOR', 'CAMPAIGNS', 'CREATIVE_STUDIO', 'SOCIAL_PUBLISHING'];
+
+  for (const feature of features) {
+    await pool.query(
+      `INSERT INTO agency_entitlements (agency_id, feature, enabled, limits, updated_by)
+       VALUES ($1, $2, true, '{}', 'demo-seed')
+       ON CONFLICT (agency_id, feature) DO UPDATE SET enabled = true`,
+      [agencyId, feature]
+    );
+  }
+
+  console.log(`   ✓ Permissões habilitadas: ${features.join(', ')}`);
 }
 
 async function getOrCreateFinancialCategory(agencyId, name, type) {
@@ -787,7 +886,7 @@ async function seedInteractions(agencyId, customers, userId) {
     );
   }
 
-  console.log(`   ✓ Created 20 customer interactions`);
+  console.log('   ✓ 20 interações com clientes criadas');
 }
 
 async function seedBookings(agencyId, customers) {
@@ -800,7 +899,7 @@ async function seedBookings(agencyId, customers) {
   );
 
   if (departures.rows.length === 0) {
-    console.log('   No scheduled departures found; skipped bookings');
+    console.log('   Nenhuma saída programada encontrada; reservas ignoradas');
     return;
   }
 
@@ -814,20 +913,20 @@ async function seedBookings(agencyId, customers) {
       [bookingId, agencyId, customer.id, departure.id]
     );
 
-    console.log('   ✓ Booking: ONE_WAY');
+    console.log('   ✓ Reserva: ida');
   }
 }
 
 async function verifyTenantData(agencyId) {
   const queries = [
-    ['Customers', 'SELECT COUNT(*) as count FROM customers WHERE agency_id = $1'],
-    ['Wishes', 'SELECT COUNT(*) as count FROM wishes WHERE agency_id = $1'],
-    ['Offers', 'SELECT COUNT(*) as count FROM offers WHERE agency_id = $1'],
-    ['Proposals', 'SELECT COUNT(*) as count FROM proposals WHERE agency_id = $1'],
-    ['Sales', 'SELECT COUNT(*) as count FROM sales WHERE agency_id = $1'],
-    ['Trips', 'SELECT COUNT(*) as count FROM trips WHERE agency_id = $1'],
-    ['Campaigns', 'SELECT COUNT(*) as count FROM campaigns WHERE agency_id = $1'],
-    ['Bookings', 'SELECT COUNT(*) as count FROM bookings WHERE agency_id = $1'],
+    ['Clientes', 'SELECT COUNT(*) as count FROM customers WHERE agency_id = $1'],
+    ['Desejos', 'SELECT COUNT(*) as count FROM wishes WHERE agency_id = $1'],
+    ['Ofertas', 'SELECT COUNT(*) as count FROM offers WHERE agency_id = $1'],
+    ['Propostas', 'SELECT COUNT(*) as count FROM proposals WHERE agency_id = $1'],
+    ['Vendas', 'SELECT COUNT(*) as count FROM sales WHERE agency_id = $1'],
+    ['Viagens', 'SELECT COUNT(*) as count FROM trips WHERE agency_id = $1'],
+    ['Campanhas', 'SELECT COUNT(*) as count FROM campaigns WHERE agency_id = $1'],
+    ['Reservas', 'SELECT COUNT(*) as count FROM bookings WHERE agency_id = $1'],
   ];
 
   for (const [label, sql] of queries) {

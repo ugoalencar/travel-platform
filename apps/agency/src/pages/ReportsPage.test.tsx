@@ -144,7 +144,7 @@ describe('ReportsPage', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText(/Voce nao tem permissao/i),
+        screen.getByText(/Você não tem permissão/i),
       ).toBeInTheDocument();
     });
   });

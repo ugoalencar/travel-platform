@@ -17,7 +17,7 @@ export function EntitlementNotice({ feature }: { feature?: string }) {
 export function TestChannelBadge() {
   return (
     <span className="inline-flex items-center rounded-full border border-fuchsia-300 bg-fuchsia-50 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-fuchsia-700">
-      Teste / Demo
+      Teste / Demonstração
     </span>
   );
 }

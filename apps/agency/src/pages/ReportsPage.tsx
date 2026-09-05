@@ -83,9 +83,9 @@ export function ReportsPage() {
           if (httpErr.status === 429) {
             setError('Limite de requisicoes excedido. Tente novamente em alguns instantes.');
           } else if (httpErr.status === 403) {
-            setError('Voce nao tem permissao para ver estes relatorios.');
+            setError('Você não tem permissão para ver estes relatórios.');
           } else {
-            setError(httpErr.data?.message || 'Nao foi possivel carregar os relatorios.');
+            setError(httpErr.data?.message || 'Não foi possível carregar os relatórios.');
           }
         } else {
           setError('Ocorreu um erro inesperado.');

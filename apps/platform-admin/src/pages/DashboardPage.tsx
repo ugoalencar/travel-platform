@@ -52,7 +52,7 @@ export function DashboardPage() {
           fetch('/api/platform/analytics/plan-distribution'),
         ]);
 
-        if (!metricsRes.ok) throw new Error('Nao foi possivel carregar as metricas');
+        if (!metricsRes.ok) throw new Error('Não foi possível carregar as métricas');
         const metricsData = (await metricsRes.json()) as { metrics: FinancialMetrics };
         setMetrics(metricsData.metrics);
 
@@ -76,7 +76,7 @@ export function DashboardPage() {
           setPlanDist(distData.data || []);
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Nao foi possivel carregar os dados');
+        setError(err instanceof Error ? err.message : 'Não foi possível carregar os dados');
       } finally {
         setLoading(false);
       }

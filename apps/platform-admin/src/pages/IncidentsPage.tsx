@@ -10,11 +10,25 @@ interface Incident {
   resolvedAt?: string;
 }
 
+const STATUS_LABELS: Record<Incident['status'], string> = {
+  INVESTIGATING: 'Investigando',
+  IDENTIFIED: 'Identificado',
+  MONITORING: 'Monitorando',
+  RESOLVED: 'Resolvido',
+};
+
+const SEVERITY_LABELS: Record<Incident['severity'], string> = {
+  LOW: 'Baixa',
+  MEDIUM: 'Média',
+  HIGH: 'Alta',
+  CRITICAL: 'Crítica',
+};
+
 export function IncidentsPage() {
   const [incidents] = useState<Incident[]>([
     {
       id: '1',
-      title: 'Pico de latencia na API',
+      title: 'Pico de latência na API',
       status: 'RESOLVED',
       severity: 'HIGH',
       affectedSystems: ['API', 'Banco de dados'],
@@ -23,7 +37,7 @@ export function IncidentsPage() {
     },
     {
       id: '2',
-      title: 'Problemas de conexao com Redis',
+      title: 'Problemas de conexão com Redis',
       status: 'MONITORING',
       severity: 'MEDIUM',
       affectedSystems: ['Cache'],
@@ -53,11 +67,11 @@ export function IncidentsPage() {
         <table className="w-full">
           <thead className="bg-gray-50 border-b">
             <tr>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Titulo</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Título</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Status</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Severidade</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Sistemas</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Inicio</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Início</th>
             </tr>
           </thead>
           <tbody className="divide-y">
@@ -66,12 +80,12 @@ export function IncidentsPage() {
                 <td className="px-6 py-4 text-sm font-medium">{incident.title}</td>
                 <td className="px-6 py-4">
                   <span className={`px-2 py-1 rounded text-xs font-semibold ${statusColors[incident.status]}`}>
-                    {incident.status}
+                    {STATUS_LABELS[incident.status]}
                   </span>
                 </td>
                 <td className="px-6 py-4">
                   <span className={`px-2 py-1 rounded text-xs font-semibold ${severityColors[incident.severity]}`}>
-                    {incident.severity}
+                    {SEVERITY_LABELS[incident.severity]}
                   </span>
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-600">

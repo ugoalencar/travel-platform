@@ -232,7 +232,7 @@ export function ProposalDetailPage() {
           </Button>
           <Button variant="outline" disabled>
             <Eye className="h-4 w-4" />
-            Preview
+            Prévia
           </Button>
           <Button variant="outline" disabled>
             <Send className="h-4 w-4" />

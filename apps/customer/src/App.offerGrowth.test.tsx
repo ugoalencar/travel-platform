@@ -33,17 +33,17 @@ describe('Offer & Growth routing', () => {
 
   it('renders the Creative Studio editor at /offer-growth/studio', async () => {
     renderApp(['/offer-growth/studio']);
-    expect(await screen.findByRole('heading', { name: 'Creative Studio' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Estúdio criativo' })).toBeInTheDocument();
   });
 
   it('renders a distinct Template Library at /offer-growth/templates', async () => {
     renderApp(['/offer-growth/templates']);
-    expect(await screen.findByRole('heading', { name: 'Templates de criativo' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Modelos de criativo' })).toBeInTheDocument();
   });
 
   it('renders a distinct Asset Library at /offer-growth/assets', async () => {
     renderApp(['/offer-growth/assets']);
-    expect(await screen.findByRole('heading', { name: 'Biblioteca de assets' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Biblioteca de arquivos' })).toBeInTheDocument();
   });
 
   it('renders a distinct Campaigns screen at /offer-growth/campaigns', async () => {
@@ -68,7 +68,7 @@ describe('Offer & Growth routing', () => {
 
   it('redirects /offer-growth/editor into the studio editor, preserving query params', async () => {
     renderApp(['/offer-growth/editor?templateId=tpl-x']);
-    expect(await screen.findByRole('heading', { name: 'Creative Studio' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Estúdio criativo' })).toBeInTheDocument();
   });
 
   it('keeps the Cancun demo as a clearly labeled, separate demo entry point at /offer-growth/demo', async () => {

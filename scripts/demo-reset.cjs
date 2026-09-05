@@ -1,15 +1,15 @@
 #!/usr/bin/env node
 /**
- * Demo Reset Script - Resets demo database to pristine state.
+ * Script de reset da demo - restaura o banco local para um estado limpo.
  * 
- * Usage: npm run demo:reset
+ * Uso: npm run demo:reset
  * 
- * Performs:
- * 1. Verify local/dev environment (refuse production)
- * 2. Reset database
- * 3. Apply all migrations
- * 4. Seed demo data
- * 5. Verify expected records
+ * Executa:
+ * 1. Verifica o ambiente local/dev (recusa produção)
+ * 2. Reseta o banco de dados
+ * 3. Aplica todas as migrations
+ * 4. Popula dados de demonstração
+ * 5. Verifica os registros esperados
  */
 
 const { spawnSync } = require('node:child_process');
@@ -20,7 +20,7 @@ const { existsSync, readFileSync } = require('node:fs');
 
 const repoRoot = resolve(__dirname, '..');
 
-// Load .env.local if it exists
+// Carrega .env.local se existir
 const envLocalPath = resolve(repoRoot, '.env.local');
 if (existsSync(envLocalPath)) {
   const envContent = readFileSync(envLocalPath, 'utf8');
@@ -37,47 +37,47 @@ const databaseUrl = process.env.DATABASE_URL ||
 
 async function main() {
   console.log('\n========================================');
-  console.log('Demo Reset - Restoring pristine state');
+  console.log('Reset da demo - restaurando estado limpo');
   console.log('========================================\n');
 
-  // Verify environment
+  // Verifica o ambiente
   if (process.env.NODE_ENV === 'production') {
-    console.error('❌ ERROR: Cannot reset demo database in production mode.\n');
+    console.error('❌ ERRO: Não é permitido resetar o banco da demo em modo de produção.\n');
     process.exit(1);
   }
 
-  // Verify it's a local database
+  // Verifica se é um banco local
   try {
     const url = new URL(databaseUrl);
     const isLocal = ['127.0.0.1', 'localhost'].includes(url.hostname);
     const isDev = url.pathname.includes('test') || url.pathname.includes('dev');
 
     if (!isLocal || !isDev) {
-      console.error('❌ ERROR: Database URL is not a local test/dev database.\n');
+      console.error('❌ ERRO: DATABASE_URL não aponta para um banco local de teste/dev.\n');
       console.error(`   URL: ${databaseUrl}\n`);
       process.exit(1);
     }
   } catch {
-    console.error('❌ ERROR: Invalid DATABASE_URL.\n');
+    console.error('❌ ERRO: DATABASE_URL inválida.\n');
     process.exit(1);
   }
 
-  // Step 1: Drop and recreate schema
-  console.log('Step 1/4: Resetting database schema...\n');
+  // Etapa 1: Derrubar e recriar schema
+  console.log('Etapa 1/4: Resetando schema do banco de dados...\n');
   const pool = new Pool({ connectionString: databaseUrl });
   
   try {
     await pool.query('DROP SCHEMA IF EXISTS public CASCADE; CREATE SCHEMA public;');
-    console.log('✅ Schema reset complete.\n');
+    console.log('✅ Reset do schema concluído.\n');
   } catch (err) {
-    console.error('❌ Schema reset failed:', err.message);
+    console.error('❌ Falha ao resetar schema:', err.message);
     process.exit(1);
   } finally {
     await pool.end();
   }
 
-  // Step 2: Apply migrations
-  console.log('Step 2/4: Applying migrations...\n');
+  // Etapa 2: Aplicar migrations
+  console.log('Etapa 2/4: Aplicando migrations...\n');
   const migrationsResult = spawnSync('node', [resolve(repoRoot, 'scripts/apply-all-migrations.cjs')], {
     cwd: repoRoot,
     stdio: 'inherit',
@@ -85,12 +85,12 @@ async function main() {
   });
 
   if (migrationsResult.status !== 0) {
-    console.error('\n❌ Migration failed.\n');
+    console.error('\n❌ Falha na migration.\n');
     process.exit(1);
   }
 
-  // Step 3: Seed platform base data
-  console.log('\nStep 3/6: Seeding platform base data...\n');
+  // Etapa 3: Popular dados base da plataforma
+  console.log('\nEtapa 3/6: Populando dados base da plataforma...\n');
   const seedResult = spawnSync('node', [resolve(repoRoot, 'scripts/seed-demo-data.cjs')], {
     cwd: repoRoot,
     stdio: 'inherit',
@@ -98,12 +98,12 @@ async function main() {
   });
 
   if (seedResult.status !== 0) {
-    console.error('\n❌ Base seeding failed.\n');
+    console.error('\n❌ Falha ao popular dados base.\n');
     process.exit(1);
   }
 
-  // Step 4: Seed platform SaaS demo data
-  console.log('\nStep 4/6: Seeding platform SaaS demo data...\n');
+  // Etapa 4: Popular dados de demonstração da plataforma SaaS
+  console.log('\nEtapa 4/6: Populando dados de demonstração da plataforma SaaS...\n');
   const platformSeedResult = spawnSync('node', [resolve(repoRoot, 'scripts/seed-platform-demo-data.cjs')], {
     cwd: repoRoot,
     stdio: 'inherit',
@@ -111,12 +111,12 @@ async function main() {
   });
 
   if (platformSeedResult.status !== 0) {
-    console.error('\n❌ Platform seeding failed.\n');
+    console.error('\n❌ Falha ao popular dados da plataforma.\n');
     process.exit(1);
   }
 
-  // Step 5: Seed comprehensive tenant data (customers, financials, end-to-end stories)
-  console.log('\nStep 5/6: Seeding comprehensive tenant demo data...\n');
+  // Etapa 5: Popular dados completos do tenant (clientes, financeiro e histórias E2E)
+  console.log('\nEtapa 5/6: Populando dados completos de demonstração do tenant...\n');
   const tenantSeedResult = spawnSync('node', [resolve(repoRoot, 'scripts/seed-tenant-demo-data.cjs')], {
     cwd: repoRoot,
     stdio: 'inherit',
@@ -124,12 +124,12 @@ async function main() {
   });
 
   if (tenantSeedResult.status !== 0) {
-    console.error('\n❌ Tenant seeding failed.\n');
+    console.error('\n❌ Falha ao popular dados do tenant.\n');
     process.exit(1);
   }
 
-  // Step 6: Verify
-  console.log('\nStep 6/6: Verifying demo data...\n');
+  // Etapa 6: Verificar
+  console.log('\nEtapa 6/6: Verificando dados da demo...\n');
   const verifyPool = new Pool({ connectionString: databaseUrl });
 
   try {
@@ -166,24 +166,24 @@ async function main() {
     const leads = parseInt(leadsResult.rows[0].count, 10);
     const support = parseInt(supportResult.rows[0].count, 10);
 
-    console.log('   📊 DEMO DATABASE INVENTORY\n');
-    console.log('   Tenant Operations:');
-    console.log(`     ✅ Agencies: ${agencies}`);
-    console.log(`     ✅ Customers: ${customers}`);
-    console.log(`     ✅ Wishes: ${wishes}`);
-    console.log(`     ✅ Trips: ${trips}`);
-    console.log(`     ✅ Offers: ${offers}`);
-    console.log(`     ✅ Proposals: ${proposals}`);
-    console.log(`     ✅ Bookings: ${bookings}`);
-    console.log('\n   Financial:');
-    console.log(`     ✅ Revenues: ${revenues}`);
-    console.log(`     ✅ Expenses: ${expenses}`);
+    console.log('   📊 INVENTÁRIO DO BANCO DA DEMO\n');
+    console.log('   Operações do tenant:');
+    console.log(`     ✅ Agências: ${agencies}`);
+    console.log(`     ✅ Clientes: ${customers}`);
+    console.log(`     ✅ Desejos: ${wishes}`);
+    console.log(`     ✅ Viagens: ${trips}`);
+    console.log(`     ✅ Ofertas: ${offers}`);
+    console.log(`     ✅ Propostas: ${proposals}`);
+    console.log(`     ✅ Reservas: ${bookings}`);
+    console.log('\n   Financeiro:');
+    console.log(`     ✅ Receitas: ${revenues}`);
+    console.log(`     ✅ Despesas: ${expenses}`);
     console.log('\n   Platform SaaS:');
-    console.log(`     ✅ Subscriber Tenants: ${subscribers}`);
-    console.log(`     ✅ Plans: ${plans}`);
-    console.log(`     ✅ Subscriptions: ${subscriptions}`);
+    console.log(`     ✅ Tenants assinantes: ${subscribers}`);
+    console.log(`     ✅ Planos: ${plans}`);
+    console.log(`     ✅ Assinaturas: ${subscriptions}`);
     console.log(`     ✅ Leads: ${leads}`);
-    console.log(`     ✅ Support Cases: ${support}`);
+    console.log(`     ✅ Casos de suporte: ${support}`);
 
     const allRequirementssMet =
       agencies > 0 && customers >= 15 && wishes >= 10 && trips >= 8 && offers >= 8 &&
@@ -192,26 +192,26 @@ async function main() {
 
     if (allRequirementssMet) {
       console.log('\n========================================');
-      console.log('✅ DEMO RESET COMPLETE');
-      console.log('Database populated with realistic demo data');
-      console.log('ready for local demonstration.');
+      console.log('✅ RESET DA DEMO CONCLUÍDO');
+      console.log('Banco populado com dados realistas de demonstração');
+      console.log('pronto para demonstração local.');
       console.log('========================================\n');
       process.exit(0);
     } else {
-      console.error('\n⚠️  Verification warning: some data targets not met.\n');
-      console.error('   Expected minimums:');
-      console.error('   - customers >= 15 (got ' + customers + ')');
-      console.error('   - wishes >= 10 (got ' + wishes + ')');
-      console.error('   - trips >= 8 (got ' + trips + ')');
-      console.error('   - offers >= 8 (got ' + offers + ')');
-      console.error('   - proposals >= 10 (got ' + proposals + ')');
-      console.error('   - revenues >= 15 (got ' + revenues + ')');
-      console.error('   - expenses >= 10 (got ' + expenses + ')');
-      console.error('\n   (Continuing anyway — demo is usable but minimal)\n');
+      console.error('\n⚠️  Aviso de verificação: alguns alvos de dados não foram atingidos.\n');
+      console.error('   Mínimos esperados:');
+      console.error('   - clientes >= 15 (obtido ' + customers + ')');
+      console.error('   - desejos >= 10 (obtido ' + wishes + ')');
+      console.error('   - viagens >= 8 (obtido ' + trips + ')');
+      console.error('   - ofertas >= 8 (obtido ' + offers + ')');
+      console.error('   - propostas >= 10 (obtido ' + proposals + ')');
+      console.error('   - receitas >= 15 (obtido ' + revenues + ')');
+      console.error('   - despesas >= 10 (obtido ' + expenses + ')');
+      console.error('\n   (Continuando mesmo assim — a demo está utilizável, mas mínima)\n');
       process.exit(0);
     }
   } catch (err) {
-    console.error('❌ Verification failed:', err.message);
+    console.error('❌ Falha na verificação:', err.message);
     process.exit(1);
   } finally {
     await verifyPool.end();
@@ -219,6 +219,6 @@ async function main() {
 }
 
 main().catch((err) => {
-  console.error('❌ Unexpected error:', err.message);
+  console.error('❌ Erro inesperado:', err.message);
   process.exit(1);
 });

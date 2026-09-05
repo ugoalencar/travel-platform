@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Platform SaaS Demo Data Seed Script
+ * Script de seed dos dados de demonstração da plataforma SaaS
  */
 
 const { Pool } = require('pg');
@@ -13,40 +13,40 @@ const pool = new Pool({ connectionString: databaseUrl });
 
 async function seedPlatformData() {
   console.log('\n========================================');
-  console.log('Seeding Platform SaaS Demo Data');
+  console.log('Populando dados de demonstração da plataforma SaaS');
   console.log('========================================\n');
 
   try {
-    console.log('1. Creating Platform Users...');
+    console.log('1. Criando usuários da plataforma...');
     await seedPlatformUsers();
 
-    console.log('2. Creating Plans...');
+    console.log('2. Criando planos...');
     const plans = await seedPlans();
 
-    console.log('3. Creating Agencies...');
+    console.log('3. Criando agências...');
     const agencies = await seedAgencies();
 
-    console.log('4. Creating Subscriber Tenants...');
+    console.log('4. Criando tenants assinantes...');
     const tenants = await seedSubscriberTenants(agencies);
 
-    console.log('5. Creating Subscriptions...');
+    console.log('5. Criando assinaturas...');
     await seedSubscriptions(tenants, plans);
 
-    console.log('6. Creating Leads...');
+    console.log('6. Criando leads...');
     await seedLeads();
 
-    console.log('7. Creating Invoices...');
+    console.log('7. Criando faturas...');
     await seedInvoicesAndPayments(tenants);
 
-    console.log('8. Creating Support Cases...');
+    console.log('8. Criando casos de suporte...');
     await seedSupportCases(tenants);
 
-    console.log('\n9. Verifying data...');
+    console.log('\n9. Verificando dados...');
     await verifyDemoData();
 
-    console.log('\n✅ SEEDING COMPLETE\n');
+    console.log('\n✅ SEED CONCLUÍDO\n');
   } catch (error) {
-    console.error('\n❌ Seeding failed:', error.message);
+    console.error('\n❌ Falha no seed:', error.message);
     process.exit(1);
   } finally {
     await pool.end();
@@ -194,7 +194,7 @@ async function seedSubscriptions(tenants, plans) {
     count++;
   }
 
-  console.log(`   ✓ Created ${count} subscriptions`);
+  console.log(`   ✓ ${count} assinaturas criadas`);
 }
 
 async function seedLeads() {
@@ -211,7 +211,7 @@ async function seedLeads() {
     );
   }
 
-  console.log(`   ✓ Created 25 leads`);
+  console.log('   ✓ 25 leads criados');
 }
 
 async function seedInvoicesAndPayments(tenants) {
@@ -244,19 +244,19 @@ async function seedInvoicesAndPayments(tenants) {
     }
   }
 
-  console.log(`   ✓ Created 15 invoices`);
+  console.log('   ✓ 15 faturas criadas');
 }
 
 async function seedSupportCases(tenants) {
   const titles = [
-    'Storage limit exceeded',
-    'Need feature configuration help',
-    'Billing discrepancy',
-    'Integration not working',
-    'Performance issues',
-    'MFA setup assistance',
-    'Data export request',
-    'Custom report needed',
+    'Limite de armazenamento excedido',
+    'Ajuda para configurar recurso',
+    'Divergência de cobrança',
+    'Integração não funciona',
+    'Problemas de performance',
+    'Ajuda para configurar MFA',
+    'Solicitação de exportação de dados',
+    'Relatório personalizado necessário',
   ];
 
   const statuses = ['OPEN', 'OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED'];
@@ -267,7 +267,7 @@ async function seedSupportCases(tenants) {
     const title = titles[i % titles.length];
     const status = statuses[i % statuses.length];
     const priority = priorities[i % priorities.length];
-    const description = `Support case: ${title}\nTenant: ${tenant.contact_name}\nRequires urgent attention.`;
+    const description = `Caso de suporte: ${title}\nTenant: ${tenant.contact_name}\nRequer atenção urgente.`;
 
     await pool.query(
       `INSERT INTO support_cases (id, subscriber_tenant_id, title, description, status, priority, created_at, updated_at)
@@ -276,19 +276,19 @@ async function seedSupportCases(tenants) {
     );
   }
 
-  console.log(`   ✓ Created 12 support cases`);
+  console.log('   ✓ 12 casos de suporte criados');
 }
 
 async function verifyDemoData() {
   const queries = [
-    ['Platform Users', 'SELECT COUNT(*) as count FROM platform_users'],
-    ['Plans', 'SELECT COUNT(*) as count FROM plans'],
-    ['Agencies', 'SELECT COUNT(*) as count FROM agencies'],
-    ['Subscriber Tenants', 'SELECT COUNT(*) as count FROM subscriber_tenants'],
-    ['Subscriptions', 'SELECT COUNT(*) as count FROM subscriptions'],
+    ['Usuários da plataforma', 'SELECT COUNT(*) as count FROM platform_users'],
+    ['Planos', 'SELECT COUNT(*) as count FROM plans'],
+    ['Agências', 'SELECT COUNT(*) as count FROM agencies'],
+    ['Tenants assinantes', 'SELECT COUNT(*) as count FROM subscriber_tenants'],
+    ['Assinaturas', 'SELECT COUNT(*) as count FROM subscriptions'],
     ['Leads', 'SELECT COUNT(*) as count FROM leads'],
-    ['Invoices', 'SELECT COUNT(*) as count FROM billing_invoices'],
-    ['Support Cases', 'SELECT COUNT(*) as count FROM support_cases'],
+    ['Faturas', 'SELECT COUNT(*) as count FROM billing_invoices'],
+    ['Casos de suporte', 'SELECT COUNT(*) as count FROM support_cases'],
   ];
 
   for (const [label, sql] of queries) {

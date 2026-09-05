@@ -29,6 +29,19 @@ interface Payment {
 
 type TabType = 'overview' | 'invoices' | 'payments';
 
+const INVOICE_STATUS_LABELS: Record<Invoice['status'], string> = {
+  PAID: 'Paga',
+  OPEN: 'Aberta',
+  OVERDUE: 'Vencida',
+  REFUNDED: 'Reembolsada',
+};
+
+const PAYMENT_STATUS_LABELS: Record<Payment['status'], string> = {
+  SUCCESSFUL: 'Bem-sucedido',
+  FAILED: 'Falhou',
+  REFUNDED: 'Reembolsado',
+};
+
 export function FinancialPage() {
   const [metrics, setMetrics] = useState<FinancialMetrics | null>(null);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -47,13 +60,13 @@ export function FinancialPage() {
 
       // Fetch metrics
       const metricsResponse = await fetch('/api/platform/financial');
-      if (!metricsResponse.ok) throw new Error('Nao foi possivel carregar as metricas financeiras');
+      if (!metricsResponse.ok) throw new Error('Não foi possível carregar as métricas financeiras');
       const metricsData = (await metricsResponse.json()) as { metrics: FinancialMetrics };
       setMetrics(metricsData.metrics);
 
       // Fetch invoices
       const invoicesResponse = await fetch('/api/platform/invoices');
-      if (!invoicesResponse.ok) throw new Error('Nao foi possivel carregar as faturas');
+      if (!invoicesResponse.ok) throw new Error('Não foi possível carregar as faturas');
       const invoicesData = (await invoicesResponse.json()) as { invoices?: Invoice[] };
       setInvoices(invoicesData.invoices || []);
 
@@ -64,7 +77,7 @@ export function FinancialPage() {
         setPayments(paymentsData.payments || []);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Nao foi possivel carregar dados financeiros');
+      setError(err instanceof Error ? err.message : 'Não foi possível carregar dados financeiros');
     } finally {
       setLoading(false);
     }
@@ -245,7 +258,7 @@ export function FinancialPage() {
                       </td>
                       <td className="px-6 py-4">
                         <span className={`${statusColors[invoice.status]} px-2 py-1 rounded text-xs font-medium`}>
-                          {invoice.status}
+                          {INVOICE_STATUS_LABELS[invoice.status]}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-sm">
@@ -300,7 +313,7 @@ export function FinancialPage() {
                       </td>
                       <td className="px-6 py-4">
                         <span className={`${statusColors[payment.status]} px-2 py-1 rounded text-xs font-medium`}>
-                          {payment.status}
+                          {PAYMENT_STATUS_LABELS[payment.status]}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-sm">

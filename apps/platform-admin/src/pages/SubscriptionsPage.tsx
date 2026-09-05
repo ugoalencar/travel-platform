@@ -21,6 +21,14 @@ const VALID_TRANSITIONS: Record<string, string[]> = {
   CANCELLED: [],
 };
 
+const STATUS_LABELS: Record<string, string> = {
+  ACTIVE: 'Ativa',
+  TRIAL: 'Teste',
+  PAST_DUE: 'Em atraso',
+  SUSPENDED: 'Suspensa',
+  CANCELLED: 'Cancelada',
+};
+
 export function SubscriptionsPage() {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,11 +45,11 @@ export function SubscriptionsPage() {
     try {
       setLoading(true);
       const response = await fetch('/api/platform/subscriptions');
-      if (!response.ok) throw new Error('Nao foi possivel carregar as assinaturas');
+      if (!response.ok) throw new Error('Não foi possível carregar as assinaturas');
       const data = (await response.json()) as { subscriptions?: Subscription[] };
       setSubscriptions(data.subscriptions || []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Nao foi possivel carregar as assinaturas');
+      setError(err instanceof Error ? err.message : 'Não foi possível carregar as assinaturas');
     } finally {
       setLoading(false);
     }
@@ -60,13 +68,13 @@ export function SubscriptionsPage() {
         }
       );
 
-      if (!response.ok) throw new Error('Nao foi possivel atualizar o status da assinatura');
+      if (!response.ok) throw new Error('Não foi possível atualizar o status da assinatura');
 
       setTransitionStatus('');
       setSelectedSub(null);
       await fetchSubscriptions();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Nao foi possivel atualizar a assinatura');
+      setError(err instanceof Error ? err.message : 'Não foi possível atualizar a assinatura');
     }
   }
 
@@ -115,7 +123,7 @@ export function SubscriptionsPage() {
               setFilterStatus(filterStatus === status ? 'ALL' : status)
             }
           >
-            <p className="text-sm text-gray-600">{status}</p>
+            <p className="text-sm text-gray-600">{STATUS_LABELS[status]}</p>
             <p className="text-2xl font-bold">{count}</p>
           </div>
         ))}
@@ -147,12 +155,12 @@ export function SubscriptionsPage() {
                 <span
                   className={`${statusColors[selectedSub.status]} px-2 py-1 rounded text-sm font-medium`}
                 >
-                  {selectedSub.status}
+                  {STATUS_LABELS[selectedSub.status]}
                 </span>
               </p>
             </div>
             <div>
-              <p className="text-sm text-gray-600">Inicio</p>
+                <p className="text-sm text-gray-600">Início</p>
               <p className="font-medium">
                 {new Date(selectedSub.started_at).toLocaleDateString()}
               </p>
@@ -176,7 +184,7 @@ export function SubscriptionsPage() {
                     <option value="">-- Selecionar novo status --</option>
                     {transitions.map((status) => (
                       <option key={status} value={status}>
-                        {status}
+                        {STATUS_LABELS[status]}
                       </option>
                     ))}
                   </select>
@@ -209,10 +217,10 @@ export function SubscriptionsPage() {
                 Status
               </th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
-                Inicio
+                Início
               </th>
               <th className="px-6 py-3 text-right text-sm font-semibold text-gray-900">
-                Acoes
+                Ações
               </th>
             </tr>
           </thead>
@@ -232,7 +240,7 @@ export function SubscriptionsPage() {
                     <span
                       className={`${statusColors[sub.status]} px-2 py-1 rounded text-sm font-medium`}
                     >
-                      {sub.status}
+                      {STATUS_LABELS[sub.status]}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-sm">

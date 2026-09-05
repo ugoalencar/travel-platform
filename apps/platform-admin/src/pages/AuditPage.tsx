@@ -21,11 +21,11 @@ export function AuditPage() {
   async function fetchAuditLogs() {
     try {
       const response = await fetch('/api/platform/audit');
-      if (!response.ok) throw new Error('Nao foi possivel carregar os registros de auditoria');
+      if (!response.ok) throw new Error('Não foi possível carregar os registros de auditoria');
       const data = (await response.json()) as { logs?: AuditLog[] };
       setLogs(data.logs || []);
     } catch (err) {
-      console.error('Nao foi possivel carregar os registros de auditoria:', err);
+      console.error('Não foi possível carregar os registros de auditoria:', err);
     } finally {
       setLoading(false);
     }
@@ -44,7 +44,7 @@ export function AuditPage() {
           <thead className="bg-gray-50 border-b">
             <tr>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Ator</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Acao</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Ação</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Recurso</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Data e hora</th>
             </tr>
@@ -53,7 +53,7 @@ export function AuditPage() {
             {logs.length === 0 ? (
               <tr>
                 <td colSpan={4} className="px-6 py-8 text-center text-gray-600">
-                  Nenhum registro de auditoria disponivel
+                  Nenhum registro de auditoria disponível
                 </td>
               </tr>
             ) : (
