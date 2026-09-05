@@ -134,16 +134,17 @@ describe.sequential('Sale HTTP routes', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const body = response.json<{ sales: Array<{ agencyId: string }> }>();
+      const body = response.json<{ sales: Array<{ agencyId: string; customerName: string }> }>();
       expect(body.sales).toHaveLength(1);
       expect(body.sales[0]?.agencyId).toBe(agencyAId);
+      expect(body.sales[0]?.customerName).toBe('Customer A');
 
       await app.close();
     });
   });
 
   describe('GET /sales/:id', () => {
-    it('returns 200 for own tenant sale', async () => {
+    it('returns 200 for own tenant sale, enriched with customer name', async () => {
       const id = await seedSale(agencyAId, customerAId, { amount: '100.00' });
 
       const app = buildTestApp(runtimePool);
@@ -154,8 +155,11 @@ describe.sequential('Sale HTTP routes', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const body = response.json<{ sale: { id: string } }>();
+      const body = response.json<{
+        sale: { id: string; customerName: string; salespersonName: string | null; tripId: string | null };
+      }>();
       expect(body.sale.id).toBe(id);
+      expect(body.sale.customerName).toBe('Customer A');
 
       await app.close();
     });

@@ -130,9 +130,40 @@ describe.sequential('Booking HTTP routes', () => {
         headers: { 'x-test-principal': 'owner' },
       });
       expect(list.statusCode).toBe(200);
-      const body = list.json<{ bookings: Array<{ agencyId: string }> }>();
+      const body = list.json<{ bookings: Array<{ agencyId: string; customerName: string }> }>();
       expect(body.bookings).toHaveLength(1);
       expect(body.bookings[0]?.agencyId).toBe(agencyAId);
+      expect(body.bookings[0]?.customerName).toBe('Cliente Teste');
+      await app.close();
+    });
+  });
+
+  describe('GET /bookings/:id', () => {
+    it('returns 200 for own tenant booking, enriched with customer name', async () => {
+      const depId = await seedDeparture(agencyAId, productOneWayA, 10);
+      const app = buildTestApp(runtimePool);
+      const create = await app.inject({
+        method: 'POST',
+        url: '/bookings',
+        headers: { 'x-test-principal': 'agent' },
+        payload: {
+          bookerCustomerId: customerAId,
+          tripType: 'ONE_WAY',
+          outboundDepartureId: depId,
+          passengers: [{ name: 'Joao' }],
+        },
+      });
+      const bookingId = create.json<{ booking: { id: string } }>().booking.id;
+
+      const get = await app.inject({
+        method: 'GET',
+        url: `/bookings/${bookingId}`,
+        headers: { 'x-test-principal': 'owner' },
+      });
+      expect(get.statusCode).toBe(200);
+      const body = get.json<{ booking: { id: string; customerName: string } }>();
+      expect(body.booking.id).toBe(bookingId);
+      expect(body.booking.customerName).toBe('Cliente Teste');
       await app.close();
     });
   });

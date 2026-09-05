@@ -605,6 +605,80 @@ async function getOrCreateDefaultRevenueCategory(
   return row;
 }
 
+export interface SaleWithCustomer extends Sale {
+  customerName: string;
+  salespersonName: string | null;
+  tripId: string | null;
+  tripName: string | null;
+}
+
+interface SaleWithCustomerRow extends SaleRow {
+  customer_name: string;
+  salesperson_name: string | null;
+  trip_id: string | null;
+  trip_name: string | null;
+}
+
+const SALE_WITH_CUSTOMER_QUERY = `
+  SELECT s.id, s.agency_id, s.customer_id, s.proposal_id, s.broker_id, s.user_id, s.amount,
+         s.discount, s.total, s.status, s.notes, s.paid_at, s.created_at, s.updated_at,
+         c.name AS customer_name,
+         u.name AS salesperson_name,
+         t.id AS trip_id,
+         t.name AS trip_name
+  FROM sales s
+  JOIN customers c ON c.agency_id = s.agency_id AND c.id = s.customer_id
+  LEFT JOIN users u ON u.agency_id = s.agency_id AND u.id = s.user_id
+  LEFT JOIN trips t ON t.agency_id = s.agency_id AND t.sale_id = s.id
+`;
+
+// Read-model for UI surfaces (sale list/detail) that need a human-readable
+// customer/salesperson/trip label alongside the sale, without forcing every
+// other listSales/getSaleById caller (confirmSale, cancelSale, ...) to carry
+// the extra joins. One query, no N+1: the join happens in SQL, not per-row.
+export async function listSalesWithCustomer(database: DatabaseRuntime): Promise<SaleWithCustomer[]> {
+  const agencyId = getAgencyId();
+
+  return database.withTenantTransaction(async (client) => {
+    const result = await client.query<SaleWithCustomerRow>(
+      `${SALE_WITH_CUSTOMER_QUERY}
+       WHERE s.agency_id = $1
+       ORDER BY s.created_at DESC`,
+      [agencyId],
+    );
+
+    return result.rows.map(toSaleWithCustomer);
+  });
+}
+
+export async function getSaleWithCustomerById(
+  database: DatabaseRuntime,
+  id: string,
+): Promise<SaleWithCustomer | null> {
+  const agencyId = getAgencyId();
+
+  return database.withTenantTransaction(async (client) => {
+    const result = await client.query<SaleWithCustomerRow>(
+      `${SALE_WITH_CUSTOMER_QUERY}
+       WHERE s.agency_id = $1 AND s.id = $2`,
+      [agencyId, id],
+    );
+
+    const row = result.rows[0];
+    return row ? toSaleWithCustomer(row) : null;
+  });
+}
+
+function toSaleWithCustomer(row: SaleWithCustomerRow): SaleWithCustomer {
+  return {
+    ...toSale(row),
+    customerName: row.customer_name,
+    salespersonName: row.salesperson_name,
+    tripId: row.trip_id,
+    tripName: row.trip_name,
+  };
+}
+
 function toSale(row: SaleRow): Sale {
   return {
     id: row.id,

@@ -92,8 +92,8 @@ import {
   cancelProposal,
   createProposal,
   declineProposal,
-  getProposalById,
-  listProposals,
+  getProposalWithCustomerById,
+  listProposalsWithCustomer,
   sendProposal,
   updateProposal,
   type CreateProposalInput,
@@ -143,8 +143,8 @@ import {
 import { DepartureServiceType, TripType } from '../../../packages/domain/types';
 import {
   cancelBooking,
-  listBookings,
-  getBookingById,
+  listBookingsWithCustomer,
+  getBookingWithCustomerById,
   createBooking,
   type CancelBookingInput,
   type CreateBookingInput,
@@ -166,8 +166,8 @@ import {
   cancelSale,
   confirmSale,
   createSale,
-  getSaleById,
-  listSales,
+  getSaleWithCustomerById,
+  listSalesWithCustomer,
   markSalePaid,
   updateSale,
   type CreateSaleInput,
@@ -943,7 +943,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
 
   app.get('/proposals', { preHandler: protectedHooks }, async () => {
     requireRole(UserRole.VIEWER);
-    const proposals = await listProposals(options.database);
+    const proposals = await listProposalsWithCustomer(options.database);
     return { proposals };
   });
 
@@ -952,7 +952,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     { preHandler: protectedHooks },
     async (request) => {
       requireRole(UserRole.VIEWER);
-      const proposal = await getProposalById(options.database, request.params.id);
+      const proposal = await getProposalWithCustomerById(options.database, request.params.id);
 
       if (!proposal) {
         throw new NotFoundError('Proposal not found');
@@ -1278,7 +1278,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
 
   app.get('/bookings', { preHandler: protectedHooks }, async () => {
     requireRole(UserRole.VIEWER);
-    const bookings = await listBookings(options.database);
+    const bookings = await listBookingsWithCustomer(options.database);
     return { bookings };
   });
 
@@ -1287,7 +1287,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     { preHandler: protectedHooks },
     async (request) => {
       requireRole(UserRole.VIEWER);
-      const result = await getBookingById(options.database, request.params.id);
+      const result = await getBookingWithCustomerById(options.database, request.params.id);
       if (!result) {
         throw new NotFoundError('Booking not found');
       }
@@ -1834,7 +1834,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
   // status-editing route exists at all.
   app.get('/sales', { preHandler: protectedHooks }, async () => {
     requireRole(UserRole.VIEWER);
-    const sales = await listSales(options.database);
+    const sales = await listSalesWithCustomer(options.database);
     return { sales };
   });
 
@@ -1843,7 +1843,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     { preHandler: protectedHooks },
     async (request) => {
       requireRole(UserRole.VIEWER);
-      const sale = await getSaleById(options.database, request.params.id);
+      const sale = await getSaleWithCustomerById(options.database, request.params.id);
 
       if (!sale) {
         throw new NotFoundError('Sale not found');

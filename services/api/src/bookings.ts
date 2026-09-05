@@ -336,6 +336,86 @@ export async function cancelBooking(
   });
 }
 
+export interface BookingWithCustomer extends Booking {
+  customerName: string;
+}
+
+export interface BookingWithCustomerAndPassengers {
+  booking: BookingWithCustomer;
+  passengers: BookingPassenger[];
+}
+
+interface BookingWithCustomerRow extends BookingRow {
+  customer_name: string;
+}
+
+const BOOKING_WITH_CUSTOMER_QUERY = `
+  SELECT b.id, b.agency_id, b.booker_customer_id, b.trip_type, b.outbound_departure_id,
+         b.return_departure_id, b.cancelled, b.cancelled_at, b.cancelled_by_user_id,
+         b.cancellation_reason, b.notes, b.created_at, b.updated_at,
+         c.name AS customer_name
+  FROM bookings b
+  JOIN customers c ON c.agency_id = b.agency_id AND c.id = b.booker_customer_id
+`;
+
+// Read-model for UI surfaces that need the booker's name alongside the
+// booking, without changing listBookings/getBookingById's shape for other
+// callers. One joined query, no N+1.
+export async function listBookingsWithCustomer(
+  database: DatabaseRuntime,
+): Promise<BookingWithCustomer[]> {
+  const agencyId = getAgencyId();
+
+  return database.withTenantTransaction(async (client) => {
+    const result = await client.query<BookingWithCustomerRow>(
+      `${BOOKING_WITH_CUSTOMER_QUERY}
+       WHERE b.agency_id = $1
+       ORDER BY b.created_at DESC`,
+      [agencyId],
+    );
+
+    return result.rows.map(toBookingWithCustomer);
+  });
+}
+
+export async function getBookingWithCustomerById(
+  database: DatabaseRuntime,
+  id: string,
+): Promise<BookingWithCustomerAndPassengers | null> {
+  const agencyId = getAgencyId();
+
+  return database.withTenantTransaction(async (client) => {
+    const result = await client.query<BookingWithCustomerRow>(
+      `${BOOKING_WITH_CUSTOMER_QUERY}
+       WHERE b.agency_id = $1 AND b.id = $2`,
+      [agencyId, id],
+    );
+
+    const row = result.rows[0];
+    if (!row) {
+      return null;
+    }
+
+    const passengersResult = await client.query<PassengerRow>(
+      `SELECT ${PASSENGER_COLUMNS} FROM booking_passengers
+       WHERE agency_id = $1 AND booking_id = $2 ORDER BY created_at ASC`,
+      [agencyId, id],
+    );
+
+    return {
+      booking: toBookingWithCustomer(row),
+      passengers: passengersResult.rows.map(toPassenger),
+    };
+  });
+}
+
+function toBookingWithCustomer(row: BookingWithCustomerRow): BookingWithCustomer {
+  return {
+    ...toBooking(row),
+    customerName: row.customer_name,
+  };
+}
+
 function toBooking(row: BookingRow): Booking {
   return {
     id: row.id,
