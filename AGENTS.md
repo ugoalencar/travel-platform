@@ -122,3 +122,35 @@ PowerShell script usage.
 - Keep domain documentation in `docs/02-domain/`.
 - Keep security rules in `docs/03-security/`.
 - Root-level docs under `docs/*.md` are entry-point bridges only unless stated otherwise.
+
+## AI Context
+
+Read `docs/AI_CONTEXT.md` before exploring the repository for the first
+time in a session: it maps active apps/packages/services, security
+roots, test roots, and demo data, and lists paths that are historical
+or generated noise. Search active source first (`apps/*/src`,
+`services/api/src`, `packages/*`) and avoid historical/generated trees
+(numbered `docs/*` wave files and their archives, sibling worktree
+directories outside the current working tree, `dist*`/`coverage`/`.tmp`)
+unless a task explicitly requires them.
+
+## Code Reduction Policy
+
+When modifying existing behavior:
+
+1. Reuse an existing abstraction before creating another.
+2. Do not duplicate helpers, types, API clients, or status mappings.
+3. Remove dead code made obsolete by the change.
+4. Do not leave commented-out implementation.
+5. Never create backup copies inside active source (no `-backup.ts`,
+   `dist.bak/`, `Page.old.tsx`, etc.) — rely on git history instead.
+6. Generated build output must not be committed.
+7. Historical phase copies must not participate in normal lint/format/
+   AI-context scanning.
+8. Security behavior may never be reduced for LOC savings.
+9. Applied migrations are immutable.
+10. A new abstraction must reduce total conceptual complexity, not just
+    line count.
+11. Do not compress readable code into clever one-liners merely to
+    reduce LOC.
+12. Prefer fewer domain concepts over shorter syntax.
