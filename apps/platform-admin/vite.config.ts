@@ -33,7 +33,7 @@ export default defineConfig(({ command }) => {
   return {
     plugins: [react(), tailwindcss()],
     server: {
-      port: 5174,
+      port: 5176,
       ...(isDevServer
         ? {
             proxy: {

@@ -20,6 +20,20 @@ const migrations = [
   '008_commercial_cockpit.sql',
   '009_configurable_pipelines.sql',
   '010_financial_foundation.sql',
+  '011_booking_cancellation.sql',
+  '012_operational_staff_assignments.sql',
+  '013_pescador_foundation.sql',
+  '014_offer_growth_foundation.sql',
+  '015_audit_logging.sql',
+  '016_production_auth_captcha_mfa.sql',
+  '017_mfa_rls_p0_fix.sql',
+  '018_local_dev_migration_corrections.sql',
+  '019_customer_360_addresses.sql',
+  '020_customer_360_dependents.sql',
+  '021_customer_360_documents.sql',
+  '022_customer_360_document_audit.sql',
+  '023_customer_360_rls.sql',
+  '024_extended_financial_module.sql',
 ].map((name) => resolve(repoRoot, 'infrastructure/migrations', name));
 const prepareRolesSql = resolve(repoRoot, 'tests/integration/database/002_prepare_local_roles.sql');
 const composeFile = resolve(repoRoot, 'infrastructure/docker-compose.local-postgres.yml');
@@ -111,6 +125,11 @@ describe.sequential('Financial HTTP routes', () => {
   });
 
   beforeEach(async () => {
+    await adminPool.query('TRUNCATE TABLE reconciliations RESTART IDENTITY CASCADE');
+    await adminPool.query('TRUNCATE TABLE cash_transactions RESTART IDENTITY CASCADE');
+    await adminPool.query('TRUNCATE TABLE expenses RESTART IDENTITY CASCADE');
+    await adminPool.query('TRUNCATE TABLE revenues RESTART IDENTITY CASCADE');
+    await adminPool.query('TRUNCATE TABLE financial_categories RESTART IDENTITY CASCADE');
     await adminPool.query('TRUNCATE TABLE payment_allocations RESTART IDENTITY CASCADE');
     await adminPool.query('TRUNCATE TABLE payments RESTART IDENTITY CASCADE');
     await adminPool.query('TRUNCATE TABLE receivables RESTART IDENTITY CASCADE');
@@ -180,6 +199,186 @@ describe.sequential('Financial HTTP routes', () => {
     expect(summary.statusCode).toBe(200);
     expect(summary.json()).toHaveProperty('cashFlow');
     expect(create.statusCode).toBe(403);
+    await app.close();
+  });
+
+  it('returns an isolated, authorized financial story with paid installment schedule and margins', async () => {
+    const app = buildTestApp(runtimePool);
+    const storySale = await seedSale(
+      agencyAId,
+      customerA,
+      userAId,
+      18000,
+      'Demo principal: Test Customer / Cancun',
+    );
+
+    const category = await app.inject({
+      method: 'POST',
+      url: '/financial/categories',
+      headers: { 'x-test-principal': 'admin' },
+      payload: { name: 'Travel packages', type: 'REVENUE' },
+    });
+    expect(category.statusCode).toBe(201);
+    const categoryId = category.json<{ category: { id: string } }>().category.id;
+
+    const receivable = await app.inject({
+      method: 'POST',
+      url: '/financial/receivables',
+      headers: { 'x-test-principal': 'admin' },
+      payload: {
+        saleId: storySale,
+        customerId: customerA,
+        description: 'Sale receivable',
+        amount: 18000,
+        dueAt: '2027-03-10T00:00:00Z',
+      },
+    });
+    expect(receivable.statusCode).toBe(201);
+    const receivableId = receivable.json<{ receivable: { id: string } }>().receivable.id;
+
+    const payment = await app.inject({
+      method: 'POST',
+      url: '/financial/payments',
+      headers: { 'x-test-principal': 'admin' },
+      payload: { direction: 'IN', amount: 6000, occurredAt: '2027-01-03T00:00:00Z' },
+    });
+    expect(payment.statusCode).toBe(201);
+    const paymentId = payment.json<{ payment: { id: string } }>().payment.id;
+
+    const allocation = await app.inject({
+      method: 'POST',
+      url: `/financial/payments/${paymentId}/allocations`,
+      headers: { 'x-test-principal': 'admin' },
+      payload: { allocations: [{ receivableId, amount: 6000 }] },
+    });
+    expect(allocation.statusCode).toBe(200);
+
+    const scheduleRows = [
+      { saleId: storySale, description: 'Entry Test Customer / Cancun', dueDate: '2027-01-03T00:00:00Z' },
+      { saleId: undefined, description: 'Installment 2 Test Customer / Cancun', dueDate: '2027-02-03T00:00:00Z' },
+      { saleId: undefined, description: 'Installment 3 Test Customer / Cancun', dueDate: '2027-03-03T00:00:00Z' },
+    ] as const;
+    let entryRevenueId: string | undefined;
+    for (const [index, scheduleRow] of scheduleRows.entries()) {
+      const revenue = await app.inject({
+        method: 'POST',
+        url: '/financial/revenues',
+        headers: { 'x-test-principal': 'admin' },
+        payload: {
+          ...scheduleRow,
+          customerId: customerA,
+          categoryId,
+          amount: 6000,
+          currency: 'BRL',
+          competencyDate: scheduleRow.dueDate,
+          notes: 'Demo installment schedule for Test Customer / Cancun sale',
+        },
+      });
+      expect(revenue.statusCode).toBe(201);
+      if (index === 0) {
+        entryRevenueId = revenue.json<{ revenue: { id: string } }>().revenue.id;
+      }
+    }
+    expect(entryRevenueId).toBeDefined();
+    const paidEntry = await app.inject({
+      method: 'POST',
+      url: `/financial/revenues/${entryRevenueId}/mark-paid`,
+      headers: { 'x-test-principal': 'admin' },
+    });
+    expect(paidEntry.statusCode).toBe(200);
+    expect(paidEntry.json<{ revenue: { status: string } }>().revenue.status).toBe('PAID');
+
+    for (const [description, amount] of [
+      ['Hotel', 7000],
+      ['Airfare', 5000],
+      ['Transfer', 800],
+      ['Travel insurance', 500],
+      ['Comissao agency', 700],
+    ] as const) {
+      const payable = await app.inject({
+        method: 'POST',
+        url: '/financial/payables',
+        headers: { 'x-test-principal': 'admin' },
+        payload: { saleId: storySale, description, amount, dueAt: '2027-01-10T00:00:00Z' },
+      });
+      expect(payable.statusCode).toBe(201);
+    }
+
+    const adminResponse = await app.inject({
+      method: 'GET',
+      url: `/financial/sales/${storySale}/story`,
+      headers: { 'x-test-principal': 'admin' },
+    });
+    const managerResponse = await app.inject({
+      method: 'GET',
+      url: `/financial/sales/${storySale}/story`,
+      headers: { 'x-test-principal': 'manager' },
+    });
+    const unauthenticated = await app.inject({
+      method: 'GET',
+      url: `/financial/sales/${storySale}/story`,
+    });
+    const viewer = await app.inject({
+      method: 'GET',
+      url: `/financial/sales/${storySale}/story`,
+      headers: { 'x-test-principal': 'viewer' },
+    });
+    const agent = await app.inject({
+      method: 'GET',
+      url: `/financial/sales/${storySale}/story`,
+      headers: { 'x-test-principal': 'agent' },
+    });
+    const invalidSaleId = await app.inject({
+      method: 'GET',
+      url: '/financial/sales/not-a-uuid/story',
+      headers: { 'x-test-principal': 'manager' },
+    });
+    const customerB = await seedCustomer(agencyBId);
+    const saleB = await seedSale(agencyBId, customerB, userBId);
+    const crossTenant = await app.inject({
+      method: 'GET',
+      url: `/financial/sales/${saleB}/story`,
+      headers: { 'x-test-principal': 'owner' },
+    });
+
+    expect(adminResponse.statusCode).toBe(200);
+    expect(managerResponse.statusCode).toBe(200);
+    expect(unauthenticated.statusCode).toBe(401);
+    expect(viewer.statusCode).toBe(403);
+    expect(agent.statusCode).toBe(403);
+    expect(invalidSaleId.statusCode).toBe(400);
+    expect(crossTenant.statusCode).toBe(404);
+    const story = managerResponse.json<{
+      story: {
+        supplierPayables: Array<{ description: string; amount: number }>;
+        installmentSchedule: Array<{ description: string; amount: number; status: string }>;
+      };
+    }>().story;
+    expect(story).toMatchObject({
+      grossSale: 18000,
+      received: 6000,
+      remainingReceivable: 12000,
+      totalSupplierPayable: 14000,
+      margin: {
+        grossSale: 18000,
+        supplierCosts: 13300,
+        commissionAndFees: 700,
+        grossMargin: 4700,
+        netMargin: 4000,
+      },
+    });
+    expect(story.supplierPayables.map(({ description, amount }) => ({ description, amount }))).toEqual([
+      { description: 'Hotel', amount: 7000 },
+      { description: 'Airfare', amount: 5000 },
+      { description: 'Transfer', amount: 800 },
+      { description: 'Travel insurance', amount: 500 },
+      { description: 'Comissao agency', amount: 700 },
+    ]);
+    expect(story.installmentSchedule.map(({ description, amount, status }) => ({ description, amount, status }))).toEqual([
+      { description: 'Entry Test Customer / Cancun', amount: 6000, status: 'PAID' },
+      { description: 'Installment 2 Test Customer / Cancun', amount: 6000, status: 'OPEN' },
+      { description: 'Installment 3 Test Customer / Cancun', amount: 6000, status: 'OPEN' },
+    ]);
     await app.close();
   });
 
@@ -457,11 +656,17 @@ describe.sequential('Financial HTTP routes', () => {
     return result.rows[0]!.id;
   }
 
-  async function seedSale(agencyId: string, customerId: string, userId: string): Promise<string> {
+  async function seedSale(
+    agencyId: string,
+    customerId: string,
+    userId: string,
+    total = 1000,
+    notes?: string,
+  ): Promise<string> {
     const result = await adminPool.query<{ id: string }>(
-      `INSERT INTO sales (agency_id, customer_id, user_id, amount, discount, total, status)
-       VALUES ($1, $2, $3, '1000.00', '0.00', '1000.00', 'CONFIRMED') RETURNING id`,
-      [agencyId, customerId, userId],
+      `INSERT INTO sales (agency_id, customer_id, user_id, amount, discount, total, status, notes)
+       VALUES ($1, $2, $3, $4, '0.00', $4, 'CONFIRMED', $5) RETURNING id`,
+      [agencyId, customerId, userId, total, notes ?? null],
     );
     return result.rows[0]!.id;
   }

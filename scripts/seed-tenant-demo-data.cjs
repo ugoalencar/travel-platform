@@ -15,6 +15,7 @@
 const { Pool } = require('pg');
 const crypto = require('crypto');
 const { URL } = require('node:url');
+const { STORY_IDS, seedBusinessStories } = require('./demo-business-stories.cjs');
 
 const databaseUrl = process.env.DATABASE_URL ||
   'postgresql://travel_test:travel_test_password@127.0.0.1:55432/travel_platform_test';
@@ -80,6 +81,9 @@ async function seedTenantData() {
 
     console.log('3. Creating Customers...');
     const customers = await seedCustomers(agency.id);
+
+    console.log('3.1 Creating Deterministic Business Stories...');
+    await seedBusinessStories(pool, { agencyId: agency.id, userId: agencyUsers[0].id });
 
     console.log('4. Creating Wishes...');
     await seedWishes(agency.id, customers);
@@ -188,6 +192,9 @@ async function seedCustomers(agencyId) {
   const customers = [
     {
       name: 'Mariana Alves Silva',
+      demoId: STORY_IDS.marianaCancun.customer,
+      demoAddressId: STORY_IDS.marianaCancun.address,
+      demoDependentId: STORY_IDS.marianaCancun.dependent,
       email: 'mariana.alves@email.com',
       phone: '11-98765-4321',
       city: 'Joinville',
@@ -357,7 +364,7 @@ async function seedCustomers(agencyId) {
   const result = [];
 
   for (const customerData of customers) {
-    let customerId = generateId();
+    let customerId = customerData.demoId || generateId();
 
     // Insert customer
     const insertedCustomer = await pool.query(
@@ -382,7 +389,7 @@ async function seedCustomers(agencyId) {
     }
 
     // Insert address
-    const addressId = generateId();
+    const addressId = customerData.demoAddressId || generateId();
     await pool.query(
       `INSERT INTO customer_addresses (id, agency_id, customer_id, street, number, district, city, state, cep, country, type, is_primary, created_at, updated_at)
        VALUES ($1, $2, $3, $4, '100', 'Centro', $5, $6, '00000-000', 'Brasil', 'RESIDENTIAL', true, NOW(), NOW()) ON CONFLICT DO NOTHING`,
@@ -391,7 +398,7 @@ async function seedCustomers(agencyId) {
 
     // Insert dependents
     for (const dependent of customerData.dependents) {
-      const dependentId = generateId();
+      const dependentId = customerData.demoDependentId || generateId();
       await pool.query(
         `INSERT INTO customer_dependents (id, agency_id, customer_id, name, relationship_type, birth_date, created_at, updated_at)
          VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW()) ON CONFLICT DO NOTHING`,

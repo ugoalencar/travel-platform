@@ -190,6 +190,7 @@ import {
   getCashFlowSummary,
   getCashBalance,
   getFinancialSummary,
+  getSaleFinancialStory,
   getSaleMargin,
   getExpense,
   getRevenue,
@@ -1959,6 +1960,17 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       requireRole(UserRole.MANAGER);
       const margin = await getSaleMargin(options.database, request.params.id);
       return { margin };
+    }
+  );
+
+  app.get<{ Params: { id: string } }>(
+    '/financial/sales/:id/story',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.MANAGER);
+      const saleId = parseUuidParam(request.params.id, 'saleId');
+      const story = await getSaleFinancialStory(options.database, saleId);
+      return { story };
     }
   );
 
@@ -4315,6 +4327,18 @@ function parseRequiredString(value: unknown, field: string): string {
     throw new ValidationError(`Field "${field}" is required and must be a non-empty string`);
   }
   return value;
+}
+
+function parseUuidParam(value: string, field: string): string {
+  const trimmed = value.trim();
+  if (
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      trimmed,
+    )
+  ) {
+    throw new ValidationError(`Param "${field}" must be a valid UUID`);
+  }
+  return trimmed;
 }
 
 function parsePositiveNumber(value: unknown, field: string): number {

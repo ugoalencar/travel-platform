@@ -1,25 +1,17 @@
-# Customer 360 Implementation Progress
+# Local Business Simulation Progress
 
-**Started:** 2026-08-29
-**Plan:** Customer_360_Plan.md
-**Base Commit:** 84524ed (fix(local-dev): lock migration safety and add zero-to-head recovery)
+Started: 2026-09-03
+Plan: docs/superpowers/plans/2026-09-03-local-business-simulation.md
+Base Commit: ad18c3f
 
-## Phase 1: Database Foundation (COMPLETE)
 
-- [x] Task 1: Customer Core Field Extensions (migration 019 + schema) — d6a5fd53
-- [x] Task 2: Domain Types (TypeScript interfaces + enums) — c6335c6
+Task 1: complete (review clean, no commit per AGENTS no-commit rule)
+Task 2: complete (review clean, no commit per AGENTS no-commit rule; revenues installment workaround accepted under no-migration constraint)
+Task 3: complete (rereview clean; non-destructive lint/typecheck passed; destructive Docker-backed test not run)
+Task 4: complete (rereview clean; API lint/typecheck/security exposure test passed; targeted financial HTTP test now run and passing — see task-4-report.md verification update)
+Task 5: complete (agency-workspace tests, lint, typecheck, build, and Playwright render checks passed)
 
-## Phase 2: Remaining Database + API Services (CASCADE)
+Task 6: complete (docs updated to PASS/FAIL truth; rg TODO/conflict-marker check clean; diff-check clean)
+Task 7: complete (targeted + full-repo lint/typecheck/test gates pass; browser QA run and verified with user authorization; 4 pre-existing bugs found and fixed along the way — see task-7-report.md)
 
-- [x] Task 3: OCR-Ready Database Tables (migrations 020-023) — APPROVED
-- [ ] Task 4: API Services Layer (Customer360Service, attachment service, OCR provider, extraction/verification)
-
-## Phase 3: UI Components (LATER)
-
-- [ ] Task 5: Customer360 Tabs + Personal Data Tab
-
-## Completed Tasks
-
-- Task 1: ✓ complete (commit d6a5fd53, review clean)
-- Task 2: ✓ complete (commit c6335c6, review clean)
-- Task 3: ✓ complete (migrations 020-023 verified, review clean)
+Checkpoint 100%: Local Business Simulation plan complete. All 7 tasks done, all gates green, browser QA verified.

@@ -1078,6 +1078,15 @@ export function registerAllRoutes(): void {
 
   registerRoute({
     method: 'GET',
+    path: '/financial/sales/:id/story',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'MANAGER',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'GET',
     path: '/financial/dashboard',
     classification: RouteClassification.STAFF_SCOPED,
     authPipeline: 'protectedHooks',

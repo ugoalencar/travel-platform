@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { ArrowDownRight, ArrowUpRight, Clock, Wallet } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { PageHeader } from '../components/layout/PageHeader';
+import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { StatCard } from '../components/ui/stat-card';
 import { StatusBadge } from '../components/ui/status-badge';
@@ -119,6 +121,11 @@ export function FinancialPage() {
       <PageHeader
         title="Financeiro"
         description="Visão consolidada de vendas, recebimentos e margem esperada da agência."
+        actions={
+          <Link to="/financial/sales/d0d50001-0000-4000-8000-000000000009/story">
+            <Button size="sm" variant="outline">Historia financeira</Button>
+          </Link>
+        }
       />
 
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">

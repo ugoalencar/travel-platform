@@ -321,6 +321,35 @@ export interface SaleMargin {
   margin: number;
 }
 
+export interface SaleFinancialStory {
+  saleId: string;
+  customerName: string;
+  tripName: string | null;
+  grossSale: number;
+  received: number;
+  remainingReceivable: number;
+  supplierPayables: Array<{
+    description: string;
+    amount: number;
+    dueAt: Date;
+    status: FinancialObligationStatus;
+  }>;
+  totalSupplierPayable: number;
+  installmentSchedule: Array<{
+    description: string;
+    amount: number;
+    dueDate: Date;
+    status: RevenueStatus;
+  }>;
+  margin: {
+    grossSale: number;
+    supplierCosts: number;
+    commissionAndFees: number;
+    grossMargin: number;
+    netMargin: number;
+  };
+}
+
 export interface FinancialSummary {
   salesThisMonth: {
     total: number;
@@ -1683,6 +1712,123 @@ export async function getSaleMargin(database: DatabaseRuntime, saleId: string): 
       operationalCosts,
       commission,
       margin: roundMoney(revenue - supplierCosts - operationalCosts - commission),
+    };
+  });
+}
+
+export async function getSaleFinancialStory(
+  database: DatabaseRuntime,
+  saleId: string,
+): Promise<SaleFinancialStory> {
+  const agencyId = getAgencyId();
+  return database.withTenantTransaction(async (client) => {
+    const saleResult = await client.query<{
+      sale_id: string;
+      customer_id: string;
+      customer_name: string;
+      trip_name: string | null;
+      total: string;
+      notes: string | null;
+    }>(
+      `SELECT s.id AS sale_id, s.customer_id, c.name AS customer_name, t.name AS trip_name,
+              s.total::text AS total, s.notes
+       FROM sales s
+       JOIN customers c ON c.agency_id = s.agency_id AND c.id = s.customer_id
+       LEFT JOIN trips t ON t.agency_id = s.agency_id AND t.sale_id = s.id
+       WHERE s.agency_id = $1 AND s.id = $2`,
+      [agencyId, saleId],
+    );
+    const sale = saleResult.rows[0];
+    if (!sale) throw new NotFoundError('Sale not found');
+    const demoScheduleNote = sale.notes?.startsWith('Demo principal: ')
+      ? `Demo installment schedule for ${sale.notes.slice('Demo principal: '.length)} sale`
+      : null;
+
+    const payablesResult = await client.query<{
+      description: string;
+      amount: string;
+      due_at: string;
+      status: FinancialObligationStatus;
+    }>(
+      `SELECT description, amount::text, due_at, status
+       FROM payables
+       WHERE agency_id = $1 AND sale_id = $2
+       ORDER BY due_at ASC`,
+      [agencyId, saleId],
+    );
+
+    const installmentsResult = await client.query<{
+      description: string;
+      amount: string;
+      due_date: string;
+      status: RevenueStatus;
+    }>(
+      `SELECT description, amount::text, due_date, status
+       FROM revenues
+       WHERE agency_id = $1
+         AND (
+           sale_id = $2
+           OR (
+             sale_id IS NULL
+             AND customer_id = $3
+             AND notes = $4
+           )
+         )
+       ORDER BY due_date ASC`,
+      [agencyId, saleId, sale.customer_id, demoScheduleNote],
+    );
+
+    const receivedResult = await client.query<{ total: string }>(
+      `SELECT COALESCE(SUM(pa.amount), 0)::text AS total
+       FROM payment_allocations pa
+       JOIN receivables r ON r.agency_id = pa.agency_id AND r.id = pa.receivable_id
+       WHERE pa.agency_id = $1 AND r.sale_id = $2`,
+      [agencyId, saleId],
+    );
+
+    const grossSale = roundMoney(Number(sale.total));
+    const received = roundMoney(Number(receivedResult.rows[0]?.total ?? 0));
+    const supplierPayables = payablesResult.rows.map((row) => ({
+      description: row.description,
+      amount: roundMoney(Number(row.amount)),
+      dueAt: new Date(row.due_at),
+      status: row.status,
+    }));
+    const totalSupplierPayable = roundMoney(
+      supplierPayables.reduce((sum, payable) => sum + payable.amount, 0),
+    );
+    const commissionAndFees = roundMoney(
+      supplierPayables
+        .filter((payable) => /comissao|comissão|taxa|fee/i.test(payable.description))
+        .reduce((sum, payable) => sum + payable.amount, 0),
+    );
+    const supplierCosts = roundMoney(totalSupplierPayable - commissionAndFees);
+
+    return {
+      saleId,
+      customerName: sale.customer_name,
+      tripName: sale.trip_name,
+      grossSale,
+      received,
+      remainingReceivable: roundMoney(grossSale - received),
+      supplierPayables,
+      totalSupplierPayable,
+      // The Task 2 demo seed can only link one revenue directly because of the
+      // current (agency_id, sale_id) unique constraint. The SQL fallback above
+      // admits only the canonical demo schedule derived from this sale's note.
+      installmentSchedule: installmentsResult.rows.map((row) => ({
+        description: row.description,
+        amount: roundMoney(Number(row.amount)),
+        dueDate: new Date(row.due_date),
+        status: row.status,
+      })),
+      margin: {
+        grossSale,
+        supplierCosts,
+        commissionAndFees,
+        grossMargin: roundMoney(grossSale - supplierCosts),
+        netMargin: roundMoney(grossSale - supplierCosts - commissionAndFees),
+      },
     };
   });
 }

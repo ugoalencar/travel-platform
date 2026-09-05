@@ -235,7 +235,7 @@
 | POST | `/sales/:id/cancel` | protectedHooks | MANAGER |
 | POST | `/sales/:id/mark-paid` | protectedHooks | MANAGER |
 
-#### Financial — Read (8 routes)
+#### Financial — Read (9 routes)
 
 | Method | Path | Auth | Role |
 |--------|------|------|------|
@@ -246,6 +246,7 @@
 | GET | `/financial/operational-costs` | protectedHooks | MANAGER |
 | GET | `/financial/allocations` | protectedHooks | MANAGER |
 | GET | `/financial/sales/:id/margin` | protectedHooks | MANAGER |
+| GET | `/financial/sales/:id/story` | protectedHooks | MANAGER |
 | GET | `/financial/dashboard` | protectedHooks | MANAGER |
 
 #### Financial — Write (5 routes)

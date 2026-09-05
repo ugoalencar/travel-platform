@@ -372,9 +372,45 @@ export interface FinancialSummary {
   }>;
 }
 
+export interface SaleFinancialStory {
+  saleId: string;
+  customerName: string;
+  tripName: string | null;
+  grossSale: number;
+  received: number;
+  remainingReceivable: number;
+  supplierPayables: Array<{
+    description: string;
+    amount: number;
+    dueAt: string;
+    status: FinancialObligationStatus;
+  }>;
+  totalSupplierPayable: number;
+  installmentSchedule: Array<{
+    description: string;
+    amount: number;
+    dueDate: string;
+    status: string;
+  }>;
+  margin: {
+    grossSale: number;
+    supplierCosts: number;
+    commissionAndFees: number;
+    grossMargin: number;
+    netMargin: number;
+  };
+}
+
 export async function getFinancialSummary(): Promise<FinancialSummary> {
   const data = await request<{ summary: FinancialSummary }>('/api/financial/summary');
   return data.summary;
+}
+
+export async function getSaleFinancialStory(saleId: string): Promise<SaleFinancialStory> {
+  const data = await request<{ story: SaleFinancialStory }>(
+    `/api/financial/sales/${encodeURIComponent(saleId)}/story`,
+  );
+  return data.story;
 }
 // CUSTOMERS
 // ============================================================

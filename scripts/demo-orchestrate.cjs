@@ -36,10 +36,34 @@ console.log('Step 1/5: Bootstrapping local PostgreSQL...\n');
 const bootstrapResult = spawnSync(npmCommand, ['run', 'dev:db'], {
   cwd: resolve(repoRoot, 'services/api'),
   stdio: 'inherit',
+  shell: process.platform === 'win32',
 });
 
 if (bootstrapResult.status !== 0) {
   console.error('\n❌ Database bootstrap failed. Exiting.\n');
+  process.exit(1);
+}
+
+// Step 1b: Reset schema so migrations apply to a clean database.
+// `dev:db` above already applies migrations 001/002 and seeds manual-testing
+// fixtures for API-only workflows; the full demo needs a clean schema before
+// re-applying every migration from scratch (matches demo-reset.cjs's flow).
+console.log('\nStep 1b/5: Resetting database schema for full migration run...\n');
+const schemaResetResult = spawnSync(
+  'node',
+  ['-e', "require('pg'); const { Pool } = require('pg'); const pool = new Pool({ connectionString: process.env.DATABASE_URL }); pool.query('DROP SCHEMA IF EXISTS public CASCADE; CREATE SCHEMA public;').then(() => pool.end()).catch((err) => { console.error(err.message); process.exitCode = 1; return pool.end(); });"],
+  {
+    cwd: repoRoot,
+    stdio: 'inherit',
+    env: {
+      ...process.env,
+      DATABASE_URL: process.env.DATABASE_URL || 'postgresql://travel_test:travel_test_password@127.0.0.1:55432/travel_platform_test',
+    },
+  },
+);
+
+if (schemaResetResult.status !== 0) {
+  console.error('\n❌ Schema reset failed. Exiting.\n');
   process.exit(1);
 }
 
