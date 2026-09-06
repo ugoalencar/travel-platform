@@ -12,6 +12,7 @@ import { Select } from '../components/ui/select';
 import { Textarea } from '../components/ui/textarea';
 import { formatBRL } from '../lib/formatCurrency';
 import { formatDateBR } from '../lib/formatDateBR';
+import { getProposalStatusLabel } from '../lib/statusLabels';
 import {
   ApiError,
   listProposals,
@@ -42,18 +43,6 @@ function statusTone(status: string): StatusTone {
   if (status === 'SENT') return 'neutral';
   if (status === 'DRAFT') return 'attention';
   return 'neutral';
-}
-
-function statusLabel(status: string): string {
-  const labels: Record<string, string> = {
-    ACCEPTED: 'Aceita',
-    DRAFT: 'Rascunho',
-    SENT: 'Enviada',
-    DECLINED: 'Recusada',
-    EXPIRED: 'Expirada',
-    CANCELLED: 'Cancelada',
-  };
-  return labels[status] || status;
 }
 
 function PageIntro({ title, description }: { title: string; description: string }) {
@@ -157,7 +146,7 @@ export function ProposalListPage() {
                 </td>
                 <td className="px-4 py-4">
                   <StatusBadge tone={statusTone(proposal.status)}>
-                    {statusLabel(proposal.status)}
+                    {getProposalStatusLabel(proposal.status)}
                   </StatusBadge>
                 </td>
                 <td className="px-4 py-4 text-right">
@@ -275,7 +264,7 @@ export function ProposalDetailPage() {
           { }
           <Field label="Total" value={formatBRL(proposal.total)} />
           { }
-          <Field label="Status" value={statusLabel(proposal.status)} />
+          <Field label="Status" value={getProposalStatusLabel(proposal.status)} />
           { }
           {proposal.validUntil && <Field label="Valido ate" value={proposal.validUntil} />}
         </CardContent>
