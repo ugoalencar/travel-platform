@@ -38,6 +38,16 @@ import {
   registerErrorHandler,
 } from './errors';
 import {
+  assertAllowedFields,
+  parseNonNegativeNumber,
+  parseObjectBody,
+  parsePositiveNumber,
+  parseRequiredDate,
+  parseRequiredString,
+  parseUuidParam,
+  requireStringField,
+} from './request-parsing';
+import {
   DEFAULT_BODY_LIMIT_BYTES,
   isOriginAllowed,
   resolveCorsPolicy,
@@ -4148,11 +4158,6 @@ function parseCreateExternalOfferCaptureInput(body: unknown): CreateExternalOffe
 // OFFER & GROWTH ENGINE request parsers
 // ============================================================
 
-function requireStringField(body: unknown, field: string): string {
-  const record = parseObjectBody(body);
-  return parseRequiredString(record[field], field);
-}
-
 function parseCreateAssetInput(body: unknown): CreateAssetInput {
   const record = parseObjectBody(body);
   if (!Object.values(AssetType).includes(record.type as AssetType)) {
@@ -4345,74 +4350,6 @@ function parseRecordRedemptionInput(body: unknown): RecordRedemptionInput {
   if (record.amountApplied !== undefined)
     data.amountApplied = parseNonNegativeNumber(record.amountApplied, 'amountApplied');
   return data;
-}
-
-function parseObjectBody(value: unknown): Record<string, unknown> {
-  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
-    throw new ValidationError('Request body must be an object');
-  }
-  return value as Record<string, unknown>;
-}
-
-function assertAllowedFields(
-  record: Record<string, unknown>,
-  forbidden: readonly string[],
-  allowed: readonly string[]
-): void {
-  for (const field of forbidden) {
-    if (field in record) {
-      throw new ValidationError(`Field "${field}" is not allowed in the request body`);
-    }
-  }
-  for (const key of Object.keys(record)) {
-    if (!allowed.includes(key)) {
-      throw new ValidationError(`Unknown field "${key}" in request body`);
-    }
-  }
-}
-
-function parseRequiredString(value: unknown, field: string): string {
-  if (typeof value !== 'string' || value.trim().length === 0) {
-    throw new ValidationError(`Field "${field}" is required and must be a non-empty string`);
-  }
-  return value;
-}
-
-function parseUuidParam(value: string, field: string): string {
-  const trimmed = value.trim();
-  if (
-    !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-      trimmed,
-    )
-  ) {
-    throw new ValidationError(`Param "${field}" must be a valid UUID`);
-  }
-  return trimmed;
-}
-
-function parsePositiveNumber(value: unknown, field: string): number {
-  if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) {
-    throw new ValidationError(`Field "${field}" must be a positive number`);
-  }
-  return value;
-}
-
-function parseNonNegativeNumber(value: unknown, field: string): number {
-  if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) {
-    throw new ValidationError(`Field "${field}" must be a non-negative number`);
-  }
-  return value;
-}
-
-function parseRequiredDate(value: unknown, field: string): Date {
-  if (typeof value !== 'string') {
-    throw new ValidationError(`Field "${field}" must be a date string`);
-  }
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    throw new ValidationError(`Field "${field}" must be a valid date`);
-  }
-  return date;
 }
 
 // ============================================================
