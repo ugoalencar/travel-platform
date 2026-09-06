@@ -1,5 +1,14 @@
 # `services/api/src/app.ts` Structure Map
 
+**Update (Batch 3B, `refactor/app-ts-decomposition`):** two extraction steps
+from `docs/refactoring/BATCH3B_EXTRACTION_PLAN.md` are done —
+`request-parsing.ts` (step 1) and `commercial-input-parsing.ts` (step 3,
+offer/proposal/sale parsers). See `docs/refactoring/APP_TS_AFTER.md` for the
+current before/after state and what remains. The structure described below
+is the **original, pre-extraction** map and is kept as historical baseline
+for planning the remaining steps — line numbers in this document no longer
+match current `app.ts`.
+
 Factual map only — **no code was moved to produce this document**. Built by
 scanning the file for route registrations (`app.get/post/patch/put/delete(...)`)
 and top-level function declarations. Line numbers are as of
@@ -7,7 +16,7 @@ and top-level function declarations. Line numbers are as of
 as the file changes, but the four-part structure and the domain groupings
 described below are stable enough to plan against.
 
-## Four-part structure (5,690 lines total)
+## Four-part structure (5,690 lines total, as of the original baseline)
 
 | Section | Lines | What it is |
 | --- | --- | --- |
