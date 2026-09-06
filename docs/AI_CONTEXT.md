@@ -87,9 +87,10 @@ seed → start all five services (`scripts/demo-orchestrate.cjs`,
 
 ## Deployment
 
-Not yet centrally documented here — see `docs/03_FINANCIAL_COMPLETE.md`
-and sibling numbered docs under `docs/` for historical release-readiness
-material (see caveat below).
+Not yet centrally documented here — see
+`docs/archive/aggressive-release-attack-pack/03_FINANCIAL_COMPLETE.md`
+and its sibling numbered docs for historical release-readiness
+material (see "Historical / Archived Paths" below).
 
 ## Known Duplication (documented, not yet consolidated)
 

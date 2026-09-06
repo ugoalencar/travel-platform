@@ -15,7 +15,7 @@ obligations, cash impact, margin, and customer portal visibility.
 
 ## Evidence Reviewed
 
-- `docs/03_FINANCIAL_COMPLETE.md`
+- `docs/archive/aggressive-release-attack-pack/03_FINANCIAL_COMPLETE.md`
 - `docs/02-domain/financial-foundation.md`
 - `docs/decisions/D4-FINANCIAL-DISCOVERY.md`
 - `docs/demo/README.md`
