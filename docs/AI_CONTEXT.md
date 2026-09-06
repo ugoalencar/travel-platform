@@ -98,29 +98,63 @@ material (see "Historical / Archived Paths" below).
   overlapping `apps/agency`. Not resolved by this pass; flagged as a
   product decision (which app is the intended long-term staff surface),
   not a code-reduction mechanical fix.
-- `docs/` root mixes current product docs with dozens of numbered
-  historical "wave"/"phase" markdown files from past release efforts
-  (`00_*` through `2x_*`, several colliding prefixes across unrelated
-  waves — e.g. three different `01_*.md` files with unrelated content).
-  Several were also duplicated as zip archives sitting next to their
-  own already-extracted folder (removed where verified byte-identical;
-  see `docs/reduction/` for one prior partial audit). Full consolidation
-  of the numbered doc waves was out of scope for this pass — treat
-  `docs/*` numbered files as **historical** unless a task specifically
-  asks about release history.
+- `apps/agency` and `apps/customer` each define their own
+  `TripStatus`/`ProposalStatus` pt-BR label maps and a
+  `getBookingStatusLabel`, with byte-identical logic
+  (`formatCurrency.ts`/`formatDateBR.ts` were already converged onto
+  one canonical copy per app; the status-label overlap has not been).
+  Proper consolidation needs a real cross-app shared package — see the
+  "Cross-app shared package" note below for why that wasn't done here.
+  `apps/platform-admin`'s status domains (Invoice/Payment/Subscription/
+  Lead/Support) are genuinely platform-specific, not duplicates.
+
+## Cross-app shared package: not feasible without new build wiring (proven, not assumed)
+
+`services/api` imports from `packages/domain` via a **relative path
+straight to the `.ts` source** (`../../../packages/domain/types`), not
+via the package name — there is no build step in that path at all.
+Tried the same pattern for the frontend apps (a probe file importing
+`packages/shared/formatting/money` by relative path from
+`apps/agency/src`): `tsc` fails immediately with
+`TS6059: File '...' is not under 'rootDir'`, because every app's
+`tsconfig.json` sets `rootDir: "."` with `include: ["src/**/*.ts", ...]`
+only. Fixing that would mean changing `rootDir`/`include` in all four
+app tsconfigs (and verifying Vite's dev-server file-serving and build
+output paths still work afterward) — real, first-time build
+infrastructure, not a content move. Until a dedicated batch does that
+work and proves it end-to-end (typecheck + Vite build + Vite dev clean
+in all four apps), do not attempt cross-app package imports; converge
+file *contents* instead (see the formatter commits in
+`chore/codebase-reduction-batch2`/`-batch3a` history for the pattern).
 
 ## Historical / Archived Paths — do not treat as active source
 
+- **`docs/archive/`** — superseded documentation, moved here (not
+  deleted; full git history preserved) rather than left cluttering
+  `docs/` root:
+  - `docs/archive/aggressive-release-attack-pack/` — a full past
+    release-wave's numbered docs (`00_README.md` through
+    `11_STAGING_UAT_GOLIVE.md`) plus their original zip archive.
+  - `docs/archive/waves/{absolute-endgame-sequence,final-audit-swarm,
+    p0-remediation-batch,product-completion-wave}/` — four other past
+    release-wave report sets (each was also duplicated as a zip
+    sitting next to its own extracted folder; the zips were removed in
+    an earlier pass after verifying file-list identity).
+  - `docs/archive/security-final-reports/` — completed security-audit
+    final reports (SEC-B, SEC-F, SEC-G), each pinned to an old base SHA.
 - **Sibling worktree directories outside this repo's own working
   tree** (visible via `git worktree list`, e.g. `release-core-a`,
   `security-mfa-phase`, `uat-phase`, and many more under
-  `D:/travel-platform-worktrees/*`): these are **other local git
-  worktrees of this same repository**, checked out at old feature/phase
-  branches. They are not part of `main`'s tree (as of this pass, the
-  phantom gitlink entries that once pointed at eight of them from
-  inside `main`'s own tree were removed — see `chore/codebase-reduction`
-  history). Never search them for "the current implementation" of
-  anything; they are frozen snapshots of past branches.
+  `D:/travel-platform-worktrees/*`): other local git worktrees of this
+  same repository, checked out at old feature/phase branches. Not part
+  of `main`'s tree (the phantom gitlink entries that once pointed at
+  eight of them from inside `main`'s own tree were removed — see
+  `chore/codebase-reduction` history in `git log`). On this machine
+  they're also excluded from `git status`/most IDE search via
+  `.git/info/exclude` (local-only, not committed — see that file if
+  setting up a new clone/machine). Never search them for "the current
+  implementation" of anything; they are frozen snapshots of past
+  branches.
 - `docs/reduction/`, `.superpowers/reduction/` (when present in a given
   worktree) — scratch output from a prior, separate codebase-reduction
   attempt based on an older commit. Historical, not authoritative.
@@ -135,23 +169,23 @@ detection, skip:
 
 - `node_modules/`, `dist/`, `dist.bak*/`, `dist.old*/`, `coverage/`,
   `.tmp/` (session-scratch, gitignored)
-- `docs/*` numbered historical wave files and their zip archives
-  (treat as historical record, not current spec)
+- `docs/archive/**` (superseded, historical record only)
 - Sibling worktree directories outside the current working tree
 
 Search **active source first**: `apps/*/src`, `services/api/src`,
 `packages/*` (excluding generated Prisma output), and their matching
 test directories.
 
-## Large-File Note (Phase 17 audit)
+## Large-File Note / Batch 3B Prep
 
 The largest active source files (`app.ts` ~5.7k LOC, `financial.ts`
 ~2.5k LOC, `route-inventory.ts` ~1.8k LOC, `packages/domain/types.ts`
-~1.6k LOC) were reviewed for split/dedup potential during this pass.
-`app.ts` is Fastify route registration for the entire API — splitting
-it by domain (sales routes, proposal routes, financial routes, ...)
-is a legitimate future refactor but was **not done in this pass**
-because it touches every route in the app and needs its own careful,
-fully-tested batch rather than being folded into a dead-code/artifact
-cleanup pass. Treat it as `KEEP (candidate for a dedicated future
+~1.6k LOC) were reviewed for split/dedup potential. `app.ts` is
+Fastify route registration for the entire API — splitting it by domain
+(sales routes, proposal routes, financial routes, ...) is a legitimate
+future refactor but requires its own isolated, fully-tested batch, one
+domain extraction at a time. See `docs/refactoring/APP_TS_MAP.md` (the
+factual structure map) and `docs/refactoring/BATCH3B_EXTRACTION_PLAN.md`
+(the ranked extraction plan) — both documentation only, no code moved
+yet. Treat `app.ts`'s size as `KEEP (candidate for a dedicated future
 SPLIT pass)`, not evidence of current disorganization.
