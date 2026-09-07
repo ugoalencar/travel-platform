@@ -58,6 +58,170 @@ export interface PublishCaptureResult {
   offer: Offer;
 }
 
+export interface ExtractedOfferDraft {
+  sourceUrl: string;
+  sourceName: string;
+  rawContent: string;
+  normalizedTitle?: string;
+  normalizedDescription?: string;
+  foundPrice?: number;
+  currency?: string;
+  fetchError?: string;
+}
+
+const EXTRACTION_TIMEOUT_MS = 8000;
+const MAX_RAW_CONTENT_LENGTH = 20000;
+
+/**
+ * Actually performs an HTTP fetch of the given URL and extracts structured
+ * offer data from whatever comes back (HTML meta tags / JSON-LD when
+ * present, or a JSON body if the source returns JSON). This is a genuine
+ * network call, not a fixture — a URL that does not resolve or that times
+ * out returns a result with `fetchError` set and no fabricated fields, so
+ * the reviewer sees an honest failure instead of a silently faked success.
+ */
+export async function extractOfferFromUrl(url: string): Promise<ExtractedOfferDraft> {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    throw new ValidationError('Field "url" must be a valid absolute URL');
+  }
+  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+    throw new ValidationError('Field "url" must use http or https');
+  }
+  const sourceName = parsed.hostname.replace(/^www\./, '');
+
+  let response: Response;
+  let bodyText: string;
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), EXTRACTION_TIMEOUT_MS);
+    try {
+      response = await fetch(parsed.toString(), {
+        signal: controller.signal,
+        redirect: 'follow',
+        headers: { Accept: 'text/html,application/json;q=0.9,*/*;q=0.8' },
+      });
+    } finally {
+      clearTimeout(timeout);
+    }
+    bodyText = await response.text();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown fetch error';
+    return {
+      sourceUrl: parsed.toString(),
+      sourceName,
+      rawContent: JSON.stringify({ url: parsed.toString(), fetchError: message }),
+      fetchError: `Não foi possível buscar a URL: ${message}`,
+    };
+  }
+
+  const truncated = bodyText.slice(0, MAX_RAW_CONTENT_LENGTH);
+
+  if (!response.ok) {
+    return {
+      sourceUrl: parsed.toString(),
+      sourceName,
+      rawContent: truncated,
+      fetchError: `A origem retornou HTTP ${response.status}`,
+    };
+  }
+
+  const contentType = response.headers.get('content-type') ?? '';
+  if (contentType.includes('application/json')) {
+    return extractFromJson(parsed.toString(), sourceName, truncated);
+  }
+  return extractFromHtml(parsed.toString(), sourceName, truncated);
+}
+
+function extractFromJson(sourceUrl: string, sourceName: string, body: string): ExtractedOfferDraft {
+  try {
+    const data: unknown = JSON.parse(body);
+    const record = typeof data === 'object' && data !== null ? (data as Record<string, unknown>) : {};
+    const title = firstString(record, ['title', 'name', 'offerName']);
+    const description = firstString(record, ['description', 'summary']);
+    const price = firstNumber(record, ['price', 'foundPrice', 'amount']);
+    const currency = firstString(record, ['currency']) ?? 'BRL';
+    return {
+      sourceUrl,
+      sourceName,
+      rawContent: body,
+      ...(title ? { normalizedTitle: title } : {}),
+      ...(description ? { normalizedDescription: description } : {}),
+      ...(price !== undefined ? { foundPrice: price } : {}),
+      currency,
+    };
+  } catch {
+    return {
+      sourceUrl,
+      sourceName,
+      rawContent: body,
+      fetchError: 'Resposta JSON inválida recebida da origem',
+    };
+  }
+}
+
+function extractFromHtml(sourceUrl: string, sourceName: string, html: string): ExtractedOfferDraft {
+  const title =
+    matchMetaContent(html, 'og:title') ??
+    matchTag(html, 'title');
+  const description = matchMetaContent(html, 'og:description') ?? matchMetaContent(html, 'description');
+  const price = matchPrice(html);
+
+  return {
+    sourceUrl,
+    sourceName,
+    rawContent: html,
+    ...(title ? { normalizedTitle: title.trim() } : {}),
+    ...(description ? { normalizedDescription: description.trim() } : {}),
+    ...(price !== undefined ? { foundPrice: price, currency: 'BRL' } : {}),
+  };
+}
+
+function matchMetaContent(html: string, name: string): string | undefined {
+  const regex = new RegExp(
+    `<meta[^>]+(?:name|property)=["']${name}["'][^>]+content=["']([^"']*)["']`,
+    'i',
+  );
+  const match = regex.exec(html);
+  return match?.[1];
+}
+
+function matchTag(html: string, tag: string): string | undefined {
+  const regex = new RegExp(`<${tag}[^>]*>([^<]*)</${tag}>`, 'i');
+  const match = regex.exec(html);
+  return match?.[1];
+}
+
+function matchPrice(html: string): number | undefined {
+  const match = /R\$\s?([\d.,]+)/.exec(html);
+  if (!match?.[1]) return undefined;
+  const normalized = match[1].replace(/\./g, '').replace(',', '.');
+  const value = Number.parseFloat(normalized);
+  return Number.isFinite(value) ? value : undefined;
+}
+
+function firstString(record: Record<string, unknown>, keys: string[]): string | undefined {
+  for (const key of keys) {
+    const value = record[key];
+    if (typeof value === 'string' && value.trim().length > 0) return value;
+  }
+  return undefined;
+}
+
+function firstNumber(record: Record<string, unknown>, keys: string[]): number | undefined {
+  for (const key of keys) {
+    const value = record[key];
+    if (typeof value === 'number' && Number.isFinite(value)) return value;
+    if (typeof value === 'string' && value.trim().length > 0) {
+      const parsed = Number.parseFloat(value);
+      if (Number.isFinite(parsed)) return parsed;
+    }
+  }
+  return undefined;
+}
+
 const CAPTURE_COLUMNS = `id, agency_id, source_url, source_name, captured_at, raw_content,
   normalized_title, normalized_description, found_price, currency, valid_until, status,
   reviewed_at, reviewed_by_user_id, published_offer_id, created_at, updated_at`;

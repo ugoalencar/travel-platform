@@ -732,11 +732,42 @@ export async function listCaptures(): Promise<Capture[]> {
   return data.captures;
 }
 
+export interface ExtractedOfferDraft {
+  sourceUrl: string;
+  sourceName: string;
+  rawContent: string;
+  normalizedTitle?: string;
+  normalizedDescription?: string;
+  foundPrice?: number;
+  currency?: string;
+  fetchError?: string;
+}
+
+export async function extractOfferFromUrl(url: string): Promise<ExtractedOfferDraft> {
+  const data = await request<{ draft: ExtractedOfferDraft }>('/api/pescador/extract', {
+    method: 'POST',
+    body: JSON.stringify({ url }),
+  });
+  return data.draft;
+}
+
 export async function captureUrl(url: string): Promise<Capture> {
-  const extracted = buildDeterministicCapture(url);
+  // Perform a real server-side fetch + extraction of the URL. When the
+  // fetch fails (unreachable host, non-2xx, timeout) we still persist a
+  // capture record so the failure is visible and reviewable -- we never
+  // fabricate success data the way the previous client-only stub did.
+  const draft = await extractOfferFromUrl(url);
+  const { fetchError, ...payload } = draft;
+  const body = fetchError
+    ? {
+        ...payload,
+        normalizedTitle: payload.normalizedTitle ?? 'Falha ao capturar',
+        normalizedDescription: `Não foi possível extrair os dados automaticamente: ${fetchError}. Edite manualmente antes de revisar.`,
+      }
+    : payload;
   const data = await request<{ capture: Capture }>('/api/pescador/captures', {
     method: 'POST',
-    body: JSON.stringify(extracted),
+    body: JSON.stringify(body),
   });
   return data.capture;
 }
@@ -774,47 +805,6 @@ export async function publishCapture(id: string): Promise<PublishCaptureResult> 
   });
 }
 
-function buildDeterministicCapture(url: string) {
-  const parsed = new URL(url);
-  const host = parsed.hostname.replace(/^www\./, '');
-  const price = 1800 + (stableHash(url) % 4200);
-  const readablePath = parsed.pathname
-    .split('/')
-    .filter(Boolean)
-    .slice(-2)
-    .join(' ')
-    .replace(/[-_]+/g, ' ')
-    .trim();
-  const title = readablePath
-    ? readablePath.replace(/\b\w/g, (char) => char.toUpperCase())
-    : `Oferta ${host}`;
-
-  return {
-    sourceUrl: url,
-    sourceName: host,
-    rawContent: JSON.stringify({
-      url,
-      mode: 'demo-deterministic',
-      destination: 'Destino a revisar',
-      hotel: 'Hotel a confirmar',
-      dates: 'Datas a confirmar',
-      transport: 'Transporte a confirmar',
-      inclusions: 'Inclusoes a revisar',
-    }),
-    normalizedTitle: title,
-    normalizedDescription: `Oferta capturada de ${host}. Revise os dados antes de criar a oferta.`,
-    foundPrice: price,
-    currency: 'BRL',
-  };
-}
-
-function stableHash(value: string): number {
-  let hash = 0;
-  for (let index = 0; index < value.length; index += 1) {
-    hash = (hash * 31 + value.charCodeAt(index)) >>> 0;
-  }
-  return hash;
-}
 
 export type { CustomerStatus, WishStatus, TripStatus, ProposalStatus, Proposal, Sale, SaleStatus };
 

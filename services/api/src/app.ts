@@ -242,6 +242,7 @@ import {
 import {
   approveCapture,
   createExternalOfferCapture,
+  extractOfferFromUrl,
   listExternalOfferCaptures,
   moveCaptureToReview,
   publishCapture,
@@ -2359,6 +2360,14 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     const capture = await createExternalOfferCapture(options.database, data);
     reply.code(201);
     return { capture };
+  });
+
+  app.post('/pescador/extract', { preHandler: protectedHooks }, async (request) => {
+    requireRole(UserRole.AGENT);
+    const record = parseObjectBody(request.body);
+    const url = parseRequiredString(record.url, 'url');
+    const draft = await extractOfferFromUrl(url);
+    return { draft };
   });
 
   app.post<{ Params: { id: string } }>(
