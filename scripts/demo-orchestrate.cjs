@@ -115,6 +115,22 @@ if (platformSeedResult.status !== 0) {
   process.exit(1);
 }
 
+// Etapa 4.5: Popular dados completos do tenant (entitlements, campanhas, cupons etc.)
+console.log('\nEtapa 4.5/9: Populando dados completos de demonstração do tenant...\n');
+const tenantSeedResult = spawnSync('node', [resolve(repoRoot, 'scripts/seed-tenant-demo-data.cjs')], {
+  cwd: repoRoot,
+  stdio: 'inherit',
+  env: {
+    ...process.env,
+    DATABASE_URL: process.env.DATABASE_URL || 'postgresql://travel_test:travel_test_password@127.0.0.1:55432/travel_platform_test',
+  },
+});
+
+if (tenantSeedResult.status !== 0) {
+  console.error('\n❌ Falha ao popular dados completos do tenant. Encerrando.\n');
+  process.exit(1);
+}
+
 // Etapas 5-9: Iniciar serviços
 console.log('\nEtapa 5/9: Iniciando servidor da API (porta 4000)...\n');
 console.log('Etapa 6/9: Iniciando portal da agência (porta 5173)...\n');

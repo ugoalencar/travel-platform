@@ -819,7 +819,7 @@ async function seedCustomerDocuments(agencyId, customers) {
 }
 
 async function seedEntitlements(agencyId) {
-  const features = ['PESCADOR', 'CAMPAIGNS', 'CREATIVE_STUDIO', 'SOCIAL_PUBLISHING'];
+  const features = ['PESCADOR', 'CAMPAIGNS', 'CREATIVE_STUDIO', 'SOCIAL_PUBLISHING', 'SOCIAL_AUTOMATION'];
 
   for (const feature of features) {
     await pool.query(
