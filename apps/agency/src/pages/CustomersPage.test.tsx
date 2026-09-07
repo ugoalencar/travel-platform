@@ -16,6 +16,9 @@ vi.mock('../lib/api', async () => {
     listWishesByCustomer: vi.fn(),
     listTripsByCustomer: vi.fn(),
     createCustomer: vi.fn(),
+    listCustomerAddresses: vi.fn(),
+    listCustomerDocuments: vi.fn(),
+    listCustomerDependents: vi.fn(),
   };
 });
 
@@ -114,6 +117,9 @@ beforeEach(() => {
     if (id === 'cust-001') return Promise.resolve([tripPortugal]);
     return Promise.resolve([]);
   });
+  vi.mocked(api.listCustomerAddresses).mockResolvedValue([]);
+  vi.mocked(api.listCustomerDocuments).mockResolvedValue([]);
+  vi.mocked(api.listCustomerDependents).mockResolvedValue([]);
 });
 
 describe('CustomersPage', () => {

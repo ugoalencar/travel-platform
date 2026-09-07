@@ -5,7 +5,7 @@ import {
 } from '../../../packages/domain/types';
 import { getAgencyId } from '../../../packages/domain/tenant-context';
 import type { DatabaseRuntime } from './database';
-import { NotFoundError, ValidationError } from './errors';
+import { ConflictError, NotFoundError, ValidationError } from './errors';
 import { getSaleMargin } from './financial';
 
 interface CommissionEntryRow {
@@ -173,6 +173,24 @@ export async function generateCommission(
       [agencyId, data.saleId],
     );
     const tripId = tripResult.rows[0]?.id ?? null;
+
+    // Idempotency guard: generating a commission twice for the same
+    // sale+employee must not create a duplicate entry. Any existing
+    // non-cancelled commission_entry for this (agency, sale, employee)
+    // blocks re-generation -- the caller should approve/cancel the
+    // existing entry first rather than silently doubling the commission.
+    const duplicateResult = await client.query<{ id: string }>(
+      `SELECT id FROM commission_entries
+       WHERE agency_id = $1 AND sale_id = $2 AND employee_id = $3 AND status <> 'CANCELLED'
+       LIMIT 1`,
+      [agencyId, data.saleId, data.employeeId],
+    );
+    if (duplicateResult.rows[0]) {
+      throw new ConflictError(
+        `A commission entry already exists for this sale and employee (id: ${duplicateResult.rows[0].id}). ` +
+          'Cancel it before generating a new one.',
+      );
+    }
 
     let calculationBase: number;
     let rate: number | null = null;

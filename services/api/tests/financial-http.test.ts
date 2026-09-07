@@ -34,6 +34,20 @@ const migrations = [
   '022_customer_360_document_audit.sql',
   '023_customer_360_rls.sql',
   '024_extended_financial_module.sql',
+  // createPayable() (Business Operations Completion wave) always inserts
+  // category_id/cost_center_id (041) and beneficiary_type/employee_id/
+  // commission_entry_id/payroll_entry_id (043), and assertOptionalRef()
+  // validates against cost_centers/employees (041/042) and
+  // commission_entries/payroll_entries (043) -- all required or every
+  // createPayable() call here 500s with a missing-column/table error.
+  // 038/039/040 create/extend suppliers/air_services/land_services, which
+  // 041 ALTERs to add cost_center_id -- load-bearing dependencies of 041.
+  '038_supplier_extended.sql',
+  '039_air_services.sql',
+  '040_land_services.sql',
+  '041_finance_categories_cost_centers.sql',
+  '042_employees_commission_plans.sql',
+  '043_commissions_payroll.sql',
 ].map((name) => resolve(repoRoot, 'infrastructure/migrations', name));
 const prepareRolesSql = resolve(repoRoot, 'tests/integration/database/002_prepare_local_roles.sql');
 const composeFile = resolve(repoRoot, 'infrastructure/docker-compose.local-postgres.yml');

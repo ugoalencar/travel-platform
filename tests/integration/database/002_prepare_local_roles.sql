@@ -282,6 +282,101 @@ BEGIN
 END;
 $$;
 
+-- Business Operations Completion wave tables (migrations 038-043) only
+-- exist once those migrations have been applied; guard the same way as
+-- the blocks above so domains that only apply earlier migrations are
+-- unaffected. Do NOT use an unconditional GRANT here -- a prior session
+-- broke every other domain's test suite that way.
+DO $$
+BEGIN
+  IF to_regclass('public.supplier_category_links') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      supplier_category_links
+    TO travel_app_runtime_local;
+  END IF;
+END;
+$$;
+
+DO $$
+BEGIN
+  IF to_regclass('public.air_services') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      air_services
+    TO travel_app_runtime_local;
+  END IF;
+END;
+$$;
+
+DO $$
+BEGIN
+  IF to_regclass('public.land_services') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      land_services
+    TO travel_app_runtime_local;
+  END IF;
+END;
+$$;
+
+DO $$
+BEGIN
+  IF to_regclass('public.cost_centers') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      cost_centers
+    TO travel_app_runtime_local;
+  END IF;
+END;
+$$;
+
+DO $$
+BEGIN
+  IF to_regclass('public.commission_plans') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      commission_plans
+    TO travel_app_runtime_local;
+  END IF;
+END;
+$$;
+
+DO $$
+BEGIN
+  IF to_regclass('public.employees') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      employees
+    TO travel_app_runtime_local;
+  END IF;
+END;
+$$;
+
+DO $$
+BEGIN
+  IF to_regclass('public.commission_entries') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      commission_entries
+    TO travel_app_runtime_local;
+  END IF;
+END;
+$$;
+
+DO $$
+BEGIN
+  IF to_regclass('public.employee_deductions') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      employee_deductions
+    TO travel_app_runtime_local;
+  END IF;
+END;
+$$;
+
+DO $$
+BEGIN
+  IF to_regclass('public.payroll_entries') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      payroll_entries
+    TO travel_app_runtime_local;
+  END IF;
+END;
+$$;
+
 GRANT EXECUTE ON FUNCTION current_agency_id() TO travel_app_runtime_local;
 GRANT EXECUTE ON FUNCTION current_user_id() TO travel_app_runtime_local;
 GRANT EXECUTE ON FUNCTION set_tenant_context(TEXT, TEXT) TO travel_app_runtime_local;
