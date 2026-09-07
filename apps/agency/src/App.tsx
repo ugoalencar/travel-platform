@@ -35,6 +35,7 @@ import { PayablesPage } from './pages/PayablesPage';
 import { PescadorPage } from './pages/PescadorPage';
 import { SuppliersPage } from './pages/SuppliersPage';
 import { AirServicesPage } from './pages/AirServicesPage';
+import { LandServicesPage } from './pages/LandServicesPage';
 import { ReportsPage } from './pages/ReportsPage';
 import { SettingsPage } from './pages/SettingsPage';
 
@@ -74,6 +75,7 @@ export function App() {
         <Route path="pescador" element={<PescadorPage />} />
         <Route path="suppliers" element={<SuppliersPage />} />
         <Route path="operations/air" element={<AirServicesPage />} />
+        <Route path="operations/land" element={<LandServicesPage />} />
         <Route path="reports" element={<ReportsPage />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route path="*" element={<NotFoundPage />} />

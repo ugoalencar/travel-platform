@@ -32,6 +32,7 @@ const NAV_SECTIONS: NavSection[] = [
       { label: 'Propostas', to: '/proposals' },
       { label: 'Reservas', to: '/bookings' },
       { label: 'Aéreo', to: '/operations/air' },
+      { label: 'Terrestre', to: '/operations/land' },
       { label: 'Vendas', to: '/sales' },
     ],
   },

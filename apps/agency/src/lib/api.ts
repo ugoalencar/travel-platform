@@ -1558,6 +1558,121 @@ export async function deleteAirService(id: string): Promise<void> {
 }
 
 // ============================================================
+// LAND OPERATIONS DOMAIN
+// ============================================================
+
+export type LandServiceType =
+  | 'ACCOMMODATION'
+  | 'TRANSFER'
+  | 'CAR_RENTAL'
+  | 'TOUR'
+  | 'TRAVEL_INSURANCE'
+  | 'CRUISE'
+  | 'TRAIN'
+  | 'BUS'
+  | 'GUIDE'
+  | 'TICKET'
+  | 'RECEPTIVE'
+  | 'OTHER';
+export type LandServiceStatus = 'PENDING' | 'CONFIRMED' | 'CANCELLED';
+export type LandSupplierPaymentStatus = 'OPEN' | 'PARTIALLY_PAID' | 'PAID' | 'CANCELLED';
+
+export interface LandService {
+  id: string;
+  agencyId: string;
+  tripId: string;
+  bookingId?: string;
+  supplierId?: string;
+  customerId: string;
+  dependentId?: string;
+  serviceType: LandServiceType;
+  description: string;
+  startDate: string;
+  endDate: string;
+  quantity: number;
+  cost: number;
+  saleValue: number;
+  taxes: number;
+  fees: number;
+  commission?: number;
+  currency: string;
+  supplierDueDate?: string;
+  supplierPaymentStatus: LandSupplierPaymentStatus;
+  status: LandServiceStatus;
+  confirmationNumber?: string;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface LandServiceInput {
+  tripId: string;
+  bookingId?: string;
+  supplierId?: string;
+  customerId: string;
+  dependentId?: string;
+  serviceType?: LandServiceType;
+  description: string;
+  startDate: string;
+  endDate: string;
+  quantity?: number;
+  cost?: number;
+  saleValue?: number;
+  taxes?: number;
+  fees?: number;
+  commission?: number | undefined;
+  currency?: string;
+  supplierDueDate?: string;
+  supplierPaymentStatus?: LandSupplierPaymentStatus;
+  status?: LandServiceStatus;
+  confirmationNumber?: string;
+  notes?: string;
+}
+
+export async function listLandServices(filters?: { tripId?: string; customerId?: string }): Promise<LandService[]> {
+  const params = new URLSearchParams();
+  if (filters?.tripId) params.set('tripId', filters.tripId);
+  if (filters?.customerId) params.set('customerId', filters.customerId);
+  const qs = params.toString();
+  const data = await request<{ landServices: LandService[] }>(`/api/land-services${qs ? `?${qs}` : ''}`);
+  return data.landServices;
+}
+
+export async function listLandServicesByTrip(tripId: string): Promise<LandService[]> {
+  const data = await request<{ landServices: LandService[] }>(
+    `/api/trips/${encodeURIComponent(tripId)}/land-services`,
+  );
+  return data.landServices;
+}
+
+export async function getLandService(id: string): Promise<LandService> {
+  const data = await request<{ landService: LandService }>(`/api/land-services/${encodeURIComponent(id)}`);
+  return data.landService;
+}
+
+export async function createLandService(input: LandServiceInput): Promise<LandService> {
+  const data = await request<{ landService: LandService }>('/api/land-services', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+  return data.landService;
+}
+
+export async function updateLandService(id: string, input: Partial<LandServiceInput>): Promise<LandService> {
+  const data = await request<{ landService: LandService }>(`/api/land-services/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(input),
+  });
+  return data.landService;
+}
+
+export async function deleteLandService(id: string): Promise<void> {
+  await request<{ success: boolean }>(`/api/land-services/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  });
+}
+
+// ============================================================
 // RECONCILIATIONS (GET /financial/reconciliations)
 // ============================================================
 
