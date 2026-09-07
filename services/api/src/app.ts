@@ -3707,6 +3707,8 @@ const ALLOWED_PAYABLE_CREATE_FIELDS = [
   'commissionId',
   'transportOperationId',
   'operationalCostId',
+  'categoryId',
+  'costCenterId',
   'description',
   'amount',
   'dueAt',
@@ -3774,6 +3776,12 @@ function parseCreatePayableInput(body: unknown): CreatePayableInput {
       : {}),
     ...(record.operationalCostId !== undefined
       ? { operationalCostId: parseRequiredString(record.operationalCostId, 'operationalCostId') }
+      : {}),
+    ...(record.categoryId !== undefined
+      ? { categoryId: parseRequiredString(record.categoryId, 'categoryId') }
+      : {}),
+    ...(record.costCenterId !== undefined
+      ? { costCenterId: parseRequiredString(record.costCenterId, 'costCenterId') }
       : {}),
   };
 }
@@ -5860,6 +5868,7 @@ function parseCreateExpenseInput(body: unknown): CreateExpenseInput {
     const trimmed = record.notes.trim();
     notes = trimmed.length > 0 ? trimmed : undefined;
   }
+  const costCenterId = typeof record.costCenterId === 'string' ? record.costCenterId : undefined;
 
   return {
     categoryId,
@@ -5872,6 +5881,7 @@ function parseCreateExpenseInput(body: unknown): CreateExpenseInput {
     paymentMethod,
     recurrence,
     notes,
+    costCenterId,
   };
 }
 
