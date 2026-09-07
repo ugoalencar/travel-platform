@@ -27,6 +27,7 @@ import { SaleFinancialStoryPage } from './pages/SaleFinancialStoryPage';
 import { RevenuesPage } from './pages/RevenuesPage';
 import { ExpensesPage } from './pages/ExpensesPage';
 import { CategoriesPage } from './pages/CategoriesPage';
+import { CostCentersPage } from './pages/CostCentersPage';
 import { CashTransactionsPage } from './pages/CashTransactionsPage';
 import { ReconciliationPage } from './pages/ReconciliationPage';
 import { DetailedReportsPage } from './pages/DetailedReportsPage';
@@ -69,6 +70,7 @@ export function App() {
         <Route path="financial/receivables" element={<ReceivablesPage />} />
         <Route path="financial/payables" element={<PayablesPage />} />
         <Route path="financial/categories" element={<CategoriesPage />} />
+        <Route path="financial/cost-centers" element={<CostCentersPage />} />
         <Route path="financial/cash-transactions" element={<CashTransactionsPage />} />
         <Route path="financial/reconciliation" element={<ReconciliationPage />} />
         <Route path="financial/reports" element={<DetailedReportsPage />} />

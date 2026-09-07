@@ -53,6 +53,7 @@ const NAV_SECTIONS: NavSection[] = [
       { label: 'Contas a Pagar', to: '/financial/payables' },
       { label: 'Fornecedores', to: '/suppliers' },
       { label: 'Caixa', to: '/financial/cash-transactions' },
+      { label: 'Centros de Custo', to: '/financial/cost-centers' },
       { label: 'Conciliação', to: '/financial/reconciliation' },
       { label: 'Relatórios', to: '/financial/reports' },
     ],

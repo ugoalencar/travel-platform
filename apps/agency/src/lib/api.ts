@@ -1189,6 +1189,7 @@ export interface FinancialCategory {
   name: string;
   type: CategoryType;
   description?: string;
+  parentCategoryId?: string;
   is_active: boolean;
   createdAt: string;
   updatedAt: string;
@@ -1197,7 +1198,8 @@ export interface FinancialCategory {
 export interface CreateCategoryInput {
   name: string;
   type: CategoryType;
-  description?: string;
+  description?: string | undefined;
+  parentCategoryId?: string | undefined;
   is_active?: boolean;
 }
 
@@ -1555,6 +1557,56 @@ export async function deleteAirService(id: string): Promise<void> {
   await request<{ success: boolean }>(`/api/air-services/${encodeURIComponent(id)}`, {
     method: 'DELETE',
   });
+}
+
+// ============================================================
+// COST CENTERS (GET/POST/PATCH /cost-centers)
+// ============================================================
+
+export interface CostCenter {
+  id: string;
+  agencyId: string;
+  name: string;
+  code?: string;
+  description?: string;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CostCenterInput {
+  name: string;
+  code?: string | undefined;
+  description?: string | undefined;
+}
+
+export interface UpdateCostCenterInput {
+  name?: string;
+  code?: string;
+  description?: string;
+  active?: boolean;
+}
+
+export async function listCostCenters(includeInactive = false): Promise<CostCenter[]> {
+  const qs = includeInactive ? '?includeInactive=true' : '';
+  const data = await request<{ costCenters: CostCenter[] }>(`/api/cost-centers${qs}`);
+  return data.costCenters;
+}
+
+export async function createCostCenter(input: CostCenterInput): Promise<CostCenter> {
+  const data = await request<{ costCenter: CostCenter }>('/api/cost-centers', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+  return data.costCenter;
+}
+
+export async function updateCostCenter(id: string, input: UpdateCostCenterInput): Promise<CostCenter> {
+  const data = await request<{ costCenter: CostCenter }>(`/api/cost-centers/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(input),
+  });
+  return data.costCenter;
 }
 
 // ============================================================

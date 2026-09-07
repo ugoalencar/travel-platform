@@ -9,6 +9,7 @@ import {
   type Receivable,
   FinancialCategoryType,
   type FinancialCategory,
+  type CostCenter,
   RevenueStatus,
   type Revenue,
   ExpenseStatus,
@@ -102,7 +103,19 @@ interface FinancialCategoryRow {
   name: string;
   type: FinancialCategoryType;
   description: string | null;
+  parent_category_id: string | null;
   is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+interface CostCenterRow {
+  id: string;
+  agency_id: string;
+  name: string;
+  code: string | null;
+  description: string | null;
+  active: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -231,6 +244,20 @@ export interface CreateFinancialCategoryInput {
   name: string;
   type: FinancialCategoryType;
   description: string | undefined;
+  parentCategoryId?: string | undefined;
+}
+
+export interface CreateCostCenterInput {
+  name: string;
+  code?: string | undefined;
+  description?: string | undefined;
+}
+
+export interface UpdateCostCenterInput {
+  name?: string;
+  code?: string | undefined;
+  description?: string | undefined;
+  active?: boolean;
 }
 
 export interface CreateRevenueInput {
@@ -423,7 +450,8 @@ const ALLOCATION_COLUMNS = `id, agency_id, payment_id, receivable_id, payable_id
 const OPERATIONAL_COST_COLUMNS = `id, agency_id, sale_id, transport_operation_id,
   supplier_id, description, cost_type, expected_amount, actual_amount, incurred_at,
   created_by, created_at, updated_at`;
-const CATEGORY_COLUMNS = `id, agency_id, name, type, description, is_active, created_at, updated_at`;
+const CATEGORY_COLUMNS = `id, agency_id, name, type, description, parent_category_id, is_active, created_at, updated_at`;
+const COST_CENTER_COLUMNS = `id, agency_id, name, code, description, active, created_at, updated_at`;
 const REVENUE_COLUMNS = `id, agency_id, sale_id, booking_id, customer_id, category_id,
   description, amount, currency, competency_date, due_date, receipt_date, payment_method,
   status, notes, created_at, updated_at`;
@@ -474,16 +502,114 @@ export async function createFinancialCategory(
 
   return database.withTenantTransaction(async (client) => {
     const result = await client.query<FinancialCategoryRow>(
-      `INSERT INTO financial_categories (agency_id, name, type, description)
-       VALUES ($1, $2, $3, $4)
+      `INSERT INTO financial_categories (agency_id, name, type, description, parent_category_id)
+       VALUES ($1, $2, $3, $4, $5)
        ON CONFLICT (agency_id, type, name) DO UPDATE SET is_active = true
        RETURNING ${CATEGORY_COLUMNS}`,
-      [agencyId, data.name, data.type, data.description ?? null],
+      [agencyId, data.name, data.type, data.description ?? null, data.parentCategoryId ?? null],
     );
     const row = result.rows[0];
     if (!row) throw new Error('Category insert did not return a row');
     return toFinancialCategory(row);
   });
+}
+
+// ============================================================
+// COST CENTERS
+// ============================================================
+
+export async function listCostCenters(
+  database: DatabaseRuntime,
+  includeInactive = false,
+): Promise<CostCenter[]> {
+  const agencyId = getAgencyId();
+  return database.withTenantTransaction(async (client) => {
+    const query = includeInactive
+      ? `SELECT ${COST_CENTER_COLUMNS} FROM cost_centers WHERE agency_id = $1 ORDER BY name ASC`
+      : `SELECT ${COST_CENTER_COLUMNS} FROM cost_centers WHERE agency_id = $1 AND active = true ORDER BY name ASC`;
+    const result = await client.query<CostCenterRow>(query, [agencyId]);
+    return result.rows.map(toCostCenter);
+  });
+}
+
+export async function createCostCenter(
+  database: DatabaseRuntime,
+  data: CreateCostCenterInput,
+): Promise<CostCenter> {
+  const agencyId = getAgencyId();
+  assertNonEmpty(data.name, 'name');
+
+  return database.withTenantTransaction(async (client) => {
+    const result = await client.query<CostCenterRow>(
+      `INSERT INTO cost_centers (agency_id, name, code, description)
+       VALUES ($1, $2, $3, $4)
+       ON CONFLICT (agency_id, name) DO UPDATE SET active = true
+       RETURNING ${COST_CENTER_COLUMNS}`,
+      [agencyId, data.name, data.code ?? null, data.description ?? null],
+    );
+    const row = result.rows[0];
+    if (!row) throw new Error('Cost center insert did not return a row');
+    return toCostCenter(row);
+  });
+}
+
+export async function updateCostCenter(
+  database: DatabaseRuntime,
+  costCenterId: string,
+  data: UpdateCostCenterInput,
+): Promise<CostCenter | null> {
+  const agencyId = getAgencyId();
+  if (data.name !== undefined) assertNonEmpty(data.name, 'name');
+
+  const fields: string[] = [];
+  const values: unknown[] = [];
+  let index = 2;
+  const columnMap: Array<[keyof UpdateCostCenterInput, string]> = [
+    ['name', 'name'],
+    ['code', 'code'],
+    ['description', 'description'],
+    ['active', 'active'],
+  ];
+  for (const [key, column] of columnMap) {
+    if (data[key] !== undefined) {
+      fields.push(`${column} = $${++index}`);
+      values.push(data[key]);
+    }
+  }
+  if (fields.length === 0) {
+    const result = await database.withTenantTransaction(async (client) => {
+      const r = await client.query<CostCenterRow>(
+        `SELECT ${COST_CENTER_COLUMNS} FROM cost_centers WHERE agency_id = $1 AND id = $2`,
+        [agencyId, costCenterId],
+      );
+      return r.rows[0] ?? null;
+    });
+    return result ? toCostCenter(result) : null;
+  }
+
+  return database.withTenantTransaction(async (client) => {
+    const result = await client.query<CostCenterRow>(
+      `UPDATE cost_centers SET ${fields.join(', ')}, updated_at = now()
+       WHERE agency_id = $1 AND id = $${index + 1}
+       RETURNING ${COST_CENTER_COLUMNS}`,
+      [agencyId, costCenterId, ...values],
+    );
+    const row = result.rows[0] ?? null;
+    return row ? toCostCenter(row) : null;
+  });
+}
+
+function toCostCenter(row: CostCenterRow): CostCenter {
+  return {
+    id: row.id,
+    agencyId: row.agency_id,
+    name: row.name,
+    code: row.code || undefined,
+    description: row.description || undefined,
+    active: row.active,
+    createdAt: new Date(row.created_at),
+    updatedAt: new Date(row.updated_at),
+  };
 }
 
 export async function deleteFinancialCategory(
@@ -2440,6 +2566,7 @@ function toFinancialCategory(row: FinancialCategoryRow): FinancialCategory {
     name: row.name,
     type: row.type,
     description: row.description || undefined,
+    parentCategoryId: row.parent_category_id || undefined,
     isActive: row.is_active,
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),

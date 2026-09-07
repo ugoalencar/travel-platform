@@ -355,7 +355,19 @@ export interface FinancialCategory {
   name: string;
   type: FinancialCategoryType;
   description: string | undefined;
+  parentCategoryId: string | undefined;
   isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface CostCenter {
+  id: string;
+  agencyId: string;
+  name: string;
+  code: string | undefined;
+  description: string | undefined;
+  active: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

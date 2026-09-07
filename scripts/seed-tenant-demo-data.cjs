@@ -103,6 +103,9 @@ async function seedTenantData() {
     console.log('9. Criando viagens...');
     await seedTrips(agency.id, sales);
 
+    console.log('9.5 Criando hierarquia de categorias financeiras e centros de custo...');
+    await seedFinanceCategoryHierarchyAndCostCenters(agency.id);
+
     console.log('10. Criando registros financeiros (receitas)...');
     await seedRevenues(agency.id, sales);
 
@@ -1361,16 +1364,65 @@ async function seedEntitlements(agencyId) {
   console.log(`   ✓ Permissões habilitadas: ${features.join(', ')}`);
 }
 
-async function getOrCreateFinancialCategory(agencyId, name, type) {
+async function getOrCreateFinancialCategory(agencyId, name, type, parentCategoryId = null) {
   const result = await pool.query(
-    `INSERT INTO financial_categories (id, agency_id, name, type, description, is_active, created_at, updated_at)
-     VALUES ($1, $2, $3, $4, $5, true, NOW(), NOW())
-     ON CONFLICT (agency_id, type, name) DO UPDATE SET is_active = true
+    `INSERT INTO financial_categories (id, agency_id, name, type, description, parent_category_id, is_active, created_at, updated_at)
+     VALUES ($1, $2, $3, $4, $5, $6, true, NOW(), NOW())
+     ON CONFLICT (agency_id, type, name) DO UPDATE SET is_active = true, parent_category_id = COALESCE(financial_categories.parent_category_id, EXCLUDED.parent_category_id)
      RETURNING id`,
-    [generateId(), agencyId, name, type, `${name} demo`]
+    [generateId(), agencyId, name, type, `${name} demo`, parentCategoryId]
   );
 
   return result.rows[0].id;
+}
+
+async function getOrCreateCostCenter(agencyId, name, code) {
+  const result = await pool.query(
+    `INSERT INTO cost_centers (id, agency_id, name, code, description, active, created_at, updated_at)
+     VALUES ($1, $2, $3, $4, $5, true, NOW(), NOW())
+     ON CONFLICT (agency_id, name) DO UPDATE SET active = true
+     RETURNING id`,
+    [generateId(), agencyId, name, code, `${name} demo`]
+  );
+
+  return result.rows[0].id;
+}
+
+const EXPENSE_CATEGORY_TREE = {
+  TRAVEL: ['AIR', 'ACCOMMODATION', 'TRANSFER', 'INSURANCE', 'TOURS', 'TICKETS', 'RENTAL', 'OTHER_TRAVEL'],
+  PERSONNEL: ['SALARY', 'COMMISSION', 'BENEFITS', 'BONUS', 'REIMBURSEMENT', 'PAYROLL_ADJUSTMENT'],
+  ADMINISTRATIVE: [
+    'RENT', 'ELECTRICITY', 'WATER', 'INTERNET', 'PHONE', 'SOFTWARE', 'ACCOUNTING',
+    'LEGAL', 'MARKETING', 'OFFICE', 'CLEANING', 'MAINTENANCE',
+  ],
+  FINANCIAL: ['BANK_FEE', 'CARD_FEE', 'INTEREST', 'TAX', 'OTHER'],
+};
+
+const COST_CENTERS = [
+  ['ADMINISTRATION', 'ADM'],
+  ['SALES', 'SLS'],
+  ['MARKETING', 'MKT'],
+  ['AIR_OPERATIONS', 'AIR'],
+  ['LAND_OPERATIONS', 'LAND'],
+  ['CUSTOMER_SERVICE', 'CS'],
+  ['FINANCE', 'FIN'],
+  ['GENERAL', 'GEN'],
+];
+
+async function seedFinanceCategoryHierarchyAndCostCenters(agencyId) {
+  // Top-level EXPENSE branches, each with its subcategories as children.
+  for (const [branchName, subNames] of Object.entries(EXPENSE_CATEGORY_TREE)) {
+    const branchId = await getOrCreateFinancialCategory(agencyId, branchName, 'EXPENSE');
+    for (const subName of subNames) {
+      await getOrCreateFinancialCategory(agencyId, subName, 'EXPENSE', branchId);
+    }
+  }
+
+  for (const [name, code] of COST_CENTERS) {
+    await getOrCreateCostCenter(agencyId, name, code);
+  }
+
+  console.log(`   ✓ Hierarquia de categorias (EXPENSE) e ${COST_CENTERS.length} centros de custo criados`);
 }
 
 async function seedCampaigns(agencyId, userId) {

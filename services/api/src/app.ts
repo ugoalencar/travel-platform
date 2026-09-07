@@ -210,6 +210,11 @@ import {
   cancelRevenue,
   createExpense,
   createFinancialCategory,
+  listCostCenters,
+  createCostCenter,
+  updateCostCenter,
+  type CreateCostCenterInput,
+  type UpdateCostCenterInput,
   createOperationalCost,
   createPayable,
   createReceivable,
@@ -2292,6 +2297,36 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     const category = await createFinancialCategory(options.database, data);
     reply.code(201);
     return { category };
+  });
+
+  // ============================================================
+  // COST CENTERS
+  // ============================================================
+  app.get('/cost-centers', { preHandler: protectedHooks }, async (request) => {
+    requireRole(UserRole.VIEWER);
+    const query = request.query as Record<string, string>;
+    const includeInactive = query.includeInactive === 'true';
+    const costCenters = await listCostCenters(options.database, includeInactive);
+    return { costCenters };
+  });
+
+  app.post('/cost-centers', { preHandler: protectedHooks }, async (request, reply) => {
+    requireRole(UserRole.MANAGER);
+    const data = parseCreateCostCenterInput(request.body);
+    const costCenter = await createCostCenter(options.database, data);
+    reply.code(201);
+    return { costCenter };
+  });
+
+  app.patch<{ Params: { id: string } }>('/cost-centers/:id', { preHandler: protectedHooks }, async (request, reply) => {
+    requireRole(UserRole.MANAGER);
+    const data = parseUpdateCostCenterInput(request.body);
+    const costCenter = await updateCostCenter(options.database, request.params.id, data);
+    if (!costCenter) {
+      reply.code(404);
+      return { error: 'Cost center not found' };
+    }
+    return { costCenter };
   });
 
   // ============================================================
@@ -5685,13 +5720,54 @@ function parseCreateFinancialCategoryInput(body: unknown): CreateFinancialCatego
     const trimmed = record.description.trim();
     description = trimmed.length > 0 ? trimmed : undefined;
   }
+  let parentCategoryId: string | undefined;
+  if (typeof record.parentCategoryId === 'string' && record.parentCategoryId.trim().length > 0) {
+    parentCategoryId = record.parentCategoryId.trim();
+  }
 
   return {
     name,
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     type: type as FinancialCategoryType,
     description,
+    parentCategoryId,
   };
+}
+
+function parseCreateCostCenterInput(body: unknown): CreateCostCenterInput {
+  const record = parseObjectBody(body);
+  const name = parseRequiredString(record.name, 'name');
+  let code: string | undefined;
+  if (typeof record.code === 'string' && record.code.trim().length > 0) {
+    code = record.code.trim();
+  }
+  let description: string | undefined;
+  if (typeof record.description === 'string' && record.description.trim().length > 0) {
+    description = record.description.trim();
+  }
+  return { name, code, description };
+}
+
+function parseUpdateCostCenterInput(body: unknown): UpdateCostCenterInput {
+  const record = parseObjectBody(body);
+  const data: UpdateCostCenterInput = {};
+  if (typeof record.name === 'string') {
+    data.name = parseRequiredString(record.name, 'name');
+  }
+  if (record.code !== undefined) {
+    data.code = typeof record.code === 'string' && record.code.trim().length > 0
+      ? record.code.trim()
+      : undefined;
+  }
+  if (record.description !== undefined) {
+    data.description = typeof record.description === 'string' && record.description.trim().length > 0
+      ? record.description.trim()
+      : undefined;
+  }
+  if (typeof record.active === 'boolean') {
+    data.active = record.active;
+  }
+  return data;
 }
 
 function parseCreateRevenueInput(body: unknown): CreateRevenueInput {
