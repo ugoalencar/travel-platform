@@ -50,6 +50,8 @@ interface PayableRow {
   commission_id: string | null;
   transport_operation_id: string | null;
   operational_cost_id: string | null;
+  category_id: string | null;
+  cost_center_id: string | null;
   description: string;
   amount: string;
   due_at: string;
@@ -145,6 +147,7 @@ interface ExpenseRow {
   agency_id: string;
   supplier_id: string | null;
   category_id: string;
+  cost_center_id: string | null;
   description: string;
   amount: string;
   currency: string;
@@ -204,6 +207,8 @@ export interface CreatePayableInput {
   commissionId?: string;
   transportOperationId?: string;
   operationalCostId?: string;
+  categoryId?: string;
+  costCenterId?: string;
   description: string;
   amount: number;
   dueAt: Date;
@@ -293,6 +298,7 @@ export interface CreateExpenseInput {
   paymentMethod: string | undefined;
   recurrence: string | undefined;
   notes: string | undefined;
+  costCenterId?: string | undefined;
 }
 
 export interface UpdateExpenseInput {
@@ -441,8 +447,8 @@ export interface OverdueReport {
 const RECEIVABLE_COLUMNS = `id, agency_id, sale_id, customer_id, description, amount,
   due_at, status, created_at, updated_at`;
 const PAYABLE_COLUMNS = `id, agency_id, sale_id, supplier_id, commission_id,
-  transport_operation_id, operational_cost_id, description, amount, due_at, status,
-  created_at, updated_at`;
+  transport_operation_id, operational_cost_id, category_id, cost_center_id, description,
+  amount, due_at, status, created_at, updated_at`;
 const PAYMENT_COLUMNS = `id, agency_id, direction, amount, occurred_at, method,
   reference, notes, created_by, created_at`;
 const ALLOCATION_COLUMNS = `id, agency_id, payment_id, receivable_id, payable_id,
@@ -455,8 +461,8 @@ const COST_CENTER_COLUMNS = `id, agency_id, name, code, description, active, cre
 const REVENUE_COLUMNS = `id, agency_id, sale_id, booking_id, customer_id, category_id,
   description, amount, currency, competency_date, due_date, receipt_date, payment_method,
   status, notes, created_at, updated_at`;
-const EXPENSE_COLUMNS = `id, agency_id, supplier_id, category_id, description, amount,
-  currency, incurred_at, due_date, payment_date, payment_method, status, recurrence,
+const EXPENSE_COLUMNS = `id, agency_id, supplier_id, category_id, cost_center_id, description,
+  amount, currency, incurred_at, due_date, payment_date, payment_method, status, recurrence,
   notes, created_at, updated_at`;
 const CASH_TRANSACTION_COLUMNS = `id, agency_id, type, amount, occurring_at, origin,
   related_record_id, related_record_type, calculated_balance, notes, created_at`;
@@ -590,7 +596,7 @@ export async function updateCostCenter(
   return database.withTenantTransaction(async (client) => {
     const result = await client.query<CostCenterRow>(
       `UPDATE cost_centers SET ${fields.join(', ')}, updated_at = now()
-       WHERE agency_id = $1 AND id = $${index + 1}
+       WHERE agency_id = $1 AND id = $2
        RETURNING ${COST_CENTER_COLUMNS}`,
       [agencyId, costCenterId, ...values],
     );
@@ -954,17 +960,19 @@ export async function createExpense(
     if (data.supplierId !== undefined) {
       await assertRef(client, agencyId, 'suppliers', data.supplierId, 'Supplier not found');
     }
+    await assertOptionalRef(client, agencyId, 'cost_centers', data.costCenterId, 'Cost center not found');
 
     const result = await client.query<ExpenseRow>(
       `INSERT INTO expenses
-         (agency_id, supplier_id, category_id, description, amount, currency,
+         (agency_id, supplier_id, category_id, cost_center_id, description, amount, currency,
           incurred_at, due_date, payment_method, recurrence, notes)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
        RETURNING ${EXPENSE_COLUMNS}`,
       [
         agencyId,
         data.supplierId ?? null,
         data.categoryId,
+        data.costCenterId ?? null,
         data.description,
         data.amount,
         data.currency ?? 'BRL',
@@ -1708,12 +1716,14 @@ export async function createPayable(
       data.operationalCostId,
       'Operational cost not found',
     );
+    await assertOptionalRef(client, agencyId, 'financial_categories', data.categoryId, 'Category not found');
+    await assertOptionalRef(client, agencyId, 'cost_centers', data.costCenterId, 'Cost center not found');
 
     const result = await client.query<PayableRow>(
       `INSERT INTO payables
          (agency_id, sale_id, supplier_id, commission_id, transport_operation_id,
-          operational_cost_id, description, amount, due_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+          operational_cost_id, category_id, cost_center_id, description, amount, due_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
        RETURNING ${PAYABLE_COLUMNS}`,
       [
         agencyId,
@@ -1722,6 +1732,8 @@ export async function createPayable(
         data.commissionId ?? null,
         data.transportOperationId ?? null,
         data.operationalCostId ?? null,
+        data.categoryId ?? null,
+        data.costCenterId ?? null,
         data.description,
         data.amount,
         data.dueAt,
@@ -2509,6 +2521,8 @@ function toPayable(row: PayableRow): Payable {
     ...(row.commission_id !== null ? { commissionId: row.commission_id } : {}),
     ...(row.transport_operation_id !== null ? { transportOperationId: row.transport_operation_id } : {}),
     ...(row.operational_cost_id !== null ? { operationalCostId: row.operational_cost_id } : {}),
+    ...(row.category_id !== null ? { categoryId: row.category_id } : {}),
+    ...(row.cost_center_id !== null ? { costCenterId: row.cost_center_id } : {}),
   };
 }
 
@@ -2601,6 +2615,7 @@ function toExpense(row: ExpenseRow): Expense {
     agencyId: row.agency_id,
     supplierId: row.supplier_id ?? undefined,
     categoryId: row.category_id,
+    costCenterId: row.cost_center_id ?? undefined,
     description: row.description,
     amount: Number(row.amount),
     currency: row.currency,

@@ -297,6 +297,8 @@ export interface Payable {
   commissionId?: string;
   transportOperationId?: string;
   operationalCostId?: string;
+  categoryId?: string;
+  costCenterId?: string;
   description: string;
   amount: number;
   dueAt: Date;
@@ -412,6 +414,7 @@ export interface Expense {
   agencyId: string;
   supplierId: string | undefined;
   categoryId: string;
+  costCenterId: string | undefined;
   description: string;
   amount: number;
   currency: string;
