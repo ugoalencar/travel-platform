@@ -118,6 +118,9 @@ async function seedTenantData() {
     console.log('12.2 Criando segmentos aéreos...');
     await seedAirServices(agency.id, suppliers);
 
+    console.log('12.3 Criando serviços terrestres...');
+    await seedLandServices(agency.id, suppliers);
+
     console.log('13. Criando registros financeiros (contas a pagar)...');
     await seedPayables(agency.id, suppliers);
 
@@ -786,6 +789,26 @@ async function seedSuppliers(agencyId) {
       website: 'https://cloudsoft-demo.com',
       paymentTerms: 'Assinatura mensal',
     },
+    {
+      name: 'Rivera Transfer & Receptivo',
+      tradeName: 'Rivera Transfer',
+      document: '15.222.333/0001-44',
+      supplierType: 'TRAVEL',
+      categories: ['TRANSFER', 'RECEPTIVE_OPERATOR'],
+      email: 'reservas@riveratransfer-demo.com',
+      phone: '+52 998 555-0200',
+      paymentTerms: '15 dias',
+    },
+    {
+      name: 'Global Assist Seguros de Viagem',
+      tradeName: 'Global Assist',
+      document: '18.777.888/0001-55',
+      supplierType: 'TRAVEL',
+      categories: ['TRAVEL_INSURANCE', 'INSURANCE'],
+      email: 'comercial@globalassist-demo.com',
+      phone: '+55 11 4004-3333',
+      paymentTerms: '30 dias',
+    },
   ];
 
   const created = [];
@@ -1034,6 +1057,200 @@ async function seedAirServices(agencyId, suppliers = []) {
   }
 
   console.log('   ✓ Segmentos aéreos criados (Mariana/Cancun, Fernando/Disney, Roberto/Paris)');
+}
+
+async function seedLandServices(agencyId, suppliers = []) {
+  const grandCancun = suppliers.find((s) => s.name === 'Grand Cancún Resort & Spa') ?? null;
+  const riveraTransfer = suppliers.find((s) => s.name === 'Rivera Transfer & Receptivo') ?? null;
+  const globalAssist = suppliers.find((s) => s.name === 'Global Assist Seguros de Viagem') ?? null;
+  const cvc = suppliers.find((s) => s.name === 'CVC Operadora de Turismo') ?? null;
+
+  async function findCustomerId(name) {
+    const result = await pool.query(
+      `SELECT id FROM customers WHERE agency_id = $1 AND name = $2 LIMIT 1`,
+      [agencyId, name],
+    );
+    return result.rows[0]?.id ?? null;
+  }
+
+  async function tripExists(tripId) {
+    const result = await pool.query(
+      `SELECT id FROM trips WHERE agency_id = $1 AND id = $2 LIMIT 1`,
+      [agencyId, tripId],
+    );
+    return result.rows.length > 0;
+  }
+
+  async function insertService(svc) {
+    if (!(await tripExists(svc.tripId))) return;
+    await pool.query(
+      `INSERT INTO land_services (
+         id, agency_id, trip_id, supplier_id, customer_id, service_type, description,
+         start_date, end_date, quantity, cost, sale_value, taxes, fees, commission,
+         currency, supplier_due_date, supplier_payment_status, status, confirmation_number,
+         notes, created_at, updated_at
+       )
+       VALUES (
+         $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, 'BRL', $16, $17,
+         $18, $19, $20, NOW(), NOW()
+       )
+       ON CONFLICT (id) DO NOTHING`,
+      [
+        svc.id, agencyId, svc.tripId, svc.supplierId, svc.customerId, svc.serviceType,
+        svc.description, svc.startDate, svc.endDate, svc.quantity, svc.cost, svc.saleValue,
+        svc.taxes, svc.fees, svc.commission, svc.supplierDueDate, svc.supplierPaymentStatus,
+        svc.status, svc.confirmationNumber, svc.notes,
+      ],
+    );
+  }
+
+  // Mariana Alves Silva / Cancun -- canonical fixture. Land services total
+  // ~R$8.300 across 3 rows (hotel 7000 + transfer 800 + insurance 500),
+  // matching the existing payableHotel/payableTransfer/payableSeguro demo
+  // records seeded in demo-business-stories.cjs. These are new, additive
+  // supporting records -- they do NOT touch the Sale/Receivable/Margin
+  // numbers or the existing payables.
+  const marianaCustomerId = await findCustomerId('Mariana Alves Silva');
+  if (marianaCustomerId) {
+    await insertService({
+      id: 'd0d5b001-0000-4000-8000-000000000001',
+      tripId: STORY_IDS.marianaCancun.trip,
+      supplierId: grandCancun?.id ?? null,
+      customerId: marianaCustomerId,
+      serviceType: 'ACCOMMODATION',
+      description: 'Grand Palladium Cancun - 9 noites, all-inclusive',
+      startDate: '2027-05-01',
+      endDate: '2027-05-10',
+      quantity: 9,
+      cost: 7000,
+      saleValue: 8200,
+      taxes: 0,
+      fees: 0,
+      commission: 400,
+      supplierDueDate: '2027-04-15',
+      supplierPaymentStatus: 'OPEN',
+      status: 'CONFIRMED',
+      confirmationNumber: 'DEMO-MC-HTL',
+      notes: 'Demo: hospedagem Mariana / Cancun (familia).',
+    });
+    await insertService({
+      id: 'd0d5b001-0000-4000-8000-000000000002',
+      tripId: STORY_IDS.marianaCancun.trip,
+      supplierId: riveraTransfer?.id ?? null,
+      customerId: marianaCustomerId,
+      serviceType: 'TRANSFER',
+      description: 'Transfer aeroporto / resort - ida e volta',
+      startDate: '2027-05-01',
+      endDate: '2027-05-10',
+      quantity: 2,
+      cost: 800,
+      saleValue: 950,
+      taxes: 0,
+      fees: 0,
+      commission: 50,
+      supplierDueDate: '2027-04-20',
+      supplierPaymentStatus: 'OPEN',
+      status: 'CONFIRMED',
+      confirmationNumber: 'DEMO-MC-TRF',
+      notes: 'Demo: transfer Mariana / Cancun (familia).',
+    });
+    await insertService({
+      id: 'd0d5b001-0000-4000-8000-000000000003',
+      tripId: STORY_IDS.marianaCancun.trip,
+      supplierId: globalAssist?.id ?? null,
+      customerId: marianaCustomerId,
+      serviceType: 'TRAVEL_INSURANCE',
+      description: 'Seguro viagem família - cobertura internacional',
+      startDate: '2027-05-01',
+      endDate: '2027-05-10',
+      quantity: 1,
+      cost: 500,
+      saleValue: 600,
+      taxes: 0,
+      fees: 0,
+      commission: 30,
+      supplierDueDate: '2027-04-20',
+      supplierPaymentStatus: 'OPEN',
+      status: 'CONFIRMED',
+      confirmationNumber: 'DEMO-MC-INS',
+      notes: 'Demo: seguro viagem Mariana / Cancun (familia).',
+    });
+  }
+
+  // Fernando Costa Gomes / Orlando-Disney -- hotel + tickets.
+  const fernandoCustomerId = await findCustomerId('Fernando Costa Gomes');
+  if (fernandoCustomerId) {
+    await insertService({
+      id: 'd0d5b002-0000-4000-8000-000000000001',
+      tripId: STORY_IDS.disney.trip,
+      supplierId: cvc?.id ?? null,
+      customerId: fernandoCustomerId,
+      serviceType: 'ACCOMMODATION',
+      description: 'Disney Grand Floridian Resort - 9 noites',
+      startDate: '2027-06-01',
+      endDate: '2027-06-10',
+      quantity: 9,
+      cost: 9500,
+      saleValue: 11200,
+      taxes: 0,
+      fees: 0,
+      commission: 550,
+      supplierDueDate: '2027-05-10',
+      supplierPaymentStatus: 'OPEN',
+      status: 'CONFIRMED',
+      confirmationNumber: 'DEMO-FD-HTL',
+      notes: 'Demo: hospedagem Fernando / Orlando (Disney).',
+    });
+    await insertService({
+      id: 'd0d5b002-0000-4000-8000-000000000002',
+      tripId: STORY_IDS.disney.trip,
+      supplierId: cvc?.id ?? null,
+      customerId: fernandoCustomerId,
+      serviceType: 'TICKET',
+      description: 'Ingressos Disney Park Hopper - 6 dias (família)',
+      startDate: '2027-06-02',
+      endDate: '2027-06-08',
+      quantity: 4,
+      cost: 3200,
+      saleValue: 3800,
+      taxes: 0,
+      fees: 0,
+      commission: 180,
+      supplierDueDate: '2027-05-10',
+      supplierPaymentStatus: 'OPEN',
+      status: 'CONFIRMED',
+      confirmationNumber: 'DEMO-FD-TIX',
+      notes: 'Demo: ingressos Fernando / Orlando (Disney).',
+    });
+  }
+
+  // Roberto Fernandes / Paris (honeymoon) -- hotel.
+  const robertoCustomerId = await findCustomerId('Roberto Fernandes');
+  if (robertoCustomerId) {
+    await insertService({
+      id: 'd0d5b003-0000-4000-8000-000000000001',
+      tripId: STORY_IDS.honeymoon.trip,
+      supplierId: cvc?.id ?? null,
+      customerId: robertoCustomerId,
+      serviceType: 'ACCOMMODATION',
+      description: 'Hotel Le Meurice Paris - 8 noites',
+      startDate: '2027-06-02',
+      endDate: '2027-06-10',
+      quantity: 8,
+      cost: 7500,
+      saleValue: 8900,
+      taxes: 0,
+      fees: 0,
+      commission: 420,
+      supplierDueDate: '2027-05-01',
+      supplierPaymentStatus: 'PARTIALLY_PAID',
+      status: 'CONFIRMED',
+      confirmationNumber: 'DEMO-RF-HTL',
+      notes: 'Demo: hospedagem Roberto / Paris (lua de mel).',
+    });
+  }
+
+  console.log('   ✓ Serviços terrestres criados (Mariana/Cancun, Fernando/Disney, Roberto/Paris)');
 }
 
 async function seedPayables(agencyId, suppliers = []) {
