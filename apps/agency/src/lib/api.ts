@@ -1,4 +1,5 @@
 import type { Customer, CustomerStatus } from '../types/customer';
+import type { CustomerAddress, CustomerDependent, CustomerDocument } from '../types/customer360';
 import type { Wish, WishStatus } from '../types/wish';
 import type { Trip, TripStatus } from '../types/trip';
 import type { Proposal, ProposalStatus } from '../types/proposal';
@@ -458,6 +459,170 @@ export async function updateCustomer(id: string, input: UpdateCustomerInput): Pr
     body: JSON.stringify(input),
   });
   return data.customer;
+}
+
+// ============================================================
+// CUSTOMER 360: ADDRESSES
+// ============================================================
+
+export interface CreateAddressInput {
+  type?: string | undefined;
+  isPrimary?: boolean | undefined;
+  cep?: string | undefined;
+  street: string;
+  number: string;
+  complement?: string | undefined;
+  district: string;
+  city: string;
+  state: string;
+  country?: string | undefined;
+}
+
+export type UpdateAddressInput = Partial<CreateAddressInput>;
+
+export async function listCustomerAddresses(customerId: string): Promise<CustomerAddress[]> {
+  const data = await request<{ addresses: CustomerAddress[] }>(
+    `/api/customers/${encodeURIComponent(customerId)}/addresses`,
+  );
+  return data.addresses;
+}
+
+export async function createCustomerAddress(
+  customerId: string,
+  input: CreateAddressInput,
+): Promise<CustomerAddress> {
+  const data = await request<{ address: CustomerAddress }>(
+    `/api/customers/${encodeURIComponent(customerId)}/addresses`,
+    { method: 'POST', body: JSON.stringify(input) },
+  );
+  return data.address;
+}
+
+export async function updateCustomerAddress(
+  customerId: string,
+  addressId: string,
+  input: UpdateAddressInput,
+): Promise<CustomerAddress> {
+  const data = await request<{ address: CustomerAddress }>(
+    `/api/customers/${encodeURIComponent(customerId)}/addresses/${encodeURIComponent(addressId)}`,
+    { method: 'PATCH', body: JSON.stringify(input) },
+  );
+  return data.address;
+}
+
+export async function deleteCustomerAddress(customerId: string, addressId: string): Promise<void> {
+  await request<{ address: CustomerAddress }>(
+    `/api/customers/${encodeURIComponent(customerId)}/addresses/${encodeURIComponent(addressId)}`,
+    { method: 'DELETE' },
+  );
+}
+
+// ============================================================
+// CUSTOMER 360: DEPENDENTS / TRAVELERS
+// ============================================================
+
+export interface CreateDependentInput {
+  name: string;
+  relationshipType: string;
+  birthDate?: string | undefined;
+  cpf?: string | undefined;
+  nationality?: string | undefined;
+  notes?: string | undefined;
+}
+
+export type UpdateDependentInput = Partial<CreateDependentInput>;
+
+export async function listCustomerDependents(customerId: string): Promise<CustomerDependent[]> {
+  const data = await request<{ dependents: CustomerDependent[] }>(
+    `/api/customers/${encodeURIComponent(customerId)}/dependents`,
+  );
+  return data.dependents;
+}
+
+export async function createCustomerDependent(
+  customerId: string,
+  input: CreateDependentInput,
+): Promise<CustomerDependent> {
+  const data = await request<{ dependent: CustomerDependent }>(
+    `/api/customers/${encodeURIComponent(customerId)}/dependents`,
+    { method: 'POST', body: JSON.stringify(input) },
+  );
+  return data.dependent;
+}
+
+export async function updateCustomerDependent(
+  customerId: string,
+  dependentId: string,
+  input: UpdateDependentInput,
+): Promise<CustomerDependent> {
+  const data = await request<{ dependent: CustomerDependent }>(
+    `/api/customers/${encodeURIComponent(customerId)}/dependents/${encodeURIComponent(dependentId)}`,
+    { method: 'PATCH', body: JSON.stringify(input) },
+  );
+  return data.dependent;
+}
+
+export async function deleteCustomerDependent(customerId: string, dependentId: string): Promise<void> {
+  await request<{ dependent: CustomerDependent }>(
+    `/api/customers/${encodeURIComponent(customerId)}/dependents/${encodeURIComponent(dependentId)}`,
+    { method: 'DELETE' },
+  );
+}
+
+// ============================================================
+// CUSTOMER 360: DOCUMENTS
+// ============================================================
+
+export interface CreateDocumentInput {
+  documentType: string;
+  documentNumber: string;
+  holderName?: string | undefined;
+  holderBirthDate?: string | undefined;
+  holderNationality?: string | undefined;
+  issuingCountry?: string | undefined;
+  issuingAuthority?: string | undefined;
+  issuedDate?: string | undefined;
+  expiryDate?: string | undefined;
+  notes?: string | undefined;
+}
+
+export type UpdateDocumentInput = Partial<CreateDocumentInput> & { verificationStatus?: string };
+
+export async function listCustomerDocuments(customerId: string): Promise<CustomerDocument[]> {
+  const data = await request<{ documents: CustomerDocument[] }>(
+    `/api/customers/${encodeURIComponent(customerId)}/documents`,
+  );
+  return data.documents;
+}
+
+export async function createCustomerDocument(
+  customerId: string,
+  input: CreateDocumentInput,
+): Promise<CustomerDocument> {
+  const data = await request<{ document: CustomerDocument }>(
+    `/api/customers/${encodeURIComponent(customerId)}/documents`,
+    { method: 'POST', body: JSON.stringify(input) },
+  );
+  return data.document;
+}
+
+export async function updateCustomerDocument(
+  customerId: string,
+  documentId: string,
+  input: UpdateDocumentInput,
+): Promise<CustomerDocument> {
+  const data = await request<{ document: CustomerDocument }>(
+    `/api/customers/${encodeURIComponent(customerId)}/documents/${encodeURIComponent(documentId)}`,
+    { method: 'PATCH', body: JSON.stringify(input) },
+  );
+  return data.document;
+}
+
+export async function deleteCustomerDocument(customerId: string, documentId: string): Promise<void> {
+  await request<{ document: CustomerDocument }>(
+    `/api/customers/${encodeURIComponent(customerId)}/documents/${encodeURIComponent(documentId)}`,
+    { method: 'DELETE' },
+  );
 }
 
 // ============================================================

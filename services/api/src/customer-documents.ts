@@ -1,9 +1,12 @@
 /**
  * Customer 360 -- identity documents.
  *
- * Tenant-scoped, soft-deletable document records. Expiry is a generated column
- * in Postgres (`is_expired`), so it is read here and never written. Document
- * numbers are masked before they reach either audit trail.
+ * Tenant-scoped, soft-deletable document records. `is_expired` is not a
+ * stored/generated column (Postgres generated columns cannot reference
+ * CURRENT_DATE, which is not immutable) -- it's computed in every SELECT
+ * below from `expiry_date` so it always reflects "today," never a stale
+ * write-time snapshot. Document numbers are masked before they reach either
+ * audit trail.
  */
 
 import type { CustomerDocument } from '../../../packages/domain/types';
@@ -21,7 +24,9 @@ import { maskDocumentNumber } from './document-masking';
 
 const DOCUMENT_COLUMNS = `id, agency_id, customer_id, document_type, document_number, holder_name,
               holder_birth_date, holder_nationality, issuing_country, issuing_authority,
-              issued_date, expiry_date, is_expired, verification_status, verified_at,
+              issued_date, expiry_date,
+              (expiry_date IS NOT NULL AND expiry_date < CURRENT_DATE) AS is_expired,
+              verification_status, verified_at,
               verified_by_user_id, notes, created_at, updated_at, deleted_at`;
 
 export interface CustomerDocumentRow {
