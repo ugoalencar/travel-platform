@@ -64,3 +64,59 @@ export interface CustomerPassenger {
   documentType: string;
   documentLastDigits: string;
 }
+
+// Air segment / land service / document / payment schedule views below
+// deliberately carry no cost, sale_value, commission, or supplier fields
+// -- see services/api/src/customer-portal.ts for the backend-side
+// exclusion (those are internal negotiation/finance data).
+export interface CustomerAirSegmentView {
+  id: string;
+  tripId: string;
+  airline: string;
+  direction: string;
+  sequence: number;
+  origin: string;
+  destination: string;
+  departureDate: string;
+  departureTime: string | null;
+  arrivalDate: string;
+  arrivalTime: string | null;
+  flightNumber: string | null;
+  cabinClass: string;
+  bookingLocator: string | null;
+  seat: string | null;
+  status: string;
+}
+
+export interface CustomerLandServiceView {
+  id: string;
+  tripId: string;
+  serviceType: string;
+  description: string;
+  startDate: string;
+  endDate: string;
+  confirmationNumber: string | null;
+  status: string;
+}
+
+export interface CustomerDocumentView {
+  id: string;
+  documentType: string;
+  documentNumber: string;
+  holderName: string | null;
+  issuingCountry: string | null;
+  issuedDate: string | null;
+  expiryDate: string | null;
+  verificationStatus: string;
+  attachments: { id: string; attachmentType: string; fileName: string }[];
+}
+
+export interface CustomerPaymentScheduleItem {
+  id: string;
+  description: string;
+  amount: number;
+  dueAt: string;
+  status: string;
+  amountPaid: number;
+  amountRemaining: number;
+}

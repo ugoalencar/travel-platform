@@ -529,3 +529,292 @@ function toPassenger(row: PassengerRow): BookingPassenger {
     ...(row.notes !== null ? { notes: row.notes } : {}),
   };
 }
+
+// ============================================================
+// Air segments (scoped: agency_id = $1 AND customer_id = $2, AND the
+// segment's trip must also belong to that customer -- belt and braces).
+// Deliberately excludes cost/sale_value/commission/supplier/consolidator/
+// supplier_due_date/supplier_payment_status -- those are internal
+// negotiation/finance fields, never exposed to the customer portal.
+// ============================================================
+export interface CustomerAirSegmentView {
+  id: string;
+  tripId: string;
+  airline: string;
+  direction: string;
+  sequence: number;
+  origin: string;
+  destination: string;
+  departureDate: string;
+  departureTime: string | null;
+  arrivalDate: string;
+  arrivalTime: string | null;
+  flightNumber: string | null;
+  cabinClass: string;
+  bookingLocator: string | null;
+  seat: string | null;
+  status: string;
+}
+
+interface AirSegmentRow {
+  id: string;
+  trip_id: string;
+  airline: string;
+  direction: string;
+  sequence: number;
+  origin: string;
+  destination: string;
+  departure_date: string;
+  departure_time: string | null;
+  arrival_date: string;
+  arrival_time: string | null;
+  flight_number: string | null;
+  cabin_class: string;
+  booking_locator: string | null;
+  seat: string | null;
+  status: string;
+}
+
+const AIR_SEGMENT_COLUMNS = `a.id, a.trip_id, a.airline, a.direction, a.sequence, a.origin,
+  a.destination, a.departure_date, a.arrival_date, a.departure_time, a.arrival_time,
+  a.flight_number, a.cabin_class, a.booking_locator, a.seat, a.status`;
+
+export async function listMyTripAirServices(
+  database: DatabaseRuntime,
+  tripId: string,
+): Promise<CustomerAirSegmentView[]> {
+  const agencyId = getAgencyId();
+  const customerId = getCustomerId();
+
+  return database.withTenantTransaction(async (client) => {
+    const result = await client.query<AirSegmentRow>(
+      `SELECT ${AIR_SEGMENT_COLUMNS}
+       FROM air_services a
+       JOIN trips t ON t.agency_id = a.agency_id AND t.id = a.trip_id
+       WHERE a.agency_id = $1 AND a.customer_id = $2 AND a.trip_id = $3
+         AND t.customer_id = $2
+       ORDER BY a.direction, a.sequence`,
+      [agencyId, customerId, tripId],
+    );
+    return result.rows.map(toAirSegment);
+  });
+}
+
+function toAirSegment(row: AirSegmentRow): CustomerAirSegmentView {
+  return {
+    id: row.id,
+    tripId: row.trip_id,
+    airline: row.airline,
+    direction: row.direction,
+    sequence: Number(row.sequence),
+    origin: row.origin,
+    destination: row.destination,
+    departureDate: row.departure_date,
+    departureTime: row.departure_time,
+    arrivalDate: row.arrival_date,
+    arrivalTime: row.arrival_time,
+    flightNumber: row.flight_number,
+    cabinClass: row.cabin_class,
+    bookingLocator: row.booking_locator,
+    seat: row.seat,
+    status: row.status,
+  };
+}
+
+// ============================================================
+// Land services (same scoping/exclusion rules as air segments above --
+// no cost/sale_value/commission/supplier fields exposed).
+// ============================================================
+export interface CustomerLandServiceView {
+  id: string;
+  tripId: string;
+  serviceType: string;
+  description: string;
+  startDate: string;
+  endDate: string;
+  confirmationNumber: string | null;
+  status: string;
+}
+
+interface LandServiceRow {
+  id: string;
+  trip_id: string;
+  service_type: string;
+  description: string;
+  start_date: string;
+  end_date: string;
+  confirmation_number: string | null;
+  status: string;
+}
+
+const LAND_SERVICE_COLUMNS = `l.id, l.trip_id, l.service_type, l.description, l.start_date,
+  l.end_date, l.confirmation_number, l.status`;
+
+export async function listMyTripLandServices(
+  database: DatabaseRuntime,
+  tripId: string,
+): Promise<CustomerLandServiceView[]> {
+  const agencyId = getAgencyId();
+  const customerId = getCustomerId();
+
+  return database.withTenantTransaction(async (client) => {
+    const result = await client.query<LandServiceRow>(
+      `SELECT ${LAND_SERVICE_COLUMNS}
+       FROM land_services l
+       JOIN trips t ON t.agency_id = l.agency_id AND t.id = l.trip_id
+       WHERE l.agency_id = $1 AND l.customer_id = $2 AND l.trip_id = $3
+         AND t.customer_id = $2
+       ORDER BY l.start_date`,
+      [agencyId, customerId, tripId],
+    );
+    return result.rows.map(toLandService);
+  });
+}
+
+function toLandService(row: LandServiceRow): CustomerLandServiceView {
+  return {
+    id: row.id,
+    tripId: row.trip_id,
+    serviceType: row.service_type,
+    description: row.description,
+    startDate: row.start_date,
+    endDate: row.end_date,
+    confirmationNumber: row.confirmation_number,
+    status: row.status,
+  };
+}
+
+// ============================================================
+// Documents (Customer 360). Only the customer's own documents; internal
+// verification notes/verified_by_user_id are omitted -- those are
+// staff-only fields.
+// ============================================================
+export interface CustomerDocumentView {
+  id: string;
+  documentType: string;
+  documentNumber: string;
+  holderName: string | null;
+  issuingCountry: string | null;
+  issuedDate: string | null;
+  expiryDate: string | null;
+  verificationStatus: string;
+  attachments: { id: string; attachmentType: string; fileName: string }[];
+}
+
+interface DocumentRow {
+  id: string;
+  document_type: string;
+  document_number: string;
+  holder_name: string | null;
+  issuing_country: string | null;
+  issued_date: string | null;
+  expiry_date: string | null;
+  verification_status: string;
+}
+
+export async function listMyDocuments(database: DatabaseRuntime): Promise<CustomerDocumentView[]> {
+  const agencyId = getAgencyId();
+  const customerId = getCustomerId();
+
+  return database.withTenantTransaction(async (client) => {
+    const result = await client.query<DocumentRow>(
+      `SELECT id, document_type, document_number, holder_name, issuing_country,
+              issued_date, expiry_date, verification_status
+       FROM customer_documents
+       WHERE agency_id = $1 AND customer_id = $2 AND deleted_at IS NULL
+       ORDER BY created_at DESC`,
+      [agencyId, customerId],
+    );
+
+    const docs = result.rows;
+    if (docs.length === 0) {
+      return [];
+    }
+
+    const attachmentsResult = await client.query<{
+      id: string;
+      document_id: string;
+      attachment_type: string;
+      file_name: string;
+    }>(
+      `SELECT id, document_id, attachment_type, file_name
+       FROM document_attachments
+       WHERE agency_id = $1 AND document_id = ANY($2::text[]) AND deleted_at IS NULL`,
+      [agencyId, docs.map((d) => d.id)],
+    );
+
+    return docs.map((row) => ({
+      id: row.id,
+      documentType: row.document_type,
+      documentNumber: row.document_number,
+      holderName: row.holder_name,
+      issuingCountry: row.issuing_country,
+      issuedDate: row.issued_date,
+      expiryDate: row.expiry_date,
+      verificationStatus: row.verification_status,
+      attachments: attachmentsResult.rows
+        .filter((a) => a.document_id === row.id)
+        .map((a) => ({ id: a.id, attachmentType: a.attachment_type, fileName: a.file_name })),
+    }));
+  });
+}
+
+// ============================================================
+// Payment schedule (from the customer's own receivables). Exposes only
+// what the customer needs to see: amount due, due date, status, and
+// remaining balance -- never internal negotiation/discount/margin
+// context (that lives on `sales`/`payables`, which are never queried
+// from this file).
+// ============================================================
+export interface CustomerPaymentScheduleItem {
+  id: string;
+  description: string;
+  amount: number;
+  dueAt: string;
+  status: string;
+  amountPaid: number;
+  amountRemaining: number;
+}
+
+interface ReceivableWithPaidRow {
+  id: string;
+  description: string;
+  amount: string;
+  due_at: string;
+  status: string;
+  amount_paid: string;
+}
+
+export async function listMyPaymentSchedule(
+  database: DatabaseRuntime,
+): Promise<CustomerPaymentScheduleItem[]> {
+  const agencyId = getAgencyId();
+  const customerId = getCustomerId();
+
+  return database.withTenantTransaction(async (client) => {
+    const result = await client.query<ReceivableWithPaidRow>(
+      `SELECT r.id, r.description, r.amount::text AS amount, r.due_at::text AS due_at, r.status,
+              COALESCE((
+                SELECT SUM(pa.amount) FROM payment_allocations pa
+                WHERE pa.agency_id = r.agency_id AND pa.receivable_id = r.id
+              ), 0)::text AS amount_paid
+       FROM receivables r
+       WHERE r.agency_id = $1 AND r.customer_id = $2
+       ORDER BY r.due_at ASC`,
+      [agencyId, customerId],
+    );
+    return result.rows.map((row) => {
+      const amount = Number(row.amount);
+      const amountPaid = Number(row.amount_paid);
+      return {
+        id: row.id,
+        description: row.description,
+        amount,
+        dueAt: row.due_at,
+        status: row.status,
+        amountPaid,
+        amountRemaining: Math.max(0, Math.round((amount - amountPaid) * 100) / 100),
+      };
+    });
+  });
+}

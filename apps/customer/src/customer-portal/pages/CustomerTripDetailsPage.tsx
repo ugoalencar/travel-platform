@@ -1,7 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { ApiError, getMyTrip } from '../../lib/customerApi';
+import {
+  ApiError,
+  getMyTrip,
+  listMyTripAirSegments,
+  listMyTripLandServices,
+} from '../../lib/customerApi';
 import type { Trip } from '../../types/trip';
+import type { CustomerAirSegmentView, CustomerLandServiceView } from '../../types/customer-portal';
 import { tripStatusLabel } from '../../lib/statusLabels';
 import { BackLink } from '../BackLink';
 
@@ -45,7 +51,101 @@ export function CustomerTripDetailsPage() {
         )}
       </div>
 
-      {state.status === 'success' && <TripDetails trip={state.trip} />}
+      {state.status === 'success' && (
+        <>
+          <TripDetails trip={state.trip} />
+          <TripAirLandSections tripId={state.trip.id} />
+        </>
+      )}
+    </div>
+  );
+}
+
+function TripAirLandSections({ tripId }: { tripId: string }) {
+  const [air, setAir] = useState<CustomerAirSegmentView[] | null>(null);
+  const [land, setLand] = useState<CustomerLandServiceView[] | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([listMyTripAirSegments(tripId), listMyTripLandServices(tripId)])
+      .then(([airSegments, landServices]) => {
+        if (!cancelled) {
+          setAir(airSegments);
+          setLand(landServices);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setAir([]);
+          setLand([]);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [tripId]);
+
+  return (
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="rounded-xl border-2 border-slate-200 bg-white p-5 shadow-sm">
+        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-600">
+          ✈️ Voos
+        </h3>
+        {air === null && <p className="text-sm text-slate-500">Carregando...</p>}
+        {air !== null && air.length === 0 && (
+          <p className="text-sm text-slate-500">Nenhum voo registrado para esta viagem.</p>
+        )}
+        {air !== null && air.length > 0 && (
+          <ul className="space-y-3">
+            {air.map((segment) => (
+              <li key={segment.id} className="rounded-lg border border-slate-100 p-3 text-sm">
+                <p className="font-semibold text-slate-900">
+                  {segment.origin} → {segment.destination}
+                </p>
+                <p className="text-slate-600">
+                  {segment.airline}
+                  {segment.flightNumber ? ` · voo ${segment.flightNumber}` : ''}
+                </p>
+                <p className="text-slate-600">
+                  {new Date(segment.departureDate).toLocaleDateString('pt-BR')}
+                  {segment.departureTime ? ` às ${segment.departureTime}` : ''}
+                </p>
+                {segment.bookingLocator && (
+                  <p className="text-xs text-slate-500">Localizador: {segment.bookingLocator}</p>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <div className="rounded-xl border-2 border-slate-200 bg-white p-5 shadow-sm">
+        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-600">
+          🏨 Serviços terrestres
+        </h3>
+        {land === null && <p className="text-sm text-slate-500">Carregando...</p>}
+        {land !== null && land.length === 0 && (
+          <p className="text-sm text-slate-500">Nenhum serviço terrestre registrado.</p>
+        )}
+        {land !== null && land.length > 0 && (
+          <ul className="space-y-3">
+            {land.map((service) => (
+              <li key={service.id} className="rounded-lg border border-slate-100 p-3 text-sm">
+                <p className="font-semibold text-slate-900">{service.description}</p>
+                <p className="text-slate-600">
+                  {new Date(service.startDate).toLocaleDateString('pt-BR')} –{' '}
+                  {new Date(service.endDate).toLocaleDateString('pt-BR')}
+                </p>
+                {service.confirmationNumber && (
+                  <p className="text-xs text-slate-500">
+                    Confirmação: {service.confirmationNumber}
+                  </p>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   );
 }

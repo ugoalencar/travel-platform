@@ -321,9 +321,28 @@ import {
   getMyTripById,
   listAvailableOffers,
   listMyBookings,
+  listMyDocuments,
+  listMyPaymentSchedule,
   listMyProposals,
   listMyTrips,
+  listMyTripAirServices,
+  listMyTripLandServices,
 } from './customer-portal';
+import {
+  getCashFlowByPeriod,
+  getEmployeeExpenses,
+  getExpectedVsActual,
+  getOperationalExpensesBreakdown,
+  getPayablesAging,
+  getPersonnelReport,
+  getProfitabilityReport,
+  getReceivablesAging,
+  getSalesReport,
+  getSupplierExposure,
+  type PersonnelGroupBy,
+  type ProfitabilityGroupBy,
+  type SalesGroupBy,
+} from './reports';
 import {
   createInteraction,
   createOpportunity,
@@ -730,6 +749,34 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       return { booking: result.booking, passengers: result.passengers };
     }
   );
+
+  app.get<{ Params: { id: string } }>(
+    '/customer-api/trips/:id/air-segments',
+    { preHandler: customerHooks },
+    async (request) => {
+      const segments = await listMyTripAirServices(options.database, request.params.id);
+      return { segments };
+    }
+  );
+
+  app.get<{ Params: { id: string } }>(
+    '/customer-api/trips/:id/land-services',
+    { preHandler: customerHooks },
+    async (request) => {
+      const services = await listMyTripLandServices(options.database, request.params.id);
+      return { services };
+    }
+  );
+
+  app.get('/customer-api/documents', { preHandler: customerHooks }, async () => {
+    const documents = await listMyDocuments(options.database);
+    return { documents };
+  });
+
+  app.get('/customer-api/payment-schedule', { preHandler: customerHooks }, async () => {
+    const items = await listMyPaymentSchedule(options.database);
+    return { items };
+  });
 
   app.get('/health', () => ({
     status: 'ok',
@@ -2946,6 +2993,98 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     const report = await getCashFlowReport(options.database);
     return { report };
   });
+
+  // ============================================================
+  // MANAGEMENT REPORTS (Wave C, Part 1) -- reports.ts
+  // ============================================================
+  app.get<{ Querystring: { groupBy?: string; from?: string; to?: string } }>(
+    '/reports/sales',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.MANAGER);
+      const groupBy = (request.query.groupBy ?? 'period') as SalesGroupBy;
+      const from = request.query.from ? new Date(request.query.from) : new Date('2000-01-01');
+      const to = request.query.to ? new Date(request.query.to) : new Date('2100-01-01');
+      const rows = await getSalesReport(options.database, groupBy, from, to);
+      return { rows };
+    }
+  );
+
+  app.get('/reports/financial/receivables-aging', { preHandler: protectedHooks }, async () => {
+    requireRole(UserRole.MANAGER);
+    const rows = await getReceivablesAging(options.database);
+    return { rows };
+  });
+
+  app.get('/reports/financial/payables-aging', { preHandler: protectedHooks }, async () => {
+    requireRole(UserRole.MANAGER);
+    const rows = await getPayablesAging(options.database);
+    return { rows };
+  });
+
+  app.get('/reports/financial/supplier-exposure', { preHandler: protectedHooks }, async () => {
+    requireRole(UserRole.MANAGER);
+    const rows = await getSupplierExposure(options.database);
+    return { rows };
+  });
+
+  app.get('/reports/financial/employee-expenses', { preHandler: protectedHooks }, async () => {
+    requireRole(UserRole.MANAGER);
+    const rows = await getEmployeeExpenses(options.database);
+    return { rows };
+  });
+
+  app.get('/reports/financial/operational-expenses', { preHandler: protectedHooks }, async () => {
+    requireRole(UserRole.MANAGER);
+    const rows = await getOperationalExpensesBreakdown(options.database);
+    return { rows };
+  });
+
+  app.get<{ Querystring: { from?: string; to?: string } }>(
+    '/reports/financial/expected-vs-actual',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.MANAGER);
+      const from = request.query.from ? new Date(request.query.from) : new Date('2000-01-01');
+      const to = request.query.to ? new Date(request.query.to) : new Date('2100-01-01');
+      const rows = await getExpectedVsActual(options.database, from, to);
+      return { rows };
+    }
+  );
+
+  app.get<{ Querystring: { from?: string; to?: string } }>(
+    '/reports/financial/cash-flow',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.MANAGER);
+      const from = request.query.from ? new Date(request.query.from) : new Date('2000-01-01');
+      const to = request.query.to ? new Date(request.query.to) : new Date('2100-01-01');
+      const rows = await getCashFlowByPeriod(options.database, from, to);
+      return { rows };
+    }
+  );
+
+  app.get<{ Querystring: { groupBy?: string } }>(
+    '/reports/profitability',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.MANAGER);
+      const groupBy = (request.query.groupBy ?? 'sale') as ProfitabilityGroupBy;
+      const rows = await getProfitabilityReport(options.database, groupBy);
+      return { rows };
+    }
+  );
+
+  app.get<{ Querystring: { groupBy?: string } }>(
+    '/reports/personnel',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.MANAGER);
+      const groupBy = (request.query.groupBy ?? 'employee') as PersonnelGroupBy;
+      const rows = await getPersonnelReport(options.database, groupBy);
+      return { rows };
+    }
+  );
 
   app.get('/pescador/captures', { preHandler: protectedHooks }, async () => {
     requireRole(UserRole.AGENT);

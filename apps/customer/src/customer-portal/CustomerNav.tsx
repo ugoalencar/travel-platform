@@ -11,6 +11,7 @@ const LINKS = [
   { to: '/customer-portal/offers', label: 'Ofertas' },
   { to: '/customer-portal/proposals', label: 'Propostas' },
   { to: '/customer-portal/bookings', label: 'Reservas' },
+  { to: '/customer-portal/documents', label: 'Documentos' },
   { to: '/customer-portal/profile', label: 'Perfil' },
 ] as const;
 
