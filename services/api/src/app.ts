@@ -147,6 +147,15 @@ import {
   type UpdateAirServiceInput,
 } from './air-services';
 import {
+  createLandService,
+  deleteLandService,
+  getLandServiceById,
+  listLandServices,
+  updateLandService,
+  type CreateLandServiceInput,
+  type UpdateLandServiceInput,
+} from './land-services';
+import {
   createTransportProduct,
   getTransportProductById,
   listTransportProducts,
@@ -1320,6 +1329,81 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       const deleted = await deleteAirService(options.database, request.params.id);
       if (!deleted) {
         throw new NotFoundError('Air service not found');
+      }
+      return { success: true };
+    }
+  );
+
+  // ============================================================
+  // LAND OPERATIONS (LandService)
+  // ============================================================
+  // RBAC floor: mirrors Air Operations above -- AGENT for create/update,
+  // VIEWER for reads, MANAGER for delete.
+
+  app.get<{ Querystring: { tripId?: string; customerId?: string } }>(
+    '/land-services',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      const { tripId, customerId } = request.query;
+      const landServices = await listLandServices(options.database, { tripId, customerId });
+      return { landServices };
+    }
+  );
+
+  app.get<{ Params: { tripId: string } }>(
+    '/trips/:tripId/land-services',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      const landServices = await listLandServices(options.database, { tripId: request.params.tripId });
+      return { landServices };
+    }
+  );
+
+  app.get<{ Params: { id: string } }>(
+    '/land-services/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      const landService = await getLandServiceById(options.database, request.params.id);
+      if (!landService) {
+        throw new NotFoundError('Land service not found');
+      }
+      return { landService };
+    }
+  );
+
+  app.post('/land-services', { preHandler: protectedHooks }, async (request, reply) => {
+    requireRole(UserRole.AGENT);
+    const data = parseCreateLandServiceInput(request.body);
+    const landService = await createLandService(options.database, data);
+    reply.code(201);
+    return { landService };
+  });
+
+  app.patch<{ Params: { id: string } }>(
+    '/land-services/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.AGENT);
+      const data = parseUpdateLandServiceInput(request.body);
+      const landService = await updateLandService(options.database, request.params.id, data);
+      if (!landService) {
+        throw new NotFoundError('Land service not found');
+      }
+      return { landService };
+    }
+  );
+
+  app.delete<{ Params: { id: string } }>(
+    '/land-services/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.MANAGER);
+      const deleted = await deleteLandService(options.database, request.params.id);
+      if (!deleted) {
+        throw new NotFoundError('Land service not found');
       }
       return { success: true };
     }
@@ -4714,6 +4798,219 @@ function applyAirServiceOptionalFields(
     if (
       typeof record.supplierPaymentStatus !== 'string' ||
       !(AIR_SUPPLIER_PAYMENT_STATUS_VALUES as readonly string[]).includes(record.supplierPaymentStatus)
+    ) {
+      throw new ValidationError(
+        'Field "supplierPaymentStatus" must be one of OPEN, PARTIALLY_PAID, PAID, CANCELLED',
+      );
+    }
+    target.supplierPaymentStatus = record.supplierPaymentStatus;
+  }
+}
+
+// ============================================================
+// LAND OPERATIONS: LandService
+// ============================================================
+
+const LAND_SERVICE_STRING_FIELDS = [
+  'bookingId',
+  'supplierId',
+  'dependentId',
+  'description',
+  'startDate',
+  'endDate',
+  'currency',
+  'supplierDueDate',
+  'confirmationNumber',
+  'notes',
+] as const;
+
+const LAND_SERVICE_NUMBER_FIELDS = [
+  'quantity',
+  'cost',
+  'saleValue',
+  'taxes',
+  'fees',
+  'commission',
+] as const;
+
+const LAND_SERVICE_TYPE_VALUES = [
+  'ACCOMMODATION', 'TRANSFER', 'CAR_RENTAL', 'TOUR', 'TRAVEL_INSURANCE',
+  'CRUISE', 'TRAIN', 'BUS', 'GUIDE', 'TICKET', 'RECEPTIVE', 'OTHER',
+] as const;
+const LAND_SERVICE_STATUS_VALUES = ['PENDING', 'CONFIRMED', 'CANCELLED'] as const;
+const LAND_SUPPLIER_PAYMENT_STATUS_VALUES = [
+  'OPEN',
+  'PARTIALLY_PAID',
+  'PAID',
+  'CANCELLED',
+] as const;
+
+const ALLOWED_LAND_SERVICE_CREATE_FIELDS = [
+  'tripId',
+  'customerId',
+  'serviceType',
+  'supplierPaymentStatus',
+  'status',
+  ...LAND_SERVICE_STRING_FIELDS,
+  ...LAND_SERVICE_NUMBER_FIELDS,
+] as const;
+const ALLOWED_LAND_SERVICE_UPDATE_FIELDS = ALLOWED_LAND_SERVICE_CREATE_FIELDS;
+
+function parseCreateLandServiceInput(body: unknown): CreateLandServiceInput {
+  if (typeof body !== 'object' || body === null || Array.isArray(body)) {
+    throw new ValidationError('Request body must be an object');
+  }
+  const record = body as Record<string, unknown>;
+
+  for (const field of FORBIDDEN_ROUTE_FIELDS) {
+    if (field in record) {
+      throw new ValidationError(`Field "${field}" is not allowed in the request body`);
+    }
+  }
+  for (const key of Object.keys(record)) {
+    if (!(ALLOWED_LAND_SERVICE_CREATE_FIELDS as readonly string[]).includes(key)) {
+      throw new ValidationError(`Unknown field "${key}" in request body`);
+    }
+  }
+
+  if (typeof record.tripId !== 'string' || record.tripId.trim().length === 0) {
+    throw new ValidationError('Field "tripId" is required and must be a non-empty string');
+  }
+  if (typeof record.customerId !== 'string' || record.customerId.trim().length === 0) {
+    throw new ValidationError('Field "customerId" is required and must be a non-empty string');
+  }
+  if (typeof record.description !== 'string' || record.description.trim().length === 0) {
+    throw new ValidationError('Field "description" is required and must be a non-empty string');
+  }
+  if (typeof record.startDate !== 'string' || record.startDate.trim().length === 0) {
+    throw new ValidationError('Field "startDate" is required and must be a date string');
+  }
+  if (typeof record.endDate !== 'string' || record.endDate.trim().length === 0) {
+    throw new ValidationError('Field "endDate" is required and must be a date string');
+  }
+
+  const data: CreateLandServiceInput = {
+    tripId: record.tripId,
+    customerId: record.customerId,
+    description: record.description,
+    startDate: record.startDate,
+    endDate: record.endDate,
+  };
+
+  applyLandServiceOptionalFields(record, data);
+
+  return data;
+}
+
+function parseUpdateLandServiceInput(body: unknown): UpdateLandServiceInput {
+  if (typeof body !== 'object' || body === null || Array.isArray(body)) {
+    throw new ValidationError('Request body must be an object');
+  }
+  const record = body as Record<string, unknown>;
+
+  for (const field of FORBIDDEN_ROUTE_FIELDS) {
+    if (field in record) {
+      throw new ValidationError(`Field "${field}" is not allowed in the request body`);
+    }
+  }
+  for (const key of Object.keys(record)) {
+    if (!(ALLOWED_LAND_SERVICE_UPDATE_FIELDS as readonly string[]).includes(key)) {
+      throw new ValidationError(`Unknown field "${key}" in request body`);
+    }
+  }
+
+  const data: UpdateLandServiceInput = {};
+
+  if (record.tripId !== undefined) {
+    if (typeof record.tripId !== 'string' || record.tripId.trim().length === 0) {
+      throw new ValidationError('Field "tripId" must be a non-empty string');
+    }
+    data.tripId = record.tripId;
+  }
+  if (record.customerId !== undefined) {
+    if (typeof record.customerId !== 'string' || record.customerId.trim().length === 0) {
+      throw new ValidationError('Field "customerId" must be a non-empty string');
+    }
+    data.customerId = record.customerId;
+  }
+  if (record.description !== undefined) {
+    if (typeof record.description !== 'string' || record.description.trim().length === 0) {
+      throw new ValidationError('Field "description" must be a non-empty string');
+    }
+    data.description = record.description;
+  }
+  if (record.startDate !== undefined) {
+    if (typeof record.startDate !== 'string' || record.startDate.trim().length === 0) {
+      throw new ValidationError('Field "startDate" must be a date string');
+    }
+    data.startDate = record.startDate;
+  }
+  if (record.endDate !== undefined) {
+    if (typeof record.endDate !== 'string' || record.endDate.trim().length === 0) {
+      throw new ValidationError('Field "endDate" must be a date string');
+    }
+    data.endDate = record.endDate;
+  }
+
+  applyLandServiceOptionalFields(record, data);
+
+  if (Object.keys(data).length === 0) {
+    throw new ValidationError('At least one field must be provided');
+  }
+
+  return data;
+}
+
+function applyLandServiceOptionalFields(
+  record: Record<string, unknown>,
+  data: CreateLandServiceInput | UpdateLandServiceInput,
+): void {
+  const target = data as unknown as Record<string, unknown>;
+
+  for (const field of LAND_SERVICE_STRING_FIELDS) {
+    if (record[field] !== undefined) {
+      if (typeof record[field] !== 'string') {
+        throw new ValidationError(`Field "${field}" must be a string`);
+      }
+      target[field] = record[field];
+    }
+  }
+  for (const field of LAND_SERVICE_NUMBER_FIELDS) {
+    const value = record[field];
+    if (value !== undefined) {
+      if (typeof value !== 'number' || Number.isNaN(value) || value < 0) {
+        throw new ValidationError(`Field "${field}" must be a non-negative number`);
+      }
+      if (field === 'quantity' && value <= 0) {
+        throw new ValidationError('Field "quantity" must be a positive number');
+      }
+      target[field] = value;
+    }
+  }
+  if (record.serviceType !== undefined) {
+    if (
+      typeof record.serviceType !== 'string' ||
+      !(LAND_SERVICE_TYPE_VALUES as readonly string[]).includes(record.serviceType)
+    ) {
+      throw new ValidationError(
+        `Field "serviceType" must be one of ${LAND_SERVICE_TYPE_VALUES.join(', ')}`,
+      );
+    }
+    target.serviceType = record.serviceType;
+  }
+  if (record.status !== undefined) {
+    if (
+      typeof record.status !== 'string' ||
+      !(LAND_SERVICE_STATUS_VALUES as readonly string[]).includes(record.status)
+    ) {
+      throw new ValidationError('Field "status" must be one of PENDING, CONFIRMED, CANCELLED');
+    }
+    target.status = record.status;
+  }
+  if (record.supplierPaymentStatus !== undefined) {
+    if (
+      typeof record.supplierPaymentStatus !== 'string' ||
+      !(LAND_SUPPLIER_PAYMENT_STATUS_VALUES as readonly string[]).includes(record.supplierPaymentStatus)
     ) {
       throw new ValidationError(
         'Field "supplierPaymentStatus" must be one of OPEN, PARTIALLY_PAID, PAID, CANCELLED',

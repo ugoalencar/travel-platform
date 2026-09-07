@@ -607,6 +607,59 @@ export interface AirService {
   updatedAt: Date;
 }
 
+// ============================================================
+// LAND OPERATIONS DOMAIN
+// ============================================================
+
+export enum LandServiceType {
+  ACCOMMODATION = 'ACCOMMODATION',
+  TRANSFER = 'TRANSFER',
+  CAR_RENTAL = 'CAR_RENTAL',
+  TOUR = 'TOUR',
+  TRAVEL_INSURANCE = 'TRAVEL_INSURANCE',
+  CRUISE = 'CRUISE',
+  TRAIN = 'TRAIN',
+  BUS = 'BUS',
+  GUIDE = 'GUIDE',
+  TICKET = 'TICKET',
+  RECEPTIVE = 'RECEPTIVE',
+  OTHER = 'OTHER',
+}
+
+export enum LandServiceStatus {
+  PENDING = 'PENDING',
+  CONFIRMED = 'CONFIRMED',
+  CANCELLED = 'CANCELLED',
+}
+
+export interface LandService {
+  id: string;
+  agencyId: string;
+  tripId: string;
+  bookingId?: string;
+  supplierId?: string;
+  customerId: string;
+  dependentId?: string;
+  serviceType: LandServiceType;
+  description: string;
+  startDate: Date;
+  endDate: Date;
+  quantity: number;
+  cost: number;
+  saleValue: number;
+  taxes: number;
+  fees: number;
+  commission?: number;
+  currency: string;
+  supplierDueDate?: Date;
+  supplierPaymentStatus: FinancialObligationStatus;
+  status: LandServiceStatus;
+  confirmationNumber?: string;
+  notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface TransportProduct {
   id: string;
   agencyId: string;
