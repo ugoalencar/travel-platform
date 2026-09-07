@@ -33,6 +33,7 @@ import { DetailedReportsPage } from './pages/DetailedReportsPage';
 import { ReceivablesPage } from './pages/ReceivablesPage';
 import { PayablesPage } from './pages/PayablesPage';
 import { PescadorPage } from './pages/PescadorPage';
+import { SuppliersPage } from './pages/SuppliersPage';
 import { ReportsPage } from './pages/ReportsPage';
 import { SettingsPage } from './pages/SettingsPage';
 
@@ -70,6 +71,7 @@ export function App() {
         <Route path="financial/reconciliation" element={<ReconciliationPage />} />
         <Route path="financial/reports" element={<DetailedReportsPage />} />
         <Route path="pescador" element={<PescadorPage />} />
+        <Route path="suppliers" element={<SuppliersPage />} />
         <Route path="reports" element={<ReportsPage />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route path="*" element={<NotFoundPage />} />

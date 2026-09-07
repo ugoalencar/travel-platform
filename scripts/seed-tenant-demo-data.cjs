@@ -112,8 +112,11 @@ async function seedTenantData() {
     console.log('12. Criando registros financeiros (recebíveis)...');
     await seedReceivables(agency.id, sales);
 
+    console.log('12.1 Criando fornecedores...');
+    const suppliers = await seedSuppliers(agency.id);
+
     console.log('13. Criando registros financeiros (contas a pagar)...');
-    await seedPayables(agency.id);
+    await seedPayables(agency.id, suppliers);
 
     console.log('13b. Habilitando permissões da plataforma...');
     await seedEntitlements(agency.id);
@@ -726,7 +729,103 @@ async function seedReceivables(agencyId, sales) {
   console.log(`   ✓ Recebíveis criados para ${Math.floor(sales.length * 0.8)} vendas`);
 }
 
-async function seedPayables(agencyId) {
+async function seedSuppliers(agencyId) {
+  const suppliers = [
+    {
+      name: 'LATAM Airlines Brasil',
+      tradeName: 'LATAM',
+      document: '02.012.862/0001-60',
+      supplierType: 'TRAVEL',
+      categories: ['AIRLINE'],
+      email: 'parcerias@latam-demo.com',
+      phone: '+55 11 4000-1000',
+      website: 'https://www.latamairlines.com',
+      paymentTerms: '30 dias',
+    },
+    {
+      name: 'Grand Cancún Resort & Spa',
+      tradeName: 'Grand Cancún',
+      document: '12.345.678/0001-90',
+      supplierType: 'TRAVEL',
+      categories: ['HOTEL', 'RESORT'],
+      email: 'reservas@grandcancun-demo.com',
+      phone: '+52 998 555-0100',
+      paymentTerms: '15 dias',
+    },
+    {
+      name: 'CVC Operadora de Turismo',
+      tradeName: 'CVC',
+      document: '10.760.260/0001-19',
+      supplierType: 'TRAVEL',
+      categories: ['TOUR_OPERATOR', 'CONSOLIDATOR'],
+      email: 'comercial@cvc-demo.com',
+      phone: '+55 11 4003-2222',
+      paymentTerms: '45 dias',
+    },
+    {
+      name: 'Contábil Prime Assessoria Ltda',
+      tradeName: 'Contábil Prime',
+      document: '20.456.789/0001-33',
+      supplierType: 'OPERATIONAL',
+      categories: ['ACCOUNTING', 'LEGAL'],
+      email: 'contato@contabilprime-demo.com',
+      phone: '+55 11 3000-4000',
+      paymentTerms: 'Mensal, todo dia 10',
+    },
+    {
+      name: 'CloudSoft Sistemas de Gestão',
+      tradeName: 'CloudSoft',
+      document: '30.987.654/0001-21',
+      supplierType: 'OPERATIONAL',
+      categories: ['SOFTWARE', 'INTERNET'],
+      email: 'suporte@cloudsoft-demo.com',
+      phone: '+55 11 3500-7000',
+      website: 'https://cloudsoft-demo.com',
+      paymentTerms: 'Assinatura mensal',
+    },
+  ];
+
+  const created = [];
+  for (const supplier of suppliers) {
+    const id = generateId();
+    await pool.query(
+      `INSERT INTO suppliers (
+         id, agency_id, name, trade_name, document, supplier_type, email, phone, website,
+         payment_terms, active, created_at, updated_at
+       )
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, true, NOW(), NOW())
+       ON CONFLICT DO NOTHING`,
+      [
+        id,
+        agencyId,
+        supplier.name,
+        supplier.tradeName ?? null,
+        supplier.document ?? null,
+        supplier.supplierType,
+        supplier.email ?? null,
+        supplier.phone ?? null,
+        supplier.website ?? null,
+        supplier.paymentTerms ?? null,
+      ]
+    );
+
+    for (const category of supplier.categories) {
+      await pool.query(
+        `INSERT INTO supplier_category_links (id, agency_id, supplier_id, category, created_at)
+         VALUES ($1, $2, $3, $4, NOW())
+         ON CONFLICT DO NOTHING`,
+        [generateId(), agencyId, id, category]
+      );
+    }
+
+    created.push({ id, name: supplier.name });
+  }
+
+  console.log(`   ✓ ${created.length} fornecedores criados`);
+  return created;
+}
+
+async function seedPayables(agencyId, suppliers = []) {
   const categories = ['HOSPEDAGEM', 'PASSAGENS', 'COMISSOES'];
   const statuses = ['OPEN', 'PARTIALLY_PAID', 'PAID'];
 
@@ -735,11 +834,12 @@ async function seedPayables(agencyId) {
     const status = statuses[Math.floor(i / 4) % statuses.length];
     const amount = 1000 + Math.random() * 5000;
     const dueDate = new Date(Date.now() + (10 + Math.random() * 50) * 24 * 60 * 60 * 1000);
+    const supplierId = suppliers.length > 0 ? suppliers[i % suppliers.length].id : null;
 
     await pool.query(
-      `INSERT INTO payables (id, agency_id, description, amount, due_at, status, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW()) ON CONFLICT DO NOTHING`,
-      [generateId(), agencyId, `Conta a pagar demo - ${category}`, amount, dueDate, status]
+      `INSERT INTO payables (id, agency_id, supplier_id, description, amount, due_at, status, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW()) ON CONFLICT DO NOTHING`,
+      [generateId(), agencyId, supplierId, `Conta a pagar demo - ${category}`, amount, dueDate, status]
     );
   }
 

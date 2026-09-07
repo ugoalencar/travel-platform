@@ -477,13 +477,70 @@ export interface Route {
   updatedAt: Date;
 }
 
+export enum SupplierType {
+  TRAVEL = 'TRAVEL',
+  OPERATIONAL = 'OPERATIONAL',
+  BOTH = 'BOTH',
+}
+
+export enum SupplierCategory {
+  AIRLINE = 'AIRLINE',
+  CONSOLIDATOR = 'CONSOLIDATOR',
+  HOTEL = 'HOTEL',
+  RESORT = 'RESORT',
+  TOUR_OPERATOR = 'TOUR_OPERATOR',
+  TRANSFER = 'TRANSFER',
+  CAR_RENTAL = 'CAR_RENTAL',
+  TRAVEL_INSURANCE = 'TRAVEL_INSURANCE',
+  TOUR = 'TOUR',
+  GUIDE = 'GUIDE',
+  CRUISE = 'CRUISE',
+  TRAIN = 'TRAIN',
+  BUS = 'BUS',
+  TICKET_PROVIDER = 'TICKET_PROVIDER',
+  RECEPTIVE_OPERATOR = 'RECEPTIVE_OPERATOR',
+  RENT = 'RENT',
+  ELECTRICITY = 'ELECTRICITY',
+  WATER = 'WATER',
+  INTERNET = 'INTERNET',
+  PHONE = 'PHONE',
+  SOFTWARE = 'SOFTWARE',
+  ACCOUNTING = 'ACCOUNTING',
+  LEGAL = 'LEGAL',
+  MARKETING = 'MARKETING',
+  OFFICE = 'OFFICE',
+  CLEANING = 'CLEANING',
+  MAINTENANCE = 'MAINTENANCE',
+  EQUIPMENT = 'EQUIPMENT',
+  BANKING = 'BANKING',
+  INSURANCE = 'INSURANCE',
+  OTHER = 'OTHER',
+}
+
 export interface Supplier {
   id: string;
   agencyId: string;
   name: string;
+  tradeName?: string;
   document?: string;
   contact?: string;
+  supplierType: SupplierType;
+  email?: string;
+  phone?: string;
+  website?: string;
+  addressLine?: string;
+  addressCity?: string;
+  addressState?: string;
+  addressZip?: string;
+  addressCountry?: string;
+  bankName?: string;
+  bankBranch?: string;
+  bankAccount?: string;
+  bankPix?: string;
+  paymentTerms?: string;
+  notes?: string;
   active: boolean;
+  categories: SupplierCategory[];
   createdAt: Date;
   updatedAt: Date;
 }

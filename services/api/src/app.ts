@@ -155,6 +155,7 @@ import {
   type UpdateScheduledDepartureInput,
 } from './scheduled-departures';
 import { DepartureServiceType, TripType } from '../../../packages/domain/types';
+import type { SupplierCategory, SupplierType } from '../../../packages/domain/types';
 import {
   cancelBooking,
   listBookingsWithCustomer,
@@ -1175,6 +1176,64 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       requireRole(UserRole.MANAGER);
       const data = parseUpdateSupplierInput(request.body);
       const supplier = await updateSupplier(options.database, request.params.id, data);
+      if (!supplier) {
+        throw new NotFoundError('Supplier not found');
+      }
+      return { supplier };
+    }
+  );
+
+  // Generic `/suppliers` alias (same underlying `suppliers` table/entity as
+  // `/transport/suppliers` above, now extended with the fuller business Supplier
+  // shape: type, categories, contact, address, banking info). The Agency app's
+  // Suppliers page (business ops, not transport-specific) uses this surface.
+  app.get('/suppliers', { preHandler: protectedHooks }, async () => {
+    requireRole(UserRole.VIEWER);
+    const suppliers = await listSuppliers(options.database);
+    return { suppliers };
+  });
+
+  app.get<{ Params: { id: string } }>(
+    '/suppliers/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      const supplier = await getSupplierById(options.database, request.params.id);
+      if (!supplier) {
+        throw new NotFoundError('Supplier not found');
+      }
+      return { supplier };
+    }
+  );
+
+  app.post('/suppliers', { preHandler: protectedHooks }, async (request, reply) => {
+    requireRole(UserRole.MANAGER);
+    const data = parseCreateSupplierInput(request.body);
+    const supplier = await createSupplier(options.database, data);
+    reply.code(201);
+    return { supplier };
+  });
+
+  app.patch<{ Params: { id: string } }>(
+    '/suppliers/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.MANAGER);
+      const data = parseUpdateSupplierInput(request.body);
+      const supplier = await updateSupplier(options.database, request.params.id, data);
+      if (!supplier) {
+        throw new NotFoundError('Supplier not found');
+      }
+      return { supplier };
+    }
+  );
+
+  app.delete<{ Params: { id: string } }>(
+    '/suppliers/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.MANAGER);
+      const supplier = await updateSupplier(options.database, request.params.id, { active: false });
       if (!supplier) {
         throw new NotFoundError('Supplier not found');
       }
@@ -4164,8 +4223,57 @@ function parseUpdateRouteInput(body: unknown): UpdateRouteInput {
 // TRANSPORTATION: Supplier
 // ============================================================
 
-const ALLOWED_SUPPLIER_CREATE_FIELDS = ['name', 'document', 'contact', 'active'] as const;
-const ALLOWED_SUPPLIER_UPDATE_FIELDS = ['name', 'document', 'contact', 'active'] as const;
+const SUPPLIER_STRING_FIELDS = [
+  'tradeName',
+  'document',
+  'contact',
+  'email',
+  'phone',
+  'website',
+  'addressLine',
+  'addressCity',
+  'addressState',
+  'addressZip',
+  'addressCountry',
+  'bankName',
+  'bankBranch',
+  'bankAccount',
+  'bankPix',
+  'paymentTerms',
+  'notes',
+] as const;
+
+const SUPPLIER_TYPE_VALUES = ['TRAVEL', 'OPERATIONAL', 'BOTH'] as const;
+
+const SUPPLIER_CATEGORY_VALUES = [
+  'AIRLINE', 'CONSOLIDATOR', 'HOTEL', 'RESORT', 'TOUR_OPERATOR', 'TRANSFER',
+  'CAR_RENTAL', 'TRAVEL_INSURANCE', 'TOUR', 'GUIDE', 'CRUISE', 'TRAIN', 'BUS',
+  'TICKET_PROVIDER', 'RECEPTIVE_OPERATOR',
+  'RENT', 'ELECTRICITY', 'WATER', 'INTERNET', 'PHONE', 'SOFTWARE', 'ACCOUNTING',
+  'LEGAL', 'MARKETING', 'OFFICE', 'CLEANING', 'MAINTENANCE', 'EQUIPMENT',
+  'BANKING', 'INSURANCE', 'OTHER',
+] as const;
+
+const ALLOWED_SUPPLIER_CREATE_FIELDS = [
+  'name',
+  'supplierType',
+  'active',
+  'categories',
+  ...SUPPLIER_STRING_FIELDS,
+] as const;
+const ALLOWED_SUPPLIER_UPDATE_FIELDS = ALLOWED_SUPPLIER_CREATE_FIELDS;
+
+function parseSupplierCategories(value: unknown): SupplierCategory[] {
+  if (!Array.isArray(value)) {
+    throw new ValidationError('Field "categories" must be an array of strings');
+  }
+  return value.map((item) => {
+    if (typeof item !== 'string' || !(SUPPLIER_CATEGORY_VALUES as readonly string[]).includes(item)) {
+      throw new ValidationError(`Invalid supplier category "${String(item)}"`);
+    }
+    return item as SupplierCategory;
+  });
+}
 
 function parseCreateSupplierInput(body: unknown): CreateSupplierInput {
   if (typeof body !== 'object' || body === null || Array.isArray(body)) {
@@ -4190,23 +4298,31 @@ function parseCreateSupplierInput(body: unknown): CreateSupplierInput {
 
   const data: CreateSupplierInput = { name: record.name };
 
-  if (record.document !== undefined) {
-    if (typeof record.document !== 'string') {
-      throw new ValidationError('Field "document" must be a string');
+  for (const field of SUPPLIER_STRING_FIELDS) {
+    if (record[field] !== undefined) {
+      if (typeof record[field] !== 'string') {
+        throw new ValidationError(`Field "${field}" must be a string`);
+      }
+      (data as unknown as Record<string, unknown>)[field] = record[field];
     }
-    data.document = record.document;
   }
-  if (record.contact !== undefined) {
-    if (typeof record.contact !== 'string') {
-      throw new ValidationError('Field "contact" must be a string');
+  if (record.supplierType !== undefined) {
+    if (
+      typeof record.supplierType !== 'string' ||
+      !(SUPPLIER_TYPE_VALUES as readonly string[]).includes(record.supplierType)
+    ) {
+      throw new ValidationError('Field "supplierType" must be one of TRAVEL, OPERATIONAL, BOTH');
     }
-    data.contact = record.contact;
+    data.supplierType = record.supplierType as SupplierType;
   }
   if (record.active !== undefined) {
     if (typeof record.active !== 'boolean') {
       throw new ValidationError('Field "active" must be a boolean');
     }
     data.active = record.active;
+  }
+  if (record.categories !== undefined) {
+    data.categories = parseSupplierCategories(record.categories);
   }
 
   return data;
@@ -4237,23 +4353,31 @@ function parseUpdateSupplierInput(body: unknown): UpdateSupplierInput {
     }
     data.name = record.name;
   }
-  if (record.document !== undefined) {
-    if (typeof record.document !== 'string') {
-      throw new ValidationError('Field "document" must be a string');
+  for (const field of SUPPLIER_STRING_FIELDS) {
+    if (record[field] !== undefined) {
+      if (typeof record[field] !== 'string') {
+        throw new ValidationError(`Field "${field}" must be a string`);
+      }
+      (data as unknown as Record<string, unknown>)[field] = record[field];
     }
-    data.document = record.document;
   }
-  if (record.contact !== undefined) {
-    if (typeof record.contact !== 'string') {
-      throw new ValidationError('Field "contact" must be a string');
+  if (record.supplierType !== undefined) {
+    if (
+      typeof record.supplierType !== 'string' ||
+      !(SUPPLIER_TYPE_VALUES as readonly string[]).includes(record.supplierType)
+    ) {
+      throw new ValidationError('Field "supplierType" must be one of TRAVEL, OPERATIONAL, BOTH');
     }
-    data.contact = record.contact;
+    data.supplierType = record.supplierType as SupplierType;
   }
   if (record.active !== undefined) {
     if (typeof record.active !== 'boolean') {
       throw new ValidationError('Field "active" must be a boolean');
     }
     data.active = record.active;
+  }
+  if (record.categories !== undefined) {
+    data.categories = parseSupplierCategories(record.categories);
   }
 
   if (Object.keys(data).length === 0) {

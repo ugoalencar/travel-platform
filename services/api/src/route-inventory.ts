@@ -498,6 +498,55 @@ export function registerAllRoutes(): void {
   });
 
   // ============================================================
+  // SUPPLIERS (generic alias of the same suppliers entity/table used above)
+  // ============================================================
+
+  registerRoute({
+    method: 'GET',
+    path: '/suppliers',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'VIEWER',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'GET',
+    path: '/suppliers/:id',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'VIEWER',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'POST',
+    path: '/suppliers',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'MANAGER',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'PATCH',
+    path: '/suppliers/:id',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'MANAGER',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'DELETE',
+    path: '/suppliers/:id',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'MANAGER',
+    publicJustification: undefined,
+  });
+
+  // ============================================================
   // TRANSPORT — Products
   // ============================================================
 

@@ -1324,24 +1324,111 @@ export async function cancelExpense(id: string): Promise<Expense> {
 }
 
 // ============================================================
-// SUPPLIERS (GET /transport/suppliers)
+// SUPPLIERS (GET/POST/PATCH/DELETE /suppliers)
 // ============================================================
+
+export type SupplierType = 'TRAVEL' | 'OPERATIONAL' | 'BOTH';
+
+export type SupplierCategory =
+  | 'AIRLINE' | 'CONSOLIDATOR' | 'HOTEL' | 'RESORT' | 'TOUR_OPERATOR' | 'TRANSFER'
+  | 'CAR_RENTAL' | 'TRAVEL_INSURANCE' | 'TOUR' | 'GUIDE' | 'CRUISE' | 'TRAIN' | 'BUS'
+  | 'TICKET_PROVIDER' | 'RECEPTIVE_OPERATOR'
+  | 'RENT' | 'ELECTRICITY' | 'WATER' | 'INTERNET' | 'PHONE' | 'SOFTWARE' | 'ACCOUNTING'
+  | 'LEGAL' | 'MARKETING' | 'OFFICE' | 'CLEANING' | 'MAINTENANCE' | 'EQUIPMENT'
+  | 'BANKING' | 'INSURANCE' | 'OTHER';
+
+export const SUPPLIER_CATEGORY_OPTIONS: SupplierCategory[] = [
+  'AIRLINE', 'CONSOLIDATOR', 'HOTEL', 'RESORT', 'TOUR_OPERATOR', 'TRANSFER',
+  'CAR_RENTAL', 'TRAVEL_INSURANCE', 'TOUR', 'GUIDE', 'CRUISE', 'TRAIN', 'BUS',
+  'TICKET_PROVIDER', 'RECEPTIVE_OPERATOR',
+  'RENT', 'ELECTRICITY', 'WATER', 'INTERNET', 'PHONE', 'SOFTWARE', 'ACCOUNTING',
+  'LEGAL', 'MARKETING', 'OFFICE', 'CLEANING', 'MAINTENANCE', 'EQUIPMENT',
+  'BANKING', 'INSURANCE', 'OTHER',
+];
 
 export interface Supplier {
   id: string;
   agencyId: string;
   name: string;
-  contactName?: string;
+  tradeName?: string;
+  document?: string;
+  contact?: string;
+  supplierType: SupplierType;
   email?: string;
   phone?: string;
-  address?: string;
+  website?: string;
+  addressLine?: string;
+  addressCity?: string;
+  addressState?: string;
+  addressZip?: string;
+  addressCountry?: string;
+  bankName?: string;
+  bankBranch?: string;
+  bankAccount?: string;
+  bankPix?: string;
+  paymentTerms?: string;
+  notes?: string;
+  active: boolean;
+  categories: SupplierCategory[];
   createdAt: string;
   updatedAt: string;
 }
 
+export interface SupplierInput {
+  name: string;
+  tradeName?: string;
+  document?: string;
+  contact?: string;
+  supplierType?: SupplierType;
+  email?: string;
+  phone?: string;
+  website?: string;
+  addressLine?: string;
+  addressCity?: string;
+  addressState?: string;
+  addressZip?: string;
+  addressCountry?: string;
+  bankName?: string;
+  bankBranch?: string;
+  bankAccount?: string;
+  bankPix?: string;
+  paymentTerms?: string;
+  notes?: string;
+  active?: boolean;
+  categories?: SupplierCategory[];
+}
+
 export async function listSuppliers(): Promise<Supplier[]> {
-  const data = await request<{ suppliers: Supplier[] }>('/api/transport/suppliers');
+  const data = await request<{ suppliers: Supplier[] }>('/api/suppliers');
   return data.suppliers;
+}
+
+export async function getSupplier(id: string): Promise<Supplier> {
+  const data = await request<{ supplier: Supplier }>(`/api/suppliers/${encodeURIComponent(id)}`);
+  return data.supplier;
+}
+
+export async function createSupplier(input: SupplierInput): Promise<Supplier> {
+  const data = await request<{ supplier: Supplier }>('/api/suppliers', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+  return data.supplier;
+}
+
+export async function updateSupplier(id: string, input: Partial<SupplierInput>): Promise<Supplier> {
+  const data = await request<{ supplier: Supplier }>(`/api/suppliers/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(input),
+  });
+  return data.supplier;
+}
+
+export async function deactivateSupplier(id: string): Promise<Supplier> {
+  const data = await request<{ supplier: Supplier }>(`/api/suppliers/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  });
+  return data.supplier;
 }
 
 // ============================================================

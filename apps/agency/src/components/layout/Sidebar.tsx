@@ -49,6 +49,7 @@ const NAV_SECTIONS: NavSection[] = [
       { label: 'Despesas', to: '/financial/expenses' },
       { label: 'Contas a Receber', to: '/financial/receivables' },
       { label: 'Contas a Pagar', to: '/financial/payables' },
+      { label: 'Fornecedores', to: '/suppliers' },
       { label: 'Caixa', to: '/financial/cash-transactions' },
       { label: 'Conciliação', to: '/financial/reconciliation' },
       { label: 'Relatórios', to: '/financial/reports' },
