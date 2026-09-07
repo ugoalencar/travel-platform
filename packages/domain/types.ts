@@ -374,6 +374,78 @@ export interface CostCenter {
   updatedAt: Date;
 }
 
+export enum CommissionCalculationType {
+  PERCENT_SALE = 'PERCENT_SALE',
+  PERCENT_MARGIN = 'PERCENT_MARGIN',
+  FIXED = 'FIXED',
+  PRODUCT = 'PRODUCT',
+  DESTINATION = 'DESTINATION',
+  TIERED_TARGET = 'TIERED_TARGET',
+}
+
+export interface CommissionPlan {
+  id: string;
+  agencyId: string;
+  name: string;
+  calculationType: CommissionCalculationType;
+  percentage: number | undefined;
+  fixedAmount: number | undefined;
+  rules: Record<string, unknown> | undefined;
+  active: boolean;
+  validFrom: Date | undefined;
+  validUntil: Date | undefined;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export enum EmploymentType {
+  EMPLOYEE = 'EMPLOYEE',
+  CONTRACTOR = 'CONTRACTOR',
+  PARTNER = 'PARTNER',
+  FREELANCER = 'FREELANCER',
+  OTHER = 'OTHER',
+}
+
+export enum EmployeeStatus {
+  ACTIVE = 'ACTIVE',
+  INACTIVE = 'INACTIVE',
+  ON_LEAVE = 'ON_LEAVE',
+  TERMINATED = 'TERMINATED',
+}
+
+export interface Employee {
+  id: string;
+  agencyId: string;
+  name: string;
+  cpf: string | undefined;
+  rg: string | undefined;
+  birthDate: Date | undefined;
+  addressLine: string | undefined;
+  addressCity: string | undefined;
+  addressState: string | undefined;
+  addressZipCode: string | undefined;
+  phone: string | undefined;
+  email: string | undefined;
+  hireDate: Date | undefined;
+  terminationDate: Date | undefined;
+  employmentType: EmploymentType;
+  roleTitle: string | undefined;
+  department: string | undefined;
+  costCenterId: string | undefined;
+  managerId: string | undefined;
+  status: EmployeeStatus;
+  baseSalary: number | undefined;
+  bankName: string | undefined;
+  bankBranch: string | undefined;
+  bankAccount: string | undefined;
+  bankPixKey: string | undefined;
+  notes: string | undefined;
+  userId: string | undefined;
+  defaultCommissionPlanId: string | undefined;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export enum RevenueStatus {
   OPEN = 'OPEN',
   PARTIALLY_PAID = 'PARTIALLY_PAID',

@@ -39,6 +39,8 @@ import { AirServicesPage } from './pages/AirServicesPage';
 import { LandServicesPage } from './pages/LandServicesPage';
 import { ReportsPage } from './pages/ReportsPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { EmployeesPage } from './pages/EmployeesPage';
+import { CommissionPlansPage } from './pages/CommissionPlansPage';
 
 export function App() {
   return (
@@ -79,6 +81,8 @@ export function App() {
         <Route path="operations/air" element={<AirServicesPage />} />
         <Route path="operations/land" element={<LandServicesPage />} />
         <Route path="reports" element={<ReportsPage />} />
+        <Route path="employees" element={<EmployeesPage />} />
+        <Route path="commission-plans" element={<CommissionPlansPage />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>

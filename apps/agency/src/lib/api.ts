@@ -1610,6 +1610,175 @@ export async function updateCostCenter(id: string, input: UpdateCostCenterInput)
 }
 
 // ============================================================
+// COMMISSION PLANS (GET/POST/PATCH/DELETE /commission-plans)
+// ============================================================
+
+export type CommissionCalculationType =
+  | 'PERCENT_SALE'
+  | 'PERCENT_MARGIN'
+  | 'FIXED'
+  | 'PRODUCT'
+  | 'DESTINATION'
+  | 'TIERED_TARGET';
+
+export interface CommissionPlan {
+  id: string;
+  agencyId: string;
+  name: string;
+  calculationType: CommissionCalculationType;
+  percentage?: number;
+  fixedAmount?: number;
+  rules?: Record<string, unknown>;
+  active: boolean;
+  validFrom?: string;
+  validUntil?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CommissionPlanInput {
+  name: string;
+  calculationType: CommissionCalculationType;
+  percentage?: number | undefined;
+  fixedAmount?: number | undefined;
+  rules?: Record<string, unknown> | undefined;
+  active?: boolean;
+  validFrom?: string;
+  validUntil?: string;
+}
+
+export type UpdateCommissionPlanInput = Partial<CommissionPlanInput>;
+
+export async function listCommissionPlans(includeInactive = false): Promise<CommissionPlan[]> {
+  const qs = includeInactive ? '?includeInactive=true' : '';
+  const data = await request<{ commissionPlans: CommissionPlan[] }>(`/api/commission-plans${qs}`);
+  return data.commissionPlans;
+}
+
+export async function createCommissionPlan(input: CommissionPlanInput): Promise<CommissionPlan> {
+  const data = await request<{ commissionPlan: CommissionPlan }>('/api/commission-plans', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+  return data.commissionPlan;
+}
+
+export async function updateCommissionPlan(
+  id: string,
+  input: UpdateCommissionPlanInput,
+): Promise<CommissionPlan> {
+  const data = await request<{ commissionPlan: CommissionPlan }>(
+    `/api/commission-plans/${encodeURIComponent(id)}`,
+    { method: 'PATCH', body: JSON.stringify(input) },
+  );
+  return data.commissionPlan;
+}
+
+export async function deleteCommissionPlan(id: string): Promise<void> {
+  await request<{ success: boolean }>(`/api/commission-plans/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  });
+}
+
+// ============================================================
+// EMPLOYEES (GET/POST/PATCH/DELETE /employees)
+// ============================================================
+
+export type EmploymentType = 'EMPLOYEE' | 'CONTRACTOR' | 'PARTNER' | 'FREELANCER' | 'OTHER';
+export type EmployeeStatus = 'ACTIVE' | 'INACTIVE' | 'ON_LEAVE' | 'TERMINATED';
+
+export interface Employee {
+  id: string;
+  agencyId: string;
+  name: string;
+  cpf?: string;
+  rg?: string;
+  birthDate?: string;
+  addressLine?: string;
+  addressCity?: string;
+  addressState?: string;
+  addressZipCode?: string;
+  phone?: string;
+  email?: string;
+  hireDate?: string;
+  terminationDate?: string;
+  employmentType: EmploymentType;
+  roleTitle?: string;
+  department?: string;
+  costCenterId?: string;
+  managerId?: string;
+  status: EmployeeStatus;
+  baseSalary?: number;
+  bankName?: string;
+  bankBranch?: string;
+  bankAccount?: string;
+  bankPixKey?: string;
+  notes?: string;
+  userId?: string;
+  defaultCommissionPlanId?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface EmployeeInput {
+  name: string;
+  cpf?: string | undefined;
+  rg?: string | undefined;
+  birthDate?: string | undefined;
+  addressLine?: string | undefined;
+  addressCity?: string | undefined;
+  addressState?: string | undefined;
+  addressZipCode?: string | undefined;
+  phone?: string | undefined;
+  email?: string | undefined;
+  hireDate?: string | undefined;
+  terminationDate?: string | undefined;
+  employmentType?: EmploymentType;
+  roleTitle?: string | undefined;
+  department?: string | undefined;
+  costCenterId?: string | undefined;
+  managerId?: string | undefined;
+  status?: EmployeeStatus;
+  baseSalary?: number | undefined;
+  bankName?: string | undefined;
+  bankBranch?: string | undefined;
+  bankAccount?: string | undefined;
+  bankPixKey?: string | undefined;
+  notes?: string | undefined;
+  userId?: string | undefined;
+  defaultCommissionPlanId?: string | undefined;
+}
+export type UpdateEmployeeInput = Partial<EmployeeInput>;
+
+export async function listEmployees(status?: string): Promise<Employee[]> {
+  const qs = status ? `?status=${encodeURIComponent(status)}` : '';
+  const data = await request<{ employees: Employee[] }>(`/api/employees${qs}`);
+  return data.employees;
+}
+
+export async function createEmployee(input: EmployeeInput): Promise<Employee> {
+  const data = await request<{ employee: Employee }>('/api/employees', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+  return data.employee;
+}
+
+export async function updateEmployee(id: string, input: UpdateEmployeeInput): Promise<Employee> {
+  const data = await request<{ employee: Employee }>(`/api/employees/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(input),
+  });
+  return data.employee;
+}
+
+export async function deleteEmployee(id: string): Promise<void> {
+  await request<{ success: boolean }>(`/api/employees/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  });
+}
+
+// ============================================================
 // LAND OPERATIONS DOMAIN
 // ============================================================
 

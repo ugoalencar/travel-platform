@@ -59,6 +59,13 @@ const NAV_SECTIONS: NavSection[] = [
     ],
   },
   {
+    label: 'PESSOAS',
+    items: [
+      { label: 'Funcionários', to: '/employees' },
+      { label: 'Planos de Comissão', to: '/commission-plans' },
+    ],
+  },
+  {
     label: 'GESTÃO',
     items: [{ label: 'Configurações', to: '/settings' }],
   },

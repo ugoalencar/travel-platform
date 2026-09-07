@@ -106,6 +106,9 @@ async function seedTenantData() {
     console.log('9.5 Criando hierarquia de categorias financeiras e centros de custo...');
     await seedFinanceCategoryHierarchyAndCostCenters(agency.id);
 
+    console.log('9.6 Criando planos de comissão e funcionários...');
+    await seedCommissionPlansAndEmployees(agency.id, agencyUsers);
+
     console.log('10. Criando registros financeiros (receitas)...');
     await seedRevenues(agency.id, sales);
 
@@ -206,7 +209,7 @@ async function seedAgencyUsers(agencyId) {
        RETURNING id`,
       [generateId(), agencyId, user.name, user.email, user.role]
     );
-    result.push({ id: inserted.rows[0].id, name: user.name, role: user.role });
+    result.push({ id: inserted.rows[0].id, name: user.name, role: user.role, email: user.email });
     console.log(`   ✓ ${user.name} (${user.role})`);
   }
   return result;
@@ -1423,6 +1426,158 @@ async function seedFinanceCategoryHierarchyAndCostCenters(agencyId) {
   }
 
   console.log(`   ✓ Hierarquia de categorias (EXPENSE) e ${COST_CENTERS.length} centros de custo criados`);
+}
+
+async function getCostCenterIdByName(agencyId, name) {
+  const result = await pool.query(
+    `SELECT id FROM cost_centers WHERE agency_id = $1 AND name = $2 LIMIT 1`,
+    [agencyId, name]
+  );
+  return result.rows[0]?.id || null;
+}
+
+async function getOrCreateCommissionPlan(agencyId, plan) {
+  const result = await pool.query(
+    `INSERT INTO commission_plans (id, agency_id, name, calculation_type, percentage, fixed_amount, active, created_at, updated_at)
+     VALUES ($1, $2, $3, $4, $5, $6, true, NOW(), NOW())
+     ON CONFLICT (agency_id, name) DO UPDATE SET active = true
+     RETURNING id`,
+    [generateId(), agencyId, plan.name, plan.calculationType, plan.percentage ?? null, plan.fixedAmount ?? null]
+  );
+  return result.rows[0].id;
+}
+
+async function getOrCreateEmployee(agencyId, employee) {
+  const result = await pool.query(
+    `INSERT INTO employees (
+       id, agency_id, name, phone, email, hire_date, employment_type, role_title, department,
+       cost_center_id, status, base_salary, user_id, default_commission_plan_id, created_at, updated_at
+     )
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'ACTIVE', $11, $12, $13, NOW(), NOW())
+     ON CONFLICT (agency_id, user_id) WHERE user_id IS NOT NULL DO UPDATE SET
+       role_title = EXCLUDED.role_title,
+       department = EXCLUDED.department,
+       cost_center_id = EXCLUDED.cost_center_id,
+       base_salary = EXCLUDED.base_salary,
+       default_commission_plan_id = EXCLUDED.default_commission_plan_id
+     RETURNING id`,
+    [
+      generateId(),
+      agencyId,
+      employee.name,
+      employee.phone,
+      employee.email,
+      employee.hireDate,
+      employee.employmentType,
+      employee.roleTitle,
+      employee.department,
+      employee.costCenterId,
+      employee.baseSalary,
+      employee.userId,
+      employee.defaultCommissionPlanId,
+    ]
+  );
+  return result.rows[0].id;
+}
+
+async function seedCommissionPlansAndEmployees(agencyId, agencyUsers) {
+  const standardPlanId = await getOrCreateCommissionPlan(agencyId, {
+    name: 'Comissão Padrão',
+    calculationType: 'PERCENT_MARGIN',
+    percentage: 10,
+  });
+  const seniorPlanId = await getOrCreateCommissionPlan(agencyId, {
+    name: 'Comissão Sênior',
+    calculationType: 'PERCENT_MARGIN',
+    percentage: 12,
+  });
+  await getOrCreateCommissionPlan(agencyId, {
+    name: 'Comissão Fixa Pacote Fechado',
+    calculationType: 'FIXED',
+    fixedAmount: 350,
+  });
+  console.log('   ✓ 3 planos de comissão criados (Padrão, Sênior, Fixa)');
+
+  const adminCostCenterId = await getCostCenterIdByName(agencyId, 'ADMINISTRATION');
+  const salesCostCenterId = await getCostCenterIdByName(agencyId, 'SALES');
+
+  const byName = Object.fromEntries(agencyUsers.map((u) => [u.name, u]));
+
+  const employeeSeeds = [
+    {
+      user: byName['João Silva'],
+      phone: '11-91234-0001',
+      hireDate: '2018-03-01',
+      employmentType: 'EMPLOYEE',
+      roleTitle: 'Diretor Geral',
+      department: 'Administração',
+      costCenterId: adminCostCenterId,
+      baseSalary: 18000,
+      defaultCommissionPlanId: null,
+    },
+    {
+      user: byName['Maria Santos'],
+      phone: '11-91234-0002',
+      hireDate: '2019-06-15',
+      employmentType: 'EMPLOYEE',
+      roleTitle: 'Gerente Administrativa',
+      department: 'Administração',
+      costCenterId: adminCostCenterId,
+      baseSalary: 9500,
+      defaultCommissionPlanId: null,
+    },
+    {
+      user: byName['Pedro Oliveira'],
+      phone: '11-91234-0003',
+      hireDate: '2020-02-10',
+      employmentType: 'EMPLOYEE',
+      roleTitle: 'Consultor de Viagens Sênior',
+      department: 'Vendas',
+      costCenterId: salesCostCenterId,
+      baseSalary: 4200,
+      defaultCommissionPlanId: seniorPlanId,
+    },
+    {
+      user: byName['Ana Costa'],
+      phone: '11-91234-0004',
+      hireDate: '2021-08-20',
+      employmentType: 'EMPLOYEE',
+      roleTitle: 'Consultora de Viagens',
+      department: 'Vendas',
+      costCenterId: salesCostCenterId,
+      baseSalary: 3200,
+      defaultCommissionPlanId: standardPlanId,
+    },
+    {
+      user: byName['Carlos Ferreira'],
+      phone: '11-91234-0005',
+      hireDate: '2022-01-05',
+      employmentType: 'EMPLOYEE',
+      roleTitle: 'Consultor de Viagens',
+      department: 'Vendas',
+      costCenterId: salesCostCenterId,
+      baseSalary: 3200,
+      defaultCommissionPlanId: standardPlanId,
+    },
+  ];
+
+  for (const seed of employeeSeeds) {
+    if (!seed.user) continue;
+    await getOrCreateEmployee(agencyId, {
+      name: seed.user.name,
+      phone: seed.phone,
+      email: seed.user.email,
+      hireDate: seed.hireDate,
+      employmentType: seed.employmentType,
+      roleTitle: seed.roleTitle,
+      department: seed.department,
+      costCenterId: seed.costCenterId,
+      baseSalary: seed.baseSalary,
+      userId: seed.user.id,
+      defaultCommissionPlanId: seed.defaultCommissionPlanId,
+    });
+    console.log(`   ✓ Funcionário: ${seed.user.name} (${seed.roleTitle})`);
+  }
 }
 
 async function seedCampaigns(agencyId, userId) {

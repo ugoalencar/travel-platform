@@ -147,6 +147,24 @@ import {
   type UpdateAirServiceInput,
 } from './air-services';
 import {
+  createEmployee,
+  deleteEmployee,
+  getEmployeeById,
+  listEmployees,
+  updateEmployee,
+  type CreateEmployeeInput,
+  type UpdateEmployeeInput,
+} from './employees';
+import {
+  createCommissionPlan,
+  deleteCommissionPlan,
+  getCommissionPlanById,
+  listCommissionPlans,
+  updateCommissionPlan,
+  type CreateCommissionPlanInput,
+  type UpdateCommissionPlanInput,
+} from './commission-plans';
+import {
   createLandService,
   deleteLandService,
   getLandServiceById,
@@ -2328,6 +2346,129 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     }
     return { costCenter };
   });
+
+  // ============================================================
+  // COMMISSION PLANS (config only — no calc engine this pass)
+  // ============================================================
+  app.get('/commission-plans', { preHandler: protectedHooks }, async (request) => {
+    requireRole(UserRole.MANAGER);
+    const query = request.query as Record<string, string>;
+    const includeInactive = query.includeInactive === 'true';
+    const commissionPlans = await listCommissionPlans(options.database, includeInactive);
+    return { commissionPlans };
+  });
+
+  app.get<{ Params: { id: string } }>(
+    '/commission-plans/:id',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      requireRole(UserRole.MANAGER);
+      const commissionPlan = await getCommissionPlanById(options.database, request.params.id);
+      if (!commissionPlan) {
+        reply.code(404);
+        return { error: 'Commission plan not found' };
+      }
+      return { commissionPlan };
+    },
+  );
+
+  app.post('/commission-plans', { preHandler: protectedHooks }, async (request, reply) => {
+    requireRole(UserRole.ADMIN);
+    const data = parseCreateCommissionPlanInput(request.body);
+    const commissionPlan = await createCommissionPlan(options.database, data);
+    reply.code(201);
+    return { commissionPlan };
+  });
+
+  app.patch<{ Params: { id: string } }>(
+    '/commission-plans/:id',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      requireRole(UserRole.ADMIN);
+      const data = parseUpdateCommissionPlanInput(request.body);
+      const commissionPlan = await updateCommissionPlan(options.database, request.params.id, data);
+      if (!commissionPlan) {
+        reply.code(404);
+        return { error: 'Commission plan not found' };
+      }
+      return { commissionPlan };
+    },
+  );
+
+  app.delete<{ Params: { id: string } }>(
+    '/commission-plans/:id',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      requireRole(UserRole.ADMIN);
+      const deleted = await deleteCommissionPlan(options.database, request.params.id);
+      if (!deleted) {
+        reply.code(404);
+        return { error: 'Commission plan not found' };
+      }
+      return { success: true };
+    },
+  );
+
+  // ============================================================
+  // EMPLOYEES (HR/compensation data — MANAGER read, ADMIN write)
+  // ============================================================
+  app.get('/employees', { preHandler: protectedHooks }, async (request) => {
+    requireRole(UserRole.MANAGER);
+    const query = request.query as Record<string, string>;
+    const employees = await listEmployees(options.database, { status: query.status });
+    return { employees };
+  });
+
+  app.get<{ Params: { id: string } }>(
+    '/employees/:id',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      requireRole(UserRole.MANAGER);
+      const employee = await getEmployeeById(options.database, request.params.id);
+      if (!employee) {
+        reply.code(404);
+        return { error: 'Employee not found' };
+      }
+      return { employee };
+    },
+  );
+
+  app.post('/employees', { preHandler: protectedHooks }, async (request, reply) => {
+    requireRole(UserRole.ADMIN);
+    const data = parseCreateEmployeeInput(request.body);
+    const employee = await createEmployee(options.database, data);
+    reply.code(201);
+    return { employee };
+  });
+
+  app.patch<{ Params: { id: string } }>(
+    '/employees/:id',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      requireRole(UserRole.ADMIN);
+      const data = parseUpdateEmployeeInput(request.body);
+      const employee = await updateEmployee(options.database, request.params.id, data);
+      if (!employee) {
+        reply.code(404);
+        return { error: 'Employee not found' };
+      }
+      return { employee };
+    },
+  );
+
+  app.delete<{ Params: { id: string } }>(
+    '/employees/:id',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      requireRole(UserRole.ADMIN);
+      const deleted = await deleteEmployee(options.database, request.params.id);
+      if (!deleted) {
+        reply.code(404);
+        return { error: 'Employee not found' };
+      }
+      return { success: true };
+    },
+  );
 
   // ============================================================
   // REVENUES
@@ -5774,6 +5915,174 @@ function parseUpdateCostCenterInput(body: unknown): UpdateCostCenterInput {
   }
   if (typeof record.active === 'boolean') {
     data.active = record.active;
+  }
+  return data;
+}
+
+function optionalTrimmedString(value: unknown): string | undefined {
+  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : undefined;
+}
+
+function optionalNumber(value: unknown): number | undefined {
+  return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
+}
+
+function parseCreateCommissionPlanInput(body: unknown): CreateCommissionPlanInput {
+  const record = parseObjectBody(body);
+  const name = parseRequiredString(record.name, 'name');
+  const calculationType = record.calculationType as CreateCommissionPlanInput['calculationType'];
+  if (
+    !calculationType ||
+    !['PERCENT_SALE', 'PERCENT_MARGIN', 'FIXED', 'PRODUCT', 'DESTINATION', 'TIERED_TARGET'].includes(
+      calculationType,
+    )
+  ) {
+    throw new ValidationError('Field "calculationType" is invalid');
+  }
+  return {
+    name,
+    calculationType,
+    percentage: optionalNumber(record.percentage),
+    fixedAmount: optionalNumber(record.fixedAmount),
+    rules:
+      typeof record.rules === 'object' && record.rules !== null
+        ? (record.rules as Record<string, unknown>)
+        : undefined,
+    active: typeof record.active === 'boolean' ? record.active : undefined,
+    validFrom: optionalTrimmedString(record.validFrom),
+    validUntil: optionalTrimmedString(record.validUntil),
+  };
+}
+
+function parseUpdateCommissionPlanInput(body: unknown): UpdateCommissionPlanInput {
+  const record = parseObjectBody(body);
+  const data: UpdateCommissionPlanInput = {};
+  if (typeof record.name === 'string') {
+    data.name = parseRequiredString(record.name, 'name');
+  }
+  if (record.calculationType !== undefined) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    data.calculationType = record.calculationType as CreateCommissionPlanInput['calculationType'];
+  }
+  if (record.percentage !== undefined) {
+    data.percentage = optionalNumber(record.percentage);
+  }
+  if (record.fixedAmount !== undefined) {
+    data.fixedAmount = optionalNumber(record.fixedAmount);
+  }
+  if (record.rules !== undefined) {
+    data.rules =
+      typeof record.rules === 'object' && record.rules !== null
+        ? (record.rules as Record<string, unknown>)
+        : undefined;
+  }
+  if (typeof record.active === 'boolean') {
+    data.active = record.active;
+  }
+  if (record.validFrom !== undefined) {
+    data.validFrom = optionalTrimmedString(record.validFrom);
+  }
+  if (record.validUntil !== undefined) {
+    data.validUntil = optionalTrimmedString(record.validUntil);
+  }
+  return data;
+}
+
+const EMPLOYEE_STRING_FIELDS = [
+  'cpf',
+  'rg',
+  'birthDate',
+  'addressLine',
+  'addressCity',
+  'addressState',
+  'addressZipCode',
+  'phone',
+  'email',
+  'hireDate',
+  'terminationDate',
+  'roleTitle',
+  'department',
+  'costCenterId',
+  'managerId',
+  'bankName',
+  'bankBranch',
+  'bankAccount',
+  'bankPixKey',
+  'notes',
+  'userId',
+  'defaultCommissionPlanId',
+] as const;
+
+function parseCreateEmployeeInput(body: unknown): CreateEmployeeInput {
+  const record = parseObjectBody(body);
+  const name = parseRequiredString(record.name, 'name');
+
+  if (
+    record.employmentType !== undefined &&
+    !['EMPLOYEE', 'CONTRACTOR', 'PARTNER', 'FREELANCER', 'OTHER'].includes(
+      record.employmentType as string,
+    )
+  ) {
+    throw new ValidationError('Field "employmentType" is invalid');
+  }
+  if (
+    record.status !== undefined &&
+    !['ACTIVE', 'INACTIVE', 'ON_LEAVE', 'TERMINATED'].includes(record.status as string)
+  ) {
+    throw new ValidationError('Field "status" is invalid');
+  }
+
+  const data: CreateEmployeeInput = { name };
+  for (const field of EMPLOYEE_STRING_FIELDS) {
+    data[field] = optionalTrimmedString(record[field]);
+  }
+  if (record.employmentType !== undefined) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    data.employmentType = record.employmentType as CreateEmployeeInput['employmentType'];
+  }
+  if (record.status !== undefined) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    data.status = record.status as CreateEmployeeInput['status'];
+  }
+  data.baseSalary = optionalNumber(record.baseSalary);
+  return data;
+}
+
+function parseUpdateEmployeeInput(body: unknown): UpdateEmployeeInput {
+  const record = parseObjectBody(body);
+  const data: UpdateEmployeeInput = {};
+  if (typeof record.name === 'string') {
+    data.name = parseRequiredString(record.name, 'name');
+  }
+  if (
+    record.employmentType !== undefined &&
+    !['EMPLOYEE', 'CONTRACTOR', 'PARTNER', 'FREELANCER', 'OTHER'].includes(
+      record.employmentType as string,
+    )
+  ) {
+    throw new ValidationError('Field "employmentType" is invalid');
+  }
+  if (
+    record.status !== undefined &&
+    !['ACTIVE', 'INACTIVE', 'ON_LEAVE', 'TERMINATED'].includes(record.status as string)
+  ) {
+    throw new ValidationError('Field "status" is invalid');
+  }
+  for (const field of EMPLOYEE_STRING_FIELDS) {
+    if (record[field] !== undefined) {
+      data[field] = optionalTrimmedString(record[field]);
+    }
+  }
+  if (record.employmentType !== undefined) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    data.employmentType = record.employmentType as CreateEmployeeInput['employmentType'];
+  }
+  if (record.status !== undefined) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    data.status = record.status as CreateEmployeeInput['status'];
+  }
+  if (record.baseSalary !== undefined) {
+    data.baseSalary = optionalNumber(record.baseSalary);
   }
   return data;
 }
