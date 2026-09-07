@@ -165,6 +165,26 @@ import {
   type UpdateCommissionPlanInput,
 } from './commission-plans';
 import {
+  approveCommissionEntry,
+  createPayableFromCommissionEntry,
+  generateCommission,
+  getCommissionEntryById,
+  listCommissionEntries,
+  type GenerateCommissionInput,
+} from './commissions';
+import {
+  approvePayrollEntry,
+  createEmployeeDeduction,
+  deleteEmployeeDeduction,
+  generatePayrollEntry,
+  getPayrollEntryById,
+  listEmployeeDeductions,
+  listPayrollEntries,
+  payPayrollEntry,
+  type CreateEmployeeDeductionInput,
+  type GeneratePayrollInput,
+} from './payroll';
+import {
   createLandService,
   deleteLandService,
   getLandServiceById,
@@ -2467,6 +2487,162 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
         return { error: 'Employee not found' };
       }
       return { success: true };
+    },
+  );
+
+  // ============================================================
+  // COMMISSION ENTRIES (generated commissions)
+  // ============================================================
+  app.get('/commissions', { preHandler: protectedHooks }, async (request) => {
+    requireRole(UserRole.MANAGER);
+    const query = request.query as Record<string, string>;
+    const commissions = await listCommissionEntries(options.database, {
+      employeeId: query.employeeId,
+      saleId: query.saleId,
+      status: query.status,
+    });
+    return { commissions };
+  });
+
+  app.get<{ Params: { id: string } }>(
+    '/commissions/:id',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      requireRole(UserRole.MANAGER);
+      const commission = await getCommissionEntryById(options.database, request.params.id);
+      if (!commission) {
+        reply.code(404);
+        return { error: 'Commission entry not found' };
+      }
+      return { commission };
+    },
+  );
+
+  app.post('/commissions/generate', { preHandler: protectedHooks }, async (request, reply) => {
+    requireRole(UserRole.AGENT);
+    const data = parseGenerateCommissionInput(request.body);
+    const commission = await generateCommission(options.database, data);
+    reply.code(201);
+    return { commission };
+  });
+
+  app.patch<{ Params: { id: string } }>(
+    '/commissions/:id/approve',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      requireRole(UserRole.MANAGER);
+      const commission = await approveCommissionEntry(options.database, request.params.id, getUserId());
+      if (!commission) {
+        reply.code(404);
+        return { error: 'Commission entry not found' };
+      }
+      return { commission };
+    },
+  );
+
+  app.post<{ Params: { id: string } }>(
+    '/commissions/:id/create-payable',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      requireRole(UserRole.MANAGER);
+      const result = await createPayableFromCommissionEntry(options.database, request.params.id);
+      reply.code(201);
+      return result;
+    },
+  );
+
+  // ============================================================
+  // EMPLOYEE DEDUCTIONS
+  // ============================================================
+  app.get('/employee-deductions', { preHandler: protectedHooks }, async (request) => {
+    requireRole(UserRole.MANAGER);
+    const query = request.query as Record<string, string>;
+    const deductions = await listEmployeeDeductions(options.database, {
+      employeeId: query.employeeId,
+      competence: query.competence,
+    });
+    return { deductions };
+  });
+
+  app.post('/employee-deductions', { preHandler: protectedHooks }, async (request, reply) => {
+    requireRole(UserRole.ADMIN);
+    const data = parseCreateEmployeeDeductionInput(request.body);
+    const deduction = await createEmployeeDeduction(options.database, data);
+    reply.code(201);
+    return { deduction };
+  });
+
+  app.delete<{ Params: { id: string } }>(
+    '/employee-deductions/:id',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      requireRole(UserRole.ADMIN);
+      const deleted = await deleteEmployeeDeduction(options.database, request.params.id);
+      if (!deleted) {
+        reply.code(404);
+        return { error: 'Deduction not found' };
+      }
+      return { success: true };
+    },
+  );
+
+  // ============================================================
+  // PAYROLL ENTRIES
+  // ============================================================
+  app.get('/payroll-entries', { preHandler: protectedHooks }, async (request) => {
+    requireRole(UserRole.MANAGER);
+    const query = request.query as Record<string, string>;
+    const payrollEntries = await listPayrollEntries(options.database, {
+      employeeId: query.employeeId,
+      status: query.status,
+    });
+    return { payrollEntries };
+  });
+
+  app.get<{ Params: { id: string } }>(
+    '/payroll-entries/:id',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      requireRole(UserRole.MANAGER);
+      const payrollEntry = await getPayrollEntryById(options.database, request.params.id);
+      if (!payrollEntry) {
+        reply.code(404);
+        return { error: 'Payroll entry not found' };
+      }
+      return { payrollEntry };
+    },
+  );
+
+  app.post('/payroll-entries/generate', { preHandler: protectedHooks }, async (request, reply) => {
+    requireRole(UserRole.ADMIN);
+    const data = parseGeneratePayrollInput(request.body);
+    const payrollEntry = await generatePayrollEntry(options.database, data);
+    reply.code(201);
+    return { payrollEntry };
+  });
+
+  app.patch<{ Params: { id: string } }>(
+    '/payroll-entries/:id/approve',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      requireRole(UserRole.ADMIN);
+      const payrollEntry = await approvePayrollEntry(options.database, request.params.id);
+      if (!payrollEntry) {
+        reply.code(404);
+        return { error: 'Payroll entry not found' };
+      }
+      return { payrollEntry };
+    },
+  );
+
+  app.post<{ Params: { id: string } }>(
+    '/payroll-entries/:id/pay',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      requireRole(UserRole.ADMIN);
+      const result = await payPayrollEntry(options.database, request.params.id);
+      reply.code(201);
+      return result;
     },
   );
 
@@ -6085,6 +6261,56 @@ function parseUpdateEmployeeInput(body: unknown): UpdateEmployeeInput {
     data.baseSalary = optionalNumber(record.baseSalary);
   }
   return data;
+}
+
+function parseGenerateCommissionInput(body: unknown): GenerateCommissionInput {
+  const record = parseObjectBody(body);
+  const saleId = parseRequiredString(record.saleId, 'saleId');
+  const employeeId = parseRequiredString(record.employeeId, 'employeeId');
+  return {
+    saleId,
+    employeeId,
+    commissionPlanId: optionalTrimmedString(record.commissionPlanId),
+    notes: optionalTrimmedString(record.notes),
+  };
+}
+
+function parseCreateEmployeeDeductionInput(body: unknown): CreateEmployeeDeductionInput {
+  const record = parseObjectBody(body);
+  const employeeId = parseRequiredString(record.employeeId, 'employeeId');
+  const competence = parseRequiredString(record.competence, 'competence');
+  const type = record.type as CreateEmployeeDeductionInput['type'];
+  if (!type || !['ADVANCE', 'ABSENCE', 'BENEFIT', 'LOAN', 'ADJUSTMENT', 'OTHER'].includes(type)) {
+    throw new ValidationError('Field "type" is invalid');
+  }
+  const amount = optionalNumber(record.amount);
+  if (amount === undefined) {
+    throw new ValidationError('Field "amount" is required');
+  }
+  return {
+    employeeId,
+    competence,
+    type,
+    description: optionalTrimmedString(record.description),
+    amount,
+    notes: optionalTrimmedString(record.notes),
+  };
+}
+
+function parseGeneratePayrollInput(body: unknown): GeneratePayrollInput {
+  const record = parseObjectBody(body);
+  const employeeId = parseRequiredString(record.employeeId, 'employeeId');
+  const competence = parseRequiredString(record.competence, 'competence');
+  return {
+    employeeId,
+    competence,
+    benefits: optionalNumber(record.benefits),
+    bonuses: optionalNumber(record.bonuses),
+    reimbursements: optionalNumber(record.reimbursements),
+    additions: optionalNumber(record.additions),
+    dueDate: optionalTrimmedString(record.dueDate),
+    notes: optionalTrimmedString(record.notes),
+  };
 }
 
 function parseCreateRevenueInput(body: unknown): CreateRevenueInput {

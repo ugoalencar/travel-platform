@@ -1779,6 +1779,201 @@ export async function deleteEmployee(id: string): Promise<void> {
 }
 
 // ============================================================
+// COMMISSION ENTRIES (generated commissions)
+// ============================================================
+
+export type CommissionEntryStatus = 'PENDING' | 'APPROVED' | 'PAYABLE' | 'PAID' | 'CANCELLED';
+
+export interface CommissionEntry {
+  id: string;
+  agencyId: string;
+  employeeId: string;
+  saleId: string;
+  tripId?: string;
+  commissionPlanId: string;
+  calculationBase: number;
+  rate?: number;
+  amount: number;
+  status: CommissionEntryStatus;
+  approvedAt?: string;
+  approvedBy?: string;
+  paidAt?: string;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface GenerateCommissionInput {
+  saleId: string;
+  employeeId: string;
+  commissionPlanId?: string | undefined;
+  notes?: string | undefined;
+}
+
+export async function listCommissions(filters?: {
+  employeeId?: string;
+  saleId?: string;
+  status?: string;
+}): Promise<CommissionEntry[]> {
+  const params = new URLSearchParams();
+  if (filters?.employeeId) params.set('employeeId', filters.employeeId);
+  if (filters?.saleId) params.set('saleId', filters.saleId);
+  if (filters?.status) params.set('status', filters.status);
+  const qs = params.toString() ? `?${params.toString()}` : '';
+  const data = await request<{ commissions: CommissionEntry[] }>(`/api/commissions${qs}`);
+  return data.commissions;
+}
+
+export async function generateCommission(input: GenerateCommissionInput): Promise<CommissionEntry> {
+  const data = await request<{ commission: CommissionEntry }>('/api/commissions/generate', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+  return data.commission;
+}
+
+export async function approveCommission(id: string): Promise<CommissionEntry> {
+  const data = await request<{ commission: CommissionEntry }>(
+    `/api/commissions/${encodeURIComponent(id)}/approve`,
+    { method: 'PATCH' },
+  );
+  return data.commission;
+}
+
+export async function createPayableFromCommission(id: string): Promise<{ payableId: string }> {
+  return request<{ payableId: string }>(`/api/commissions/${encodeURIComponent(id)}/create-payable`, {
+    method: 'POST',
+  });
+}
+
+// ============================================================
+// EMPLOYEE DEDUCTIONS
+// ============================================================
+
+export type EmployeeDeductionType = 'ADVANCE' | 'ABSENCE' | 'BENEFIT' | 'LOAN' | 'ADJUSTMENT' | 'OTHER';
+
+export interface EmployeeDeduction {
+  id: string;
+  agencyId: string;
+  employeeId: string;
+  competence: string;
+  type: EmployeeDeductionType;
+  description?: string;
+  amount: number;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface EmployeeDeductionInput {
+  employeeId: string;
+  competence: string;
+  type: EmployeeDeductionType;
+  description?: string | undefined;
+  amount: number;
+  notes?: string | undefined;
+}
+
+export async function listEmployeeDeductions(filters?: {
+  employeeId?: string;
+  competence?: string;
+}): Promise<EmployeeDeduction[]> {
+  const params = new URLSearchParams();
+  if (filters?.employeeId) params.set('employeeId', filters.employeeId);
+  if (filters?.competence) params.set('competence', filters.competence);
+  const qs = params.toString() ? `?${params.toString()}` : '';
+  const data = await request<{ deductions: EmployeeDeduction[] }>(`/api/employee-deductions${qs}`);
+  return data.deductions;
+}
+
+export async function createEmployeeDeduction(input: EmployeeDeductionInput): Promise<EmployeeDeduction> {
+  const data = await request<{ deduction: EmployeeDeduction }>('/api/employee-deductions', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+  return data.deduction;
+}
+
+export async function deleteEmployeeDeduction(id: string): Promise<void> {
+  await request<{ success: boolean }>(`/api/employee-deductions/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  });
+}
+
+// ============================================================
+// PAYROLL ENTRIES
+// ============================================================
+
+export type PayrollEntryStatus = 'OPEN' | 'APPROVED' | 'PAID' | 'CANCELLED';
+
+export interface PayrollEntry {
+  id: string;
+  agencyId: string;
+  employeeId: string;
+  competence: string;
+  baseSalary: number;
+  benefits: number;
+  bonuses: number;
+  commissionsTotal: number;
+  reimbursements: number;
+  additions: number;
+  discountsTotal: number;
+  netAmount: number;
+  status: PayrollEntryStatus;
+  dueDate?: string;
+  paidAt?: string;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface GeneratePayrollInput {
+  employeeId: string;
+  competence: string;
+  benefits?: number | undefined;
+  bonuses?: number | undefined;
+  reimbursements?: number | undefined;
+  additions?: number | undefined;
+  dueDate?: string | undefined;
+  notes?: string | undefined;
+}
+
+export async function listPayrollEntries(filters?: {
+  employeeId?: string;
+  status?: string;
+}): Promise<PayrollEntry[]> {
+  const params = new URLSearchParams();
+  if (filters?.employeeId) params.set('employeeId', filters.employeeId);
+  if (filters?.status) params.set('status', filters.status);
+  const qs = params.toString() ? `?${params.toString()}` : '';
+  const data = await request<{ payrollEntries: PayrollEntry[] }>(`/api/payroll-entries${qs}`);
+  return data.payrollEntries;
+}
+
+export async function generatePayrollEntry(input: GeneratePayrollInput): Promise<PayrollEntry> {
+  const data = await request<{ payrollEntry: PayrollEntry }>('/api/payroll-entries/generate', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+  return data.payrollEntry;
+}
+
+export async function approvePayrollEntry(id: string): Promise<PayrollEntry> {
+  const data = await request<{ payrollEntry: PayrollEntry }>(
+    `/api/payroll-entries/${encodeURIComponent(id)}/approve`,
+    { method: 'PATCH' },
+  );
+  return data.payrollEntry;
+}
+
+export async function payPayrollEntry(id: string): Promise<{ payrollEntry: PayrollEntry; payableId: string }> {
+  return request<{ payrollEntry: PayrollEntry; payableId: string }>(
+    `/api/payroll-entries/${encodeURIComponent(id)}/pay`,
+    { method: 'POST' },
+  );
+}
+
+// ============================================================
 // LAND OPERATIONS DOMAIN
 // ============================================================
 

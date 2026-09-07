@@ -56,6 +56,10 @@ interface PayableRow {
   amount: string;
   due_at: string;
   status: FinancialObligationStatus;
+  beneficiary_type: string;
+  employee_id: string | null;
+  commission_entry_id: string | null;
+  payroll_entry_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -212,6 +216,10 @@ export interface CreatePayableInput {
   description: string;
   amount: number;
   dueAt: Date;
+  beneficiaryType?: 'SUPPLIER' | 'EMPLOYEE' | 'OTHER';
+  employeeId?: string;
+  commissionEntryId?: string;
+  payrollEntryId?: string;
 }
 
 export interface RecordPaymentInput {
@@ -448,7 +456,8 @@ const RECEIVABLE_COLUMNS = `id, agency_id, sale_id, customer_id, description, am
   due_at, status, created_at, updated_at`;
 const PAYABLE_COLUMNS = `id, agency_id, sale_id, supplier_id, commission_id,
   transport_operation_id, operational_cost_id, category_id, cost_center_id, description,
-  amount, due_at, status, created_at, updated_at`;
+  amount, due_at, status, beneficiary_type, employee_id, commission_entry_id, payroll_entry_id,
+  created_at, updated_at`;
 const PAYMENT_COLUMNS = `id, agency_id, direction, amount, occurred_at, method,
   reference, notes, created_by, created_at`;
 const ALLOCATION_COLUMNS = `id, agency_id, payment_id, receivable_id, payable_id,
@@ -1718,12 +1727,14 @@ export async function createPayable(
     );
     await assertOptionalRef(client, agencyId, 'financial_categories', data.categoryId, 'Category not found');
     await assertOptionalRef(client, agencyId, 'cost_centers', data.costCenterId, 'Cost center not found');
+    await assertOptionalRef(client, agencyId, 'employees', data.employeeId, 'Employee not found');
 
     const result = await client.query<PayableRow>(
       `INSERT INTO payables
          (agency_id, sale_id, supplier_id, commission_id, transport_operation_id,
-          operational_cost_id, category_id, cost_center_id, description, amount, due_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+          operational_cost_id, category_id, cost_center_id, description, amount, due_at,
+          beneficiary_type, employee_id, commission_entry_id, payroll_entry_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
        RETURNING ${PAYABLE_COLUMNS}`,
       [
         agencyId,
@@ -1737,6 +1748,10 @@ export async function createPayable(
         data.description,
         data.amount,
         data.dueAt,
+        data.beneficiaryType ?? 'SUPPLIER',
+        data.employeeId ?? null,
+        data.commissionEntryId ?? null,
+        data.payrollEntryId ?? null,
       ],
     );
     const row = result.rows[0];
@@ -2523,6 +2538,10 @@ function toPayable(row: PayableRow): Payable {
     ...(row.operational_cost_id !== null ? { operationalCostId: row.operational_cost_id } : {}),
     ...(row.category_id !== null ? { categoryId: row.category_id } : {}),
     ...(row.cost_center_id !== null ? { costCenterId: row.cost_center_id } : {}),
+    beneficiaryType: row.beneficiary_type as NonNullable<Payable['beneficiaryType']>,
+    ...(row.employee_id !== null ? { employeeId: row.employee_id } : {}),
+    ...(row.commission_entry_id !== null ? { commissionEntryId: row.commission_entry_id } : {}),
+    ...(row.payroll_entry_id !== null ? { payrollEntryId: row.payroll_entry_id } : {}),
   };
 }
 

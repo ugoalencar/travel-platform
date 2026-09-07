@@ -41,6 +41,7 @@ import { ReportsPage } from './pages/ReportsPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { EmployeesPage } from './pages/EmployeesPage';
 import { CommissionPlansPage } from './pages/CommissionPlansPage';
+import { PayrollPage } from './pages/PayrollPage';
 
 export function App() {
   return (
@@ -83,6 +84,7 @@ export function App() {
         <Route path="reports" element={<ReportsPage />} />
         <Route path="employees" element={<EmployeesPage />} />
         <Route path="commission-plans" element={<CommissionPlansPage />} />
+        <Route path="payroll" element={<PayrollPage />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>

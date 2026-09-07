@@ -109,6 +109,9 @@ async function seedTenantData() {
     console.log('9.6 Criando planos de comissão e funcionários...');
     await seedCommissionPlansAndEmployees(agency.id, agencyUsers);
 
+    console.log('9.7 Criando comissões geradas e folha de pagamento...');
+    await seedCommissionsAndPayroll(agency.id, agencyUsers);
+
     console.log('10. Criando registros financeiros (receitas)...');
     await seedRevenues(agency.id, sales);
 
@@ -1577,6 +1580,257 @@ async function seedCommissionPlansAndEmployees(agencyId, agencyUsers) {
       defaultCommissionPlanId: seed.defaultCommissionPlanId,
     });
     console.log(`   ✓ Funcionário: ${seed.user.name} (${seed.roleTitle})`);
+  }
+}
+
+async function getSaleMarginForSeed(agencyId, saleId) {
+  const saleResult = await pool.query(`SELECT total FROM sales WHERE agency_id = $1 AND id = $2`, [
+    agencyId,
+    saleId,
+  ]);
+  const total = Number(saleResult.rows[0]?.total ?? 0);
+  const payablesResult = await pool.query(
+    `SELECT COALESCE(SUM(amount), 0) AS total FROM payables WHERE agency_id = $1 AND sale_id = $2`,
+    [agencyId, saleId]
+  );
+  const supplierCosts = Number(payablesResult.rows[0]?.total ?? 0);
+  const opCostsResult = await pool.query(
+    `SELECT COALESCE(SUM(COALESCE(actual_amount, expected_amount, 0)), 0) AS total
+     FROM operational_costs WHERE agency_id = $1 AND sale_id = $2`,
+    [agencyId, saleId]
+  );
+  const operationalCosts = Number(opCostsResult.rows[0]?.total ?? 0);
+  const legacyCommissionResult = await pool.query(
+    `SELECT COALESCE(SUM(amount), 0) AS total FROM commissions WHERE agency_id = $1 AND sale_id = $2`,
+    [agencyId, saleId]
+  );
+  const legacyCommission = Number(legacyCommissionResult.rows[0]?.total ?? 0);
+  return Math.round((total - supplierCosts - operationalCosts - legacyCommission) * 100) / 100;
+}
+
+async function getOrCreateCommissionEntry(agencyId, { employeeId, saleId, tripId, planId, calculationBase, rate, amount }) {
+  const existing = await pool.query(
+    `SELECT id, status FROM commission_entries
+     WHERE agency_id = $1 AND employee_id = $2 AND sale_id = $3 AND commission_plan_id = $4`,
+    [agencyId, employeeId, saleId, planId]
+  );
+  if (existing.rows[0]) {
+    return existing.rows[0];
+  }
+  const result = await pool.query(
+    `INSERT INTO commission_entries
+       (id, agency_id, employee_id, sale_id, trip_id, commission_plan_id, calculation_base, rate, amount, status, created_at, updated_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'PENDING', NOW(), NOW())
+     RETURNING id, status`,
+    [generateId(), agencyId, employeeId, saleId, tripId, planId, calculationBase, rate, amount]
+  );
+  return result.rows[0];
+}
+
+async function approveCommissionEntrySeed(agencyId, id, approvedBy) {
+  await pool.query(
+    `UPDATE commission_entries SET status = 'APPROVED', approved_at = NOW(), approved_by = $3, updated_at = NOW()
+     WHERE agency_id = $1 AND id = $2 AND status = 'PENDING'`,
+    [agencyId, id, approvedBy]
+  );
+}
+
+async function createPayableFromCommissionSeed(agencyId, commissionEntryId) {
+  const commission = await pool.query(
+    `SELECT ce.id, ce.employee_id, ce.amount, e.name AS employee_name
+     FROM commission_entries ce JOIN employees e ON e.agency_id = ce.agency_id AND e.id = ce.employee_id
+     WHERE ce.agency_id = $1 AND ce.id = $2 AND ce.status = 'APPROVED'`,
+    [agencyId, commissionEntryId]
+  );
+  const row = commission.rows[0];
+  if (!row) return null;
+
+  const existingPayable = await pool.query(
+    `SELECT id FROM payables WHERE agency_id = $1 AND commission_entry_id = $2`,
+    [agencyId, commissionEntryId]
+  );
+  if (existingPayable.rows[0]) return existingPayable.rows[0].id;
+
+  const categoryResult = await pool.query(
+    `SELECT id FROM financial_categories WHERE agency_id = $1 AND type = 'EXPENSE' AND name = 'COMMISSION' LIMIT 1`,
+    [agencyId]
+  );
+  const categoryId = categoryResult.rows[0]?.id || null;
+
+  const payableResult = await pool.query(
+    `INSERT INTO payables (id, agency_id, description, amount, due_at, status, beneficiary_type, employee_id, commission_entry_id, category_id, created_at, updated_at)
+     VALUES ($1, $2, $3, $4, NOW(), 'OPEN', 'EMPLOYEE', $5, $6, $7, NOW(), NOW())
+     RETURNING id`,
+    [generateId(), agencyId, `Comissão - ${row.employee_name}`, row.amount, row.employee_id, commissionEntryId, categoryId]
+  );
+
+  await pool.query(
+    `UPDATE commission_entries SET status = 'PAYABLE', updated_at = NOW() WHERE agency_id = $1 AND id = $2`,
+    [agencyId, commissionEntryId]
+  );
+
+  return payableResult.rows[0].id;
+}
+
+async function seedCommissionsAndPayroll(agencyId, agencyUsers) {
+  const byName = Object.fromEntries(agencyUsers.map((u) => [u.name, u]));
+
+  const employeeRows = await pool.query(
+    `SELECT id, name, user_id, base_salary FROM employees WHERE agency_id = $1`,
+    [agencyId]
+  );
+  const employeesByName = Object.fromEntries(employeeRows.rows.map((e) => [e.name, e]));
+
+  const planRows = await pool.query(
+    `SELECT id, name, calculation_type, percentage, fixed_amount FROM commission_plans WHERE agency_id = $1`,
+    [agencyId]
+  );
+  const plansByName = Object.fromEntries(planRows.rows.map((p) => [p.name, p]));
+
+  const joao = employeesByName['João Silva'];
+  const pedro = employeesByName['Pedro Oliveira'];
+  const ana = employeesByName['Ana Costa'];
+  const carlos = employeesByName['Carlos Ferreira'];
+  const seniorPlan = plansByName['Comissão Sênior'];
+  const standardPlan = plansByName['Comissão Padrão'];
+
+  if (!joao || !seniorPlan) {
+    console.log('   ⚠ Funcionário João Silva ou plano Sênior ausente — pulando comissões demo');
+    return;
+  }
+
+  const adminUserId = byName['João Silva']?.id || null;
+
+  // 1) Canonical fixture: Mariana Alves Silva / Cancun -> João Silva, 12% margin.
+  //    Margin is preserved at R$4.000 (gross 18.000 - 14.000 supplier payables),
+  //    so commission = 480. Approved and converted to a payable.
+  const marianaSaleId = STORY_IDS.marianaCancun.sale;
+  const marianaMargin = await getSaleMarginForSeed(agencyId, marianaSaleId);
+  const marianaCommission = await getOrCreateCommissionEntry(agencyId, {
+    employeeId: joao.id,
+    saleId: marianaSaleId,
+    tripId: STORY_IDS.marianaCancun.trip,
+    planId: seniorPlan.id,
+    calculationBase: marianaMargin,
+    rate: Number(seniorPlan.percentage),
+    amount: Math.round(marianaMargin * (Number(seniorPlan.percentage) / 100) * 100) / 100,
+  });
+  await approveCommissionEntrySeed(agencyId, marianaCommission.id, adminUserId);
+  await createPayableFromCommissionSeed(agencyId, marianaCommission.id);
+  console.log('   ✓ Comissão João Silva / Mariana Cancun: aprovada e convertida em conta a pagar');
+
+  // 2) Fernando Costa Gomes / Disney -> Pedro Oliveira, Sênior plan (approved + payable).
+  if (pedro && seniorPlan) {
+    const disneySaleId = STORY_IDS.disney.sale;
+    const disneyMargin = await getSaleMarginForSeed(agencyId, disneySaleId);
+    const disneyCommission = await getOrCreateCommissionEntry(agencyId, {
+      employeeId: pedro.id,
+      saleId: disneySaleId,
+      tripId: STORY_IDS.disney.trip,
+      planId: seniorPlan.id,
+      calculationBase: disneyMargin,
+      rate: Number(seniorPlan.percentage),
+      amount: Math.round(disneyMargin * (Number(seniorPlan.percentage) / 100) * 100) / 100,
+    });
+    await approveCommissionEntrySeed(agencyId, disneyCommission.id, adminUserId);
+    await createPayableFromCommissionSeed(agencyId, disneyCommission.id);
+    console.log('   ✓ Comissão Pedro Oliveira / Fernando Disney: aprovada e convertida em conta a pagar');
+  }
+
+  // 3) Roberto Fernandes / Paris (honeymoon) -> Ana Costa, Padrão plan (left PENDING for workflow demo).
+  if (ana && standardPlan) {
+    const honeymoonSaleId = STORY_IDS.honeymoon.sale;
+    const honeymoonMargin = await getSaleMarginForSeed(agencyId, honeymoonSaleId);
+    await getOrCreateCommissionEntry(agencyId, {
+      employeeId: ana.id,
+      saleId: honeymoonSaleId,
+      tripId: STORY_IDS.honeymoon.trip,
+      planId: standardPlan.id,
+      calculationBase: honeymoonMargin,
+      rate: Number(standardPlan.percentage),
+      amount: Math.round(honeymoonMargin * (Number(standardPlan.percentage) / 100) * 100) / 100,
+    });
+    console.log('   ✓ Comissão Ana Costa / Roberto Paris: gerada (PENDING, aguardando aprovação)');
+  }
+
+  // Employee deductions: one ADVANCE for Carlos Ferreira this month.
+  const competenceMonth = new Date();
+  competenceMonth.setUTCDate(1);
+  if (carlos) {
+    const existingDeduction = await pool.query(
+      `SELECT id FROM employee_deductions
+       WHERE agency_id = $1 AND employee_id = $2 AND date_trunc('month', competence) = date_trunc('month', $3::date)`,
+      [agencyId, carlos.id, competenceMonth]
+    );
+    if (!existingDeduction.rows[0]) {
+      await pool.query(
+        `INSERT INTO employee_deductions (id, agency_id, employee_id, competence, type, description, amount, notes, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, 'ADVANCE', 'Adiantamento salarial', 500, 'Demo: adiantamento solicitado pelo funcionário', NOW(), NOW())`,
+        [generateId(), agencyId, carlos.id, competenceMonth]
+      );
+      console.log('   ✓ Desconto (ADVANCE) criado para Carlos Ferreira: R$ 500');
+    }
+  }
+
+  // Payroll entries for João, Pedro, Ana for the current competence month,
+  // rolling up approved commissions and deductions.
+  const payrollTargets = [joao, pedro, carlos].filter(Boolean);
+  for (const employee of payrollTargets) {
+    const existingPayroll = await pool.query(
+      `SELECT id, status FROM payroll_entries
+       WHERE agency_id = $1 AND employee_id = $2 AND date_trunc('month', competence) = date_trunc('month', $3::date)`,
+      [agencyId, employee.id, competenceMonth]
+    );
+    if (existingPayroll.rows[0]) continue;
+
+    const commissionsResult = await pool.query(
+      `SELECT COALESCE(SUM(amount), 0) AS total FROM commission_entries
+       WHERE agency_id = $1 AND employee_id = $2 AND status IN ('APPROVED', 'PAYABLE', 'PAID')
+         AND date_trunc('month', created_at) = date_trunc('month', $3::date)`,
+      [agencyId, employee.id, competenceMonth]
+    );
+    const commissionsTotal = Number(commissionsResult.rows[0]?.total ?? 0);
+
+    const deductionsResult = await pool.query(
+      `SELECT COALESCE(SUM(amount), 0) AS total FROM employee_deductions
+       WHERE agency_id = $1 AND employee_id = $2
+         AND date_trunc('month', competence) = date_trunc('month', $3::date)`,
+      [agencyId, employee.id, competenceMonth]
+    );
+    const discountsTotal = Number(deductionsResult.rows[0]?.total ?? 0);
+
+    const baseSalary = Number(employee.base_salary ?? 0);
+    const netAmount = Math.round((baseSalary + commissionsTotal - discountsTotal) * 100) / 100;
+
+    const payrollId = generateId();
+    await pool.query(
+      `INSERT INTO payroll_entries
+         (id, agency_id, employee_id, competence, base_salary, benefits, bonuses, commissions_total,
+          reimbursements, additions, discounts_total, net_amount, status, due_date, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, 0, 0, $6, 0, 0, $7, $8, 'OPEN', $4, NOW(), NOW())`,
+      [payrollId, agencyId, employee.id, competenceMonth, baseSalary, commissionsTotal, discountsTotal, netAmount]
+    );
+
+    // Take João's payroll all the way to PAID (creates the settling payable) to
+    // demonstrate full convergence; leave others OPEN for the workflow demo.
+    if (employee.id === joao.id) {
+      await pool.query(`UPDATE payroll_entries SET status = 'APPROVED', updated_at = NOW() WHERE id = $1`, [payrollId]);
+
+      const categoryResult = await pool.query(
+        `SELECT id FROM financial_categories WHERE agency_id = $1 AND type = 'EXPENSE' AND name = 'SALARY' LIMIT 1`,
+        [agencyId]
+      );
+      const categoryId = categoryResult.rows[0]?.id || null;
+      await pool.query(
+        `INSERT INTO payables (id, agency_id, description, amount, due_at, status, beneficiary_type, employee_id, payroll_entry_id, category_id, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, NOW(), 'OPEN', 'EMPLOYEE', $5, $6, $7, NOW(), NOW())`,
+        [generateId(), agencyId, `Folha de pagamento - ${employee.name} (${competenceMonth.toISOString().slice(0, 7)})`, netAmount, employee.id, payrollId, categoryId]
+      );
+      await pool.query(`UPDATE payroll_entries SET status = 'PAID', paid_at = NOW(), updated_at = NOW() WHERE id = $1`, [payrollId]);
+      console.log(`   ✓ Folha de pagamento João Silva (${competenceMonth.toISOString().slice(0, 7)}): PAGA, R$ ${netAmount.toFixed(2)}`);
+    } else {
+      console.log(`   ✓ Folha de pagamento ${employee.name} (${competenceMonth.toISOString().slice(0, 7)}): OPEN, R$ ${netAmount.toFixed(2)}`);
+    }
   }
 }
 

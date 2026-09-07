@@ -63,6 +63,7 @@ const NAV_SECTIONS: NavSection[] = [
     items: [
       { label: 'Funcionários', to: '/employees' },
       { label: 'Planos de Comissão', to: '/commission-plans' },
+      { label: 'Comissões e Folha', to: '/payroll' },
     ],
   },
   {

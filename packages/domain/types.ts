@@ -289,6 +289,12 @@ export interface Receivable {
   updatedAt: Date;
 }
 
+export enum PayableBeneficiaryType {
+  SUPPLIER = 'SUPPLIER',
+  EMPLOYEE = 'EMPLOYEE',
+  OTHER = 'OTHER',
+}
+
 export interface Payable {
   id: string;
   agencyId: string;
@@ -303,6 +309,10 @@ export interface Payable {
   amount: number;
   dueAt: Date;
   status: FinancialObligationStatus;
+  beneficiaryType?: PayableBeneficiaryType;
+  employeeId?: string;
+  commissionEntryId?: string;
+  payrollEntryId?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -442,6 +452,83 @@ export interface Employee {
   notes: string | undefined;
   userId: string | undefined;
   defaultCommissionPlanId: string | undefined;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export enum CommissionEntryStatus {
+  PENDING = 'PENDING',
+  APPROVED = 'APPROVED',
+  PAYABLE = 'PAYABLE',
+  PAID = 'PAID',
+  CANCELLED = 'CANCELLED',
+}
+
+export interface CommissionEntry {
+  id: string;
+  agencyId: string;
+  employeeId: string;
+  saleId: string;
+  tripId: string | undefined;
+  commissionPlanId: string;
+  calculationBase: number;
+  rate: number | undefined;
+  amount: number;
+  status: CommissionEntryStatus;
+  approvedAt: Date | undefined;
+  approvedBy: string | undefined;
+  paidAt: Date | undefined;
+  notes: string | undefined;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export enum EmployeeDeductionType {
+  ADVANCE = 'ADVANCE',
+  ABSENCE = 'ABSENCE',
+  BENEFIT = 'BENEFIT',
+  LOAN = 'LOAN',
+  ADJUSTMENT = 'ADJUSTMENT',
+  OTHER = 'OTHER',
+}
+
+export interface EmployeeDeduction {
+  id: string;
+  agencyId: string;
+  employeeId: string;
+  competence: Date;
+  type: EmployeeDeductionType;
+  description: string | undefined;
+  amount: number;
+  notes: string | undefined;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export enum PayrollEntryStatus {
+  OPEN = 'OPEN',
+  APPROVED = 'APPROVED',
+  PAID = 'PAID',
+  CANCELLED = 'CANCELLED',
+}
+
+export interface PayrollEntry {
+  id: string;
+  agencyId: string;
+  employeeId: string;
+  competence: Date;
+  baseSalary: number;
+  benefits: number;
+  bonuses: number;
+  commissionsTotal: number;
+  reimbursements: number;
+  additions: number;
+  discountsTotal: number;
+  netAmount: number;
+  status: PayrollEntryStatus;
+  dueDate: Date | undefined;
+  paidAt: Date | undefined;
+  notes: string | undefined;
   createdAt: Date;
   updatedAt: Date;
 }
