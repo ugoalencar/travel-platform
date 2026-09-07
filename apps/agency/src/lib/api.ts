@@ -371,6 +371,41 @@ export interface FinancialSummary {
     dueAt: string;
     status: FinancialObligationStatus;
   }>;
+  dashboard: FinancialDashboardMetrics;
+}
+
+export interface FinancialDashboardMetrics {
+  totalSold: number;
+  totalReceived: number;
+  totalReceivable: number;
+  overdueReceivable: number;
+  payablesTotal: number;
+  overduePayables: number;
+  supplierObligations: number;
+  payrollObligations: number;
+  commissionsPayable: number;
+  cashAvailable: number;
+  committedCash: number;
+  grossMargin: number;
+  netMargin: number;
+  monthlyResult: number;
+}
+
+export interface ManagementDreReport {
+  period: { from: string; to: string };
+  grossRevenue: number;
+  commercialDiscounts: number;
+  netRevenue: number;
+  travelDirectCosts: number;
+  commissions: number;
+  contributionMargin: number;
+  payroll: number;
+  administrativeExpenses: number;
+  marketingExpenses: number;
+  operatingResult: number;
+  financialExpenses: number;
+  taxes: number;
+  netResult: number;
 }
 
 export interface SaleFinancialStory {
@@ -412,6 +447,16 @@ export async function getSaleFinancialStory(saleId: string): Promise<SaleFinanci
     `/api/financial/sales/${encodeURIComponent(saleId)}/story`,
   );
   return data.story;
+}
+
+export async function getManagementDre(range?: { from?: string; to?: string }): Promise<ManagementDreReport> {
+  const params = new URLSearchParams();
+  if (range?.from) params.set('from', range.from);
+  if (range?.to) params.set('to', range.to);
+  const queryString = params.toString();
+  const path = `/api/financial/dre${queryString ? `?${queryString}` : ''}`;
+  const data = await request<{ dre: ManagementDreReport }>(path);
+  return data.dre;
 }
 // CUSTOMERS
 // ============================================================

@@ -47,6 +47,7 @@ const NAV_SECTIONS: NavSection[] = [
     label: 'FINANCEIRO',
     items: [
       { label: 'Visão Geral', to: '/financial' },
+      { label: 'DRE Gerencial', to: '/financial/dre' },
       { label: 'Receitas', to: '/financial/revenues' },
       { label: 'Despesas', to: '/financial/expenses' },
       { label: 'Contas a Receber', to: '/financial/receivables' },

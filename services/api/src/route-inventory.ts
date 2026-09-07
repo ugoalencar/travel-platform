@@ -1143,6 +1143,15 @@ export function registerAllRoutes(): void {
     publicJustification: undefined,
   });
 
+  registerRoute({
+    method: 'GET',
+    path: '/financial/dre',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'MANAGER',
+    publicJustification: undefined,
+  });
+
   // ============================================================
   // FINANCIAL — Write
   // ============================================================

@@ -269,6 +269,7 @@ import {
   getExpense,
   getRevenue,
   getDREReport,
+  getManagementDre,
   getOverdueReport,
   getMarginReport,
   getCashFlowReport,
@@ -2865,6 +2866,25 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
   // ============================================================
   // FINANCIAL REPORTS
   // ============================================================
+
+  // Simplified Management P&L ("DRE Gerencial") — distinct from the
+  // category-based /financial/reports/dre above. See getManagementDre()
+  // in financial.ts for the full line-item structure and the
+  // double-counting reasoning (commissions vs payroll, category nesting).
+  app.get('/financial/dre', { preHandler: protectedHooks }, async (request) => {
+    requireRole(UserRole.MANAGER);
+    const query = request.query as Record<string, string>;
+    // Default period: "all time" when no range is given. Demo/seed data can
+    // include future-dated trips (services scheduled ahead of "now"), so the
+    // all-time upper bound is a far-future date rather than `new Date()` —
+    // otherwise legitimately booked-but-not-yet-departed travel costs would
+    // silently vanish from the "all time" view.
+    const periodFrom = query.from ? new Date(query.from) : new Date(0);
+    const periodTo = query.to ? new Date(query.to) : new Date('2100-01-01T00:00:00.000Z');
+    const dre = await getManagementDre(options.database, periodFrom, periodTo);
+    return { dre };
+  });
+
   app.get('/financial/reports/dre', { preHandler: protectedHooks }, async (request) => {
     requireRole(UserRole.MANAGER);
     const query = request.query as Record<string, string>;

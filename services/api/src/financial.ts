@@ -418,6 +418,43 @@ export interface FinancialSummary {
     dueAt: Date;
     status: FinancialObligationStatus;
   }>;
+  // Extended dashboard aggregates (Wave C). Kept as a nested object so the
+  // existing top-level fields above (consumed by FinancialPage.tsx today)
+  // are never renamed/removed — this is a strictly additive extension of
+  // the existing GET /financial/summary payload, per the "extend, don't
+  // replace" instruction.
+  dashboard: FinancialDashboardMetrics;
+}
+
+export interface FinancialDashboardMetrics {
+  /** All-time gross value of PAID/CONFIRMED sales (sales.total), includes the canonical Mariana/Cancún sale. */
+  totalSold: number;
+  /** All-time total of IN payments received. */
+  totalReceived: number;
+  /** All-time open + partially-paid receivables. */
+  totalReceivable: number;
+  /** Subset of totalReceivable that is past its due date. */
+  overdueReceivable: number;
+  /** All-time open + partially-paid payables (all beneficiary types). */
+  payablesTotal: number;
+  /** Subset of payablesTotal that is past its due date. */
+  overduePayables: number;
+  /** Open + partially-paid payables owed to suppliers (beneficiary_type = SUPPLIER). */
+  supplierObligations: number;
+  /** Open + partially-paid payables originated from payroll_entries (beneficiary_type = EMPLOYEE, payroll_entry_id set). */
+  payrollObligations: number;
+  /** Open + partially-paid payables originated from commission_entries, not yet paid. */
+  commissionsPayable: number;
+  /** Current cash balance (last cash_transactions.calculated_balance). */
+  cashAvailable: number;
+  /** Open/partially-paid payables due within the next 30 days — an approximation of near-term committed cash, intentionally not a full cash-flow projection. */
+  committedCash: number;
+  /** All-time gross margin: total sold minus supplier costs and operational costs tied to sales (mirrors getSaleMargin's logic, aggregated). */
+  grossMargin: number;
+  /** grossMargin minus all-time commissions (commission_entries) and payroll (payroll_entries net of embedded commissions_total, see getManagementDre for the same non-double-counting rule). */
+  netMargin: number;
+  /** Net management result (see getManagementDre) for the current calendar month only. */
+  monthlyResult: number;
 }
 
 export interface DREReport {
@@ -430,6 +467,30 @@ export interface DREReport {
     type: FinancialCategoryType;
     amount: number;
   }>;
+}
+
+// ============================================================
+// MANAGEMENT P&L / DRE GERENCIAL (Wave C)
+// ============================================================
+// This is a MANAGEMENT report, not statutory/fiscal accounting (no
+// accrual/competence rules beyond what's already used elsewhere in this
+// file, no depreciation, no legal DRE line items). It exists to give
+// agency management a simplified, decision-useful profit breakdown.
+export interface ManagementDreReport {
+  period: { from: string; to: string };
+  grossRevenue: number;
+  commercialDiscounts: number;
+  netRevenue: number;
+  travelDirectCosts: number;
+  commissions: number;
+  contributionMargin: number;
+  payroll: number;
+  administrativeExpenses: number;
+  marketingExpenses: number;
+  operatingResult: number;
+  financialExpenses: number;
+  taxes: number;
+  netResult: number;
 }
 
 export interface OverdueReport {
@@ -1460,6 +1521,209 @@ export async function getOverdueReport(database: DatabaseRuntime): Promise<Overd
   });
 }
 
+/**
+ * Simplified Management P&L (DRE Gerencial). Query-only aggregation over
+ * existing tables — no schema changes, no writes.
+ *
+ * DOUBLE-COUNTING REASONING (read this before touching the query below):
+ *
+ * 1) Commissions vs payroll net_amount: `payroll_entries.net_amount` is
+ *    computed elsewhere (payroll.ts) as
+ *    base_salary + benefits + bonuses + commissions_total + reimbursements
+ *    + additions - discounts_total. That `commissions_total` field is the
+ *    SAME money already reflected, per-sale, in `commission_entries.amount`
+ *    (the entries that get approved and turned into payables). If the DRE
+ *    summed both `commissions_total` (via payroll net_amount) AND the
+ *    commission_entries total, every commission would be counted twice —
+ *    exactly the class of bug that previously corrupted Mariana's margin
+ *    (R$4.000 -> R$3.520). So the "Commissions" line below sums
+ *    commission_entries.amount directly, and the "Payroll" line sums
+ *    `net_amount - commissions_total` (i.e. payroll minus the commission
+ *    slice it already carries). Sum of the two lines == what employees are
+ *    actually owed in total, with each real (sale, employee) commission
+ *    counted exactly once.
+ *
+ * 2) Category-nesting decisions (see EXPENSE_CATEGORY_TREE in
+ *    scripts/seed-tenant-demo-data.cjs for the actual seeded hierarchy):
+ *    financial_categories has at most one level of nesting. The EXPENSE
+ *    tree seeded is TRAVEL > {...}, PERSONNEL > {...},
+ *    ADMINISTRATIVE > {..., MARKETING, ...}, FINANCIAL > {..., TAX, ...}.
+ *      - MARKETING is a *child* of ADMINISTRATIVE, not a sibling branch.
+ *        Since the task calls for a distinct "marketing" line, expenses
+ *        under the MARKETING sub-category are broken out of the
+ *        Administrative line rather than folded into it.
+ *      - The remaining ADMINISTRATIVE children (RENT, ELECTRICITY, WATER,
+ *        INTERNET, PHONE, SOFTWARE, ACCOUNTING, LEGAL, OFFICE, CLEANING,
+ *        MAINTENANCE) are NOT broken into their own DRE lines — they are
+ *        shown as one "Administrative expenses" total. Breaking out
+ *        software/rent/utilities individually would just add line-item
+ *        noise to a *simplified* management P&L without changing any
+ *        total, so a single total is used instead (documented here per
+ *        the task's instruction to state this choice explicitly).
+ *      - FINANCIAL > TAX is broken out into its own "Taxes" line; the
+ *        remaining FINANCIAL children (BANK_FEE, CARD_FEE, INTEREST,
+ *        OTHER) form the "Financial expenses" line.
+ *      - TRAVEL-branch and PERSONNEL-branch expense rows (if any agency
+ *        ever logs raw expenses under those categories instead of going
+ *        through air_services/land_services or payroll_entries) are
+ *        EXCLUDED from every expense line below. Travel direct costs are
+ *        sourced from air_services.cost + land_services.cost, and
+ *        personnel cost is sourced from payroll_entries — counting a
+ *        TRAVEL/PERSONNEL-tagged expense row on top of those would risk
+ *        double-counting the same cost through two different paths. Any
+ *        category not under TRAVEL/PERSONNEL/FINANCIAL and not MARKETING
+ *        (including categories outside the seeded tree entirely, e.g. the
+ *        demo's generic "Operacional" expense category) falls into the
+ *        "Administrative expenses" catch-all.
+ */
+export async function getManagementDre(
+  database: DatabaseRuntime,
+  periodFrom: Date,
+  periodTo: Date,
+): Promise<ManagementDreReport> {
+  const agencyId = getAgencyId();
+  return database.withTenantTransaction(async (client) =>
+    getManagementDreForClient(client, agencyId, periodFrom, periodTo),
+  );
+}
+
+async function getManagementDreForClient(
+  client: TenantTransactionClient,
+  agencyId: string,
+  periodFrom: Date,
+  periodTo: Date,
+): Promise<ManagementDreReport> {
+  {
+    // NOTE: kept as a nested block (rather than reflowing every line's
+    // indentation) since this body used to live inside a `withTenantTransaction`
+    // callback before being extracted into a shared helper.
+    // 1) Gross revenue / commercial discounts / net revenue — sourced from
+    // `sales` (the same authoritative table getSaleMargin() reads), not the
+    // `revenues` ledger, which in this codebase's demo data is a loosely
+    // related decorative ledger (amounts don't necessarily reconcile to
+    // sales.total). Using sales keeps this consistent with the canonical
+    // Mariana/Cancún fixture (gross R$18.000).
+    const salesResult = await client.query<{ gross: string; discount: string }>(
+      `SELECT COALESCE(SUM(amount), 0)::text AS gross, COALESCE(SUM(discount), 0)::text AS discount
+       FROM sales
+       WHERE agency_id = $1 AND status IN ('PAID', 'CONFIRMED')
+         AND created_at >= $2 AND created_at <= $3`,
+      [agencyId, periodFrom, periodTo],
+    );
+    const grossRevenue = roundMoney(Number(salesResult.rows[0]?.gross ?? 0));
+    const commercialDiscounts = roundMoney(Number(salesResult.rows[0]?.discount ?? 0));
+    const netRevenue = roundMoney(grossRevenue - commercialDiscounts);
+
+    // 2) Travel direct costs — air + land service supplier costs, by their
+    // own service date, regardless of the sale's payment status (these are
+    // costs incurred to deliver the trip, not tied to receivable status).
+    const airResult = await client.query<{ total: string }>(
+      `SELECT COALESCE(SUM(cost), 0)::text AS total FROM air_services
+       WHERE agency_id = $1 AND departure_date >= $2 AND departure_date <= $3`,
+      [agencyId, periodFrom, periodTo],
+    );
+    const landResult = await client.query<{ total: string }>(
+      `SELECT COALESCE(SUM(cost), 0)::text AS total FROM land_services
+       WHERE agency_id = $1 AND start_date >= $2 AND start_date <= $3`,
+      [agencyId, periodFrom, periodTo],
+    );
+    const travelDirectCosts = roundMoney(
+      Number(airResult.rows[0]?.total ?? 0) + Number(landResult.rows[0]?.total ?? 0),
+    );
+
+    // 3) Commissions — commission_entries that are at least approved
+    // (excludes PENDING, which hasn't been confirmed as owed yet, and
+    // CANCELLED). Filtered by created_at (when the commission was
+    // generated) for the period.
+    const commissionsResult = await client.query<{ total: string }>(
+      `SELECT COALESCE(SUM(amount), 0)::text AS total
+       FROM commission_entries
+       WHERE agency_id = $1 AND status IN ('APPROVED', 'PAYABLE', 'PAID')
+         AND created_at >= $2 AND created_at <= $3`,
+      [agencyId, periodFrom, periodTo],
+    );
+    const commissions = roundMoney(Number(commissionsResult.rows[0]?.total ?? 0));
+
+    const contributionMargin = roundMoney(netRevenue - travelDirectCosts - commissions);
+
+    // 4) Payroll — net_amount MINUS commissions_total to avoid
+    // double-counting with the commissions line above (see the function
+    // doc comment). Filtered by competence month.
+    const payrollResult = await client.query<{ total: string }>(
+      `SELECT COALESCE(SUM(net_amount - commissions_total), 0)::text AS total
+       FROM payroll_entries
+       WHERE agency_id = $1 AND status IN ('APPROVED', 'PAID')
+         AND competence >= $2 AND competence <= $3`,
+      [agencyId, periodFrom, periodTo],
+    );
+    const payroll = roundMoney(Number(payrollResult.rows[0]?.total ?? 0));
+
+    // 5) Expense categorization (see doc comment for the exact rules).
+    // Unlike getDREReport() above (which only counts PAID/PARTIALLY_PAID —
+    // a cash-realization view), this management P&L counts any non-CANCELLED
+    // expense as an incurred cost for the period (accrual/competence view).
+    // This is a deliberate difference, not an oversight: a simplified
+    // management P&L is meant to show what the business is spending/committing
+    // to, not just what has already cleared the bank.
+    const expenseCatResult = await client.query<{
+      marketing: string;
+      taxes: string;
+      financial_other: string;
+      admin_other: string;
+    }>(
+      `WITH cat AS (
+         SELECT c.id, c.name, COALESCE(p.name, c.name) AS root_name
+         FROM financial_categories c
+         LEFT JOIN financial_categories p
+           ON p.agency_id = c.agency_id AND p.id = c.parent_category_id
+         WHERE c.agency_id = $1
+       ),
+       exp AS (
+         SELECT e.amount, cat.name AS cat_name, cat.root_name
+         FROM expenses e
+         JOIN cat ON cat.id = e.category_id
+         WHERE e.agency_id = $1
+           AND e.status <> 'CANCELLED'
+           AND e.due_date >= $2 AND e.due_date <= $3
+       )
+       SELECT
+         COALESCE(SUM(CASE WHEN cat_name = 'MARKETING' THEN amount ELSE 0 END), 0)::text AS marketing,
+         COALESCE(SUM(CASE WHEN cat_name = 'TAX' THEN amount ELSE 0 END), 0)::text AS taxes,
+         COALESCE(SUM(CASE WHEN root_name = 'FINANCIAL' AND cat_name <> 'TAX' THEN amount ELSE 0 END), 0)::text AS financial_other,
+         COALESCE(SUM(CASE WHEN root_name NOT IN ('TRAVEL', 'PERSONNEL', 'FINANCIAL') AND cat_name <> 'MARKETING' THEN amount ELSE 0 END), 0)::text AS admin_other
+       FROM exp`,
+      [agencyId, periodFrom, periodTo],
+    );
+    const expenseCatRow = expenseCatResult.rows[0];
+    const marketingExpenses = roundMoney(Number(expenseCatRow?.marketing ?? 0));
+    const taxes = roundMoney(Number(expenseCatRow?.taxes ?? 0));
+    const financialExpenses = roundMoney(Number(expenseCatRow?.financial_other ?? 0));
+    const administrativeExpenses = roundMoney(Number(expenseCatRow?.admin_other ?? 0));
+
+    const operatingResult = roundMoney(
+      contributionMargin - payroll - administrativeExpenses - marketingExpenses,
+    );
+    const netResult = roundMoney(operatingResult - financialExpenses - taxes);
+
+    return {
+      period: { from: periodFrom.toISOString().split('T')[0]!, to: periodTo.toISOString().split('T')[0]! },
+      grossRevenue,
+      commercialDiscounts,
+      netRevenue,
+      travelDirectCosts,
+      commissions,
+      contributionMargin,
+      payroll,
+      administrativeExpenses,
+      marketingExpenses,
+      operatingResult,
+      financialExpenses,
+      taxes,
+      netResult,
+    };
+  }
+}
+
 export interface MarginReport {
   margin_percentage: number;
   margin_amount: number;
@@ -2229,6 +2493,8 @@ export async function getFinancialSummary(database: DatabaseRuntime): Promise<Fi
       status: row.status,
     }));
 
+    const dashboard = await getFinancialDashboardMetrics(client, agencyId, now);
+
     return {
       salesThisMonth,
       received,
@@ -2236,8 +2502,155 @@ export async function getFinancialSummary(database: DatabaseRuntime): Promise<Fi
       expectedMargin,
       recentPayments,
       upcomingReceivables,
+      dashboard,
     };
   });
+}
+
+/**
+ * Extended dashboard metrics (Wave C). Runs inside the caller's existing
+ * transaction to avoid N+1 round trips from the client. All-time figures
+ * (not scoped to the current month) unless noted otherwise — the existing
+ * `salesThisMonth`/`received`/`pending` fields above already cover the
+ * monthly view consumed by FinancialPage.tsx today.
+ */
+async function getFinancialDashboardMetrics(
+  client: TenantTransactionClient,
+  agencyId: string,
+  now: Date,
+): Promise<FinancialDashboardMetrics> {
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  const thirtyDaysOut = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+  const totalSoldResult = await client.query<{ total: string }>(
+    `SELECT COALESCE(SUM(total), 0)::text AS total FROM sales
+     WHERE agency_id = $1 AND status IN ('PAID', 'CONFIRMED')`,
+    [agencyId],
+  );
+  const totalSold = roundMoney(Number(totalSoldResult.rows[0]?.total ?? 0));
+
+  const totalReceivedResult = await client.query<{ total: string }>(
+    `SELECT COALESCE(SUM(amount), 0)::text AS total FROM payments
+     WHERE agency_id = $1 AND direction = 'IN'`,
+    [agencyId],
+  );
+  const totalReceived = roundMoney(Number(totalReceivedResult.rows[0]?.total ?? 0));
+
+  const receivablesResult = await client.query<{ total: string; overdue: string }>(
+    `SELECT
+       COALESCE(SUM(amount), 0)::text AS total,
+       COALESCE(SUM(CASE WHEN due_at < $2 THEN amount ELSE 0 END), 0)::text AS overdue
+     FROM receivables
+     WHERE agency_id = $1 AND status IN ('OPEN', 'PARTIALLY_PAID')`,
+    [agencyId, now],
+  );
+  const totalReceivable = roundMoney(Number(receivablesResult.rows[0]?.total ?? 0));
+  const overdueReceivable = roundMoney(Number(receivablesResult.rows[0]?.overdue ?? 0));
+
+  const payablesResult = await client.query<{
+    total: string;
+    overdue: string;
+    supplier: string;
+    payroll: string;
+    commissions: string;
+    committed: string;
+  }>(
+    `SELECT
+       COALESCE(SUM(amount), 0)::text AS total,
+       COALESCE(SUM(CASE WHEN due_at < $2 THEN amount ELSE 0 END), 0)::text AS overdue,
+       COALESCE(SUM(CASE WHEN beneficiary_type = 'SUPPLIER' THEN amount ELSE 0 END), 0)::text AS supplier,
+       COALESCE(SUM(CASE WHEN beneficiary_type = 'EMPLOYEE' AND payroll_entry_id IS NOT NULL THEN amount ELSE 0 END), 0)::text AS payroll,
+       COALESCE(SUM(CASE WHEN commission_entry_id IS NOT NULL THEN amount ELSE 0 END), 0)::text AS commissions,
+       COALESCE(SUM(CASE WHEN due_at >= $2 AND due_at <= $3 THEN amount ELSE 0 END), 0)::text AS committed
+     FROM payables
+     WHERE agency_id = $1 AND status IN ('OPEN', 'PARTIALLY_PAID')`,
+    [agencyId, now, thirtyDaysOut],
+  );
+  const payablesRow = payablesResult.rows[0];
+  const payablesTotal = roundMoney(Number(payablesRow?.total ?? 0));
+  const overduePayables = roundMoney(Number(payablesRow?.overdue ?? 0));
+  const supplierObligations = roundMoney(Number(payablesRow?.supplier ?? 0));
+  const payrollObligations = roundMoney(Number(payablesRow?.payroll ?? 0));
+  const commissionsPayable = roundMoney(Number(payablesRow?.commissions ?? 0));
+  const committedCash = roundMoney(Number(payablesRow?.committed ?? 0));
+
+  const cashAvailable = await getCashBalanceForClient(client, agencyId, now);
+
+  // Gross/net margin, all-time, aggregated the same way getSaleMargin()
+  // computes it per-sale: sale total minus payables tied to that sale
+  // (sale_id IS NOT NULL, i.e. real supplier costs, never commission/payroll
+  // payables — those are deliberately created without sale_id) minus
+  // operational_costs. Net margin further subtracts all commissions and
+  // payroll (net of their embedded commissions_total, same rule as the DRE).
+  const marginResult = await client.query<{
+    revenue: string;
+    supplier_costs: string;
+    operational_costs: string;
+  }>(
+    `SELECT
+       COALESCE(SUM(s.total), 0)::text AS revenue,
+       COALESCE((SELECT SUM(p.amount) FROM payables p WHERE p.agency_id = $1 AND p.sale_id IS NOT NULL), 0)::text AS supplier_costs,
+       COALESCE((SELECT SUM(COALESCE(oc.actual_amount, oc.expected_amount, 0)) FROM operational_costs oc WHERE oc.agency_id = $1), 0)::text AS operational_costs
+     FROM sales s
+     WHERE s.agency_id = $1 AND s.status IN ('PAID', 'CONFIRMED')`,
+    [agencyId],
+  );
+  const marginRow = marginResult.rows[0];
+  const grossMargin = roundMoney(
+    Number(marginRow?.revenue ?? 0) -
+      Number(marginRow?.supplier_costs ?? 0) -
+      Number(marginRow?.operational_costs ?? 0),
+  );
+
+  const commissionsAllTimeResult = await client.query<{ total: string }>(
+    `SELECT COALESCE(SUM(amount), 0)::text AS total FROM commission_entries
+     WHERE agency_id = $1 AND status IN ('APPROVED', 'PAYABLE', 'PAID')`,
+    [agencyId],
+  );
+  const payrollAllTimeResult = await client.query<{ total: string }>(
+    `SELECT COALESCE(SUM(net_amount - commissions_total), 0)::text AS total FROM payroll_entries
+     WHERE agency_id = $1 AND status IN ('APPROVED', 'PAID')`,
+    [agencyId],
+  );
+  const netMargin = roundMoney(
+    grossMargin -
+      Number(commissionsAllTimeResult.rows[0]?.total ?? 0) -
+      Number(payrollAllTimeResult.rows[0]?.total ?? 0),
+  );
+
+  const monthlyDre = await getManagementDreForClient(client, agencyId, monthStart, monthEnd);
+
+  return {
+    totalSold,
+    totalReceived,
+    totalReceivable,
+    overdueReceivable,
+    payablesTotal,
+    overduePayables,
+    supplierObligations,
+    payrollObligations,
+    commissionsPayable,
+    cashAvailable,
+    committedCash,
+    grossMargin,
+    netMargin,
+    monthlyResult: monthlyDre.netResult,
+  };
+}
+
+async function getCashBalanceForClient(
+  client: TenantTransactionClient,
+  agencyId: string,
+  asOf: Date,
+): Promise<number> {
+  const result = await client.query<{ calculated_balance: string }>(
+    `SELECT calculated_balance FROM cash_transactions
+     WHERE agency_id = $1 AND occurring_at <= $2
+     ORDER BY occurring_at DESC, created_at DESC LIMIT 1`,
+    [agencyId, asOf],
+  );
+  return roundMoney(Number(result.rows[0]?.calculated_balance ?? 0));
 }
 
 // ============================================================

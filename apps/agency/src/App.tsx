@@ -23,6 +23,7 @@ import { OfferDetailPage } from './pages/OfferDetailPage';
 import { CampaignsPage } from './pages/CampaignsPage';
 import { CouponsPage } from './pages/CouponsPage';
 import { FinancialPage } from './pages/FinancialPage';
+import { DrePage } from './pages/DrePage';
 import { SaleFinancialStoryPage } from './pages/SaleFinancialStoryPage';
 import { RevenuesPage } from './pages/RevenuesPage';
 import { ExpensesPage } from './pages/ExpensesPage';
@@ -67,6 +68,7 @@ export function App() {
         <Route path="campaigns" element={<CampaignsPage />} />
         <Route path="coupons" element={<CouponsPage />} />
         <Route path="financial" element={<FinancialPage />} />
+        <Route path="financial/dre" element={<DrePage />} />
         <Route path="financial/sales/:saleId/story" element={<SaleFinancialStoryPage />} />
         <Route path="financial/revenues" element={<RevenuesPage />} />
         <Route path="financial/expenses" element={<ExpensesPage />} />

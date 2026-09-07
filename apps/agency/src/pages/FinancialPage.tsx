@@ -122,9 +122,14 @@ export function FinancialPage() {
         title="Financeiro"
         description="Visão consolidada de vendas, recebimentos e margem esperada da agência."
         actions={
-          <Link to="/financial/sales/d0d50001-0000-4000-8000-000000000009/story">
-            <Button size="sm" variant="outline">Historia financeira</Button>
-          </Link>
+          <div className="flex gap-2">
+            <Link to="/financial/dre">
+              <Button size="sm" variant="outline">DRE Gerencial</Button>
+            </Link>
+            <Link to="/financial/sales/d0d50001-0000-4000-8000-000000000009/story">
+              <Button size="sm" variant="outline">Historia financeira</Button>
+            </Link>
+          </div>
         }
       />
 
@@ -157,6 +162,91 @@ export function FinancialPage() {
           deltaTone="positive"
           icon={<ArrowDownRight className="h-5 w-5" />}
         />
+      </div>
+
+      <div>
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">
+          Visão consolidada (todo o período)
+        </h2>
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard
+            label="Total vendido"
+            value={formatBRL(summary.dashboard.totalSold)}
+            delta="Vendas pagas/confirmadas"
+            deltaTone="positive"
+            icon={<Wallet className="h-5 w-5" />}
+          />
+          <StatCard
+            label="Recebido"
+            value={formatBRL(summary.dashboard.totalReceived)}
+            delta="Total de entradas"
+            deltaTone="positive"
+            icon={<ArrowUpRight className="h-5 w-5" />}
+          />
+          <StatCard
+            label="A receber"
+            value={formatBRL(summary.dashboard.totalReceivable)}
+            delta={`${formatBRL(summary.dashboard.overdueReceivable)} em atraso`}
+            deltaTone={summary.dashboard.overdueReceivable > 0 ? 'negative' : 'neutral'}
+            icon={<Clock className="h-5 w-5" />}
+          />
+          <StatCard
+            label="Contas a pagar"
+            value={formatBRL(summary.dashboard.payablesTotal)}
+            delta={`${formatBRL(summary.dashboard.overduePayables)} em atraso`}
+            deltaTone={summary.dashboard.overduePayables > 0 ? 'negative' : 'neutral'}
+            icon={<ArrowDownRight className="h-5 w-5" />}
+          />
+          <StatCard
+            label="Obrigações com fornecedores"
+            value={formatBRL(summary.dashboard.supplierObligations)}
+            delta="Payables em aberto"
+            deltaTone="neutral"
+            icon={<Wallet className="h-5 w-5" />}
+          />
+          <StatCard
+            label="Obrigações de folha"
+            value={formatBRL(summary.dashboard.payrollObligations)}
+            delta="Payables de folha em aberto"
+            deltaTone="neutral"
+            icon={<Wallet className="h-5 w-5" />}
+          />
+          <StatCard
+            label="Comissões a pagar"
+            value={formatBRL(summary.dashboard.commissionsPayable)}
+            delta="Payables de comissão em aberto"
+            deltaTone="neutral"
+            icon={<Wallet className="h-5 w-5" />}
+          />
+          <StatCard
+            label="Caixa disponível"
+            value={formatBRL(summary.dashboard.cashAvailable)}
+            delta={`${formatBRL(summary.dashboard.committedCash)} comprometido (30 dias)`}
+            deltaTone="neutral"
+            icon={<Wallet className="h-5 w-5" />}
+          />
+          <StatCard
+            label="Margem bruta"
+            value={formatBRL(summary.dashboard.grossMargin)}
+            delta="Vendas - custos de fornecedores/operacionais"
+            deltaTone="positive"
+            icon={<ArrowUpRight className="h-5 w-5" />}
+          />
+          <StatCard
+            label="Margem líquida"
+            value={formatBRL(summary.dashboard.netMargin)}
+            delta="Margem bruta - comissões - folha"
+            deltaTone="positive"
+            icon={<ArrowUpRight className="h-5 w-5" />}
+          />
+          <StatCard
+            label="Resultado do mês"
+            value={formatBRL(summary.dashboard.monthlyResult)}
+            delta="Resultado líquido gerencial (DRE)"
+            deltaTone={summary.dashboard.monthlyResult >= 0 ? 'positive' : 'negative'}
+            icon={<ArrowDownRight className="h-5 w-5" />}
+          />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
