@@ -138,6 +138,15 @@ import {
   type UpdateSupplierInput,
 } from './suppliers';
 import {
+  createAirService,
+  deleteAirService,
+  getAirServiceById,
+  listAirServices,
+  updateAirService,
+  type CreateAirServiceInput,
+  type UpdateAirServiceInput,
+} from './air-services';
+import {
   createTransportProduct,
   getTransportProductById,
   listTransportProducts,
@@ -1238,6 +1247,81 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
         throw new NotFoundError('Supplier not found');
       }
       return { supplier };
+    }
+  );
+
+  // ============================================================
+  // AIR OPERATIONS (AirService)
+  // ============================================================
+  // RBAC floor: same precedent as Booking above -- AGENT for create/update
+  // (day-to-day operational entry by front-line staff), VIEWER for reads.
+
+  app.get<{ Querystring: { tripId?: string; customerId?: string } }>(
+    '/air-services',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      const { tripId, customerId } = request.query;
+      const airServices = await listAirServices(options.database, { tripId, customerId });
+      return { airServices };
+    }
+  );
+
+  app.get<{ Params: { tripId: string } }>(
+    '/trips/:tripId/air-services',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      const airServices = await listAirServices(options.database, { tripId: request.params.tripId });
+      return { airServices };
+    }
+  );
+
+  app.get<{ Params: { id: string } }>(
+    '/air-services/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      const airService = await getAirServiceById(options.database, request.params.id);
+      if (!airService) {
+        throw new NotFoundError('Air service not found');
+      }
+      return { airService };
+    }
+  );
+
+  app.post('/air-services', { preHandler: protectedHooks }, async (request, reply) => {
+    requireRole(UserRole.AGENT);
+    const data = parseCreateAirServiceInput(request.body);
+    const airService = await createAirService(options.database, data);
+    reply.code(201);
+    return { airService };
+  });
+
+  app.patch<{ Params: { id: string } }>(
+    '/air-services/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.AGENT);
+      const data = parseUpdateAirServiceInput(request.body);
+      const airService = await updateAirService(options.database, request.params.id, data);
+      if (!airService) {
+        throw new NotFoundError('Air service not found');
+      }
+      return { airService };
+    }
+  );
+
+  app.delete<{ Params: { id: string } }>(
+    '/air-services/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.MANAGER);
+      const deleted = await deleteAirService(options.database, request.params.id);
+      if (!deleted) {
+        throw new NotFoundError('Air service not found');
+      }
+      return { success: true };
     }
   );
 
@@ -4385,6 +4469,258 @@ function parseUpdateSupplierInput(body: unknown): UpdateSupplierInput {
   }
 
   return data;
+}
+
+// ============================================================
+// AIR OPERATIONS: AirService
+// ============================================================
+
+const AIR_SERVICE_STRING_FIELDS = [
+  'bookingId',
+  'supplierId',
+  'dependentId',
+  'airline',
+  'consolidator',
+  'origin',
+  'destination',
+  'departureDate',
+  'departureTime',
+  'arrivalDate',
+  'arrivalTime',
+  'flightNumber',
+  'bookingLocator',
+  'ticketNumber',
+  'baggage',
+  'seat',
+  'currency',
+  'supplierDueDate',
+  'notes',
+] as const;
+
+const AIR_SERVICE_NUMBER_FIELDS = [
+  'fare',
+  'taxes',
+  'fees',
+  'commission',
+  'cost',
+  'saleValue',
+] as const;
+
+const AIR_CABIN_CLASS_VALUES = ['ECONOMY', 'PREMIUM_ECONOMY', 'BUSINESS', 'FIRST'] as const;
+const AIR_SEGMENT_DIRECTION_VALUES = ['OUTBOUND', 'RETURN', 'INTERNAL'] as const;
+const AIR_SERVICE_STATUS_VALUES = ['PENDING', 'CONFIRMED', 'CANCELLED'] as const;
+const AIR_SUPPLIER_PAYMENT_STATUS_VALUES = [
+  'OPEN',
+  'PARTIALLY_PAID',
+  'PAID',
+  'CANCELLED',
+] as const;
+
+const ALLOWED_AIR_SERVICE_CREATE_FIELDS = [
+  'tripId',
+  'customerId',
+  'direction',
+  'sequence',
+  'cabinClass',
+  'supplierPaymentStatus',
+  'status',
+  ...AIR_SERVICE_STRING_FIELDS,
+  ...AIR_SERVICE_NUMBER_FIELDS,
+] as const;
+const ALLOWED_AIR_SERVICE_UPDATE_FIELDS = ALLOWED_AIR_SERVICE_CREATE_FIELDS;
+
+function parseCreateAirServiceInput(body: unknown): CreateAirServiceInput {
+  if (typeof body !== 'object' || body === null || Array.isArray(body)) {
+    throw new ValidationError('Request body must be an object');
+  }
+  const record = body as Record<string, unknown>;
+
+  for (const field of FORBIDDEN_ROUTE_FIELDS) {
+    if (field in record) {
+      throw new ValidationError(`Field "${field}" is not allowed in the request body`);
+    }
+  }
+  for (const key of Object.keys(record)) {
+    if (!(ALLOWED_AIR_SERVICE_CREATE_FIELDS as readonly string[]).includes(key)) {
+      throw new ValidationError(`Unknown field "${key}" in request body`);
+    }
+  }
+
+  if (typeof record.tripId !== 'string' || record.tripId.trim().length === 0) {
+    throw new ValidationError('Field "tripId" is required and must be a non-empty string');
+  }
+  if (typeof record.customerId !== 'string' || record.customerId.trim().length === 0) {
+    throw new ValidationError('Field "customerId" is required and must be a non-empty string');
+  }
+  if (typeof record.airline !== 'string' || record.airline.trim().length === 0) {
+    throw new ValidationError('Field "airline" is required and must be a non-empty string');
+  }
+  if (typeof record.origin !== 'string' || record.origin.trim().length === 0) {
+    throw new ValidationError('Field "origin" is required and must be a non-empty string');
+  }
+  if (typeof record.destination !== 'string' || record.destination.trim().length === 0) {
+    throw new ValidationError('Field "destination" is required and must be a non-empty string');
+  }
+  if (typeof record.departureDate !== 'string' || record.departureDate.trim().length === 0) {
+    throw new ValidationError('Field "departureDate" is required and must be a date string');
+  }
+  if (typeof record.arrivalDate !== 'string' || record.arrivalDate.trim().length === 0) {
+    throw new ValidationError('Field "arrivalDate" is required and must be a date string');
+  }
+
+  const data: CreateAirServiceInput = {
+    tripId: record.tripId,
+    customerId: record.customerId,
+    airline: record.airline,
+    origin: record.origin,
+    destination: record.destination,
+    departureDate: record.departureDate,
+    arrivalDate: record.arrivalDate,
+  };
+
+  applyAirServiceOptionalFields(record, data);
+
+  return data;
+}
+
+function parseUpdateAirServiceInput(body: unknown): UpdateAirServiceInput {
+  if (typeof body !== 'object' || body === null || Array.isArray(body)) {
+    throw new ValidationError('Request body must be an object');
+  }
+  const record = body as Record<string, unknown>;
+
+  for (const field of FORBIDDEN_ROUTE_FIELDS) {
+    if (field in record) {
+      throw new ValidationError(`Field "${field}" is not allowed in the request body`);
+    }
+  }
+  for (const key of Object.keys(record)) {
+    if (!(ALLOWED_AIR_SERVICE_UPDATE_FIELDS as readonly string[]).includes(key)) {
+      throw new ValidationError(`Unknown field "${key}" in request body`);
+    }
+  }
+
+  const data: UpdateAirServiceInput = {};
+
+  if (record.tripId !== undefined) {
+    if (typeof record.tripId !== 'string' || record.tripId.trim().length === 0) {
+      throw new ValidationError('Field "tripId" must be a non-empty string');
+    }
+    data.tripId = record.tripId;
+  }
+  if (record.customerId !== undefined) {
+    if (typeof record.customerId !== 'string' || record.customerId.trim().length === 0) {
+      throw new ValidationError('Field "customerId" must be a non-empty string');
+    }
+    data.customerId = record.customerId;
+  }
+  if (record.airline !== undefined) {
+    if (typeof record.airline !== 'string' || record.airline.trim().length === 0) {
+      throw new ValidationError('Field "airline" must be a non-empty string');
+    }
+    data.airline = record.airline;
+  }
+  if (record.origin !== undefined) {
+    if (typeof record.origin !== 'string' || record.origin.trim().length === 0) {
+      throw new ValidationError('Field "origin" must be a non-empty string');
+    }
+    data.origin = record.origin;
+  }
+  if (record.destination !== undefined) {
+    if (typeof record.destination !== 'string' || record.destination.trim().length === 0) {
+      throw new ValidationError('Field "destination" must be a non-empty string');
+    }
+    data.destination = record.destination;
+  }
+  if (record.departureDate !== undefined) {
+    if (typeof record.departureDate !== 'string' || record.departureDate.trim().length === 0) {
+      throw new ValidationError('Field "departureDate" must be a date string');
+    }
+    data.departureDate = record.departureDate;
+  }
+  if (record.arrivalDate !== undefined) {
+    if (typeof record.arrivalDate !== 'string' || record.arrivalDate.trim().length === 0) {
+      throw new ValidationError('Field "arrivalDate" must be a date string');
+    }
+    data.arrivalDate = record.arrivalDate;
+  }
+
+  applyAirServiceOptionalFields(record, data);
+
+  if (Object.keys(data).length === 0) {
+    throw new ValidationError('At least one field must be provided');
+  }
+
+  return data;
+}
+
+function applyAirServiceOptionalFields(
+  record: Record<string, unknown>,
+  data: CreateAirServiceInput | UpdateAirServiceInput,
+): void {
+  const target = data as unknown as Record<string, unknown>;
+
+  for (const field of AIR_SERVICE_STRING_FIELDS) {
+    if (record[field] !== undefined) {
+      if (typeof record[field] !== 'string') {
+        throw new ValidationError(`Field "${field}" must be a string`);
+      }
+      target[field] = record[field];
+    }
+  }
+  for (const field of AIR_SERVICE_NUMBER_FIELDS) {
+    const value = record[field];
+    if (value !== undefined) {
+      if (typeof value !== 'number' || Number.isNaN(value) || value < 0) {
+        throw new ValidationError(`Field "${field}" must be a non-negative number`);
+      }
+      target[field] = value;
+    }
+  }
+  if (record.sequence !== undefined) {
+    if (typeof record.sequence !== 'number' || !Number.isInteger(record.sequence) || record.sequence < 1) {
+      throw new ValidationError('Field "sequence" must be a positive integer');
+    }
+    target.sequence = record.sequence;
+  }
+  if (record.direction !== undefined) {
+    if (
+      typeof record.direction !== 'string' ||
+      !(AIR_SEGMENT_DIRECTION_VALUES as readonly string[]).includes(record.direction)
+    ) {
+      throw new ValidationError('Field "direction" must be one of OUTBOUND, RETURN, INTERNAL');
+    }
+    target.direction = record.direction;
+  }
+  if (record.cabinClass !== undefined) {
+    if (
+      typeof record.cabinClass !== 'string' ||
+      !(AIR_CABIN_CLASS_VALUES as readonly string[]).includes(record.cabinClass)
+    ) {
+      throw new ValidationError('Field "cabinClass" must be one of ECONOMY, PREMIUM_ECONOMY, BUSINESS, FIRST');
+    }
+    target.cabinClass = record.cabinClass;
+  }
+  if (record.status !== undefined) {
+    if (
+      typeof record.status !== 'string' ||
+      !(AIR_SERVICE_STATUS_VALUES as readonly string[]).includes(record.status)
+    ) {
+      throw new ValidationError('Field "status" must be one of PENDING, CONFIRMED, CANCELLED');
+    }
+    target.status = record.status;
+  }
+  if (record.supplierPaymentStatus !== undefined) {
+    if (
+      typeof record.supplierPaymentStatus !== 'string' ||
+      !(AIR_SUPPLIER_PAYMENT_STATUS_VALUES as readonly string[]).includes(record.supplierPaymentStatus)
+    ) {
+      throw new ValidationError(
+        'Field "supplierPaymentStatus" must be one of OPEN, PARTIALLY_PAID, PAID, CANCELLED',
+      );
+    }
+    target.supplierPaymentStatus = record.supplierPaymentStatus;
+  }
 }
 
 // ============================================================

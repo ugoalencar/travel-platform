@@ -115,6 +115,9 @@ async function seedTenantData() {
     console.log('12.1 Criando fornecedores...');
     const suppliers = await seedSuppliers(agency.id);
 
+    console.log('12.2 Criando segmentos aéreos...');
+    await seedAirServices(agency.id, suppliers);
+
     console.log('13. Criando registros financeiros (contas a pagar)...');
     await seedPayables(agency.id, suppliers);
 
@@ -823,6 +826,214 @@ async function seedSuppliers(agencyId) {
 
   console.log(`   ✓ ${created.length} fornecedores criados`);
   return created;
+}
+
+async function seedAirServices(agencyId, suppliers = []) {
+  const latam = suppliers.find((s) => s.name === 'LATAM Airlines Brasil') ?? null;
+
+  async function findCustomerId(name) {
+    const result = await pool.query(
+      `SELECT id FROM customers WHERE agency_id = $1 AND name = $2 LIMIT 1`,
+      [agencyId, name],
+    );
+    return result.rows[0]?.id ?? null;
+  }
+
+  async function tripExists(tripId) {
+    const result = await pool.query(
+      `SELECT id FROM trips WHERE agency_id = $1 AND id = $2 LIMIT 1`,
+      [agencyId, tripId],
+    );
+    return result.rows.length > 0;
+  }
+
+  async function insertSegment(seg) {
+    if (!(await tripExists(seg.tripId))) return;
+    await pool.query(
+      `INSERT INTO air_services (
+         id, agency_id, trip_id, supplier_id, customer_id, airline, direction, sequence,
+         origin, destination, departure_date, departure_time, arrival_date, arrival_time,
+         flight_number, cabin_class, booking_locator, fare, taxes, fees, commission, cost,
+         sale_value, currency, supplier_due_date, supplier_payment_status, status, notes,
+         created_at, updated_at
+       )
+       VALUES (
+         $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18,
+         $19, $20, $21, $22, $23, 'BRL', $24, $25, $26, $27, NOW(), NOW()
+       )
+       ON CONFLICT (id) DO NOTHING`,
+      [
+        seg.id, agencyId, seg.tripId, seg.supplierId, seg.customerId, seg.airline,
+        seg.direction, seg.sequence, seg.origin, seg.destination, seg.departureDate,
+        seg.departureTime, seg.arrivalDate, seg.arrivalTime, seg.flightNumber,
+        seg.cabinClass, seg.bookingLocator, seg.fare, seg.taxes, seg.fees,
+        seg.commission, seg.cost, seg.saleValue, seg.supplierDueDate,
+        seg.supplierPaymentStatus, seg.status, seg.notes,
+      ],
+    );
+  }
+
+  // Mariana Alves Silva / Cancun -- canonical fixture. Air cost should total
+  // ~R$5.000 across the round trip (matches the existing payableAereo demo
+  // record "Aereo - Sao Paulo / Cancun" 5000, seeded in demo-business-stories.cjs).
+  // This is a new, additive supporting record -- it does NOT touch the Sale/
+  // Receivable/Margin numbers or the existing payable.
+  const marianaCustomerId = await findCustomerId('Mariana Alves Silva');
+  if (marianaCustomerId) {
+    await insertSegment({
+      id: 'd0d5a001-0000-4000-8000-000000000001',
+      tripId: STORY_IDS.marianaCancun.trip,
+      supplierId: latam?.id ?? null,
+      customerId: marianaCustomerId,
+      airline: 'LATAM Airlines',
+      direction: 'OUTBOUND',
+      sequence: 1,
+      origin: 'JOI/GRU',
+      destination: 'CUN',
+      departureDate: '2027-05-01',
+      departureTime: '06:40',
+      arrivalDate: '2027-05-01',
+      arrivalTime: '14:55',
+      flightNumber: 'LA3344/LA0503',
+      cabinClass: 'ECONOMY',
+      bookingLocator: 'DEMO-MC-OUT',
+      fare: 2200,
+      taxes: 380,
+      fees: 120,
+      commission: 150,
+      cost: 2700,
+      saleValue: 3100,
+      supplierDueDate: '2027-04-10',
+      supplierPaymentStatus: 'OPEN',
+      status: 'CONFIRMED',
+      notes: 'Demo: trecho de ida Mariana / Cancun (familia).',
+    });
+    await insertSegment({
+      id: 'd0d5a001-0000-4000-8000-000000000002',
+      tripId: STORY_IDS.marianaCancun.trip,
+      supplierId: latam?.id ?? null,
+      customerId: marianaCustomerId,
+      airline: 'LATAM Airlines',
+      direction: 'RETURN',
+      sequence: 1,
+      origin: 'CUN',
+      destination: 'GRU/JOI',
+      departureDate: '2027-05-10',
+      departureTime: '16:20',
+      arrivalDate: '2027-05-11',
+      arrivalTime: '08:10',
+      flightNumber: 'LA0504/LA3345',
+      cabinClass: 'ECONOMY',
+      bookingLocator: 'DEMO-MC-RET',
+      fare: 1900,
+      taxes: 320,
+      fees: 80,
+      commission: 130,
+      cost: 2300,
+      saleValue: 2650,
+      supplierDueDate: '2027-04-10',
+      supplierPaymentStatus: 'OPEN',
+      status: 'CONFIRMED',
+      notes: 'Demo: trecho de volta Mariana / Cancun (familia).',
+    });
+  }
+
+  // Fernando Costa Gomes / Orlando-Disney -- supporting story.
+  const fernandoCustomerId = await findCustomerId('Fernando Costa Gomes');
+  if (fernandoCustomerId) {
+    await insertSegment({
+      id: 'd0d5a002-0000-4000-8000-000000000001',
+      tripId: STORY_IDS.disney.trip,
+      supplierId: latam?.id ?? null,
+      customerId: fernandoCustomerId,
+      airline: 'Copa Airlines',
+      direction: 'OUTBOUND',
+      sequence: 1,
+      origin: 'GRU',
+      destination: 'MCO',
+      departureDate: '2027-06-01',
+      departureTime: '09:15',
+      arrivalDate: '2027-06-01',
+      arrivalTime: '19:40',
+      flightNumber: 'CM0705/CM0201',
+      cabinClass: 'ECONOMY',
+      bookingLocator: 'DEMO-FD-OUT',
+      fare: 3400,
+      taxes: 520,
+      fees: 140,
+      commission: 210,
+      cost: 4060,
+      saleValue: 4600,
+      supplierDueDate: '2027-05-05',
+      supplierPaymentStatus: 'OPEN',
+      status: 'CONFIRMED',
+      notes: 'Demo: trecho de ida Fernando / Orlando (Disney).',
+    });
+    await insertSegment({
+      id: 'd0d5a002-0000-4000-8000-000000000002',
+      tripId: STORY_IDS.disney.trip,
+      supplierId: latam?.id ?? null,
+      customerId: fernandoCustomerId,
+      airline: 'Copa Airlines',
+      direction: 'RETURN',
+      sequence: 1,
+      origin: 'MCO',
+      destination: 'GRU',
+      departureDate: '2027-06-10',
+      departureTime: '21:05',
+      arrivalDate: '2027-06-11',
+      arrivalTime: '09:50',
+      flightNumber: 'CM0202/CM0704',
+      cabinClass: 'ECONOMY',
+      bookingLocator: 'DEMO-FD-RET',
+      fare: 3200,
+      taxes: 500,
+      fees: 130,
+      commission: 200,
+      cost: 3830,
+      saleValue: 4350,
+      supplierDueDate: '2027-05-05',
+      supplierPaymentStatus: 'OPEN',
+      status: 'CONFIRMED',
+      notes: 'Demo: trecho de volta Fernando / Orlando (Disney).',
+    });
+  }
+
+  // Roberto Fernandes / Paris (honeymoon) -- one-way outbound only, kept
+  // simple to demonstrate a single-segment trip (not every trip is round trip).
+  const robertoCustomerId = await findCustomerId('Roberto Fernandes');
+  if (robertoCustomerId) {
+    await insertSegment({
+      id: 'd0d5a003-0000-4000-8000-000000000001',
+      tripId: STORY_IDS.honeymoon.trip,
+      supplierId: latam?.id ?? null,
+      customerId: robertoCustomerId,
+      airline: 'Air France',
+      direction: 'OUTBOUND',
+      sequence: 1,
+      origin: 'GRU',
+      destination: 'CDG',
+      departureDate: '2027-06-01',
+      departureTime: '23:55',
+      arrivalDate: '2027-06-02',
+      arrivalTime: '15:10',
+      flightNumber: 'AF0460',
+      cabinClass: 'PREMIUM_ECONOMY',
+      bookingLocator: 'DEMO-RF-OUT',
+      fare: 4200,
+      taxes: 650,
+      fees: 150,
+      commission: 260,
+      cost: 5000,
+      saleValue: 5700,
+      supplierDueDate: '2027-05-01',
+      supplierPaymentStatus: 'PARTIALLY_PAID',
+      status: 'CONFIRMED',
+      notes: 'Demo: trecho de ida Roberto / Paris (lua de mel).',
+    });
+  }
+
+  console.log('   ✓ Segmentos aéreos criados (Mariana/Cancun, Fernando/Disney, Roberto/Paris)');
 }
 
 async function seedPayables(agencyId, suppliers = []) {

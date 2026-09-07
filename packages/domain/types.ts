@@ -545,6 +545,68 @@ export interface Supplier {
   updatedAt: Date;
 }
 
+// ============================================================
+// AIR OPERATIONS DOMAIN
+// ============================================================
+
+export enum AirCabinClass {
+  ECONOMY = 'ECONOMY',
+  PREMIUM_ECONOMY = 'PREMIUM_ECONOMY',
+  BUSINESS = 'BUSINESS',
+  FIRST = 'FIRST',
+}
+
+export enum AirServiceStatus {
+  PENDING = 'PENDING',
+  CONFIRMED = 'CONFIRMED',
+  CANCELLED = 'CANCELLED',
+}
+
+export enum AirSegmentDirection {
+  OUTBOUND = 'OUTBOUND',
+  RETURN = 'RETURN',
+  INTERNAL = 'INTERNAL',
+}
+
+export interface AirService {
+  id: string;
+  agencyId: string;
+  tripId: string;
+  bookingId?: string;
+  supplierId?: string;
+  customerId: string;
+  dependentId?: string;
+  airline: string;
+  consolidator?: string;
+  direction: AirSegmentDirection;
+  sequence: number;
+  origin: string;
+  destination: string;
+  departureDate: Date;
+  departureTime?: string;
+  arrivalDate: Date;
+  arrivalTime?: string;
+  flightNumber?: string;
+  cabinClass: AirCabinClass;
+  bookingLocator?: string;
+  ticketNumber?: string;
+  baggage?: string;
+  seat?: string;
+  fare: number;
+  taxes: number;
+  fees: number;
+  commission?: number;
+  cost: number;
+  saleValue: number;
+  currency: string;
+  supplierDueDate?: Date;
+  supplierPaymentStatus: FinancialObligationStatus;
+  status: AirServiceStatus;
+  notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface TransportProduct {
   id: string;
   agencyId: string;

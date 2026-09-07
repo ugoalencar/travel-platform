@@ -1432,6 +1432,132 @@ export async function deactivateSupplier(id: string): Promise<Supplier> {
 }
 
 // ============================================================
+// AIR SERVICES (GET/POST/PATCH/DELETE /air-services)
+// ============================================================
+
+export type AirCabinClass = 'ECONOMY' | 'PREMIUM_ECONOMY' | 'BUSINESS' | 'FIRST';
+export type AirServiceStatus = 'PENDING' | 'CONFIRMED' | 'CANCELLED';
+export type AirSegmentDirection = 'OUTBOUND' | 'RETURN' | 'INTERNAL';
+export type AirSupplierPaymentStatus = 'OPEN' | 'PARTIALLY_PAID' | 'PAID' | 'CANCELLED';
+
+export interface AirService {
+  id: string;
+  agencyId: string;
+  tripId: string;
+  bookingId?: string;
+  supplierId?: string;
+  customerId: string;
+  dependentId?: string;
+  airline: string;
+  consolidator?: string;
+  direction: AirSegmentDirection;
+  sequence: number;
+  origin: string;
+  destination: string;
+  departureDate: string;
+  departureTime?: string;
+  arrivalDate: string;
+  arrivalTime?: string;
+  flightNumber?: string;
+  cabinClass: AirCabinClass;
+  bookingLocator?: string;
+  ticketNumber?: string;
+  baggage?: string;
+  seat?: string;
+  fare: number;
+  taxes: number;
+  fees: number;
+  commission?: number;
+  cost: number;
+  saleValue: number;
+  currency: string;
+  supplierDueDate?: string;
+  supplierPaymentStatus: AirSupplierPaymentStatus;
+  status: AirServiceStatus;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AirServiceInput {
+  tripId: string;
+  bookingId?: string;
+  supplierId?: string;
+  customerId: string;
+  dependentId?: string;
+  airline: string;
+  consolidator?: string;
+  direction?: AirSegmentDirection;
+  sequence?: number;
+  origin: string;
+  destination: string;
+  departureDate: string;
+  departureTime?: string;
+  arrivalDate: string;
+  arrivalTime?: string;
+  flightNumber?: string;
+  cabinClass?: AirCabinClass;
+  bookingLocator?: string;
+  ticketNumber?: string;
+  baggage?: string;
+  seat?: string;
+  fare?: number;
+  taxes?: number;
+  fees?: number;
+  commission?: number | undefined;
+  cost?: number;
+  saleValue?: number;
+  currency?: string;
+  supplierDueDate?: string;
+  supplierPaymentStatus?: AirSupplierPaymentStatus;
+  status?: AirServiceStatus;
+  notes?: string;
+}
+
+export async function listAirServices(filters?: { tripId?: string; customerId?: string }): Promise<AirService[]> {
+  const params = new URLSearchParams();
+  if (filters?.tripId) params.set('tripId', filters.tripId);
+  if (filters?.customerId) params.set('customerId', filters.customerId);
+  const qs = params.toString();
+  const data = await request<{ airServices: AirService[] }>(`/api/air-services${qs ? `?${qs}` : ''}`);
+  return data.airServices;
+}
+
+export async function listAirServicesByTrip(tripId: string): Promise<AirService[]> {
+  const data = await request<{ airServices: AirService[] }>(
+    `/api/trips/${encodeURIComponent(tripId)}/air-services`,
+  );
+  return data.airServices;
+}
+
+export async function getAirService(id: string): Promise<AirService> {
+  const data = await request<{ airService: AirService }>(`/api/air-services/${encodeURIComponent(id)}`);
+  return data.airService;
+}
+
+export async function createAirService(input: AirServiceInput): Promise<AirService> {
+  const data = await request<{ airService: AirService }>('/api/air-services', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+  return data.airService;
+}
+
+export async function updateAirService(id: string, input: Partial<AirServiceInput>): Promise<AirService> {
+  const data = await request<{ airService: AirService }>(`/api/air-services/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(input),
+  });
+  return data.airService;
+}
+
+export async function deleteAirService(id: string): Promise<void> {
+  await request<{ success: boolean }>(`/api/air-services/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  });
+}
+
+// ============================================================
 // RECONCILIATIONS (GET /financial/reconciliations)
 // ============================================================
 
