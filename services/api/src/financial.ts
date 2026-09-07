@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/consistent-type-imports */
 import {
   PaymentDirection,
-  type FinancialObligationStatus,
+  FinancialObligationStatus,
   type OperationalCost,
   type Payable,
   type Payment,
@@ -38,6 +38,7 @@ interface ReceivableRow {
   status: FinancialObligationStatus;
   created_at: string;
   updated_at: string;
+  paid_amount?: string;
 }
 
 interface PayableRow {
@@ -1429,10 +1430,18 @@ export async function listReceivables(database: DatabaseRuntime): Promise<Receiv
   const agencyId = getAgencyId();
   return database.withTenantTransaction(async (client) => {
     const result = await client.query<ReceivableRow>(
-      `SELECT ${RECEIVABLE_COLUMNS}
-       FROM receivables
-       WHERE agency_id = $1
-       ORDER BY due_at ASC, created_at DESC`,
+      `SELECT r.id, r.agency_id, r.sale_id, r.customer_id, r.description, r.amount,
+              r.due_at, r.status, r.created_at, r.updated_at,
+              COALESCE(pa.total, 0)::text AS paid_amount
+       FROM receivables r
+       LEFT JOIN (
+         SELECT receivable_id, SUM(amount) AS total
+         FROM payment_allocations
+         WHERE agency_id = $1 AND receivable_id IS NOT NULL
+         GROUP BY receivable_id
+       ) pa ON pa.receivable_id = r.id
+       WHERE r.agency_id = $1
+       ORDER BY r.due_at ASC, r.created_at DESC`,
       [agencyId],
     );
     return result.rows.map(toReceivable);
@@ -2220,7 +2229,7 @@ async function refreshReceivableStatus(
        WHERE agency_id = $1 AND receivable_id = $2
      ) allocated
      WHERE r.agency_id = $1 AND r.id = $2
-     RETURNING ${RECEIVABLE_COLUMNS}`,
+     RETURNING ${RECEIVABLE_COLUMNS}, allocated.total::text AS paid_amount`,
     [agencyId, id],
   );
   const row = result.rows[0];
@@ -2336,12 +2345,21 @@ function roundMoney(value: number): number {
 // ============================================================
 
 function toReceivable(row: ReceivableRow): Receivable {
+  const amount = Number(row.amount);
+  const paidAmount =
+    row.paid_amount !== undefined
+      ? Number(row.paid_amount)
+      : row.status === FinancialObligationStatus.PAID
+        ? amount
+        : 0;
   return {
     id: row.id,
     agencyId: row.agency_id,
     customerId: row.customer_id,
     description: row.description,
-    amount: Number(row.amount),
+    amount,
+    paidAmount: roundMoney(paidAmount),
+    remainingAmount: roundMoney(amount - paidAmount),
     dueAt: new Date(row.due_at),
     status: row.status,
     createdAt: new Date(row.created_at),

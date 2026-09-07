@@ -30,17 +30,15 @@ type LoadState =
 
 const RECEIVABLE_STATUS_LABELS: Record<ReceivableStatus, string> = {
   OPEN: 'Aberto',
-  PARTIAL: 'Parcial',
+  PARTIALLY_PAID: 'Parcial',
   PAID: 'Pago',
-  OVERDUE: 'Vencido',
   CANCELLED: 'Cancelado',
 };
 
 const RECEIVABLE_STATUS_TONES: Record<ReceivableStatus, StatusTone> = {
   OPEN: 'neutral',
-  PARTIAL: 'attention',
+  PARTIALLY_PAID: 'attention',
   PAID: 'positive',
-  OVERDUE: 'attention',
   CANCELLED: 'inactive',
 };
 
@@ -167,6 +165,8 @@ export function ReceivablesPage() {
                     <th className="px-4 py-3 text-left font-medium text-slate-700">Cliente</th>
                     <th className="px-4 py-3 text-left font-medium text-slate-700">Descrição</th>
                     <th className="px-4 py-3 text-right font-medium text-slate-700">Valor</th>
+                    <th className="px-4 py-3 text-right font-medium text-slate-700">Recebido</th>
+                    <th className="px-4 py-3 text-right font-medium text-slate-700">Saldo</th>
                     <th className="px-4 py-3 text-left font-medium text-slate-700">Vencimento</th>
                     <th className="px-4 py-3 text-left font-medium text-slate-700">Status</th>
                     <th className="px-4 py-3 text-left font-medium text-slate-700">Acoes</th>
@@ -180,6 +180,8 @@ export function ReceivablesPage() {
                         <td className="px-4 py-3 font-medium text-slate-900">{customerName}</td>
                         <td className="px-4 py-3 text-slate-600">{receivable.description}</td>
                         <td className="px-4 py-3 text-right font-medium">{formatBRL(receivable.amount)}</td>
+                        <td className="px-4 py-3 text-right text-slate-600">{formatBRL(receivable.paidAmount)}</td>
+                        <td className="px-4 py-3 text-right font-medium text-slate-900">{formatBRL(receivable.remainingAmount)}</td>
                         <td className="px-4 py-3 text-sm text-slate-600">
                           {formatDateBR(receivable.dueAt, { assumeDateOnly: true })}
                         </td>
@@ -195,7 +197,7 @@ export function ReceivablesPage() {
                               variant="outline"
                               onClick={() => {
                                 setSelectedReceivable(receivable);
-                                setPaymentForm({ ...emptyPaymentForm, amount: receivable.amount });
+                                setPaymentForm({ ...emptyPaymentForm, amount: receivable.remainingAmount });
                                 setFormError(null);
                               }}
                               disabled={submitting}

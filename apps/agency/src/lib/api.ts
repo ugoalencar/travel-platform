@@ -883,7 +883,7 @@ export async function listRevenueCategories(): Promise<RevenueCategory[]> {
 // RECEIVABLES (GET /financial/receivables)
 // ============================================================
 
-export type ReceivableStatus = 'OPEN' | 'PARTIAL' | 'PAID' | 'OVERDUE' | 'CANCELLED';
+export type ReceivableStatus = 'OPEN' | 'PARTIALLY_PAID' | 'PAID' | 'CANCELLED';
 
 export interface Receivable {
   id: string;
@@ -892,6 +892,8 @@ export interface Receivable {
   customerId: string;
   description: string;
   amount: number;
+  paidAmount: number;
+  remainingAmount: number;
   dueAt: string;
   status: ReceivableStatus;
   createdAt: string;

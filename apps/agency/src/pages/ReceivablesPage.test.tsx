@@ -31,6 +31,8 @@ const openReceivable = {
   customerId: 'customer-1',
   description: 'Pacote Lisboa',
   amount: 3490,
+  paidAmount: 0,
+  remainingAmount: 3490,
   dueAt: '2026-09-10T00:00:00.000Z',
   status: 'OPEN' as const,
   createdAt: '2026-08-20T00:00:00.000Z',

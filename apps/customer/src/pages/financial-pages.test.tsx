@@ -56,6 +56,8 @@ const mockReceivable: Receivable = {
   customerId: 'cust1',
   description: 'Pacote Cancun',
   amount: 1000,
+  paidAmount: 0,
+  remainingAmount: 1000,
   dueAt: '2026-09-15',
   status: 'OPEN',
   createdAt: '2026-01-01T00:00:00.000Z',

@@ -279,6 +279,10 @@ export interface Receivable {
   customerId: string;
   description: string;
   amount: number;
+  /** Sum of payment_allocations applied to this receivable so far. */
+  paidAmount: number;
+  /** amount - paidAmount; the outstanding balance still owed. */
+  remainingAmount: number;
   dueAt: Date;
   status: FinancialObligationStatus;
   createdAt: Date;

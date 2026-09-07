@@ -13,6 +13,8 @@ export interface Receivable {
   customerId: string;
   description: string;
   amount: number;
+  paidAmount: number;
+  remainingAmount: number;
   dueAt: string;
   status: FinancialObligationStatus;
   createdAt: string;
