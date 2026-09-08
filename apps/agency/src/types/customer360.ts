@@ -43,6 +43,9 @@ export type DocumentType =
   | 'CPF'
   | 'VISTO'
   | 'CERTIDAO'
+  | 'AUTORIZACAO_VIAGEM'
+  | 'CERTIFICADO_VACINACAO'
+  | 'SEGURO_VIAGEM'
   | 'OUTRO';
 
 export type DocumentVerificationStatus =
@@ -69,6 +72,35 @@ export interface CustomerDocument {
   verificationStatus: DocumentVerificationStatus;
   verifiedAt?: string;
   verifiedByUserId?: string;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string;
+}
+
+export type TravelRequirementType =
+  | 'PASSAPORTE_VALIDO'
+  | 'VISTO'
+  | 'VACINACAO'
+  | 'SEGURO'
+  | 'AUTORIZACAO'
+  | 'OUTROS';
+
+export type TravelerType = 'CUSTOMER' | 'DEPENDENT';
+
+export interface TravelRequirement {
+  id: string;
+  agencyId: string;
+  customerId: string;
+  travelerType: TravelerType;
+  dependentId?: string;
+  tripId?: string;
+  destination?: string;
+  type: TravelRequirementType;
+  required: boolean;
+  fulfilled: boolean;
+  documentId?: string;
+  expirationDate?: string;
   notes?: string;
   createdAt: string;
   updatedAt: string;

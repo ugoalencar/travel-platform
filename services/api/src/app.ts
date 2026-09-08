@@ -3657,24 +3657,40 @@ const FORBIDDEN_CREATE_FIELDS = [
   'status',
 ] as const;
 
-const ALLOWED_CREATE_FIELDS = [
-  'name',
+const CUSTOMER_OPTIONAL_STRING_FIELDS = [
   'email',
   'phone',
   'cpf',
   'passport',
-  'address',
+  'rg',
+  'nationalIdType',
+  'birthDate',
+  'nationality',
+  'whatsapp',
+  'socialName',
+  'maritalStatus',
+  'profession',
+  'idIssuingAuthority',
+  'idIssuedDate',
+  'emergencyContactName',
+  'emergencyContactRelationship',
+  'emergencyContactPhone',
+  'emergencyContactWhatsapp',
+  'emergencyContactEmail',
+  'emergencyContactNotes',
   'notes',
+] as const;
+
+const ALLOWED_CREATE_FIELDS = [
+  'name',
+  ...CUSTOMER_OPTIONAL_STRING_FIELDS,
+  'address',
 ] as const;
 
 const ALLOWED_UPDATE_FIELDS = [
   'name',
-  'email',
-  'phone',
-  'cpf',
-  'passport',
+  ...CUSTOMER_OPTIONAL_STRING_FIELDS,
   'address',
-  'notes',
 ] as const;
 
 function parseCreateCustomerInput(body: unknown): CreateCustomerInput {
@@ -3702,29 +3718,14 @@ function parseCreateCustomerInput(body: unknown): CreateCustomerInput {
 
   const data: CreateCustomerInput = { name: record.name };
 
-  if (record.email !== undefined) {
-    if (typeof record.email !== 'string') {
-      throw new ValidationError('Field "email" must be a string');
+  for (const field of CUSTOMER_OPTIONAL_STRING_FIELDS) {
+    const value = record[field];
+    if (value !== undefined) {
+      if (typeof value !== 'string') {
+        throw new ValidationError(`Field "${field}" must be a string`);
+      }
+      data[field] = value;
     }
-    data.email = record.email;
-  }
-  if (record.phone !== undefined) {
-    if (typeof record.phone !== 'string') {
-      throw new ValidationError('Field "phone" must be a string');
-    }
-    data.phone = record.phone;
-  }
-  if (record.cpf !== undefined) {
-    if (typeof record.cpf !== 'string') {
-      throw new ValidationError('Field "cpf" must be a string');
-    }
-    data.cpf = record.cpf;
-  }
-  if (record.passport !== undefined) {
-    if (typeof record.passport !== 'string') {
-      throw new ValidationError('Field "passport" must be a string');
-    }
-    data.passport = record.passport;
   }
   if (record.address !== undefined) {
     if (
@@ -3735,12 +3736,6 @@ function parseCreateCustomerInput(body: unknown): CreateCustomerInput {
       throw new ValidationError('Field "address" must be an object');
     }
     data.address = record.address as Record<string, unknown>;
-  }
-  if (record.notes !== undefined) {
-    if (typeof record.notes !== 'string') {
-      throw new ValidationError('Field "notes" must be a string');
-    }
-    data.notes = record.notes;
   }
 
   return data;
@@ -3767,29 +3762,14 @@ function parseUpdateCustomerInput(body: unknown): UpdateCustomerInput {
     }
     data.name = record.name;
   }
-  if (record.email !== undefined) {
-    if (typeof record.email !== 'string') {
-      throw new ValidationError('Field "email" must be a string');
+  for (const field of CUSTOMER_OPTIONAL_STRING_FIELDS) {
+    const value = record[field];
+    if (value !== undefined) {
+      if (typeof value !== 'string') {
+        throw new ValidationError(`Field "${field}" must be a string`);
+      }
+      data[field] = value;
     }
-    data.email = record.email;
-  }
-  if (record.phone !== undefined) {
-    if (typeof record.phone !== 'string') {
-      throw new ValidationError('Field "phone" must be a string');
-    }
-    data.phone = record.phone;
-  }
-  if (record.cpf !== undefined) {
-    if (typeof record.cpf !== 'string') {
-      throw new ValidationError('Field "cpf" must be a string');
-    }
-    data.cpf = record.cpf;
-  }
-  if (record.passport !== undefined) {
-    if (typeof record.passport !== 'string') {
-      throw new ValidationError('Field "passport" must be a string');
-    }
-    data.passport = record.passport;
   }
   if (record.address !== undefined) {
     if (
@@ -3800,12 +3780,6 @@ function parseUpdateCustomerInput(body: unknown): UpdateCustomerInput {
       throw new ValidationError('Field "address" must be an object');
     }
     data.address = record.address as Record<string, unknown>;
-  }
-  if (record.notes !== undefined) {
-    if (typeof record.notes !== 'string') {
-      throw new ValidationError('Field "notes" must be a string');
-    }
-    data.notes = record.notes;
   }
 
   if (Object.keys(data).length === 0) {

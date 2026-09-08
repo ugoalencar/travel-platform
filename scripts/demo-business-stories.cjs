@@ -112,6 +112,55 @@ async function seedMarianaCancun(pool, { agencyId, userId }) {
   );
 
   await pool.query(
+    `UPDATE customers
+        SET marital_status = 'CASADO',
+            profession = 'Analista de Marketing',
+            id_issuing_authority = 'SSP/SC',
+            id_issued_date = '2018-03-12',
+            emergency_contact_name = 'João Alves Silva',
+            emergency_contact_relationship = 'Cônjuge',
+            emergency_contact_phone = '11976543210',
+            emergency_contact_whatsapp = '11976543210',
+            emergency_contact_email = 'joao.alves@email.com',
+            emergency_contact_notes = 'Contato principal em caso de emergência durante a viagem.',
+            updated_at = now()
+      WHERE agency_id = $1 AND id = $2`,
+    [agencyId, customerId],
+  );
+
+  const requirementPassportId = 'd0d50001-0000-4000-8000-000000000022';
+  const requirementInsuranceId = 'd0d50001-0000-4000-8000-000000000023';
+
+  await pool.query(
+    `INSERT INTO travel_requirements
+       (id, agency_id, customer_id, traveler_type, destination, type, required, fulfilled, document_id, expiration_date, created_at, updated_at)
+     VALUES ($1, $2, $3, 'CUSTOMER', 'Cancun', 'PASSAPORTE_VALIDO', true, true, $4, '2034-01-01', now(), now())
+     ON CONFLICT (agency_id, id) DO UPDATE SET
+       destination = EXCLUDED.destination,
+       type = EXCLUDED.type,
+       required = EXCLUDED.required,
+       fulfilled = EXCLUDED.fulfilled,
+       document_id = EXCLUDED.document_id,
+       expiration_date = EXCLUDED.expiration_date,
+       updated_at = now()`,
+    [requirementPassportId, agencyId, customerId, ids.document],
+  );
+
+  await pool.query(
+    `INSERT INTO travel_requirements
+       (id, agency_id, customer_id, traveler_type, destination, type, required, fulfilled, notes, created_at, updated_at)
+     VALUES ($1, $2, $3, 'CUSTOMER', 'Cancun', 'SEGURO', true, true, 'Seguro viagem internacional contratado com a agência.', now(), now())
+     ON CONFLICT (agency_id, id) DO UPDATE SET
+       destination = EXCLUDED.destination,
+       type = EXCLUDED.type,
+       required = EXCLUDED.required,
+       fulfilled = EXCLUDED.fulfilled,
+       notes = EXCLUDED.notes,
+       updated_at = now()`,
+    [requirementInsuranceId, agencyId, customerId],
+  );
+
+  await pool.query(
     `INSERT INTO wishes (id, agency_id, customer_id, destination, start_date, end_date, travelers_count, notes, status, created_at, updated_at)
      VALUES ($1, $2, $3, 'Cancun', '2027-05-01', '2027-05-10', 3, 'Familia quer resort all-inclusive com entrada e duas parcelas.', 'ACTIVE', now(), now())
      ON CONFLICT (agency_id, id) DO UPDATE SET

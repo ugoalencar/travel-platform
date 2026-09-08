@@ -32,6 +32,8 @@ vi.mock('./lib/api', async () => {
     listCustomerAddresses: vi.fn(),
     listCustomerDocuments: vi.fn(),
     listCustomerDependents: vi.fn(),
+    listTravelRequirements: vi.fn(),
+    listSales: vi.fn(),
   };
 });
 
@@ -99,6 +101,8 @@ beforeEach(() => {
   vi.mocked(api.listCustomerAddresses).mockResolvedValue([]);
   vi.mocked(api.listCustomerDocuments).mockResolvedValue([]);
   vi.mocked(api.listCustomerDependents).mockResolvedValue([]);
+  vi.mocked(api.listTravelRequirements).mockResolvedValue([]);
+  vi.mocked(api.listSales).mockResolvedValue([]);
 });
 
 describe('App', () => {

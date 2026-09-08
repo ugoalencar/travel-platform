@@ -1,5 +1,5 @@
 import type { Customer, CustomerStatus } from '../types/customer';
-import type { CustomerAddress, CustomerDependent, CustomerDocument } from '../types/customer360';
+import type { CustomerAddress, CustomerDependent, CustomerDocument, TravelRequirement } from '../types/customer360';
 import type { Wish, WishStatus } from '../types/wish';
 import type { Trip, TripStatus } from '../types/trip';
 import type { Proposal, ProposalStatus } from '../types/proposal';
@@ -467,18 +467,27 @@ export interface CreateCustomerInput {
   phone?: string | undefined;
   cpf?: string | undefined;
   passport?: string | undefined;
+  rg?: string | undefined;
+  birthDate?: string | undefined;
+  nationality?: string | undefined;
+  whatsapp?: string | undefined;
+  socialName?: string | undefined;
+  maritalStatus?: string | undefined;
+  profession?: string | undefined;
+  idIssuingAuthority?: string | undefined;
+  idIssuedDate?: string | undefined;
+  emergencyContactName?: string | undefined;
+  emergencyContactRelationship?: string | undefined;
+  emergencyContactPhone?: string | undefined;
+  emergencyContactWhatsapp?: string | undefined;
+  emergencyContactEmail?: string | undefined;
+  emergencyContactNotes?: string | undefined;
   notes?: string | undefined;
 }
 
-export interface UpdateCustomerInput {
-  name?: string | undefined;
-  email?: string | undefined;
-  phone?: string | undefined;
-  cpf?: string | undefined;
-  passport?: string | undefined;
-  notes?: string | undefined;
+export type UpdateCustomerInput = Partial<CreateCustomerInput> & {
   status?: CustomerStatus | undefined;
-}
+};
 
 export async function listCustomers(): Promise<Customer[]> {
   const data = await request<{ customers: Customer[] }>('/api/customers');
@@ -666,6 +675,64 @@ export async function updateCustomerDocument(
 export async function deleteCustomerDocument(customerId: string, documentId: string): Promise<void> {
   await request<{ document: CustomerDocument }>(
     `/api/customers/${encodeURIComponent(customerId)}/documents/${encodeURIComponent(documentId)}`,
+    { method: 'DELETE' },
+  );
+}
+
+// ============================================================
+// CUSTOMER 360: TRAVEL REQUIREMENTS (Requisitos de viagem)
+// ============================================================
+
+export interface CreateTravelRequirementInput {
+  travelerType?: string | undefined;
+  dependentId?: string | undefined;
+  tripId?: string | undefined;
+  destination?: string | undefined;
+  type: string;
+  required?: boolean | undefined;
+  fulfilled?: boolean | undefined;
+  documentId?: string | undefined;
+  expirationDate?: string | undefined;
+  notes?: string | undefined;
+}
+
+export type UpdateTravelRequirementInput = Partial<
+  Pick<CreateTravelRequirementInput, 'destination' | 'required' | 'fulfilled' | 'documentId' | 'expirationDate' | 'notes'>
+>;
+
+export async function listTravelRequirements(customerId: string): Promise<TravelRequirement[]> {
+  const data = await request<{ requirements: TravelRequirement[] }>(
+    `/api/customers/${encodeURIComponent(customerId)}/travel-requirements`,
+  );
+  return data.requirements;
+}
+
+export async function createTravelRequirement(
+  customerId: string,
+  input: CreateTravelRequirementInput,
+): Promise<TravelRequirement> {
+  const data = await request<{ requirement: TravelRequirement }>(
+    `/api/customers/${encodeURIComponent(customerId)}/travel-requirements`,
+    { method: 'POST', body: JSON.stringify(input) },
+  );
+  return data.requirement;
+}
+
+export async function updateTravelRequirement(
+  customerId: string,
+  requirementId: string,
+  input: UpdateTravelRequirementInput,
+): Promise<TravelRequirement> {
+  const data = await request<{ requirement: TravelRequirement }>(
+    `/api/customers/${encodeURIComponent(customerId)}/travel-requirements/${encodeURIComponent(requirementId)}`,
+    { method: 'PATCH', body: JSON.stringify(input) },
+  );
+  return data.requirement;
+}
+
+export async function deleteTravelRequirement(customerId: string, requirementId: string): Promise<void> {
+  await request<{ requirement: TravelRequirement }>(
+    `/api/customers/${encodeURIComponent(customerId)}/travel-requirements/${encodeURIComponent(requirementId)}`,
     { method: 'DELETE' },
   );
 }

@@ -1710,6 +1710,42 @@ export function registerAllRoutes(): void {
 
   registerRoute({
     method: 'GET',
+    path: '/customers/:customerId/travel-requirements',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'VIEWER',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'POST',
+    path: '/customers/:customerId/travel-requirements',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'AGENT',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'PATCH',
+    path: '/customers/:customerId/travel-requirements/:requirementId',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'AGENT',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'DELETE',
+    path: '/customers/:customerId/travel-requirements/:requirementId',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'AGENT',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'GET',
     path: '/documents/:documentId/attachments',
     classification: RouteClassification.STAFF_SCOPED,
     authPipeline: 'protectedHooks',

@@ -19,6 +19,8 @@ vi.mock('../lib/api', async () => {
     listCustomerAddresses: vi.fn(),
     listCustomerDocuments: vi.fn(),
     listCustomerDependents: vi.fn(),
+    listTravelRequirements: vi.fn(),
+    listSales: vi.fn(),
   };
 });
 
@@ -120,6 +122,8 @@ beforeEach(() => {
   vi.mocked(api.listCustomerAddresses).mockResolvedValue([]);
   vi.mocked(api.listCustomerDocuments).mockResolvedValue([]);
   vi.mocked(api.listCustomerDependents).mockResolvedValue([]);
+  vi.mocked(api.listTravelRequirements).mockResolvedValue([]);
+  vi.mocked(api.listSales).mockResolvedValue([]);
 });
 
 describe('CustomersPage', () => {
@@ -199,14 +203,14 @@ describe('CustomerDetailPage', () => {
   it('shows summary counts from API data', async () => {
     renderRouted('/customers/cust-001');
     await screen.findByRole('heading', { name: 'Lucas Martins' });
-    expect(screen.getAllByText('Desejos')[0]).toBeInTheDocument();
+    expect(screen.getAllByText('Preferências')[0]).toBeInTheDocument();
     expect(screen.getAllByText('Viagens')[0]).toBeInTheDocument();
   });
 
   it('shows wishes tab with the customer wishes from API', async () => {
     renderRouted('/customers/cust-001');
     await screen.findByRole('heading', { name: 'Lucas Martins' });
-    fireEvent.click(screen.getByRole('tab', { name: 'Desejos' }));
+    fireEvent.click(screen.getByRole('tab', { name: 'Preferências' }));
     expect(await screen.findByText(/Portugal/)).toBeInTheDocument();
     expect(screen.getByText(/Islândia/)).toBeInTheDocument();
   });

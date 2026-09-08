@@ -68,6 +68,17 @@ export interface Customer {
   birthDate?: Date;
   nationality?: string;
   whatsapp?: string;
+  socialName?: string;
+  maritalStatus?: string;
+  profession?: string;
+  idIssuingAuthority?: string;
+  idIssuedDate?: Date;
+  emergencyContactName?: string;
+  emergencyContactRelationship?: string;
+  emergencyContactPhone?: string;
+  emergencyContactWhatsapp?: string;
+  emergencyContactEmail?: string;
+  emergencyContactNotes?: string;
   address?: Record<string, unknown>;
   notes?: string;
   status: Status;
@@ -1801,7 +1812,43 @@ export enum DocumentType {
   CPF = 'CPF',
   VISTO = 'VISTO',
   CERTIDAO = 'CERTIDAO',
+  AUTORIZACAO_VIAGEM = 'AUTORIZACAO_VIAGEM',
+  CERTIFICADO_VACINACAO = 'CERTIFICADO_VACINACAO',
+  SEGURO_VIAGEM = 'SEGURO_VIAGEM',
   OUTRO = 'OUTRO',
+}
+
+export enum TravelRequirementType {
+  PASSAPORTE_VALIDO = 'PASSAPORTE_VALIDO',
+  VISTO = 'VISTO',
+  VACINACAO = 'VACINACAO',
+  SEGURO = 'SEGURO',
+  AUTORIZACAO = 'AUTORIZACAO',
+  OUTROS = 'OUTROS',
+}
+
+export enum TravelerType {
+  CUSTOMER = 'CUSTOMER',
+  DEPENDENT = 'DEPENDENT',
+}
+
+export interface TravelRequirement {
+  id: string;
+  agencyId: string;
+  customerId: string;
+  travelerType: TravelerType;
+  dependentId?: string;
+  tripId?: string;
+  destination?: string;
+  type: TravelRequirementType;
+  required: boolean;
+  fulfilled: boolean;
+  documentId?: string;
+  expirationDate?: Date;
+  notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
+  deletedAt?: Date;
 }
 
 export enum DocumentVerificationStatus {

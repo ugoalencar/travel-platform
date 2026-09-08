@@ -52,6 +52,16 @@ import {
   type CreateDocumentInput,
   type UpdateDocumentInput,
 } from '../customer-documents';
+import {
+  createTravelRequirement,
+  deleteTravelRequirement,
+  getTravelRequirementById,
+  listTravelRequirements,
+  updateTravelRequirement,
+  type CreateTravelRequirementInput,
+  type UpdateTravelRequirementInput,
+} from '../travel-requirements';
+import { TravelRequirementType, TravelerType } from '../../../../packages/domain/types';
 import { getCustomerById } from '../customers';
 import {
   createAttachment,
@@ -334,6 +344,73 @@ export function registerCustomerDocumentRoutes(
         throw new NotFoundError('Document not found');
       }
       return { document };
+    },
+  );
+
+  // ============================================================
+  // TRAVEL REQUIREMENTS (Requisitos de viagem)
+  // ============================================================
+
+  app.get<{ Params: { customerId: string } }>(
+    '/customers/:customerId/travel-requirements',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      await assertCustomerExists(request.params.customerId);
+      const requirements = await listTravelRequirements(database, request.params.customerId);
+      return { requirements };
+    },
+  );
+
+  app.post<{ Params: { customerId: string } }>(
+    '/customers/:customerId/travel-requirements',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      requireRole(UserRole.AGENT);
+      await assertCustomerExists(request.params.customerId);
+      const data = parseCreateTravelRequirementInput(request.body, request.params.customerId);
+      const requirement = await createTravelRequirement(database, data);
+      reply.code(201);
+      return { requirement };
+    },
+  );
+
+  app.patch<{ Params: { customerId: string; requirementId: string } }>(
+    '/customers/:customerId/travel-requirements/:requirementId',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.AGENT);
+      const existing = await getTravelRequirementById(database, request.params.requirementId);
+      if (!existing || existing.customerId !== request.params.customerId) {
+        throw new NotFoundError('Travel requirement not found');
+      }
+      const data = parseUpdateTravelRequirementInput(request.body);
+      const requirement = await updateTravelRequirement(
+        database,
+        request.params.requirementId,
+        data,
+      );
+      if (!requirement) {
+        throw new NotFoundError('Travel requirement not found');
+      }
+      return { requirement };
+    },
+  );
+
+  app.delete<{ Params: { customerId: string; requirementId: string } }>(
+    '/customers/:customerId/travel-requirements/:requirementId',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.AGENT);
+      const existing = await getTravelRequirementById(database, request.params.requirementId);
+      if (!existing || existing.customerId !== request.params.customerId) {
+        throw new NotFoundError('Travel requirement not found');
+      }
+      const requirement = await deleteTravelRequirement(database, request.params.requirementId);
+      if (!requirement) {
+        throw new NotFoundError('Travel requirement not found');
+      }
+      return { requirement };
     },
   );
 
@@ -825,6 +902,64 @@ export function parseUpdateDocumentInput(body: unknown): UpdateDocumentInput {
     const value = nullableString(record, field);
     if (value !== undefined) data[field] = value;
   }
+
+  return data;
+}
+
+const TRAVEL_REQUIREMENT_CREATE_FIELDS = [
+  'travelerType', 'dependentId', 'tripId', 'destination', 'type', 'required', 'fulfilled',
+  'documentId', 'expirationDate', 'notes',
+] as const;
+
+const TRAVEL_REQUIREMENT_UPDATE_FIELDS = [
+  'destination', 'required', 'fulfilled', 'documentId', 'expirationDate', 'notes',
+] as const;
+
+export function parseCreateTravelRequirementInput(
+  body: unknown,
+  customerId: string,
+): CreateTravelRequirementInput {
+  const record = asRecord(body);
+  rejectUnknownFields(record, TRAVEL_REQUIREMENT_CREATE_FIELDS);
+
+  const data: CreateTravelRequirementInput = {
+    customerId,
+    type: requireEnum(record, 'type', Object.values(TravelRequirementType)),
+  };
+
+  const travelerType = optionalEnum(record, 'travelerType', Object.values(TravelerType));
+  if (travelerType !== undefined) data.travelerType = travelerType;
+
+  for (const field of ['dependentId', 'tripId', 'destination', 'documentId', 'expirationDate', 'notes'] as const) {
+    const value = optionalString(record, field);
+    if (value !== undefined) data[field] = value;
+  }
+
+  const required = optionalBoolean(record, 'required');
+  if (required !== undefined) data.required = required;
+
+  const fulfilled = optionalBoolean(record, 'fulfilled');
+  if (fulfilled !== undefined) data.fulfilled = fulfilled;
+
+  return data;
+}
+
+export function parseUpdateTravelRequirementInput(body: unknown): UpdateTravelRequirementInput {
+  const record = asRecord(body);
+  rejectUnknownFields(record, TRAVEL_REQUIREMENT_UPDATE_FIELDS);
+
+  const data: UpdateTravelRequirementInput = {};
+
+  for (const field of ['destination', 'documentId', 'expirationDate', 'notes'] as const) {
+    const value = nullableString(record, field);
+    if (value !== undefined) data[field] = value;
+  }
+
+  const required = optionalBoolean(record, 'required');
+  if (required !== undefined) data.required = required;
+
+  const fulfilled = optionalBoolean(record, 'fulfilled');
+  if (fulfilled !== undefined) data.fulfilled = fulfilled;
 
   return data;
 }
