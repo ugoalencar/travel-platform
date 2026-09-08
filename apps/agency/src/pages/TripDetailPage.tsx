@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, Calendar, MapPin, Pencil } from 'lucide-react';
+import { PageHeader } from '../components/layout/PageHeader';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { StatusBadge } from '../components/ui/status-badge';
@@ -10,12 +11,25 @@ import { LoadingState } from '../components/ui/loading-state';
 import { Modal } from '../components/ui/modal';
 import { Input } from '../components/ui/input';
 import { Textarea } from '../components/ui/textarea';
-import { ApiError, getCustomer, getTrip, updateTrip } from '../lib/api';
+import {
+  ApiError,
+  getCustomer,
+  getTrip,
+  listAirServicesByTrip,
+  listLandServicesByTrip,
+  listSales,
+  updateTrip,
+  type AirService,
+  type AirServiceStatus,
+  type LandService,
+  type LandServiceStatus,
+} from '../lib/api';
 import { formatDateBR } from '../lib/formatDateBR';
 import { getTripStatusLabel } from '../lib/statusLabels';
 import type { TripStatus } from '../types';
 import type { Trip } from '../types/trip';
 import type { Customer } from '../types/customer';
+import type { Sale, SaleStatus } from '../types/sale';
 
 const TABS = [
   { value: 'overview', label: 'Visão geral' },
@@ -29,6 +43,32 @@ function tripStatusTone(s: TripStatus) {
   return 'neutral' as const;
 }
 
+const AIR_LAND_STATUS_LABELS: Record<AirServiceStatus | LandServiceStatus, string> = {
+  PENDING: 'Pendente',
+  CONFIRMED: 'Confirmado',
+  CANCELLED: 'Cancelado',
+};
+
+const AIR_LAND_STATUS_TONES: Record<AirServiceStatus | LandServiceStatus, 'positive' | 'attention' | 'inactive'> = {
+  PENDING: 'attention',
+  CONFIRMED: 'positive',
+  CANCELLED: 'inactive',
+};
+
+const SALE_STATUS_LABELS: Record<SaleStatus, string> = {
+  PENDING: 'Pendente',
+  CONFIRMED: 'Confirmado',
+  PAID: 'Pago',
+  CANCELLED: 'Cancelado',
+  REFUNDED: 'Reembolsado',
+};
+
+function saleStatusTone(status: SaleStatus): 'positive' | 'attention' | 'inactive' | 'neutral' {
+  if (status === 'PAID') return 'positive';
+  if (status === 'CANCELLED' || status === 'REFUNDED') return 'inactive';
+  return 'attention';
+}
+
 const emptyForm = { name: '', destination: '', startDate: '', endDate: '', description: '' };
 
 export function TripDetailPage() {
@@ -36,6 +76,9 @@ export function TripDetailPage() {
   const [tab, setTab] = useState('overview');
   const [trip, setTrip] = useState<Trip | null>(null);
   const [customer, setCustomer] = useState<Customer | null>(null);
+  const [airServices, setAirServices] = useState<AirService[]>([]);
+  const [landServices, setLandServices] = useState<LandService[]>([]);
+  const [sales, setSales] = useState<Sale[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [notFound, setNotFound] = useState(false);
@@ -57,8 +100,16 @@ export function TripDetailPage() {
     getTrip(id)
       .then(async (t) => {
         setTrip(t);
-        const c = await getCustomer(t.customerId);
+        const [c, air, land, allSales] = await Promise.all([
+          getCustomer(t.customerId),
+          listAirServicesByTrip(t.id),
+          listLandServicesByTrip(t.id),
+          listSales(),
+        ]);
         setCustomer(c);
+        setAirServices(air);
+        setLandServices(land);
+        setSales(allSales.filter((s) => s.tripId === t.id));
         setLoading(false);
       })
       .catch((err: unknown) => {
@@ -94,12 +145,12 @@ export function TripDetailPage() {
     );
   }
 
-  // Itinerary and Proposals/Bookings ("Relacionados") are out of CORE-A
-  // scope -- no itinerary or cross-domain data source exists yet, so these
-  // tabs render an honest empty state instead of unrelated fixture data.
+  // Itinerary and Proposals ("Relacionados") remain out of CORE-A scope --
+  // no itinerary or trip-linked proposal data source exists yet, so these
+  // render an honest empty state instead of unrelated fixture data. Sales,
+  // air and land services are linked via tripId and rendered below.
   const itinerary: never[] = [];
   const proposals: never[] = [];
-  const bookings: never[] = [];
 
   function openEdit() {
     setForm({
@@ -139,22 +190,20 @@ export function TripDetailPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="space-y-1">
-          <Link to="/trips" className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-700">
-            <ArrowLeft className="h-3 w-3" /> Viagens
-          </Link>
-          <h1 className="text-xl font-bold text-slate-900">{trip.name}</h1>
-          <p className="text-sm text-slate-500">
-            {customer?.name ?? 'Cliente'} · {trip.destination}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
+      <PageHeader
+        title={trip.name}
+        description={`${customer?.name ?? 'Cliente'} · ${trip.destination}`}
+        breadcrumbs={[
+          { label: 'Painel', to: '/' },
+          { label: 'Viagens', to: '/trips' },
+          { label: trip.name },
+        ]}
+        actions={
           <StatusBadge tone={tripStatusTone(trip.status)}>
             {getTripStatusLabel(trip.status)}
           </StatusBadge>
-        </div>
-      </div>
+        }
+      />
 
       <div className="flex items-center justify-between">
         <Tabs items={TABS} value={tab} onValueChange={setTab} />
@@ -261,9 +310,61 @@ export function TripDetailPage() {
           </Card>
 
           <Card>
-            <CardHeader><CardTitle>Reservas</CardTitle></CardHeader>
-            <CardContent>
-              {bookings.length === 0 && <p className="py-4 text-center text-sm text-slate-400">Nenhuma reserva</p>}
+            <CardHeader><CardTitle>Vendas</CardTitle></CardHeader>
+            <CardContent className="space-y-2">
+              {sales.length === 0 && <p className="py-4 text-center text-sm text-slate-400">Nenhuma venda</p>}
+              {sales.map((sale) => (
+                <Link
+                  key={sale.id}
+                  to={`/sales/${sale.id}`}
+                  className="flex items-center justify-between rounded-md bg-slate-50 p-2 text-sm hover:bg-slate-100"
+                >
+                  <span className="text-slate-700">
+                    {sale.total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                  </span>
+                  <StatusBadge tone={saleStatusTone(sale.status)}>
+                    {SALE_STATUS_LABELS[sale.status]}
+                  </StatusBadge>
+                </Link>
+              ))}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader><CardTitle>Aéreo</CardTitle></CardHeader>
+            <CardContent className="space-y-2">
+              {airServices.length === 0 && <p className="py-4 text-center text-sm text-slate-400">Nenhum segmento aéreo</p>}
+              {airServices.map((service) => (
+                <Link
+                  key={service.id}
+                  to="/operations/air"
+                  className="flex items-center justify-between rounded-md bg-slate-50 p-2 text-sm hover:bg-slate-100"
+                >
+                  <span className="text-slate-700">{service.airline} · {service.origin} → {service.destination}</span>
+                  <StatusBadge tone={AIR_LAND_STATUS_TONES[service.status]}>
+                    {AIR_LAND_STATUS_LABELS[service.status]}
+                  </StatusBadge>
+                </Link>
+              ))}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader><CardTitle>Terrestre</CardTitle></CardHeader>
+            <CardContent className="space-y-2">
+              {landServices.length === 0 && <p className="py-4 text-center text-sm text-slate-400">Nenhum serviço terrestre</p>}
+              {landServices.map((service) => (
+                <Link
+                  key={service.id}
+                  to="/operations/land"
+                  className="flex items-center justify-between rounded-md bg-slate-50 p-2 text-sm hover:bg-slate-100"
+                >
+                  <span className="text-slate-700">{service.description}</span>
+                  <StatusBadge tone={AIR_LAND_STATUS_TONES[service.status]}>
+                    {AIR_LAND_STATUS_LABELS[service.status]}
+                  </StatusBadge>
+                </Link>
+              ))}
             </CardContent>
           </Card>
         </div>

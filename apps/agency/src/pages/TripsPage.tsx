@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, Plus, Map as MapIcon } from 'lucide-react';
+import { PageHeader } from '../components/layout/PageHeader';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Textarea } from '../components/ui/textarea';
@@ -126,16 +127,17 @@ export function TripsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-slate-900">Viagens</h1>
-          <p className="text-sm text-slate-500">{trips.length} viagens registradas</p>
-        </div>
-        <Button size="sm" onClick={openCreate}>
-          <Plus className="h-4 w-4" />
-          Nova viagem
-        </Button>
-      </div>
+      <PageHeader
+        title="Viagens"
+        description={`${trips.length} viagens registradas`}
+        breadcrumbs={[{ label: 'Painel', to: '/' }, { label: 'Viagens' }]}
+        actions={
+          <Button size="sm" onClick={openCreate}>
+            <Plus className="h-4 w-4" />
+            Nova viagem
+          </Button>
+        }
+      />
 
       <div className="flex items-center gap-3">
         <div className="relative flex-1 max-w-sm">

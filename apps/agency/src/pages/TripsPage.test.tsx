@@ -16,6 +16,9 @@ vi.mock('../lib/api', async () => {
     getCustomer: vi.fn(),
     createTrip: vi.fn(),
     updateTrip: vi.fn(),
+    listAirServicesByTrip: vi.fn(),
+    listLandServicesByTrip: vi.fn(),
+    listSales: vi.fn(),
   };
 });
 
@@ -74,6 +77,9 @@ beforeEach(() => {
   vi.mocked(api.getCustomer).mockImplementation((id: string) =>
     Promise.resolve([customerLucas, customerAna].find((c) => c.id === id)!),
   );
+  vi.mocked(api.listAirServicesByTrip).mockResolvedValue([]);
+  vi.mocked(api.listLandServicesByTrip).mockResolvedValue([]);
+  vi.mocked(api.listSales).mockResolvedValue([]);
 });
 
 describe('TripsPage', () => {
@@ -144,12 +150,14 @@ describe('TripDetailPage', () => {
     expect(screen.getAllByText('Confirmada').length).toBeGreaterThan(0);
   });
 
-  it('shows related tab without crashing (proposals/bookings out of CORE-A scope)', async () => {
+  it('shows related tab without crashing (proposals out of CORE-A scope)', async () => {
     renderRouted('/trips/trip-001');
     await screen.findByRole('heading', { name: 'Família Martins — Portugal' });
     fireEvent.click(screen.getByRole('tab', { name: 'Relacionados' }));
     expect(screen.getAllByText('Propostas').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('Reservas').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Vendas').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Aéreo').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Terrestre').length).toBeGreaterThan(0);
   });
 
   it('edits the trip via the API', async () => {
