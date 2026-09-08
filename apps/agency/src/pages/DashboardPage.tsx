@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import {
   TrendingUp,
+  Users,
   FileText,
   Map,
   Plane,
@@ -125,9 +126,15 @@ function AgentTodayView({ userName }: { userName: string }) {
 
   return (
     <div className="space-y-6">
-      <PageHeader title={`${GREETING_BY_HOUR(today.getHours())}, ${userName}`} description={todayLabel} />
+      <div className="rounded-2xl border border-amber-100 bg-[linear-gradient(135deg,#fff7ed_0%,#ffffff_62%,#eff6ff_100%)] p-5 shadow-sm">
+        <p className="text-xs font-bold uppercase tracking-wide text-amber-700">Ambiente Operacional</p>
+        <PageHeader
+          title={`${GREETING_BY_HOUR(today.getHours())}, ${userName}`}
+          description={`${todayLabel} · foco em embarques, passageiros, documentos e ocorrências`}
+        />
+      </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           label="Partidas hoje"
           value={String(todaysDepartures.length)}
@@ -143,6 +150,22 @@ function AgentTodayView({ userName }: { userName: string }) {
           deltaTone={openOccurrences.length > 0 ? 'negative' : 'positive'}
           icon={<AlertTriangle className="h-4 w-4" />}
           accent={openOccurrences.length > 0 ? 'expense' : 'success'}
+        />
+        <StatCard
+          label="Passageiros"
+          value={String(todaysDepartures.length)}
+          delta="Lista de embarque do dia"
+          deltaTone="neutral"
+          icon={<Users className="h-4 w-4" />}
+          accent="neutral"
+        />
+        <StatCard
+          label="Documentos"
+          value={openOccurrences.length > 0 ? 'Revisar' : 'OK'}
+          delta={openOccurrences.length > 0 ? 'Validar pendências' : 'Sem alerta crítico'}
+          deltaTone={openOccurrences.length > 0 ? 'negative' : 'positive'}
+          icon={<FileText className="h-4 w-4" />}
+          accent={openOccurrences.length > 0 ? 'pending' : 'success'}
         />
       </div>
 
@@ -184,7 +207,66 @@ function AgentTodayView({ userName }: { userName: string }) {
           </ul>
         )}
       </SectionCard>
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.1fr_.9fr]">
+        <SectionCard title="Fila operacional" description="Prioridades para manter a viagem fluindo">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <OperationalShortcut to="/operations/passengers" icon={<Users className="h-4 w-4" />} title="Passageiros" detail="Checar nomes, contatos e responsáveis" />
+            <OperationalShortcut to="/operations/documents" icon={<FileText className="h-4 w-4" />} title="Documentos" detail="Validar pendências antes do embarque" />
+            <OperationalShortcut to="/operations/air" icon={<Plane className="h-4 w-4" />} title="Aéreo" detail="Localizadores, assentos e horários" />
+            <OperationalShortcut to="/operations/land" icon={<Map className="h-4 w-4" />} title="Terrestre" detail="Hospedagem, transfer e passeios" />
+            <OperationalShortcut to="/operations/post-trip" icon={<CheckCircle2 className="h-4 w-4" />} title="Pós-viagem" detail="Checklist e fechamento operacional" />
+            <OperationalShortcut to="/bookings" icon={<Wallet className="h-4 w-4" />} title="Reservas" detail="Confirmações e status de execução" />
+          </div>
+        </SectionCard>
+
+        <SectionCard title="Sinal de atenção" description="Ocorrências e impedimentos">
+          <div className="space-y-3">
+            {openOccurrences.length === 0 ? (
+              <p className="rounded-xl bg-emerald-50 p-4 text-sm font-semibold text-emerald-700">
+                Nenhuma ocorrência aberta para hoje.
+              </p>
+            ) : (
+              openOccurrences.map((occurrence) => (
+                <div key={occurrence.id} className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+                  <p className="text-sm font-bold text-slate-950">{occurrence.description}</p>
+                  <p className="mt-1 text-xs text-amber-800">
+                    {occurrence.tripName} · {occurrence.customerName}
+                  </p>
+                </div>
+              ))
+            )}
+          </div>
+        </SectionCard>
+      </div>
     </div>
+  );
+}
+
+function OperationalShortcut({
+  to,
+  icon,
+  title,
+  detail,
+}: {
+  to: string;
+  icon: ReactNode;
+  title: string;
+  detail: string;
+}) {
+  return (
+    <Link
+      to={to}
+      className="flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 transition-colors hover:border-blue-200 hover:bg-blue-50"
+    >
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-blue-600 shadow-sm">
+        {icon}
+      </span>
+      <span>
+        <span className="block text-sm font-bold text-slate-950">{title}</span>
+        <span className="mt-1 block text-xs leading-relaxed text-slate-500">{detail}</span>
+      </span>
+    </Link>
   );
 }
 

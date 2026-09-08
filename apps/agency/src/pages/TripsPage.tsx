@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Plus, Map as MapIcon } from 'lucide-react';
+import { CalendarDays, CheckCircle2, Clock3, Search, Plus, Map as MapIcon } from 'lucide-react';
 import { PageHeader } from '../components/layout/PageHeader';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Textarea } from '../components/ui/textarea';
 import { Select } from '../components/ui/select';
 import { StatusBadge } from '../components/ui/status-badge';
+import { StatCard } from '../components/ui/stat-card';
+import { SectionCard } from '../components/ui/section-card';
 import { EmptyState } from '../components/ui/empty-state';
 import { ErrorState } from '../components/ui/error-state';
 import { LoadingState } from '../components/ui/loading-state';
@@ -85,6 +87,9 @@ export function TripsPage() {
   });
 
   const activeCustomers = customers.filter((c) => c.status === 'ACTIVE');
+  const confirmedCount = trips.filter((t) => t.status === 'CONFIRMED').length;
+  const inProgressCount = trips.filter((t) => t.status === 'IN_PROGRESS').length;
+  const plannedCount = trips.filter((t) => t.status === 'PLANNED').length;
 
   function openCreate() {
     setNewTrip({ ...emptyNewTrip, customerId: activeCustomers[0]?.id ?? '' });
@@ -129,7 +134,7 @@ export function TripsPage() {
     <div className="space-y-6">
       <PageHeader
         title="Viagens"
-        description={`${trips.length} viagens registradas`}
+        description="Controle operacional de roteiros, clientes, datas e status de execução."
         breadcrumbs={[{ label: 'Painel', to: '/' }, { label: 'Viagens' }]}
         actions={
           <Button size="sm" onClick={openCreate}>
@@ -139,7 +144,39 @@ export function TripsPage() {
         }
       />
 
-      <div className="flex items-center gap-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          label="Viagens registradas"
+          value={String(trips.length)}
+          delta="Base operacional ativa"
+          icon={<MapIcon className="h-4 w-4" />}
+          accent="neutral"
+        />
+        <StatCard
+          label="Confirmadas"
+          value={String(confirmedCount)}
+          delta="Prontas para execução"
+          deltaTone="positive"
+          icon={<CheckCircle2 className="h-4 w-4" />}
+          accent="success"
+        />
+        <StatCard
+          label="Em andamento"
+          value={String(inProgressCount)}
+          delta="Acompanhar passageiros"
+          icon={<Clock3 className="h-4 w-4" />}
+          accent="pending"
+        />
+        <StatCard
+          label="Planejadas"
+          value={String(plannedCount)}
+          delta="Em desenho comercial"
+          icon={<CalendarDays className="h-4 w-4" />}
+          accent="revenue"
+        />
+      </div>
+
+      <div className="flex flex-col gap-3 rounded-lg border border-slate-200 bg-white p-3 lg:flex-row lg:items-center">
         <div className="relative flex-1 max-w-sm">
           <label htmlFor="trips-search" className="sr-only">
             Buscar viagens
@@ -173,55 +210,81 @@ export function TripsPage() {
         </div>
       </div>
 
-      {filtered.length === 0 ? (
-        <EmptyState
-          title="Nenhuma viagem encontrada"
-          description={search ? 'Tente outro termo de busca.' : 'Crie a primeira viagem a partir de um desejo.'}
-          icon={<MapIcon className="h-8 w-8" />}
-          action={
-            search ? (
-              <Button variant="outline" size="sm" onClick={() => { setSearch(''); setFilter('ALL'); }}>
-                Limpar filtros
-              </Button>
-            ) : (
-              <Button size="sm" onClick={openCreate}>
-                <Plus className="h-4 w-4" />
-                Nova viagem
-              </Button>
-            )
-          }
-        />
-      ) : (
-        <div className="space-y-3">
-          {filtered.map((trip) => {
-            const customer = customerById.get(trip.customerId);
-            return (
-              <Link
-                key={trip.id}
-                to={`/trips/${trip.id}`}
-                className="block rounded-lg border border-slate-200 bg-white p-4 transition-colors hover:bg-slate-50"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-slate-900">{trip.name}</p>
-                    <p className="text-xs text-slate-500">{customer?.name ?? 'Cliente'} · {trip.destination}</p>
-                    <p className="text-xs text-slate-400">
-                      {formatDateBR(trip.startDate, { assumeDateOnly: true })} —{' '}
-                      {formatDateBR(trip.endDate, { assumeDateOnly: true })}
-                    </p>
-                    {trip.description && (
-                      <p className="mt-1 text-xs text-slate-500 line-clamp-1">{trip.description}</p>
-                    )}
-                  </div>
-                  <StatusBadge tone={statusTone(trip.status)}>
-                    {getTripStatusLabel(trip.status)}
-                  </StatusBadge>
-                </div>
-              </Link>
-            );
-          })}
-        </div>
-      )}
+      <SectionCard title="Carteira de viagens" description="Lista escaneável para acompanhamento operacional" contentClassName="p-0">
+        {filtered.length === 0 ? (
+          <EmptyState
+            title="Nenhuma viagem encontrada"
+            description={search ? 'Tente outro termo de busca.' : 'Crie a primeira viagem a partir de um desejo.'}
+            icon={<MapIcon className="h-8 w-8" />}
+            action={
+              search ? (
+                <Button variant="outline" size="sm" onClick={() => { setSearch(''); setFilter('ALL'); }}>
+                  Limpar filtros
+                </Button>
+              ) : (
+                <Button size="sm" onClick={openCreate}>
+                  <Plus className="h-4 w-4" />
+                  Nova viagem
+                </Button>
+              )
+            }
+          />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[820px] text-left text-sm">
+              <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+                <tr>
+                  <th className="px-4 py-3">Viagem</th>
+                  <th className="px-4 py-3">Cliente</th>
+                  <th className="px-4 py-3">Destino</th>
+                  <th className="px-4 py-3">Periodo</th>
+                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3 text-right">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((trip) => {
+                  const customer = customerById.get(trip.customerId);
+                  return (
+                    <tr key={trip.id} className="border-b border-slate-100 last:border-0">
+                      <td className="px-4 py-4">
+                        <Link
+                          to={`/trips/${trip.id}`}
+                          className="font-semibold text-slate-950 hover:text-indigo-600 hover:underline"
+                        >
+                          {trip.name}
+                        </Link>
+                        {trip.description && (
+                          <p className="mt-1 max-w-xs truncate text-xs text-slate-500">{trip.description}</p>
+                        )}
+                      </td>
+                      <td className="px-4 py-4 text-slate-600">{customer?.name ?? 'Cliente'}</td>
+                      <td className="px-4 py-4 text-slate-600">{trip.destination}</td>
+                      <td className="px-4 py-4 text-xs text-slate-500">
+                        {formatDateBR(trip.startDate, { assumeDateOnly: true })} —{' '}
+                        {formatDateBR(trip.endDate, { assumeDateOnly: true })}
+                      </td>
+                      <td className="px-4 py-4">
+                        <StatusBadge tone={statusTone(trip.status)}>
+                          {getTripStatusLabel(trip.status)}
+                        </StatusBadge>
+                      </td>
+                      <td className="px-4 py-4 text-right">
+                        <Link
+                          to={`/trips/${trip.id}`}
+                          className="inline-flex h-8 items-center justify-center rounded-md px-3 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-100"
+                        >
+                          Abrir
+                        </Link>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </SectionCard>
 
       <Modal
         open={showNewTrip}

@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, Navigate, useParams, useNavigate } from 'react-router-dom';
-import { CheckCircle2, Copy, Edit3, Eye, Send, AlertCircle } from 'lucide-react';
+import { CheckCircle2, Copy, Edit3, Eye, Search, Send, AlertCircle } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { EmptyState } from '../components/ui/empty-state';
@@ -671,6 +671,8 @@ export function ProposalPreviewPage() {
 
 export function BookingListPage() {
   const [state, setState] = useState<LoadState<Booking[]>>({ status: 'loading' });
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'CANCELLED'>('ALL');
 
   const load = useCallback(() => {
     setState({ status: 'loading' });
@@ -688,6 +690,28 @@ export function BookingListPage() {
     load();
   }, [load]);
 
+  const bookings = useMemo(() => (state.status === 'success' ? state.data || [] : []), [state]);
+  const activeCount = bookings.filter((booking) => !booking.cancelled).length;
+  const cancelledCount = bookings.filter((booking) => booking.cancelled).length;
+  const filteredBookings = useMemo(() => {
+    return bookings.filter((booking) => {
+      const searchable = [
+        booking.customerName,
+        booking.bookerCustomerId,
+        booking.tripType,
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+      const matchesSearch = searchable.includes(search.toLowerCase());
+      const matchesStatus =
+        statusFilter === 'ALL' ||
+        (statusFilter === 'ACTIVE' && !booking.cancelled) ||
+        (statusFilter === 'CANCELLED' && booking.cancelled);
+      return matchesSearch && matchesStatus;
+    });
+  }, [bookings, search, statusFilter]);
+
   const renderContent = () => {
     if (state.status === 'loading') {
       return <LoadingState label="Carregando reservas…" />;
@@ -697,7 +721,6 @@ export function BookingListPage() {
       return <ErrorState description={state.message} onRetry={load} />;
     }
 
-    const bookings = state.data || [];
     if (bookings.length === 0) {
       return (
         <EmptyState
@@ -707,28 +730,38 @@ export function BookingListPage() {
       );
     }
 
+    if (filteredBookings.length === 0) {
+      return <EmptyState title="Nenhuma reserva encontrada" description="Ajuste busca ou status para ampliar a visão." />;
+    }
+
     return (
       <div className="overflow-x-auto">
-        <table className="w-full min-w-150 text-left text-sm">
+        <table className="w-full min-w-[760px] text-left text-sm">
           <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
             <tr>
               <th className="px-4 py-3">Cliente</th>
+              <th className="px-4 py-3">Viagem</th>
               <th className="px-4 py-3">Tipo</th>
               <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3 text-right">Acoes</th>
+              <th className="px-4 py-3">Criada em</th>
+              <th className="px-4 py-3 text-right">Ações</th>
             </tr>
           </thead>
           <tbody>
-            { }
-            {bookings.map((booking: Booking) => (
+            {filteredBookings.map((booking: Booking) => (
               <tr key={booking.id} className="border-b border-slate-100 last:border-0">
-                <td className="px-4 py-4 font-medium text-slate-950">{booking.customerName || booking.bookerCustomerId}</td>
+                <td className="px-4 py-4">
+                  <p className="font-semibold text-slate-950">{booking.customerName || booking.bookerCustomerId}</p>
+                  <p className="text-xs text-slate-500">Responsável pela reserva</p>
+                </td>
+                <td className="px-4 py-4 text-slate-600">Reserva vinculada</td>
                 <td className="px-4 py-4 text-slate-600">{booking.tripType}</td>
                 <td className="px-4 py-4">
                   <StatusBadge tone={booking.cancelled ? 'inactive' : 'positive'}>
                     {booking.cancelled ? 'Cancelada' : 'Confirmada'}
                   </StatusBadge>
                 </td>
+                <td className="px-4 py-4 text-slate-500">{formatDateBR(booking.createdAt)}</td>
                 <td className="px-4 py-4 text-right">
                   <Link
                     to={`/bookings/${booking.id}`}
@@ -752,9 +785,36 @@ export function BookingListPage() {
         description="Visualize todos os voos, hotéis e serviços confirmados para cada viagem."
       />
       <JourneyRail active="Booking" />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <Metric label="Reservas ativas" value={String(activeCount)} />
+        <Metric label="Canceladas" value={String(cancelledCount)} />
+        <Metric label="Total em operação" value={String(bookings.length)} />
+      </div>
       <Card>
-        <CardHeader>
-          <CardTitle>Reservas em execucao</CardTitle>
+        <CardHeader className="gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <CardTitle>Reservas em execução</CardTitle>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <label className="relative block">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <Input
+                aria-label="Buscar reservas"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Buscar cliente, viagem ou tipo"
+                className="h-9 min-w-72 pl-9"
+              />
+            </label>
+            <Select
+              aria-label="Filtrar reservas por status"
+              value={statusFilter}
+              onChange={(event) => setStatusFilter(event.target.value as typeof statusFilter)}
+              className="h-9 sm:w-40"
+            >
+              <option value="ALL">Todas</option>
+              <option value="ACTIVE">Confirmadas</option>
+              <option value="CANCELLED">Canceladas</option>
+            </Select>
+          </div>
         </CardHeader>
         <CardContent>{renderContent()}</CardContent>
       </Card>
