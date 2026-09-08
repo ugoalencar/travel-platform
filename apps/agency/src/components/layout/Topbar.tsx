@@ -1,6 +1,7 @@
 import { Menu, Search, Bell, Plus } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Dropdown } from '../ui/dropdown';
+import { Avatar } from '../ui/avatar';
 import { CURRENT_USER_ROLE_LABELS, type CurrentUser } from '../../hooks/useCurrentUser';
 
 export interface TopbarProps {
@@ -22,13 +23,6 @@ const DEMO_AGENCY_NAME = 'Horizonte Viagens';
 // not wired to any real notification feed. Flagged here rather than
 // pretending it's live data.
 const MOCK_NOTIFICATION_COUNT = 3;
-
-function initialsFor(label: string | null): string {
-  if (!label) return '?';
-  const parts = label.trim().split(/\s+/);
-  if (parts.length === 1) return parts[0]!.slice(0, 2).toUpperCase();
-  return `${parts[0]![0]}${parts[parts.length - 1]![0]}`.toUpperCase();
-}
 
 export function Topbar({ onMenuClick, user }: TopbarProps) {
   const roleLabel = user ? CURRENT_USER_ROLE_LABELS[user.role] : null;
@@ -92,9 +86,7 @@ export function Topbar({ onMenuClick, user }: TopbarProps) {
           items={[{ label: 'Sair', onSelect: () => {}, destructive: true }]}
           trigger={
             <div className="flex items-center gap-2 rounded-[--radius-pill] py-1 pl-1 pr-2 transition-colors hover:bg-slate-100">
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-xs font-bold text-white">
-                {initialsFor(roleLabel)}
-              </span>
+              <Avatar name={roleLabel} size="sm" />
               <span className="hidden flex-col items-start leading-tight sm:flex">
                 <span className="text-sm font-semibold text-slate-800">{roleLabel ?? 'Carregando…'}</span>
                 <span className="text-xs text-slate-500">{DEMO_AGENCY_NAME}</span>

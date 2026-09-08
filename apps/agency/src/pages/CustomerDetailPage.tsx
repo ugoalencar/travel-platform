@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, Map, Heart, FileText, CalendarCheck, Phone, Mail, Home, IdCard, Users, Plus, Trash2, Star, ShieldCheck, Clock, Wallet, UserCog } from 'lucide-react';
+import { ArrowLeft, Map, Heart, FileText, CalendarCheck, Phone, Mail, Home, IdCard, Users, Plus, Trash2, Star, ShieldCheck, Clock, Wallet, UserCog, CreditCard, BookOpen } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
+import { SectionCard } from '../components/ui/section-card';
+import { Avatar } from '../components/ui/avatar';
 import { StatusBadge } from '../components/ui/status-badge';
 import { Tabs } from '../components/ui/tabs';
 import { EmptyState } from '../components/ui/empty-state';
@@ -112,6 +114,19 @@ const DOCUMENT_TYPE_LABELS: Record<string, string> = {
   CERTIFICADO_VACINACAO: 'Carteira/Certificado de vacinação',
   SEGURO_VIAGEM: 'Seguro viagem',
   OUTRO: 'Outro',
+};
+
+const DOCUMENT_TYPE_ICONS: Record<string, typeof IdCard> = {
+  PASSAPORTE: BookOpen,
+  RG: IdCard,
+  CNH: CreditCard,
+  CPF: CreditCard,
+  VISTO: BookOpen,
+  CERTIDAO: FileText,
+  AUTORIZACAO_VIAGEM: FileText,
+  CERTIFICADO_VACINACAO: ShieldCheck,
+  SEGURO_VIAGEM: ShieldCheck,
+  OUTRO: FileText,
 };
 
 const RELATIONSHIP_LABELS: Record<string, string> = {
@@ -452,64 +467,170 @@ export function CustomerDetailPage() {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-start justify-between gap-4">
-        <div className="space-y-2">
-          <Link to="/customers" className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-700">
-            <ArrowLeft className="h-3 w-3" /> Clientes
-          </Link>
-          <h1 className="text-2xl font-bold text-slate-900">{customer.name}</h1>
-        </div>
-        <StatusBadge tone={customerStatusTone(customer.status)}>
-          {getCustomerStatusLabel(customer.status)}
-        </StatusBadge>
+      <div>
+        <Link to="/customers" className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-700">
+          <ArrowLeft className="h-3 w-3" /> Clientes
+        </Link>
       </div>
+
+      <Card className="p-5">
+        <div className="flex flex-wrap items-start gap-4">
+          <Avatar name={customer.name} size="lg" />
+          <div className="min-w-0 flex-1 space-y-1.5">
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-2xl font-bold text-slate-900">{customer.name}</h1>
+              <StatusBadge tone={customerStatusTone(customer.status)}>
+                {getCustomerStatusLabel(customer.status)}
+              </StatusBadge>
+            </div>
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-600">
+              {customer.phone && (
+                <span className="flex items-center gap-1.5">
+                  <Phone className="h-3.5 w-3.5 text-slate-400" /> {customer.phone}
+                </span>
+              )}
+              {customer.email && (
+                <span className="flex items-center gap-1.5">
+                  <Mail className="h-3.5 w-3.5 text-slate-400" /> {customer.email}
+                </span>
+              )}
+              {customer.cpf && (
+                <span className="flex items-center gap-1.5">
+                  <CreditCard className="h-3.5 w-3.5 text-slate-400" /> CPF {customer.cpf}
+                </span>
+              )}
+              {customer.passport && (
+                <span className="flex items-center gap-1.5">
+                  <BookOpen className="h-3.5 w-3.5 text-slate-400" /> Passaporte {customer.passport}
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-slate-400">
+              Cliente desde {formatDateBR(customer.createdAt)}
+            </p>
+          </div>
+        </div>
+      </Card>
 
       <Tabs items={TABS} value={tab} onValueChange={setTab} />
 
       {tab === 'overview' && (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2 space-y-6">
-            <Card>
-              <CardHeader><CardTitle>Informações do cliente</CardTitle></CardHeader>
-              <CardContent>
-                <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div>
-                    <dt className="text-xs text-slate-500">E-mail</dt>
-                    <dd className="flex items-center gap-1.5 text-sm text-slate-900">
-                      <Mail className="h-3.5 w-3.5 text-slate-400" />
-                      {customer.email ?? '—'}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-xs text-slate-500">Telefone</dt>
-                    <dd className="flex items-center gap-1.5 text-sm text-slate-900">
-                      <Phone className="h-3.5 w-3.5 text-slate-400" />
-                      {customer.phone ?? '—'}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-xs text-slate-500">Cadastro</dt>
-                    <dd className="text-sm text-slate-900">{formatDateBR(customer.createdAt)}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-xs text-slate-500">Última atualização</dt>
-                    <dd className="text-sm text-slate-900">{formatDateBR(customer.updatedAt)}</dd>
-                  </div>
-                </dl>
-                {customer.notes && (
-                  <div className="mt-4 rounded-md bg-slate-50 p-3">
-                    <p className="text-xs text-slate-500 mb-1">Observações</p>
-                    <p className="text-sm text-slate-700">{customer.notes}</p>
-                  </div>
+            <SectionCard title="Dados pessoais" description="Informações de cadastro do cliente">
+              <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <Field label="Nome social" value={customer.socialName} />
+                <Field label="Nacionalidade" value={customer.nationality} />
+                <Field
+                  label="Data de nascimento"
+                  value={customer.birthDate ? formatDateBR(customer.birthDate, { assumeDateOnly: true }) : undefined}
+                />
+                <Field
+                  label="Estado civil"
+                  value={customer.maritalStatus ? MARITAL_STATUS_LABELS[customer.maritalStatus] ?? customer.maritalStatus : undefined}
+                />
+                <Field label="Profissão" value={customer.profession} />
+                <Field label="RG" value={customer.rg} />
+              </dl>
+              {customer.notes && (
+                <div className="mt-4 rounded-md bg-slate-50 p-3">
+                  <p className="text-xs text-slate-500 mb-1">Observações</p>
+                  <p className="text-sm text-slate-700">{customer.notes}</p>
+                </div>
+              )}
+            </SectionCard>
+
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+              <SectionCard
+                title="Endereços"
+                description={`${addresses.length} cadastrado(s)`}
+                actions={
+                  <button onClick={() => setTab('addresses')} className="text-xs font-semibold text-blue-600 hover:text-blue-700">
+                    Ver tudo
+                  </button>
+                }
+              >
+                {addresses.length === 0 ? (
+                  <p className="py-4 text-center text-sm text-slate-400">Nenhum endereço cadastrado</p>
+                ) : (
+                  <ul className="space-y-3">
+                    {addresses.slice(0, 2).map((a) => (
+                      <li key={a.id} className="flex items-start gap-2">
+                        <Home className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
+                        <div className="min-w-0">
+                          <p className="text-xs font-semibold text-slate-700">{ADDRESS_TYPE_LABELS[a.type] ?? a.type}</p>
+                          <p className="truncate text-xs text-slate-500">{[a.street, a.city, a.state].filter(Boolean).join(', ')}</p>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
                 )}
-              </CardContent>
-            </Card>
+              </SectionCard>
+
+              <SectionCard
+                title="Dependentes"
+                description={`${dependents.length} cadastrado(s)`}
+                actions={
+                  <button onClick={() => setTab('dependents')} className="text-xs font-semibold text-blue-600 hover:text-blue-700">
+                    Ver tudo
+                  </button>
+                }
+              >
+                {dependents.length === 0 ? (
+                  <p className="py-4 text-center text-sm text-slate-400">Nenhum dependente cadastrado</p>
+                ) : (
+                  <ul className="space-y-2">
+                    {dependents.slice(0, 3).map((d) => (
+                      <li key={d.id} className="flex items-center gap-2">
+                        <Avatar name={d.name} size="sm" />
+                        <div className="min-w-0">
+                          <p className="truncate text-xs font-semibold text-slate-700">{d.name}</p>
+                          <p className="text-xs text-slate-500">{RELATIONSHIP_LABELS[d.relationshipType] ?? d.relationshipType}</p>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </SectionCard>
+            </div>
+
+            <SectionCard
+              title="Documentos"
+              description={`${documents.length} cadastrado(s)`}
+              actions={
+                <button onClick={() => setTab('documents')} className="text-xs font-semibold text-blue-600 hover:text-blue-700">
+                  Ver tudo
+                </button>
+              }
+            >
+              {documents.length === 0 ? (
+                <p className="py-4 text-center text-sm text-slate-400">Nenhum documento cadastrado</p>
+              ) : (
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  {documents.slice(0, 4).map((doc) => {
+                    const DocIcon = DOCUMENT_TYPE_ICONS[doc.documentType] ?? FileText;
+                    return (
+                      <div key={doc.id} className="flex items-center gap-2 rounded-md border border-slate-200 p-2.5">
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[--radius-sm] bg-slate-100 text-slate-500">
+                          <DocIcon className="h-4 w-4" />
+                        </span>
+                        <div className="min-w-0">
+                          <p className="truncate text-xs font-semibold text-slate-700">
+                            {DOCUMENT_TYPE_LABELS[doc.documentType] ?? doc.documentType}
+                          </p>
+                          <StatusBadge tone={documentStatusTone(doc)}>{documentStatusLabel(doc)}</StatusBadge>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </SectionCard>
           </div>
 
-          <div className="space-y-4">
-            <Card>
-              <CardHeader><CardTitle>Resumo</CardTitle></CardHeader>
-              <CardContent className="space-y-3">
+          <div className="space-y-6">
+            <SectionCard title="Resumo">
+              <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-slate-500">Desejos</span>
                   <span className="text-sm font-semibold text-slate-900">{wishes.length}</span>
@@ -526,8 +647,49 @@ export function CustomerDetailPage() {
                   <span className="text-sm text-slate-500">Reservas</span>
                   <span className="text-sm font-semibold text-slate-900">{bookings.length}</span>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </SectionCard>
+
+            <SectionCard title="Atividade recente">
+              {(() => {
+                type Event = { date: string; label: string; description: string };
+                const events: Event[] = [
+                  { date: customer.createdAt, label: 'Cadastro', description: 'Cliente cadastrado.' },
+                  ...addresses.map((a) => ({ date: a.createdAt, label: 'Endereço', description: `Endereço ${ADDRESS_TYPE_LABELS[a.type] ?? a.type} adicionado.` })),
+                  ...documents.map((d) => ({ date: d.createdAt, label: 'Documento', description: `Documento ${DOCUMENT_TYPE_LABELS[d.documentType] ?? d.documentType} adicionado.` })),
+                  ...dependents.map((d) => ({ date: d.createdAt, label: 'Dependente', description: `Dependente ${d.name} adicionado.` })),
+                  ...wishes.map((w) => ({ date: w.createdAt, label: 'Desejo', description: `Desejo de viagem para ${w.destination ?? 'destino a definir'} registrado.` })),
+                  ...trips.map((t) => ({ date: t.createdAt, label: 'Viagem', description: `Viagem "${t.name}" registrada.` })),
+                ]
+                  .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                  .slice(0, 4);
+
+                if (events.length === 0) {
+                  return <p className="py-4 text-center text-sm text-slate-400">Sem atividade registrada</p>;
+                }
+
+                return (
+                  <ol className="space-y-3">
+                    {events.map((e, idx) => (
+                      <li key={idx} className="flex gap-2.5">
+                        <span className="mt-1 flex h-2 w-2 shrink-0 rounded-full bg-blue-400" />
+                        <div className="min-w-0">
+                          <p className="text-xs font-semibold text-slate-700">{e.label}</p>
+                          <p className="truncate text-xs text-slate-500">{e.description}</p>
+                          <p className="text-[11px] text-slate-400">{formatDateBR(e.date, { includeTime: true })}</p>
+                        </div>
+                      </li>
+                    ))}
+                  </ol>
+                );
+              })()}
+              <button
+                onClick={() => setTab('history')}
+                className="mt-3 text-xs font-semibold text-blue-600 hover:text-blue-700"
+              >
+                Ver histórico completo
+              </button>
+            </SectionCard>
           </div>
         </div>
       )}
@@ -879,17 +1041,24 @@ export function CustomerDetailPage() {
               icon={<IdCard className="h-8 w-8" />}
             />
           ) : (
-            documents.map((doc) => (
+            documents.map((doc) => {
+              const DocIcon = DOCUMENT_TYPE_ICONS[doc.documentType] ?? FileText;
+              return (
               <div key={doc.id} className="rounded-lg border border-slate-200 bg-white p-4">
                 <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-semibold text-slate-900">
-                      {DOCUMENT_TYPE_LABELS[doc.documentType] ?? doc.documentType} · {doc.documentNumber}
-                    </p>
-                    <p className="text-xs text-slate-500">
-                      {doc.holderName ? `${doc.holderName} · ` : ''}
-                      {doc.expiryDate ? `Validade: ${formatDateBR(doc.expiryDate, { assumeDateOnly: true })}` : 'Sem validade informada'}
-                    </p>
+                  <div className="flex items-start gap-3">
+                    <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-[--radius-sm] bg-slate-100 text-slate-500">
+                      <DocIcon className="h-4 w-4" />
+                    </span>
+                    <div>
+                      <p className="text-sm font-semibold text-slate-900">
+                        {DOCUMENT_TYPE_LABELS[doc.documentType] ?? doc.documentType} · {doc.documentNumber}
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        {doc.holderName ? `${doc.holderName} · ` : ''}
+                        {doc.expiryDate ? `Validade: ${formatDateBR(doc.expiryDate, { assumeDateOnly: true })}` : 'Sem validade informada'}
+                      </p>
+                    </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <StatusBadge tone={documentStatusTone(doc)}>{documentStatusLabel(doc)}</StatusBadge>
@@ -919,7 +1088,8 @@ export function CustomerDetailPage() {
                   </p>
                 </div>
               </div>
-            ))
+              );
+            })
           )}
         </div>
       )}
