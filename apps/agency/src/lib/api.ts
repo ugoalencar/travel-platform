@@ -2359,6 +2359,147 @@ export async function getCashFlowReport(startDate?: string, endDate?: string): P
 }
 
 // ============================================================
+// OPERAÇÃO -- Passageiros / Documentos (read-only aggregations),
+// Ocorrências and Pós-viagem (see services/api/src/routes/operations.ts)
+// ============================================================
+
+export interface OperationalPassenger {
+  tripId: string;
+  tripName: string;
+  destination: string;
+  startDate: string;
+  customerId: string;
+  dependentId: string | null;
+  travelerName: string;
+  contactEmail: string | null;
+  contactPhone: string | null;
+  documentsFulfilled: number;
+  documentsRequired: number;
+}
+
+export async function listOperationalPassengers(): Promise<OperationalPassenger[]> {
+  const data = await request<{ passengers: OperationalPassenger[] }>('/api/operations/passengers');
+  return data.passengers;
+}
+
+export type DocumentAlertStatus = 'PENDENTE' | 'EXPIRANDO' | 'EXPIRADO' | 'OK';
+
+export interface DocumentAlert {
+  requirementId: string;
+  customerId: string;
+  dependentId: string | null;
+  travelerName: string;
+  tripId: string | null;
+  tripName: string | null;
+  destination: string | null;
+  type: string;
+  status: DocumentAlertStatus;
+  expirationDate: string | null;
+}
+
+export async function listDocumentAlerts(): Promise<DocumentAlert[]> {
+  const data = await request<{ alerts: DocumentAlert[] }>('/api/operations/document-alerts');
+  return data.alerts;
+}
+
+export type TripOccurrenceType =
+  | 'ATRASO'
+  | 'CANCELAMENTO'
+  | 'PROBLEMA_DOCUMENTO'
+  | 'RECLAMACAO'
+  | 'OUTRO';
+export type TripOccurrenceSeverity = 'BAIXA' | 'MEDIA' | 'ALTA';
+export type TripOccurrenceStatus = 'ABERTA' | 'EM_ANDAMENTO' | 'RESOLVIDA';
+
+export interface TripOccurrence {
+  id: string;
+  tripId: string;
+  bookingId: string | null;
+  type: TripOccurrenceType;
+  description: string;
+  severity: TripOccurrenceSeverity;
+  status: TripOccurrenceStatus;
+  reportedBy: string;
+  reportedAt: string;
+  resolvedAt: string | null;
+  notes: string | null;
+  tripName: string;
+  customerName: string;
+}
+
+export interface CreateTripOccurrenceInput {
+  tripId: string;
+  bookingId?: string;
+  type: TripOccurrenceType;
+  description: string;
+  severity?: TripOccurrenceSeverity;
+  notes?: string;
+}
+
+export async function listTripOccurrences(): Promise<TripOccurrence[]> {
+  const data = await request<{ occurrences: TripOccurrence[] }>('/api/operations/occurrences');
+  return data.occurrences;
+}
+
+export async function createTripOccurrence(input: CreateTripOccurrenceInput): Promise<TripOccurrence> {
+  const data = await request<{ occurrence: TripOccurrence }>('/api/operations/occurrences', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+  return data.occurrence;
+}
+
+export async function updateTripOccurrence(
+  id: string,
+  input: Partial<Pick<TripOccurrence, 'status' | 'severity' | 'description' | 'notes'>>,
+): Promise<TripOccurrence> {
+  const data = await request<{ occurrence: TripOccurrence }>(
+    `/api/operations/occurrences/${encodeURIComponent(id)}`,
+    { method: 'PATCH', body: JSON.stringify(input) },
+  );
+  return data.occurrence;
+}
+
+export type PostTripChecklistItemKey =
+  | 'SATISFACAO_ENVIADA'
+  | 'AVALIACAO_RECEBIDA'
+  | 'DOCUMENTOS_DEVOLVIDOS'
+  | 'PROXIMA_OFERTA_SUGERIDA';
+
+export interface PostTripChecklistEntry {
+  itemKey: PostTripChecklistItemKey;
+  done: boolean;
+  doneAt: string | null;
+  notes: string | null;
+}
+
+export interface CompletedTripWithChecklist {
+  tripId: string;
+  tripName: string;
+  customerName: string;
+  destination: string;
+  endDate: string;
+  items: PostTripChecklistEntry[];
+}
+
+export async function listCompletedTripsWithChecklist(): Promise<CompletedTripWithChecklist[]> {
+  const data = await request<{ trips: CompletedTripWithChecklist[] }>('/api/operations/post-trip');
+  return data.trips;
+}
+
+export async function setPostTripChecklistItem(
+  tripId: string,
+  itemKey: PostTripChecklistItemKey,
+  done: boolean,
+): Promise<PostTripChecklistEntry> {
+  const data = await request<{ item: PostTripChecklistEntry }>(
+    `/api/operations/post-trip/${encodeURIComponent(tripId)}/${encodeURIComponent(itemKey)}`,
+    { method: 'PATCH', body: JSON.stringify({ done }) },
+  );
+  return data.item;
+}
+
+// ============================================================
 // GENERIC API CLIENT
 // For use by pages that need flexible API access beyond
 // the specific functions above. Provides get, post, etc.

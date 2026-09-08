@@ -42,13 +42,19 @@ const NAV_SECTIONS: NavSection[] = [
     label: 'Operação',
     items: [
       { label: 'Viagens', to: '/trips' },
+      // Intentional shared route with Comercial's "Reservas" (not a gap):
+      // BookingListPage/BookingDetailPage (SalesJourneyPages.tsx) are
+      // already framed operationally ("Reservas operacionais", trip type,
+      // confirmed/cancelled status per booking), so Operação's "Booking"
+      // is the same underlying record viewed from the ops side, not a
+      // separate concept that needs its own screen.
       { label: 'Booking', to: '/bookings' },
       { label: 'Aéreo', to: '/operations/air' },
       { label: 'Terrestre', to: '/operations/land' },
-      { label: 'Passageiros', to: '/trips', gap: true },
-      { label: 'Documentos', to: '/trips', gap: true },
-      { label: 'Ocorrências', to: '/trips', gap: true },
-      { label: 'Pós-viagem', to: '/trips', gap: true },
+      { label: 'Passageiros', to: '/operations/passengers' },
+      { label: 'Documentos', to: '/operations/documents' },
+      { label: 'Ocorrências', to: '/operations/occurrences' },
+      { label: 'Pós-viagem', to: '/operations/post-trip' },
     ],
   },
   {

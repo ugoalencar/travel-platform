@@ -101,7 +101,8 @@ async function seedTenantData() {
     const sales = await seedSales(agency.id, proposals, customers, agencyUsers[0].id);
 
     console.log('9. Criando viagens...');
-    await seedTrips(agency.id, sales);
+    const trips = await seedTrips(agency.id, sales);
+    await seedOperacaoDemoData(agency.id, trips, agencyUsers[0].id);
 
     console.log('9.5 Criando hierarquia de categorias financeiras e centros de custo...');
     await seedFinanceCategoryHierarchyAndCostCenters(agency.id);
@@ -670,12 +671,17 @@ async function seedSales(agencyId, proposals, customers, userId) {
 
 async function seedTrips(agencyId, sales) {
   const statuses = ['PLANNED', 'CONFIRMED', 'IN_PROGRESS', 'COMPLETED'];
+  const result = [];
 
   for (let i = 0; i < 6; i++) {
     const sale = sales[i % sales.length];
     const tripId = generateId();
     const status = statuses[i % statuses.length];
-    const startDate = new Date(Date.now() + Math.random() * 180 * 24 * 60 * 60 * 1000);
+    // COMPLETED trips must actually be in the past (Pós-viagem reads real
+    // completed trips), everything else stays upcoming.
+    const startDate = status === 'COMPLETED'
+      ? new Date(Date.now() - (10 + Math.random() * 60) * 24 * 60 * 60 * 1000)
+      : new Date(Date.now() + Math.random() * 180 * 24 * 60 * 60 * 1000);
     const endDate = new Date(startDate.getTime() + (5 + Math.random() * 9) * 24 * 60 * 60 * 1000);
 
     await pool.query(
@@ -684,7 +690,47 @@ async function seedTrips(agencyId, sales) {
       [tripId, agencyId, sale.customerId, sale.id, `Viagem demo ${i + 1}`, status, startDate, endDate]
     );
 
+    result.push({ id: tripId, customerId: sale.customerId, status });
     console.log(`   ✓ Viagem: ${status}`);
+  }
+
+  return result;
+}
+
+async function seedOperacaoDemoData(agencyId, trips, userId) {
+  // Ocorrências: a couple of realistic incidents against non-completed trips.
+  const activeTrips = trips.filter((t) => t.status !== 'COMPLETED');
+  if (activeTrips.length > 0) {
+    await pool.query(
+      `INSERT INTO trip_occurrences (id, agency_id, trip_id, type, description, severity, status, reported_by, reported_at, resolved_at)
+       VALUES ($1, $2, $3, 'ATRASO', 'Voo de ida atrasado em 3 horas, cliente avisado.', 'MEDIA', 'RESOLVIDA', $4, NOW() - INTERVAL '4 days', NOW() - INTERVAL '3 days')
+       ON CONFLICT DO NOTHING`,
+      [generateId(), agencyId, activeTrips[0].id, userId]
+    );
+    console.log('   ✓ Ocorrência demo: ATRASO (RESOLVIDA)');
+  }
+  if (activeTrips.length > 1) {
+    await pool.query(
+      `INSERT INTO trip_occurrences (id, agency_id, trip_id, type, description, severity, status, reported_by, reported_at)
+       VALUES ($1, $2, $3, 'PROBLEMA_DOCUMENTO', 'Passageiro com passaporte próximo do vencimento, aguardando renovação.', 'ALTA', 'ABERTA', $4, NOW() - INTERVAL '1 day')
+       ON CONFLICT DO NOTHING`,
+      [generateId(), agencyId, activeTrips[1].id, userId]
+    );
+    console.log('   ✓ Ocorrência demo: PROBLEMA_DOCUMENTO (ABERTA)');
+  }
+
+  // Pós-viagem: a partially completed checklist on the first completed trip.
+  const completedTrip = trips.find((t) => t.status === 'COMPLETED');
+  if (completedTrip) {
+    await pool.query(
+      `INSERT INTO post_trip_checklist (id, agency_id, trip_id, item_key, done, done_at)
+       VALUES
+         ($1, $2, $3, 'SATISFACAO_ENVIADA', true, NOW() - INTERVAL '5 days'),
+         ($4, $2, $3, 'AVALIACAO_RECEBIDA', true, NOW() - INTERVAL '2 days')
+       ON CONFLICT DO NOTHING`,
+      [generateId(), agencyId, completedTrip.id, generateId()]
+    );
+    console.log('   ✓ Checklist pós-viagem demo: 2/4 itens concluídos');
   }
 }
 

@@ -38,6 +38,10 @@ import { PescadorPage } from './pages/PescadorPage';
 import { SuppliersPage } from './pages/SuppliersPage';
 import { AirServicesPage } from './pages/AirServicesPage';
 import { LandServicesPage } from './pages/LandServicesPage';
+import { PassengersPage } from './pages/operations/PassengersPage';
+import { DocumentAlertsPage } from './pages/operations/DocumentAlertsPage';
+import { OccurrencesPage } from './pages/operations/OccurrencesPage';
+import { PostTripPage } from './pages/operations/PostTripPage';
 import { ReportsPage } from './pages/ReportsPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { EmployeesPage } from './pages/EmployeesPage';
@@ -83,6 +87,10 @@ export function App() {
         <Route path="suppliers" element={<SuppliersPage />} />
         <Route path="operations/air" element={<AirServicesPage />} />
         <Route path="operations/land" element={<LandServicesPage />} />
+        <Route path="operations/passengers" element={<PassengersPage />} />
+        <Route path="operations/documents" element={<DocumentAlertsPage />} />
+        <Route path="operations/occurrences" element={<OccurrencesPage />} />
+        <Route path="operations/post-trip" element={<PostTripPage />} />
         <Route path="reports" element={<ReportsPage />} />
         <Route path="employees" element={<EmployeesPage />} />
         <Route path="commission-plans" element={<CommissionPlansPage />} />

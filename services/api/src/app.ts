@@ -30,6 +30,7 @@ import { createAuthenticateHook, type AuthProvider } from './auth';
 import { createCustomerAuthenticateHook, type CustomerAuthProvider } from './customer-auth';
 import type { DatabaseRuntime } from './database';
 import { registerCustomerDocumentRoutes } from './routes/customer-documents';
+import { registerOperationsRoutes } from './routes/operations';
 import {
   parseCreateOfferInput,
   parseUpdateOfferInput,
@@ -843,6 +844,13 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     database: options.database,
     protectedHooks,
     ...(options.ocrProvider ? { ocrProvider: options.ocrProvider } : {}),
+  });
+
+  // Operação sidebar gap fill: Passageiros / Documentos aggregations,
+  // Ocorrências and Pós-viagem -- see routes/operations.ts.
+  registerOperationsRoutes(app, {
+    database: options.database,
+    protectedHooks,
   });
 
   app.get('/customers', { preHandler: protectedHooks }, async () => {
