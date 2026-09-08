@@ -14,9 +14,9 @@ interface CashTransaction {
   id: string;
   type: 'ENTRY' | 'EXIT' | 'ADJUSTMENT';
   amount: number;
-  occurring_at: string;
+  occurringAt: string;
   origin: string;
-  calculated_balance: number;
+  calculatedBalance: number;
 }
 
 type LoadState =
@@ -63,7 +63,7 @@ export function CashTransactionsPage() {
 
     api
       .get(
-        `/financial/cash-transactions?start_date=${dateRange.startDate}&end_date=${dateRange.endDate}`,
+        `/financial/cash-transactions?periodFrom=${dateRange.startDate}&periodTo=${dateRange.endDate}`,
       )
       .then((response) => {
         if (!cancelled) {
@@ -237,7 +237,7 @@ export function CashTransactionsPage() {
                   {filtered.map((tx) => (
                     <TableRow key={tx.id}>
                       <TableCell>
-                        {formatDateBR(tx.occurring_at, {
+                        {formatDateBR(tx.occurringAt, {
                           assumeDateOnly: true,
                         })}
                       </TableCell>
@@ -250,7 +250,7 @@ export function CashTransactionsPage() {
                         {formatBRL(tx.amount)}
                       </TableCell>
                       <TableCell className="text-right font-medium">
-                        {formatBRL(tx.calculated_balance)}
+                        {formatBRL(tx.calculatedBalance)}
                       </TableCell>
                       <TableCell>{tx.origin}</TableCell>
                     </TableRow>

@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import { cn } from '../../lib/utils';
+import type { CurrentUserRole } from '../../hooks/useCurrentUser';
 
 interface NavItem {
   label: string;
@@ -114,12 +115,53 @@ const NAV_SECTIONS: NavSection[] = [
   },
 ];
 
+// Blueprint's "Staff Operacional" surface (01_MASTER_BLUEPRINT.md):
+// "Ambiente simplificado. Foco: tarefas do dia, passageiros, check-ins,
+// transfers, operações, ocorrências, documentos." AGENT is the role that
+// maps to this day-to-day operational scope -- OWNER/ADMIN/MANAGER keep the
+// full management sidebar above; VIEWER is read-only across the same full
+// scope so it also keeps the full sidebar. This is presentation only: every
+// route an AGENT doesn't see here is still reachable by URL and still
+// enforced (or not) by the same server-side RBAC as before -- no new
+// authorization boundary is introduced.
+const STAFF_OPERATIONAL_SECTIONS: NavSection[] = [
+  {
+    label: 'Painel',
+    items: [{ label: 'Minhas Tarefas', to: '/' }],
+  },
+  {
+    label: 'Operação',
+    items: [
+      { label: 'Passageiros', to: '/operations/passengers' },
+      { label: 'Documentos', to: '/operations/documents' },
+      { label: 'Ocorrências', to: '/operations/occurrences' },
+      { label: 'Aéreo', to: '/operations/air' },
+      { label: 'Terrestre', to: '/operations/land' },
+      { label: 'Pós-viagem', to: '/operations/post-trip' },
+    ],
+  },
+  {
+    label: 'Clientes',
+    items: [
+      { label: 'Clientes', to: '/customers' },
+      { label: 'Reservas', to: '/bookings' },
+    ],
+  },
+];
+
 export interface SidebarProps {
   mobileOpen: boolean;
   onClose: () => void;
+  /** Current principal's role, when known. Undefined/null (still loading,
+   * or /me unavailable) falls back to the full management sidebar so the
+   * app never silently hides navigation a user is entitled to. */
+  role?: CurrentUserRole | null | undefined;
 }
 
-export function Sidebar({ mobileOpen, onClose }: SidebarProps) {
+export function Sidebar({ mobileOpen, onClose, role }: SidebarProps) {
+  const isOperationalStaff = role === 'AGENT';
+  const sections = isOperationalStaff ? STAFF_OPERATIONAL_SECTIONS : NAV_SECTIONS;
+
   return (
     <>
       {mobileOpen && (
@@ -143,8 +185,13 @@ export function Sidebar({ mobileOpen, onClose }: SidebarProps) {
             Travel Platform
           </span>
         </div>
+        {isOperationalStaff && (
+          <p className="border-b border-[--color-sidebar-border] px-4 py-2 text-[0.68rem] font-semibold uppercase tracking-wide text-[--color-sidebar-muted]">
+            Ambiente Operacional
+          </p>
+        )}
         <nav className="flex flex-1 flex-col gap-4 overflow-y-auto p-3">
-          {NAV_SECTIONS.map((section) => (
+          {sections.map((section) => (
             <div key={section.label} className="space-y-1">
               <p className="px-3 text-[0.68rem] font-bold uppercase tracking-wide text-[--color-sidebar-muted]">
                 {section.label}

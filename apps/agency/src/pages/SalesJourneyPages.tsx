@@ -1036,7 +1036,6 @@ export function SaleSummaryPage() {
           <CardTitle>Informacoes da venda</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-5 md:grid-cols-2">
-          <Field label="Identificador" value={sale.id} />
           <Field label="Data da venda" value={formatDateBR(sale.createdAt)} />
           <Field label="Cliente" value={sale.customerName || sale.customerId} />
           <Field label="Vendedor" value={sale.salespersonName || '—'} />
