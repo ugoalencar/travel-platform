@@ -222,12 +222,12 @@ export function Sidebar({ mobileOpen, onClose, role }: SidebarProps) {
       )}
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 -translate-x-full flex-col bg-[--color-sidebar] transition-transform md:static md:z-auto md:w-64 md:translate-x-0',
+          'fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 -translate-x-full flex-col bg-(--color-sidebar) transition-transform md:static md:z-auto md:w-64 md:translate-x-0',
           mobileOpen && 'translate-x-0',
         )}
       >
-        <div className="flex h-14 shrink-0 items-center gap-2.5 border-b border-[--color-sidebar-border] px-4">
-          <span className="flex h-8 w-8 items-center justify-center rounded-[--radius-sm] bg-gradient-to-br from-blue-500 to-blue-600 text-xs font-bold text-white shadow-[--shadow-xs]">
+        <div className="flex h-14 shrink-0 items-center gap-2.5 border-b border-(--color-sidebar-border) px-4">
+          <span className="flex h-8 w-8 items-center justify-center rounded-(--radius-sm) bg-gradient-to-br from-blue-500 to-blue-600 text-xs font-bold text-white shadow-(--shadow-xs)">
             TP
           </span>
           <span className="text-sm font-semibold tracking-tight text-white">
@@ -235,14 +235,14 @@ export function Sidebar({ mobileOpen, onClose, role }: SidebarProps) {
           </span>
         </div>
         {isOperationalStaff && (
-          <p className="border-b border-[--color-sidebar-border] px-4 py-2 text-[0.68rem] font-semibold uppercase tracking-wide text-[--color-sidebar-muted]">
+          <p className="border-b border-(--color-sidebar-border) px-4 py-2 text-[0.68rem] font-semibold uppercase tracking-wide text-(--color-sidebar-muted)">
             Ambiente Operacional
           </p>
         )}
         <nav className="flex flex-1 flex-col gap-5 overflow-y-auto p-3">
           {sections.map((section) => (
             <div key={section.label} className="space-y-1">
-              <p className="px-3 text-[0.65rem] font-bold uppercase tracking-widest text-[--color-sidebar-muted]">
+              <p className="px-3 text-[0.65rem] font-bold uppercase tracking-widest text-(--color-sidebar-muted)">
                 {section.label}
               </p>
               <div className="flex flex-col gap-0.5">
@@ -257,8 +257,8 @@ export function Sidebar({ mobileOpen, onClose, role }: SidebarProps) {
                       title={item.gap ? `${item.label} (tela dedicada prevista em onda futura)` : undefined}
                       className={({ isActive }) =>
                         cn(
-                          'group relative flex items-center gap-2.5 rounded-[--radius-sm] px-3 py-1.5 text-sm font-medium text-[--color-sidebar-foreground] transition-colors hover:bg-[--color-sidebar-active] hover:text-white',
-                          isActive && 'bg-[--color-sidebar-active] text-white',
+                          'group relative flex items-center gap-2.5 rounded-(--radius-sm) px-3 py-1.5 text-sm font-medium text-(--color-sidebar-foreground) transition-colors hover:bg-(--color-sidebar-active) hover:text-white',
+                          isActive && 'bg-(--color-sidebar-active) text-white',
                         )
                       }
                     >
@@ -273,7 +273,7 @@ export function Sidebar({ mobileOpen, onClose, role }: SidebarProps) {
                           />
                           <Icon
                             className={cn(
-                              'h-4 w-4 shrink-0 text-[--color-sidebar-muted] transition-colors group-hover:text-white',
+                              'h-4 w-4 shrink-0 text-(--color-sidebar-muted) transition-colors group-hover:text-white',
                               isActive && 'text-blue-400',
                             )}
                           />

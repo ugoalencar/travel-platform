@@ -6,11 +6,11 @@ import { Card } from './card';
 export type KpiAccent = 'revenue' | 'expense' | 'success' | 'pending' | 'neutral';
 
 const ACCENT_CLASSES: Record<KpiAccent, { icon: string; iconBg: string }> = {
-  revenue: { icon: 'text-[--color-kpi-revenue]', iconBg: 'bg-[--color-kpi-revenue-bg]' },
-  expense: { icon: 'text-[--color-kpi-expense]', iconBg: 'bg-[--color-kpi-expense-bg]' },
-  success: { icon: 'text-[--color-kpi-success]', iconBg: 'bg-[--color-kpi-success-bg]' },
-  pending: { icon: 'text-[--color-kpi-pending]', iconBg: 'bg-[--color-kpi-pending-bg]' },
-  neutral: { icon: 'text-[--color-kpi-neutral]', iconBg: 'bg-[--color-kpi-neutral-bg]' },
+  revenue: { icon: 'text-(--color-kpi-revenue)', iconBg: 'bg-(--color-kpi-revenue-bg)' },
+  expense: { icon: 'text-(--color-kpi-expense)', iconBg: 'bg-(--color-kpi-expense-bg)' },
+  success: { icon: 'text-(--color-kpi-success)', iconBg: 'bg-(--color-kpi-success-bg)' },
+  pending: { icon: 'text-(--color-kpi-pending)', iconBg: 'bg-(--color-kpi-pending-bg)' },
+  neutral: { icon: 'text-(--color-kpi-neutral)', iconBg: 'bg-(--color-kpi-neutral-bg)' },
 };
 
 export interface StatCardProps {
@@ -27,8 +27,8 @@ export interface StatCardProps {
 }
 
 const DELTA_CLASSES: Record<NonNullable<StatCardProps['deltaTone']>, string> = {
-  positive: 'text-[--color-status-success]',
-  negative: 'text-[--color-status-danger]',
+  positive: 'text-(--color-status-success)',
+  negative: 'text-(--color-status-danger)',
   neutral: 'text-slate-500',
 };
 
@@ -51,7 +51,7 @@ export function StatCard({
   return (
     <Card
       className={cn(
-        'flex flex-col gap-3 p-5 shadow-[--shadow-card] transition-all duration-200 hover:shadow-[--shadow-card-hover]',
+        'flex flex-col gap-3 p-5 shadow-(--shadow-card) transition-all duration-200 hover:shadow-(--shadow-card-hover)',
         className,
       )}
     >
@@ -60,7 +60,7 @@ export function StatCard({
         {icon && (
           <span
             className={cn(
-              'flex h-8 w-8 items-center justify-center rounded-[--radius-sm]',
+              'flex h-9 w-9 items-center justify-center rounded-full',
               accentClasses.iconBg,
               accentClasses.icon,
             )}
@@ -70,7 +70,7 @@ export function StatCard({
         )}
       </div>
       <div className="space-y-1.5">
-        <span className="block text-3xl font-extrabold tracking-tight text-slate-900">{value}</span>
+        <span className="block text-xl font-extrabold tracking-tight text-slate-900 sm:text-2xl">{value}</span>
         {delta && (
           <span
             className={cn(

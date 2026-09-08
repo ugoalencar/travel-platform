@@ -41,7 +41,7 @@ export function Topbar({ onMenuClick, user }: TopbarProps) {
 
       <div className="hidden items-center gap-2 sm:flex">
         <span
-          className="rounded-[--radius-pill] bg-blue-50 px-2.5 py-0.5 text-[0.7rem] font-semibold uppercase tracking-wide text-blue-700 ring-1 ring-inset ring-blue-200"
+          className="rounded-(--radius-pill) bg-blue-50 px-2.5 py-0.5 text-[0.7rem] font-semibold uppercase tracking-wide text-blue-700 ring-1 ring-inset ring-blue-200"
           title="Ambiente da agência (distinto do Painel da Plataforma)"
         >
           Agência
@@ -55,7 +55,7 @@ export function Topbar({ onMenuClick, user }: TopbarProps) {
           type="search"
           placeholder="Buscar clientes, reservas, propostas..."
           aria-label="Busca global"
-          className="w-full rounded-[--radius-pill] border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-sm text-slate-700 placeholder:text-slate-400 transition-colors focus-visible:border-blue-300 focus-visible:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-100"
+          className="w-full rounded-(--radius-pill) border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-sm text-slate-700 placeholder:text-slate-400 transition-colors focus-visible:border-blue-300 focus-visible:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-100"
         />
       </div>
 
@@ -85,7 +85,7 @@ export function Topbar({ onMenuClick, user }: TopbarProps) {
           align="end"
           items={[{ label: 'Sair', onSelect: () => {}, destructive: true }]}
           trigger={
-            <div className="flex items-center gap-2 rounded-[--radius-pill] py-1 pl-1 pr-2 transition-colors hover:bg-slate-100">
+            <div className="flex items-center gap-2 rounded-(--radius-pill) py-1 pl-1 pr-2 transition-colors hover:bg-slate-100">
               <Avatar name={roleLabel} size="sm" />
               <span className="hidden flex-col items-start leading-tight sm:flex">
                 <span className="text-sm font-semibold text-slate-800">{roleLabel ?? 'Carregando…'}</span>

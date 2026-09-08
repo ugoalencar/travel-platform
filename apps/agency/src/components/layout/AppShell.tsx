@@ -9,7 +9,7 @@ export function AppShell() {
   const { user } = useCurrentUser();
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-[--color-canvas]">
+    <div className="flex h-screen w-full overflow-hidden bg-(--color-canvas)">
       <Sidebar
         mobileOpen={mobileNavOpen}
         onClose={() => setMobileNavOpen(false)}
@@ -17,7 +17,7 @@ export function AppShell() {
       />
       <div className="flex flex-1 flex-col overflow-hidden">
         <Topbar onMenuClick={() => setMobileNavOpen(true)} user={user} />
-        <main className="flex-1 overflow-y-auto bg-[--color-canvas] p-4 sm:p-6 lg:p-8">
+        <main className="flex-1 overflow-y-auto bg-(--color-canvas) p-4 sm:p-6 lg:p-8">
           <Outlet />
         </main>
       </div>
