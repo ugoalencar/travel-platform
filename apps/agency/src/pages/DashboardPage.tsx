@@ -24,17 +24,169 @@ import { StatusBadge } from '../components/ui/status-badge';
 import { LoadingState } from '../components/ui/loading-state';
 import { formatBRL } from '../lib/formatCurrency';
 import { formatDateBR } from '../lib/formatDateBR';
+import { useCurrentUser } from '../hooks/useCurrentUser';
 import {
   ApiError,
   getDashboardSummary,
   getUpcomingTravel,
   listProposalsWaiting,
   listRecentInteractions,
+  listTripOccurrences,
   type CustomerInteraction,
   type DashboardSummary,
   type ProposalWaiting,
   type TravelSearchResult,
+  type TripOccurrence,
 } from '../lib/api';
+
+const OCCURRENCE_STATUS_TONE: Record<TripOccurrence['status'], 'positive' | 'attention' | 'inactive'> = {
+  ABERTA: 'attention',
+  EM_ANDAMENTO: 'attention',
+  RESOLVIDA: 'positive',
+};
+
+const OCCURRENCE_STATUS_LABEL: Record<TripOccurrence['status'], string> = {
+  ABERTA: 'Em aberto',
+  EM_ANDAMENTO: 'Em andamento',
+  RESOLVIDA: 'Resolvida',
+};
+
+const GREETING_BY_HOUR = (hour: number) => {
+  if (hour < 12) return 'Bom dia';
+  if (hour < 18) return 'Boa tarde';
+  return 'Boa noite';
+};
+
+type AgentLoadState =
+  | { status: 'loading' }
+  | { status: 'error'; message: string }
+  | { status: 'success'; travel: TravelSearchResult; occurrences: TripOccurrence[] };
+
+/**
+ * Staff/AGENT workspace view: simpler, task-oriented layout per
+ * visual_01_role_separation.png's "Staff Operacional" panel -- a greeting,
+ * today's date, and a compact "hoje" task list, rather than the dense
+ * KPI-heavy ADMIN dashboard below. Reuses existing operational data
+ * (today's departures + open trip occurrences); no new endpoints, no
+ * fabricated numbers.
+ */
+function AgentTodayView({ userName }: { userName: string }) {
+  const [state, setState] = useState<AgentLoadState>({ status: 'loading' });
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([getUpcomingTravel('today'), listTripOccurrences()])
+      .then(([travel, occurrences]) => {
+        if (cancelled) return;
+        setState({ status: 'success', travel, occurrences });
+      })
+      .catch((error: unknown) => {
+        if (cancelled) return;
+        setState({
+          status: 'error',
+          message: error instanceof ApiError ? error.message : 'Não foi possível carregar suas tarefas de hoje.',
+        });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const today = new Date();
+  const todayLabel = today.toLocaleDateString('pt-BR', {
+    weekday: 'long',
+    day: '2-digit',
+    month: 'long',
+  });
+
+  if (state.status === 'loading') {
+    return (
+      <div>
+        <PageHeader title={`${GREETING_BY_HOUR(today.getHours())}, ${userName}`} description={todayLabel} />
+        <LoadingState label="Carregando suas tarefas de hoje…" />
+      </div>
+    );
+  }
+
+  if (state.status === 'error') {
+    return (
+      <div>
+        <PageHeader title={`${GREETING_BY_HOUR(today.getHours())}, ${userName}`} description={todayLabel} />
+        <div role="alert" className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          {state.message}
+        </div>
+      </div>
+    );
+  }
+
+  const { travel, occurrences } = state;
+  const openOccurrences = occurrences.filter((o) => o.status === 'ABERTA' || o.status === 'EM_ANDAMENTO');
+  const todaysDepartures = travel.operational;
+
+  return (
+    <div className="space-y-6">
+      <PageHeader title={`${GREETING_BY_HOUR(today.getHours())}, ${userName}`} description={todayLabel} />
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <StatCard
+          label="Partidas hoje"
+          value={String(todaysDepartures.length)}
+          delta="Reservas com embarque hoje"
+          deltaTone="neutral"
+          icon={<Plane className="h-4 w-4" />}
+          accent="neutral"
+        />
+        <StatCard
+          label="Ocorrências em aberto"
+          value={String(openOccurrences.length)}
+          delta={openOccurrences.length > 0 ? 'Requer atenção' : 'Tudo em ordem'}
+          deltaTone={openOccurrences.length > 0 ? 'negative' : 'positive'}
+          icon={<AlertTriangle className="h-4 w-4" />}
+          accent={openOccurrences.length > 0 ? 'expense' : 'success'}
+        />
+      </div>
+
+      <SectionCard title="Hoje" description="Suas tarefas e operações do dia">
+        {todaysDepartures.length === 0 && openOccurrences.length === 0 ? (
+          <p className="text-sm text-slate-500">Nenhuma tarefa pendente para hoje.</p>
+        ) : (
+          <ul className="divide-y divide-slate-100">
+            {todaysDepartures.map((b) => (
+              <li key={`dep-${b.bookingId}`} className="flex items-center justify-between gap-3 py-3">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+                    <Plane className="h-4 w-4" />
+                  </span>
+                  <div>
+                    <p className="text-sm font-medium text-slate-900">{b.originDestination}</p>
+                    <p className="text-xs text-slate-500">Embarque hoje</p>
+                  </div>
+                </div>
+                <StatusBadge tone="neutral">Confirmado</StatusBadge>
+              </li>
+            ))}
+            {openOccurrences.map((o) => (
+              <li key={`occ-${o.id}`} className="flex items-center justify-between gap-3 py-3">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-50 text-amber-600">
+                    <AlertTriangle className="h-4 w-4" />
+                  </span>
+                  <div>
+                    <p className="text-sm font-medium text-slate-900">{o.description}</p>
+                    <p className="text-xs text-slate-500">{o.tripName} — {o.customerName}</p>
+                  </div>
+                </div>
+                <StatusBadge tone={OCCURRENCE_STATUS_TONE[o.status]}>
+                  {OCCURRENCE_STATUS_LABEL[o.status]}
+                </StatusBadge>
+              </li>
+            ))}
+          </ul>
+        )}
+      </SectionCard>
+    </div>
+  );
+}
 
 // All figures on this page come from the backend's tenant-scoped
 // aggregates (GET /commercial/dashboard, /commercial/travel-search,
@@ -72,6 +224,22 @@ type LoadState =
     };
 
 export function DashboardPage() {
+  const { user, loading: userLoading } = useCurrentUser();
+
+  // AGENT/Staff gets the simpler task-oriented "hoje" view instead of the
+  // KPI-heavy ADMIN dashboard below (visual_01_role_separation.png's "Staff
+  // Operacional" panel). Wait for the role to resolve before picking a
+  // branch so an ADMIN never briefly flashes the agent view (or vice versa).
+  if (!userLoading && user?.role === 'AGENT') {
+    // No display name is exposed by GET /me today -- greet by role rather
+    // than fabricating a name that isn't backed by real data.
+    return <AgentTodayView userName="Agente" />;
+  }
+
+  return <AdminDashboard />;
+}
+
+function AdminDashboard() {
   const [state, setState] = useState<LoadState>({ status: 'loading' });
 
   useEffect(() => {
@@ -285,21 +453,21 @@ export function DashboardPage() {
         <SectionCard title="Pendências operacionais" description="Itens que precisam de atenção">
           <dl className="grid grid-cols-3 gap-4">
             <div className="flex flex-col items-start gap-1">
-              <span className="flex h-8 w-8 items-center justify-center rounded-[--radius-sm] bg-[--color-kpi-expense-bg] text-[--color-kpi-expense]">
+              <span className="flex h-8 w-8 items-center justify-center rounded-(--radius-sm) bg-(--color-kpi-expense-bg) text-(--color-kpi-expense)">
                 <Ban className="h-4 w-4" />
               </span>
               <dt className="text-xs text-slate-500">Reservas canceladas</dt>
               <dd className="text-lg font-bold text-slate-900">{summary.cancelledBookingsCount}</dd>
             </div>
             <div className="flex flex-col items-start gap-1">
-              <span className="flex h-8 w-8 items-center justify-center rounded-[--radius-sm] bg-[--color-kpi-pending-bg] text-[--color-kpi-pending]">
+              <span className="flex h-8 w-8 items-center justify-center rounded-(--radius-sm) bg-(--color-kpi-pending-bg) text-(--color-kpi-pending)">
                 <Search className="h-4 w-4" />
               </span>
               <dt className="text-xs text-slate-500">Fila de revisão (Pescador)</dt>
               <dd className="text-lg font-bold text-slate-900">{summary.pescadorReviewQueueCount}</dd>
             </div>
             <div className="flex flex-col items-start gap-1">
-              <span className="flex h-8 w-8 items-center justify-center rounded-[--radius-sm] bg-[--color-kpi-neutral-bg] text-[--color-kpi-neutral]">
+              <span className="flex h-8 w-8 items-center justify-center rounded-(--radius-sm) bg-(--color-kpi-neutral-bg) text-(--color-kpi-neutral)">
                 <DollarSign className="h-4 w-4" />
               </span>
               <dt className="text-xs text-slate-500">Pós-venda pendente</dt>

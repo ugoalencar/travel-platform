@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Plus, Trash2, Pencil } from 'lucide-react';
+import { Plus, Trash2, Pencil, Plane, Banknote, CheckCircle2, Users } from 'lucide-react';
 import { PageHeader } from '../components/layout/PageHeader';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { SectionCard } from '../components/ui/section-card';
+import { StatCard } from '../components/ui/stat-card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Select } from '../components/ui/select';
@@ -11,6 +12,7 @@ import { ErrorState } from '../components/ui/error-state';
 import { LoadingState } from '../components/ui/loading-state';
 import { Modal } from '../components/ui/modal';
 import { StatusBadge } from '../components/ui/status-badge';
+import { formatBRL } from '../lib/formatCurrency';
 import {
   Table,
   TableBody,
@@ -209,6 +211,17 @@ export function AirServicesPage() {
     return airServices.filter((a) => a.tripId === tripFilter);
   }, [airServices, tripFilter]);
 
+  const confirmedCount = useMemo(
+    () => airServices.filter((a) => a.status === 'CONFIRMED').length,
+    [airServices],
+  );
+  const supplierCount = useMemo(
+    () => new Set(airServices.map((a) => a.supplierId).filter(Boolean)).size,
+    [airServices],
+  );
+  const totalCost = useMemo(() => airServices.reduce((sum, a) => sum + a.cost, 0), [airServices]);
+  const totalRevenue = useMemo(() => airServices.reduce((sum, a) => sum + a.saleValue, 0), [airServices]);
+
   function openCreate() {
     setForm(emptyForm);
     setSection('flight');
@@ -315,6 +328,41 @@ export function AirServicesPage() {
         }
       />
 
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          label="Segmentos"
+          value={String(airServices.length)}
+          delta={`${confirmedCount} confirmado${confirmedCount !== 1 ? 's' : ''}`}
+          deltaTone="positive"
+          icon={<Plane className="h-4 w-4" />}
+          accent="neutral"
+        />
+        <StatCard
+          label="Fornecedores"
+          value={String(supplierCount)}
+          delta="Companhias / consolidadoras"
+          deltaTone="neutral"
+          icon={<Users className="h-4 w-4" />}
+          accent="pending"
+        />
+        <StatCard
+          label="Custo total"
+          value={formatBRL(totalCost)}
+          delta="Pago aos fornecedores"
+          deltaTone="negative"
+          icon={<Banknote className="h-4 w-4" />}
+          accent="expense"
+        />
+        <StatCard
+          label="Receita total"
+          value={formatBRL(totalRevenue)}
+          delta="Valor de venda dos segmentos"
+          deltaTone="positive"
+          icon={<CheckCircle2 className="h-4 w-4" />}
+          accent="revenue"
+        />
+      </div>
+
       <div className="flex flex-col gap-3 rounded-lg border border-slate-200 bg-white p-3 sm:flex-row sm:items-center sm:justify-between">
         <Select
           aria-label="Filtrar por viagem"
@@ -331,12 +379,8 @@ export function AirServicesPage() {
         </Select>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Segmentos Aéreos</CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          {airServices.length === 0 ? (
+      <SectionCard title="Segmentos Aéreos" contentClassName="p-0">
+        {airServices.length === 0 ? (
             <EmptyState
               title="Nenhum segmento aéreo cadastrado"
               description="Cadastre trechos de voo (ida, volta ou conexões) vinculados às viagens dos clientes."
@@ -432,8 +476,7 @@ export function AirServicesPage() {
               </TableBody>
             </Table>
           )}
-        </CardContent>
-      </Card>
+      </SectionCard>
 
       <Modal
         open={modal.type !== 'closed'}

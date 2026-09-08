@@ -611,7 +611,7 @@ export function CustomerDetailPage() {
                     const DocIcon = DOCUMENT_TYPE_ICONS[doc.documentType] ?? FileText;
                     return (
                       <div key={doc.id} className="flex items-center gap-2 rounded-md border border-slate-200 p-2.5">
-                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[--radius-sm] bg-slate-100 text-slate-500">
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-(--radius-sm) bg-slate-100 text-slate-500">
                           <DocIcon className="h-4 w-4" />
                         </span>
                         <div className="min-w-0">
@@ -1047,7 +1047,7 @@ export function CustomerDetailPage() {
               <div key={doc.id} className="rounded-lg border border-slate-200 bg-white p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-start gap-3">
-                    <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-[--radius-sm] bg-slate-100 text-slate-500">
+                    <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-(--radius-sm) bg-slate-100 text-slate-500">
                       <DocIcon className="h-4 w-4" />
                     </span>
                     <div>
