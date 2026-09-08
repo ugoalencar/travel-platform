@@ -7,6 +7,16 @@
 
 :root {
   color-scheme: light;
+  /* Governance/platform palette -- deliberately distinct from the Agency
+   * app's slate+blue operational theme (indigo/violet reads as
+   * "platform control plane" rather than day-to-day agency ops). See
+   * docs/travel_platform_visual_functional_blueprint/04_PLATFORM_ADMIN_SEPARATION.md */
+  --color-sidebar: #1e1b3a;
+  --color-sidebar-foreground: #c7c3e0;
+  --color-sidebar-muted: #7c76a8;
+  --color-sidebar-active: #322c5c;
+  --color-sidebar-border: #322c5c;
+  --color-platform-accent: #6d28d9;
 }
 
 body {

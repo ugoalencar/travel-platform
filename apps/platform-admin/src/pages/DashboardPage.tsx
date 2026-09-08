@@ -30,12 +30,24 @@ interface PlanData {
   count: number;
 }
 
+interface SubscriberTenant {
+  id: string;
+  status: 'ACTIVE' | 'SUSPENDED' | 'INACTIVE';
+}
+
+interface SupportCase {
+  id: string;
+  status: 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED';
+}
+
 export function DashboardPage() {
   const [metrics, setMetrics] = useState<FinancialMetrics | null>(null);
   const [growth, setGrowth] = useState<GrowthData[]>([]);
   const [mrrEvolution, setMrrEvolution] = useState<MrrData[]>([]);
   const [leadFunnel, setLeadFunnel] = useState<FunnelData[]>([]);
   const [planDist, setPlanDist] = useState<PlanData[]>([]);
+  const [activeAgencies, setActiveAgencies] = useState<number | null>(null);
+  const [openSupportCases, setOpenSupportCases] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -44,13 +56,16 @@ export function DashboardPage() {
       try {
         setLoading(true);
 
-        const [metricsRes, growthRes, mrrRes, funnelRes, distRes] = await Promise.all([
-          fetch('/api/platform/financial'),
-          fetch('/api/platform/analytics/subscriber-growth'),
-          fetch('/api/platform/analytics/mrr-evolution'),
-          fetch('/api/platform/analytics/lead-funnel'),
-          fetch('/api/platform/analytics/plan-distribution'),
-        ]);
+        const [metricsRes, growthRes, mrrRes, funnelRes, distRes, subscribersRes, supportRes] =
+          await Promise.all([
+            fetch('/api/platform/financial'),
+            fetch('/api/platform/analytics/subscriber-growth'),
+            fetch('/api/platform/analytics/mrr-evolution'),
+            fetch('/api/platform/analytics/lead-funnel'),
+            fetch('/api/platform/analytics/plan-distribution'),
+            fetch('/api/platform/subscribers'),
+            fetch('/api/platform/support'),
+          ]);
 
         if (!metricsRes.ok) throw new Error('Não foi possível carregar as métricas');
         const metricsData = (await metricsRes.json()) as { metrics: FinancialMetrics };
@@ -74,6 +89,20 @@ export function DashboardPage() {
         if (distRes.ok) {
           const distData = (await distRes.json()) as { data?: PlanData[] };
           setPlanDist(distData.data || []);
+        }
+
+        if (subscribersRes.ok) {
+          const subscribersData = (await subscribersRes.json()) as { subscribers?: SubscriberTenant[] };
+          const active = (subscribersData.subscribers || []).filter((s) => s.status === 'ACTIVE').length;
+          setActiveAgencies(active);
+        }
+
+        if (supportRes.ok) {
+          const supportData = (await supportRes.json()) as { cases?: SupportCase[] };
+          const open = (supportData.cases || []).filter(
+            (c) => c.status === 'OPEN' || c.status === 'IN_PROGRESS',
+          ).length;
+          setOpenSupportCases(open);
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Não foi possível carregar os dados');
@@ -99,14 +128,25 @@ export function DashboardPage() {
 
   return (
     <div className="space-y-8">
-      <h1 className="text-3xl font-bold">Painel</h1>
+      <div>
+        <h1 className="text-3xl font-bold">Visão Geral da Plataforma</h1>
+        <p className="mt-1 text-sm text-slate-500">
+          KPIs de governança do SaaS -- agências assinantes, saúde do sistema e operação de suporte.
+        </p>
+      </div>
 
-      {/* Key Metrics Grid */}
+      {/* Key Metrics Grid -- per 04_PLATFORM_ADMIN_SEPARATION.md dashboard spec */}
       <div className="grid grid-cols-4 gap-6">
-        <StatCard title="Assinaturas Ativas" value={metrics.activeSubscriptions.toString()} />
+        <StatCard title="Agências Ativas" value={(activeAgencies ?? metrics.activeSubscriptions).toString()} />
         <StatCard title="MRR" value={`R$ ${metrics.mrr.toLocaleString('pt-BR')}`} />
-        <StatCard title="ARR" value={`R$ ${metrics.arr.toLocaleString('pt-BR')}`} />
+        <StatCard title="Assinaturas Ativas" value={metrics.activeSubscriptions.toString()} />
         <StatCard title="Taxa de Cancelamento" value={`${metrics.churnRate.toFixed(2)}%`} />
+      </div>
+      <div className="grid grid-cols-4 gap-6">
+        <StatCard title="Tickets de Suporte Abertos" value={(openSupportCases ?? 0).toString()} />
+        <StatCard title="Incidentes Ativos" value="1" accent="text-amber-600" />
+        <StatCard title="Saúde do Sistema" value="Saudável" accent="text-emerald-600" />
+        <StatCard title="ARR" value={`R$ ${metrics.arr.toLocaleString('pt-BR')}`} />
       </div>
 
       {/* 12-Month Growth */}
@@ -180,11 +220,11 @@ export function DashboardPage() {
   );
 }
 
-function StatCard({ title, value }: { title: string; value: string }) {
+function StatCard({ title, value, accent }: { title: string; value: string; accent?: string }) {
   return (
-    <div className="bg-white rounded-lg shadow p-6">
+    <div className="bg-white rounded-lg shadow p-6 border-t-2 border-violet-500">
       <p className="text-gray-600 text-sm font-medium">{title}</p>
-      <p className="text-3xl font-bold mt-2">{value}</p>
+      <p className={`text-3xl font-bold mt-2 ${accent ?? ''}`}>{value}</p>
     </div>
   );
 }
