@@ -107,8 +107,25 @@ export function SaleFinancialStoryPage() {
         <CardContent className="space-y-2">
           <Row left="Venda" middle="Receita total" right={formatBRL(story.margin.grossSale)} />
           <Row
-            left="Custos de fornecedores"
-            middle="Hotel, aereo, transfer e seguro"
+            left="Custo aereo"
+            middle="Passagens e taxas aereas"
+            right={`-${formatBRL(story.margin.airCost)}`}
+          />
+          <Row
+            left="Custo terrestre"
+            middle="Hospedagem, transfer e servicos terrestres"
+            right={`-${formatBRL(story.margin.landCost)}`}
+          />
+          {story.margin.otherCosts !== 0 && (
+            <Row
+              left="Outros custos"
+              middle="Custos de fornecedores nao classificados em aereo/terrestre"
+              right={`-${formatBRL(story.margin.otherCosts)}`}
+            />
+          )}
+          <Row
+            left="Total de custos de fornecedores"
+            middle="Aereo + terrestre + outros"
             right={`-${formatBRL(story.margin.supplierCosts)}`}
           />
           <Row

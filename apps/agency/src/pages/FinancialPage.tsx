@@ -246,6 +246,20 @@ export function FinancialPage() {
             deltaTone={summary.dashboard.monthlyResult >= 0 ? 'positive' : 'negative'}
             icon={<ArrowDownRight className="h-5 w-5" />}
           />
+          <StatCard
+            label="Despesas do mês"
+            value={formatBRL(summary.dashboard.expensesThisMonth)}
+            delta="Custos, comissões, folha e despesas do mês (DRE)"
+            deltaTone="negative"
+            icon={<ArrowDownRight className="h-5 w-5" />}
+          />
+          <StatCard
+            label="Inadimplência"
+            value={`${summary.dashboard.delinquencyRate.toFixed(1)}%`}
+            delta={`${formatBRL(summary.dashboard.overdueReceivable)} em atraso`}
+            deltaTone={summary.dashboard.delinquencyRate > 0 ? 'negative' : 'positive'}
+            icon={<Clock className="h-5 w-5" />}
+          />
         </div>
       </div>
 

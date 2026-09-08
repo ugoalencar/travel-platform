@@ -387,6 +387,10 @@ export interface SaleFinancialStory {
     grossSale: number;
     supplierCosts: number;
     commissionAndFees: number;
+    /** Informational breakdown sourced from air_services/land_services for the sale's trip (does not change supplierCosts). */
+    airCost: number;
+    landCost: number;
+    otherCosts: number;
     grossMargin: number;
     netMargin: number;
   };
@@ -445,6 +449,10 @@ export interface FinancialDashboardMetrics {
   payrollObligations: number;
   /** Open + partially-paid payables originated from commission_entries, not yet paid. */
   commissionsPayable: number;
+  /** Total operating expenses recognized this month per the Management DRE (netRevenue - netResult). */
+  expensesThisMonth: number;
+  /** Share (0-100) of open+partially-paid receivables that are past due. */
+  delinquencyRate: number;
   /** Current cash balance (last cash_transactions.calculated_balance). */
   cashAvailable: number;
   /** Open/partially-paid payables due within the next 30 days — an approximation of near-term committed cash, intentionally not a full cash-flow projection. */
@@ -2257,11 +2265,12 @@ export async function getSaleFinancialStory(
       sale_id: string;
       customer_id: string;
       customer_name: string;
+      trip_id: string | null;
       trip_name: string | null;
       total: string;
       notes: string | null;
     }>(
-      `SELECT s.id AS sale_id, s.customer_id, c.name AS customer_name, t.name AS trip_name,
+      `SELECT s.id AS sale_id, s.customer_id, c.name AS customer_name, t.id AS trip_id, t.name AS trip_name,
               s.total::text AS total, s.notes
        FROM sales s
        JOIN customers c ON c.agency_id = s.agency_id AND c.id = s.customer_id
@@ -2317,6 +2326,31 @@ export async function getSaleFinancialStory(
       [agencyId, saleId],
     );
 
+    // Custo aereo / Custo terrestre: informational breakdown pulled from the real
+    // air_services / land_services tables for this sale's trip (per
+    // 08_FINANCIAL_REBUILD.md's "Historia Financeira da Venda"). These are DISPLAY
+    // lines only — the authoritative margin.supplierCosts total below continues to
+    // be derived from `payables` (sale_id-linked), unchanged, to avoid double-counting
+    // and to preserve existing fixtures. When Air/Land records exist for a trip they
+    // typically reconcile exactly with the payables total (verified for the demo
+    // data), but that is not guaranteed for every trip; a future wave may migrate
+    // supplierCosts itself to be derived from Air/Land once seed data is unified.
+    let airCost = 0;
+    let landCost = 0;
+    if (sale.trip_id) {
+      const airResult = await client.query<{ total: string }>(
+        `SELECT COALESCE(SUM(cost), 0)::text AS total FROM air_services WHERE agency_id = $1 AND trip_id = $2`,
+        [agencyId, sale.trip_id],
+      );
+      airCost = roundMoney(Number(airResult.rows[0]?.total ?? 0));
+
+      const landResult = await client.query<{ total: string }>(
+        `SELECT COALESCE(SUM(cost), 0)::text AS total FROM land_services WHERE agency_id = $1 AND trip_id = $2`,
+        [agencyId, sale.trip_id],
+      );
+      landCost = roundMoney(Number(landResult.rows[0]?.total ?? 0));
+    }
+
     const grossSale = roundMoney(Number(sale.total));
     const received = roundMoney(Number(receivedResult.rows[0]?.total ?? 0));
     const supplierPayables = payablesResult.rows.map((row) => ({
@@ -2357,6 +2391,9 @@ export async function getSaleFinancialStory(
         grossSale,
         supplierCosts,
         commissionAndFees,
+        airCost,
+        landCost,
+        otherCosts: roundMoney(supplierCosts - airCost - landCost),
         grossMargin: roundMoney(grossSale - supplierCosts),
         netMargin: roundMoney(grossSale - supplierCosts - commissionAndFees),
       },
@@ -2620,6 +2657,9 @@ async function getFinancialDashboardMetrics(
   );
 
   const monthlyDre = await getManagementDreForClient(client, agencyId, monthStart, monthEnd);
+  const expensesThisMonth = roundMoney(monthlyDre.netRevenue - monthlyDre.netResult);
+  const delinquencyRate =
+    totalReceivable > 0 ? roundMoney((overdueReceivable / totalReceivable) * 100) : 0;
 
   return {
     totalSold,
@@ -2636,6 +2676,8 @@ async function getFinancialDashboardMetrics(
     grossMargin,
     netMargin,
     monthlyResult: monthlyDre.netResult,
+    expensesThisMonth,
+    delinquencyRate,
   };
 }
 

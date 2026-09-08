@@ -389,6 +389,8 @@ export interface FinancialDashboardMetrics {
   grossMargin: number;
   netMargin: number;
   monthlyResult: number;
+  expensesThisMonth: number;
+  delinquencyRate: number;
 }
 
 export interface ManagementDreReport {
@@ -432,6 +434,9 @@ export interface SaleFinancialStory {
     grossSale: number;
     supplierCosts: number;
     commissionAndFees: number;
+    airCost: number;
+    landCost: number;
+    otherCosts: number;
     grossMargin: number;
     netMargin: number;
   };

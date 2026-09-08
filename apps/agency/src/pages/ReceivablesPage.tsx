@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { CheckCircle2, Search } from 'lucide-react';
+import { PageHeader } from '../components/layout/PageHeader';
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -72,11 +73,21 @@ export function ReceivablesPage() {
   }, [load]);
 
   if (state.status === 'error') {
-    return <ErrorState description={state.message} onRetry={load} />;
+    return (
+      <div className="space-y-6">
+        <PageHeader title="Contas a Receber" description="Recebiveis de vendas e parcelas de clientes." />
+        <ErrorState description={state.message} onRetry={load} />
+      </div>
+    );
   }
 
   if (state.status === 'loading') {
-    return <LoadingState label="Carregando contas a receber..." />;
+    return (
+      <div className="space-y-6">
+        <PageHeader title="Contas a Receber" description="Recebiveis de vendas e parcelas de clientes." />
+        <LoadingState label="Carregando contas a receber..." />
+      </div>
+    );
   }
 
   const customerNames = new Map(state.customers.map((customer) => [customer.id, customer.name]));
@@ -124,17 +135,18 @@ export function ReceivablesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold text-slate-900">Contas a Receber</h1>
-          <p className="text-sm text-slate-500">{state.receivables.length} contas registradas</p>
-        </div>
-        <Link to="/financial">
-          <Button size="sm" variant="outline">
-            Voltar
-          </Button>
-        </Link>
-      </div>
+      <PageHeader
+        title="Contas a Receber"
+        description={`${state.receivables.length} contas registradas`}
+        breadcrumbs={[{ label: 'Painel', to: '/' }, { label: 'Financeiro', to: '/financial' }]}
+        actions={
+          <Link to="/financial">
+            <Button size="sm" variant="outline">
+              Voltar
+            </Button>
+          </Link>
+        }
+      />
 
       <div className="relative max-w-sm">
         <label htmlFor="receivables-search" className="sr-only">
