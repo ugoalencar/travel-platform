@@ -13,6 +13,7 @@ import { Modal } from '../components/ui/modal';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Select } from '../components/ui/select';
+import { FormSection } from '../components/ui/form-section';
 import {
   ApiError,
   getCustomer,
@@ -1291,19 +1292,18 @@ export function CustomerDetailPage() {
 
       <Modal open={personalModalOpen} onClose={() => setPersonalModalOpen(false)} title="Editar dados pessoais">
         <form
-          className="space-y-3"
+          className="space-y-4"
           onSubmit={(e) => {
             e.preventDefault();
             void handleSavePersonal(new FormData(e.currentTarget));
           }}
         >
           {formError && <p className="text-sm text-red-600">{formError}</p>}
-          <label className="text-xs text-slate-500">Nome completo<Input name="name" defaultValue={customer.name} required className="mt-1" /></label>
-          <div className="grid grid-cols-2 gap-3">
+
+          <FormSection title="Identificação" description="Nome, nascimento e dados civis">
+            <label className="text-xs text-slate-500 sm:col-span-2">Nome completo<Input name="name" defaultValue={customer.name} required className="mt-1" /></label>
             <label className="text-xs text-slate-500">Nome social<Input name="socialName" defaultValue={customer.socialName} className="mt-1" /></label>
             <label className="text-xs text-slate-500">Data de nascimento<Input type="date" name="birthDate" defaultValue={customer.birthDate?.slice(0, 10)} className="mt-1" /></label>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
             <label className="text-xs text-slate-500">Nacionalidade<Input name="nationality" defaultValue={customer.nationality} className="mt-1" /></label>
             <label className="text-xs text-slate-500">
               Estado civil
@@ -1314,22 +1314,26 @@ export function CustomerDetailPage() {
                 ))}
               </Select>
             </label>
-          </div>
-          <label className="text-xs text-slate-500">Profissão<Input name="profession" defaultValue={customer.profession} className="mt-1" /></label>
-          <div className="grid grid-cols-2 gap-3">
+            <label className="text-xs text-slate-500 sm:col-span-2">Profissão<Input name="profession" defaultValue={customer.profession} className="mt-1" /></label>
+          </FormSection>
+
+          <FormSection title="Documentos" description="CPF, RG e órgão emissor">
             <label className="text-xs text-slate-500">CPF<Input name="cpf" defaultValue={customer.cpf} className="mt-1" /></label>
             <label className="text-xs text-slate-500">RG<Input name="rg" defaultValue={customer.rg} className="mt-1" /></label>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
             <label className="text-xs text-slate-500">Órgão emissor<Input name="idIssuingAuthority" defaultValue={customer.idIssuingAuthority} className="mt-1" /></label>
             <label className="text-xs text-slate-500">Data de emissão<Input type="date" name="idIssuedDate" defaultValue={customer.idIssuedDate?.slice(0, 10)} className="mt-1" /></label>
-          </div>
-          <label className="text-xs text-slate-500">E-mail<Input type="email" name="email" defaultValue={customer.email} className="mt-1" /></label>
-          <div className="grid grid-cols-2 gap-3">
+          </FormSection>
+
+          <FormSection title="Contato" description="E-mail e telefones para comunicação">
+            <label className="text-xs text-slate-500 sm:col-span-2">E-mail<Input type="email" name="email" defaultValue={customer.email} className="mt-1" /></label>
             <label className="text-xs text-slate-500">Telefone<Input name="phone" defaultValue={customer.phone} className="mt-1" /></label>
             <label className="text-xs text-slate-500">WhatsApp<Input name="whatsapp" defaultValue={customer.whatsapp} className="mt-1" /></label>
-          </div>
-          <label className="text-xs text-slate-500">Observações<Input name="notes" defaultValue={customer.notes} className="mt-1" /></label>
+          </FormSection>
+
+          <FormSection title="Observações" columns={1}>
+            <label className="text-xs text-slate-500">Notas internas<Input name="notes" defaultValue={customer.notes} className="mt-1" /></label>
+          </FormSection>
+
           <div className="flex justify-end gap-2 pt-2">
             <Button type="button" variant="outline" onClick={() => setPersonalModalOpen(false)}>Cancelar</Button>
             <Button type="submit" disabled={saving}>Salvar</Button>

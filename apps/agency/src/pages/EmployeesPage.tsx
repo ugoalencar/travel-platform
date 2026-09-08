@@ -4,6 +4,8 @@ import { PageHeader } from '../components/layout/PageHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
+import { Select } from '../components/ui/select';
+import { FormSection } from '../components/ui/form-section';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { LoadingState } from '../components/ui/loading-state';
 import { EmptyState } from '../components/ui/empty-state';
@@ -251,72 +253,60 @@ export function EmployeesPage() {
           </Button>
         </CardHeader>
         {showForm ? (
-          <CardContent className="space-y-6 border-b pb-6">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <section className="space-y-3">
-                <h3 className="text-sm font-semibold text-slate-700">Dados Pessoais</h3>
-                <div className="flex flex-wrap gap-3">
-                  <LabeledInput id="emp-name" label="Nome" required {...field('name')} />
-                  <LabeledInput id="emp-cpf" label="CPF" {...field('cpf')} />
-                  <LabeledInput id="emp-rg" label="RG" {...field('rg')} />
-                  <LabeledInput id="emp-birth" label="Data de Nascimento" type="date" {...field('birthDate')} />
-                  <LabeledInput id="emp-phone" label="Telefone" {...field('phone')} />
-                  <LabeledInput id="emp-email" label="E-mail" type="email" {...field('email')} />
-                  <LabeledInput id="emp-address" label="Endereço" {...field('addressLine')} />
-                  <LabeledInput id="emp-city" label="Cidade" {...field('addressCity')} />
-                  <LabeledInput id="emp-state" label="Estado" {...field('addressState')} />
-                  <LabeledInput id="emp-zip" label="CEP" {...field('addressZipCode')} />
-                </div>
-              </section>
+          <CardContent className="space-y-4 border-b pb-6">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <FormSection title="Dados Pessoais" description="Identificação e contato do funcionário">
+                <LabeledInput id="emp-name" label="Nome" required {...field('name')} />
+                <LabeledInput id="emp-cpf" label="CPF" {...field('cpf')} />
+                <LabeledInput id="emp-rg" label="RG" {...field('rg')} />
+                <LabeledInput id="emp-birth" label="Data de Nascimento" type="date" {...field('birthDate')} />
+                <LabeledInput id="emp-phone" label="Telefone" {...field('phone')} />
+                <LabeledInput id="emp-email" label="E-mail" type="email" {...field('email')} />
+                <LabeledInput id="emp-address" label="Endereço" {...field('addressLine')} />
+                <LabeledInput id="emp-city" label="Cidade" {...field('addressCity')} />
+                <LabeledInput id="emp-state" label="Estado" {...field('addressState')} />
+                <LabeledInput id="emp-zip" label="CEP" {...field('addressZipCode')} />
+              </FormSection>
 
-              <section className="space-y-3">
-                <h3 className="text-sm font-semibold text-slate-700">Vínculo</h3>
-                <div className="flex flex-wrap gap-3">
-                  <LabeledSelect id="emp-type" label="Tipo de Vínculo" {...field('employmentType')}>
-                    {EMPLOYMENT_TYPES.map((t) => (
-                      <option key={t.value} value={t.value}>{t.label}</option>
-                    ))}
-                  </LabeledSelect>
-                  <LabeledInput id="emp-role" label="Cargo" {...field('roleTitle')} />
-                  <LabeledInput id="emp-department" label="Departamento" {...field('department')} />
-                  <LabeledSelect id="emp-cc" label="Centro de Custo" {...field('costCenterId')}>
-                    <option value="">-</option>
-                    {state.costCenters.map((cc) => (
-                      <option key={cc.id} value={cc.id}>{cc.name}</option>
-                    ))}
-                  </LabeledSelect>
-                  <LabeledInput id="emp-hire" label="Data de Admissão" type="date" {...field('hireDate')} />
-                  <LabeledInput id="emp-term" label="Data de Desligamento" type="date" {...field('terminationDate')} />
-                  <LabeledSelect id="emp-status" label="Status" {...field('status')}>
-                    {STATUSES.map((s) => (
-                      <option key={s.value} value={s.value}>{s.label}</option>
-                    ))}
-                  </LabeledSelect>
-                </div>
-              </section>
+              <FormSection title="Vínculo Profissional" description="Cargo, departamento e situação do vínculo">
+                <LabeledSelect id="emp-type" label="Tipo de Vínculo" {...field('employmentType')}>
+                  {EMPLOYMENT_TYPES.map((t) => (
+                    <option key={t.value} value={t.value}>{t.label}</option>
+                  ))}
+                </LabeledSelect>
+                <LabeledInput id="emp-role" label="Cargo" {...field('roleTitle')} />
+                <LabeledInput id="emp-department" label="Departamento" {...field('department')} />
+                <LabeledSelect id="emp-cc" label="Centro de Custo" {...field('costCenterId')}>
+                  <option value="">-</option>
+                  {state.costCenters.map((cc) => (
+                    <option key={cc.id} value={cc.id}>{cc.name}</option>
+                  ))}
+                </LabeledSelect>
+                <LabeledInput id="emp-hire" label="Data de Admissão" type="date" {...field('hireDate')} />
+                <LabeledInput id="emp-term" label="Data de Desligamento" type="date" {...field('terminationDate')} />
+                <LabeledSelect id="emp-status" label="Status" {...field('status')}>
+                  {STATUSES.map((s) => (
+                    <option key={s.value} value={s.value}>{s.label}</option>
+                  ))}
+                </LabeledSelect>
+              </FormSection>
 
-              <section className="space-y-3">
-                <h3 className="text-sm font-semibold text-slate-700">Remuneração e Dados Bancários</h3>
-                <div className="flex flex-wrap gap-3">
-                  <LabeledInput id="emp-salary" label="Salário Base (R$)" type="number" step="0.01" {...field('baseSalary')} />
-                  <LabeledInput id="emp-bank" label="Banco" {...field('bankName')} />
-                  <LabeledInput id="emp-branch" label="Agência" {...field('bankBranch')} />
-                  <LabeledInput id="emp-account" label="Conta" {...field('bankAccount')} />
-                  <LabeledInput id="emp-pix" label="Chave Pix" {...field('bankPixKey')} />
-                </div>
-              </section>
+              <FormSection title="Financeiro e Dados Bancários" description="Remuneração e conta para pagamento">
+                <LabeledInput id="emp-salary" label="Salário Base (R$)" type="number" step="0.01" {...field('baseSalary')} />
+                <LabeledInput id="emp-bank" label="Banco" {...field('bankName')} />
+                <LabeledInput id="emp-branch" label="Agência" {...field('bankBranch')} />
+                <LabeledInput id="emp-account" label="Conta" {...field('bankAccount')} />
+                <LabeledInput id="emp-pix" label="Chave Pix" {...field('bankPixKey')} />
+              </FormSection>
 
-              <section className="space-y-3">
-                <h3 className="text-sm font-semibold text-slate-700">Plano de Comissão</h3>
-                <div className="flex flex-wrap gap-3">
-                  <LabeledSelect id="emp-plan" label="Plano de Comissão Padrão" {...field('defaultCommissionPlanId')}>
-                    <option value="">-</option>
-                    {state.commissionPlans.map((p) => (
-                      <option key={p.id} value={p.id}>{p.name}</option>
-                    ))}
-                  </LabeledSelect>
-                </div>
-              </section>
+              <FormSection title="Comissões" description="Plano de comissão padrão aplicado às vendas do funcionário" columns={1}>
+                <LabeledSelect id="emp-plan" label="Plano de Comissão Padrão" {...field('defaultCommissionPlanId')}>
+                  <option value="">-</option>
+                  {state.commissionPlans.map((p) => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </LabeledSelect>
+              </FormSection>
 
               <div className="flex items-center gap-3">
                 <Button type="submit" size="sm" disabled={saving}>
@@ -393,9 +383,9 @@ function LabeledSelect({
   return (
     <div className="flex flex-col gap-1">
       <label className="text-xs font-medium text-muted-foreground" htmlFor={id}>{label}</label>
-      <select id={id} className="h-9 rounded-md border border-input bg-background px-3 text-sm" {...rest}>
+      <Select id={id} {...rest}>
         {children}
-      </select>
+      </Select>
     </div>
   );
 }

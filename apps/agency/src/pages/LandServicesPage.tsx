@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Plus, Trash2, Pencil } from 'lucide-react';
+import { Plus, Trash2, Pencil, Hotel, Banknote, CheckCircle2, Users } from 'lucide-react';
 import { PageHeader } from '../components/layout/PageHeader';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { SectionCard } from '../components/ui/section-card';
+import { StatCard } from '../components/ui/stat-card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Select } from '../components/ui/select';
@@ -11,6 +12,7 @@ import { ErrorState } from '../components/ui/error-state';
 import { LoadingState } from '../components/ui/loading-state';
 import { Modal } from '../components/ui/modal';
 import { StatusBadge } from '../components/ui/status-badge';
+import { formatBRL } from '../lib/formatCurrency';
 import {
   Table,
   TableBody,
@@ -206,6 +208,17 @@ export function LandServicesPage() {
     return landServices.filter((l) => l.tripId === tripFilter);
   }, [landServices, tripFilter]);
 
+  const confirmedCount = useMemo(
+    () => landServices.filter((l) => l.status === 'CONFIRMED').length,
+    [landServices],
+  );
+  const supplierCount = useMemo(
+    () => new Set(landServices.map((l) => l.supplierId).filter(Boolean)).size,
+    [landServices],
+  );
+  const totalCost = useMemo(() => landServices.reduce((sum, l) => sum + l.cost, 0), [landServices]);
+  const totalRevenue = useMemo(() => landServices.reduce((sum, l) => sum + l.saleValue, 0), [landServices]);
+
   function openCreate() {
     setForm(emptyForm);
     setSection('service');
@@ -307,6 +320,41 @@ export function LandServicesPage() {
         }
       />
 
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          label="Serviços"
+          value={String(landServices.length)}
+          delta={`${confirmedCount} confirmado${confirmedCount !== 1 ? 's' : ''}`}
+          deltaTone="positive"
+          icon={<Hotel className="h-4 w-4" />}
+          accent="neutral"
+        />
+        <StatCard
+          label="Fornecedores"
+          value={String(supplierCount)}
+          delta="Hotéis / operadoras / transfers"
+          deltaTone="neutral"
+          icon={<Users className="h-4 w-4" />}
+          accent="pending"
+        />
+        <StatCard
+          label="Custo total"
+          value={formatBRL(totalCost)}
+          delta="Pago aos fornecedores"
+          deltaTone="negative"
+          icon={<Banknote className="h-4 w-4" />}
+          accent="expense"
+        />
+        <StatCard
+          label="Receita total"
+          value={formatBRL(totalRevenue)}
+          delta="Valor de venda dos serviços"
+          deltaTone="positive"
+          icon={<CheckCircle2 className="h-4 w-4" />}
+          accent="revenue"
+        />
+      </div>
+
       <div className="flex flex-col gap-3 rounded-lg border border-slate-200 bg-white p-3 sm:flex-row sm:items-center sm:justify-between">
         <Select
           aria-label="Filtrar por viagem"
@@ -323,12 +371,8 @@ export function LandServicesPage() {
         </Select>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Serviços Terrestres</CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          {landServices.length === 0 ? (
+      <SectionCard title="Serviços Terrestres" contentClassName="p-0">
+        {landServices.length === 0 ? (
             <EmptyState
               title="Nenhum serviço terrestre cadastrado"
               description="Cadastre hospedagem, transfer, passeios e outros serviços vinculados às viagens dos clientes."
@@ -417,8 +461,7 @@ export function LandServicesPage() {
               </TableBody>
             </Table>
           )}
-        </CardContent>
-      </Card>
+      </SectionCard>
 
       <Modal
         open={modal.type !== 'closed'}
