@@ -24,7 +24,7 @@ export function useCurrentUser(): { user: CurrentUser | null; loading: boolean }
   useEffect(() => {
     let cancelled = false;
 
-    fetch(`${API_BASE_URL}/me`)
+    fetch(`${API_BASE_URL}/api/me`)
       .then((response) => (response.ok ? (response.json() as Promise<CurrentUser>) : null))
       .then((data) => {
         if (!cancelled) {
