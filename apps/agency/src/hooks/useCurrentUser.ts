@@ -15,6 +15,18 @@ export interface CurrentUser {
   role: CurrentUserRole;
 }
 
+// pt-BR display labels for the roles above. Single source of truth so every
+// screen that shows a role (topbar, sidebar, user menus) renders the same
+// word for the same role -- no risk of one place saying "ADMIN" while
+// another shows a stale/hardcoded value.
+export const CURRENT_USER_ROLE_LABELS: Record<CurrentUserRole, string> = {
+  OWNER: 'Proprietário',
+  ADMIN: 'Administrador',
+  MANAGER: 'Gerente',
+  AGENT: 'Agente',
+  VIEWER: 'Visualizador',
+};
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
 
 export function useCurrentUser(): { user: CurrentUser | null; loading: boolean } {

@@ -1,18 +1,25 @@
 import { Menu } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
+import { CURRENT_USER_ROLE_LABELS, type CurrentUser } from '../../hooks/useCurrentUser';
 
 export interface TopbarProps {
   onMenuClick: () => void;
+  /** Authenticated principal from the same GET /me-backed useCurrentUser()
+   * call that drives the Sidebar, so the role shown here can never diverge
+   * from the role that decided which nav sections are visible. Undefined
+   * while loading or if /me is unavailable. */
+  user?: CurrentUser | null;
 }
 
-// Static, frontend-only demo persona for presentation purposes -- not a
-// session, not tied to any auth mechanism. See docs/plans prototype
-// integration notes: no AuthProvider/TenantContext exists in this app.
-const DEMO_STAFF_NAME = 'Mariana Costa';
+// Agency display name isn't part of GET /me today; keeping this fixed avoids
+// widening this pass into a backend change unrelated to the reported
+// role/identity mismatch (see KNOWN REMAINING GAP notes).
 const DEMO_AGENCY_NAME = 'Horizonte Viagens';
 
-export function Topbar({ onMenuClick }: TopbarProps) {
+export function Topbar({ onMenuClick, user }: TopbarProps) {
+  const roleLabel = user ? CURRENT_USER_ROLE_LABELS[user.role] : null;
+
   return (
     <header className="flex h-14 shrink-0 items-center gap-3 border-b border-slate-200 bg-white px-4 sm:px-6">
       <Button
@@ -36,7 +43,7 @@ export function Topbar({ onMenuClick }: TopbarProps) {
       <div className="ml-auto flex items-center gap-3">
         <Badge variant="outline">Modo demonstração</Badge>
         <span className="text-sm text-slate-700">
-          {DEMO_STAFF_NAME} <span className="text-slate-400">· ADMIN</span>
+          {roleLabel ?? 'Carregando…'}
         </span>
       </div>
     </header>
