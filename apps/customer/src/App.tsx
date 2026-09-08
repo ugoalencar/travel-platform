@@ -72,6 +72,8 @@ import { CustomerBookingsPage } from './customer-portal/pages/CustomerBookingsPa
 import { CustomerBookingDetailsPage } from './customer-portal/pages/CustomerBookingDetailsPage';
 import { CustomerProfilePage } from './customer-portal/pages/CustomerProfilePage';
 import { CustomerDocumentsPage } from './customer-portal/pages/CustomerDocumentsPage';
+import { CustomerPaymentsPage } from './customer-portal/pages/CustomerPaymentsPage';
+import { CustomerHelpPage } from './customer-portal/pages/CustomerHelpPage';
 import { CommercialDashboardPage } from './pages/commercial/CommercialDashboardPage';
 import { CommercialPipelinePage } from './pages/commercial/CommercialPipelinePage';
 import { CommercialAgendaPage } from './pages/commercial/CommercialAgendaPage';
@@ -95,6 +97,8 @@ export function App() {
         <Route path="customer-portal/bookings/:id" element={<CustomerBookingDetailsPage />} />
         <Route path="customer-portal/profile" element={<CustomerProfilePage />} />
         <Route path="customer-portal/documents" element={<CustomerDocumentsPage />} />
+        <Route path="customer-portal/payments" element={<CustomerPaymentsPage />} />
+        <Route path="customer-portal/help" element={<CustomerHelpPage />} />
       </Route>
 
       <Route element={<AppShell />}>

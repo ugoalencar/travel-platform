@@ -2,14 +2,21 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import {
   ApiError,
+  getMyAgencyContact,
   getMyTrip,
   listMyTripAirSegments,
   listMyTripLandServices,
 } from '../../lib/customerApi';
 import type { Trip } from '../../types/trip';
-import type { CustomerAirSegmentView, CustomerLandServiceView } from '../../types/customer-portal';
+import type {
+  CustomerAgencyContact,
+  CustomerAirSegmentView,
+  CustomerLandServiceView,
+} from '../../types/customer-portal';
 import { tripStatusLabel } from '../../lib/statusLabels';
 import { BackLink } from '../BackLink';
+import { Timeline, type TimelineStep } from '../Timeline';
+import { destinationEmoji, destinationGradient } from '../destinationArt';
 
 type LoadState =
   | { status: 'loading' }
@@ -39,7 +46,7 @@ export function CustomerTripDetailsPage() {
   }, [id]);
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <BackLink to="/customer-portal/trips" label="Voltar para minhas viagens" />
 
       <div aria-live="polite">
@@ -53,13 +60,136 @@ export function CustomerTripDetailsPage() {
 
       {state.status === 'success' && (
         <>
-          <TripDetails trip={state.trip} />
-          <TripAirLandSections tripId={state.trip.id} />
+          <TripSummary trip={state.trip} />
+          <TripItinerary trip={state.trip} />
+          <div id="aereo-terrestre">
+            <TripAirLandSections tripId={state.trip.id} />
+          </div>
+          <TripPassengers />
+          <TripAgencyContact />
         </>
       )}
     </div>
   );
 }
+
+// --- Resumo -----------------------------------------------------------
+
+function TripSummary({ trip }: { trip: Trip }) {
+  const startDate = new Date(trip.startDate);
+  const endDate = new Date(trip.endDate);
+  const durationDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+  const gradient = destinationGradient(trip.destination);
+  const emoji = destinationEmoji(trip.destination);
+
+  return (
+    <div className={`overflow-hidden rounded-2xl border-2 border-orange-100 bg-gradient-to-br ${gradient} shadow-md`}>
+      <div className="flex flex-col gap-4 bg-white/55 p-6 backdrop-blur-sm sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-700">
+            {emoji} Resumo da viagem
+          </p>
+          <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-900">{trip.name}</h1>
+          <p className="mt-1 text-xl text-slate-700">{trip.destination}</p>
+        </div>
+        <span className="inline-block shrink-0 rounded-full bg-white/90 px-4 py-2 text-sm font-semibold text-slate-900">
+          {friendlyTripStatus(trip.status)}
+        </span>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 bg-white/70 p-6 sm:grid-cols-2">
+        <div>
+          <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-600">📅 Datas</h3>
+          <div className="space-y-3">
+            <DetailItem
+              label="Início"
+              value={startDate.toLocaleDateString('pt-BR', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+              })}
+            />
+            <DetailItem
+              label="Fim"
+              value={endDate.toLocaleDateString('pt-BR', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+              })}
+            />
+            <DetailItem label="Duração" value={`${durationDays} dias`} />
+          </div>
+        </div>
+
+        {trip.description && (
+          <div>
+            <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-600">📝 Descrição</h3>
+            <p className="text-slate-700 leading-relaxed">{trip.description}</p>
+          </div>
+        )}
+      </div>
+      {/* Trip.notes (internal agency notes) is intentionally never rendered
+          here -- the backend already excludes it from the response (see
+          services/api/src/customer-portal.ts toTrip), so it isn't even
+          available on this object, but this component also never reads a
+          `notes` field as defense in depth. */}
+    </div>
+  );
+}
+
+function friendlyTripStatus(status: Trip['status']): string {
+  const friendly: Record<Trip['status'], string> = {
+    PLANNED: 'Em planejamento',
+    CONFIRMED: 'Viagem confirmada!',
+    IN_PROGRESS: 'Em andamento',
+    COMPLETED: 'Concluída',
+    CANCELLED: 'Cancelada',
+  };
+  return friendly[status] ?? tripStatusLabel(status);
+}
+
+// --- Itinerário ---------------------------------------------------------
+
+function TripItinerary({ trip }: { trip: Trip }) {
+  const steps = buildLifecycleSteps(trip.status);
+  return (
+    <div className="rounded-xl border-2 border-slate-200 bg-white p-5 shadow-sm">
+      <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-600">
+        🗓️ Itinerário
+      </h3>
+      <Timeline steps={steps} />
+      <p className="mt-2 text-xs text-slate-500">
+        Veja os detalhes de voos e serviços terrestres logo abaixo.
+      </p>
+    </div>
+  );
+}
+
+function buildLifecycleSteps(status: Trip['status']): TimelineStep[] {
+  const order: Trip['status'][] = ['PLANNED', 'CONFIRMED', 'IN_PROGRESS', 'COMPLETED'];
+  const labels: Record<Trip['status'], string> = {
+    PLANNED: 'Viagem planejada',
+    CONFIRMED: 'Reserva confirmada',
+    IN_PROGRESS: 'Viagem em andamento',
+    COMPLETED: 'Viagem concluída',
+    CANCELLED: 'Viagem cancelada',
+  };
+
+  if (status === 'CANCELLED') {
+    return [{ key: 'CANCELLED', label: labels.CANCELLED, state: 'current' }];
+  }
+
+  const currentIndex = order.indexOf(status);
+  return order.map((step, index) => ({
+    key: step,
+    label: labels[step],
+    state: index < currentIndex ? 'done' : index === currentIndex ? 'current' : 'upcoming',
+  }));
+}
+
+// --- Aéreo / Terrestre --------------------------------------------------
 
 function TripAirLandSections({ tripId }: { tripId: string }) {
   const [air, setAir] = useState<CustomerAirSegmentView[] | null>(null);
@@ -89,7 +219,7 @@ function TripAirLandSections({ tripId }: { tripId: string }) {
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
       <div className="rounded-xl border-2 border-slate-200 bg-white p-5 shadow-sm">
         <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-600">
-          ✈️ Voos
+          ✈️ Aéreo
         </h3>
         {air === null && <p className="text-sm text-slate-500">Carregando...</p>}
         {air !== null && air.length === 0 && (
@@ -121,7 +251,7 @@ function TripAirLandSections({ tripId }: { tripId: string }) {
 
       <div className="rounded-xl border-2 border-slate-200 bg-white p-5 shadow-sm">
         <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-600">
-          🏨 Serviços terrestres
+          🏨 Terrestre
         </h3>
         {land === null && <p className="text-sm text-slate-500">Carregando...</p>}
         {land !== null && land.length === 0 && (
@@ -150,45 +280,75 @@ function TripAirLandSections({ tripId }: { tripId: string }) {
   );
 }
 
-function TripDetails({ trip }: { trip: Trip }) {
-  const startDate = new Date(trip.startDate);
-  const endDate = new Date(trip.endDate);
-  const durationDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+// --- Passageiros ----------------------------------------------------------
+
+function TripPassengers() {
+  // NOTE: the backend has no trip -> booking/passenger linkage today
+  // (bookings reference booker_customer_id + departure ids, not trip_id --
+  // see services/api/src/customer-portal.ts). Rather than guessing a match
+  // by date/destination (fragile and could show the wrong travelers),
+  // this section is honest about the gap and points to Reservas, where
+  // passenger data does exist per booking. Wiring a real trip-scoped
+  // passenger list is a backend/data-model change for a future wave.
+  return (
+    <div className="rounded-xl border-2 border-slate-200 bg-white p-5 shadow-sm">
+      <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-600">
+        👥 Passageiros
+      </h3>
+      <p className="text-sm text-slate-600">
+        Os passageiros ficam registrados em cada reserva. Confira em{' '}
+        <a href="/customer-portal/bookings" className="text-[#f97362] hover:underline">
+          Minhas Reservas
+        </a>
+        .
+      </p>
+    </div>
+  );
+}
+
+// --- Contato da agência -----------------------------------------------
+
+function TripAgencyContact() {
+  const [agency, setAgency] = useState<CustomerAgencyContact | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    getMyAgencyContact()
+      .then((data) => {
+        if (!cancelled) setAgency(data);
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return;
+        setError(err instanceof ApiError ? err.message : 'Não foi possível carregar o contato.');
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">{trip.name}</h1>
-          <p className="mt-2 text-xl text-slate-700">{trip.destination}</p>
+    <div className="rounded-xl border-2 border-orange-100 bg-white p-5 shadow-sm">
+      <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-600">
+        📞 Contato da agência
+      </h3>
+      {error && <p className="text-sm text-red-700">{error}</p>}
+      {!error && !agency && <p className="text-sm text-slate-500">Carregando...</p>}
+      {agency && (
+        <div className="flex flex-col gap-1 text-sm">
+          <p className="font-semibold text-slate-900">{agency.name}</p>
+          {agency.email && (
+            <a href={`mailto:${agency.email}`} className="text-[#f97362] hover:underline">
+              ✉️ {agency.email}
+            </a>
+          )}
+          {agency.phone && (
+            <a href={`tel:${agency.phone}`} className="text-[#f97362] hover:underline">
+              📱 {agency.phone}
+            </a>
+          )}
         </div>
-        <span className="inline-block rounded-full bg-blue-100 px-4 py-2 text-sm font-semibold text-blue-900">
-          {tripStatusLabel(trip.status)}
-        </span>
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div className="rounded-xl border-2 border-slate-200 bg-gradient-to-br from-blue-50 to-indigo-50 p-5 shadow-sm">
-          <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-600 mb-3">📅 Datas</h3>
-          <div className="space-y-3">
-            <DetailItem label="Início" value={startDate.toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} />
-            <DetailItem label="Fim" value={endDate.toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} />
-            <DetailItem label="Duração" value={`${durationDays} dias`} />
-          </div>
-        </div>
-
-        {trip.description && (
-          <div className="rounded-xl border-2 border-slate-200 bg-white p-5 shadow-sm">
-            <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-600 mb-3">📝 Descrição</h3>
-            <p className="text-slate-700 leading-relaxed">{trip.description}</p>
-          </div>
-        )}
-      </div>
-      {/* Trip.notes (internal agency notes) is intentionally never rendered
-          here -- the backend already excludes it from the response (see
-          services/api/src/customer-portal.ts toTrip), so it isn't even
-          available on this object, but this component also never reads a
-          `notes` field as defense in depth. */}
+      )}
     </div>
   );
 }

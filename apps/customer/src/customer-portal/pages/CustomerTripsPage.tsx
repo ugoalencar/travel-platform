@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ApiError, listMyTrips } from '../../lib/customerApi';
 import type { Trip } from '../../types/trip';
 import { tripStatusLabel } from '../../lib/statusLabels';
+import { destinationEmoji, destinationGradient } from '../destinationArt';
 
 type LoadState =
   | { status: 'loading' }
@@ -73,36 +74,37 @@ export function CustomerTripsPage() {
 function TripCard({ trip }: { trip: Trip }) {
   const startDate = new Date(trip.startDate);
   const endDate = new Date(trip.endDate);
-  const isUpcoming = startDate.getTime() > Date.now();
   const statusColorClass = getStatusColor(trip.status);
+  const gradient = destinationGradient(trip.destination);
+  const emoji = destinationEmoji(trip.destination);
 
   return (
     <Link
       to={`/customer-portal/trips/${trip.id}`}
-      className={`block rounded-xl border-2 p-5 shadow-md hover:shadow-lg transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${
-        isUpcoming
-          ? 'border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 hover:border-blue-300 focus-visible:outline-blue-600'
-          : 'border-slate-200 bg-white hover:border-slate-300 focus-visible:outline-slate-600'
-      }`}
+      className={`block overflow-hidden rounded-2xl border-2 border-orange-100 shadow-md hover:shadow-lg transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#f97362]`}
     >
-      <div className="flex items-start justify-between gap-2 mb-3">
-        <span className="text-2xl" aria-hidden="true">🧳</span>
-        <span className={`inline-block rounded-full px-2 py-1 text-xs font-semibold ${statusColorClass}`}>
-          {tripStatusLabel(trip.status)}
-        </span>
+      <div className={`flex h-24 items-center justify-center bg-gradient-to-br ${gradient} text-4xl`} aria-hidden="true">
+        {emoji}
       </div>
-      <h3 className="text-lg font-bold text-slate-900">{trip.name}</h3>
-      <p className="mt-1 text-sm font-medium text-slate-700">{trip.destination}</p>
-      <div className="mt-3 flex items-center gap-1 text-xs text-slate-600">
-        <span aria-hidden="true">📅</span>
-        <span>
-          {startDate.toLocaleDateString('pt-BR', { month: 'short', day: 'numeric' })} –{' '}
-          {endDate.toLocaleDateString('pt-BR', { month: 'short', day: 'numeric' })}
-        </span>
-      </div>
-      <div className="mt-2 flex items-center gap-1 text-xs text-slate-500">
-        <span aria-hidden="true">⏱️</span>
-        <span>{Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))} dias</span>
+      <div className="bg-white p-5">
+        <div className="mb-2 flex items-start justify-between gap-2">
+          <h3 className="text-lg font-bold text-slate-900">{trip.name}</h3>
+          <span className={`inline-block shrink-0 rounded-full px-2 py-1 text-xs font-semibold ${statusColorClass}`}>
+            {tripStatusLabel(trip.status)}
+          </span>
+        </div>
+        <p className="text-sm font-medium text-slate-700">{trip.destination}</p>
+        <div className="mt-3 flex items-center gap-1 text-xs text-slate-600">
+          <span aria-hidden="true">📅</span>
+          <span>
+            {startDate.toLocaleDateString('pt-BR', { month: 'short', day: 'numeric' })} –{' '}
+            {endDate.toLocaleDateString('pt-BR', { month: 'short', day: 'numeric' })}
+          </span>
+        </div>
+        <div className="mt-2 flex items-center gap-1 text-xs text-slate-500">
+          <span aria-hidden="true">⏱️</span>
+          <span>{Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))} dias</span>
+        </div>
       </div>
     </Link>
   );

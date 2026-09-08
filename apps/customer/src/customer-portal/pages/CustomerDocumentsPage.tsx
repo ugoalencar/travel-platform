@@ -1,19 +1,11 @@
 import { useEffect, useState } from 'react';
-import {
-  ApiError,
-  listMyDocuments,
-  listMyPaymentSchedule,
-} from '../../lib/customerApi';
-import type { CustomerDocumentView, CustomerPaymentScheduleItem } from '../../types/customer-portal';
+import { ApiError, listMyDocuments } from '../../lib/customerApi';
+import type { CustomerDocumentView } from '../../types/customer-portal';
 
-type LoadState<T> =
+type LoadState =
   | { status: 'loading' }
   | { status: 'error'; message: string }
-  | { status: 'success'; data: T };
-
-function currency(value: number): string {
-  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
-}
+  | { status: 'success'; data: CustomerDocumentView[] };
 
 const DOCUMENT_TYPE_LABELS: Record<string, string> = {
   PASSAPORTE: 'Passaporte',
@@ -25,45 +17,40 @@ const DOCUMENT_TYPE_LABELS: Record<string, string> = {
   OUTRO: 'Outro',
 };
 
-const VERIFICATION_LABELS: Record<string, string> = {
-  PENDING: 'Pendente',
-  VERIFIED: 'Verificado',
-  MISMATCH: 'Divergência',
-  EXPIRED: 'Expirado',
-  MANUAL_REVIEW: 'Em análise',
+const DOCUMENT_TYPE_ICON: Record<string, string> = {
+  PASSAPORTE: '🛂',
+  RG: '🪪',
+  CNH: '🚗',
+  CPF: '🪪',
+  VISTO: '📋',
+  CERTIDAO: '📜',
+  OUTRO: '📄',
+};
+
+// Friendly copy for the verification status -- a customer shouldn't have
+// to know what "MANUAL_REVIEW" means internally.
+const VERIFICATION_COPY: Record<string, { label: string; className: string }> = {
+  PENDING: { label: 'Aguardando verificação', className: 'bg-amber-100 text-amber-900' },
+  VERIFIED: { label: 'Verificado ✓', className: 'bg-green-100 text-green-900' },
+  MISMATCH: { label: 'Precisa de atenção', className: 'bg-red-100 text-red-900' },
+  EXPIRED: { label: 'Expirado', className: 'bg-red-100 text-red-900' },
+  MANUAL_REVIEW: { label: 'Em análise pela agência', className: 'bg-blue-100 text-blue-900' },
 };
 
 export function CustomerDocumentsPage() {
-  const [docsState, setDocsState] = useState<LoadState<CustomerDocumentView[]>>({
-    status: 'loading',
-  });
-  const [scheduleState, setScheduleState] = useState<LoadState<CustomerPaymentScheduleItem[]>>({
-    status: 'loading',
-  });
+  const [state, setState] = useState<LoadState>({ status: 'loading' });
 
   useEffect(() => {
     let cancelled = false;
     listMyDocuments()
       .then((data) => {
-        if (!cancelled) setDocsState({ status: 'success', data });
+        if (!cancelled) setState({ status: 'success', data });
       })
       .catch((error: unknown) => {
         if (cancelled) return;
         const message =
           error instanceof ApiError ? error.message : 'Não foi possível carregar os documentos.';
-        setDocsState({ status: 'error', message });
-      });
-    listMyPaymentSchedule()
-      .then((data) => {
-        if (!cancelled) setScheduleState({ status: 'success', data });
-      })
-      .catch((error: unknown) => {
-        if (cancelled) return;
-        const message =
-          error instanceof ApiError
-            ? error.message
-            : 'Não foi possível carregar o cronograma de pagamentos.';
-        setScheduleState({ status: 'error', message });
+        setState({ status: 'error', message });
       });
     return () => {
       cancelled = true;
@@ -71,32 +58,55 @@ export function CustomerDocumentsPage() {
   }, []);
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-          Documentos e Pagamentos
-        </h1>
-        <p className="mt-1 text-sm text-slate-600">
-          Seus documentos cadastrados e o cronograma de pagamentos da sua viagem.
+        <h1 className="text-3xl font-bold tracking-tight text-slate-900">Documentos</h1>
+        <p className="mt-2 text-slate-600">
+          Seus documentos cadastrados para viajar com tranquilidade.
         </p>
       </div>
 
-      <section>
-        <h2 className="mb-3 text-lg font-semibold text-slate-900">Meus documentos</h2>
-        {docsState.status === 'loading' && <p className="text-sm text-slate-500">Carregando...</p>}
-        {docsState.status === 'error' && (
-          <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-            {docsState.message}
+      <div aria-live="polite">
+        {state.status === 'loading' && <p className="text-sm text-slate-500">Carregando...</p>}
+        {state.status === 'error' && (
+          <div className="rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-800">
+            {state.message}
           </div>
         )}
-        {docsState.status === 'success' && docsState.data.length === 0 && (
-          <p className="text-sm text-slate-500">Nenhum documento cadastrado.</p>
+        {state.status === 'success' && state.data.length === 0 && (
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-8 text-center">
+            <p className="text-2xl" aria-hidden="true">🗂️</p>
+            <p className="mt-2 text-sm font-medium text-slate-600">
+              Nenhum documento cadastrado ainda.
+            </p>
+            <p className="mt-1 text-xs text-slate-500">
+              Sua agência pode adicionar seus documentos de viagem por aqui.
+            </p>
+          </div>
         )}
-        {docsState.status === 'success' && docsState.data.length > 0 && (
-          <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            {docsState.data.map((doc) => (
-              <li key={doc.id} className="rounded-xl border-2 border-slate-200 bg-white p-4 shadow-sm">
-                <p className="font-semibold text-slate-900">
+      </div>
+
+      {state.status === 'success' && state.data.length > 0 && (
+        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {state.data.map((doc) => {
+            const verification = VERIFICATION_COPY[doc.verificationStatus] ?? {
+              label: doc.verificationStatus,
+              className: 'bg-slate-100 text-slate-700',
+            };
+            return (
+              <li
+                key={doc.id}
+                className="rounded-xl border-2 border-orange-100 bg-white p-5 shadow-sm"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <span className="text-2xl" aria-hidden="true">
+                    {DOCUMENT_TYPE_ICON[doc.documentType] ?? '📄'}
+                  </span>
+                  <span className={`rounded-full px-3 py-1 text-xs font-semibold ${verification.className}`}>
+                    {verification.label}
+                  </span>
+                </div>
+                <p className="mt-3 font-semibold text-slate-900">
                   {DOCUMENT_TYPE_LABELS[doc.documentType] ?? doc.documentType}
                 </p>
                 <p className="text-sm text-slate-600">Número: {doc.documentNumber}</p>
@@ -105,66 +115,16 @@ export function CustomerDocumentsPage() {
                     Validade: {new Date(doc.expiryDate).toLocaleDateString('pt-BR')}
                   </p>
                 )}
-                <span className="mt-2 inline-block rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">
-                  {VERIFICATION_LABELS[doc.verificationStatus] ?? doc.verificationStatus}
-                </span>
                 {doc.attachments.length > 0 && (
                   <p className="mt-2 text-xs text-slate-500">
                     {doc.attachments.length} arquivo(s) anexado(s)
                   </p>
                 )}
               </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      <section>
-        <h2 className="mb-3 text-lg font-semibold text-slate-900">Cronograma de pagamentos</h2>
-        {scheduleState.status === 'loading' && (
-          <p className="text-sm text-slate-500">Carregando...</p>
-        )}
-        {scheduleState.status === 'error' && (
-          <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-            {scheduleState.message}
-          </div>
-        )}
-        {scheduleState.status === 'success' && scheduleState.data.length === 0 && (
-          <p className="text-sm text-slate-500">Nenhuma parcela registrada.</p>
-        )}
-        {scheduleState.status === 'success' && scheduleState.data.length > 0 && (
-          <div className="overflow-x-auto rounded-xl border-2 border-slate-200 bg-white shadow-sm">
-            <table className="w-full text-sm">
-              <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-600">
-                <tr>
-                  <th className="px-4 py-3">Descrição</th>
-                  <th className="px-4 py-3">Vencimento</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3 text-right">Valor</th>
-                  <th className="px-4 py-3 text-right">Pago</th>
-                  <th className="px-4 py-3 text-right">Restante</th>
-                </tr>
-              </thead>
-              <tbody>
-                {scheduleState.data.map((item) => (
-                  <tr key={item.id} className="border-t border-slate-100">
-                    <td className="px-4 py-3">{item.description}</td>
-                    <td className="px-4 py-3">
-                      {new Date(item.dueAt).toLocaleDateString('pt-BR')}
-                    </td>
-                    <td className="px-4 py-3">{item.status}</td>
-                    <td className="px-4 py-3 text-right">{currency(item.amount)}</td>
-                    <td className="px-4 py-3 text-right">{currency(item.amountPaid)}</td>
-                    <td className="px-4 py-3 text-right font-semibold">
-                      {currency(item.amountRemaining)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
+            );
+          })}
+        </ul>
+      )}
     </div>
   );
 }
