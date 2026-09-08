@@ -99,15 +99,14 @@ describe('PescadorPage', () => {
   });
 
   it('shows an honest partial-extraction state and lets the reviewer fill missing fields manually', async () => {
+    const { foundPrice: _foundPrice, validUntil: _validUntil, ...capturedOfferWithoutOptional } = capturedOffer;
     vi.mocked(api.listCaptures).mockResolvedValue([
       {
-        ...capturedOffer,
+        ...capturedOfferWithoutOptional,
         id: 'capture-2',
         normalizedTitle: 'Falha ao capturar',
         normalizedDescription:
           'Não foi possível extrair os dados automaticamente: fetch failed. Edite manualmente antes de revisar.',
-        foundPrice: undefined,
-        validUntil: undefined,
       },
     ]);
 
