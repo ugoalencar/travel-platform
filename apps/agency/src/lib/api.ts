@@ -1060,6 +1060,22 @@ export async function deleteCapture(id: string): Promise<void> {
   });
 }
 
+export interface UpdateCaptureInput {
+  normalizedTitle?: string;
+  normalizedDescription?: string;
+  foundPrice?: number;
+  currency?: string;
+  validUntil?: string | null;
+}
+
+export async function updateCapture(id: string, patch: UpdateCaptureInput): Promise<Capture> {
+  const data = await request<{ capture: Capture }>(`/api/pescador/captures/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(patch),
+  });
+  return data.capture;
+}
+
 export async function reviewCapture(id: string): Promise<Capture> {
   const data = await request<{ capture: Capture }>(
     `/api/pescador/captures/${encodeURIComponent(id)}/review`,

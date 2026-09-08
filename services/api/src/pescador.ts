@@ -58,6 +58,14 @@ export interface PublishCaptureResult {
   offer: Offer;
 }
 
+export interface UpdateExternalOfferCaptureInput {
+  normalizedTitle?: string;
+  normalizedDescription?: string;
+  foundPrice?: number;
+  currency?: string;
+  validUntil?: Date | null;
+}
+
 export interface ExtractedOfferDraft {
   sourceUrl: string;
   sourceName: string;
@@ -281,6 +289,60 @@ export async function createExternalOfferCapture(
       }
       throw error;
     }
+  });
+}
+
+const EDITABLE_STATUSES = [
+  ExternalOfferCaptureStatus.CAPTURED,
+  ExternalOfferCaptureStatus.NORMALIZED,
+  ExternalOfferCaptureStatus.UNDER_REVIEW,
+];
+
+/**
+ * Manual edit of a capture's normalized fields during the review stage --
+ * lets a reviewer fix/complete data the automated extraction could not
+ * find (or found incorrectly) before the capture is approved. Only allowed
+ * while the capture has not yet been approved/published, since those
+ * states represent a decision already made on the reviewed data.
+ */
+export async function updateExternalOfferCapture(
+  database: DatabaseRuntime,
+  id: string,
+  patch: UpdateExternalOfferCaptureInput,
+): Promise<ExternalOfferCapture> {
+  const agencyId = getAgencyId();
+  if (patch.foundPrice !== undefined && patch.foundPrice < 0) {
+    throw new ValidationError('Field "foundPrice" must not be negative');
+  }
+  return database.withTenantTransaction(async (client) => {
+    const current = await lockCapture(client, agencyId, id);
+    if (!EDITABLE_STATUSES.includes(current.status)) {
+      throw new ConflictError(`Capture in status ${current.status} can no longer be edited manually`);
+    }
+    const result = await client.query<CaptureRow>(
+      `UPDATE external_offer_captures
+       SET normalized_title = COALESCE($3, normalized_title),
+           normalized_description = COALESCE($4, normalized_description),
+           found_price = COALESCE($5, found_price),
+           currency = COALESCE($6, currency),
+           valid_until = CASE WHEN $8 THEN $7 ELSE valid_until END,
+           updated_at = now()
+       WHERE agency_id = $1 AND id = $2
+       RETURNING ${CAPTURE_COLUMNS}`,
+      [
+        agencyId,
+        id,
+        patch.normalizedTitle ?? null,
+        patch.normalizedDescription ?? null,
+        patch.foundPrice ?? null,
+        patch.currency ?? null,
+        patch.validUntil ?? null,
+        patch.validUntil !== undefined,
+      ],
+    );
+    const row = result.rows[0];
+    if (!row) throw new Error('Capture update did not return a row');
+    return toCapture(row);
   });
 }
 

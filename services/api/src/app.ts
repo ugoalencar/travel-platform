@@ -311,7 +311,9 @@ import {
   moveCaptureToReview,
   publishCapture,
   rejectCapture,
+  updateExternalOfferCapture,
   type CreateExternalOfferCaptureInput,
+  type UpdateExternalOfferCaptureInput,
 } from './pescador';
 import {
   getAvailableOfferById,
@@ -3108,6 +3110,17 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     return { capture };
   });
 
+  app.patch<{ Params: { id: string } }>(
+    '/pescador/captures/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.AGENT);
+      const patch = parseUpdateExternalOfferCaptureInput(request.body);
+      const capture = await updateExternalOfferCapture(options.database, request.params.id, patch);
+      return { capture };
+    }
+  );
+
   app.post('/pescador/extract', { preHandler: protectedHooks }, async (request) => {
     requireRole(UserRole.AGENT);
     const record = parseObjectBody(request.body);
@@ -4385,6 +4398,47 @@ function parseCreateExternalOfferCaptureInput(body: unknown): CreateExternalOffe
     data.validUntil = parseRequiredDate(record.validUntil, 'validUntil');
   }
 
+  return data;
+}
+
+function parseUpdateExternalOfferCaptureInput(body: unknown): UpdateExternalOfferCaptureInput {
+  const record = parseObjectBody(body);
+  const allowed = ['normalizedTitle', 'normalizedDescription', 'foundPrice', 'currency', 'validUntil'] as const;
+  assertAllowedFields(
+    record,
+    [
+      'agencyId',
+      'tenantId',
+      'id',
+      'sourceUrl',
+      'sourceName',
+      'rawContent',
+      'status',
+      'reviewedAt',
+      'reviewedByUserId',
+      'publishedOfferId',
+      'createdAt',
+      'updatedAt',
+    ],
+    allowed
+  );
+
+  const data: UpdateExternalOfferCaptureInput = {};
+  if (record.normalizedTitle !== undefined) {
+    data.normalizedTitle = parseRequiredString(record.normalizedTitle, 'normalizedTitle');
+  }
+  if (record.normalizedDescription !== undefined) {
+    data.normalizedDescription = parseRequiredString(record.normalizedDescription, 'normalizedDescription');
+  }
+  if (record.foundPrice !== undefined) {
+    data.foundPrice = parseNonNegativeNumber(record.foundPrice, 'foundPrice');
+  }
+  if (record.currency !== undefined) {
+    data.currency = parseRequiredString(record.currency, 'currency');
+  }
+  if (record.validUntil !== undefined) {
+    data.validUntil = record.validUntil === null ? null : parseRequiredDate(record.validUntil, 'validUntil');
+  }
   return data;
 }
 

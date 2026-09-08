@@ -1224,6 +1224,15 @@ export function registerAllRoutes(): void {
   });
 
   registerRoute({
+    method: 'PATCH',
+    path: '/pescador/captures/:id',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'AGENT',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
     method: 'POST',
     path: '/pescador/captures/:id/review',
     classification: RouteClassification.STAFF_SCOPED,

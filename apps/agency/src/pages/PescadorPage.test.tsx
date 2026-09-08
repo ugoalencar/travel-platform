@@ -13,6 +13,7 @@ vi.mock('../lib/api', async () => {
     reviewCapture: vi.fn(),
     approveCapture: vi.fn(),
     publishCapture: vi.fn(),
+    updateCapture: vi.fn(),
   };
 });
 
@@ -37,36 +38,36 @@ beforeEach(() => {
   let captureState = capturedOffer;
   vi.mocked(api.listCaptures).mockImplementation(() => Promise.resolve([captureState]));
   vi.mocked(api.captureUrl).mockResolvedValue(capturedOffer);
+  vi.mocked(api.updateCapture).mockImplementation((_id, patch) => {
+    captureState = { ...captureState, ...patch, updatedAt: new Date().toISOString() } as api.Capture;
+    return Promise.resolve(captureState);
+  });
   vi.mocked(api.reviewCapture).mockImplementation(() => {
-    captureState = { ...capturedOffer, status: 'UNDER_REVIEW' };
+    captureState = { ...captureState, status: 'UNDER_REVIEW' };
     return Promise.resolve(captureState);
   });
   vi.mocked(api.approveCapture).mockImplementation(() => {
-    captureState = { ...capturedOffer, status: 'APPROVED' };
+    captureState = { ...captureState, status: 'APPROVED' };
     return Promise.resolve(captureState);
   });
   vi.mocked(api.publishCapture).mockImplementation(() => {
     captureState = {
-      ...capturedOffer,
+      ...captureState,
       status: 'PUBLISHED',
       publishedOfferId: 'offer-1',
     };
     return Promise.resolve({
-    capture: {
-      ...capturedOffer,
-      status: 'PUBLISHED',
-      publishedOfferId: 'offer-1',
-    },
-    offer: {
-      id: 'offer-1',
-      agencyId: 'agency-1',
-      name: 'Rio de Janeiro com Praia Palace',
-      description: 'Pacote com hotel, aéreo e traslados.',
-      price: 4890,
-      status: 'ACTIVE',
-      createdAt: '2026-09-01T10:05:00.000Z',
-      updatedAt: '2026-09-01T10:05:00.000Z',
-    },
+      capture: captureState,
+      offer: {
+        id: 'offer-1',
+        agencyId: 'agency-1',
+        name: 'Rio de Janeiro com Praia Palace',
+        description: 'Pacote com hotel, aéreo e traslados.',
+        price: 4890,
+        status: 'ACTIVE',
+        createdAt: '2026-09-01T10:05:00.000Z',
+        updatedAt: '2026-09-01T10:05:00.000Z',
+      },
     });
   });
 });
@@ -81,16 +82,43 @@ describe('PescadorPage', () => {
 
     expect(await screen.findByRole('heading', { name: 'Pescador' })).toBeInTheDocument();
     expect(screen.getAllByText('Rio de Janeiro com Praia Palace').length).toBeGreaterThan(0);
-    expect(screen.getByText('Capturada')).toBeInTheDocument();
-    expect(screen.getByText('Praia Palace')).toBeInTheDocument();
+    expect(screen.getAllByText('Aguardando revisão').length).toBeGreaterThan(0);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Revisar captura Rio de Janeiro com Praia Palace' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Enviar para revisão' }));
     await waitFor(() => expect(api.reviewCapture).toHaveBeenCalledWith('capture-1'));
 
-    fireEvent.click(screen.getByRole('button', { name: 'Aprovar captura Rio de Janeiro com Praia Palace' }));
+    await screen.findAllByText('Em revisão');
+    fireEvent.click(screen.getByRole('button', { name: 'Aprovar' }));
     await waitFor(() => expect(api.approveCapture).toHaveBeenCalledWith('capture-1'));
 
-    fireEvent.click(screen.getByRole('button', { name: 'Criar oferta Rio de Janeiro com Praia Palace' }));
+    await screen.findAllByText('Aprovada');
+    fireEvent.click(screen.getByRole('button', { name: 'Criar oferta' }));
     await waitFor(() => expect(api.publishCapture).toHaveBeenCalledWith('capture-1'));
+
+    await screen.findByRole('link', { name: /Ver oferta/i });
+  });
+
+  it('shows an honest partial-extraction state and lets the reviewer fill missing fields manually', async () => {
+    vi.mocked(api.listCaptures).mockResolvedValue([
+      {
+        ...capturedOffer,
+        id: 'capture-2',
+        normalizedTitle: 'Falha ao capturar',
+        normalizedDescription:
+          'Não foi possível extrair os dados automaticamente: fetch failed. Edite manualmente antes de revisar.',
+        foundPrice: undefined,
+        validUntil: undefined,
+      },
+    ]);
+
+    render(
+      <MemoryRouter>
+        <PescadorPage />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText(/A extração automática desta URL falhou/)).toBeInTheDocument();
+    expect(screen.getByText('Nenhuma imagem detectada')).toBeInTheDocument();
+    expect(screen.getByText(/Campos faltantes antes de aprovar/)).toBeInTheDocument();
   });
 });
