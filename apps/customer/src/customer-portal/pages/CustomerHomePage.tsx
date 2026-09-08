@@ -128,7 +128,7 @@ export function CustomerHomePage() {
               value={String(state.data.activeBookingsCount)}
               linkTo="/customer-portal/bookings"
               icon="✈️"
-              color="blue"
+              color="coral"
             />
             <SummaryCard
               title="Propostas"
@@ -301,16 +301,16 @@ interface SummaryCardProps {
   value: string;
   linkTo: string;
   icon?: string;
-  color?: 'blue' | 'amber' | 'purple';
+  color?: 'coral' | 'amber' | 'purple';
 }
 
 const colorSchemes = {
-  blue: {
-    bg: 'from-blue-50 to-indigo-50',
-    border: 'border-blue-200 hover:border-blue-300',
-    icon: 'text-blue-600',
-    badge: 'text-blue-900 bg-blue-100',
-    focus: 'focus-visible:outline-blue-600',
+  coral: {
+    bg: 'from-orange-50 to-rose-50',
+    border: 'border-orange-200 hover:border-orange-300',
+    icon: 'text-[#f97362]',
+    badge: 'text-orange-900 bg-orange-100',
+    focus: 'focus-visible:outline-[#f97362]',
   },
   amber: {
     bg: 'from-amber-50 to-orange-50',
@@ -328,7 +328,7 @@ const colorSchemes = {
   },
 };
 
-function SummaryCard({ title, value, linkTo, icon, color = 'blue' }: SummaryCardProps) {
+function SummaryCard({ title, value, linkTo, icon, color = 'coral' }: SummaryCardProps) {
   const scheme = colorSchemes[color];
   return (
     <Link

@@ -17,6 +17,22 @@
   --color-sidebar-active: #322c5c;
   --color-sidebar-border: #322c5c;
   --color-platform-accent: #6d28d9;
+
+  /* KPI chip accents -- violet/indigo governance palette, deliberately
+   * distinct hues from the Agency app's KPI accents. */
+  --color-kpi-revenue: #6d28d9;
+  --color-kpi-revenue-bg: #ede9fe;
+  --color-kpi-expense: #be123c;
+  --color-kpi-expense-bg: #ffe4e6;
+  --color-kpi-success: #059669;
+  --color-kpi-success-bg: #d1fae5;
+  --color-kpi-pending: #b45309;
+  --color-kpi-pending-bg: #fef3c7;
+  --color-kpi-neutral: #4338ca;
+  --color-kpi-neutral-bg: #e0e7ff;
+
+  --shadow-card: 0 1px 2px 0 rgb(15 23 42 / 0.04), 0 1px 3px 0 rgb(15 23 42 / 0.06);
+  --shadow-card-hover: 0 4px 8px -2px rgb(15 23 42 / 0.08), 0 2px 4px -2px rgb(15 23 42 / 0.06);
 }
 
 body {
