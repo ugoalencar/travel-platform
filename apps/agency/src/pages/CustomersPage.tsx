@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, Plus, Users } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/card';
+import { PageHeader } from '../components/layout/PageHeader';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Textarea } from '../components/ui/textarea';
@@ -91,16 +92,17 @@ export function CustomersPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-slate-900">Clientes</h1>
-          <p className="text-sm text-slate-500">{customers.length} clientes cadastrados</p>
-        </div>
-        <Button size="sm" onClick={() => setShowNewCustomer(true)}>
-          <Plus className="h-4 w-4" />
-          Novo cliente
-        </Button>
-      </div>
+      <PageHeader
+        title="Clientes"
+        description={`${customers.length} clientes cadastrados`}
+        breadcrumbs={[{ label: 'Painel', to: '/' }, { label: 'CRM & Comercial' }, { label: 'Clientes' }]}
+        actions={
+          <Button size="sm" onClick={() => setShowNewCustomer(true)}>
+            <Plus className="h-4 w-4" />
+            Novo cliente
+          </Button>
+        }
+      />
 
       <div className="flex items-center gap-3">
         <div className="relative flex-1 max-w-sm">

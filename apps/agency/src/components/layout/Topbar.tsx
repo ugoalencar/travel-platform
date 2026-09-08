@@ -24,8 +24,16 @@ export function Topbar({ onMenuClick }: TopbarProps) {
       >
         <Menu className="h-5 w-5" />
       </Button>
-      <span className="text-sm font-medium text-slate-500">{DEMO_AGENCY_NAME}</span>
-      <div className="ml-auto flex items-center gap-2">
+      <div className="flex items-center gap-2">
+        <span
+          className="rounded-full bg-blue-50 px-2.5 py-0.5 text-[0.7rem] font-semibold uppercase tracking-wide text-blue-700 ring-1 ring-inset ring-blue-200"
+          title="Ambiente da agência (distinto do Painel da Plataforma)"
+        >
+          Agência
+        </span>
+        <span className="hidden text-sm font-medium text-slate-700 sm:inline">{DEMO_AGENCY_NAME}</span>
+      </div>
+      <div className="ml-auto flex items-center gap-3">
         <Badge variant="outline">Modo demonstração</Badge>
         <span className="text-sm text-slate-700">
           {DEMO_STAFF_NAME} <span className="text-slate-400">· ADMIN</span>

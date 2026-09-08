@@ -121,12 +121,14 @@ describe('App', () => {
     await screen.findByRole('heading', { name: 'Painel' });
 
     const nav = screen.getByRole('navigation');
-    expect(nav).toHaveTextContent('INÍCIO');
-    expect(nav).toHaveTextContent('RELACIONAMENTO');
-    expect(nav).toHaveTextContent('COMERCIAL');
-    expect(nav).toHaveTextContent('MARKETING');
-    expect(nav).toHaveTextContent('FINANCEIRO');
-    expect(nav).toHaveTextContent('GESTÃO');
+    expect(nav).toHaveTextContent('Painel');
+    expect(nav).toHaveTextContent('CRM & Comercial');
+    expect(nav).toHaveTextContent('Operação');
+    expect(nav).toHaveTextContent('Financeiro');
+    expect(nav).toHaveTextContent('Cadastros');
+    expect(nav).toHaveTextContent('Pessoal');
+    expect(nav).toHaveTextContent('Marketing');
+    expect(nav).toHaveTextContent('Configurações');
 
     expect(screen.getByRole('link', { name: 'Pescador' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Contas a Pagar' })).toHaveAttribute(
