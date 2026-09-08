@@ -154,11 +154,11 @@ describe('App', () => {
     expect(link).toHaveAttribute('href', '/wishes');
   });
 
-  it('navigates to /customers/new when "+ Novo cliente" is clicked', async () => {
+  it('navigates to /customers/new when "Novo cliente" is clicked', async () => {
     renderApp(['/customers']);
     await screen.findByRole('heading', { name: 'Clientes' });
 
-    fireEvent.click(screen.getByRole('button', { name: '+ Novo cliente' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Novo cliente' }));
 
     expect(
       await screen.findByRole('heading', { name: 'Novo cliente' }),
@@ -251,9 +251,9 @@ describe('App', () => {
     expect(await screen.findByText('Carregando rota...')).toBeInTheDocument();
   });
 
-  it('renders "Produtos de transporte" as a real navigation link', () => {
+  it('renders "Produtos" as a real navigation link', () => {
     renderApp();
-    const link = screen.getByRole('link', { name: 'Produtos de transporte' });
+    const link = screen.getByRole('link', { name: 'Produtos' });
     expect(link).toHaveAttribute('href', '/transport/products');
   });
 
@@ -317,9 +317,9 @@ describe('App', () => {
     expect(await screen.findByText('Carregando fornecedor...')).toBeInTheDocument();
   });
 
-  it('renders "Saídas" as a real navigation link', () => {
+  it('renders "Saidas" as a real navigation link', () => {
     renderApp();
-    const link = screen.getByRole('link', { name: 'Saídas' });
+    const link = screen.getByRole('link', { name: 'Saidas' });
     expect(link).toHaveAttribute('href', '/transport/departures');
   });
 
@@ -390,9 +390,11 @@ describe('App', () => {
     ).toBeInTheDocument();
   });
 
-  it('renders "Financeiro" section with link to /financial', () => {
+  it('renders "Financeiro" section with a "Visao geral" link to /financial', () => {
     renderApp();
-    const link = screen.getByRole('link', { name: 'Financeiro' });
+    const heading = screen.getByText('Financeiro');
+    expect(heading).toBeInTheDocument();
+    const link = screen.getByRole('link', { name: 'Visao geral' });
     expect(link).toHaveAttribute('href', '/financial');
   });
 

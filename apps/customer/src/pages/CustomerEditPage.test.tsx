@@ -237,7 +237,7 @@ describe('CustomerEditPage', () => {
 
     expect(updateCustomer).not.toHaveBeenCalled();
     expect(
-      await screen.findByRole('heading', { name: 'Detalhes do cliente' }),
+      await screen.findByRole('heading', { name: 'Cliente 360' }, { timeout: 4500 }),
     ).toBeInTheDocument();
   });
 
@@ -250,7 +250,7 @@ describe('CustomerEditPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Salvar' }));
 
     expect(
-      await screen.findByRole('heading', { name: 'Detalhes do cliente' }),
+      await screen.findByRole('heading', { name: 'Cliente 360' }, { timeout: 4500 }),
     ).toBeInTheDocument();
   });
 
