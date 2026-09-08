@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
+import { CalendarCheck, FileText, Gift } from 'lucide-react';
 import {
   ApiError,
   getMyProfile,
@@ -13,7 +14,7 @@ import {
 import type { Trip } from '../../types/trip';
 import type { CustomerDocumentView, CustomerPaymentScheduleItem } from '../../types/customer-portal';
 import { tripStatusLabel } from '../../lib/statusLabels';
-import { destinationEmoji, destinationGradient } from '../destinationArt';
+import { destinationGradient } from '../destinationArt';
 
 interface HomeData {
   firstName: string;
@@ -89,7 +90,7 @@ export function CustomerHomePage() {
     <div className="flex flex-col gap-8">
       <div className="flex flex-col gap-2">
         <h1 className="text-4xl font-bold tracking-tight text-slate-900">
-          {state.status === 'success' ? `Olá, ${state.data.firstName}! 👋` : 'Olá! 👋'}
+          {state.status === 'success' ? `Olá, ${state.data.firstName}!` : 'Olá!'}
         </h1>
         <p className="text-lg text-slate-600">Aqui está tudo o que você precisa para sua viagem</p>
       </div>
@@ -127,21 +128,21 @@ export function CustomerHomePage() {
               title="Reservas ativas"
               value={String(state.data.activeBookingsCount)}
               linkTo="/customer-portal/bookings"
-              icon="✈️"
+              icon={<CalendarCheck size={28} />}
               color="coral"
             />
             <SummaryCard
               title="Propostas"
               value={String(state.data.proposalsCount)}
               linkTo="/customer-portal/proposals"
-              icon="📋"
+              icon={<FileText size={28} />}
               color="amber"
             />
             <SummaryCard
               title="Ofertas disponíveis"
               value={String(state.data.offersCount)}
               linkTo="/customer-portal/offers"
-              icon="🎁"
+              icon={<Gift size={28} />}
               color="purple"
             />
           </div>
@@ -165,7 +166,6 @@ function NextTripCard({ trip }: { trip: Trip | null }) {
 
   const countdownDays = daysUntil(trip.startDate);
   const gradient = destinationGradient(trip.destination);
-  const emoji = destinationEmoji(trip.destination);
 
   return (
     <Link
@@ -175,7 +175,7 @@ function NextTripCard({ trip }: { trip: Trip | null }) {
       <div className="flex flex-col gap-4 bg-white/55 p-6 backdrop-blur-sm sm:flex-row sm:items-center sm:justify-between">
         <div className="flex-1">
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-700">
-            {emoji} Sua próxima viagem
+            Sua próxima viagem
           </p>
           <p className="mt-2 text-2xl font-bold text-slate-900">{trip.name}</p>
           <p className="text-base font-medium text-slate-700">{trip.destination}</p>
@@ -204,7 +204,7 @@ function NextTripCard({ trip }: { trip: Trip | null }) {
 
       <div className="flex flex-wrap gap-2 border-t border-white/60 bg-white/40 p-3 text-xs font-semibold">
         <span className="rounded-full bg-white/80 px-3 py-1 text-slate-700">
-          📄 Ver itinerário e voucher →
+          Ver itinerário e voucher
         </span>
       </div>
     </Link>
@@ -220,7 +220,7 @@ function AgencyMessageCard({ trip }: { trip: Trip | null }) {
   return (
     <div className="rounded-xl border-2 border-orange-100 bg-white p-5 shadow-sm">
       <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-600">
-        💬 Avisos da agência
+        Avisos da agência
       </h3>
       <p className="text-sm text-slate-700">{message}</p>
     </div>
@@ -261,7 +261,7 @@ function NextPaymentCard({ payment }: { payment: CustomerPaymentScheduleItem | n
       className="block rounded-xl border-2 border-orange-100 bg-white p-5 shadow-sm hover:shadow-md hover:border-orange-200 transition-all"
     >
       <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-600">
-        💳 Próximo pagamento
+        Próximo pagamento
       </h3>
       {payment ? (
         <div>
@@ -272,7 +272,7 @@ function NextPaymentCard({ payment }: { payment: CustomerPaymentScheduleItem | n
           </p>
         </div>
       ) : (
-        <p className="text-sm text-slate-500">Nenhuma parcela pendente. Tudo em dia! 🎉</p>
+        <p className="text-sm text-slate-500">Nenhuma parcela pendente. Tudo em dia.</p>
       )}
     </Link>
   );
@@ -285,7 +285,7 @@ function PendingDocumentsCard({ documents }: { documents: CustomerDocumentView[]
       className="block rounded-xl border-2 border-amber-200 bg-amber-50 p-5 shadow-sm hover:shadow-md hover:border-amber-300 transition-all"
     >
       <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-amber-800">
-        📎 Documentos pendentes
+        Documentos pendentes
       </h3>
       <p className="text-sm text-amber-900">
         {documents.length === 1
@@ -300,7 +300,7 @@ interface SummaryCardProps {
   title: string;
   value: string;
   linkTo: string;
-  icon?: string;
+  icon?: ReactNode;
   color?: 'coral' | 'amber' | 'purple';
 }
 
@@ -340,7 +340,7 @@ function SummaryCard({ title, value, linkTo, icon, color = 'coral' }: SummaryCar
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{title}</p>
           <p className="mt-3 text-4xl font-bold text-slate-900">{value}</p>
         </div>
-        {icon && <span className="text-3xl" aria-hidden="true">{icon}</span>}
+        {icon && <span className={scheme.icon} aria-hidden="true">{icon}</span>}
       </div>
     </Link>
   );

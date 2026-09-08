@@ -7,9 +7,9 @@ import { CustomerNav } from './CustomerNav';
 // with the staff admin Sidebar).
 export function CustomerPortalShell() {
   return (
-    <div className="customer-portal-shell flex min-h-screen w-full flex-col sm:flex-row">
+    <div className="customer-portal-shell flex min-h-screen w-full flex-col bg-[color:var(--portal-bg)] sm:flex-row">
       <CustomerNav />
-      <main className="flex-1 overflow-y-auto p-4 sm:p-6">
+      <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
         <Outlet />
       </main>
     </div>

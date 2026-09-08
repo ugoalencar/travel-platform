@@ -1,101 +1,121 @@
 import { NavLink } from 'react-router-dom';
+import {
+  BarChart3,
+  BriefcaseBusiness,
+  CalendarClock,
+  CalendarDays,
+  ClipboardCheck,
+  CreditCard,
+  FileText,
+  Gift,
+  Heart,
+  LayoutDashboard,
+  Map,
+  Megaphone,
+  Plane,
+  Route,
+  Search,
+  Settings,
+  Sparkles,
+  Ticket,
+  Users,
+  WalletCards,
+} from 'lucide-react';
 import { cn } from '../../lib/utils';
 
 interface NavItem {
   label: string;
-  to?: string;
+  to: string;
+  icon: typeof LayoutDashboard;
 }
 
-// Grouped nav sections (item 7 of the shared-UX batch). This is a
-// label/grouping/ordering change only -- every `to` route below is exactly
-// what the old flat NAV_ITEMS array had; nothing was renamed or rerouted.
-//
-// NOTE ON "Financeiro": every /financial/* backend route already requires
-// MANAGER server-side (confirmed separately) -- this list intentionally
-// does NOT hide it for lower roles. Doing so would require knowing the
-// current user's role client-side, and this app has no client-side
-// auth/session/role mechanism today (see services/api.ts: "The frontend
-// never sets agencyId/tenant/role itself -- it only calls the API and
-// renders what comes back."). Inventing one here would cross into
-// Auth/TenantContext, which is out of scope for this batch, so the item is
-// deferred rather than improvised -- see this batch's final report.
-const COMERCIAL_NAV_ITEMS: NavItem[] = [
-  { label: 'Clientes', to: '/customers' },
-  { label: 'Desejos', to: '/wishes' },
-  { label: 'Ofertas', to: '/offers' },
-  { label: 'Propostas', to: '/proposals' },
-  { label: 'Reservas', to: '/bookings' },
-  { label: 'Vendas', to: '/sales' },
-  { label: 'Viagens', to: '/trips' },
-  { label: 'Painel comercial', to: '/commercial/dashboard' },
-  { label: 'Pipeline', to: '/commercial/pipeline' },
-  { label: 'Agenda comercial', to: '/commercial/agenda' },
-];
+interface NavSection {
+  key: string;
+  heading: string;
+  items: NavItem[];
+}
 
-const TRANSPORTES_NAV_ITEMS: NavItem[] = [
-  { label: 'Rotas', to: '/transport/routes' },
-  { label: 'Produtos de transporte', to: '/transport/products' },
-  { label: 'Fornecedores', to: '/transport/suppliers' },
-  { label: 'Saídas', to: '/transport/departures' },
-  { label: 'Agenda', to: '/transport/agenda' },
-  { label: 'Operações de hoje', to: '/operations/today' },
-];
-
-// See NOTE above on Financeiro's visibility being unconditional for now.
-const FINANCEIRO_NAV_ITEMS: NavItem[] = [
-  { label: 'Financeiro', to: '/financial' },
-  { label: 'Pescador', to: '/pescador' },
-];
-
-const OFERTAS_MARKETING_NAV_ITEMS: NavItem[] = [
-  { label: 'Estudio criativo', to: '/offer-growth/studio' },
-  { label: 'Modelos', to: '/offer-growth/templates' },
-  { label: 'Editor criativo', to: '/offer-growth/editor' },
-  { label: 'Campanhas', to: '/offer-growth/campaigns' },
-  { label: 'Publicações', to: '/offer-growth/publications' },
-  { label: 'Automações', to: '/offer-growth/automations' },
-  { label: 'Cupons', to: '/offer-growth/coupons' },
-];
-
-// Minimal "Configurações" nav section (no settings framework existed
-// before this) -- currently just Pipelines. Every write on that page is
-// still enforced server-side by requirePipelineAdmin(); this link is not
-// itself a permission gate.
-const CONFIGURACOES_NAV_ITEMS: NavItem[] = [{ label: 'Pipelines', to: '/settings/pipelines' }];
-
-const NAV_SECTIONS: Array<{ key: string; heading: string; items: NavItem[] }> = [
-  { key: 'comercial', heading: 'Comercial', items: COMERCIAL_NAV_ITEMS },
-  { key: 'transportes', heading: 'Transportes', items: TRANSPORTES_NAV_ITEMS },
-  { key: 'financeiro', heading: 'Financeiro', items: FINANCEIRO_NAV_ITEMS },
+const NAV_SECTIONS: NavSection[] = [
   {
-    key: 'ofertas-marketing',
-    heading: 'Ofertas e marketing',
-    items: OFERTAS_MARKETING_NAV_ITEMS,
+    key: 'comercial',
+    heading: 'CRM & Comercial',
+    items: [
+      { label: 'Clientes', to: '/customers', icon: Users },
+      { label: 'Desejos', to: '/wishes', icon: Heart },
+      { label: 'Ofertas', to: '/offers', icon: Gift },
+      { label: 'Propostas', to: '/proposals', icon: FileText },
+      { label: 'Reservas', to: '/bookings', icon: Ticket },
+      { label: 'Vendas', to: '/sales', icon: WalletCards },
+      { label: 'Viagens', to: '/trips', icon: Plane },
+      { label: 'Painel comercial', to: '/commercial/dashboard', icon: BarChart3 },
+      { label: 'Pipeline', to: '/commercial/pipeline', icon: BriefcaseBusiness },
+      { label: 'Agenda comercial', to: '/commercial/agenda', icon: CalendarClock },
+    ],
   },
-  { key: 'configuracoes', heading: 'Configurações', items: CONFIGURACOES_NAV_ITEMS },
+  {
+    key: 'transportes',
+    heading: 'Operacao',
+    items: [
+      { label: 'Rotas', to: '/transport/routes', icon: Route },
+      { label: 'Produtos', to: '/transport/products', icon: Map },
+      { label: 'Fornecedores', to: '/transport/suppliers', icon: Users },
+      { label: 'Saidas', to: '/transport/departures', icon: CalendarDays },
+      { label: 'Agenda', to: '/transport/agenda', icon: CalendarClock },
+      { label: 'Operacoes de hoje', to: '/operations/today', icon: ClipboardCheck },
+    ],
+  },
+  {
+    key: 'financeiro',
+    heading: 'Financeiro',
+    items: [
+      { label: 'Visao geral', to: '/financial', icon: WalletCards },
+      { label: 'Pagamentos', to: '/financial/payments', icon: CreditCard },
+      { label: 'Custos operacionais', to: '/financial/operational-costs', icon: BarChart3 },
+      { label: 'Pescador', to: '/pescador', icon: Search },
+    ],
+  },
+  {
+    key: 'marketing',
+    heading: 'Ofertas & Marketing',
+    items: [
+      { label: 'Estudio criativo', to: '/offer-growth/studio', icon: Sparkles },
+      { label: 'Modelos', to: '/offer-growth/templates', icon: FileText },
+      { label: 'Campanhas', to: '/offer-growth/campaigns', icon: Megaphone },
+      { label: 'Publicacoes', to: '/offer-growth/publications', icon: Megaphone },
+      { label: 'Automacoes', to: '/offer-growth/automations', icon: Settings },
+      { label: 'Cupons', to: '/offer-growth/coupons', icon: Gift },
+    ],
+  },
+  {
+    key: 'configuracoes',
+    heading: 'Configuracoes',
+    items: [{ label: 'Pipelines', to: '/settings/pipelines', icon: Settings }],
+  },
 ];
 
 export function Sidebar() {
   return (
-    <aside className="flex max-h-48 w-full shrink-0 flex-col overflow-y-auto border-b border-slate-200 bg-white md:h-full md:max-h-none md:w-56 md:border-b-0 md:border-r">
-      <div className="flex h-14 shrink-0 items-center border-b border-slate-200 px-4">
-        <span className="text-sm font-semibold tracking-tight text-slate-900">
-          Travel Platform
+    <aside className="flex max-h-52 w-full shrink-0 flex-col overflow-y-auto border-b border-slate-800 bg-[#0f172a] text-white md:h-full md:max-h-none md:w-64 md:border-b-0 md:border-r md:border-[#1e293b]">
+      <div className="flex h-16 shrink-0 items-center gap-3 border-b border-[#1e293b] px-4">
+        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-sm font-black text-white shadow-lg shadow-blue-900/30">
+          TP
+        </span>
+        <span className="leading-tight">
+          <span className="block text-sm font-bold tracking-tight text-white">Travel Platform</span>
+          <span className="block text-[0.68rem] font-semibold uppercase tracking-wide text-slate-400">
+            Agencia / CRM
+          </span>
         </span>
       </div>
-      <nav className="flex flex-row gap-1 overflow-x-auto p-3 md:flex-1 md:flex-col md:overflow-x-visible">
-        {NAV_SECTIONS.map((section, index) => (
-          <div key={section.key} className="contents">
-            <div
-              className={cn(
-                'shrink-0 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-400 md:py-0',
-                index > 0 && 'md:mt-4',
-              )}
-            >
+      <nav className="flex flex-row gap-2 overflow-x-auto p-3 md:flex-1 md:flex-col md:gap-5 md:overflow-x-visible">
+        <NavItemLink item={{ label: 'Painel', to: '/customers', icon: LayoutDashboard }} />
+        {NAV_SECTIONS.map((section) => (
+          <div key={section.key} className="contents md:block md:space-y-1">
+            <p className="hidden px-3 text-[0.65rem] font-bold uppercase tracking-widest text-slate-500 md:block">
               {section.heading}
-            </div>
+            </p>
             {section.items.map((item) => (
-              <NavItemLink key={`${section.key}-${item.label}-${item.to ?? ''}`} item={item} />
+              <NavItemLink key={`${section.key}-${item.to}-${item.label}`} item={item} />
             ))}
           </div>
         ))}
@@ -105,29 +125,21 @@ export function Sidebar() {
 }
 
 function NavItemLink({ item }: { item: NavItem }) {
-  if (!item.to) {
-    return (
-      <span
-        aria-disabled="true"
-        title="Em breve"
-        className="cursor-not-allowed rounded-md px-3 py-2 text-sm font-medium text-slate-400"
-      >
-        {item.label}
-      </span>
-    );
-  }
+  const Icon = item.icon;
 
   return (
     <NavLink
       to={item.to}
+      end={item.to === '/customers' || item.to === '/financial'}
       className={({ isActive }) =>
         cn(
-          'shrink-0 rounded-md px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100',
-          isActive && 'bg-slate-900 text-white hover:bg-slate-900',
+          'inline-flex shrink-0 items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-[#1e293b] hover:text-white md:flex md:w-full',
+          isActive && 'bg-blue-600 text-white shadow-sm shadow-blue-950/30 hover:bg-blue-600',
         )
       }
     >
-      {item.label}
+      <Icon size={16} className="shrink-0" />
+      <span className="whitespace-nowrap">{item.label}</span>
     </NavLink>
   );
 }
