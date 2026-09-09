@@ -12,18 +12,12 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import {
-  Bar,
-  CartesianGrid,
   Cell,
-  ComposedChart,
   Legend,
-  Line,
   Pie,
   PieChart,
   ResponsiveContainer,
   Tooltip,
-  XAxis,
-  YAxis,
 } from 'recharts';
 import { PageHeader } from '../components/layout/PageHeader';
 import { Button } from '../components/ui/button';
@@ -43,12 +37,8 @@ import { formatBRL } from '../lib/formatCurrency';
 import { formatDateBR } from '../lib/formatDateBR';
 import {
   ApiError,
-  getAirLandConvergenceSummary,
-  getCashFlowMonthlySeries,
   getFinancialSummary,
   getSaleFinancialStory,
-  type AirLandConvergenceSummary,
-  type CashFlowMonthlyPoint,
   type FinancialSummary,
   type SaleFinancialStory,
 } from '../lib/api';
@@ -61,8 +51,6 @@ type LoadState =
   | {
       status: 'success';
       summary: FinancialSummary;
-      airLand: AirLandConvergenceSummary | null;
-      cashFlow: CashFlowMonthlyPoint[];
       story: SaleFinancialStory | null;
     };
 
@@ -78,13 +66,11 @@ export function FinancialPage() {
 
     Promise.all([
       getFinancialSummary(),
-      getAirLandConvergenceSummary().catch(() => null),
-      getCashFlowMonthlySeries(6).catch(() => []),
       getSaleFinancialStory(MARIANA_SALE_ID).catch(() => null),
     ])
-      .then(([summary, airLand, cashFlow, story]) => {
+      .then(([summary, story]) => {
         if (cancelled) return;
-        setState({ status: 'success', summary, airLand, cashFlow, story });
+        setState({ status: 'success', summary, story });
       })
       .catch((error: unknown) => {
         if (cancelled) return;
@@ -128,7 +114,7 @@ export function FinancialPage() {
     );
   }
 
-  const { summary, airLand, cashFlow, story } = state;
+  const { summary, story } = state;
   const { dashboard } = summary;
 
   const recentPayments = summary.recentPayments.slice(0, 5).map((p) => ({
@@ -244,16 +230,9 @@ export function FinancialPage() {
             </Link>
           }
         >
-          {airLand ? (
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <MiniMetric label="Lançamentos" value={String(airLand.air.bookingCount)} />
-              <MiniMetric label="Fornecedores" value={String(airLand.air.supplierCount)} />
-              <MiniMetric label="Custos" value={formatBRL(airLand.air.cost)} />
-              <MiniMetric label="Receita" value={formatBRL(airLand.air.revenue)} />
-            </div>
-          ) : (
-            <p className="text-sm text-slate-400">Sem dados de aéreo.</p>
-          )}
+          <p className="text-sm text-slate-400">
+            Dados consolidados de aéreo dependem de uma API financeira dedicada.
+          </p>
         </SectionCard>
 
         <SectionCard
@@ -282,12 +261,9 @@ export function FinancialPage() {
               Toda a operação (Aéreo e Terrestre) converge para um único fluxo financeiro,
               garantindo controle, precisão e rentabilidade em tempo real.
             </p>
-            {airLand && (
-              <div className="mt-1 grid w-full grid-cols-2 gap-3 rounded-md bg-white/70 p-3 text-left">
-                <MiniMetric label="Receita combinada" value={formatBRL(airLand.combinedRevenue)} />
-                <MiniMetric label="Margem combinada" value={formatBRL(airLand.combinedMargin)} />
-              </div>
-            )}
+            <p className="text-xs text-slate-400">
+              Indicadores combinados serão exibidos quando houver fonte backend aprovada.
+            </p>
           </div>
         </SectionCard>
 
@@ -307,16 +283,9 @@ export function FinancialPage() {
             </Link>
           }
         >
-          {airLand ? (
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <MiniMetric label="Lançamentos" value={String(airLand.land.bookingCount)} />
-              <MiniMetric label="Fornecedores" value={String(airLand.land.supplierCount)} />
-              <MiniMetric label="Custos" value={formatBRL(airLand.land.cost)} />
-              <MiniMetric label="Receita" value={formatBRL(airLand.land.revenue)} />
-            </div>
-          ) : (
-            <p className="text-sm text-slate-400">Sem dados de terrestre.</p>
-          )}
+          <p className="text-sm text-slate-400">
+            Dados consolidados de terrestre dependem de uma API financeira dedicada.
+          </p>
         </SectionCard>
       </div>
 
@@ -416,30 +385,8 @@ export function FinancialPage() {
       {/* Charts */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <SectionCard title="Fluxo de caixa" description="Entradas e saídas dos últimos 6 meses">
-          <div className="h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart data={cashFlow}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                <XAxis dataKey="label" tick={{ fontSize: 12 }} stroke="#94a3b8" />
-                <YAxis
-                  tick={{ fontSize: 11 }}
-                  stroke="#94a3b8"
-                  tickFormatter={(v: number) => `R$ ${Math.round(v / 1000)}mil`}
-                />
-                <Tooltip formatter={(value: number) => formatBRL(Number(value))} />
-                <Legend />
-                <Bar dataKey="paymentsIn" name="Entradas" fill="#0d9488" radius={[3, 3, 0, 0]} />
-                <Bar dataKey="paymentsOut" name="Saídas" fill="#dc2626" radius={[3, 3, 0, 0]} />
-                <Line
-                  type="monotone"
-                  dataKey="paymentsIn"
-                  name="Tendência"
-                  stroke="#2563eb"
-                  strokeWidth={2}
-                  dot={false}
-                />
-              </ComposedChart>
-            </ResponsiveContainer>
+          <div className="flex h-64 w-full items-center justify-center rounded-lg border border-dashed border-slate-200 bg-slate-50/60 px-6 text-center text-sm text-slate-400">
+            Série mensal de fluxo de caixa indisponível nesta branch visual sem alterar contratos backend.
           </div>
         </SectionCard>
 

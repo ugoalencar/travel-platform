@@ -265,8 +265,6 @@ import {
   getCashFlowSummary,
   getCashBalance,
   getFinancialSummary,
-  getAirLandConvergenceSummary,
-  getCashFlowMonthlySeries,
   getSaleFinancialStory,
   getSaleMargin,
   getExpense,
@@ -2330,20 +2328,6 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     requireRole(UserRole.MANAGER);
     const summary = await getFinancialSummary(options.database);
     return { summary };
-  });
-
-  app.get('/financial/air-land-summary', { preHandler: protectedHooks }, async () => {
-    requireRole(UserRole.MANAGER);
-    const summary = await getAirLandConvergenceSummary(options.database);
-    return { summary };
-  });
-
-  app.get('/financial/cash-flow-series', { preHandler: protectedHooks }, async (request) => {
-    requireRole(UserRole.MANAGER);
-    const query = request.query as { months?: string };
-    const months = query.months ? Math.min(Math.max(Number(query.months) || 6, 1), 24) : 6;
-    const series = await getCashFlowMonthlySeries(options.database, months);
-    return { series };
   });
 
   app.post('/financial/receivables', { preHandler: protectedHooks }, async (request, reply) => {

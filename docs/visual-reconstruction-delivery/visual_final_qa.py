@@ -242,22 +242,6 @@ def agency_route(state):
                     "dueAt": "2026-10-10T00:00:00.000Z",
                 }],
             }}))
-        elif path == "/api/financial/air-land-summary":
-            route.fulfill(**response({"summary": {
-                "air": {"bookingCount": 18, "supplierCount": 5, "cost": 68400, "revenue": 86300},
-                "land": {"bookingCount": 26, "supplierCount": 9, "cost": 51200, "revenue": 74100},
-                "combinedRevenue": 160400,
-                "combinedMargin": 41100,
-            }}))
-        elif path.startswith("/api/financial/cash-flow-series"):
-            route.fulfill(**response({"series": [
-                {"label": "Abr", "paymentsIn": 68000, "paymentsOut": 42000},
-                {"label": "Mai", "paymentsIn": 74000, "paymentsOut": 46000},
-                {"label": "Jun", "paymentsIn": 82000, "paymentsOut": 55000},
-                {"label": "Jul", "paymentsIn": 96000, "paymentsOut": 61000},
-                {"label": "Ago", "paymentsIn": 112000, "paymentsOut": 70000},
-                {"label": "Set", "paymentsIn": 126000, "paymentsOut": 79000},
-            ]}))
         elif path.startswith("/api/financial/sales/"):
             route.fulfill(**response({"story": {
                 "saleId": SALE_ID,

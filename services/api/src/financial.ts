@@ -2443,14 +2443,6 @@ export async function getFinancialSummary(database: DatabaseRuntime): Promise<Fi
     const pending = roundMoney(Number(pendingResult.rows[0]?.total ?? 0));
 
     // Expected margin (total revenue - total costs - commissions) for this month
-    // NOTE: revenue/supplier_costs/operational_costs/commissions are computed as
-    // independent scalar subqueries (not LEFT JOINs on the same `sales` row) to
-    // avoid a fan-out bug: joining sales to payables, operational_costs, and
-    // commissions simultaneously multiplies each sale's row once per
-    // combination of matching child rows across all three tables, inflating
-    // every SUM() by a different multiple and producing nonsensical ratios
-    // (e.g. margin > 100% of revenue). Each subquery here sums against
-    // `sales` independently, so no cross-product can occur.
     const marginResult = await client.query<{
       revenue: string;
       supplier_costs: string;
@@ -2458,33 +2450,18 @@ export async function getFinancialSummary(database: DatabaseRuntime): Promise<Fi
       commissions: string;
     }>(
       `SELECT
-        (SELECT COALESCE(SUM(s.total), 0)
-           FROM sales s
-          WHERE s.agency_id = $1
-            AND s.status IN ('PAID', 'CONFIRMED')
-            AND s.created_at >= $2
-            AND s.created_at <= $3)::text AS revenue,
-        (SELECT COALESCE(SUM(p.amount), 0)
-           FROM payables p
-           JOIN sales s ON s.agency_id = p.agency_id AND s.id = p.sale_id
-          WHERE s.agency_id = $1
-            AND s.status IN ('PAID', 'CONFIRMED')
-            AND s.created_at >= $2
-            AND s.created_at <= $3)::text AS supplier_costs,
-        (SELECT COALESCE(SUM(COALESCE(oc.actual_amount, oc.expected_amount, 0)), 0)
-           FROM operational_costs oc
-           JOIN sales s ON s.agency_id = oc.agency_id AND s.id = oc.sale_id
-          WHERE s.agency_id = $1
-            AND s.status IN ('PAID', 'CONFIRMED')
-            AND s.created_at >= $2
-            AND s.created_at <= $3)::text AS operational_costs,
-        (SELECT COALESCE(SUM(c.amount), 0)
-           FROM commissions c
-           JOIN sales s ON s.agency_id = c.agency_id AND s.id = c.sale_id
-          WHERE s.agency_id = $1
-            AND s.status IN ('PAID', 'CONFIRMED')
-            AND s.created_at >= $2
-            AND s.created_at <= $3)::text AS commissions`,
+        COALESCE(SUM(s.total), 0)::text AS revenue,
+        COALESCE(SUM(CASE WHEN p.sale_id = s.id THEN p.amount ELSE 0 END), 0)::text AS supplier_costs,
+        COALESCE(SUM(CASE WHEN oc.sale_id = s.id THEN COALESCE(oc.actual_amount, oc.expected_amount, 0) ELSE 0 END), 0)::text AS operational_costs,
+        COALESCE(SUM(CASE WHEN c.sale_id = s.id THEN c.amount ELSE 0 END), 0)::text AS commissions
+       FROM sales s
+       LEFT JOIN payables p ON s.agency_id = p.agency_id AND s.id = p.sale_id
+       LEFT JOIN operational_costs oc ON s.agency_id = oc.agency_id AND s.id = oc.sale_id
+       LEFT JOIN commissions c ON s.agency_id = c.agency_id AND s.id = c.sale_id
+       WHERE s.agency_id = $1
+         AND s.status IN ('PAID', 'CONFIRMED')
+         AND s.created_at >= $2
+         AND s.created_at <= $3`,
       [agencyId, monthStart, monthEnd],
     );
     const marginRow = marginResult.rows[0];
@@ -3157,149 +3134,4 @@ function toReconciliation(row: ReconciliationRow): Reconciliation {
     updatedAt: new Date(row.updated_at),
     paymentId: row.payment_id || undefined,
   };
-}
-
-// ============================================================
-// AIR / LAND FINANCIAL CONVERGENCE (Visual Reconstruction Wave)
-// ============================================================
-
-export interface AirLandSegmentSummary {
-  bookingCount: number;
-  supplierCount: number;
-  cost: number;
-  revenue: number;
-}
-
-export interface AirLandConvergenceSummary {
-  air: AirLandSegmentSummary;
-  land: AirLandSegmentSummary;
-  combinedRevenue: number;
-  combinedCost: number;
-  combinedMargin: number;
-}
-
-/**
- * Read-only aggregate of air_services and land_services, agency-scoped, for
- * the Finance overview's "Aéreo / Terrestre / Convergência Financeira" cards.
- * Additive endpoint — does not touch getSaleMargin() or any core financial
- * write path.
- */
-export async function getAirLandConvergenceSummary(
-  database: DatabaseRuntime,
-): Promise<AirLandConvergenceSummary> {
-  const agencyId = getAgencyId();
-  return database.withTenantTransaction(async (client) => {
-    const airResult = await client.query<{
-      bookings: string;
-      suppliers: string;
-      cost: string;
-      revenue: string;
-    }>(
-      `SELECT
-         COUNT(*)::text AS bookings,
-         COUNT(DISTINCT supplier_id)::text AS suppliers,
-         COALESCE(SUM(cost), 0)::text AS cost,
-         COALESCE(SUM(sale_value), 0)::text AS revenue
-       FROM air_services
-       WHERE agency_id = $1`,
-      [agencyId],
-    );
-    const landResult = await client.query<{
-      bookings: string;
-      suppliers: string;
-      cost: string;
-      revenue: string;
-    }>(
-      `SELECT
-         COUNT(*)::text AS bookings,
-         COUNT(DISTINCT supplier_id)::text AS suppliers,
-         COALESCE(SUM(cost), 0)::text AS cost,
-         COALESCE(SUM(sale_value), 0)::text AS revenue
-       FROM land_services
-       WHERE agency_id = $1`,
-      [agencyId],
-    );
-
-    const airRow = airResult.rows[0];
-    const landRow = landResult.rows[0];
-
-    const air: AirLandSegmentSummary = {
-      bookingCount: Number(airRow?.bookings ?? 0),
-      supplierCount: Number(airRow?.suppliers ?? 0),
-      cost: roundMoney(Number(airRow?.cost ?? 0)),
-      revenue: roundMoney(Number(airRow?.revenue ?? 0)),
-    };
-    const land: AirLandSegmentSummary = {
-      bookingCount: Number(landRow?.bookings ?? 0),
-      supplierCount: Number(landRow?.suppliers ?? 0),
-      cost: roundMoney(Number(landRow?.cost ?? 0)),
-      revenue: roundMoney(Number(landRow?.revenue ?? 0)),
-    };
-
-    return {
-      air,
-      land,
-      combinedRevenue: roundMoney(air.revenue + land.revenue),
-      combinedCost: roundMoney(air.cost + land.cost),
-      combinedMargin: roundMoney(air.revenue + land.revenue - air.cost - land.cost),
-    };
-  });
-}
-
-export interface CashFlowMonthlyPoint {
-  month: string; // e.g. "2026-09"
-  label: string; // e.g. "set/26"
-  paymentsIn: number;
-  paymentsOut: number;
-}
-
-const MONTH_LABELS_PT = [
-  'jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez',
-];
-
-/**
- * Last `months` calendar months (oldest first) of realized cash in/out, for
- * the Finance overview's "Fluxo de Caixa" chart. Read-only, additive.
- */
-export async function getCashFlowMonthlySeries(
-  database: DatabaseRuntime,
-  months = 6,
-): Promise<CashFlowMonthlyPoint[]> {
-  const agencyId = getAgencyId();
-  const now = new Date();
-  const rangeStart = new Date(now.getFullYear(), now.getMonth() - (months - 1), 1);
-
-  return database.withTenantTransaction(async (client) => {
-    const result = await client.query<{ bucket: string; direction: PaymentDirection; total: string }>(
-      `SELECT to_char(occurred_at, 'YYYY-MM') AS bucket, direction, COALESCE(SUM(amount), 0)::text AS total
-       FROM payments
-       WHERE agency_id = $1 AND occurred_at >= $2
-       GROUP BY bucket, direction`,
-      [agencyId, rangeStart],
-    );
-
-    const points: CashFlowMonthlyPoint[] = [];
-    for (let i = 0; i < months; i += 1) {
-      const d = new Date(now.getFullYear(), now.getMonth() - (months - 1) + i, 1);
-      const bucket = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-      points.push({
-        month: bucket,
-        label: `${MONTH_LABELS_PT[d.getMonth()]}/${String(d.getFullYear()).slice(2)}`,
-        paymentsIn: 0,
-        paymentsOut: 0,
-      });
-    }
-
-    for (const row of result.rows) {
-      const point = points.find((p) => p.month === row.bucket);
-      if (!point) continue;
-      if (row.direction === PaymentDirection.IN) {
-        point.paymentsIn = roundMoney(Number(row.total));
-      } else {
-        point.paymentsOut = roundMoney(Number(row.total));
-      }
-    }
-
-    return points;
-  });
 }

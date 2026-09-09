@@ -447,40 +447,6 @@ export async function getFinancialSummary(): Promise<FinancialSummary> {
   return data.summary;
 }
 
-export interface AirLandSegmentSummary {
-  bookingCount: number;
-  supplierCount: number;
-  cost: number;
-  revenue: number;
-}
-
-export interface AirLandConvergenceSummary {
-  air: AirLandSegmentSummary;
-  land: AirLandSegmentSummary;
-  combinedRevenue: number;
-  combinedCost: number;
-  combinedMargin: number;
-}
-
-export async function getAirLandConvergenceSummary(): Promise<AirLandConvergenceSummary> {
-  const data = await request<{ summary: AirLandConvergenceSummary }>('/api/financial/air-land-summary');
-  return data.summary;
-}
-
-export interface CashFlowMonthlyPoint {
-  month: string;
-  label: string;
-  paymentsIn: number;
-  paymentsOut: number;
-}
-
-export async function getCashFlowMonthlySeries(months = 6): Promise<CashFlowMonthlyPoint[]> {
-  const data = await request<{ series: CashFlowMonthlyPoint[] }>(
-    `/api/financial/cash-flow-series?months=${months}`,
-  );
-  return data.series;
-}
-
 export async function getSaleFinancialStory(saleId: string): Promise<SaleFinancialStory> {
   const data = await request<{ story: SaleFinancialStory }>(
     `/api/financial/sales/${encodeURIComponent(saleId)}/story`,
