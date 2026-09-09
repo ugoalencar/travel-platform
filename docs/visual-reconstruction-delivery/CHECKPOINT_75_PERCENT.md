@@ -1,7 +1,7 @@
 # Visual Reconstruction - Checkpoint 75%
 
 Data: 2026-09-08
-Worktree: `D:\travel-platform-visual2`
+Worktree: current visual reconstruction worktree
 Branch: `feature/visual-reconstruction`
 
 ## Escopo concluido entre 50% e 75%

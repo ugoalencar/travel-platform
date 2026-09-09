@@ -2,8 +2,8 @@
 
 Date: 2026-09-08
 Branch: `feature/visual-reconstruction`
-Worktree: `D:\travel-platform-visual2`
-Instruction pack: `D:\travel-platform\docs\travel_platform_visual_reconstruction_pack`
+Worktree: current visual reconstruction worktree
+Instruction pack: `docs/travel_platform_visual_reconstruction_pack`
 
 ## Scope Confirmed
 
@@ -135,4 +135,3 @@ Resume at 50%:
 2. Patch any route that still looks like legacy CRUD.
 3. Focus next on forms and tables in `apps/customer`, because that app owns the largest number of screens.
 4. Keep backend, auth, RBAC, RLS, tenant, financial calculations, and migrations untouched.
-
