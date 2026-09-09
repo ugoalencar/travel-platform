@@ -92,11 +92,11 @@ describe('CustomerDetailsPage', () => {
     vi.mocked(getCustomer).mockResolvedValue(fullCustomer);
     renderRouted(['/customers/c1']);
 
-    expect(await screen.findByText('Maria Silva')).toBeInTheDocument();
+    expect((await screen.findAllByText('Maria Silva')).length).toBeGreaterThan(0);
     expect(screen.getByText('maria@example.com')).toBeInTheDocument();
     expect(screen.getByText('+55 11 90000-0000')).toBeInTheDocument();
-    expect(screen.getByText('123.456.789-00')).toBeInTheDocument();
-    expect(screen.getByText('AB123456')).toBeInTheDocument();
+    expect(screen.getAllByText('123.456.789-00').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('AB123456').length).toBeGreaterThan(0);
     expect(screen.getByText('VIP client')).toBeInTheDocument();
   });
 
@@ -111,7 +111,7 @@ describe('CustomerDetailsPage', () => {
     });
     const { container } = renderRouted(['/customers/c2']);
 
-    await screen.findByText('João Souza');
+    await screen.findAllByText('João Souza');
     // Scope to the customer details <dl> only — not Customer 360 summary
     const dl = container.querySelector('dl');
     expect(dl).toBeInTheDocument();

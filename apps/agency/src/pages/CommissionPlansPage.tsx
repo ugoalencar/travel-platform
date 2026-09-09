@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { LoadingState } from '../components/ui/loading-state';
 import { EmptyState } from '../components/ui/empty-state';
 import { ErrorState } from '../components/ui/error-state';
+import { formatBRL } from '../lib/formatCurrency';
 import {
   ApiError,
   createCommissionPlan,
@@ -232,7 +233,7 @@ export function CommissionPlansPage() {
                     <TableCell>{TYPE_LABELS[plan.calculationType]}</TableCell>
                     <TableCell>
                       {plan.percentage !== undefined ? `${plan.percentage}%` : null}
-                      {plan.fixedAmount !== undefined ? `R$ ${plan.fixedAmount.toFixed(2)}` : null}
+                      {plan.fixedAmount !== undefined ? formatBRL(plan.fixedAmount) : null}
                       {plan.percentage === undefined && plan.fixedAmount === undefined ? '-' : null}
                     </TableCell>
                     <TableCell>{plan.active ? 'Ativo' : 'Inativo'}</TableCell>

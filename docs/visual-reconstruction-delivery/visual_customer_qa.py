@@ -1,7 +1,7 @@
 from pathlib import Path
 from playwright.sync_api import sync_playwright
 
-BASE_URL = "http://127.0.0.1:5196"
+BASE_URL = "http://localhost:5196"
 OUT = Path("docs/visual-reconstruction-delivery/screenshots")
 OUT.mkdir(parents=True, exist_ok=True)
 

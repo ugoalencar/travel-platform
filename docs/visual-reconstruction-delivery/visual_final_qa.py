@@ -2,8 +2,8 @@ from pathlib import Path
 import json
 from playwright.sync_api import sync_playwright
 
-AGENCY_URL = "http://127.0.0.1:5195"
-PLATFORM_URL = "http://127.0.0.1:5197"
+AGENCY_URL = "http://localhost:5195"
+PLATFORM_URL = "http://localhost:5197"
 OUT = Path("docs/visual-reconstruction-delivery/screenshots/final")
 OUT.mkdir(parents=True, exist_ok=True)
 

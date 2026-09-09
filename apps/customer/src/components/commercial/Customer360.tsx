@@ -241,7 +241,7 @@ export function Customer360({ customer, onBack, onEdit }: Customer360Props) {
 
       <Panel title="Dados pessoais" action="Editar">
         <dl>
-          <InfoRow label="Nome completo" value="Titular" />
+          <InfoRow label="Nome completo" value={customer.name} />
           <InfoRow label="E-mail" value={customer.email} />
           <InfoRow label="Telefone" value={customer.phone} />
           <InfoRow label="CPF" value={customer.cpf} />

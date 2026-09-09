@@ -436,8 +436,8 @@ export function AirServicesPage() {
                       </TableCell>
                       <TableCell>{supplier?.name ?? '-'}</TableCell>
                       <TableCell className="text-xs">
-                        <div>Custo: R$ {airService.cost.toFixed(2)}</div>
-                        <div>Venda: R$ {airService.saleValue.toFixed(2)}</div>
+                        <div>Custo: {formatBRL(airService.cost)}</div>
+                        <div>Venda: {formatBRL(airService.saleValue)}</div>
                       </TableCell>
                       <TableCell>
                         <StatusBadge tone={STATUS_TONES[airService.status]}>

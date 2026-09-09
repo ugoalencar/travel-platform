@@ -421,8 +421,8 @@ export function LandServicesPage() {
                       </TableCell>
                       <TableCell>{supplier?.name ?? '-'}</TableCell>
                       <TableCell className="text-xs">
-                        <div>Custo: R$ {landService.cost.toFixed(2)}</div>
-                        <div>Venda: R$ {landService.saleValue.toFixed(2)}</div>
+                        <div>Custo: {formatBRL(landService.cost)}</div>
+                        <div>Venda: {formatBRL(landService.saleValue)}</div>
                       </TableCell>
                       <TableCell>
                         <StatusBadge tone={STATUS_TONES[landService.status]}>

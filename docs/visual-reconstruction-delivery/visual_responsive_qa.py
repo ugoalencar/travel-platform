@@ -3,7 +3,7 @@ import json
 from playwright.sync_api import sync_playwright
 from visual_final_qa import AGENCY_URL, PLATFORM_URL, agency_route, platform_route
 
-CUSTOMER_URL = "http://127.0.0.1:5196"
+CUSTOMER_URL = "http://localhost:5196"
 OUT = Path("docs/visual-reconstruction-delivery/screenshots/responsive")
 OUT.mkdir(parents=True, exist_ok=True)
 
