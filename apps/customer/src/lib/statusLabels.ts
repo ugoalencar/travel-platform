@@ -54,8 +54,8 @@ export function getTripStatusLabel(status: TripStatus): string {
 }
 
 const RECEIVABLE_STATUS_LABELS: Record<FinancialObligationStatus, string> = {
-  OPEN: 'Em aberto',
-  PARTIALLY_PAID: 'Parcialmente paga',
+  OPEN: 'Aberto',
+  PARTIALLY_PAID: 'Parcial',
   PAID: 'Paga',
   CANCELLED: 'Cancelada',
 };

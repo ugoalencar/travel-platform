@@ -180,6 +180,26 @@ BEGIN
 END;
 $$;
 
+-- Customer 360 tables (migrations 019-023) are tenant-scoped and guarded so
+-- earlier domain suites can still apply only their needed migration range.
+DO $$
+BEGIN
+  IF to_regclass('public.customer_addresses') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      customer_addresses,
+      customer_dependents,
+      customer_documents,
+      document_attachments,
+      document_extractions,
+      document_verifications
+    TO travel_app_runtime_local;
+
+    GRANT SELECT, INSERT ON document_audit_events TO travel_app_runtime_local;
+    REVOKE UPDATE, DELETE ON document_audit_events FROM travel_app_runtime_local;
+  END IF;
+END;
+$$;
+
 -- Offer & Growth Engine foundation tables (migration
 -- 014_offer_growth_foundation.sql) only exist once that migration has been
 -- applied. Keep this guarded so earlier domain tests can keep applying only
@@ -214,6 +234,145 @@ BEGIN
   IF to_regclass('public.audit_logs') IS NOT NULL THEN
     GRANT SELECT, INSERT ON audit_logs TO travel_app_runtime_local;
     REVOKE UPDATE, DELETE ON audit_logs FROM travel_app_runtime_local;
+  END IF;
+END;
+$$;
+
+-- Extended financial module tables (migration 024).
+DO $$
+BEGIN
+  IF to_regclass('public.financial_categories') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      financial_categories,
+      revenues,
+      expenses,
+      reconciliations
+    TO travel_app_runtime_local;
+
+    GRANT SELECT, INSERT ON cash_transactions TO travel_app_runtime_local;
+    REVOKE UPDATE, DELETE ON cash_transactions FROM travel_app_runtime_local;
+  END IF;
+END;
+$$;
+
+-- Production auth/captcha/MFA tables (migration
+-- 016_production_auth_captcha_mfa.sql) hold security-sensitive state.
+-- Grant only the operations required by runtime flows and rely on RLS
+-- policies for tenant enforcement.
+DO $$
+BEGIN
+  IF to_regclass('public.auth_sessions') IS NOT NULL THEN
+    GRANT SELECT, INSERT ON
+      auth_sessions,
+      captcha_verifications,
+      mfa_totp_attempts
+    TO travel_app_runtime_local;
+    REVOKE UPDATE, DELETE ON
+      auth_sessions,
+      captcha_verifications,
+      mfa_totp_attempts
+    FROM travel_app_runtime_local;
+
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      mfa_totp_secrets,
+      mfa_recovery_codes,
+      mfa_requirements
+    TO travel_app_runtime_local;
+  END IF;
+END;
+$$;
+
+-- Business Operations Completion wave tables (migrations 038-043) only
+-- exist once those migrations have been applied; guard the same way as
+-- the blocks above so domains that only apply earlier migrations are
+-- unaffected. Do NOT use an unconditional GRANT here -- a prior session
+-- broke every other domain's test suite that way.
+DO $$
+BEGIN
+  IF to_regclass('public.supplier_category_links') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      supplier_category_links
+    TO travel_app_runtime_local;
+  END IF;
+END;
+$$;
+
+DO $$
+BEGIN
+  IF to_regclass('public.air_services') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      air_services
+    TO travel_app_runtime_local;
+  END IF;
+END;
+$$;
+
+DO $$
+BEGIN
+  IF to_regclass('public.land_services') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      land_services
+    TO travel_app_runtime_local;
+  END IF;
+END;
+$$;
+
+DO $$
+BEGIN
+  IF to_regclass('public.cost_centers') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      cost_centers
+    TO travel_app_runtime_local;
+  END IF;
+END;
+$$;
+
+DO $$
+BEGIN
+  IF to_regclass('public.commission_plans') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      commission_plans
+    TO travel_app_runtime_local;
+  END IF;
+END;
+$$;
+
+DO $$
+BEGIN
+  IF to_regclass('public.employees') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      employees
+    TO travel_app_runtime_local;
+  END IF;
+END;
+$$;
+
+DO $$
+BEGIN
+  IF to_regclass('public.commission_entries') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      commission_entries
+    TO travel_app_runtime_local;
+  END IF;
+END;
+$$;
+
+DO $$
+BEGIN
+  IF to_regclass('public.employee_deductions') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      employee_deductions
+    TO travel_app_runtime_local;
+  END IF;
+END;
+$$;
+
+DO $$
+BEGIN
+  IF to_regclass('public.payroll_entries') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      payroll_entries
+    TO travel_app_runtime_local;
   END IF;
 END;
 $$;

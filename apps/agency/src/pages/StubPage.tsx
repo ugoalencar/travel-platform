@@ -32,7 +32,7 @@ export function StubPage({ title, description, breadcrumbLabel, rows }: StubPage
       <PageHeader
         title={title}
         description={description}
-        breadcrumbs={[{ label: 'Dashboard', to: '/' }, { label: breadcrumbLabel }]}
+        breadcrumbs={[{ label: 'Painel', to: '/' }, { label: breadcrumbLabel }]}
         actions={<Button size="sm">Novo</Button>}
       />
       <Card>

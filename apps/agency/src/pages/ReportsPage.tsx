@@ -81,14 +81,14 @@ export function ReportsPage() {
         } else if (typeof err === 'object' && err !== null && 'status' in err) {
           const httpErr = err as { status: number; data?: { message: string } };
           if (httpErr.status === 429) {
-            setError('Rate limit exceeded. Please try again in a moment.');
+            setError('Limite de requisicoes excedido. Tente novamente em alguns instantes.');
           } else if (httpErr.status === 403) {
-            setError('You do not have permission to view these reports.');
+            setError('Você não tem permissão para ver estes relatórios.');
           } else {
-            setError(httpErr.data?.message || 'Failed to load reports');
+            setError(httpErr.data?.message || 'Não foi possível carregar os relatórios.');
           }
         } else {
-          setError('An unexpected error occurred');
+          setError('Ocorreu um erro inesperado.');
         }
       } finally {
         setLoading(false);
@@ -342,6 +342,204 @@ export function ReportsPage() {
           )}
         </CardContent>
       </Card>
+
+      <ManagementReportsSection />
     </div>
+  );
+}
+
+// ============================================================
+// MANAGEMENT REPORTS (Wave C, Part 1) -- /reports/* endpoints
+// (services/api/src/reports.ts). Tabbed section: Sales / Financial /
+// Profitability / Personnel, each with its own groupBy dropdown where
+// applicable. Tables only, no charting -- per scope.
+// ============================================================
+type ReportTab = 'sales' | 'financial' | 'profitability' | 'personnel';
+
+interface GenericReportRow {
+  key?: string;
+  label?: string;
+  count?: number;
+  total?: number;
+  bucket?: string;
+  supplierName?: string;
+  openTotal?: number;
+  paidTotal?: number;
+  employeeName?: string;
+  payrollTotal?: number;
+  commissionTotal?: number;
+  categoryName?: string;
+  revenue?: number;
+  cost?: number;
+  margin?: number;
+  salaryExpense?: number;
+  period?: string;
+  inflow?: number;
+  outflow?: number;
+  net?: number;
+  expected?: number;
+  actual?: number;
+}
+
+const money = (v: number | undefined) =>
+  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v ?? 0);
+
+function ManagementReportsSection() {
+  const [tab, setTab] = useState<ReportTab>('sales');
+  const [salesGroupBy, setSalesGroupBy] = useState('period');
+  const [profitGroupBy, setProfitGroupBy] = useState('sale');
+  const [financialView, setFinancialView] = useState('receivables-aging');
+  const [personnelGroupBy, setPersonnelGroupBy] = useState('employee');
+  const [rows, setRows] = useState<GenericReportRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        let path = '';
+        if (tab === 'sales') {
+          path = `/reports/sales?groupBy=${salesGroupBy}`;
+        } else if (tab === 'financial') {
+          path = `/reports/financial/${financialView}`;
+        } else if (tab === 'profitability') {
+          path = `/reports/profitability?groupBy=${profitGroupBy}`;
+        } else {
+          path = `/reports/personnel?groupBy=${personnelGroupBy}`;
+        }
+        const resp = await api.get(path);
+        const data = resp.data as { rows?: GenericReportRow[] };
+        if (!cancelled) setRows(data.rows ?? []);
+      } catch (err) {
+        if (cancelled) return;
+        setError(err instanceof Error ? err.message : 'Não foi possível carregar o relatório.');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    void load();
+    return () => {
+      cancelled = true;
+    };
+  }, [tab, salesGroupBy, profitGroupBy, financialView, personnelGroupBy]);
+
+  const tabs: { id: ReportTab; label: string }[] = [
+    { id: 'sales', label: 'Vendas' },
+    { id: 'financial', label: 'Financeiro' },
+    { id: 'profitability', label: 'Rentabilidade' },
+    { id: 'personnel', label: 'Pessoal' },
+  ];
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Relatórios gerenciais</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex flex-wrap gap-2 border-b border-slate-200 pb-2">
+          {tabs.map((t) => (
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              className={`rounded-md px-3 py-1.5 text-sm font-medium ${
+                tab === t.id ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700'
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+        {tab === 'sales' && (
+          <select
+            value={salesGroupBy}
+            onChange={(e) => setSalesGroupBy(e.target.value)}
+            className="rounded-md border border-slate-300 px-2 py-1 text-sm"
+          >
+            <option value="period">Por período</option>
+            <option value="employee">Por vendedor</option>
+            <option value="destination">Por destino</option>
+            <option value="customer">Por cliente</option>
+            <option value="product">Por produto/oferta</option>
+          </select>
+        )}
+
+        {tab === 'financial' && (
+          <select
+            value={financialView}
+            onChange={(e) => setFinancialView(e.target.value)}
+            className="rounded-md border border-slate-300 px-2 py-1 text-sm"
+          >
+            <option value="receivables-aging">Aging de recebíveis</option>
+            <option value="payables-aging">Aging de pagáveis</option>
+            <option value="supplier-exposure">Exposição por fornecedor</option>
+            <option value="employee-expenses">Despesas por colaborador</option>
+            <option value="operational-expenses">Despesas operacionais</option>
+            <option value="expected-vs-actual">Previsto vs realizado</option>
+            <option value="cash-flow">Fluxo de caixa por período</option>
+          </select>
+        )}
+
+        {tab === 'profitability' && (
+          <select
+            value={profitGroupBy}
+            onChange={(e) => setProfitGroupBy(e.target.value)}
+            className="rounded-md border border-slate-300 px-2 py-1 text-sm"
+          >
+            <option value="sale">Por venda</option>
+            <option value="trip">Por viagem</option>
+            <option value="destination">Por destino</option>
+            <option value="salesperson">Por vendedor</option>
+            <option value="air">Aéreo</option>
+            <option value="land">Terrestre</option>
+          </select>
+        )}
+
+        {tab === 'personnel' && (
+          <select
+            value={personnelGroupBy}
+            onChange={(e) => setPersonnelGroupBy(e.target.value)}
+            className="rounded-md border border-slate-300 px-2 py-1 text-sm"
+          >
+            <option value="employee">Por colaborador</option>
+            <option value="month">Por mês</option>
+          </select>
+        )}
+
+        {loading && <p className="text-sm text-slate-500">Carregando...</p>}
+        {error && <p className="text-sm text-red-700">{error}</p>}
+        {!loading && !error && rows.length === 0 && (
+          <p className="text-sm text-slate-500">Nenhum dado disponível.</p>
+        )}
+        {!loading && !error && rows.length > 0 && (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-600">
+                <tr>{Object.keys(rows[0] ?? {}).map((col) => <th key={col} className="px-3 py-2">{col}</th>)}</tr>
+              </thead>
+              <tbody>
+                {rows.map((row, i) => (
+                  <tr key={i} className="border-t border-slate-100">
+                    {Object.entries(row).map(([col, val]) => (
+                      <td key={col} className="px-3 py-2">
+                        {typeof val === 'number' &&
+                        /total|revenue|cost|margin|amount|salary|commission|inflow|outflow|net|expected|actual/i.test(
+                          col,
+                        )
+                          ? money(val)
+                          : String(val ?? '')}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }

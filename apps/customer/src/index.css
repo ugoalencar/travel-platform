@@ -12,3 +12,105 @@
 body {
   @apply bg-slate-50 text-slate-900 antialiased;
 }
+
+main h1 {
+  color: #0f172a;
+  font-size: clamp(1.75rem, 1.45rem + 0.9vw, 2.25rem);
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
+main h1 + p {
+  color: #475569;
+}
+
+main table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+main thead {
+  background: #f8fafc;
+}
+
+main th {
+  color: #64748b;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+main tbody tr {
+  transition:
+    background-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+main tbody tr:hover {
+  background: #f8fbff;
+}
+
+main input,
+main select,
+main textarea {
+  min-height: 2.5rem;
+  border-color: #cbd5e1;
+  background: #ffffff;
+  color: #0f172a;
+  outline: none;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    background-color 160ms ease;
+}
+
+main input:focus,
+main select:focus,
+main textarea:focus {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 4px rgb(59 130 246 / 0.14);
+}
+
+main label {
+  color: #334155;
+  font-weight: 700;
+}
+
+main form {
+  width: 100%;
+}
+
+main form:not(.unstyled-form) {
+  border-radius: 1rem;
+}
+
+main .rounded-lg.border.border-slate-200.bg-white,
+main .rounded-md.border.border-slate-200.bg-white {
+  border-color: #e2e8f0;
+  border-radius: 1rem;
+  box-shadow:
+    0 1px 2px rgb(15 23 42 / 0.04),
+    0 12px 30px rgb(15 23 42 / 0.04);
+}
+
+main .max-w-lg {
+  max-width: 56rem;
+}
+
+/* Customer-portal-only design tokens (see
+   docs/travel_platform_visual_functional_blueprint/03_CUSTOMER_PORTAL_UX.md
+   "Visual"). Scoped to .customer-portal-shell so this app's OTHER
+   (staff-facing) routes are unaffected -- this file is shared by both.
+   Deliberately warm/light: cream background, coral/amber accents. This is
+   NOT the Agency app's dark sidebar theme and NOT Platform Admin's violet
+   governance theme -- the point of this wave is that the portal should
+   read as its own, friendlier, consumer-facing product. */
+.customer-portal-shell {
+  --portal-bg: #fffaf3;
+  --portal-surface: #ffffff;
+  --portal-accent: #f97362;
+  --portal-accent-soft: #ffe4d6;
+  --portal-ink: #3a2e2a;
+  background-color: var(--portal-bg);
+}

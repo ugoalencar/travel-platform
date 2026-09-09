@@ -2,6 +2,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import type { ProxyOptions } from 'vite';
+import type { Connect } from 'vite';
 
 // CORE-A: this app now talks to the real Fastify API for
 // Customers/Wishes/Trips (see src/lib/api.ts). Dev-auth header injection
@@ -16,18 +17,19 @@ const DEV_AUTH_HEADERS = {
   'x-dev-role': 'ADMIN',
 } as const;
 
-const API_PROXY_TARGET = process.env.VITE_API_PROXY_TARGET ?? 'http://127.0.0.1:3000';
+const API_PROXY_TARGET = process.env.VITE_API_PROXY_TARGET ?? 'http://127.0.0.1:4000';
 
 function devAuthProxyConfig(): ProxyOptions {
   return {
     target: API_PROXY_TARGET,
     changeOrigin: true,
     rewrite: (path) => path.replace(/^\/api/, ''),
+    // Use the http-proxy event-based header injection (Vite 7.x style)
     configure: (proxy) => {
       proxy.on('proxyReq', (proxyReq) => {
-        for (const [name, value] of Object.entries(DEV_AUTH_HEADERS)) {
+        Object.entries(DEV_AUTH_HEADERS).forEach(([name, value]) => {
           proxyReq.setHeader(name, value);
-        }
+        });
       });
     },
   };
@@ -42,12 +44,28 @@ export default defineConfig(({ command }) => {
 
   return {
     plugins: [react(), tailwindcss()],
+    build: {
+      emptyOutDir: false,
+    },
     server: {
+      port: 5173,
+      strictPort: true,
       ...(isDevServer
         ? {
             proxy: {
               '/api': devAuthProxyConfig(),
             },
+            middlewares: [
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              (req: any, res: any, next: Connect.NextFunction) => {
+                if (req.url?.startsWith('/api')) {
+                  Object.entries(DEV_AUTH_HEADERS).forEach(([name, value]) => {
+                    req.headers[name] = value;
+                  });
+                }
+                next();
+              },
+            ],
           }
         : {}),
     },

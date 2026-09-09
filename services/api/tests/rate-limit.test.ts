@@ -301,7 +301,7 @@ describe('SEC-B abuse-control policy', () => {
       ).rejects.toThrow(/must be "redis:" or "rediss:"/);
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     it('increments counters correctly and respects TTL expiration', async () => {
       // This test requires a Redis instance; skip if unavailable
       const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
@@ -311,7 +311,7 @@ describe('SEC-B abuse-control policy', () => {
       let client: any;
       try {
         const { RedisRateLimitStore } = await import('../src/rate-limit');
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+         
         const redis = await import('redis');
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
         client = (redis as any).createClient({ url: redisUrl });
@@ -371,7 +371,7 @@ describe('SEC-B abuse-control policy', () => {
       if (client) await client.quit();
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     it('handles concurrent increments safely with Redis atomic operations', async () => {
       const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -380,7 +380,7 @@ describe('SEC-B abuse-control policy', () => {
       let client: any;
       try {
         const { RedisRateLimitStore } = await import('../src/rate-limit');
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+         
         const redis = await import('redis');
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
         client = (redis as any).createClient({ url: redisUrl });
@@ -399,8 +399,8 @@ describe('SEC-B abuse-control policy', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const promises: any[] = [];
       for (let i = 0; i < 10; i++) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+         
+         
         promises.push(
           // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
           store.consume('concurrent-key', {

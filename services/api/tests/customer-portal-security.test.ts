@@ -524,8 +524,8 @@ function assertSafeTestDatabase(): void {
     throw new Error('Customer portal security tests require localhost only.');
   }
 
-  if (databasePort !== 55432) {
-    throw new Error('Customer portal security tests require local port 55432.');
+  if (!Number.isInteger(databasePort) || databasePort < 1024 || databasePort > 65535) {
+    throw new Error('Customer portal security tests require a safe local database test port.');
   }
 
   if (!databaseName.includes('test')) {
@@ -536,7 +536,7 @@ function assertSafeTestDatabase(): void {
     const url = new URL(process.env.DATABASE_URL);
     const safeHost = ['127.0.0.1', 'localhost'].includes(url.hostname);
     const safeDatabase = url.pathname.replace('/', '').includes('test');
-    const safePort = url.port === '55432' || url.port === '';
+    const safePort = url.port === String(databasePort) || url.port === '';
 
     if (!safeHost || !safeDatabase || !safePort) {
       throw new Error('Refusing to run customer portal security tests against unsafe DATABASE_URL.');

@@ -130,9 +130,40 @@ describe.sequential('Booking HTTP routes', () => {
         headers: { 'x-test-principal': 'owner' },
       });
       expect(list.statusCode).toBe(200);
-      const body = list.json<{ bookings: Array<{ agencyId: string }> }>();
+      const body = list.json<{ bookings: Array<{ agencyId: string; customerName: string }> }>();
       expect(body.bookings).toHaveLength(1);
       expect(body.bookings[0]?.agencyId).toBe(agencyAId);
+      expect(body.bookings[0]?.customerName).toBe('Cliente Teste');
+      await app.close();
+    });
+  });
+
+  describe('GET /bookings/:id', () => {
+    it('returns 200 for own tenant booking, enriched with customer name', async () => {
+      const depId = await seedDeparture(agencyAId, productOneWayA, 10);
+      const app = buildTestApp(runtimePool);
+      const create = await app.inject({
+        method: 'POST',
+        url: '/bookings',
+        headers: { 'x-test-principal': 'agent' },
+        payload: {
+          bookerCustomerId: customerAId,
+          tripType: 'ONE_WAY',
+          outboundDepartureId: depId,
+          passengers: [{ name: 'Joao' }],
+        },
+      });
+      const bookingId = create.json<{ booking: { id: string } }>().booking.id;
+
+      const get = await app.inject({
+        method: 'GET',
+        url: `/bookings/${bookingId}`,
+        headers: { 'x-test-principal': 'owner' },
+      });
+      expect(get.statusCode).toBe(200);
+      const body = get.json<{ booking: { id: string; customerName: string } }>();
+      expect(body.booking.id).toBe(bookingId);
+      expect(body.booking.customerName).toBe('Cliente Teste');
       await app.close();
     });
   });
@@ -581,8 +612,8 @@ function assertSafeTestDatabase(): void {
   if (!['127.0.0.1', 'localhost'].includes(databaseHost)) {
     throw new Error('Booking route tests require localhost only.');
   }
-  if (databasePort !== 55432) {
-    throw new Error('Booking route tests require local port 55432.');
+  if (!Number.isInteger(databasePort) || databasePort < 1024 || databasePort > 65535) {
+    throw new Error('Booking route tests require a safe local database test port.');
   }
   if (!databaseName.includes('test')) {
     throw new Error('Booking route tests require a database name with a test marker.');
@@ -591,7 +622,7 @@ function assertSafeTestDatabase(): void {
     const url = new URL(process.env.DATABASE_URL);
     const safeHost = ['127.0.0.1', 'localhost'].includes(url.hostname);
     const safeDatabase = url.pathname.replace('/', '').includes('test');
-    const safePort = url.port === '55432' || url.port === '';
+    const safePort = url.port === String(databasePort) || url.port === '';
     if (!safeHost || !safeDatabase || !safePort) {
       throw new Error('Refusing to run Booking route tests against unsafe DATABASE_URL.');
     }

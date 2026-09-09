@@ -16,6 +16,7 @@
 // admin role), since it inserts across the two demo agencies directly.
 
 const { Pool } = require('pg');
+const { seedBusinessStories } = require('./demo-business-stories.cjs');
 
 const agencyAId = '10000000-0000-4000-8000-000000000001';
 const agencyBId = '20000000-0000-4000-8000-000000000001';
@@ -50,6 +51,7 @@ async function main() {
     const stagesA = await seedDefaultPipelines(pool, agencyAId);
     await seedDefaultPipelines(pool, agencyBId);
     await seedCommercialCockpitScenarios(pool, { agencyId: agencyAId, userId: userAId, stages: stagesA });
+    await seedBusinessStories(pool, { agencyId: agencyAId, userId: userAId });
 
     console.log('Demo data seeded for Agency A and Agency B, including Cliente Demo customer portal fixtures.');
   } finally {

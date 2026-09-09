@@ -20,8 +20,8 @@ const dateFormatter = new Intl.DateTimeFormat('pt-BR', {
 });
 
 const STATUS_LABELS: Record<string, string> = {
-  OPEN: 'Em aberto',
-  PARTIALLY_PAID: 'Parcialmente pago',
+  OPEN: 'Aberto',
+  PARTIALLY_PAID: 'Parcial',
   PAID: 'Pago',
   CANCELLED: 'Cancelado',
 };
@@ -54,7 +54,7 @@ export function PayablesPage() {
         const message =
           error instanceof ApiError
             ? error.message
-            : 'Nao foi possivel carregar os payables.';
+            : 'Não foi possível carregar as contas a pagar.';
         setState({ status: 'error', message });
       });
 
@@ -95,7 +95,7 @@ export function PayablesPage() {
           Contas a pagar
         </h1>
         <p className="text-sm text-slate-500">
-          Obrigacoes financeiras com fornecedores e terceiros.
+          Obrigações financeiras com fornecedores e terceiros.
         </p>
       </div>
 
@@ -134,13 +134,13 @@ export function PayablesPage() {
           </div>
 
           {filtered.length === 0 ? (
-            <p className="text-sm text-slate-500">Nenhum payable encontrado.</p>
+            <p className="text-sm text-slate-500">Nenhuma conta a pagar encontrada.</p>
           ) : (
             <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
               <table className="w-full min-w-[800px] text-left text-sm">
                 <thead className="border-b border-slate-200 bg-slate-50 text-xs font-medium uppercase tracking-wide text-slate-500">
                   <tr>
-                    <th className="px-4 py-3">Descricao</th>
+                    <th className="px-4 py-3">Descrição</th>
                     <th className="px-4 py-3">Fornecedor</th>
                     <th className="px-4 py-3">Vencimento</th>
                     <th className="px-4 py-3">Status</th>
@@ -224,7 +224,7 @@ function PartialPaymentDetail({
           <span className="font-medium text-slate-900">{formatCurrency(amount)}</span>
         </div>
         <div>
-          <span className="text-slate-500">Ja pago: </span>
+          <span className="text-slate-500">Já pago: </span>
           <span className="font-medium text-blue-700">{formatCurrency(paid)}</span>
         </div>
         <div>
@@ -241,7 +241,7 @@ function PartialPaymentDetail({
           <span className="font-medium text-slate-600">Pagamentos relacionados:</span>
           {allocations.map((alloc) => (
             <div key={alloc.id} className="flex gap-4 text-slate-600">
-              <span>Alocacao</span>
+              <span>Alocação</span>
               <span className="font-medium">{formatCurrency(alloc.amount)}</span>
             </div>
           ))}

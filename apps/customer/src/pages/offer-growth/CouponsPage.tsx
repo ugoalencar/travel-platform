@@ -113,7 +113,7 @@ export function CouponsPage() {
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Offer & Growth</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Ofertas e crescimento</p>
           <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Cupons</h1>
         </div>
         {state.status === 'ready' && (

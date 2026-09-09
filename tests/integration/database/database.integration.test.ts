@@ -25,11 +25,115 @@ const runtimePassword = 'travel_app_runtime_local_password';
 const localHost = process.env.DATABASE_TEST_HOST ?? '127.0.0.1';
 const localPort = process.env.DATABASE_TEST_PORT ?? (isCiMode ? '5432' : '55432');
 
-const expectedTables = [
+const expectedAllTables = [
   'agencies',
   'agency_entitlements',
   'assets',
   'audit_logs',
+  'auth_sessions',
+  'automation_executions',
+  'automations',
+  'billing_invoices',
+  'billing_payments',
+  'billing_webhook_audit',
+  'billing_webhook_events',
+  'booking_passengers',
+  'bookings',
+  'brokers',
+  'campaign_audit',
+  'campaign_offers',
+  'campaigns',
+  'captcha_verifications',
+  'cash_transactions',
+  'commercial_opportunities',
+  'commercial_tasks',
+  'commissions',
+  'connector_actions',
+  'coupon_grants',
+  'coupon_redemptions',
+  'coupons',
+  'courtesy_account_audit',
+  'courtesy_accounts',
+  'customer_accounts',
+  'customer_addresses',
+  'customer_dependents',
+  'customer_documents',
+  'customer_interactions',
+  'customers',
+  'document_attachments',
+  'document_audit_events',
+  'document_extractions',
+  'document_verifications',
+  'engagements',
+  'entitlement_changes',
+  'entitlements',
+  'expenses',
+  'external_offer_captures',
+  'feature_flag_audit',
+  'feature_flags',
+  'financial_categories',
+  'landing_page_config',
+  'landing_promotions',
+  'lead_conversions',
+  'lead_interactions',
+  'leads',
+  'login_audit',
+  'mfa_recovery_codes',
+  'mfa_requirements',
+  'mfa_totp_attempts',
+  'mfa_totp_secrets',
+  'offer_growth_audit_log',
+  'offers',
+  'operation_assignments',
+  'operation_checkpoints',
+  'operational_costs',
+  'operational_staff',
+  'operational_staff_capabilities',
+  'payables',
+  'payment_allocations',
+  'payments',
+  'pipeline_access',
+  'pipeline_stages',
+  'pipelines',
+  'plans',
+  'platform_audit_logs',
+  'platform_coupon_redemptions',
+  'platform_coupons',
+  'platform_settings',
+  'platform_user_audit',
+  'platform_users',
+  'promotional_campaigns',
+  'proposals',
+  'publications',
+  'receivables',
+  'reconciliations',
+  'revenues',
+  'route_points',
+  'routes',
+  'sales',
+  'sales_demos',
+  'sales_opportunities',
+  'scheduled_departures',
+  'sensitive_operations_log',
+  'subscriber_tenant_audit',
+  'subscriber_tenants',
+  'subscription_state_changes',
+  'subscriptions',
+  'suppliers',
+  'support_access_log',
+  'support_cases',
+  'transport_operations',
+  'transport_products',
+  'trips',
+  'users',
+  'wishes',
+];
+const expectedTenantTables = [
+  'agencies',
+  'agency_entitlements',
+  'assets',
+  'audit_logs',
+  'auth_sessions',
   'automation_executions',
   'automations',
   'booking_passengers',
@@ -37,6 +141,8 @@ const expectedTables = [
   'brokers',
   'campaign_offers',
   'campaigns',
+  'captcha_verifications',
+  'cash_transactions',
   'commercial_opportunities',
   'commercial_tasks',
   'commissions',
@@ -45,10 +151,23 @@ const expectedTables = [
   'coupon_redemptions',
   'coupons',
   'customer_accounts',
+  'customer_addresses',
+  'customer_dependents',
+  'customer_documents',
   'customer_interactions',
   'customers',
+  'document_attachments',
+  'document_audit_events',
+  'document_extractions',
+  'document_verifications',
   'engagements',
+  'expenses',
   'external_offer_captures',
+  'financial_categories',
+  'mfa_recovery_codes',
+  'mfa_requirements',
+  'mfa_totp_attempts',
+  'mfa_totp_secrets',
   'offer_growth_audit_log',
   'offers',
   'operation_assignments',
@@ -65,6 +184,8 @@ const expectedTables = [
   'proposals',
   'publications',
   'receivables',
+  'reconciliations',
+  'revenues',
   'route_points',
   'routes',
   'sales',
@@ -75,6 +196,14 @@ const expectedTables = [
   'trips',
   'users',
   'wishes',
+];
+const readInsertOnlyTables = [
+  'audit_logs',
+  'auth_sessions',
+  'captcha_verifications',
+  'cash_transactions',
+  'document_audit_events',
+  'mfa_totp_attempts',
 ];
 
 interface CommandResult {
@@ -114,7 +243,7 @@ describe.sequential('database integration migrations and RLS', () => {
       "SELECT tablename FROM pg_tables WHERE schemaname = 'public' ORDER BY tablename;",
     );
 
-    expect(tables).toEqual(expectedTables);
+    expect(tables).toEqual(expectedAllTables);
   });
 
   it('validates constraints, soft delete, tenant-safe FKs, CustomerAccount, and Proposal snapshot', () => {
@@ -193,13 +322,13 @@ describe.sequential('database integration migrations and RLS', () => {
       FROM pg_class
       WHERE relnamespace = 'public'::regnamespace
         AND relkind = 'r'
-        AND relname = ANY(ARRAY[${expectedTables.map((table) => `'${table}'`).join(', ')}])
+        AND relname = ANY(ARRAY[${expectedTenantTables.map((table) => `'${table}'`).join(', ')}])
         AND relrowsecurity = TRUE
         AND relforcerowsecurity = TRUE
       ORDER BY relname;
     `);
 
-    expect(rows).toEqual(expectedTables);
+    expect(rows).toEqual(expectedTenantTables);
   });
 
   it('keeps tenant context functions without SECURITY DEFINER', () => {
@@ -241,17 +370,22 @@ describe.sequential('database integration migrations and RLS', () => {
       ORDER BY routine_name;
     `);
 
-    expect(tableGrantCount).toBe(String((expectedTables.length - 1) * 4 + 2));
+    expect(tableGrantCount).toBe(
+      String(
+        (expectedTenantTables.length - readInsertOnlyTables.length) * 4 +
+          readInsertOnlyTables.length * 2,
+      ),
+    );
     expect(
       queryAdminLines(`
-        SELECT privilege_type
+        SELECT table_name || ':' || privilege_type
         FROM information_schema.role_table_grants
         WHERE table_schema = 'public'
           AND grantee = '${runtimeUser}'
-          AND table_name = 'audit_logs'
-        ORDER BY privilege_type;
+          AND table_name = ANY(ARRAY[${readInsertOnlyTables.map((table) => `'${table}'`).join(', ')}])
+        ORDER BY table_name, privilege_type;
       `),
-    ).toEqual(['INSERT', 'SELECT']);
+    ).toEqual(readInsertOnlyTables.flatMap((table) => [`${table}:INSERT`, `${table}:SELECT`]));
     expect(functionGrants).toEqual([
       'clear_tenant_context',
       'current_agency_id',
@@ -462,7 +596,10 @@ function readAllMigrations(): string {
     .filter((fileName) => /^\d+_.+\.sql$/.test(fileName))
     .sort();
 
-  expect(migrationFiles).toHaveLength(15);
+  expect(migrationFiles.length).toBeGreaterThanOrEqual(15);
+  migrationFiles.forEach((fileName, index) => {
+    expect(fileName.startsWith(`${String(index + 1).padStart(3, '0')}_`)).toBe(true);
+  });
 
   return migrationFiles
     .map((fileName) => readSql(resolve(migrationsDir, fileName)))

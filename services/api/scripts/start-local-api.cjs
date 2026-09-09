@@ -1,7 +1,9 @@
 const { spawn, spawnSync } = require('node:child_process');
+const { existsSync, readFileSync } = require('node:fs');
 const { resolve } = require('node:path');
 
 const apiRoot = resolve(__dirname, '..');
+const repoRoot = resolve(apiRoot, '..', '..');
 const nodeEnv = process.env.NODE_ENV ?? 'development';
 
 if (nodeEnv === 'production') {
@@ -9,14 +11,29 @@ if (nodeEnv === 'production') {
   process.exit(1);
 }
 
+const envLocalPath = resolve(repoRoot, '.env.local');
+if (existsSync(envLocalPath)) {
+  const envContent = readFileSync(envLocalPath, 'utf8');
+  for (const line of envContent.split('\n')) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+    const [key, ...valueParts] = trimmed.split('=');
+    const normalizedKey = key.trim();
+    if (normalizedKey && !process.env[normalizedKey]) {
+      process.env[normalizedKey] = valueParts.join('=').trim();
+    }
+  }
+}
+
 const env = {
   ...process.env,
   NODE_ENV: nodeEnv,
+  ALLOW_DEV_AUTH: process.env.ALLOW_DEV_AUTH ?? 'true',
   HOST: process.env.HOST ?? '127.0.0.1',
-  PORT: process.env.PORT ?? '3000',
+  PORT: process.env.PORT ?? '4000',
   DATABASE_URL:
     process.env.DATABASE_URL ??
-    'postgresql://travel_app_runtime_local:travel_app_runtime_local_password@127.0.0.1:55432/travel_platform_test',
+    'postgresql://travel_test:travel_test_password@127.0.0.1:55432/travel_platform_test',
 };
 
 const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';

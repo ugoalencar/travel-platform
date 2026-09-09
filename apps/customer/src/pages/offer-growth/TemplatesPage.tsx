@@ -19,7 +19,7 @@ export function TemplatesPage() {
   }
 
   function handleCreate() {
-    const name = newName.trim() || `Novo template ${templates.length + 1}`;
+    const name = newName.trim() || `Novo modelo ${templates.length + 1}`;
     const template = createBlankTemplate(name);
     setNewName('');
     void navigate(`/offer-growth/studio?templateId=${encodeURIComponent(template.id)}`);
@@ -38,10 +38,10 @@ export function TemplatesPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Offer & Growth</p>
-        <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Templates de criativo</h1>
+        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Ofertas e crescimento</p>
+        <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Modelos de criativo</h1>
         <p className="mt-1 text-sm text-slate-500">
-          Modelos reutilizáveis de carrossel/post que alimentam a Creative Studio. Guardados
+          Modelos reutilizáveis de carrossel/post que alimentam o Estúdio criativo. Guardados
           localmente neste navegador (ainda não há persistência compartilhada no backend).
         </p>
       </div>
@@ -49,7 +49,7 @@ export function TemplatesPage() {
       <div className="flex flex-col gap-3 rounded-lg border border-slate-200 bg-white p-4 sm:flex-row sm:items-end">
         <div className="flex flex-1 flex-col gap-1">
           <label htmlFor="new-template-name" className="text-sm font-medium text-slate-700">
-            Nome do novo template
+            Nome do novo modelo
           </label>
           <input
             id="new-template-name"
@@ -59,7 +59,7 @@ export function TemplatesPage() {
             placeholder="Carrossel promoção verão"
           />
         </div>
-        <Button onClick={handleCreate}>Criar template</Button>
+        <Button onClick={handleCreate}>Criar modelo</Button>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -67,7 +67,7 @@ export function TemplatesPage() {
           <article key={template.id} className="rounded-lg border border-slate-200 bg-white p-4">
             <h2 className="text-base font-semibold text-slate-900">{template.name}</h2>
             <p className="text-xs text-slate-500">
-              {template.pages.length} slide(s) · {template.bindings.length} vínculo(s)
+              {template.pages.length} página(s) · {template.bindings.length} vínculo(s)
             </p>
             <p className="mt-1 text-xs text-slate-400">
               Atualizado em {new Date(template.updatedAt).toLocaleString('pt-BR')}

@@ -24,6 +24,18 @@ vi.mock('./lib/api', async () => {
     getTrip: vi.fn(),
     createTrip: vi.fn(),
     updateTrip: vi.fn(),
+    listPayables: vi.fn(),
+    listReceivables: vi.fn(),
+    listSuppliers: vi.fn(),
+    recordPayment: vi.fn(),
+    allocatePayment: vi.fn(),
+    listCustomerAddresses: vi.fn(),
+    listCustomerDocuments: vi.fn(),
+    listCustomerDependents: vi.fn(),
+    listTravelRequirements: vi.fn(),
+    listSales: vi.fn(),
+    listAirServicesByTrip: vi.fn(),
+    listLandServicesByTrip: vi.fn(),
   };
 });
 
@@ -85,40 +97,71 @@ beforeEach(() => {
     return Promise.reject(new api.ApiError('Viagem não encontrada', 'NOT_FOUND', 404));
   });
   vi.mocked(api.listTrips).mockResolvedValue([tripPortugal]);
+  vi.mocked(api.listPayables).mockResolvedValue([]);
+  vi.mocked(api.listReceivables).mockResolvedValue([]);
+  vi.mocked(api.listSuppliers).mockResolvedValue([]);
+  vi.mocked(api.listCustomerAddresses).mockResolvedValue([]);
+  vi.mocked(api.listCustomerDocuments).mockResolvedValue([]);
+  vi.mocked(api.listCustomerDependents).mockResolvedValue([]);
+  vi.mocked(api.listTravelRequirements).mockResolvedValue([]);
+  vi.mocked(api.listSales).mockResolvedValue([]);
+  vi.mocked(api.listAirServicesByTrip).mockResolvedValue([]);
+  vi.mocked(api.listLandServicesByTrip).mockResolvedValue([]);
 });
 
 describe('App', () => {
   it('renders the dashboard by default', async () => {
     renderRouted('/');
-    expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Painel' })).toBeInTheDocument();
   });
 
   it('renders the sidebar navigation links', async () => {
     renderRouted('/');
-    await screen.findByRole('heading', { name: 'Dashboard' });
+    await screen.findByRole('heading', { name: 'Painel' });
     const nav = screen.getByRole('navigation');
     expect(nav.querySelector('a[href="/customers"]')).not.toBeNull();
     expect(nav.querySelector('a[href="/wishes"]')).not.toBeNull();
     expect(nav.querySelector('a[href="/trips"]')).not.toBeNull();
   });
 
+  it('organizes agency navigation into the approved Portuguese groups', async () => {
+    renderRouted('/');
+    await screen.findByRole('heading', { name: 'Painel' });
+
+    const nav = screen.getByRole('navigation');
+    expect(nav).toHaveTextContent('Painel');
+    expect(nav).toHaveTextContent('CRM & Comercial');
+    expect(nav).toHaveTextContent('Operação');
+    expect(nav).toHaveTextContent('Financeiro');
+    expect(nav).toHaveTextContent('Cadastros');
+    expect(nav).toHaveTextContent('Pessoal');
+    expect(nav).toHaveTextContent('Marketing');
+    expect(nav).toHaveTextContent('Configurações');
+
+    expect(screen.getByRole('link', { name: 'Pescador' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Contas a Pagar' })).toHaveAttribute(
+      'href',
+      '/financial/payables',
+    );
+  });
+
   it('navigates to the customers list from the sidebar', async () => {
     renderRouted('/');
-    await screen.findByRole('heading', { name: 'Dashboard' });
+    await screen.findByRole('heading', { name: 'Painel' });
     fireEvent.click(screen.getByRole('link', { name: /Clientes/ }));
     expect(await screen.findByRole('heading', { name: 'Clientes' })).toBeInTheDocument();
   });
 
   it('navigates to the wishes list from the sidebar', async () => {
     renderRouted('/');
-    await screen.findByRole('heading', { name: 'Dashboard' });
+    await screen.findByRole('heading', { name: 'Painel' });
     fireEvent.click(screen.getByRole('link', { name: /Desejos/ }));
     expect(await screen.findByRole('heading', { name: 'Desejos' })).toBeInTheDocument();
   });
 
   it('navigates to the trips list from the sidebar', async () => {
     renderRouted('/');
-    await screen.findByRole('heading', { name: 'Dashboard' });
+    await screen.findByRole('heading', { name: 'Painel' });
     fireEvent.click(screen.getByRole('link', { name: /Viagens/ }));
     expect(await screen.findByRole('heading', { name: 'Viagens' })).toBeInTheDocument();
   });
@@ -151,6 +194,11 @@ describe('App', () => {
   it('renders the financial overview page', async () => {
     renderRouted('/financial');
     expect(await screen.findByRole('heading', { name: 'Financeiro' })).toBeInTheDocument();
+  });
+
+  it('renders the payables page', async () => {
+    renderRouted('/financial/payables');
+    expect(await screen.findByRole('heading', { name: 'Contas a Pagar' })).toBeInTheDocument();
   });
 
   it('renders the reports page', async () => {

@@ -9,6 +9,7 @@ import { resolveCorsPolicy, SecurityConfigError } from '../src/security-config';
 // configured) is enough to exercise the full HTTP pipeline.
 const stubDatabase: DatabaseRuntime = {
   withTenantTransaction: () => Promise.reject(new Error('not used in these tests')),
+  withPlatformTransaction: () => Promise.reject(new Error('not used in these tests')),
 };
 
 function buildTestApp(overrides: Partial<Parameters<typeof buildApp>[0]> = {}) {

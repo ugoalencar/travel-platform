@@ -329,6 +329,68 @@ async function transitionProposal(
   });
 }
 
+export interface ProposalWithCustomer extends Proposal {
+  customerName: string;
+}
+
+interface ProposalWithCustomerRow extends ProposalRow {
+  customer_name: string;
+}
+
+const PROPOSAL_WITH_CUSTOMER_QUERY = `
+  SELECT p.id, p.agency_id, p.customer_id, p.offer_id, p.wish_id, p.user_id, p.proposed_price,
+         p.discount, p.total, p.valid_until, p.conditions, p.notes, p.status,
+         p.created_at, p.updated_at,
+         c.name AS customer_name
+  FROM proposals p
+  JOIN customers c ON c.agency_id = p.agency_id AND c.id = p.customer_id
+`;
+
+// Read-model for UI surfaces that need the customer's name alongside the
+// proposal, without changing listProposals/getProposalById's shape for
+// other callers. One joined query, no N+1.
+export async function listProposalsWithCustomer(
+  database: DatabaseRuntime,
+): Promise<ProposalWithCustomer[]> {
+  const agencyId = getAgencyId();
+
+  return database.withTenantTransaction(async (client) => {
+    const result = await client.query<ProposalWithCustomerRow>(
+      `${PROPOSAL_WITH_CUSTOMER_QUERY}
+       WHERE p.agency_id = $1
+       ORDER BY p.created_at DESC`,
+      [agencyId],
+    );
+
+    return result.rows.map(toProposalWithCustomer);
+  });
+}
+
+export async function getProposalWithCustomerById(
+  database: DatabaseRuntime,
+  id: string,
+): Promise<ProposalWithCustomer | null> {
+  const agencyId = getAgencyId();
+
+  return database.withTenantTransaction(async (client) => {
+    const result = await client.query<ProposalWithCustomerRow>(
+      `${PROPOSAL_WITH_CUSTOMER_QUERY}
+       WHERE p.agency_id = $1 AND p.id = $2`,
+      [agencyId, id],
+    );
+
+    const row = result.rows[0];
+    return row ? toProposalWithCustomer(row) : null;
+  });
+}
+
+function toProposalWithCustomer(row: ProposalWithCustomerRow): ProposalWithCustomer {
+  return {
+    ...toProposal(row),
+    customerName: row.customer_name,
+  };
+}
+
 function toProposal(row: ProposalRow): Proposal {
   return {
     id: row.id,

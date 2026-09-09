@@ -19,9 +19,34 @@ import {
   SalesListPage,
 } from './pages/SalesJourneyPages';
 import { OffersPage } from './pages/OffersPage';
+import { OfferDetailPage } from './pages/OfferDetailPage';
+import { CampaignsPage } from './pages/CampaignsPage';
+import { CouponsPage } from './pages/CouponsPage';
 import { FinancialPage } from './pages/FinancialPage';
+import { DrePage } from './pages/DrePage';
+import { SaleFinancialStoryPage } from './pages/SaleFinancialStoryPage';
+import { RevenuesPage } from './pages/RevenuesPage';
+import { ExpensesPage } from './pages/ExpensesPage';
+import { CategoriesPage } from './pages/CategoriesPage';
+import { CostCentersPage } from './pages/CostCentersPage';
+import { CashTransactionsPage } from './pages/CashTransactionsPage';
+import { ReconciliationPage } from './pages/ReconciliationPage';
+import { DetailedReportsPage } from './pages/DetailedReportsPage';
+import { ReceivablesPage } from './pages/ReceivablesPage';
+import { PayablesPage } from './pages/PayablesPage';
+import { PescadorPage } from './pages/PescadorPage';
+import { SuppliersPage } from './pages/SuppliersPage';
+import { AirServicesPage } from './pages/AirServicesPage';
+import { LandServicesPage } from './pages/LandServicesPage';
+import { PassengersPage } from './pages/operations/PassengersPage';
+import { DocumentAlertsPage } from './pages/operations/DocumentAlertsPage';
+import { OccurrencesPage } from './pages/operations/OccurrencesPage';
+import { PostTripPage } from './pages/operations/PostTripPage';
 import { ReportsPage } from './pages/ReportsPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { EmployeesPage } from './pages/EmployeesPage';
+import { CommissionPlansPage } from './pages/CommissionPlansPage';
+import { PayrollPage } from './pages/PayrollPage';
 
 export function App() {
   return (
@@ -43,8 +68,33 @@ export function App() {
         <Route path="sales" element={<SalesListPage />} />
         <Route path="sales/:id" element={<SaleSummaryPage />} />
         <Route path="offers" element={<OffersPage />} />
+        <Route path="offers/:id" element={<OfferDetailPage />} />
+        <Route path="campaigns" element={<CampaignsPage />} />
+        <Route path="coupons" element={<CouponsPage />} />
         <Route path="financial" element={<FinancialPage />} />
+        <Route path="financial/dre" element={<DrePage />} />
+        <Route path="financial/sales/:saleId/story" element={<SaleFinancialStoryPage />} />
+        <Route path="financial/revenues" element={<RevenuesPage />} />
+        <Route path="financial/expenses" element={<ExpensesPage />} />
+        <Route path="financial/receivables" element={<ReceivablesPage />} />
+        <Route path="financial/payables" element={<PayablesPage />} />
+        <Route path="financial/categories" element={<CategoriesPage />} />
+        <Route path="financial/cost-centers" element={<CostCentersPage />} />
+        <Route path="financial/cash-transactions" element={<CashTransactionsPage />} />
+        <Route path="financial/reconciliation" element={<ReconciliationPage />} />
+        <Route path="financial/reports" element={<DetailedReportsPage />} />
+        <Route path="pescador" element={<PescadorPage />} />
+        <Route path="suppliers" element={<SuppliersPage />} />
+        <Route path="operations/air" element={<AirServicesPage />} />
+        <Route path="operations/land" element={<LandServicesPage />} />
+        <Route path="operations/passengers" element={<PassengersPage />} />
+        <Route path="operations/documents" element={<DocumentAlertsPage />} />
+        <Route path="operations/occurrences" element={<OccurrencesPage />} />
+        <Route path="operations/post-trip" element={<PostTripPage />} />
         <Route path="reports" element={<ReportsPage />} />
+        <Route path="employees" element={<EmployeesPage />} />
+        <Route path="commission-plans" element={<CommissionPlansPage />} />
+        <Route path="payroll" element={<PayrollPage />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>

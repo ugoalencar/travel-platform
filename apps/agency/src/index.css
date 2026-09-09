@@ -1,8 +1,81 @@
 @import 'tailwindcss';
 
+/*
+ * Design tokens -- Agency app (Wave: Visual + Functional Blueprint, item 12).
+ * Pragmatic extension of the existing Tailwind v4 @theme block: colors,
+ * spacing/radius/shadow scale used by the shell + base components. Not a
+ * separate token-build pipeline -- just CSS custom properties consumed via
+ * Tailwind's arbitrary-value / theme() syntax and plain var() in a few spots
+ * (e.g. the dark sidebar) where a bespoke palette is clearer than reaching
+ * for a slate/gray shade every time.
+ */
 @theme {
   --font-sans:
     'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  /* Sector shell: dark sidebar, light topbar, very-light gray/blue canvas. */
+  --color-sidebar: #0f172a;
+  --color-sidebar-foreground: #cbd5e1;
+  --color-sidebar-muted: #64748b;
+  --color-sidebar-active: #1e293b;
+  --color-sidebar-border: #1e293b;
+  --color-canvas: #f4f6fb;
+
+  /* Status convention (12_VISUAL_POLISH_EXECUTION.md): verde / azul /
+   * amarelo-laranja / vermelho / cinza. Consumed by StatusBadge. */
+  --color-status-success: #059669;
+  --color-status-success-bg: #ecfdf5;
+  --color-status-info: #2563eb;
+  --color-status-info-bg: #eff6ff;
+  --color-status-warning: #b45309;
+  --color-status-warning-bg: #fffbeb;
+  --color-status-danger: #dc2626;
+  --color-status-danger-bg: #fef2f2;
+  --color-status-neutral: #475569;
+  --color-status-neutral-bg: #f1f5f9;
+
+  /* Radius scale -- cards should read as "elevated" (rounded), not sharp. */
+  --radius-xs: 0.375rem;
+  --radius-sm: 0.5rem;
+  --radius-card: 0.875rem;
+  --radius-lg: 1rem;
+  --radius-pill: 999px;
+
+  /* Shadow/elevation scale -- subtle, layered, never a heavy drop-shadow. */
+  --shadow-xs: 0 1px 2px 0 rgb(15 23 42 / 0.04);
+  --shadow-card: 0 1px 2px 0 rgb(15 23 42 / 0.04), 0 1px 3px 0 rgb(15 23 42 / 0.06);
+  --shadow-card-hover: 0 4px 12px 0 rgb(15 23 42 / 0.08);
+  --shadow-popover: 0 8px 24px -4px rgb(15 23 42 / 0.12), 0 2px 8px -2px rgb(15 23 42 / 0.06);
+
+  /* Spacing scale -- named steps on top of Tailwind's default scale so the
+   * shell/cards reach for a consistent rhythm (4/8/12/16/24/32/48). */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+
+  /* KPI accent palette -- semantic accents for stat/KPI cards (icon chip +
+   * left rail), distinct from the status-* tokens above which are for
+   * badges/pills. Revenue/positive=blue, expenses/negative=red,
+   * success/margin=teal, pending/attention=amber. */
+  --color-kpi-revenue: #2563eb;
+  --color-kpi-revenue-bg: #eff6ff;
+  --color-kpi-expense: #dc2626;
+  --color-kpi-expense-bg: #fef2f2;
+  --color-kpi-success: #0d9488;
+  --color-kpi-success-bg: #f0fdfa;
+  --color-kpi-pending: #d97706;
+  --color-kpi-pending-bg: #fffbeb;
+  --color-kpi-neutral: #475569;
+  --color-kpi-neutral-bg: #f1f5f9;
+
+  /* Typography scale -- page titles need real visual weight (per reference:
+   * a strong, larger title with a lighter muted subtitle beneath it). */
+  --text-page-title: 1.75rem;
+  --text-page-subtitle: 0.9375rem;
 }
 
 :root {
@@ -10,5 +83,5 @@
 }
 
 body {
-  @apply bg-slate-50 text-slate-900 antialiased;
+  @apply bg-(--color-canvas) text-slate-900 antialiased;
 }

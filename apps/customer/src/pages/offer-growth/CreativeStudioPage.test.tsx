@@ -43,7 +43,7 @@ describe('CreativeStudioPage', () => {
   it('seeds the editor with the REAL offer data from the ?offerId= query param, not the Cancun demo defaults', async () => {
     renderPage(`/offer-growth/studio?offerId=${realOffer.id}`);
 
-    expect(await screen.findByRole('heading', { name: /Creative Studio/i })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: /Estúdio criativo/i })).toBeInTheDocument();
     expect(screen.getByRole('combobox')).toHaveValue(realOffer.id);
     expect(screen.getAllByText('Pacote Fernando de Noronha').length).toBeGreaterThan(0);
     expect(screen.queryByText(/Pacote Cancun/)).not.toBeInTheDocument();
@@ -59,7 +59,7 @@ describe('CreativeStudioPage', () => {
   it('uses business labels for block kind and binding source, never raw enum strings', async () => {
     renderPage(`/offer-growth/studio?offerId=${realOffer.id}`);
 
-    await screen.findByRole('heading', { name: /Creative Studio/i });
+    await screen.findByRole('heading', { name: /Estúdio criativo/i });
     expect(screen.getAllByText('Título').length).toBeGreaterThan(0);
     expect(screen.getAllByText(/Origem: Oferta/).length).toBeGreaterThan(0);
   });

@@ -51,54 +51,84 @@ export function CustomerProposalDetailsPage() {
 }
 
 function ProposalDetails({ proposal }: { proposal: CustomerProposalView }) {
+  const validUntilDate = proposal.validUntil ? new Date(proposal.validUntil) : null;
+  const isExpired = proposal.status === 'EXPIRED' || proposal.status === 'CANCELLED';
+
   return (
-    <>
-      <div className="rounded-md border border-slate-200 bg-slate-50 p-3 text-xs text-slate-500">
-        Esta proposta é apenas informativa. Fale com sua agência para negociar ou confirmar.
+    <div className="flex flex-col gap-6">
+      <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+        <p className="font-medium">💡 Informativo</p>
+        <p className="mt-1">Esta proposta é apenas informativa. Fale com sua agência para negociar ou confirmar.</p>
       </div>
-      <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
-        {proposal.total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-      </h1>
-      <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-        <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <Detail label="Status" value={proposalStatusLabel(proposal.status)} />
-          <Detail
-            label="Preço proposto"
-            value={proposal.proposedPrice.toLocaleString('pt-BR', {
-              style: 'currency',
-              currency: 'BRL',
-            })}
-          />
-          <Detail
-            label="Desconto"
-            value={proposal.discount.toLocaleString('pt-BR', {
-              style: 'currency',
-              currency: 'BRL',
-            })}
-          />
-          {proposal.validUntil && (
-            <Detail
-              label="Válido até"
-              value={new Date(proposal.validUntil).toLocaleDateString('pt-BR')}
+
+      <div className={`flex items-start justify-between gap-4 ${isExpired ? 'opacity-75' : ''}`}>
+        <div>
+          <p className="text-sm font-semibold text-slate-600 uppercase tracking-wide">Valor total</p>
+          <h1 className="mt-2 text-4xl font-bold text-slate-900">
+            {proposal.total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+          </h1>
+        </div>
+        <span className={`inline-block rounded-full px-4 py-2 text-sm font-semibold whitespace-nowrap ${
+          isExpired
+            ? 'bg-slate-100 text-slate-800'
+            : 'bg-indigo-100 text-indigo-900'
+        }`}>
+          {proposalStatusLabel(proposal.status)}
+        </span>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="rounded-xl border-2 border-slate-200 bg-white p-5 shadow-sm">
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-600 mb-3">💰 Valores</h3>
+          <div className="space-y-3">
+            <DetailItem
+              label="Preço proposto"
+              value={proposal.proposedPrice.toLocaleString('pt-BR', {
+                style: 'currency',
+                currency: 'BRL',
+              })}
             />
-          )}
-          {proposal.conditions && (
-            <div className="sm:col-span-2">
-              <Detail label="Condições" value={proposal.conditions} />
+            <DetailItem
+              label="Desconto"
+              value={proposal.discount.toLocaleString('pt-BR', {
+                style: 'currency',
+                currency: 'BRL',
+              })}
+              highlight={proposal.discount > 0}
+            />
+          </div>
+        </div>
+
+        {(validUntilDate || proposal.conditions) && (
+          <div className="rounded-xl border-2 border-slate-200 bg-gradient-to-br from-indigo-50 to-purple-50 p-5 shadow-sm">
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-600 mb-3">📋 Informações</h3>
+            <div className="space-y-3">
+              {validUntilDate && (
+                <DetailItem
+                  label="Válido até"
+                  value={validUntilDate.toLocaleDateString('pt-BR', { weekday: 'short', year: 'numeric', month: 'long', day: 'numeric' })}
+                />
+              )}
+              {proposal.conditions && (
+                <div>
+                  <dt className="text-xs font-semibold uppercase tracking-wide text-slate-600">Condições</dt>
+                  <dd className="mt-1 text-sm text-slate-900">{proposal.conditions}</dd>
+                </div>
+              )}
             </div>
-          )}
-        </dl>
+          </div>
+        )}
       </div>
-      {/* Deliberately no accept/decline controls in this vertical. */}
-    </>
+      {/* Sem controles de aceitar/recusar nesta vertical. */}
+    </div>
   );
 }
 
-function Detail({ label, value }: { label: string; value: string }) {
+function DetailItem({ label, value, highlight = false }: { label: string; value: string; highlight?: boolean }) {
   return (
     <div>
-      <dt className="text-xs font-medium uppercase tracking-wide text-slate-500">{label}</dt>
-      <dd className="text-sm text-slate-900">{value}</dd>
+      <dt className="text-xs font-semibold uppercase tracking-wide text-slate-600">{label}</dt>
+      <dd className={`mt-1 text-sm font-medium ${highlight ? 'text-green-700' : 'text-slate-900'}`}>{value}</dd>
     </div>
   );
 }

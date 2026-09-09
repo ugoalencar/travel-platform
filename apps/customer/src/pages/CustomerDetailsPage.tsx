@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ApiError, getCustomer } from '../lib/api';
 import type { Customer } from '../types/customer';
-import { Button } from '../components/ui/button';
 import { Customer360 } from '../components/commercial/Customer360';
 
 type LoadState =
@@ -51,62 +50,28 @@ export function CustomerDetailsPage() {
     };
   }, [id]);
 
-  return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
-          Detalhes do cliente
-        </h1>
-        <div className="flex gap-3">
-          <Button variant="outline" onClick={() => void navigate('/customers')}>
-            Voltar
-          </Button>
-          {state.status === 'success' && (
-            <Button onClick={() => void navigate(`/customers/${state.customer.id}/edit`)}>
-              Editar
-            </Button>
-          )}
-        </div>
-      </div>
-
-      {state.status === 'loading' && (
+  if (state.status === 'loading') {
+    return (
+      <div>
+        <h1 className="sr-only">Detalhes do cliente</h1>
         <p className="text-sm text-slate-500">Carregando cliente...</p>
-      )}
+      </div>
+    );
+  }
 
-      {state.status === 'error' && (
-        <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-          {state.message}
-        </div>
-      )}
+  if (state.status === 'error') {
+    return (
+      <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        {state.message}
+      </div>
+    );
+  }
 
-      {state.status === 'success' && (
-        <dl className="grid max-w-lg grid-cols-1 gap-4 rounded-lg border border-slate-200 bg-white p-6 sm:grid-cols-2">
-          <Field label="Nome" value={state.customer.name} />
-          <Field label="Email" value={state.customer.email} />
-          <Field label="Telefone" value={state.customer.phone} />
-          <Field label="CPF" value={state.customer.cpf} />
-          <Field label="Passaporte" value={state.customer.passport} />
-          <Field label="Notas" value={state.customer.notes} />
-        </dl>
-      )}
-
-      {state.status === 'success' && (
-        <div>
-          <h2 className="mb-3 text-lg font-semibold text-slate-900">Visão 360</h2>
-          <Customer360 customerId={state.customer.id} />
-        </div>
-      )}
-    </div>
-  );
-}
-
-function Field({ label, value }: { label: string; value: string | undefined }) {
   return (
-    <div className="flex flex-col gap-1">
-      <dt className="text-xs font-medium uppercase tracking-wide text-slate-500">
-        {label}
-      </dt>
-      <dd className="text-sm text-slate-900">{value ?? '—'}</dd>
-    </div>
+    <Customer360
+      customer={state.customer}
+      onBack={() => void navigate('/customers')}
+      onEdit={() => void navigate(`/customers/${state.customer.id}/edit`)}
+    />
   );
 }

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
 import {
   ApiError,
@@ -44,6 +44,15 @@ const initialFormState: CaptureFormState = {
   validUntil: '',
 };
 
+const STATUS_LABELS: Record<ExternalOfferCaptureStatus, string> = {
+  CAPTURED: 'Capturada',
+  NORMALIZED: 'Normalizada',
+  UNDER_REVIEW: 'Em revisão',
+  APPROVED: 'Aprovada',
+  REJECTED: 'Rejeitada',
+  PUBLISHED: 'Convertida',
+};
+
 export function PescadorPage() {
   const [state, setState] = useState<LoadState>({ status: 'loading' });
   const [form, setForm] = useState<CaptureFormState>(initialFormState);
@@ -67,7 +76,7 @@ export function PescadorPage() {
           message:
             error instanceof ApiError
               ? error.message
-              : 'Nao foi possivel carregar as capturas.',
+              : 'Não foi possível carregar as capturas.',
         });
       });
 
@@ -87,7 +96,7 @@ export function PescadorPage() {
 
     const input = buildCreateInput(form);
     if (!input) {
-      setFormError('Informe origem, URL e conteudo bruto da captura.');
+      setFormError('Informe origem, URL e conteúdo bruto da captura.');
       return;
     }
 
@@ -102,7 +111,7 @@ export function PescadorPage() {
       setForm(initialFormState);
     } catch (error) {
       setFormError(
-        error instanceof ApiError ? error.message : 'Nao foi possivel criar a captura.',
+        error instanceof ApiError ? error.message : 'Não foi possível criar a captura.',
       );
     } finally {
       setSubmitting(false);
@@ -131,7 +140,7 @@ export function PescadorPage() {
       setFormError(
         error instanceof ApiError
           ? error.message
-          : 'Nao foi possivel atualizar a captura.',
+          : 'Não foi possível atualizar a captura.',
       );
     } finally {
       setActionId(null);
@@ -151,16 +160,16 @@ export function PescadorPage() {
 
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard label="Capturadas" value={stats.captured} />
-        <MetricCard label="Em revisao" value={stats.review} />
+        <MetricCard label="Em revisão" value={stats.review} />
         <MetricCard label="Aprovadas" value={stats.approved} />
-        <MetricCard label="Publicadas" value={stats.published} />
+        <MetricCard label="Convertidas" value={stats.published} />
       </section>
 
       <section className="rounded-md border border-slate-200 bg-white p-4">
         <div className="mb-4">
           <h2 className="text-lg font-semibold text-slate-900">Nova captura</h2>
           <p className="text-sm text-slate-500">
-            Cole o material encontrado e, quando possivel, normalize titulo e preco.
+            Cole o material encontrado e, quando possível, normalize título e preço.
           </p>
         </div>
 
@@ -179,7 +188,7 @@ export function PescadorPage() {
             required
           />
           <TextField
-            label="Titulo normalizado"
+            label="Título normalizado"
             value={form.normalizedTitle}
             onChange={(value) =>
               setForm((current) => ({ ...current, normalizedTitle: value }))
@@ -187,7 +196,7 @@ export function PescadorPage() {
           />
           <div className="grid gap-4 sm:grid-cols-[1fr_120px_160px]">
             <TextField
-              label="Preco encontrado"
+              label="Preço encontrado"
               type="number"
               min="0"
               step="0.01"
@@ -208,7 +217,7 @@ export function PescadorPage() {
           </div>
           <label className="flex flex-col gap-1 lg:col-span-2">
             <span className="text-sm font-medium text-slate-700">
-              Conteudo bruto <span aria-hidden="true">*</span>
+              Conteúdo bruto <span aria-hidden="true">*</span>
             </span>
             <textarea
               className="min-h-24 rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-slate-500 focus:outline-none"
@@ -221,7 +230,7 @@ export function PescadorPage() {
           </label>
           <label className="flex flex-col gap-1 lg:col-span-2">
             <span className="text-sm font-medium text-slate-700">
-              Descricao normalizada
+              Descrição normalizada
             </span>
             <textarea
               className="min-h-20 rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-slate-500 focus:outline-none"
@@ -317,7 +326,7 @@ function CapturesTable({
         <div>
           <h2 className="text-lg font-semibold text-slate-900">Capturas</h2>
           <p className="text-sm text-slate-500">
-            Revisao manual, aprovacao e publicacao explicita como oferta.
+            Revisão manual, aprovação e criação explícita como oferta.
           </p>
         </div>
         <span className="rounded-md bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
@@ -330,49 +339,56 @@ function CapturesTable({
           <thead className="border-b border-slate-200 bg-slate-50 text-xs font-medium uppercase tracking-wide text-slate-500">
             <tr>
               <th className="px-4 py-3">Fonte</th>
-              <th className="px-4 py-3">Titulo</th>
+              <th className="px-4 py-3">Título</th>
               <th className="px-4 py-3">Validade</th>
               <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3 text-right">Preco</th>
-              <th className="px-4 py-3 text-right">Acoes</th>
+              <th className="px-4 py-3 text-right">Preço</th>
+              <th className="px-4 py-3 text-right">Ações</th>
             </tr>
           </thead>
           <tbody>
             {captures.map((capture) => (
-              <tr key={capture.id} className="border-b border-slate-100 last:border-0">
-                <td className="px-4 py-3">
-                  <div className="font-medium text-slate-900">{capture.sourceName}</div>
-                  <a
-                    className="text-xs text-slate-500 underline-offset-4 hover:underline"
-                    href={capture.sourceUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    Origem
-                  </a>
-                </td>
-                <td className="px-4 py-3 text-slate-700">
-                  {capture.normalizedTitle ?? capture.rawContent}
-                </td>
-                <td className="px-4 py-3 text-slate-600">
-                  {capture.validUntil
-                    ? formatDateBR(capture.validUntil, { assumeDateOnly: true })
-                    : '-'}
-                </td>
-                <td className="px-4 py-3">
-                  <StatusBadge status={capture.status} />
-                </td>
-                <td className="px-4 py-3 text-right font-medium text-slate-900">
-                  {capture.foundPrice == null ? '-' : formatBRL(capture.foundPrice)}
-                </td>
-                <td className="px-4 py-3">
-                  <ActionButtons
-                    capture={capture}
-                    busy={actionId === capture.id}
-                    onAction={onAction}
-                  />
-                </td>
-              </tr>
+              <Fragment key={capture.id}>
+                <tr className="border-b border-slate-100">
+                  <td className="px-4 py-3">
+                    <div className="font-medium text-slate-900">{capture.sourceName}</div>
+                    <a
+                      className="text-xs text-slate-500 underline-offset-4 hover:underline"
+                      href={capture.sourceUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Abrir URL
+                    </a>
+                  </td>
+                  <td className="px-4 py-3 text-slate-700">
+                    {capture.normalizedTitle ?? summarizeRawContent(capture.rawContent)}
+                  </td>
+                  <td className="px-4 py-3 text-slate-600">
+                    {capture.validUntil
+                      ? formatDateBR(capture.validUntil, { assumeDateOnly: true })
+                      : '-'}
+                  </td>
+                  <td className="px-4 py-3">
+                    <StatusBadge status={capture.status} />
+                  </td>
+                  <td className="px-4 py-3 text-right font-medium text-slate-900">
+                    {capture.foundPrice == null ? '-' : formatBRL(capture.foundPrice)}
+                  </td>
+                  <td className="px-4 py-3">
+                    <ActionButtons
+                      capture={capture}
+                      busy={actionId === capture.id}
+                      onAction={onAction}
+                    />
+                  </td>
+                </tr>
+                <tr className="border-b border-slate-100 last:border-0">
+                  <td colSpan={6} className="bg-slate-50 px-4 py-4">
+                    <CaptureReview capture={capture} />
+                  </td>
+                </tr>
+              </Fragment>
             ))}
           </tbody>
         </table>
@@ -417,14 +433,14 @@ function ActionButtons({
       run: rejectExternalOfferCapture,
     },
     {
-      label: 'Publicar',
+      label: 'Criar Oferta',
       visible: capture.status === 'APPROVED',
       run: publishExternalOfferCapture,
     },
   ].filter((action) => action.visible);
 
   if (actions.length === 0) {
-    return <span className="block text-right text-xs text-slate-500">Sem acoes</span>;
+    return <span className="block text-right text-xs text-slate-500">Sem ações</span>;
   }
 
   return (
@@ -484,9 +500,86 @@ function TextField({
 function StatusBadge({ status }: { status: ExternalOfferCaptureStatus }) {
   return (
     <span className="rounded-md bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700">
-      {status}
+      {STATUS_LABELS[status]}
     </span>
   );
+}
+
+function CaptureReview({ capture }: { capture: ExternalOfferCapture }) {
+  const details = buildCaptureDetails(capture);
+  return (
+    <div className="grid gap-4 text-sm lg:grid-cols-[1fr_1fr]">
+      <dl className="grid gap-2 sm:grid-cols-2">
+        {details.map((item) => (
+          <div key={item.label}>
+            <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">{item.label}</dt>
+            <dd className="mt-0.5 text-slate-800">{item.value}</dd>
+          </div>
+        ))}
+      </dl>
+      <div className="space-y-3">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Imagens</p>
+          {extractImageUrls(capture.rawContent).length === 0 ? (
+            <p className="mt-0.5 text-slate-600">Nenhuma imagem informada</p>
+          ) : (
+            <ul className="mt-1 list-disc space-y-1 pl-5 text-slate-700">
+              {extractImageUrls(capture.rawContent).map((url) => (
+                <li key={url} className="break-all">{url}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <details className="rounded-md border border-slate-200 bg-white p-3">
+          <summary className="cursor-pointer text-xs font-semibold uppercase tracking-wide text-slate-500">
+            Payload bruto
+          </summary>
+          <pre className="mt-2 max-h-40 overflow-auto whitespace-pre-wrap text-xs text-slate-600">
+            {capture.rawContent}
+          </pre>
+        </details>
+      </div>
+    </div>
+  );
+}
+
+function buildCaptureDetails(capture: ExternalOfferCapture) {
+  return [
+    { label: 'Fonte', value: capture.sourceName },
+    { label: 'URL', value: capture.sourceUrl },
+    { label: 'Título', value: capture.normalizedTitle ?? summarizeRawContent(capture.rawContent) },
+    { label: 'Destino', value: extractField(capture.rawContent, ['destino', 'destination']) },
+    { label: 'Preço', value: capture.foundPrice == null ? '-' : formatBRL(capture.foundPrice) },
+    { label: 'Moeda', value: capture.currency ?? 'BRL' },
+    { label: 'Hotel', value: extractField(capture.rawContent, ['hotel', 'hospedagem']) },
+    { label: 'Datas', value: extractField(capture.rawContent, ['datas', 'data', 'período', 'periodo']) },
+    { label: 'Transporte', value: extractField(capture.rawContent, ['transporte', 'voo', 'ônibus', 'onibus']) },
+    { label: 'Inclusões', value: extractField(capture.rawContent, ['inclusões', 'inclusoes', 'inclui']) },
+    { label: 'Descrição', value: capture.normalizedDescription ?? summarizeRawContent(capture.rawContent) },
+    {
+      label: 'Validade',
+      value: capture.validUntil ? formatDateBR(capture.validUntil, { assumeDateOnly: true }) : '-',
+    },
+  ];
+}
+
+function summarizeRawContent(value: string): string {
+  const firstLine = value.split(/\r?\n/).map((line) => line.trim()).find(Boolean);
+  if (!firstLine) return '-';
+  return firstLine.length > 120 ? `${firstLine.slice(0, 117)}...` : firstLine;
+}
+
+function extractField(rawContent: string, labels: string[]): string {
+  const lines = rawContent.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+  for (const label of labels) {
+    const match = lines.find((line) => line.toLowerCase().startsWith(`${label.toLowerCase()}:`));
+    if (match) return match.slice(match.indexOf(':') + 1).trim() || '-';
+  }
+  return '-';
+}
+
+function extractImageUrls(rawContent: string): string[] {
+  return Array.from(rawContent.matchAll(/https?:\/\/\S+\.(?:png|jpe?g|webp|gif)/gi), (match) => match[0]);
 }
 
 function buildCreateInput(

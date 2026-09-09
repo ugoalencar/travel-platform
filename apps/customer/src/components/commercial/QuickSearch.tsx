@@ -65,6 +65,7 @@ export function QuickSearch() {
                   setOpen(false);
                   void navigate(`/customers/${customer.id}`);
                 }}
+                aria-label={`Visualizar cliente ${customer.name}`}
                 className="block w-full border-b border-slate-100 px-3 py-2 text-left text-sm last:border-0 hover:bg-slate-50"
               >
                 <div className="font-medium text-slate-900">{customer.name}</div>

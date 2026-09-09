@@ -1,7 +1,27 @@
 import { useEffect, useState } from 'react';
-import { ArrowDownRight, ArrowUpRight, Clock, Wallet } from 'lucide-react';
+import {
+  ArrowDownRight,
+  ArrowUpRight,
+  Banknote,
+  Clock,
+  Plane,
+  Bus,
+  Wallet,
+  Landmark,
+  PieChart as PieChartIcon,
+} from 'lucide-react';
+import { Link } from 'react-router-dom';
+import {
+  Cell,
+  Legend,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+} from 'recharts';
 import { PageHeader } from '../components/layout/PageHeader';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Button } from '../components/ui/button';
+import { SectionCard } from '../components/ui/section-card';
 import { StatCard } from '../components/ui/stat-card';
 import { StatusBadge } from '../components/ui/status-badge';
 import {
@@ -18,17 +38,23 @@ import { formatDateBR } from '../lib/formatDateBR';
 import {
   ApiError,
   getFinancialSummary,
+  getSaleFinancialStory,
   type FinancialSummary,
+  type SaleFinancialStory,
 } from '../lib/api';
 
-// Financial data state shape
+const MARIANA_SALE_ID = 'd0d50001-0000-4000-8000-000000000009';
+
 type LoadState =
   | { status: 'loading' }
   | { status: 'error'; message: string }
   | {
       status: 'success';
       summary: FinancialSummary;
+      story: SaleFinancialStory | null;
     };
+
+const MARGIN_COLORS = ['#2563eb', '#0d9488', '#d97706', '#dc2626'];
 
 export function FinancialPage() {
   const [state, setState] = useState<LoadState>({ status: 'loading' });
@@ -38,13 +64,13 @@ export function FinancialPage() {
 
     setState({ status: 'loading' });
 
-    getFinancialSummary()
-      .then((summary) => {
+    Promise.all([
+      getFinancialSummary(),
+      getSaleFinancialStory(MARIANA_SALE_ID).catch(() => null),
+    ])
+      .then(([summary, story]) => {
         if (cancelled) return;
-        setState({
-          status: 'success',
-          summary,
-        });
+        setState({ status: 'success', summary, story });
       })
       .catch((error: unknown) => {
         if (cancelled) return;
@@ -88,131 +114,321 @@ export function FinancialPage() {
     );
   }
 
-  const { summary } = state;
-  const financialSummary = {
-    totalSold: summary.salesThisMonth.total,
-    received: summary.received,
-    pending: summary.pending,
-    expectedMargin: summary.expectedMargin,
-  };
+  const { summary, story } = state;
+  const { dashboard } = summary;
 
-  const recentPayments = summary.recentPayments.map((p) => ({
+  const recentPayments = summary.recentPayments.slice(0, 5).map((p) => ({
     id: p.id,
     customer: p.customerName,
     description: p.description,
     amount: p.amount,
     date: p.occurredAt,
-    status: 'Pago' as const,
   }));
 
-  const upcomingReceivables = summary.upcomingReceivables.map((r) => ({
+  const upcomingReceivables = summary.upcomingReceivables.slice(0, 5).map((r) => ({
     id: r.id,
     customer: r.customerName,
     description: r.description,
     amount: r.amount,
     dueDate: r.dueAt,
-    status: r.status === 'OPEN' ? 'Em aberto' : r.status === 'PARTIALLY_PAID' ? 'Pagamento parcial' : 'Pago',
   }));
+
+  const marginPieData = [
+    { name: 'Receita do mês', value: Math.max(summary.salesThisMonth.total, 0) },
+    { name: 'Margem esperada', value: Math.max(summary.expectedMargin, 0) },
+  ].filter((d) => d.value > 0);
+
+  const marginRatio =
+    summary.salesThisMonth.total > 0
+      ? Math.round((summary.expectedMargin / summary.salesThisMonth.total) * 100)
+      : 0;
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="Financeiro"
-        description="Visão consolidada de vendas, recebimentos e margem esperada da agência."
+        description="Controle financeiro completo e integração total da operação."
+        actions={
+          <div className="flex gap-2">
+            <Link to="/financial/dre">
+              <Button size="sm" variant="outline">DRE Gerencial</Button>
+            </Link>
+            <Link to={`/financial/sales/${MARIANA_SALE_ID}/story`}>
+              <Button size="sm" variant="outline">História financeira</Button>
+            </Link>
+          </div>
+        }
       />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {/* Top KPI row */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         <StatCard
-          label="Total vendido (mês)"
-          value={formatBRL(financialSummary.totalSold)}
+          label="Receita do mês"
+          value={formatBRL(summary.salesThisMonth.total)}
           delta={`${summary.salesThisMonth.count} venda${summary.salesThisMonth.count !== 1 ? 's' : ''}`}
           deltaTone="positive"
-          icon={<Wallet className="h-4 w-4" />}
+          icon={<Banknote className="h-4 w-4" />}
+          accent="revenue"
         />
         <StatCard
-          label="Recebido"
-          value={formatBRL(financialSummary.received)}
-          delta={financialSummary.totalSold > 0 ? `${Math.round((financialSummary.received / financialSummary.totalSold) * 100)}% do total vendido` : 'Nenhum pagamento'}
-          deltaTone="positive"
-          icon={<ArrowUpRight className="h-4 w-4" />}
-        />
-        <StatCard
-          label="A receber"
-          value={formatBRL(financialSummary.pending)}
-          delta={`${summary.upcomingReceivables.length} recebível${summary.upcomingReceivables.length !== 1 ? 'is' : ''} em aberto`}
-          deltaTone="neutral"
-          icon={<Clock className="h-4 w-4" />}
+          label="Despesas do mês"
+          value={formatBRL(dashboard.expensesThisMonth)}
+          delta="Custos, comissões e folha"
+          deltaTone="negative"
+          icon={<ArrowDownRight className="h-4 w-4" />}
+          accent="expense"
         />
         <StatCard
           label="Margem esperada"
-          value={formatBRL(financialSummary.expectedMargin)}
-          delta={financialSummary.totalSold > 0 ? `≈ ${Math.round((financialSummary.expectedMargin / financialSummary.totalSold) * 100)}% sobre vendas` : 'Sem dados'}
+          value={formatBRL(summary.expectedMargin)}
+          delta={summary.salesThisMonth.total > 0 ? `${marginRatio}% sobre a receita do mês` : 'Sem dados'}
           deltaTone="positive"
-          icon={<ArrowDownRight className="h-4 w-4" />}
+          icon={<PieChartIcon className="h-4 w-4" />}
+          accent="success"
+        />
+        <StatCard
+          label="A receber"
+          value={formatBRL(dashboard.totalReceivable)}
+          delta={`${formatBRL(dashboard.overdueReceivable)} em atraso`}
+          deltaTone={dashboard.overdueReceivable > 0 ? 'negative' : 'neutral'}
+          icon={<Clock className="h-4 w-4" />}
+          accent="pending"
+        />
+        <StatCard
+          label="A pagar"
+          value={formatBRL(dashboard.payablesTotal)}
+          delta={`${formatBRL(dashboard.overduePayables)} em atraso`}
+          deltaTone={dashboard.overduePayables > 0 ? 'negative' : 'neutral'}
+          icon={<ArrowUpRight className="h-4 w-4" />}
+          accent="expense"
+        />
+        <StatCard
+          label="Caixa disponível"
+          value={formatBRL(dashboard.cashAvailable)}
+          delta={`${formatBRL(dashboard.committedCash)} comprometido (30 dias)`}
+          deltaTone="neutral"
+          icon={<Wallet className="h-4 w-4" />}
+          accent="neutral"
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Pagamentos recentes</CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Cliente</TableHead>
-                  <TableHead>Descrição</TableHead>
-                  <TableHead>Valor</TableHead>
-                  <TableHead>Data</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {recentPayments.map((payment) => (
-                  <TableRow key={payment.id}>
-                    <TableCell className="font-medium text-slate-900">{payment.customer}</TableCell>
-                    <TableCell>{payment.description}</TableCell>
-                    <TableCell>{formatBRL(payment.amount)}</TableCell>
-                    <TableCell>{formatDateBR(payment.date, { assumeDateOnly: true })}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+      {/* Aéreo / Terrestre / Convergência */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <SectionCard
+          title={
+            <span className="flex items-center gap-2">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-white">
+                <Plane className="h-3.5 w-3.5" />
+              </span>
+              Aéreo
+            </span>
+          }
+          description="Vendas e operação aérea"
+          actions={
+            <Link to="/operations/air" className="text-xs font-semibold text-blue-600 hover:underline">
+              Ver detalhes
+            </Link>
+          }
+        >
+          <p className="text-sm text-slate-400">
+            Dados consolidados de aéreo dependem de uma API financeira dedicada.
+          </p>
+        </SectionCard>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Recebíveis pendentes</CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Cliente</TableHead>
-                  <TableHead>Descrição</TableHead>
-                  <TableHead>Valor</TableHead>
-                  <TableHead>Vencimento</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {upcomingReceivables.map((receivable) => (
-                  <TableRow key={receivable.id}>
-                    <TableCell className="font-medium text-slate-900">{receivable.customer}</TableCell>
-                    <TableCell>{receivable.description}</TableCell>
-                    <TableCell>{formatBRL(receivable.amount)}</TableCell>
-                    <TableCell>
-                      <StatusBadge tone="attention">
-                        {formatDateBR(receivable.dueDate, { assumeDateOnly: true })}
-                      </StatusBadge>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+        <SectionCard
+          title={
+            <span className="flex items-center gap-2">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-white">
+                <Landmark className="h-3.5 w-3.5" />
+              </span>
+              Convergência financeira
+            </span>
+          }
+          description="Aéreo + Terrestre alimentam todo o ciclo"
+          className="border-blue-100 bg-blue-50/40"
+        >
+          <div className="flex flex-col items-center gap-3 text-center text-sm text-slate-600">
+            <div className="flex items-center gap-3 text-slate-400">
+              <Plane className="h-5 w-5" />
+              <span>→</span>
+              <Wallet className="h-5 w-5" />
+              <span>→</span>
+              <Banknote className="h-5 w-5" />
+              <span>→</span>
+              <Bus className="h-5 w-5" />
+            </div>
+            <p>
+              Toda a operação (Aéreo e Terrestre) converge para um único fluxo financeiro,
+              garantindo controle, precisão e rentabilidade em tempo real.
+            </p>
+            <p className="text-xs text-slate-400">
+              Indicadores combinados serão exibidos quando houver fonte backend aprovada.
+            </p>
+          </div>
+        </SectionCard>
+
+        <SectionCard
+          title={
+            <span className="flex items-center gap-2">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-teal-600 text-white">
+                <Bus className="h-3.5 w-3.5" />
+              </span>
+              Terrestre
+            </span>
+          }
+          description="Vendas e operação terrestre"
+          actions={
+            <Link to="/operations/land" className="text-xs font-semibold text-blue-600 hover:underline">
+              Ver detalhes
+            </Link>
+          }
+        >
+          <p className="text-sm text-slate-400">
+            Dados consolidados de terrestre dependem de uma API financeira dedicada.
+          </p>
+        </SectionCard>
       </div>
+
+      {/* Compact overview tables + sale story */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <SectionCard
+          title="Contas a receber"
+          description="Próximos recebíveis em aberto"
+          actions={
+            <Link to="/financial/receivables" className="text-xs font-semibold text-blue-600 hover:underline">
+              Ver todas
+            </Link>
+          }
+          contentClassName="p-0"
+        >
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Cliente</TableHead>
+                <TableHead>Valor</TableHead>
+                <TableHead>Vencimento</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {upcomingReceivables.map((r) => (
+                <TableRow key={r.id}>
+                  <TableCell className="font-medium text-slate-900">{r.customer}</TableCell>
+                  <TableCell>{formatBRL(r.amount)}</TableCell>
+                  <TableCell>
+                    <StatusBadge tone="attention">
+                      {formatDateBR(r.dueDate, { assumeDateOnly: true })}
+                    </StatusBadge>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </SectionCard>
+
+        <SectionCard
+          title="Pagamentos recentes"
+          description="Últimas entradas confirmadas"
+          actions={
+            <Link to="/financial/payables" className="text-xs font-semibold text-blue-600 hover:underline">
+              Ver todas
+            </Link>
+          }
+          contentClassName="p-0"
+        >
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Cliente</TableHead>
+                <TableHead>Valor</TableHead>
+                <TableHead>Data</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {recentPayments.map((p) => (
+                <TableRow key={p.id}>
+                  <TableCell className="font-medium text-slate-900">{p.customer}</TableCell>
+                  <TableCell>{formatBRL(p.amount)}</TableCell>
+                  <TableCell>{formatDateBR(p.date, { assumeDateOnly: true })}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </SectionCard>
+
+        <SectionCard
+          title="História financeira da venda"
+          description={story ? `${story.customerName} — ${story.tripName ?? 'Viagem'}` : undefined}
+          actions={
+            story && (
+              <Link
+                to={`/financial/sales/${MARIANA_SALE_ID}/story`}
+                className="text-xs font-semibold text-blue-600 hover:underline"
+              >
+                Ver completa
+              </Link>
+            )
+          }
+        >
+          {story ? (
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <MiniMetric label="Venda bruta" value={formatBRL(story.grossSale)} />
+              <MiniMetric label="Recebido" value={formatBRL(story.received)} />
+              <MiniMetric label="A receber" value={formatBRL(story.remainingReceivable)} />
+              <MiniMetric label="Margem líquida" value={formatBRL(story.margin.netMargin)} />
+            </div>
+          ) : (
+            <p className="text-sm text-slate-400">Sem venda representativa disponível.</p>
+          )}
+        </SectionCard>
+      </div>
+
+      {/* Charts */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <SectionCard title="Fluxo de caixa" description="Entradas e saídas dos últimos 6 meses">
+          <div className="flex h-64 w-full items-center justify-center rounded-lg border border-dashed border-slate-200 bg-slate-50/60 px-6 text-center text-sm text-slate-400">
+            Série mensal de fluxo de caixa indisponível nesta branch visual sem alterar contratos backend.
+          </div>
+        </SectionCard>
+
+        <SectionCard title="Composição de margem" description="Receita do mês vs. margem esperada">
+          <div className="h-64 w-full">
+            {marginPieData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={marginPieData}
+                    dataKey="value"
+                    nameKey="name"
+                    innerRadius={55}
+                    outerRadius={85}
+                    paddingAngle={2}
+                  >
+                    {marginPieData.map((entry, index) => (
+                      <Cell key={entry.name} fill={MARGIN_COLORS[index % MARGIN_COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value: number) => formatBRL(Number(value))} />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex h-full items-center justify-center text-sm text-slate-400">
+                Sem dados suficientes para o mês.
+              </div>
+            )}
+          </div>
+        </SectionCard>
+      </div>
+
+    </div>
+  );
+}
+
+function MiniMetric({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">{label}</div>
+      <div className="text-sm font-bold text-slate-900">{value}</div>
     </div>
   );
 }

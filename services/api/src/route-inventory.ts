@@ -498,6 +498,55 @@ export function registerAllRoutes(): void {
   });
 
   // ============================================================
+  // SUPPLIERS (generic alias of the same suppliers entity/table used above)
+  // ============================================================
+
+  registerRoute({
+    method: 'GET',
+    path: '/suppliers',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'VIEWER',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'GET',
+    path: '/suppliers/:id',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'VIEWER',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'POST',
+    path: '/suppliers',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'MANAGER',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'PATCH',
+    path: '/suppliers/:id',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'MANAGER',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'DELETE',
+    path: '/suppliers/:id',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'MANAGER',
+    publicJustification: undefined,
+  });
+
+  // ============================================================
   // TRANSPORT — Products
   // ============================================================
 
@@ -1078,7 +1127,25 @@ export function registerAllRoutes(): void {
 
   registerRoute({
     method: 'GET',
+    path: '/financial/sales/:id/story',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'MANAGER',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'GET',
     path: '/financial/dashboard',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'MANAGER',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'GET',
+    path: '/financial/dre',
     classification: RouteClassification.STAFF_SCOPED,
     authPipeline: 'protectedHooks',
     role: 'MANAGER',
@@ -1150,6 +1217,15 @@ export function registerAllRoutes(): void {
   registerRoute({
     method: 'POST',
     path: '/pescador/captures',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'AGENT',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'PATCH',
+    path: '/pescador/captures/:id',
     classification: RouteClassification.STAFF_SCOPED,
     authPipeline: 'protectedHooks',
     role: 'AGENT',
@@ -1495,6 +1571,284 @@ export function registerAllRoutes(): void {
     path: '/platform/entitlements',
     classification: RouteClassification.SYSTEM_INTERNAL,
     authPipeline: 'systemInternal',
+    publicJustification: undefined,
+  });
+
+
+  // ============================================================
+  // CUSTOMER 360 (Task 4): addresses, dependents, documents,
+  // attachments, OCR extraction, verification, document audit trail.
+  // All staff-scoped behind protectedHooks; see
+  // routes/customer-documents.ts for the handlers.
+  // ============================================================
+
+  registerRoute({
+    method: 'GET',
+    path: '/customers/:customerId/addresses',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'VIEWER',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'GET',
+    path: '/customers/:customerId/addresses/:addressId',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'VIEWER',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'POST',
+    path: '/customers/:customerId/addresses',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'AGENT',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'PATCH',
+    path: '/customers/:customerId/addresses/:addressId',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'AGENT',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'DELETE',
+    path: '/customers/:customerId/addresses/:addressId',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'AGENT',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'GET',
+    path: '/customers/:customerId/dependents',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'VIEWER',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'GET',
+    path: '/customers/:customerId/dependents/:dependentId',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'VIEWER',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'POST',
+    path: '/customers/:customerId/dependents',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'AGENT',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'PATCH',
+    path: '/customers/:customerId/dependents/:dependentId',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'AGENT',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'DELETE',
+    path: '/customers/:customerId/dependents/:dependentId',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'AGENT',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'GET',
+    path: '/customers/:customerId/documents',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'VIEWER',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'GET',
+    path: '/customers/:customerId/documents/:documentId',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'VIEWER',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'POST',
+    path: '/customers/:customerId/documents',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'AGENT',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'PATCH',
+    path: '/customers/:customerId/documents/:documentId',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'AGENT',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'DELETE',
+    path: '/customers/:customerId/documents/:documentId',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'AGENT',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'GET',
+    path: '/customers/:customerId/travel-requirements',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'VIEWER',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'POST',
+    path: '/customers/:customerId/travel-requirements',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'AGENT',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'PATCH',
+    path: '/customers/:customerId/travel-requirements/:requirementId',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'AGENT',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'DELETE',
+    path: '/customers/:customerId/travel-requirements/:requirementId',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'AGENT',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'GET',
+    path: '/documents/:documentId/attachments',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'VIEWER',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'POST',
+    path: '/documents/:documentId/attachments',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'AGENT',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'DELETE',
+    path: '/documents/:documentId/attachments/:attachmentId',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'AGENT',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'POST',
+    path: '/documents/:documentId/extract',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'AGENT',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'GET',
+    path: '/documents/:documentId/extractions',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'VIEWER',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'GET',
+    path: '/documents/:documentId/extraction/:extractionId',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'VIEWER',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'POST',
+    path: '/documents/:documentId/verify',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'AGENT',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'GET',
+    path: '/documents/:documentId/verification',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'VIEWER',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'POST',
+    path: '/documents/:documentId/verification/:verificationId/manual-review',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'MANAGER',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'GET',
+    path: '/customers/:customerId/audit-log',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'MANAGER',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'GET',
+    path: '/documents/:documentId/audit-log',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'MANAGER',
     publicJustification: undefined,
   });
 

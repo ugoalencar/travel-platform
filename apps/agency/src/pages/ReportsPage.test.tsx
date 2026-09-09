@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-return,@typescript-eslint/no-unnecessary-type-assertion,@typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { ReportsPage } from './ReportsPage';
@@ -129,7 +129,7 @@ describe('ReportsPage', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText(/Rate limit exceeded/i),
+        screen.getByText(/Limite de requisicoes excedido/i),
       ).toBeInTheDocument();
     });
   });
@@ -144,7 +144,7 @@ describe('ReportsPage', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText(/You do not have permission/i),
+        screen.getByText(/Você não tem permissão/i),
       ).toBeInTheDocument();
     });
   });

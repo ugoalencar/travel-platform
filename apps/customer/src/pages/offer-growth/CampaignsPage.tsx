@@ -86,7 +86,7 @@ export function CampaignsPage() {
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Offer & Growth</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Ofertas e crescimento</p>
           <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Campanhas</h1>
           <p className="mt-1 text-sm text-slate-500">
             Uma campanha coordena um período e um conjunto de ofertas — as publicações em cada canal

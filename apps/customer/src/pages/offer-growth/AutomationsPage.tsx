@@ -159,7 +159,7 @@ export function AutomationsPage() {
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Offer & Growth</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Ofertas e crescimento</p>
           <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Automações</h1>
           <p className="mt-1 text-sm text-slate-500">
             Configure uma resposta automática a comentários ou mensagens diretas — ex.: "Comente
@@ -363,7 +363,7 @@ export function AutomationsPage() {
           </label>
 
           <fieldset className="flex flex-col gap-2 rounded-md border border-slate-200 p-3">
-            <legend className="px-1 text-sm font-medium text-slate-700">Cooldown</legend>
+            <legend className="px-1 text-sm font-medium text-slate-700">Intervalo de espera</legend>
             <label className="flex items-center gap-2 text-sm">
               <input
                 type="radio"
@@ -382,7 +382,7 @@ export function AutomationsPage() {
               />
               Esperar
               <input
-                aria-label="Minutos de cooldown"
+                aria-label="Minutos de intervalo"
                 type="number"
                 min="1"
                 value={cooldownMinutes}

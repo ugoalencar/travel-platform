@@ -94,8 +94,8 @@ function assertSafeLocalDatabase() {
     throw new Error('Manual API database bootstrap requires localhost only.');
   }
 
-  if (databasePort !== 55432) {
-    throw new Error('Manual API database bootstrap requires local port 55432.');
+  if (!Number.isInteger(databasePort) || databasePort < 1024 || databasePort > 65535) {
+    throw new Error('Manual API database bootstrap requires a safe local database test port.');
   }
 
   if (!databaseName.includes('test')) {
@@ -106,7 +106,7 @@ function assertSafeLocalDatabase() {
     const url = new URL(process.env.DATABASE_URL);
     const safeHost = ['127.0.0.1', 'localhost'].includes(url.hostname);
     const safeDatabase = url.pathname.replace('/', '').includes('test');
-    const safePort = url.port === '55432' || url.port === '';
+    const safePort = url.port === String(databasePort) || url.port === '';
 
     if (!safeHost || !safeDatabase || !safePort) {
       throw new Error('Refusing to bootstrap manual API database with unsafe DATABASE_URL.');

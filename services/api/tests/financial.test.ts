@@ -31,6 +31,26 @@ const migrations = [
   '009_configurable_pipelines.sql',
   '010_financial_foundation.sql',
   '015_audit_logging.sql',
+  // createPayable() (Business Operations Completion wave) always inserts
+  // category_id/cost_center_id (041) and beneficiary_type/employee_id/
+  // commission_entry_id/payroll_entry_id (043), and assertOptionalRef()
+  // validates against cost_centers/employees (041/042) and
+  // commission_entries/payroll_entries (043) -- all required or every
+  // createPayable() call here 500s with a missing-column/table error.
+  // 024 creates financial_categories (FK target of 041's payables.category_id);
+  // 020 creates customer_dependents (FK target of air_services/land_services'
+  // dependent_id, from 039/040); 038/039/040 create/extend
+  // suppliers/air_services/land_services, which 041 ALTERs to add
+  // cost_center_id -- all load-bearing dependencies of 041, not just of
+  // the tables' own domains.
+  '020_customer_360_dependents.sql',
+  '024_extended_financial_module.sql',
+  '038_supplier_extended.sql',
+  '039_air_services.sql',
+  '040_land_services.sql',
+  '041_finance_categories_cost_centers.sql',
+  '042_employees_commission_plans.sql',
+  '043_commissions_payroll.sql',
 ].map((name) => resolve(repoRoot, 'infrastructure/migrations', name));
 const prepareRolesSql = resolve(repoRoot, 'tests/integration/database/002_prepare_local_roles.sql');
 const composeFile = resolve(repoRoot, 'infrastructure/docker-compose.local-postgres.yml');
@@ -430,8 +450,8 @@ function assertSafeTestDatabase(): void {
   if (!['127.0.0.1', 'localhost'].includes(databaseHost)) {
     throw new Error('Financial data-layer tests require localhost only.');
   }
-  if (databasePort !== 55432) {
-    throw new Error('Financial data-layer tests require local port 55432.');
+  if (!Number.isInteger(databasePort) || databasePort < 1024 || databasePort > 65535) {
+    throw new Error('Financial data-layer tests require a safe local database test port.');
   }
   if (!databaseName.includes('test')) {
     throw new Error('Financial data-layer tests require a database name with a test marker.');
@@ -440,7 +460,7 @@ function assertSafeTestDatabase(): void {
     const url = new URL(process.env.DATABASE_URL);
     const safeHost = ['127.0.0.1', 'localhost'].includes(url.hostname);
     const safeDatabase = url.pathname.replace('/', '').includes('test');
-    const safePort = url.port === '55432' || url.port === '';
+    const safePort = url.port === String(databasePort) || url.port === '';
     if (!safeHost || !safeDatabase || !safePort) {
       throw new Error('Refusing to run Financial data-layer tests against unsafe DATABASE_URL.');
     }

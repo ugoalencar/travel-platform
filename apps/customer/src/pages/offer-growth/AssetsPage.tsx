@@ -28,7 +28,7 @@ export function AssetsPage() {
           setState({ status: 'entitlement-disabled' });
           return;
         }
-        setState({ status: 'error', message: 'Não foi possível carregar a biblioteca de assets.' });
+        setState({ status: 'error', message: 'Não foi possível carregar a biblioteca de arquivos.' });
       });
 
     return () => {
@@ -39,15 +39,15 @@ export function AssetsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Offer & Growth</p>
-        <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Biblioteca de assets</h1>
+        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Ofertas e crescimento</p>
+        <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Biblioteca de arquivos</h1>
         <p className="mt-1 text-sm text-slate-500">
           Imagens, vídeos e materiais capturados pelo Pescador, enviados manualmente ou vindos da
           biblioteca da agência.
         </p>
       </div>
 
-      {state.status === 'loading' && <p className="text-sm text-slate-500">Carregando assets...</p>}
+      {state.status === 'loading' && <p className="text-sm text-slate-500">Carregando arquivos...</p>}
       {state.status === 'entitlement-disabled' && <EntitlementNotice feature="CREATIVE_STUDIO" />}
       {state.status === 'error' && (
         <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
@@ -59,7 +59,7 @@ export function AssetsPage() {
         <>
           {state.assets.length === 0 && (
             <div className="rounded-md border border-slate-200 bg-white p-6 text-sm text-slate-500">
-              Nenhum asset disponível ainda. Assets aparecem aqui quando o Pescador captura uma
+              Nenhum arquivo disponível ainda. Os arquivos aparecem aqui quando o Pescador captura uma
               imagem aprovada, ou quando uma agência os cadastra. Não há upload manual disponível
               nesta tela (a API ainda não expõe um endpoint de upload de arquivo).
             </div>

@@ -1,0 +1,540 @@
+{
+  "summary": {
+    "p0Issues": 0,
+    "p1Issues": 6,
+    "p2Issues": 0,
+    "warnings": 14,
+    "passes": 76,
+    "total": 96
+  },
+  "results": [
+    {
+      "category": "Responsive Design",
+      "test": "Agency_Dashboard - Desktop 1920px",
+      "status": "PASS"
+    },
+    {
+      "category": "Responsive Design",
+      "test": "Agency_Dashboard - Desktop 1366px",
+      "status": "PASS"
+    },
+    {
+      "category": "Responsive Design",
+      "test": "Agency_Dashboard - Desktop 1024px",
+      "status": "PASS"
+    },
+    {
+      "category": "Responsive Design",
+      "test": "Agency_Dashboard - Tablet 834px",
+      "status": "PASS"
+    },
+    {
+      "category": "Responsive Design",
+      "test": "Agency_Dashboard - Tablet 768px",
+      "status": "PASS"
+    },
+    {
+      "category": "Responsive Design",
+      "test": "Agency_Dashboard - Mobile 720px",
+      "status": "PASS"
+    },
+    {
+      "category": "Responsive Design",
+      "test": "Agency_Dashboard - Mobile 480px",
+      "status": "PASS"
+    },
+    {
+      "category": "Responsive Design",
+      "test": "Agency_Dashboard - Mobile 375px",
+      "status": "PASS"
+    },
+    {
+      "category": "Accessibility",
+      "test": "Agency_Dashboard - Button ARIA Labels",
+      "status": "PASS",
+      "details": "1/1 buttons properly labeled"
+    },
+    {
+      "category": "Accessibility",
+      "test": "Agency_Dashboard - Form Labels",
+      "status": "PASS",
+      "details": "Found 0 labels for 0 inputs"
+    },
+    {
+      "category": "Accessibility",
+      "test": "Agency_Dashboard - Focusable Elements",
+      "status": "PASS",
+      "details": "Found 17 focusable elements"
+    },
+    {
+      "category": "Visual Consistency",
+      "test": "Agency_Dashboard - Button Variants",
+      "status": "PASS",
+      "details": "Primary: 0, Secondary: 0, Danger: 0"
+    },
+    {
+      "category": "Visual Consistency",
+      "test": "Agency_Dashboard - Loading States",
+      "status": "WARNING",
+      "details": "No visible loading state indicators found"
+    },
+    {
+      "category": "Visual Consistency",
+      "test": "Agency_Dashboard - Error States",
+      "status": "PASS",
+      "details": "Found 1 error indicators"
+    },
+    {
+      "category": "Visual Consistency",
+      "test": "Agency_Dashboard - Empty States",
+      "status": "WARNING",
+      "details": "Found 0 empty state elements"
+    },
+    {
+      "category": "Navigation & UX",
+      "test": "Agency_Dashboard - Page Load",
+      "status": "PASS"
+    },
+    {
+      "category": "Responsive Design",
+      "test": "Agency_Customers - Desktop 1920px",
+      "status": "PASS"
+    },
+    {
+      "category": "Responsive Design",
+      "test": "Agency_Customers - Desktop 1366px",
+      "status": "PASS"
+    },
+    {
+      "category": "Responsive Design",
+      "test": "Agency_Customers - Desktop 1024px",
+      "status": "PASS"
+    },
+    {
+      "category": "Responsive Design",
+      "test": "Agency_Customers - Tablet 834px",
+      "status": "PASS"
+    },
+    {
+      "category": "Responsive Design",
+      "test": "Agency_Customers - Tablet 768px",
+      "status": "PASS"
+    },
+    {
+      "category": "Responsive Design",
+      "test": "Agency_Customers - Mobile 720px",
+      "status": "PASS"
+    },
+    {
+      "category": "Responsive Design",
+      "test": "Agency_Customers - Mobile 480px",
+      "status": "PASS"
+    },
+    {
+      "category": "Responsive Design",
+      "test": "Agency_Customers - Mobile 375px",
+      "status": "PASS"
+    },
+    {
+      "category": "Accessibility",
+      "test": "Agency_Customers - Button ARIA Labels",
+      "status": "PASS",
+      "details": "1/2 buttons properly labeled"
+    },
+    {
+      "category": "Accessibility",
+      "test": "Agency_Customers - Form Labels",
+      "status": "PASS",
+      "details": "Found 0 labels for 0 inputs"
+    },
+    {
+      "category": "Accessibility",
+      "test": "Agency_Customers - Focusable Elements",
+      "status": "PASS",
+      "details": "Found 18 focusable elements"
+    },
+    {
+      "category": "Visual Consistency",
+      "test": "Agency_Customers - Button Variants",
+      "status": "PASS",
+      "details": "Primary: 0, Secondary: 0, Danger: 0"
+    },
+    {
+      "category": "Visual Consistency",
+      "test": "Agency_Customers - Loading States",
+      "status": "WARNING",
+      "details": "No visible loading state indicators found"
+    },
+    {
+      "category": "Visual Consistency",
+      "test": "Agency_Customers - Error States",
+      "status": "PASS",
+      "details": "Found 1 error indicators"
+    },
+    {
+      "category": "Visual Consistency",
+      "test": "Agency_Customers - Empty States",
+      "status": "WARNING",
+      "details": "Found 0 empty state elements"
+    },
+    {
+      "category": "Navigation & UX",
+      "test": "Agency_Customers - Page Load",
+      "status": "PASS"
+    },
+    {
+      "category": "Responsive Design",
+      "test": "Agency_Offers - Desktop 1920px",
+      "status": "PASS"
+    },
+    {
+      "category": "Responsive Design",
+      "test": "Agency_Offers - Desktop 1366px",
+      "status": "PASS"
+    },
+    {
+      "category": "Responsive Design",
+      "test": "Agency_Offers - Desktop 1024px",
+      "status": "PASS"
+    },
+    {
+      "category": "Responsive Design",
+      "test": "Agency_Offers - Tablet 834px",
+      "status": "PASS"
+    },
+    {
+      "category": "Responsive Design",
+      "test": "Agency_Offers - Tablet 768px",
+      "status": "PASS"
+    },
+    {
+      "category": "Responsive Design",
+      "test": "Agency_Offers - Mobile 720px",
+      "status": "PASS"
+    },
+    {
+      "category": "Responsive Design",
+      "test": "Agency_Offers - Mobile 480px",
+      "status": "PASS"
+    },
+    {
+      "category": "Responsive Design",
+      "test": "Agency_Offers - Mobile 375px",
+      "status": "PASS"
+    },
+    {
+      "category": "Accessibility",
+      "test": "Agency_Offers - Button ARIA Labels",
+      "status": "PASS",
+      "details": "1/2 buttons properly labeled"
+    },
+    {
+      "category": "Accessibility",
+      "test": "Agency_Offers - Form Labels",
+      "status": "PASS",
+      "details": "Found 0 labels for 0 inputs"
+    },
+    {
+      "category": "Accessibility",
+      "test": "Agency_Offers - Focusable Elements",
+      "status": "PASS",
+      "details": "Found 18 focusable elements"
+    },
+    {
+      "category": "Visual Consistency",
+      "test": "Agency_Offers - Button Variants",
+      "status": "PASS",
+      "details": "Primary: 0, Secondary: 0, Danger: 0"
+    },
+    {
+      "category": "Visual Consistency",
+      "test": "Agency_Offers - Loading States",
+      "status": "WARNING",
+      "details": "No visible loading state indicators found"
+    },
+    {
+      "category": "Visual Consistency",
+      "test": "Agency_Offers - Error States",
+      "status": "PASS",
+      "details": "Found 1 error indicators"
+    },
+    {
+      "category": "Visual Consistency",
+      "test": "Agency_Offers - Empty States",
+      "status": "WARNING",
+      "details": "Found 0 empty state elements"
+    },
+    {
+      "category": "Navigation & UX",
+      "test": "Agency_Offers - Page Load",
+      "status": "PASS"
+    },
+    {
+      "category": "Responsive Design",
+      "test": "Customer_Home - Desktop 1920px",
+      "status": "PASS"
+    },
+    {
+      "category": "Responsive Design",
+      "test": "Customer_Home - Desktop 1366px",
+      "status": "PASS"
+    },
+    {
+      "category": "Responsive Design",
+      "test": "Customer_Home - Desktop 1024px",
+      "status": "PASS"
+    },
+    {
+      "category": "Responsive Design",
+      "test": "Customer_Home - Tablet 834px",
+      "status": "PASS"
+    },
+    {
+      "category": "Responsive Design",
+      "test": "Customer_Home - Tablet 768px",
+      "status": "PASS"
+    },
+    {
+      "category": "Responsive Design",
+      "test": "Customer_Home - Mobile 720px",
+      "status": "PASS"
+    },
+    {
+      "category": "Responsive Design",
+      "test": "Customer_Home - Mobile 480px",
+      "status": "PASS"
+    },
+    {
+      "category": "Responsive Design",
+      "test": "Customer_Home - Mobile 375px",
+      "status": "PASS"
+    },
+    {
+      "category": "Accessibility",
+      "test": "Customer_Home - Button ARIA Labels",
+      "status": "WARNING",
+      "details": "Only 0/1 buttons have aria-labels",
+      "severity": "P1"
+    },
+    {
+      "category": "Accessibility",
+      "test": "Customer_Home - Form Labels",
+      "status": "WARNING",
+      "details": "Found 0 labels for 1 inputs",
+      "severity": "P1"
+    },
+    {
+      "category": "Accessibility",
+      "test": "Customer_Home - Focusable Elements",
+      "status": "PASS",
+      "details": "Found 28 focusable elements"
+    },
+    {
+      "category": "Visual Consistency",
+      "test": "Customer_Home - Button Variants",
+      "status": "PASS",
+      "details": "Primary: 0, Secondary: 0, Danger: 0"
+    },
+    {
+      "category": "Visual Consistency",
+      "test": "Customer_Home - Loading States",
+      "status": "WARNING",
+      "details": "No visible loading state indicators found"
+    },
+    {
+      "category": "Visual Consistency",
+      "test": "Customer_Home - Error States",
+      "status": "WARNING",
+      "details": "Found 0 error indicators"
+    },
+    {
+      "category": "Visual Consistency",
+      "test": "Customer_Home - Empty States",
+      "status": "WARNING",
+      "details": "Found 0 empty state elements"
+    },
+    {
+      "category": "Navigation & UX",
+      "test": "Customer_Home - Page Load",
+      "status": "PASS"
+    },
+    {
+      "category": "Responsive Design",
+      "test": "Customer_Trips - Desktop 1920px",
+      "status": "PASS"
+    },
+    {
+      "category": "Responsive Design",
+      "test": "Customer_Trips - Desktop 1366px",
+      "status": "PASS"
+    },
+    {
+      "category": "Responsive Design",
+      "test": "Customer_Trips - Desktop 1024px",
+      "status": "PASS"
+    },
+    {
+      "category": "Responsive Design",
+      "test": "Customer_Trips - Tablet 834px",
+      "status": "PASS"
+    },
+    {
+      "category": "Responsive Design",
+      "test": "Customer_Trips - Tablet 768px",
+      "status": "PASS"
+    },
+    {
+      "category": "Responsive Design",
+      "test": "Customer_Trips - Mobile 720px",
+      "status": "PASS"
+    },
+    {
+      "category": "Responsive Design",
+      "test": "Customer_Trips - Mobile 480px",
+      "status": "PASS"
+    },
+    {
+      "category": "Responsive Design",
+      "test": "Customer_Trips - Mobile 375px",
+      "status": "PASS"
+    },
+    {
+      "category": "Accessibility",
+      "test": "Customer_Trips - Button ARIA Labels",
+      "status": "WARNING",
+      "details": "Only 0/1 buttons have aria-labels",
+      "severity": "P1"
+    },
+    {
+      "category": "Accessibility",
+      "test": "Customer_Trips - Form Labels",
+      "status": "WARNING",
+      "details": "Found 0 labels for 1 inputs",
+      "severity": "P1"
+    },
+    {
+      "category": "Accessibility",
+      "test": "Customer_Trips - Focusable Elements",
+      "status": "PASS",
+      "details": "Found 28 focusable elements"
+    },
+    {
+      "category": "Visual Consistency",
+      "test": "Customer_Trips - Button Variants",
+      "status": "PASS",
+      "details": "Primary: 0, Secondary: 0, Danger: 0"
+    },
+    {
+      "category": "Visual Consistency",
+      "test": "Customer_Trips - Loading States",
+      "status": "WARNING",
+      "details": "No visible loading state indicators found"
+    },
+    {
+      "category": "Visual Consistency",
+      "test": "Customer_Trips - Error States",
+      "status": "WARNING",
+      "details": "Found 0 error indicators"
+    },
+    {
+      "category": "Visual Consistency",
+      "test": "Customer_Trips - Empty States",
+      "status": "WARNING",
+      "details": "Found 0 empty state elements"
+    },
+    {
+      "category": "Navigation & UX",
+      "test": "Customer_Trips - Page Load",
+      "status": "PASS"
+    },
+    {
+      "category": "Responsive Design",
+      "test": "Customer_Bookings - Desktop 1920px",
+      "status": "PASS"
+    },
+    {
+      "category": "Responsive Design",
+      "test": "Customer_Bookings - Desktop 1366px",
+      "status": "PASS"
+    },
+    {
+      "category": "Responsive Design",
+      "test": "Customer_Bookings - Desktop 1024px",
+      "status": "PASS"
+    },
+    {
+      "category": "Responsive Design",
+      "test": "Customer_Bookings - Tablet 834px",
+      "status": "PASS"
+    },
+    {
+      "category": "Responsive Design",
+      "test": "Customer_Bookings - Tablet 768px",
+      "status": "PASS"
+    },
+    {
+      "category": "Responsive Design",
+      "test": "Customer_Bookings - Mobile 720px",
+      "status": "PASS"
+    },
+    {
+      "category": "Responsive Design",
+      "test": "Customer_Bookings - Mobile 480px",
+      "status": "PASS"
+    },
+    {
+      "category": "Responsive Design",
+      "test": "Customer_Bookings - Mobile 375px",
+      "status": "PASS"
+    },
+    {
+      "category": "Accessibility",
+      "test": "Customer_Bookings - Button ARIA Labels",
+      "status": "WARNING",
+      "details": "Only 0/1 buttons have aria-labels",
+      "severity": "P1"
+    },
+    {
+      "category": "Accessibility",
+      "test": "Customer_Bookings - Form Labels",
+      "status": "WARNING",
+      "details": "Found 0 labels for 1 inputs",
+      "severity": "P1"
+    },
+    {
+      "category": "Accessibility",
+      "test": "Customer_Bookings - Focusable Elements",
+      "status": "PASS",
+      "details": "Found 28 focusable elements"
+    },
+    {
+      "category": "Visual Consistency",
+      "test": "Customer_Bookings - Button Variants",
+      "status": "PASS",
+      "details": "Primary: 0, Secondary: 0, Danger: 0"
+    },
+    {
+      "category": "Visual Consistency",
+      "test": "Customer_Bookings - Loading States",
+      "status": "WARNING",
+      "details": "No visible loading state indicators found"
+    },
+    {
+      "category": "Visual Consistency",
+      "test": "Customer_Bookings - Error States",
+      "status": "PASS",
+      "details": "Found 1 error indicators"
+    },
+    {
+      "category": "Visual Consistency",
+      "test": "Customer_Bookings - Empty States",
+      "status": "WARNING",
+      "details": "Found 0 empty state elements"
+    },
+    {
+      "category": "Navigation & UX",
+      "test": "Customer_Bookings - Page Load",
+      "status": "PASS"
+    }
+  ]
+}

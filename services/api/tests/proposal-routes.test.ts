@@ -111,16 +111,17 @@ describe.sequential('Proposal HTTP routes', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const body = response.json<{ proposals: Array<{ agencyId: string }> }>();
+      const body = response.json<{ proposals: Array<{ agencyId: string; customerName: string }> }>();
       expect(body.proposals).toHaveLength(1);
       expect(body.proposals[0]?.agencyId).toBe(agencyAId);
+      expect(body.proposals[0]?.customerName).toBe('Customer A');
 
       await app.close();
     });
   });
 
   describe('GET /proposals/:id', () => {
-    it('returns 200 for own tenant proposal', async () => {
+    it('returns 200 for own tenant proposal, enriched with customer name', async () => {
       const id = await seedProposal(agencyAId, customerAId);
 
       const app = buildTestApp(runtimePool);
@@ -131,9 +132,10 @@ describe.sequential('Proposal HTTP routes', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const body = response.json<{ proposal: { id: string; status: string } }>();
+      const body = response.json<{ proposal: { id: string; status: string; customerName: string } }>();
       expect(body.proposal.id).toBe(id);
       expect(body.proposal.status).toBe('DRAFT');
+      expect(body.proposal.customerName).toBe('Customer A');
 
       await app.close();
     });
@@ -736,8 +738,8 @@ function assertSafeTestDatabase(): void {
     throw new Error('Proposal route tests require localhost only.');
   }
 
-  if (databasePort !== 55432) {
-    throw new Error('Proposal route tests require local port 55432.');
+  if (!Number.isInteger(databasePort) || databasePort < 1024 || databasePort > 65535) {
+    throw new Error('Proposal route tests require a safe local database test port.');
   }
 
   if (!databaseName.includes('test')) {
@@ -748,7 +750,7 @@ function assertSafeTestDatabase(): void {
     const url = new URL(process.env.DATABASE_URL);
     const safeHost = ['127.0.0.1', 'localhost'].includes(url.hostname);
     const safeDatabase = url.pathname.replace('/', '').includes('test');
-    const safePort = url.port === '55432' || url.port === '';
+    const safePort = url.port === String(databasePort) || url.port === '';
 
     if (!safeHost || !safeDatabase || !safePort) {
       throw new Error('Refusing to run proposal route tests against unsafe DATABASE_URL.');

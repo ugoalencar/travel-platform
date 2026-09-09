@@ -219,8 +219,8 @@ function assertSafeTestDatabase(): void {
   if (!['127.0.0.1', 'localhost'].includes(databaseHost)) {
     throw new Error('Pescador HTTP tests require localhost only.');
   }
-  if (databasePort !== 55432) {
-    throw new Error('Pescador HTTP tests require local port 55432.');
+  if (!Number.isInteger(databasePort) || databasePort < 1024 || databasePort > 65535) {
+    throw new Error('Pescador HTTP tests require a safe local database test port.');
   }
   if (!databaseName.includes('test')) {
     throw new Error('Pescador HTTP tests require a database name with a test marker.');

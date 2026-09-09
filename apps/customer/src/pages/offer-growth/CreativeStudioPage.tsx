@@ -8,7 +8,13 @@ import {
   getTemplate,
   saveTemplate,
 } from '../../lib/localTemplateStore';
-import { CREATIVE_BINDING_SOURCE_LABELS, CREATIVE_BLOCK_KIND_LABELS, labelFor } from '../../lib/offerGrowthLabels';
+import {
+  ASSET_SOURCE_LABELS,
+  ASSET_TYPE_LABELS,
+  CREATIVE_BINDING_SOURCE_LABELS,
+  CREATIVE_BLOCK_KIND_LABELS,
+  labelFor,
+} from '../../lib/offerGrowthLabels';
 import type { Offer } from '../../types/offer';
 import type { Asset, CreativePage, CreativeTemplate } from '../../types/offerGrowth';
 import { Button } from '../../components/ui/button';
@@ -65,7 +71,7 @@ export function CreativeStudioPage() {
           setState({ status: 'entitlement-disabled' });
           return;
         }
-        setState({ status: 'error', message: 'Não foi possível carregar a Creative Studio.' });
+        setState({ status: 'error', message: 'Não foi possível carregar o Estúdio criativo.' });
       });
 
     return () => {
@@ -149,18 +155,18 @@ export function CreativeStudioPage() {
   }
 
   if (state.status === 'loading' || !template) {
-    return <p className="text-sm text-slate-500">Carregando Creative Studio...</p>;
+    return <p className="text-sm text-slate-500">Carregando estúdio criativo...</p>;
   }
 
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Offer & Growth</p>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Creative Studio</h1>
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Ofertas e crescimento</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Estúdio criativo</h1>
         </div>
         <Button variant="outline" onClick={refreshPreview}>
-          Atualizar preview
+              Atualizar prévia
         </Button>
       </div>
 
@@ -191,7 +197,7 @@ export function CreativeStudioPage() {
           </div>
 
           <div className="mb-4 grid gap-3 sm:grid-cols-3">
-            <Metric label="Template" value={template.name} />
+            <Metric label="Modelo" value={template.name} />
             <Metric label="Slides" value={String(template.pages.length)} />
             <Metric label="Vínculos" value={String(template.bindings.length)} />
           </div>
@@ -265,21 +271,23 @@ export function CreativeStudioPage() {
         </div>
 
         <aside className="flex flex-col gap-4">
-          <Panel title="Assets vinculados">
+          <Panel title="Arquivos vinculados">
             <div className="flex flex-col gap-2">
               {state.assets.length === 0 && (
-                <p className="text-sm text-slate-500">Nenhum asset disponível.</p>
+                <p className="text-sm text-slate-500">Nenhum arquivo disponível.</p>
               )}
               {state.assets.slice(0, 6).map((asset) => (
                 <div key={asset.id} className="rounded-md border border-slate-200 p-3 text-sm">
                   <p className="font-medium text-slate-900">{asset.id}</p>
-                  <p className="text-slate-500">{asset.type} · {asset.source}</p>
+                  <p className="text-slate-500">
+                    {labelFor(ASSET_TYPE_LABELS, asset.type)} · {labelFor(ASSET_SOURCE_LABELS, asset.source)}
+                  </p>
                 </div>
               ))}
             </div>
           </Panel>
 
-          <Panel title="Preview">
+          <Panel title="Prévia">
             <div className="aspect-[4/5] rounded-md border border-slate-300 bg-slate-950 p-4 text-white">
               <p className="text-xs font-semibold text-slate-300">Canal de teste/demo interno</p>
               <h2 className="mt-4 text-2xl font-semibold">{selectedOffer?.name ?? 'Pacote Cancun'}</h2>
@@ -289,7 +297,7 @@ export function CreativeStudioPage() {
               </p>
             </div>
             {previewUpdatedAt && (
-              <p className="mt-2 text-xs text-slate-500">Preview atualizado {previewUpdatedAt}</p>
+              <p className="mt-2 text-xs text-slate-500">Prévia atualizada {previewUpdatedAt}</p>
             )}
           </Panel>
         </aside>

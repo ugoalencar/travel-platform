@@ -19,6 +19,15 @@ const dateFormatter = new Intl.DateTimeFormat('pt-BR', {
   timeZone: 'UTC',
 });
 
+const COST_TYPE_LABELS: Record<string, string> = {
+  TRANSPORT: 'Transporte',
+  SUPPLIER: 'Fornecedor',
+  COMMISSION: 'Comissão',
+  PLATFORM_FEE: 'Taxa da plataforma',
+  TAX: 'Imposto',
+  OTHER: 'Outro',
+};
+
 export function OperationalCostsPage() {
   const [state, setState] = useState<LoadState>({ status: 'loading' });
 
@@ -36,7 +45,7 @@ export function OperationalCostsPage() {
         const message =
           error instanceof ApiError
             ? error.message
-            : 'Nao foi possivel carregar os custos operacionais.';
+            : 'Não foi possível carregar os custos operacionais.';
         setState({ status: 'error', message });
       });
 
@@ -52,7 +61,7 @@ export function OperationalCostsPage() {
           Custos operacionais
         </h1>
         <p className="text-sm text-slate-500">
-          Despesas vinculadas a operacoes de transporte e vendas.
+          Despesas vinculadas a operações de transporte e vendas.
         </p>
       </div>
 
@@ -81,7 +90,7 @@ export function OperationalCostsPage() {
               <table className="w-full min-w-[800px] text-left text-sm">
                 <thead className="border-b border-slate-200 bg-slate-50 text-xs font-medium uppercase tracking-wide text-slate-500">
                   <tr>
-                    <th className="px-4 py-3">Descricao</th>
+                    <th className="px-4 py-3">Descrição</th>
                     <th className="px-4 py-3">Tipo</th>
                     <th className="px-4 py-3">Fornecedor</th>
                     <th className="px-4 py-3">Data</th>
@@ -96,7 +105,7 @@ export function OperationalCostsPage() {
                         {cost.description}
                       </td>
                       <td className="px-4 py-3 text-slate-600">
-                        {cost.costType}
+                        {COST_TYPE_LABELS[cost.costType] ?? cost.costType}
                       </td>
                       <td className="px-4 py-3 text-slate-600">
                         {cost.supplierId ?? '—'}

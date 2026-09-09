@@ -63,6 +63,22 @@ export interface Customer {
   phone?: string;
   cpf?: string;
   passport?: string;
+  rg?: string;
+  nationalIdType?: string;
+  birthDate?: Date;
+  nationality?: string;
+  whatsapp?: string;
+  socialName?: string;
+  maritalStatus?: string;
+  profession?: string;
+  idIssuingAuthority?: string;
+  idIssuedDate?: Date;
+  emergencyContactName?: string;
+  emergencyContactRelationship?: string;
+  emergencyContactPhone?: string;
+  emergencyContactWhatsapp?: string;
+  emergencyContactEmail?: string;
+  emergencyContactNotes?: string;
   address?: Record<string, unknown>;
   notes?: string;
   status: Status;
@@ -202,6 +218,15 @@ export enum UserRole {
   VIEWER = 'VIEWER',
 }
 
+export enum PlatformUserRole {
+  PLATFORM_OWNER = 'PLATFORM_OWNER',
+  PLATFORM_ADMIN = 'PLATFORM_ADMIN',
+  SUPPORT_ADMIN = 'SUPPORT_ADMIN',
+  BILLING_ADMIN = 'BILLING_ADMIN',
+  MARKETING_ADMIN = 'MARKETING_ADMIN',
+  READ_ONLY_AUDITOR = 'READ_ONLY_AUDITOR',
+}
+
 export enum CustomerAccountStatus {
   ACTIVE = 'ACTIVE',
   INACTIVE = 'INACTIVE',
@@ -265,10 +290,20 @@ export interface Receivable {
   customerId: string;
   description: string;
   amount: number;
+  /** Sum of payment_allocations applied to this receivable so far. */
+  paidAmount: number;
+  /** amount - paidAmount; the outstanding balance still owed. */
+  remainingAmount: number;
   dueAt: Date;
   status: FinancialObligationStatus;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export enum PayableBeneficiaryType {
+  SUPPLIER = 'SUPPLIER',
+  EMPLOYEE = 'EMPLOYEE',
+  OTHER = 'OTHER',
 }
 
 export interface Payable {
@@ -279,10 +314,16 @@ export interface Payable {
   commissionId?: string;
   transportOperationId?: string;
   operationalCostId?: string;
+  categoryId?: string;
+  costCenterId?: string;
   description: string;
   amount: number;
   dueAt: Date;
   status: FinancialObligationStatus;
+  beneficiaryType?: PayableBeneficiaryType;
+  employeeId?: string;
+  commissionEntryId?: string;
+  payrollEntryId?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -326,6 +367,276 @@ export interface OperationalCost {
   updatedAt: Date;
 }
 
+export enum FinancialCategoryType {
+  REVENUE = 'REVENUE',
+  EXPENSE = 'EXPENSE',
+}
+
+export interface FinancialCategory {
+  id: string;
+  agencyId: string;
+  name: string;
+  type: FinancialCategoryType;
+  description: string | undefined;
+  parentCategoryId: string | undefined;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface CostCenter {
+  id: string;
+  agencyId: string;
+  name: string;
+  code: string | undefined;
+  description: string | undefined;
+  active: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export enum CommissionCalculationType {
+  PERCENT_SALE = 'PERCENT_SALE',
+  PERCENT_MARGIN = 'PERCENT_MARGIN',
+  FIXED = 'FIXED',
+  PRODUCT = 'PRODUCT',
+  DESTINATION = 'DESTINATION',
+  TIERED_TARGET = 'TIERED_TARGET',
+}
+
+export interface CommissionPlan {
+  id: string;
+  agencyId: string;
+  name: string;
+  calculationType: CommissionCalculationType;
+  percentage: number | undefined;
+  fixedAmount: number | undefined;
+  rules: Record<string, unknown> | undefined;
+  active: boolean;
+  validFrom: Date | undefined;
+  validUntil: Date | undefined;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export enum EmploymentType {
+  EMPLOYEE = 'EMPLOYEE',
+  CONTRACTOR = 'CONTRACTOR',
+  PARTNER = 'PARTNER',
+  FREELANCER = 'FREELANCER',
+  OTHER = 'OTHER',
+}
+
+export enum EmployeeStatus {
+  ACTIVE = 'ACTIVE',
+  INACTIVE = 'INACTIVE',
+  ON_LEAVE = 'ON_LEAVE',
+  TERMINATED = 'TERMINATED',
+}
+
+export interface Employee {
+  id: string;
+  agencyId: string;
+  name: string;
+  cpf: string | undefined;
+  rg: string | undefined;
+  birthDate: Date | undefined;
+  addressLine: string | undefined;
+  addressCity: string | undefined;
+  addressState: string | undefined;
+  addressZipCode: string | undefined;
+  phone: string | undefined;
+  email: string | undefined;
+  hireDate: Date | undefined;
+  terminationDate: Date | undefined;
+  employmentType: EmploymentType;
+  roleTitle: string | undefined;
+  department: string | undefined;
+  costCenterId: string | undefined;
+  managerId: string | undefined;
+  status: EmployeeStatus;
+  baseSalary: number | undefined;
+  bankName: string | undefined;
+  bankBranch: string | undefined;
+  bankAccount: string | undefined;
+  bankPixKey: string | undefined;
+  notes: string | undefined;
+  userId: string | undefined;
+  defaultCommissionPlanId: string | undefined;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export enum CommissionEntryStatus {
+  PENDING = 'PENDING',
+  APPROVED = 'APPROVED',
+  PAYABLE = 'PAYABLE',
+  PAID = 'PAID',
+  CANCELLED = 'CANCELLED',
+}
+
+export interface CommissionEntry {
+  id: string;
+  agencyId: string;
+  employeeId: string;
+  saleId: string;
+  tripId: string | undefined;
+  commissionPlanId: string;
+  calculationBase: number;
+  rate: number | undefined;
+  amount: number;
+  status: CommissionEntryStatus;
+  approvedAt: Date | undefined;
+  approvedBy: string | undefined;
+  paidAt: Date | undefined;
+  notes: string | undefined;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export enum EmployeeDeductionType {
+  ADVANCE = 'ADVANCE',
+  ABSENCE = 'ABSENCE',
+  BENEFIT = 'BENEFIT',
+  LOAN = 'LOAN',
+  ADJUSTMENT = 'ADJUSTMENT',
+  OTHER = 'OTHER',
+}
+
+export interface EmployeeDeduction {
+  id: string;
+  agencyId: string;
+  employeeId: string;
+  competence: Date;
+  type: EmployeeDeductionType;
+  description: string | undefined;
+  amount: number;
+  notes: string | undefined;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export enum PayrollEntryStatus {
+  OPEN = 'OPEN',
+  APPROVED = 'APPROVED',
+  PAID = 'PAID',
+  CANCELLED = 'CANCELLED',
+}
+
+export interface PayrollEntry {
+  id: string;
+  agencyId: string;
+  employeeId: string;
+  competence: Date;
+  baseSalary: number;
+  benefits: number;
+  bonuses: number;
+  commissionsTotal: number;
+  reimbursements: number;
+  additions: number;
+  discountsTotal: number;
+  netAmount: number;
+  status: PayrollEntryStatus;
+  dueDate: Date | undefined;
+  paidAt: Date | undefined;
+  notes: string | undefined;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export enum RevenueStatus {
+  OPEN = 'OPEN',
+  PARTIALLY_PAID = 'PARTIALLY_PAID',
+  PAID = 'PAID',
+  OVERDUE = 'OVERDUE',
+  CANCELLED = 'CANCELLED',
+}
+
+export interface Revenue {
+  id: string;
+  agencyId: string;
+  saleId: string | undefined;
+  bookingId: string | undefined;
+  customerId: string;
+  categoryId: string;
+  description: string;
+  amount: number;
+  currency: string;
+  competencyDate: Date;
+  dueDate: Date;
+  receiptDate: Date | undefined;
+  paymentMethod: string | undefined;
+  status: RevenueStatus;
+  notes: string | undefined;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export enum ExpenseStatus {
+  OPEN = 'OPEN',
+  PARTIALLY_PAID = 'PARTIALLY_PAID',
+  PAID = 'PAID',
+  CANCELLED = 'CANCELLED',
+}
+
+export interface Expense {
+  id: string;
+  agencyId: string;
+  supplierId: string | undefined;
+  categoryId: string;
+  costCenterId: string | undefined;
+  description: string;
+  amount: number;
+  currency: string;
+  incurredAt: Date;
+  dueDate: Date;
+  paymentDate: Date | undefined;
+  paymentMethod: string | undefined;
+  status: ExpenseStatus;
+  recurrence: string | undefined;
+  notes: string | undefined;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export enum CashTransactionType {
+  ENTRY = 'ENTRY',
+  EXIT = 'EXIT',
+  ADJUSTMENT = 'ADJUSTMENT',
+}
+
+export interface CashTransaction {
+  id: string;
+  agencyId: string;
+  type: CashTransactionType;
+  amount: number;
+  occurringAt: Date;
+  origin: string;
+  relatedRecordId: string | undefined;
+  relatedRecordType: string | undefined;
+  calculatedBalance: number;
+  notes: string | undefined;
+  createdAt: Date;
+}
+
+export enum ReconciliationStatus {
+  RECONCILED = 'RECONCILED',
+  NOT_RECONCILED = 'NOT_RECONCILED',
+}
+
+export interface Reconciliation {
+  id: string;
+  agencyId: string;
+  reconciliationDate: Date;
+  expectedAmount: number;
+  actualAmount: number;
+  status: ReconciliationStatus;
+  paymentId: string | undefined;
+  notes: string | undefined;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export enum TripStatus {
   PLANNED = 'PLANNED',
   CONFIRMED = 'CONFIRMED',
@@ -351,13 +662,185 @@ export interface Route {
   updatedAt: Date;
 }
 
+export enum SupplierType {
+  TRAVEL = 'TRAVEL',
+  OPERATIONAL = 'OPERATIONAL',
+  BOTH = 'BOTH',
+}
+
+export enum SupplierCategory {
+  AIRLINE = 'AIRLINE',
+  CONSOLIDATOR = 'CONSOLIDATOR',
+  HOTEL = 'HOTEL',
+  RESORT = 'RESORT',
+  TOUR_OPERATOR = 'TOUR_OPERATOR',
+  TRANSFER = 'TRANSFER',
+  CAR_RENTAL = 'CAR_RENTAL',
+  TRAVEL_INSURANCE = 'TRAVEL_INSURANCE',
+  TOUR = 'TOUR',
+  GUIDE = 'GUIDE',
+  CRUISE = 'CRUISE',
+  TRAIN = 'TRAIN',
+  BUS = 'BUS',
+  TICKET_PROVIDER = 'TICKET_PROVIDER',
+  RECEPTIVE_OPERATOR = 'RECEPTIVE_OPERATOR',
+  RENT = 'RENT',
+  ELECTRICITY = 'ELECTRICITY',
+  WATER = 'WATER',
+  INTERNET = 'INTERNET',
+  PHONE = 'PHONE',
+  SOFTWARE = 'SOFTWARE',
+  ACCOUNTING = 'ACCOUNTING',
+  LEGAL = 'LEGAL',
+  MARKETING = 'MARKETING',
+  OFFICE = 'OFFICE',
+  CLEANING = 'CLEANING',
+  MAINTENANCE = 'MAINTENANCE',
+  EQUIPMENT = 'EQUIPMENT',
+  BANKING = 'BANKING',
+  INSURANCE = 'INSURANCE',
+  OTHER = 'OTHER',
+}
+
 export interface Supplier {
   id: string;
   agencyId: string;
   name: string;
+  tradeName?: string;
   document?: string;
   contact?: string;
+  supplierType: SupplierType;
+  email?: string;
+  phone?: string;
+  website?: string;
+  addressLine?: string;
+  addressCity?: string;
+  addressState?: string;
+  addressZip?: string;
+  addressCountry?: string;
+  bankName?: string;
+  bankBranch?: string;
+  bankAccount?: string;
+  bankPix?: string;
+  paymentTerms?: string;
+  notes?: string;
   active: boolean;
+  categories: SupplierCategory[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// ============================================================
+// AIR OPERATIONS DOMAIN
+// ============================================================
+
+export enum AirCabinClass {
+  ECONOMY = 'ECONOMY',
+  PREMIUM_ECONOMY = 'PREMIUM_ECONOMY',
+  BUSINESS = 'BUSINESS',
+  FIRST = 'FIRST',
+}
+
+export enum AirServiceStatus {
+  PENDING = 'PENDING',
+  CONFIRMED = 'CONFIRMED',
+  CANCELLED = 'CANCELLED',
+}
+
+export enum AirSegmentDirection {
+  OUTBOUND = 'OUTBOUND',
+  RETURN = 'RETURN',
+  INTERNAL = 'INTERNAL',
+}
+
+export interface AirService {
+  id: string;
+  agencyId: string;
+  tripId: string;
+  bookingId?: string;
+  supplierId?: string;
+  customerId: string;
+  dependentId?: string;
+  airline: string;
+  consolidator?: string;
+  direction: AirSegmentDirection;
+  sequence: number;
+  origin: string;
+  destination: string;
+  departureDate: Date;
+  departureTime?: string;
+  arrivalDate: Date;
+  arrivalTime?: string;
+  flightNumber?: string;
+  cabinClass: AirCabinClass;
+  bookingLocator?: string;
+  ticketNumber?: string;
+  baggage?: string;
+  seat?: string;
+  fare: number;
+  taxes: number;
+  fees: number;
+  commission?: number;
+  cost: number;
+  saleValue: number;
+  currency: string;
+  supplierDueDate?: Date;
+  supplierPaymentStatus: FinancialObligationStatus;
+  status: AirServiceStatus;
+  notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// ============================================================
+// LAND OPERATIONS DOMAIN
+// ============================================================
+
+export enum LandServiceType {
+  ACCOMMODATION = 'ACCOMMODATION',
+  TRANSFER = 'TRANSFER',
+  CAR_RENTAL = 'CAR_RENTAL',
+  TOUR = 'TOUR',
+  TRAVEL_INSURANCE = 'TRAVEL_INSURANCE',
+  CRUISE = 'CRUISE',
+  TRAIN = 'TRAIN',
+  BUS = 'BUS',
+  GUIDE = 'GUIDE',
+  TICKET = 'TICKET',
+  RECEPTIVE = 'RECEPTIVE',
+  OTHER = 'OTHER',
+}
+
+export enum LandServiceStatus {
+  PENDING = 'PENDING',
+  CONFIRMED = 'CONFIRMED',
+  CANCELLED = 'CANCELLED',
+}
+
+export interface LandService {
+  id: string;
+  agencyId: string;
+  tripId: string;
+  bookingId?: string;
+  supplierId?: string;
+  customerId: string;
+  dependentId?: string;
+  serviceType: LandServiceType;
+  description: string;
+  startDate: Date;
+  endDate: Date;
+  quantity: number;
+  cost: number;
+  saleValue: number;
+  taxes: number;
+  fees: number;
+  commission?: number;
+  currency: string;
+  supplierDueDate?: Date;
+  supplierPaymentStatus: FinancialObligationStatus;
+  status: LandServiceStatus;
+  confirmationNumber?: string;
+  notes?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -1267,4 +1750,219 @@ export interface ChannelConnector {
   updatePublication(input: ConnectorUpdatePublicationInput): Promise<ConnectorPublishResult>;
   receiveEngagement(event: ConnectorEvent): Promise<Omit<Engagement, 'id' | 'createdAt'>>;
   validateConfiguration(config: unknown): Promise<ConnectorValidationResult>;
+}
+
+// ============================================================
+// CUSTOMER 360 DOMAIN (Task 2: Domain Types)
+// Address, Dependent, Document, and OCR-related types
+// ============================================================
+
+export enum AddressType {
+  RESIDENTIAL = 'RESIDENTIAL',
+  COMMERCIAL = 'COMMERCIAL',
+  TEMPORARY = 'TEMPORARY',
+}
+
+export interface CustomerAddress {
+  id: string;
+  agencyId: string;
+  customerId: string;
+  type: AddressType;
+  isPrimary: boolean;
+  cep?: string;
+  street: string;
+  number: string;
+  complement?: string;
+  district: string;
+  city: string;
+  state: string;
+  country: string;
+  createdAt: Date;
+  updatedAt: Date;
+  deletedAt?: Date;
+}
+
+export enum RelationshipType {
+  SPOUSE = 'SPOUSE',
+  CHILD = 'CHILD',
+  PARENT = 'PARENT',
+  COMPANION = 'COMPANION',
+  OTHER = 'OTHER',
+}
+
+export interface CustomerDependent {
+  id: string;
+  agencyId: string;
+  customerId: string;
+  name: string;
+  relationshipType: RelationshipType;
+  birthDate?: Date;
+  cpf?: string;
+  nationality?: string;
+  notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
+  deletedAt?: Date;
+}
+
+export enum DocumentType {
+  PASSAPORTE = 'PASSAPORTE',
+  RG = 'RG',
+  CNH = 'CNH',
+  CPF = 'CPF',
+  VISTO = 'VISTO',
+  CERTIDAO = 'CERTIDAO',
+  AUTORIZACAO_VIAGEM = 'AUTORIZACAO_VIAGEM',
+  CERTIFICADO_VACINACAO = 'CERTIFICADO_VACINACAO',
+  SEGURO_VIAGEM = 'SEGURO_VIAGEM',
+  OUTRO = 'OUTRO',
+}
+
+export enum TravelRequirementType {
+  PASSAPORTE_VALIDO = 'PASSAPORTE_VALIDO',
+  VISTO = 'VISTO',
+  VACINACAO = 'VACINACAO',
+  SEGURO = 'SEGURO',
+  AUTORIZACAO = 'AUTORIZACAO',
+  OUTROS = 'OUTROS',
+}
+
+export enum TravelerType {
+  CUSTOMER = 'CUSTOMER',
+  DEPENDENT = 'DEPENDENT',
+}
+
+export interface TravelRequirement {
+  id: string;
+  agencyId: string;
+  customerId: string;
+  travelerType: TravelerType;
+  dependentId?: string;
+  tripId?: string;
+  destination?: string;
+  type: TravelRequirementType;
+  required: boolean;
+  fulfilled: boolean;
+  documentId?: string;
+  expirationDate?: Date;
+  notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
+  deletedAt?: Date;
+}
+
+export enum DocumentVerificationStatus {
+  PENDING = 'PENDING',
+  VERIFIED = 'VERIFIED',
+  MISMATCH = 'MISMATCH',
+  EXPIRED = 'EXPIRED',
+  MANUAL_REVIEW = 'MANUAL_REVIEW',
+}
+
+export interface CustomerDocument {
+  id: string;
+  agencyId: string;
+  customerId: string;
+  documentType: DocumentType;
+  documentNumber: string;
+  holderName?: string;
+  holderBirthDate?: Date;
+  holderNationality?: string;
+  issuingCountry?: string;
+  issuingAuthority?: string;
+  issuedDate?: Date;
+  expiryDate?: Date;
+  isExpired: boolean;
+  verificationStatus: DocumentVerificationStatus;
+  verifiedAt?: Date;
+  verifiedByUserId?: string;
+  notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
+  deletedAt?: Date;
+}
+
+export enum DocumentAttachmentType {
+  FRONT = 'FRONT',
+  BACK = 'BACK',
+  PASSPORT_PAGE = 'PASSPORT_PAGE',
+  VISA = 'VISA',
+  OTHER = 'OTHER',
+}
+
+export interface DocumentAttachment {
+  id: string;
+  agencyId: string;
+  documentId: string;
+  attachmentType: DocumentAttachmentType;
+  fileName: string;
+  fileSizeBytes: number;
+  fileMimeType: string;
+  secureFileKey: string;
+  fileHash?: string;
+  createdAt: Date;
+  deletedAt?: Date;
+}
+
+export enum OcrProcessingStatus {
+  PENDING = 'PENDING',
+  PROCESSING = 'PROCESSING',
+  COMPLETED = 'COMPLETED',
+  FAILED = 'FAILED',
+  MANUAL_REVIEW = 'MANUAL_REVIEW',
+}
+
+export interface DocumentExtraction {
+  id: string;
+  agencyId: string;
+  documentId: string;
+  provider: string;
+  extractedData: Record<string, unknown>;
+  confidence?: number;
+  processingStatus: OcrProcessingStatus;
+  processedAt?: Date;
+  errorMessage?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface DocumentVerification {
+  id: string;
+  agencyId: string;
+  documentId: string;
+  extractionId?: string;
+  holderNameMatch?: boolean;
+  holderBirthDateMatch?: boolean;
+  holderNationalityMatch?: boolean;
+  documentNumberMatch?: boolean;
+  discrepancies?: Record<string, unknown>;
+  manualReviewNotes?: string;
+  reviewedAt?: Date;
+  reviewedByUserId?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export enum DocumentAuditEventType {
+  DOCUMENT_CREATED = 'DOCUMENT_CREATED',
+  DOCUMENT_UPDATED = 'DOCUMENT_UPDATED',
+  ATTACHMENT_UPLOADED = 'ATTACHMENT_UPLOADED',
+  ATTACHMENT_DELETED = 'ATTACHMENT_DELETED',
+  DOCUMENT_VIEWED = 'DOCUMENT_VIEWED',
+  EXTRACTION_STARTED = 'EXTRACTION_STARTED',
+  EXTRACTION_COMPLETED = 'EXTRACTION_COMPLETED',
+  VERIFICATION_COMPLETED = 'VERIFICATION_COMPLETED',
+  DOCUMENT_SOFT_DELETED = 'DOCUMENT_SOFT_DELETED',
+}
+
+export interface DocumentAuditEvent {
+  id: string;
+  agencyId: string;
+  documentId?: string;
+  attachmentId?: string;
+  userId?: string;
+  customerId?: string;
+  eventType: DocumentAuditEventType;
+  metadata?: Record<string, unknown>;
+  createdAt: Date;
 }

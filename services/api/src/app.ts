@@ -16,7 +16,9 @@ import {
   type ValidateUserAgencyAccess,
 } from '../../../packages/domain/tenant-context';
 import {
+  type CashTransactionType,
   CheckpointType,
+  type FinancialCategoryType,
   OperationAssignmentRole,
   OperationalStaffCapability,
   PaymentDirection,
@@ -27,12 +29,33 @@ import helmet from '@fastify/helmet';
 import { createAuthenticateHook, type AuthProvider } from './auth';
 import { createCustomerAuthenticateHook, type CustomerAuthProvider } from './customer-auth';
 import type { DatabaseRuntime } from './database';
+import { registerCustomerDocumentRoutes } from './routes/customer-documents';
+import { registerOperationsRoutes } from './routes/operations';
+import {
+  parseCreateOfferInput,
+  parseUpdateOfferInput,
+  parseCreateProposalInput,
+  parseUpdateProposalInput,
+  parseCreateSaleInput,
+  parseUpdateSaleInput,
+} from './commercial-input-parsing';
+import type { OcrProviderContract } from './ocr-provider';
 import {
   CorsOriginNotAllowedError,
   NotFoundError,
   ValidationError,
   registerErrorHandler,
 } from './errors';
+import {
+  assertAllowedFields,
+  parseNonNegativeNumber,
+  parseObjectBody,
+  parsePositiveNumber,
+  parseRequiredDate,
+  parseRequiredString,
+  parseUuidParam,
+  requireStringField,
+} from './request-parsing';
 import {
   DEFAULT_BODY_LIMIT_BYTES,
   isOriginAllowed,
@@ -80,20 +103,16 @@ import {
   getOfferById,
   listOffers,
   updateOffer,
-  type CreateOfferInput,
-  type UpdateOfferInput,
 } from './offers';
 import {
   acceptProposal,
   cancelProposal,
   createProposal,
   declineProposal,
-  getProposalById,
-  listProposals,
+  getProposalWithCustomerById,
+  listProposalsWithCustomer,
   sendProposal,
   updateProposal,
-  type CreateProposalInput,
-  type UpdateProposalInput,
 } from './proposals';
 import {
   createRoute,
@@ -120,6 +139,62 @@ import {
   type UpdateSupplierInput,
 } from './suppliers';
 import {
+  createAirService,
+  deleteAirService,
+  getAirServiceById,
+  listAirServices,
+  updateAirService,
+  type CreateAirServiceInput,
+  type UpdateAirServiceInput,
+} from './air-services';
+import {
+  createEmployee,
+  deleteEmployee,
+  getEmployeeById,
+  listEmployees,
+  updateEmployee,
+  type CreateEmployeeInput,
+  type UpdateEmployeeInput,
+} from './employees';
+import {
+  createCommissionPlan,
+  deleteCommissionPlan,
+  getCommissionPlanById,
+  listCommissionPlans,
+  updateCommissionPlan,
+  type CreateCommissionPlanInput,
+  type UpdateCommissionPlanInput,
+} from './commission-plans';
+import {
+  approveCommissionEntry,
+  createPayableFromCommissionEntry,
+  generateCommission,
+  getCommissionEntryById,
+  listCommissionEntries,
+  type GenerateCommissionInput,
+} from './commissions';
+import {
+  approvePayrollEntry,
+  createEmployeeDeduction,
+  deleteEmployeeDeduction,
+  generatePayrollEntry,
+  getPayrollEntryById,
+  listEmployeeDeductions,
+  listPayrollEntries,
+  payPayrollEntry,
+  type CreateEmployeeDeductionInput,
+  type GeneratePayrollInput,
+} from './payroll';
+import {
+  createLandService,
+  deleteLandService,
+  getLandServiceById,
+  listLandServices,
+  updateLandService,
+  type CreateLandServiceInput,
+  type UpdateLandServiceInput,
+} from './land-services';
+import {
   createTransportProduct,
   getTransportProductById,
   listTransportProducts,
@@ -137,10 +212,11 @@ import {
   type UpdateScheduledDepartureInput,
 } from './scheduled-departures';
 import { DepartureServiceType, TripType } from '../../../packages/domain/types';
+import type { SupplierCategory, SupplierType } from '../../../packages/domain/types';
 import {
   cancelBooking,
-  listBookings,
-  getBookingById,
+  listBookingsWithCustomer,
+  getBookingWithCustomerById,
   createBooking,
   type CancelBookingInput,
   type CreateBookingInput,
@@ -162,43 +238,82 @@ import {
   cancelSale,
   confirmSale,
   createSale,
-  getSaleById,
-  listSales,
+  getSaleWithCustomerById,
+  listSalesWithCustomer,
   markSalePaid,
   updateSale,
-  type CreateSaleInput,
-  type UpdateSaleInput,
 } from './sales';
 import {
   allocatePayment,
+  cancelExpense,
+  cancelRevenue,
+  createExpense,
+  createFinancialCategory,
+  listCostCenters,
+  createCostCenter,
+  updateCostCenter,
+  type CreateCostCenterInput,
+  type UpdateCostCenterInput,
   createOperationalCost,
   createPayable,
   createReceivable,
+  createRevenue,
+  markExpenseAsPaid,
+  markRevenueAsPaid,
+  createReconciliation,
+  createCashTransaction,
   getCashFlowSummary,
+  getCashBalance,
   getFinancialSummary,
+  getSaleFinancialStory,
   getSaleMargin,
+  getExpense,
+  getRevenue,
+  getDREReport,
+  getManagementDre,
+  getOverdueReport,
+  getMarginReport,
+  getCashFlowReport,
   listAllocationsForTarget,
+  listCashTransactions,
+  listExpenses,
+  listFinancialCategories,
   listOperationalCosts,
   listPaymentAllocations,
   listPayables,
   listPayments,
   listReceivables,
+  listReconciliations,
+  listRevenues,
+  markReconciliationAsReconciled,
   recordPayment,
+  updateExpense,
+  updateRevenue,
   type CashFlowPeriod,
+  type CreateCashTransactionInput,
+  type CreateExpenseInput,
+  type CreateFinancialCategoryInput,
   type CreateOperationalCostInput,
   type CreatePayableInput,
   type CreatePaymentAllocationInput,
   type CreateReceivableInput,
+  type CreateReconciliationInput,
+  type CreateRevenueInput,
   type RecordPaymentInput,
+  type UpdateExpenseInput,
+  type UpdateRevenueInput,
 } from './financial';
 import {
   approveCapture,
   createExternalOfferCapture,
+  extractOfferFromUrl,
   listExternalOfferCaptures,
   moveCaptureToReview,
   publishCapture,
   rejectCapture,
+  updateExternalOfferCapture,
   type CreateExternalOfferCaptureInput,
+  type UpdateExternalOfferCaptureInput,
 } from './pescador';
 import {
   getAvailableOfferById,
@@ -209,9 +324,28 @@ import {
   getMyTripById,
   listAvailableOffers,
   listMyBookings,
+  listMyDocuments,
+  listMyPaymentSchedule,
   listMyProposals,
   listMyTrips,
+  listMyTripAirServices,
+  listMyTripLandServices,
 } from './customer-portal';
+import {
+  getCashFlowByPeriod,
+  getEmployeeExpenses,
+  getExpectedVsActual,
+  getOperationalExpensesBreakdown,
+  getPayablesAging,
+  getPersonnelReport,
+  getProfitabilityReport,
+  getReceivablesAging,
+  getSalesReport,
+  getSupplierExposure,
+  type PersonnelGroupBy,
+  type ProfitabilityGroupBy,
+  type SalesGroupBy,
+} from './reports';
 import {
   createInteraction,
   createOpportunity,
@@ -320,12 +454,17 @@ import { listEngagements } from './engagements';
 import { listAuditLog } from './offer-growth-audit';
 import { InternalMockConnector } from './connectors/mock-connector';
 import type { ConnectorEvent } from '../../../packages/domain/types';
+import { createPlatformAuthenticateHook, type PlatformAuthProvider } from './platform-auth';
+import { PlatformDevAuthProvider } from './platform-dev-auth';
+import { registerPlatformRoutes, registerPublicPlatformRoutes } from './platform-routes';
 
 export interface BuildAppOptions {
   authProvider: AuthProvider;
   validateUserAgencyAccess: ValidateUserAgencyAccess;
   database: DatabaseRuntime;
   exposeTestRoutes?: boolean;
+  // Platform admin auth provider for /platform/* routes
+  platformAuthProvider?: PlatformAuthProvider;
   // Customer-portal auth. Optional so every existing caller of buildApp()
   // (all staff/admin tests and server.ts's prior wiring) keeps working
   // unchanged; when omitted, the customer-portal routes below fail closed
@@ -333,6 +472,11 @@ export interface BuildAppOptions {
   // stays exercisable and reviewable even before a caller opts in.
   customerAuthProvider?: CustomerAuthProvider;
   validateCustomerAgencyAccess?: ValidateCustomerAgencyAccess;
+  // Customer 360: OCR backend for the document-extraction endpoints. The
+  // contract lives in ocr-provider.ts and no vendor SDK is referenced here;
+  // when omitted, the in-memory MockOcrProvider is used so the extraction
+  // route surface stays exercisable before a real provider is configured.
+  ocrProvider?: OcrProviderContract;
   readinessCheck?: () => Promise<void>;
   rateLimit?: RateLimitOptions;
   // Offer & Growth Engine: platform-scoped entitlement-write stopgap
@@ -385,6 +529,8 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
         'req.headers.x-dev-user-id',
         'req.headers.x-dev-agency-id',
         'req.headers.x-dev-role',
+        'req.headers.x-dev-platform-user-id',
+        'req.headers.x-dev-platform-user-role',
         'req.headers.x-dev-customer',
       ],
     },
@@ -436,6 +582,8 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       'x-dev-user-id',
       'x-dev-agency-id',
       'x-dev-role',
+      'x-dev-platform-user-id',
+      'x-dev-platform-user-role',
       'x-dev-customer',
     ],
     maxAge: 600,
@@ -499,6 +647,11 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
   const rateLimits = createRateLimitHooks(options.rateLimit);
   const protectedHooks = [authenticate, establishTenant, rateLimits.onTrustedTenant];
   app.addHook('onRequest', rateLimits.onRequest);
+
+  // Platform admin authentication for /platform/* routes
+  const platformAuthProvider = options.platformAuthProvider ?? new PlatformDevAuthProvider();
+  const platformAuthenticate = createPlatformAuthenticateHook(platformAuthProvider);
+  const platformProtectedHooks = [platformAuthenticate, rateLimits.onTrustedPlatformPrincipal];
 
   // ============================================================
   // CUSTOMER PORTAL (end-customer facing, read-only). Entirely separate
@@ -600,6 +753,34 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     }
   );
 
+  app.get<{ Params: { id: string } }>(
+    '/customer-api/trips/:id/air-segments',
+    { preHandler: customerHooks },
+    async (request) => {
+      const segments = await listMyTripAirServices(options.database, request.params.id);
+      return { segments };
+    }
+  );
+
+  app.get<{ Params: { id: string } }>(
+    '/customer-api/trips/:id/land-services',
+    { preHandler: customerHooks },
+    async (request) => {
+      const services = await listMyTripLandServices(options.database, request.params.id);
+      return { services };
+    }
+  );
+
+  app.get('/customer-api/documents', { preHandler: customerHooks }, async () => {
+    const documents = await listMyDocuments(options.database);
+    return { documents };
+  });
+
+  app.get('/customer-api/payment-schedule', { preHandler: customerHooks }, async () => {
+    const items = await listMyPaymentSchedule(options.database);
+    return { items };
+  });
+
   app.get('/health', () => ({
     status: 'ok',
     service: 'api',
@@ -656,6 +837,22 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
         name: agency.name,
       },
     };
+  });
+
+  // Customer 360 (Task 4): addresses, dependents, documents, attachments,
+  // OCR extraction, verification and the document audit trail. Registered as
+  // one unit from its own module -- see routes/customer-documents.ts.
+  registerCustomerDocumentRoutes(app, {
+    database: options.database,
+    protectedHooks,
+    ...(options.ocrProvider ? { ocrProvider: options.ocrProvider } : {}),
+  });
+
+  // Operação sidebar gap fill: Passageiros / Documentos aggregations,
+  // Ocorrências and Pós-viagem -- see routes/operations.ts.
+  registerOperationsRoutes(app, {
+    database: options.database,
+    protectedHooks,
   });
 
   app.get('/customers', { preHandler: protectedHooks }, async () => {
@@ -879,7 +1076,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
 
   app.get('/proposals', { preHandler: protectedHooks }, async () => {
     requireRole(UserRole.VIEWER);
-    const proposals = await listProposals(options.database);
+    const proposals = await listProposalsWithCustomer(options.database);
     return { proposals };
   });
 
@@ -888,7 +1085,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     { preHandler: protectedHooks },
     async (request) => {
       requireRole(UserRole.VIEWER);
-      const proposal = await getProposalById(options.database, request.params.id);
+      const proposal = await getProposalWithCustomerById(options.database, request.params.id);
 
       if (!proposal) {
         throw new NotFoundError('Proposal not found');
@@ -1105,6 +1302,214 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     }
   );
 
+  // Generic `/suppliers` alias (same underlying `suppliers` table/entity as
+  // `/transport/suppliers` above, now extended with the fuller business Supplier
+  // shape: type, categories, contact, address, banking info). The Agency app's
+  // Suppliers page (business ops, not transport-specific) uses this surface.
+  app.get('/suppliers', { preHandler: protectedHooks }, async () => {
+    requireRole(UserRole.VIEWER);
+    const suppliers = await listSuppliers(options.database);
+    return { suppliers };
+  });
+
+  app.get<{ Params: { id: string } }>(
+    '/suppliers/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      const supplier = await getSupplierById(options.database, request.params.id);
+      if (!supplier) {
+        throw new NotFoundError('Supplier not found');
+      }
+      return { supplier };
+    }
+  );
+
+  app.post('/suppliers', { preHandler: protectedHooks }, async (request, reply) => {
+    requireRole(UserRole.MANAGER);
+    const data = parseCreateSupplierInput(request.body);
+    const supplier = await createSupplier(options.database, data);
+    reply.code(201);
+    return { supplier };
+  });
+
+  app.patch<{ Params: { id: string } }>(
+    '/suppliers/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.MANAGER);
+      const data = parseUpdateSupplierInput(request.body);
+      const supplier = await updateSupplier(options.database, request.params.id, data);
+      if (!supplier) {
+        throw new NotFoundError('Supplier not found');
+      }
+      return { supplier };
+    }
+  );
+
+  app.delete<{ Params: { id: string } }>(
+    '/suppliers/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.MANAGER);
+      const supplier = await updateSupplier(options.database, request.params.id, { active: false });
+      if (!supplier) {
+        throw new NotFoundError('Supplier not found');
+      }
+      return { supplier };
+    }
+  );
+
+  // ============================================================
+  // AIR OPERATIONS (AirService)
+  // ============================================================
+  // RBAC floor: same precedent as Booking above -- AGENT for create/update
+  // (day-to-day operational entry by front-line staff), VIEWER for reads.
+
+  app.get<{ Querystring: { tripId?: string; customerId?: string } }>(
+    '/air-services',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      const { tripId, customerId } = request.query;
+      const airServices = await listAirServices(options.database, { tripId, customerId });
+      return { airServices };
+    }
+  );
+
+  app.get<{ Params: { tripId: string } }>(
+    '/trips/:tripId/air-services',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      const airServices = await listAirServices(options.database, { tripId: request.params.tripId });
+      return { airServices };
+    }
+  );
+
+  app.get<{ Params: { id: string } }>(
+    '/air-services/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      const airService = await getAirServiceById(options.database, request.params.id);
+      if (!airService) {
+        throw new NotFoundError('Air service not found');
+      }
+      return { airService };
+    }
+  );
+
+  app.post('/air-services', { preHandler: protectedHooks }, async (request, reply) => {
+    requireRole(UserRole.AGENT);
+    const data = parseCreateAirServiceInput(request.body);
+    const airService = await createAirService(options.database, data);
+    reply.code(201);
+    return { airService };
+  });
+
+  app.patch<{ Params: { id: string } }>(
+    '/air-services/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.AGENT);
+      const data = parseUpdateAirServiceInput(request.body);
+      const airService = await updateAirService(options.database, request.params.id, data);
+      if (!airService) {
+        throw new NotFoundError('Air service not found');
+      }
+      return { airService };
+    }
+  );
+
+  app.delete<{ Params: { id: string } }>(
+    '/air-services/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.MANAGER);
+      const deleted = await deleteAirService(options.database, request.params.id);
+      if (!deleted) {
+        throw new NotFoundError('Air service not found');
+      }
+      return { success: true };
+    }
+  );
+
+  // ============================================================
+  // LAND OPERATIONS (LandService)
+  // ============================================================
+  // RBAC floor: mirrors Air Operations above -- AGENT for create/update,
+  // VIEWER for reads, MANAGER for delete.
+
+  app.get<{ Querystring: { tripId?: string; customerId?: string } }>(
+    '/land-services',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      const { tripId, customerId } = request.query;
+      const landServices = await listLandServices(options.database, { tripId, customerId });
+      return { landServices };
+    }
+  );
+
+  app.get<{ Params: { tripId: string } }>(
+    '/trips/:tripId/land-services',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      const landServices = await listLandServices(options.database, { tripId: request.params.tripId });
+      return { landServices };
+    }
+  );
+
+  app.get<{ Params: { id: string } }>(
+    '/land-services/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      const landService = await getLandServiceById(options.database, request.params.id);
+      if (!landService) {
+        throw new NotFoundError('Land service not found');
+      }
+      return { landService };
+    }
+  );
+
+  app.post('/land-services', { preHandler: protectedHooks }, async (request, reply) => {
+    requireRole(UserRole.AGENT);
+    const data = parseCreateLandServiceInput(request.body);
+    const landService = await createLandService(options.database, data);
+    reply.code(201);
+    return { landService };
+  });
+
+  app.patch<{ Params: { id: string } }>(
+    '/land-services/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.AGENT);
+      const data = parseUpdateLandServiceInput(request.body);
+      const landService = await updateLandService(options.database, request.params.id, data);
+      if (!landService) {
+        throw new NotFoundError('Land service not found');
+      }
+      return { landService };
+    }
+  );
+
+  app.delete<{ Params: { id: string } }>(
+    '/land-services/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.MANAGER);
+      const deleted = await deleteLandService(options.database, request.params.id);
+      if (!deleted) {
+        throw new NotFoundError('Land service not found');
+      }
+      return { success: true };
+    }
+  );
+
   app.get('/transport/products', { preHandler: protectedHooks }, async () => {
     requireRole(UserRole.VIEWER);
     const products = await listTransportProducts(options.database);
@@ -1214,7 +1619,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
 
   app.get('/bookings', { preHandler: protectedHooks }, async () => {
     requireRole(UserRole.VIEWER);
-    const bookings = await listBookings(options.database);
+    const bookings = await listBookingsWithCustomer(options.database);
     return { bookings };
   });
 
@@ -1223,7 +1628,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     { preHandler: protectedHooks },
     async (request) => {
       requireRole(UserRole.VIEWER);
-      const result = await getBookingById(options.database, request.params.id);
+      const result = await getBookingWithCustomerById(options.database, request.params.id);
       if (!result) {
         throw new NotFoundError('Booking not found');
       }
@@ -1770,7 +2175,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
   // status-editing route exists at all.
   app.get('/sales', { preHandler: protectedHooks }, async () => {
     requireRole(UserRole.VIEWER);
-    const sales = await listSales(options.database);
+    const sales = await listSalesWithCustomer(options.database);
     return { sales };
   });
 
@@ -1779,7 +2184,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     { preHandler: protectedHooks },
     async (request) => {
       requireRole(UserRole.VIEWER);
-      const sale = await getSaleById(options.database, request.params.id);
+      const sale = await getSaleWithCustomerById(options.database, request.params.id);
 
       if (!sale) {
         throw new NotFoundError('Sale not found');
@@ -1901,6 +2306,17 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     }
   );
 
+  app.get<{ Params: { id: string } }>(
+    '/financial/sales/:id/story',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.MANAGER);
+      const saleId = parseUuidParam(request.params.id, 'saleId');
+      const story = await getSaleFinancialStory(options.database, saleId);
+      return { story };
+    }
+  );
+
   app.get('/financial/dashboard', { preHandler: protectedHooks }, async (request) => {
     requireRole(UserRole.MANAGER);
     const period = parseCashFlowPeriod(request.query);
@@ -1960,6 +2376,726 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     }
   );
 
+  // ============================================================
+  // FINANCIAL CATEGORIES
+  // ============================================================
+  app.get('/financial/categories', { preHandler: protectedHooks }, async (request) => {
+    requireRole(UserRole.MANAGER);
+    const query = request.query as Record<string, string>;
+    const type = query.type;
+    const categories = await listFinancialCategories(options.database, type);
+    return { categories };
+  });
+
+  app.post('/financial/categories', { preHandler: protectedHooks }, async (request, reply) => {
+    requireRole(UserRole.ADMIN);
+    const data = parseCreateFinancialCategoryInput(request.body);
+    const category = await createFinancialCategory(options.database, data);
+    reply.code(201);
+    return { category };
+  });
+
+  // ============================================================
+  // COST CENTERS
+  // ============================================================
+  app.get('/cost-centers', { preHandler: protectedHooks }, async (request) => {
+    requireRole(UserRole.VIEWER);
+    const query = request.query as Record<string, string>;
+    const includeInactive = query.includeInactive === 'true';
+    const costCenters = await listCostCenters(options.database, includeInactive);
+    return { costCenters };
+  });
+
+  app.post('/cost-centers', { preHandler: protectedHooks }, async (request, reply) => {
+    requireRole(UserRole.MANAGER);
+    const data = parseCreateCostCenterInput(request.body);
+    const costCenter = await createCostCenter(options.database, data);
+    reply.code(201);
+    return { costCenter };
+  });
+
+  app.patch<{ Params: { id: string } }>('/cost-centers/:id', { preHandler: protectedHooks }, async (request, reply) => {
+    requireRole(UserRole.MANAGER);
+    const data = parseUpdateCostCenterInput(request.body);
+    const costCenter = await updateCostCenter(options.database, request.params.id, data);
+    if (!costCenter) {
+      reply.code(404);
+      return { error: 'Cost center not found' };
+    }
+    return { costCenter };
+  });
+
+  // ============================================================
+  // COMMISSION PLANS (config only — no calc engine this pass)
+  // ============================================================
+  app.get('/commission-plans', { preHandler: protectedHooks }, async (request) => {
+    requireRole(UserRole.MANAGER);
+    const query = request.query as Record<string, string>;
+    const includeInactive = query.includeInactive === 'true';
+    const commissionPlans = await listCommissionPlans(options.database, includeInactive);
+    return { commissionPlans };
+  });
+
+  app.get<{ Params: { id: string } }>(
+    '/commission-plans/:id',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      requireRole(UserRole.MANAGER);
+      const commissionPlan = await getCommissionPlanById(options.database, request.params.id);
+      if (!commissionPlan) {
+        reply.code(404);
+        return { error: 'Commission plan not found' };
+      }
+      return { commissionPlan };
+    },
+  );
+
+  app.post('/commission-plans', { preHandler: protectedHooks }, async (request, reply) => {
+    requireRole(UserRole.ADMIN);
+    const data = parseCreateCommissionPlanInput(request.body);
+    const commissionPlan = await createCommissionPlan(options.database, data);
+    reply.code(201);
+    return { commissionPlan };
+  });
+
+  app.patch<{ Params: { id: string } }>(
+    '/commission-plans/:id',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      requireRole(UserRole.ADMIN);
+      const data = parseUpdateCommissionPlanInput(request.body);
+      const commissionPlan = await updateCommissionPlan(options.database, request.params.id, data);
+      if (!commissionPlan) {
+        reply.code(404);
+        return { error: 'Commission plan not found' };
+      }
+      return { commissionPlan };
+    },
+  );
+
+  app.delete<{ Params: { id: string } }>(
+    '/commission-plans/:id',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      requireRole(UserRole.ADMIN);
+      const deleted = await deleteCommissionPlan(options.database, request.params.id);
+      if (!deleted) {
+        reply.code(404);
+        return { error: 'Commission plan not found' };
+      }
+      return { success: true };
+    },
+  );
+
+  // ============================================================
+  // EMPLOYEES (HR/compensation data — MANAGER read, ADMIN write)
+  // ============================================================
+  app.get('/employees', { preHandler: protectedHooks }, async (request) => {
+    requireRole(UserRole.MANAGER);
+    const query = request.query as Record<string, string>;
+    const employees = await listEmployees(options.database, { status: query.status });
+    return { employees };
+  });
+
+  app.get<{ Params: { id: string } }>(
+    '/employees/:id',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      requireRole(UserRole.MANAGER);
+      const employee = await getEmployeeById(options.database, request.params.id);
+      if (!employee) {
+        reply.code(404);
+        return { error: 'Employee not found' };
+      }
+      return { employee };
+    },
+  );
+
+  app.post('/employees', { preHandler: protectedHooks }, async (request, reply) => {
+    requireRole(UserRole.ADMIN);
+    const data = parseCreateEmployeeInput(request.body);
+    const employee = await createEmployee(options.database, data);
+    reply.code(201);
+    return { employee };
+  });
+
+  app.patch<{ Params: { id: string } }>(
+    '/employees/:id',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      requireRole(UserRole.ADMIN);
+      const data = parseUpdateEmployeeInput(request.body);
+      const employee = await updateEmployee(options.database, request.params.id, data);
+      if (!employee) {
+        reply.code(404);
+        return { error: 'Employee not found' };
+      }
+      return { employee };
+    },
+  );
+
+  app.delete<{ Params: { id: string } }>(
+    '/employees/:id',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      requireRole(UserRole.ADMIN);
+      const deleted = await deleteEmployee(options.database, request.params.id);
+      if (!deleted) {
+        reply.code(404);
+        return { error: 'Employee not found' };
+      }
+      return { success: true };
+    },
+  );
+
+  // ============================================================
+  // COMMISSION ENTRIES (generated commissions)
+  // ============================================================
+  app.get('/commissions', { preHandler: protectedHooks }, async (request) => {
+    requireRole(UserRole.MANAGER);
+    const query = request.query as Record<string, string>;
+    const commissions = await listCommissionEntries(options.database, {
+      employeeId: query.employeeId,
+      saleId: query.saleId,
+      status: query.status,
+    });
+    return { commissions };
+  });
+
+  app.get<{ Params: { id: string } }>(
+    '/commissions/:id',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      requireRole(UserRole.MANAGER);
+      const commission = await getCommissionEntryById(options.database, request.params.id);
+      if (!commission) {
+        reply.code(404);
+        return { error: 'Commission entry not found' };
+      }
+      return { commission };
+    },
+  );
+
+  app.post('/commissions/generate', { preHandler: protectedHooks }, async (request, reply) => {
+    requireRole(UserRole.AGENT);
+    const data = parseGenerateCommissionInput(request.body);
+    const commission = await generateCommission(options.database, data);
+    reply.code(201);
+    return { commission };
+  });
+
+  app.patch<{ Params: { id: string } }>(
+    '/commissions/:id/approve',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      requireRole(UserRole.MANAGER);
+      const commission = await approveCommissionEntry(options.database, request.params.id, getUserId());
+      if (!commission) {
+        reply.code(404);
+        return { error: 'Commission entry not found' };
+      }
+      return { commission };
+    },
+  );
+
+  app.post<{ Params: { id: string } }>(
+    '/commissions/:id/create-payable',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      requireRole(UserRole.MANAGER);
+      const result = await createPayableFromCommissionEntry(options.database, request.params.id);
+      reply.code(201);
+      return result;
+    },
+  );
+
+  // ============================================================
+  // EMPLOYEE DEDUCTIONS
+  // ============================================================
+  app.get('/employee-deductions', { preHandler: protectedHooks }, async (request) => {
+    requireRole(UserRole.MANAGER);
+    const query = request.query as Record<string, string>;
+    const deductions = await listEmployeeDeductions(options.database, {
+      employeeId: query.employeeId,
+      competence: query.competence,
+    });
+    return { deductions };
+  });
+
+  app.post('/employee-deductions', { preHandler: protectedHooks }, async (request, reply) => {
+    requireRole(UserRole.ADMIN);
+    const data = parseCreateEmployeeDeductionInput(request.body);
+    const deduction = await createEmployeeDeduction(options.database, data);
+    reply.code(201);
+    return { deduction };
+  });
+
+  app.delete<{ Params: { id: string } }>(
+    '/employee-deductions/:id',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      requireRole(UserRole.ADMIN);
+      const deleted = await deleteEmployeeDeduction(options.database, request.params.id);
+      if (!deleted) {
+        reply.code(404);
+        return { error: 'Deduction not found' };
+      }
+      return { success: true };
+    },
+  );
+
+  // ============================================================
+  // PAYROLL ENTRIES
+  // ============================================================
+  app.get('/payroll-entries', { preHandler: protectedHooks }, async (request) => {
+    requireRole(UserRole.MANAGER);
+    const query = request.query as Record<string, string>;
+    const payrollEntries = await listPayrollEntries(options.database, {
+      employeeId: query.employeeId,
+      status: query.status,
+    });
+    return { payrollEntries };
+  });
+
+  app.get<{ Params: { id: string } }>(
+    '/payroll-entries/:id',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      requireRole(UserRole.MANAGER);
+      const payrollEntry = await getPayrollEntryById(options.database, request.params.id);
+      if (!payrollEntry) {
+        reply.code(404);
+        return { error: 'Payroll entry not found' };
+      }
+      return { payrollEntry };
+    },
+  );
+
+  app.post('/payroll-entries/generate', { preHandler: protectedHooks }, async (request, reply) => {
+    requireRole(UserRole.ADMIN);
+    const data = parseGeneratePayrollInput(request.body);
+    const payrollEntry = await generatePayrollEntry(options.database, data);
+    reply.code(201);
+    return { payrollEntry };
+  });
+
+  app.patch<{ Params: { id: string } }>(
+    '/payroll-entries/:id/approve',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      requireRole(UserRole.ADMIN);
+      const payrollEntry = await approvePayrollEntry(options.database, request.params.id);
+      if (!payrollEntry) {
+        reply.code(404);
+        return { error: 'Payroll entry not found' };
+      }
+      return { payrollEntry };
+    },
+  );
+
+  app.post<{ Params: { id: string } }>(
+    '/payroll-entries/:id/pay',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      requireRole(UserRole.ADMIN);
+      const result = await payPayrollEntry(options.database, request.params.id);
+      reply.code(201);
+      return result;
+    },
+  );
+
+  // ============================================================
+  // REVENUES
+  // ============================================================
+  app.get('/financial/revenues', { preHandler: protectedHooks }, async (request) => {
+    requireRole(UserRole.MANAGER);
+    const query = request.query as Record<string, string>;
+    const filters: {
+      status?: string;
+      customerId?: string;
+      categoryId?: string;
+      periodFrom?: Date;
+      periodTo?: Date;
+    } = {};
+    if (query.status) filters.status = query.status;
+    if (query.customerId) filters.customerId = query.customerId;
+    if (query.categoryId) filters.categoryId = query.categoryId;
+    if (query.periodFrom) filters.periodFrom = new Date(query.periodFrom);
+    if (query.periodTo) filters.periodTo = new Date(query.periodTo);
+    const revenues = await listRevenues(options.database, filters as Parameters<typeof listRevenues>[1]);
+    return { revenues };
+  });
+
+  app.get<{ Params: { id: string } }>(
+    '/financial/revenues/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.MANAGER);
+      const revenue = await getRevenue(options.database, request.params.id);
+      return { revenue };
+    }
+  );
+
+  app.post('/financial/revenues', { preHandler: protectedHooks }, async (request, reply) => {
+    requireRole(UserRole.ADMIN);
+    const data = parseCreateRevenueInput(request.body);
+    const revenue = await createRevenue(options.database, data);
+    reply.code(201);
+    return { revenue };
+  });
+
+  app.patch<{ Params: { id: string } }>(
+    '/financial/revenues/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.ADMIN);
+      const data = parseUpdateRevenueInput(request.body);
+      const revenue = await updateRevenue(options.database, request.params.id, data);
+      return { revenue };
+    }
+  );
+
+  app.post<{ Params: { id: string } }>(
+    '/financial/revenues/:id/mark-paid',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.ADMIN);
+      const body = request.body as { partialAmount?: number };
+      const partialAmount = body?.partialAmount;
+      const revenue = await markRevenueAsPaid(options.database, request.params.id, partialAmount);
+      return { revenue };
+    }
+  );
+
+  app.post<{ Params: { id: string } }>(
+    '/financial/revenues/:id/cancel',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.ADMIN);
+      const revenue = await cancelRevenue(options.database, request.params.id);
+      return { revenue };
+    }
+  );
+
+  // ============================================================
+  // EXPENSES
+  // ============================================================
+  app.get('/financial/expenses', { preHandler: protectedHooks }, async (request) => {
+    requireRole(UserRole.MANAGER);
+    const query = request.query as Record<string, string>;
+    const filters: {
+      status?: string;
+      supplierId?: string;
+      categoryId?: string;
+      periodFrom?: Date;
+      periodTo?: Date;
+    } = {};
+    if (query.status) filters.status = query.status;
+    if (query.supplierId) filters.supplierId = query.supplierId;
+    if (query.categoryId) filters.categoryId = query.categoryId;
+    if (query.periodFrom) filters.periodFrom = new Date(query.periodFrom);
+    if (query.periodTo) filters.periodTo = new Date(query.periodTo);
+    const expenses = await listExpenses(options.database, filters as Parameters<typeof listExpenses>[1]);
+    return { expenses };
+  });
+
+  app.get<{ Params: { id: string } }>(
+    '/financial/expenses/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.MANAGER);
+      const expense = await getExpense(options.database, request.params.id);
+      return { expense };
+    }
+  );
+
+  app.post('/financial/expenses', { preHandler: protectedHooks }, async (request, reply) => {
+    requireRole(UserRole.ADMIN);
+    const data = parseCreateExpenseInput(request.body);
+    const expense = await createExpense(options.database, data);
+    reply.code(201);
+    return { expense };
+  });
+
+  app.patch<{ Params: { id: string } }>(
+    '/financial/expenses/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.ADMIN);
+      const data = parseUpdateExpenseInput(request.body);
+      const expense = await updateExpense(options.database, request.params.id, data);
+      return { expense };
+    }
+  );
+
+  app.post<{ Params: { id: string } }>(
+    '/financial/expenses/:id/mark-paid',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.ADMIN);
+      const body = request.body as { partialAmount?: number };
+      const partialAmount = body?.partialAmount;
+      const expense = await markExpenseAsPaid(options.database, request.params.id, partialAmount);
+      return { expense };
+    }
+  );
+
+  app.post<{ Params: { id: string } }>(
+    '/financial/expenses/:id/cancel',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.ADMIN);
+      const expense = await cancelExpense(options.database, request.params.id);
+      return { expense };
+    }
+  );
+
+  // ============================================================
+  // CASH TRANSACTIONS
+  // ============================================================
+  app.get('/financial/cash-transactions', { preHandler: protectedHooks }, async (request) => {
+    requireRole(UserRole.MANAGER);
+    const query = request.query as Record<string, string>;
+    const filters: {
+      type?: string;
+      periodFrom?: Date;
+      periodTo?: Date;
+    } = {};
+    if (query.type) filters.type = query.type;
+    if (query.periodFrom) filters.periodFrom = new Date(query.periodFrom);
+    if (query.periodTo) filters.periodTo = new Date(query.periodTo);
+    const transactions = await listCashTransactions(options.database, filters as Parameters<typeof listCashTransactions>[1]);
+    return { transactions };
+  });
+
+  app.post('/financial/cash-transactions', { preHandler: protectedHooks }, async (request, reply) => {
+    requireRole(UserRole.ADMIN);
+    const data = parseCreateCashTransactionInput(request.body);
+    const transaction = await createCashTransaction(options.database, data);
+    reply.code(201);
+    return { transaction };
+  });
+
+  app.get('/financial/cash-balance', { preHandler: protectedHooks }, async (request) => {
+    requireRole(UserRole.MANAGER);
+    const query = request.query as Record<string, string>;
+    const asOf = query.asOf ? new Date(query.asOf) : undefined;
+    const balance = await getCashBalance(options.database, asOf);
+    return { balance };
+  });
+
+  // ============================================================
+  // RECONCILIATIONS
+  // ============================================================
+  app.get('/financial/reconciliations', { preHandler: protectedHooks }, async (request) => {
+    requireRole(UserRole.MANAGER);
+    const query = request.query as Record<string, string>;
+    const filters: {
+      status?: string;
+      periodFrom?: Date;
+      periodTo?: Date;
+    } = {};
+    if (query.status) filters.status = query.status;
+    if (query.periodFrom) filters.periodFrom = new Date(query.periodFrom);
+    if (query.periodTo) filters.periodTo = new Date(query.periodTo);
+    const reconciliations = await listReconciliations(options.database, filters as Parameters<typeof listReconciliations>[1]);
+    return { reconciliations };
+  });
+
+  app.post('/financial/reconciliations', { preHandler: protectedHooks }, async (request, reply) => {
+    requireRole(UserRole.ADMIN);
+    const data = parseCreateReconciliationInput(request.body);
+    const reconciliation = await createReconciliation(options.database, data);
+    reply.code(201);
+    return { reconciliation };
+  });
+
+  app.post<{ Params: { id: string } }>(
+    '/financial/reconciliations/:id/mark-reconciled',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.ADMIN);
+      const reconciliation = await markReconciliationAsReconciled(options.database, request.params.id);
+      return { reconciliation };
+    }
+  );
+
+  // ============================================================
+  // FINANCIAL REPORTS
+  // ============================================================
+
+  // Simplified Management P&L ("DRE Gerencial") — distinct from the
+  // category-based /financial/reports/dre above. See getManagementDre()
+  // in financial.ts for the full line-item structure and the
+  // double-counting reasoning (commissions vs payroll, category nesting).
+  app.get('/financial/dre', { preHandler: protectedHooks }, async (request) => {
+    requireRole(UserRole.MANAGER);
+    const query = request.query as Record<string, string>;
+    // Default period: "all time" when no range is given. Demo/seed data can
+    // include future-dated trips (services scheduled ahead of "now"), so the
+    // all-time upper bound is a far-future date rather than `new Date()` —
+    // otherwise legitimately booked-but-not-yet-departed travel costs would
+    // silently vanish from the "all time" view.
+    const periodFrom = query.from ? new Date(query.from) : new Date(0);
+    const periodTo = query.to ? new Date(query.to) : new Date('2100-01-01T00:00:00.000Z');
+    const dre = await getManagementDre(options.database, periodFrom, periodTo);
+    return { dre };
+  });
+
+  app.get('/financial/reports/dre', { preHandler: protectedHooks }, async (request) => {
+    requireRole(UserRole.MANAGER);
+    const query = request.query as Record<string, string>;
+    const periodFrom = query.start_date ? new Date(query.start_date) : new Date(new Date().setDate(1));
+    const periodTo = query.end_date ? new Date(query.end_date) : new Date();
+    const dre = await getDREReport(options.database, periodFrom, periodTo);
+    return {
+      report: {
+        receitas_totais: dre.revenues.total,
+        despesas_totais: dre.expenses.total,
+        resultado_liquido: dre.margin,
+        periodo: dre.period,
+      },
+    };
+  });
+
+  app.get('/financial/reports/overdue', { preHandler: protectedHooks }, async (_request) => {
+    requireRole(UserRole.MANAGER);
+    const overdue = await getOverdueReport(options.database);
+    const allOverdue = [...overdue.receivables, ...overdue.payables];
+    const agingBuckets: Array<{ start: number; end: number }> = [
+      { start: 0, end: 30 },
+      { start: 31, end: 60 },
+      { start: 61, end: 90 },
+      { start: 91, end: Infinity },
+    ];
+    const agingBreakdown = agingBuckets.map((bucket) => {
+      const inBucket = allOverdue.filter(
+        (item) => item.daysOverdue >= bucket.start && item.daysOverdue <= bucket.end,
+      );
+      return {
+        days_overdue_start: bucket.start,
+        days_overdue_end: bucket.end === Infinity ? 9999 : bucket.end,
+        count: inBucket.length,
+        amount: Math.round(inBucket.reduce((sum, item) => sum + item.amount, 0) * 100) / 100,
+      };
+    });
+
+    return {
+      report: {
+        count: allOverdue.length,
+        total_amount: overdue.total,
+        aging_breakdown: agingBreakdown,
+      },
+    };
+  });
+
+  app.get('/financial/reports/margin', { preHandler: protectedHooks }, async (request) => {
+    requireRole(UserRole.MANAGER);
+    const query = request.query as Record<string, string>;
+    const periodFrom = query.start_date ? new Date(query.start_date) : new Date(new Date().setDate(1));
+    const periodTo = query.end_date ? new Date(query.end_date) : new Date();
+    const report = await getMarginReport(options.database, periodFrom, periodTo);
+    return { report };
+  });
+
+  app.get('/financial/reports/cash-flow', { preHandler: protectedHooks }, async (_request) => {
+    requireRole(UserRole.MANAGER);
+    const report = await getCashFlowReport(options.database);
+    return { report };
+  });
+
+  // ============================================================
+  // MANAGEMENT REPORTS (Wave C, Part 1) -- reports.ts
+  // ============================================================
+  app.get<{ Querystring: { groupBy?: string; from?: string; to?: string } }>(
+    '/reports/sales',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.MANAGER);
+      const groupBy = (request.query.groupBy ?? 'period') as SalesGroupBy;
+      const from = request.query.from ? new Date(request.query.from) : new Date('2000-01-01');
+      const to = request.query.to ? new Date(request.query.to) : new Date('2100-01-01');
+      const rows = await getSalesReport(options.database, groupBy, from, to);
+      return { rows };
+    }
+  );
+
+  app.get('/reports/financial/receivables-aging', { preHandler: protectedHooks }, async () => {
+    requireRole(UserRole.MANAGER);
+    const rows = await getReceivablesAging(options.database);
+    return { rows };
+  });
+
+  app.get('/reports/financial/payables-aging', { preHandler: protectedHooks }, async () => {
+    requireRole(UserRole.MANAGER);
+    const rows = await getPayablesAging(options.database);
+    return { rows };
+  });
+
+  app.get('/reports/financial/supplier-exposure', { preHandler: protectedHooks }, async () => {
+    requireRole(UserRole.MANAGER);
+    const rows = await getSupplierExposure(options.database);
+    return { rows };
+  });
+
+  app.get('/reports/financial/employee-expenses', { preHandler: protectedHooks }, async () => {
+    requireRole(UserRole.MANAGER);
+    const rows = await getEmployeeExpenses(options.database);
+    return { rows };
+  });
+
+  app.get('/reports/financial/operational-expenses', { preHandler: protectedHooks }, async () => {
+    requireRole(UserRole.MANAGER);
+    const rows = await getOperationalExpensesBreakdown(options.database);
+    return { rows };
+  });
+
+  app.get<{ Querystring: { from?: string; to?: string } }>(
+    '/reports/financial/expected-vs-actual',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.MANAGER);
+      const from = request.query.from ? new Date(request.query.from) : new Date('2000-01-01');
+      const to = request.query.to ? new Date(request.query.to) : new Date('2100-01-01');
+      const rows = await getExpectedVsActual(options.database, from, to);
+      return { rows };
+    }
+  );
+
+  app.get<{ Querystring: { from?: string; to?: string } }>(
+    '/reports/financial/cash-flow',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.MANAGER);
+      const from = request.query.from ? new Date(request.query.from) : new Date('2000-01-01');
+      const to = request.query.to ? new Date(request.query.to) : new Date('2100-01-01');
+      const rows = await getCashFlowByPeriod(options.database, from, to);
+      return { rows };
+    }
+  );
+
+  app.get<{ Querystring: { groupBy?: string } }>(
+    '/reports/profitability',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.MANAGER);
+      const groupBy = (request.query.groupBy ?? 'sale') as ProfitabilityGroupBy;
+      const rows = await getProfitabilityReport(options.database, groupBy);
+      return { rows };
+    }
+  );
+
+  app.get<{ Querystring: { groupBy?: string } }>(
+    '/reports/personnel',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.MANAGER);
+      const groupBy = (request.query.groupBy ?? 'employee') as PersonnelGroupBy;
+      const rows = await getPersonnelReport(options.database, groupBy);
+      return { rows };
+    }
+  );
+
   app.get('/pescador/captures', { preHandler: protectedHooks }, async () => {
     requireRole(UserRole.AGENT);
     const captures = await listExternalOfferCaptures(options.database);
@@ -1972,6 +3108,25 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     const capture = await createExternalOfferCapture(options.database, data);
     reply.code(201);
     return { capture };
+  });
+
+  app.patch<{ Params: { id: string } }>(
+    '/pescador/captures/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.AGENT);
+      const patch = parseUpdateExternalOfferCaptureInput(request.body);
+      const capture = await updateExternalOfferCapture(options.database, request.params.id, patch);
+      return { capture };
+    }
+  );
+
+  app.post('/pescador/extract', { preHandler: protectedHooks }, async (request) => {
+    requireRole(UserRole.AGENT);
+    const record = parseObjectBody(request.body);
+    const url = parseRequiredString(record.url, 'url');
+    const draft = await extractOfferFromUrl(url);
+    return { draft };
   });
 
   app.post<{ Params: { id: string } }>(
@@ -2366,6 +3521,12 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     });
   }
 
+  // Register public platform routes (no auth required)
+  registerPublicPlatformRoutes(app, options.database);
+
+  // Register platform admin routes (auth required)
+  registerPlatformRoutes(app, options.database, platformProtectedHooks);
+
   return app;
 }
 
@@ -2463,7 +3624,47 @@ function createRateLimitHooks(options: RateLimitOptions | undefined) {
       });
   };
 
-  return { onRequest, onTrustedTenant };
+  const onTrustedPlatformPrincipal = function trustedPlatformRateLimitHook(
+    request: FastifyRequest,
+    reply: FastifyReply,
+    done: HookHandlerDoneFunction
+  ): void {
+    if (!enabled) {
+      done();
+      return;
+    }
+
+    const platformUserId = request.platformAuth?.sub;
+    if (!platformUserId) {
+      done(new Error('Platform rate limit requires an authenticated platform principal'));
+      return;
+    }
+
+    limiter
+      .checkTenant({
+        rateLimitClass: classifyRateLimitRequest(request.method, request.url),
+        tenantId: platformUserId,
+        route: request.url.split('?')[0] ?? request.url,
+      })
+      .then((decision) => {
+        if (decision.state === 'allow') {
+          done();
+          return;
+        }
+        if (decision.retryAfterSeconds !== undefined) {
+          reply.header('retry-after', String(decision.retryAfterSeconds));
+        }
+        reply.code(429).send({
+          error: 'Too many requests',
+          code: 'RATE_LIMITED',
+        });
+      })
+      .catch((error: unknown) => {
+        done(error instanceof Error ? error : new Error('Platform rate limit evaluation failed'));
+      });
+  };
+
+  return { onRequest, onTrustedTenant, onTrustedPlatformPrincipal };
 }
 
 const FORBIDDEN_CREATE_FIELDS = [
@@ -2477,24 +3678,40 @@ const FORBIDDEN_CREATE_FIELDS = [
   'status',
 ] as const;
 
-const ALLOWED_CREATE_FIELDS = [
-  'name',
+const CUSTOMER_OPTIONAL_STRING_FIELDS = [
   'email',
   'phone',
   'cpf',
   'passport',
-  'address',
+  'rg',
+  'nationalIdType',
+  'birthDate',
+  'nationality',
+  'whatsapp',
+  'socialName',
+  'maritalStatus',
+  'profession',
+  'idIssuingAuthority',
+  'idIssuedDate',
+  'emergencyContactName',
+  'emergencyContactRelationship',
+  'emergencyContactPhone',
+  'emergencyContactWhatsapp',
+  'emergencyContactEmail',
+  'emergencyContactNotes',
   'notes',
+] as const;
+
+const ALLOWED_CREATE_FIELDS = [
+  'name',
+  ...CUSTOMER_OPTIONAL_STRING_FIELDS,
+  'address',
 ] as const;
 
 const ALLOWED_UPDATE_FIELDS = [
   'name',
-  'email',
-  'phone',
-  'cpf',
-  'passport',
+  ...CUSTOMER_OPTIONAL_STRING_FIELDS,
   'address',
-  'notes',
 ] as const;
 
 function parseCreateCustomerInput(body: unknown): CreateCustomerInput {
@@ -2522,29 +3739,14 @@ function parseCreateCustomerInput(body: unknown): CreateCustomerInput {
 
   const data: CreateCustomerInput = { name: record.name };
 
-  if (record.email !== undefined) {
-    if (typeof record.email !== 'string') {
-      throw new ValidationError('Field "email" must be a string');
+  for (const field of CUSTOMER_OPTIONAL_STRING_FIELDS) {
+    const value = record[field];
+    if (value !== undefined) {
+      if (typeof value !== 'string') {
+        throw new ValidationError(`Field "${field}" must be a string`);
+      }
+      data[field] = value;
     }
-    data.email = record.email;
-  }
-  if (record.phone !== undefined) {
-    if (typeof record.phone !== 'string') {
-      throw new ValidationError('Field "phone" must be a string');
-    }
-    data.phone = record.phone;
-  }
-  if (record.cpf !== undefined) {
-    if (typeof record.cpf !== 'string') {
-      throw new ValidationError('Field "cpf" must be a string');
-    }
-    data.cpf = record.cpf;
-  }
-  if (record.passport !== undefined) {
-    if (typeof record.passport !== 'string') {
-      throw new ValidationError('Field "passport" must be a string');
-    }
-    data.passport = record.passport;
   }
   if (record.address !== undefined) {
     if (
@@ -2555,12 +3757,6 @@ function parseCreateCustomerInput(body: unknown): CreateCustomerInput {
       throw new ValidationError('Field "address" must be an object');
     }
     data.address = record.address as Record<string, unknown>;
-  }
-  if (record.notes !== undefined) {
-    if (typeof record.notes !== 'string') {
-      throw new ValidationError('Field "notes" must be a string');
-    }
-    data.notes = record.notes;
   }
 
   return data;
@@ -2587,29 +3783,14 @@ function parseUpdateCustomerInput(body: unknown): UpdateCustomerInput {
     }
     data.name = record.name;
   }
-  if (record.email !== undefined) {
-    if (typeof record.email !== 'string') {
-      throw new ValidationError('Field "email" must be a string');
+  for (const field of CUSTOMER_OPTIONAL_STRING_FIELDS) {
+    const value = record[field];
+    if (value !== undefined) {
+      if (typeof value !== 'string') {
+        throw new ValidationError(`Field "${field}" must be a string`);
+      }
+      data[field] = value;
     }
-    data.email = record.email;
-  }
-  if (record.phone !== undefined) {
-    if (typeof record.phone !== 'string') {
-      throw new ValidationError('Field "phone" must be a string');
-    }
-    data.phone = record.phone;
-  }
-  if (record.cpf !== undefined) {
-    if (typeof record.cpf !== 'string') {
-      throw new ValidationError('Field "cpf" must be a string');
-    }
-    data.cpf = record.cpf;
-  }
-  if (record.passport !== undefined) {
-    if (typeof record.passport !== 'string') {
-      throw new ValidationError('Field "passport" must be a string');
-    }
-    data.passport = record.passport;
   }
   if (record.address !== undefined) {
     if (
@@ -2620,12 +3801,6 @@ function parseUpdateCustomerInput(body: unknown): UpdateCustomerInput {
       throw new ValidationError('Field "address" must be an object');
     }
     data.address = record.address as Record<string, unknown>;
-  }
-  if (record.notes !== undefined) {
-    if (typeof record.notes !== 'string') {
-      throw new ValidationError('Field "notes" must be a string');
-    }
-    data.notes = record.notes;
   }
 
   if (Object.keys(data).length === 0) {
@@ -2974,511 +4149,6 @@ function parseUpdateTripInput(body: unknown): UpdateTripInput {
   return data;
 }
 
-const FORBIDDEN_OFFER_CREATE_FIELDS = [
-  'agencyId',
-  'tenantId',
-  'id',
-  'createdAt',
-  'updatedAt',
-  'status',
-] as const;
-
-const ALLOWED_OFFER_CREATE_FIELDS = [
-  'name',
-  'description',
-  'price',
-  'validFrom',
-  'validUntil',
-] as const;
-
-const FORBIDDEN_OFFER_UPDATE_FIELDS = [
-  'agencyId',
-  'tenantId',
-  'id',
-  'createdAt',
-  'updatedAt',
-] as const;
-
-const ALLOWED_OFFER_UPDATE_FIELDS = [
-  'name',
-  'description',
-  'price',
-  'validFrom',
-  'validUntil',
-  'status',
-] as const;
-
-const VALID_OFFER_STATUS_VALUES = ['ACTIVE', 'INACTIVE', 'EXPIRED'] as const;
-
-function parseOfferDate(value: unknown, field: string): Date {
-  if (typeof value !== 'string') {
-    throw new ValidationError(`Field "${field}" must be a string`);
-  }
-
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    throw new ValidationError(`Field "${field}" must be a valid date`);
-  }
-
-  return date;
-}
-
-function parseOfferPrice(value: unknown): number {
-  if (typeof value !== 'number' || Number.isNaN(value)) {
-    throw new ValidationError('Field "price" must be a number');
-  }
-  if (value < 0) {
-    throw new ValidationError('Field "price" must not be negative');
-  }
-  return value;
-}
-
-function parseCreateOfferInput(body: unknown): CreateOfferInput {
-  if (typeof body !== 'object' || body === null || Array.isArray(body)) {
-    throw new ValidationError('Request body must be an object');
-  }
-
-  const record = body as Record<string, unknown>;
-
-  for (const field of FORBIDDEN_OFFER_CREATE_FIELDS) {
-    if (field in record) {
-      throw new ValidationError(`Field "${field}" is not allowed in the request body`);
-    }
-  }
-
-  for (const key of Object.keys(record)) {
-    if (!(ALLOWED_OFFER_CREATE_FIELDS as readonly string[]).includes(key)) {
-      throw new ValidationError(`Unknown field "${key}" in request body`);
-    }
-  }
-
-  if (typeof record.name !== 'string' || record.name.trim().length === 0) {
-    throw new ValidationError('Field "name" is required and must be a non-empty string');
-  }
-  if (record.price === undefined) {
-    throw new ValidationError('Field "price" is required');
-  }
-
-  const data: CreateOfferInput = {
-    name: record.name,
-    price: parseOfferPrice(record.price),
-  };
-
-  if (record.description !== undefined) {
-    if (typeof record.description !== 'string') {
-      throw new ValidationError('Field "description" must be a string');
-    }
-    data.description = record.description;
-  }
-  if (record.validFrom !== undefined) {
-    data.validFrom = parseOfferDate(record.validFrom, 'validFrom');
-  }
-  if (record.validUntil !== undefined) {
-    data.validUntil = parseOfferDate(record.validUntil, 'validUntil');
-  }
-
-  return data;
-}
-
-function parseUpdateOfferInput(body: unknown): UpdateOfferInput {
-  if (typeof body !== 'object' || body === null || Array.isArray(body)) {
-    throw new ValidationError('Request body must be an object');
-  }
-
-  const record = body as Record<string, unknown>;
-
-  for (const field of FORBIDDEN_OFFER_UPDATE_FIELDS) {
-    if (field in record) {
-      throw new ValidationError(`Field "${field}" is not allowed in the request body`);
-    }
-  }
-
-  for (const key of Object.keys(record)) {
-    if (!(ALLOWED_OFFER_UPDATE_FIELDS as readonly string[]).includes(key)) {
-      throw new ValidationError(`Unknown field "${key}" in request body`);
-    }
-  }
-
-  const data: UpdateOfferInput = {};
-
-  if (record.name !== undefined) {
-    if (typeof record.name !== 'string' || record.name.trim().length === 0) {
-      throw new ValidationError('Field "name" must be a non-empty string');
-    }
-    data.name = record.name;
-  }
-  if (record.description !== undefined) {
-    if (typeof record.description !== 'string') {
-      throw new ValidationError('Field "description" must be a string');
-    }
-    data.description = record.description;
-  }
-  if (record.price !== undefined) {
-    data.price = parseOfferPrice(record.price);
-  }
-  if (record.validFrom !== undefined) {
-    data.validFrom = parseOfferDate(record.validFrom, 'validFrom');
-  }
-  if (record.validUntil !== undefined) {
-    data.validUntil = parseOfferDate(record.validUntil, 'validUntil');
-  }
-  if (record.status !== undefined) {
-    if (
-      typeof record.status !== 'string' ||
-      !(VALID_OFFER_STATUS_VALUES as readonly string[]).includes(record.status)
-    ) {
-      throw new ValidationError('Field "status" must be one of ACTIVE, INACTIVE, EXPIRED');
-    }
-    data.status = record.status as NonNullable<UpdateOfferInput['status']>;
-  }
-
-  if (Object.keys(data).length === 0) {
-    throw new ValidationError('At least one field must be provided');
-  }
-
-  return data;
-}
-
-const FORBIDDEN_PROPOSAL_CREATE_FIELDS = [
-  'agencyId',
-  'tenantId',
-  'id',
-  'createdAt',
-  'updatedAt',
-  'total',
-  'status',
-  'userId',
-] as const;
-
-const ALLOWED_PROPOSAL_CREATE_FIELDS = [
-  'customerId',
-  'offerId',
-  'wishId',
-  'proposedPrice',
-  'discount',
-  'validUntil',
-  'conditions',
-  'notes',
-] as const;
-
-const FORBIDDEN_PROPOSAL_UPDATE_FIELDS = [
-  'agencyId',
-  'tenantId',
-  'id',
-  'createdAt',
-  'updatedAt',
-  'total',
-  'status',
-  'userId',
-  'customerId',
-  'offerId',
-  'wishId',
-] as const;
-
-const ALLOWED_PROPOSAL_UPDATE_FIELDS = [
-  'proposedPrice',
-  'discount',
-  'validUntil',
-  'conditions',
-  'notes',
-] as const;
-
-function parseProposalDate(value: unknown, field: string): Date {
-  if (typeof value !== 'string') {
-    throw new ValidationError(`Field "${field}" must be a string`);
-  }
-
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    throw new ValidationError(`Field "${field}" must be a valid date`);
-  }
-
-  return date;
-}
-
-function parseProposalMoney(value: unknown, field: string): number {
-  if (typeof value !== 'number' || Number.isNaN(value)) {
-    throw new ValidationError(`Field "${field}" must be a number`);
-  }
-  if (value < 0) {
-    throw new ValidationError(`Field "${field}" must not be negative`);
-  }
-  return value;
-}
-
-function parseCreateProposalInput(body: unknown): {
-  customerId: string;
-  data: CreateProposalInput;
-} {
-  if (typeof body !== 'object' || body === null || Array.isArray(body)) {
-    throw new ValidationError('Request body must be an object');
-  }
-
-  const record = body as Record<string, unknown>;
-
-  for (const field of FORBIDDEN_PROPOSAL_CREATE_FIELDS) {
-    if (field in record) {
-      throw new ValidationError(`Field "${field}" is not allowed in the request body`);
-    }
-  }
-
-  for (const key of Object.keys(record)) {
-    if (!(ALLOWED_PROPOSAL_CREATE_FIELDS as readonly string[]).includes(key)) {
-      throw new ValidationError(`Unknown field "${key}" in request body`);
-    }
-  }
-
-  if (typeof record.customerId !== 'string' || record.customerId.trim().length === 0) {
-    throw new ValidationError('Field "customerId" is required and must be a non-empty string');
-  }
-  if (record.proposedPrice === undefined) {
-    throw new ValidationError('Field "proposedPrice" is required');
-  }
-
-  const data: CreateProposalInput = {
-    proposedPrice: parseProposalMoney(record.proposedPrice, 'proposedPrice'),
-  };
-
-  if (record.offerId !== undefined) {
-    if (typeof record.offerId !== 'string' || record.offerId.trim().length === 0) {
-      throw new ValidationError('Field "offerId" must be a non-empty string');
-    }
-    data.offerId = record.offerId;
-  }
-  if (record.wishId !== undefined) {
-    if (typeof record.wishId !== 'string' || record.wishId.trim().length === 0) {
-      throw new ValidationError('Field "wishId" must be a non-empty string');
-    }
-    data.wishId = record.wishId;
-  }
-  if (record.discount !== undefined) {
-    data.discount = parseProposalMoney(record.discount, 'discount');
-  }
-  if (record.validUntil !== undefined) {
-    data.validUntil = parseProposalDate(record.validUntil, 'validUntil');
-  }
-  if (record.conditions !== undefined) {
-    if (typeof record.conditions !== 'string') {
-      throw new ValidationError('Field "conditions" must be a string');
-    }
-    data.conditions = record.conditions;
-  }
-  if (record.notes !== undefined) {
-    if (typeof record.notes !== 'string') {
-      throw new ValidationError('Field "notes" must be a string');
-    }
-    data.notes = record.notes;
-  }
-
-  if (data.discount !== undefined && data.discount > data.proposedPrice) {
-    throw new ValidationError('Field "discount" must not exceed "proposedPrice"');
-  }
-
-  return { customerId: record.customerId, data };
-}
-
-function parseUpdateProposalInput(body: unknown): UpdateProposalInput {
-  if (typeof body !== 'object' || body === null || Array.isArray(body)) {
-    throw new ValidationError('Request body must be an object');
-  }
-
-  const record = body as Record<string, unknown>;
-
-  for (const field of FORBIDDEN_PROPOSAL_UPDATE_FIELDS) {
-    if (field in record) {
-      throw new ValidationError(`Field "${field}" is not allowed in the request body`);
-    }
-  }
-
-  for (const key of Object.keys(record)) {
-    if (!(ALLOWED_PROPOSAL_UPDATE_FIELDS as readonly string[]).includes(key)) {
-      throw new ValidationError(`Unknown field "${key}" in request body`);
-    }
-  }
-
-  const data: UpdateProposalInput = {};
-
-  if (record.proposedPrice !== undefined) {
-    data.proposedPrice = parseProposalMoney(record.proposedPrice, 'proposedPrice');
-  }
-  if (record.discount !== undefined) {
-    data.discount = parseProposalMoney(record.discount, 'discount');
-  }
-  if (record.validUntil !== undefined) {
-    data.validUntil = parseProposalDate(record.validUntil, 'validUntil');
-  }
-  if (record.conditions !== undefined) {
-    if (typeof record.conditions !== 'string') {
-      throw new ValidationError('Field "conditions" must be a string');
-    }
-    data.conditions = record.conditions;
-  }
-  if (record.notes !== undefined) {
-    if (typeof record.notes !== 'string') {
-      throw new ValidationError('Field "notes" must be a string');
-    }
-    data.notes = record.notes;
-  }
-
-  if (
-    data.proposedPrice !== undefined &&
-    data.discount !== undefined &&
-    data.discount > data.proposedPrice
-  ) {
-    throw new ValidationError('Field "discount" must not exceed "proposedPrice"');
-  }
-
-  if (Object.keys(data).length === 0) {
-    throw new ValidationError('At least one field must be provided');
-  }
-
-  return data;
-}
-
-const FORBIDDEN_SALE_CREATE_FIELDS = [
-  'agencyId',
-  'tenantId',
-  'id',
-  'createdAt',
-  'updatedAt',
-  'total',
-  'status',
-  'userId',
-  'paidAt',
-] as const;
-
-const ALLOWED_SALE_CREATE_FIELDS = [
-  'customerId',
-  'proposalId',
-  'brokerId',
-  'amount',
-  'discount',
-  'notes',
-] as const;
-
-const FORBIDDEN_SALE_UPDATE_FIELDS = [
-  'agencyId',
-  'tenantId',
-  'id',
-  'createdAt',
-  'updatedAt',
-  'total',
-  'status',
-  'userId',
-  'paidAt',
-  'customerId',
-  'proposalId',
-  'brokerId',
-] as const;
-
-const ALLOWED_SALE_UPDATE_FIELDS = ['amount', 'discount', 'notes'] as const;
-
-function parseSaleMoney(value: unknown, field: string): number {
-  if (typeof value !== 'number' || Number.isNaN(value)) {
-    throw new ValidationError(`Field "${field}" must be a number`);
-  }
-  if (value < 0) {
-    throw new ValidationError(`Field "${field}" must not be negative`);
-  }
-  return value;
-}
-
-function parseCreateSaleInput(body: unknown): CreateSaleInput {
-  if (typeof body !== 'object' || body === null || Array.isArray(body)) {
-    throw new ValidationError('Request body must be an object');
-  }
-
-  const record = body as Record<string, unknown>;
-
-  for (const field of FORBIDDEN_SALE_CREATE_FIELDS) {
-    if (field in record) {
-      throw new ValidationError(`Field "${field}" is not allowed in the request body`);
-    }
-  }
-
-  for (const key of Object.keys(record)) {
-    if (!(ALLOWED_SALE_CREATE_FIELDS as readonly string[]).includes(key)) {
-      throw new ValidationError(`Unknown field "${key}" in request body`);
-    }
-  }
-
-  if (typeof record.customerId !== 'string' || record.customerId.trim().length === 0) {
-    throw new ValidationError('Field "customerId" is required and must be a non-empty string');
-  }
-  if (record.amount === undefined) {
-    throw new ValidationError('Field "amount" is required');
-  }
-
-  const data: CreateSaleInput = {
-    customerId: record.customerId,
-    amount: parseSaleMoney(record.amount, 'amount'),
-  };
-
-  if (record.proposalId !== undefined) {
-    if (typeof record.proposalId !== 'string' || record.proposalId.trim().length === 0) {
-      throw new ValidationError('Field "proposalId" must be a non-empty string');
-    }
-    data.proposalId = record.proposalId;
-  }
-  if (record.brokerId !== undefined) {
-    if (typeof record.brokerId !== 'string' || record.brokerId.trim().length === 0) {
-      throw new ValidationError('Field "brokerId" must be a non-empty string');
-    }
-    data.brokerId = record.brokerId;
-  }
-  if (record.discount !== undefined) {
-    data.discount = parseSaleMoney(record.discount, 'discount');
-  }
-  if (record.notes !== undefined) {
-    if (typeof record.notes !== 'string') {
-      throw new ValidationError('Field "notes" must be a string');
-    }
-    data.notes = record.notes;
-  }
-
-  return data;
-}
-
-function parseUpdateSaleInput(body: unknown): UpdateSaleInput {
-  if (typeof body !== 'object' || body === null || Array.isArray(body)) {
-    throw new ValidationError('Request body must be an object');
-  }
-
-  const record = body as Record<string, unknown>;
-
-  for (const field of FORBIDDEN_SALE_UPDATE_FIELDS) {
-    if (field in record) {
-      throw new ValidationError(`Field "${field}" is not allowed in the request body`);
-    }
-  }
-
-  for (const key of Object.keys(record)) {
-    if (!(ALLOWED_SALE_UPDATE_FIELDS as readonly string[]).includes(key)) {
-      throw new ValidationError(`Unknown field "${key}" in request body`);
-    }
-  }
-
-  const data: UpdateSaleInput = {};
-
-  if (record.amount !== undefined) {
-    data.amount = parseSaleMoney(record.amount, 'amount');
-  }
-  if (record.discount !== undefined) {
-    data.discount = parseSaleMoney(record.discount, 'discount');
-  }
-  if (record.notes !== undefined) {
-    if (typeof record.notes !== 'string') {
-      throw new ValidationError('Field "notes" must be a string');
-    }
-    data.notes = record.notes;
-  }
-
-  if (Object.keys(data).length === 0) {
-    throw new ValidationError('At least one field must be provided');
-  }
-
-  return data;
-}
 
 // ============================================================
 // FINANCIAL
@@ -3508,6 +4178,8 @@ const ALLOWED_PAYABLE_CREATE_FIELDS = [
   'commissionId',
   'transportOperationId',
   'operationalCostId',
+  'categoryId',
+  'costCenterId',
   'description',
   'amount',
   'dueAt',
@@ -3575,6 +4247,12 @@ function parseCreatePayableInput(body: unknown): CreatePayableInput {
       : {}),
     ...(record.operationalCostId !== undefined
       ? { operationalCostId: parseRequiredString(record.operationalCostId, 'operationalCostId') }
+      : {}),
+    ...(record.categoryId !== undefined
+      ? { categoryId: parseRequiredString(record.categoryId, 'categoryId') }
+      : {}),
+    ...(record.costCenterId !== undefined
+      ? { costCenterId: parseRequiredString(record.costCenterId, 'costCenterId') }
       : {}),
   };
 }
@@ -3723,14 +4401,50 @@ function parseCreateExternalOfferCaptureInput(body: unknown): CreateExternalOffe
   return data;
 }
 
+function parseUpdateExternalOfferCaptureInput(body: unknown): UpdateExternalOfferCaptureInput {
+  const record = parseObjectBody(body);
+  const allowed = ['normalizedTitle', 'normalizedDescription', 'foundPrice', 'currency', 'validUntil'] as const;
+  assertAllowedFields(
+    record,
+    [
+      'agencyId',
+      'tenantId',
+      'id',
+      'sourceUrl',
+      'sourceName',
+      'rawContent',
+      'status',
+      'reviewedAt',
+      'reviewedByUserId',
+      'publishedOfferId',
+      'createdAt',
+      'updatedAt',
+    ],
+    allowed
+  );
+
+  const data: UpdateExternalOfferCaptureInput = {};
+  if (record.normalizedTitle !== undefined) {
+    data.normalizedTitle = parseRequiredString(record.normalizedTitle, 'normalizedTitle');
+  }
+  if (record.normalizedDescription !== undefined) {
+    data.normalizedDescription = parseRequiredString(record.normalizedDescription, 'normalizedDescription');
+  }
+  if (record.foundPrice !== undefined) {
+    data.foundPrice = parseNonNegativeNumber(record.foundPrice, 'foundPrice');
+  }
+  if (record.currency !== undefined) {
+    data.currency = parseRequiredString(record.currency, 'currency');
+  }
+  if (record.validUntil !== undefined) {
+    data.validUntil = record.validUntil === null ? null : parseRequiredDate(record.validUntil, 'validUntil');
+  }
+  return data;
+}
+
 // ============================================================
 // OFFER & GROWTH ENGINE request parsers
 // ============================================================
-
-function requireStringField(body: unknown, field: string): string {
-  const record = parseObjectBody(body);
-  return parseRequiredString(record[field], field);
-}
 
 function parseCreateAssetInput(body: unknown): CreateAssetInput {
   const record = parseObjectBody(body);
@@ -3924,62 +4638,6 @@ function parseRecordRedemptionInput(body: unknown): RecordRedemptionInput {
   if (record.amountApplied !== undefined)
     data.amountApplied = parseNonNegativeNumber(record.amountApplied, 'amountApplied');
   return data;
-}
-
-function parseObjectBody(value: unknown): Record<string, unknown> {
-  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
-    throw new ValidationError('Request body must be an object');
-  }
-  return value as Record<string, unknown>;
-}
-
-function assertAllowedFields(
-  record: Record<string, unknown>,
-  forbidden: readonly string[],
-  allowed: readonly string[]
-): void {
-  for (const field of forbidden) {
-    if (field in record) {
-      throw new ValidationError(`Field "${field}" is not allowed in the request body`);
-    }
-  }
-  for (const key of Object.keys(record)) {
-    if (!allowed.includes(key)) {
-      throw new ValidationError(`Unknown field "${key}" in request body`);
-    }
-  }
-}
-
-function parseRequiredString(value: unknown, field: string): string {
-  if (typeof value !== 'string' || value.trim().length === 0) {
-    throw new ValidationError(`Field "${field}" is required and must be a non-empty string`);
-  }
-  return value;
-}
-
-function parsePositiveNumber(value: unknown, field: string): number {
-  if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) {
-    throw new ValidationError(`Field "${field}" must be a positive number`);
-  }
-  return value;
-}
-
-function parseNonNegativeNumber(value: unknown, field: string): number {
-  if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) {
-    throw new ValidationError(`Field "${field}" must be a non-negative number`);
-  }
-  return value;
-}
-
-function parseRequiredDate(value: unknown, field: string): Date {
-  if (typeof value !== 'string') {
-    throw new ValidationError(`Field "${field}" must be a date string`);
-  }
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    throw new ValidationError(`Field "${field}" must be a valid date`);
-  }
-  return date;
 }
 
 // ============================================================
@@ -4288,8 +4946,57 @@ function parseUpdateRouteInput(body: unknown): UpdateRouteInput {
 // TRANSPORTATION: Supplier
 // ============================================================
 
-const ALLOWED_SUPPLIER_CREATE_FIELDS = ['name', 'document', 'contact', 'active'] as const;
-const ALLOWED_SUPPLIER_UPDATE_FIELDS = ['name', 'document', 'contact', 'active'] as const;
+const SUPPLIER_STRING_FIELDS = [
+  'tradeName',
+  'document',
+  'contact',
+  'email',
+  'phone',
+  'website',
+  'addressLine',
+  'addressCity',
+  'addressState',
+  'addressZip',
+  'addressCountry',
+  'bankName',
+  'bankBranch',
+  'bankAccount',
+  'bankPix',
+  'paymentTerms',
+  'notes',
+] as const;
+
+const SUPPLIER_TYPE_VALUES = ['TRAVEL', 'OPERATIONAL', 'BOTH'] as const;
+
+const SUPPLIER_CATEGORY_VALUES = [
+  'AIRLINE', 'CONSOLIDATOR', 'HOTEL', 'RESORT', 'TOUR_OPERATOR', 'TRANSFER',
+  'CAR_RENTAL', 'TRAVEL_INSURANCE', 'TOUR', 'GUIDE', 'CRUISE', 'TRAIN', 'BUS',
+  'TICKET_PROVIDER', 'RECEPTIVE_OPERATOR',
+  'RENT', 'ELECTRICITY', 'WATER', 'INTERNET', 'PHONE', 'SOFTWARE', 'ACCOUNTING',
+  'LEGAL', 'MARKETING', 'OFFICE', 'CLEANING', 'MAINTENANCE', 'EQUIPMENT',
+  'BANKING', 'INSURANCE', 'OTHER',
+] as const;
+
+const ALLOWED_SUPPLIER_CREATE_FIELDS = [
+  'name',
+  'supplierType',
+  'active',
+  'categories',
+  ...SUPPLIER_STRING_FIELDS,
+] as const;
+const ALLOWED_SUPPLIER_UPDATE_FIELDS = ALLOWED_SUPPLIER_CREATE_FIELDS;
+
+function parseSupplierCategories(value: unknown): SupplierCategory[] {
+  if (!Array.isArray(value)) {
+    throw new ValidationError('Field "categories" must be an array of strings');
+  }
+  return value.map((item) => {
+    if (typeof item !== 'string' || !(SUPPLIER_CATEGORY_VALUES as readonly string[]).includes(item)) {
+      throw new ValidationError(`Invalid supplier category "${String(item)}"`);
+    }
+    return item as SupplierCategory;
+  });
+}
 
 function parseCreateSupplierInput(body: unknown): CreateSupplierInput {
   if (typeof body !== 'object' || body === null || Array.isArray(body)) {
@@ -4314,23 +5021,31 @@ function parseCreateSupplierInput(body: unknown): CreateSupplierInput {
 
   const data: CreateSupplierInput = { name: record.name };
 
-  if (record.document !== undefined) {
-    if (typeof record.document !== 'string') {
-      throw new ValidationError('Field "document" must be a string');
+  for (const field of SUPPLIER_STRING_FIELDS) {
+    if (record[field] !== undefined) {
+      if (typeof record[field] !== 'string') {
+        throw new ValidationError(`Field "${field}" must be a string`);
+      }
+      (data as unknown as Record<string, unknown>)[field] = record[field];
     }
-    data.document = record.document;
   }
-  if (record.contact !== undefined) {
-    if (typeof record.contact !== 'string') {
-      throw new ValidationError('Field "contact" must be a string');
+  if (record.supplierType !== undefined) {
+    if (
+      typeof record.supplierType !== 'string' ||
+      !(SUPPLIER_TYPE_VALUES as readonly string[]).includes(record.supplierType)
+    ) {
+      throw new ValidationError('Field "supplierType" must be one of TRAVEL, OPERATIONAL, BOTH');
     }
-    data.contact = record.contact;
+    data.supplierType = record.supplierType as SupplierType;
   }
   if (record.active !== undefined) {
     if (typeof record.active !== 'boolean') {
       throw new ValidationError('Field "active" must be a boolean');
     }
     data.active = record.active;
+  }
+  if (record.categories !== undefined) {
+    data.categories = parseSupplierCategories(record.categories);
   }
 
   return data;
@@ -4361,17 +5076,22 @@ function parseUpdateSupplierInput(body: unknown): UpdateSupplierInput {
     }
     data.name = record.name;
   }
-  if (record.document !== undefined) {
-    if (typeof record.document !== 'string') {
-      throw new ValidationError('Field "document" must be a string');
+  for (const field of SUPPLIER_STRING_FIELDS) {
+    if (record[field] !== undefined) {
+      if (typeof record[field] !== 'string') {
+        throw new ValidationError(`Field "${field}" must be a string`);
+      }
+      (data as unknown as Record<string, unknown>)[field] = record[field];
     }
-    data.document = record.document;
   }
-  if (record.contact !== undefined) {
-    if (typeof record.contact !== 'string') {
-      throw new ValidationError('Field "contact" must be a string');
+  if (record.supplierType !== undefined) {
+    if (
+      typeof record.supplierType !== 'string' ||
+      !(SUPPLIER_TYPE_VALUES as readonly string[]).includes(record.supplierType)
+    ) {
+      throw new ValidationError('Field "supplierType" must be one of TRAVEL, OPERATIONAL, BOTH');
     }
-    data.contact = record.contact;
+    data.supplierType = record.supplierType as SupplierType;
   }
   if (record.active !== undefined) {
     if (typeof record.active !== 'boolean') {
@@ -4379,12 +5099,480 @@ function parseUpdateSupplierInput(body: unknown): UpdateSupplierInput {
     }
     data.active = record.active;
   }
+  if (record.categories !== undefined) {
+    data.categories = parseSupplierCategories(record.categories);
+  }
 
   if (Object.keys(data).length === 0) {
     throw new ValidationError('At least one field must be provided');
   }
 
   return data;
+}
+
+// ============================================================
+// AIR OPERATIONS: AirService
+// ============================================================
+
+const AIR_SERVICE_STRING_FIELDS = [
+  'bookingId',
+  'supplierId',
+  'dependentId',
+  'airline',
+  'consolidator',
+  'origin',
+  'destination',
+  'departureDate',
+  'departureTime',
+  'arrivalDate',
+  'arrivalTime',
+  'flightNumber',
+  'bookingLocator',
+  'ticketNumber',
+  'baggage',
+  'seat',
+  'currency',
+  'supplierDueDate',
+  'notes',
+] as const;
+
+const AIR_SERVICE_NUMBER_FIELDS = [
+  'fare',
+  'taxes',
+  'fees',
+  'commission',
+  'cost',
+  'saleValue',
+] as const;
+
+const AIR_CABIN_CLASS_VALUES = ['ECONOMY', 'PREMIUM_ECONOMY', 'BUSINESS', 'FIRST'] as const;
+const AIR_SEGMENT_DIRECTION_VALUES = ['OUTBOUND', 'RETURN', 'INTERNAL'] as const;
+const AIR_SERVICE_STATUS_VALUES = ['PENDING', 'CONFIRMED', 'CANCELLED'] as const;
+const AIR_SUPPLIER_PAYMENT_STATUS_VALUES = [
+  'OPEN',
+  'PARTIALLY_PAID',
+  'PAID',
+  'CANCELLED',
+] as const;
+
+const ALLOWED_AIR_SERVICE_CREATE_FIELDS = [
+  'tripId',
+  'customerId',
+  'direction',
+  'sequence',
+  'cabinClass',
+  'supplierPaymentStatus',
+  'status',
+  ...AIR_SERVICE_STRING_FIELDS,
+  ...AIR_SERVICE_NUMBER_FIELDS,
+] as const;
+const ALLOWED_AIR_SERVICE_UPDATE_FIELDS = ALLOWED_AIR_SERVICE_CREATE_FIELDS;
+
+function parseCreateAirServiceInput(body: unknown): CreateAirServiceInput {
+  if (typeof body !== 'object' || body === null || Array.isArray(body)) {
+    throw new ValidationError('Request body must be an object');
+  }
+  const record = body as Record<string, unknown>;
+
+  for (const field of FORBIDDEN_ROUTE_FIELDS) {
+    if (field in record) {
+      throw new ValidationError(`Field "${field}" is not allowed in the request body`);
+    }
+  }
+  for (const key of Object.keys(record)) {
+    if (!(ALLOWED_AIR_SERVICE_CREATE_FIELDS as readonly string[]).includes(key)) {
+      throw new ValidationError(`Unknown field "${key}" in request body`);
+    }
+  }
+
+  if (typeof record.tripId !== 'string' || record.tripId.trim().length === 0) {
+    throw new ValidationError('Field "tripId" is required and must be a non-empty string');
+  }
+  if (typeof record.customerId !== 'string' || record.customerId.trim().length === 0) {
+    throw new ValidationError('Field "customerId" is required and must be a non-empty string');
+  }
+  if (typeof record.airline !== 'string' || record.airline.trim().length === 0) {
+    throw new ValidationError('Field "airline" is required and must be a non-empty string');
+  }
+  if (typeof record.origin !== 'string' || record.origin.trim().length === 0) {
+    throw new ValidationError('Field "origin" is required and must be a non-empty string');
+  }
+  if (typeof record.destination !== 'string' || record.destination.trim().length === 0) {
+    throw new ValidationError('Field "destination" is required and must be a non-empty string');
+  }
+  if (typeof record.departureDate !== 'string' || record.departureDate.trim().length === 0) {
+    throw new ValidationError('Field "departureDate" is required and must be a date string');
+  }
+  if (typeof record.arrivalDate !== 'string' || record.arrivalDate.trim().length === 0) {
+    throw new ValidationError('Field "arrivalDate" is required and must be a date string');
+  }
+
+  const data: CreateAirServiceInput = {
+    tripId: record.tripId,
+    customerId: record.customerId,
+    airline: record.airline,
+    origin: record.origin,
+    destination: record.destination,
+    departureDate: record.departureDate,
+    arrivalDate: record.arrivalDate,
+  };
+
+  applyAirServiceOptionalFields(record, data);
+
+  return data;
+}
+
+function parseUpdateAirServiceInput(body: unknown): UpdateAirServiceInput {
+  if (typeof body !== 'object' || body === null || Array.isArray(body)) {
+    throw new ValidationError('Request body must be an object');
+  }
+  const record = body as Record<string, unknown>;
+
+  for (const field of FORBIDDEN_ROUTE_FIELDS) {
+    if (field in record) {
+      throw new ValidationError(`Field "${field}" is not allowed in the request body`);
+    }
+  }
+  for (const key of Object.keys(record)) {
+    if (!(ALLOWED_AIR_SERVICE_UPDATE_FIELDS as readonly string[]).includes(key)) {
+      throw new ValidationError(`Unknown field "${key}" in request body`);
+    }
+  }
+
+  const data: UpdateAirServiceInput = {};
+
+  if (record.tripId !== undefined) {
+    if (typeof record.tripId !== 'string' || record.tripId.trim().length === 0) {
+      throw new ValidationError('Field "tripId" must be a non-empty string');
+    }
+    data.tripId = record.tripId;
+  }
+  if (record.customerId !== undefined) {
+    if (typeof record.customerId !== 'string' || record.customerId.trim().length === 0) {
+      throw new ValidationError('Field "customerId" must be a non-empty string');
+    }
+    data.customerId = record.customerId;
+  }
+  if (record.airline !== undefined) {
+    if (typeof record.airline !== 'string' || record.airline.trim().length === 0) {
+      throw new ValidationError('Field "airline" must be a non-empty string');
+    }
+    data.airline = record.airline;
+  }
+  if (record.origin !== undefined) {
+    if (typeof record.origin !== 'string' || record.origin.trim().length === 0) {
+      throw new ValidationError('Field "origin" must be a non-empty string');
+    }
+    data.origin = record.origin;
+  }
+  if (record.destination !== undefined) {
+    if (typeof record.destination !== 'string' || record.destination.trim().length === 0) {
+      throw new ValidationError('Field "destination" must be a non-empty string');
+    }
+    data.destination = record.destination;
+  }
+  if (record.departureDate !== undefined) {
+    if (typeof record.departureDate !== 'string' || record.departureDate.trim().length === 0) {
+      throw new ValidationError('Field "departureDate" must be a date string');
+    }
+    data.departureDate = record.departureDate;
+  }
+  if (record.arrivalDate !== undefined) {
+    if (typeof record.arrivalDate !== 'string' || record.arrivalDate.trim().length === 0) {
+      throw new ValidationError('Field "arrivalDate" must be a date string');
+    }
+    data.arrivalDate = record.arrivalDate;
+  }
+
+  applyAirServiceOptionalFields(record, data);
+
+  if (Object.keys(data).length === 0) {
+    throw new ValidationError('At least one field must be provided');
+  }
+
+  return data;
+}
+
+function applyAirServiceOptionalFields(
+  record: Record<string, unknown>,
+  data: CreateAirServiceInput | UpdateAirServiceInput,
+): void {
+  const target = data as unknown as Record<string, unknown>;
+
+  for (const field of AIR_SERVICE_STRING_FIELDS) {
+    if (record[field] !== undefined) {
+      if (typeof record[field] !== 'string') {
+        throw new ValidationError(`Field "${field}" must be a string`);
+      }
+      target[field] = record[field];
+    }
+  }
+  for (const field of AIR_SERVICE_NUMBER_FIELDS) {
+    const value = record[field];
+    if (value !== undefined) {
+      if (typeof value !== 'number' || Number.isNaN(value) || value < 0) {
+        throw new ValidationError(`Field "${field}" must be a non-negative number`);
+      }
+      target[field] = value;
+    }
+  }
+  if (record.sequence !== undefined) {
+    if (typeof record.sequence !== 'number' || !Number.isInteger(record.sequence) || record.sequence < 1) {
+      throw new ValidationError('Field "sequence" must be a positive integer');
+    }
+    target.sequence = record.sequence;
+  }
+  if (record.direction !== undefined) {
+    if (
+      typeof record.direction !== 'string' ||
+      !(AIR_SEGMENT_DIRECTION_VALUES as readonly string[]).includes(record.direction)
+    ) {
+      throw new ValidationError('Field "direction" must be one of OUTBOUND, RETURN, INTERNAL');
+    }
+    target.direction = record.direction;
+  }
+  if (record.cabinClass !== undefined) {
+    if (
+      typeof record.cabinClass !== 'string' ||
+      !(AIR_CABIN_CLASS_VALUES as readonly string[]).includes(record.cabinClass)
+    ) {
+      throw new ValidationError('Field "cabinClass" must be one of ECONOMY, PREMIUM_ECONOMY, BUSINESS, FIRST');
+    }
+    target.cabinClass = record.cabinClass;
+  }
+  if (record.status !== undefined) {
+    if (
+      typeof record.status !== 'string' ||
+      !(AIR_SERVICE_STATUS_VALUES as readonly string[]).includes(record.status)
+    ) {
+      throw new ValidationError('Field "status" must be one of PENDING, CONFIRMED, CANCELLED');
+    }
+    target.status = record.status;
+  }
+  if (record.supplierPaymentStatus !== undefined) {
+    if (
+      typeof record.supplierPaymentStatus !== 'string' ||
+      !(AIR_SUPPLIER_PAYMENT_STATUS_VALUES as readonly string[]).includes(record.supplierPaymentStatus)
+    ) {
+      throw new ValidationError(
+        'Field "supplierPaymentStatus" must be one of OPEN, PARTIALLY_PAID, PAID, CANCELLED',
+      );
+    }
+    target.supplierPaymentStatus = record.supplierPaymentStatus;
+  }
+}
+
+// ============================================================
+// LAND OPERATIONS: LandService
+// ============================================================
+
+const LAND_SERVICE_STRING_FIELDS = [
+  'bookingId',
+  'supplierId',
+  'dependentId',
+  'description',
+  'startDate',
+  'endDate',
+  'currency',
+  'supplierDueDate',
+  'confirmationNumber',
+  'notes',
+] as const;
+
+const LAND_SERVICE_NUMBER_FIELDS = [
+  'quantity',
+  'cost',
+  'saleValue',
+  'taxes',
+  'fees',
+  'commission',
+] as const;
+
+const LAND_SERVICE_TYPE_VALUES = [
+  'ACCOMMODATION', 'TRANSFER', 'CAR_RENTAL', 'TOUR', 'TRAVEL_INSURANCE',
+  'CRUISE', 'TRAIN', 'BUS', 'GUIDE', 'TICKET', 'RECEPTIVE', 'OTHER',
+] as const;
+const LAND_SERVICE_STATUS_VALUES = ['PENDING', 'CONFIRMED', 'CANCELLED'] as const;
+const LAND_SUPPLIER_PAYMENT_STATUS_VALUES = [
+  'OPEN',
+  'PARTIALLY_PAID',
+  'PAID',
+  'CANCELLED',
+] as const;
+
+const ALLOWED_LAND_SERVICE_CREATE_FIELDS = [
+  'tripId',
+  'customerId',
+  'serviceType',
+  'supplierPaymentStatus',
+  'status',
+  ...LAND_SERVICE_STRING_FIELDS,
+  ...LAND_SERVICE_NUMBER_FIELDS,
+] as const;
+const ALLOWED_LAND_SERVICE_UPDATE_FIELDS = ALLOWED_LAND_SERVICE_CREATE_FIELDS;
+
+function parseCreateLandServiceInput(body: unknown): CreateLandServiceInput {
+  if (typeof body !== 'object' || body === null || Array.isArray(body)) {
+    throw new ValidationError('Request body must be an object');
+  }
+  const record = body as Record<string, unknown>;
+
+  for (const field of FORBIDDEN_ROUTE_FIELDS) {
+    if (field in record) {
+      throw new ValidationError(`Field "${field}" is not allowed in the request body`);
+    }
+  }
+  for (const key of Object.keys(record)) {
+    if (!(ALLOWED_LAND_SERVICE_CREATE_FIELDS as readonly string[]).includes(key)) {
+      throw new ValidationError(`Unknown field "${key}" in request body`);
+    }
+  }
+
+  if (typeof record.tripId !== 'string' || record.tripId.trim().length === 0) {
+    throw new ValidationError('Field "tripId" is required and must be a non-empty string');
+  }
+  if (typeof record.customerId !== 'string' || record.customerId.trim().length === 0) {
+    throw new ValidationError('Field "customerId" is required and must be a non-empty string');
+  }
+  if (typeof record.description !== 'string' || record.description.trim().length === 0) {
+    throw new ValidationError('Field "description" is required and must be a non-empty string');
+  }
+  if (typeof record.startDate !== 'string' || record.startDate.trim().length === 0) {
+    throw new ValidationError('Field "startDate" is required and must be a date string');
+  }
+  if (typeof record.endDate !== 'string' || record.endDate.trim().length === 0) {
+    throw new ValidationError('Field "endDate" is required and must be a date string');
+  }
+
+  const data: CreateLandServiceInput = {
+    tripId: record.tripId,
+    customerId: record.customerId,
+    description: record.description,
+    startDate: record.startDate,
+    endDate: record.endDate,
+  };
+
+  applyLandServiceOptionalFields(record, data);
+
+  return data;
+}
+
+function parseUpdateLandServiceInput(body: unknown): UpdateLandServiceInput {
+  if (typeof body !== 'object' || body === null || Array.isArray(body)) {
+    throw new ValidationError('Request body must be an object');
+  }
+  const record = body as Record<string, unknown>;
+
+  for (const field of FORBIDDEN_ROUTE_FIELDS) {
+    if (field in record) {
+      throw new ValidationError(`Field "${field}" is not allowed in the request body`);
+    }
+  }
+  for (const key of Object.keys(record)) {
+    if (!(ALLOWED_LAND_SERVICE_UPDATE_FIELDS as readonly string[]).includes(key)) {
+      throw new ValidationError(`Unknown field "${key}" in request body`);
+    }
+  }
+
+  const data: UpdateLandServiceInput = {};
+
+  if (record.tripId !== undefined) {
+    if (typeof record.tripId !== 'string' || record.tripId.trim().length === 0) {
+      throw new ValidationError('Field "tripId" must be a non-empty string');
+    }
+    data.tripId = record.tripId;
+  }
+  if (record.customerId !== undefined) {
+    if (typeof record.customerId !== 'string' || record.customerId.trim().length === 0) {
+      throw new ValidationError('Field "customerId" must be a non-empty string');
+    }
+    data.customerId = record.customerId;
+  }
+  if (record.description !== undefined) {
+    if (typeof record.description !== 'string' || record.description.trim().length === 0) {
+      throw new ValidationError('Field "description" must be a non-empty string');
+    }
+    data.description = record.description;
+  }
+  if (record.startDate !== undefined) {
+    if (typeof record.startDate !== 'string' || record.startDate.trim().length === 0) {
+      throw new ValidationError('Field "startDate" must be a date string');
+    }
+    data.startDate = record.startDate;
+  }
+  if (record.endDate !== undefined) {
+    if (typeof record.endDate !== 'string' || record.endDate.trim().length === 0) {
+      throw new ValidationError('Field "endDate" must be a date string');
+    }
+    data.endDate = record.endDate;
+  }
+
+  applyLandServiceOptionalFields(record, data);
+
+  if (Object.keys(data).length === 0) {
+    throw new ValidationError('At least one field must be provided');
+  }
+
+  return data;
+}
+
+function applyLandServiceOptionalFields(
+  record: Record<string, unknown>,
+  data: CreateLandServiceInput | UpdateLandServiceInput,
+): void {
+  const target = data as unknown as Record<string, unknown>;
+
+  for (const field of LAND_SERVICE_STRING_FIELDS) {
+    if (record[field] !== undefined) {
+      if (typeof record[field] !== 'string') {
+        throw new ValidationError(`Field "${field}" must be a string`);
+      }
+      target[field] = record[field];
+    }
+  }
+  for (const field of LAND_SERVICE_NUMBER_FIELDS) {
+    const value = record[field];
+    if (value !== undefined) {
+      if (typeof value !== 'number' || Number.isNaN(value) || value < 0) {
+        throw new ValidationError(`Field "${field}" must be a non-negative number`);
+      }
+      if (field === 'quantity' && value <= 0) {
+        throw new ValidationError('Field "quantity" must be a positive number');
+      }
+      target[field] = value;
+    }
+  }
+  if (record.serviceType !== undefined) {
+    if (
+      typeof record.serviceType !== 'string' ||
+      !(LAND_SERVICE_TYPE_VALUES as readonly string[]).includes(record.serviceType)
+    ) {
+      throw new ValidationError(
+        `Field "serviceType" must be one of ${LAND_SERVICE_TYPE_VALUES.join(', ')}`,
+      );
+    }
+    target.serviceType = record.serviceType;
+  }
+  if (record.status !== undefined) {
+    if (
+      typeof record.status !== 'string' ||
+      !(LAND_SERVICE_STATUS_VALUES as readonly string[]).includes(record.status)
+    ) {
+      throw new ValidationError('Field "status" must be one of PENDING, CONFIRMED, CANCELLED');
+    }
+    target.status = record.status;
+  }
+  if (record.supplierPaymentStatus !== undefined) {
+    if (
+      typeof record.supplierPaymentStatus !== 'string' ||
+      !(LAND_SUPPLIER_PAYMENT_STATUS_VALUES as readonly string[]).includes(record.supplierPaymentStatus)
+    ) {
+      throw new ValidationError(
+        'Field "supplierPaymentStatus" must be one of OPEN, PARTIALLY_PAID, PAID, CANCELLED',
+      );
+    }
+    target.supplierPaymentStatus = record.supplierPaymentStatus;
+  }
 }
 
 // ============================================================
@@ -5034,4 +6222,485 @@ function parseCancelBookingInput(body: unknown): Omit<CancelBookingInput, 'userI
   }
   const reason = record.reason.trim();
   return reason.length > 0 ? { reason } : {};
+}
+
+// ============================================================
+// FINANCIAL MODULE PARSERS
+// ============================================================
+
+function parseCreateFinancialCategoryInput(body: unknown): CreateFinancialCategoryInput {
+  const record = parseObjectBody(body);
+  const name = parseRequiredString(record.name, 'name');
+  const type = record.type as string;
+  if (!type || !['REVENUE', 'EXPENSE'].includes(type)) {
+    throw new ValidationError('Field "type" must be REVENUE or EXPENSE');
+  }
+  let description: string | undefined;
+  if (typeof record.description === 'string') {
+    const trimmed = record.description.trim();
+    description = trimmed.length > 0 ? trimmed : undefined;
+  }
+  let parentCategoryId: string | undefined;
+  if (typeof record.parentCategoryId === 'string' && record.parentCategoryId.trim().length > 0) {
+    parentCategoryId = record.parentCategoryId.trim();
+  }
+
+  return {
+    name,
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    type: type as FinancialCategoryType,
+    description,
+    parentCategoryId,
+  };
+}
+
+function parseCreateCostCenterInput(body: unknown): CreateCostCenterInput {
+  const record = parseObjectBody(body);
+  const name = parseRequiredString(record.name, 'name');
+  let code: string | undefined;
+  if (typeof record.code === 'string' && record.code.trim().length > 0) {
+    code = record.code.trim();
+  }
+  let description: string | undefined;
+  if (typeof record.description === 'string' && record.description.trim().length > 0) {
+    description = record.description.trim();
+  }
+  return { name, code, description };
+}
+
+function parseUpdateCostCenterInput(body: unknown): UpdateCostCenterInput {
+  const record = parseObjectBody(body);
+  const data: UpdateCostCenterInput = {};
+  if (typeof record.name === 'string') {
+    data.name = parseRequiredString(record.name, 'name');
+  }
+  if (record.code !== undefined) {
+    data.code = typeof record.code === 'string' && record.code.trim().length > 0
+      ? record.code.trim()
+      : undefined;
+  }
+  if (record.description !== undefined) {
+    data.description = typeof record.description === 'string' && record.description.trim().length > 0
+      ? record.description.trim()
+      : undefined;
+  }
+  if (typeof record.active === 'boolean') {
+    data.active = record.active;
+  }
+  return data;
+}
+
+function optionalTrimmedString(value: unknown): string | undefined {
+  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : undefined;
+}
+
+function optionalNumber(value: unknown): number | undefined {
+  return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
+}
+
+function parseCreateCommissionPlanInput(body: unknown): CreateCommissionPlanInput {
+  const record = parseObjectBody(body);
+  const name = parseRequiredString(record.name, 'name');
+  const calculationType = record.calculationType as CreateCommissionPlanInput['calculationType'];
+  if (
+    !calculationType ||
+    !['PERCENT_SALE', 'PERCENT_MARGIN', 'FIXED', 'PRODUCT', 'DESTINATION', 'TIERED_TARGET'].includes(
+      calculationType,
+    )
+  ) {
+    throw new ValidationError('Field "calculationType" is invalid');
+  }
+  return {
+    name,
+    calculationType,
+    percentage: optionalNumber(record.percentage),
+    fixedAmount: optionalNumber(record.fixedAmount),
+    rules:
+      typeof record.rules === 'object' && record.rules !== null
+        ? (record.rules as Record<string, unknown>)
+        : undefined,
+    active: typeof record.active === 'boolean' ? record.active : undefined,
+    validFrom: optionalTrimmedString(record.validFrom),
+    validUntil: optionalTrimmedString(record.validUntil),
+  };
+}
+
+function parseUpdateCommissionPlanInput(body: unknown): UpdateCommissionPlanInput {
+  const record = parseObjectBody(body);
+  const data: UpdateCommissionPlanInput = {};
+  if (typeof record.name === 'string') {
+    data.name = parseRequiredString(record.name, 'name');
+  }
+  if (record.calculationType !== undefined) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    data.calculationType = record.calculationType as CreateCommissionPlanInput['calculationType'];
+  }
+  if (record.percentage !== undefined) {
+    data.percentage = optionalNumber(record.percentage);
+  }
+  if (record.fixedAmount !== undefined) {
+    data.fixedAmount = optionalNumber(record.fixedAmount);
+  }
+  if (record.rules !== undefined) {
+    data.rules =
+      typeof record.rules === 'object' && record.rules !== null
+        ? (record.rules as Record<string, unknown>)
+        : undefined;
+  }
+  if (typeof record.active === 'boolean') {
+    data.active = record.active;
+  }
+  if (record.validFrom !== undefined) {
+    data.validFrom = optionalTrimmedString(record.validFrom);
+  }
+  if (record.validUntil !== undefined) {
+    data.validUntil = optionalTrimmedString(record.validUntil);
+  }
+  return data;
+}
+
+const EMPLOYEE_STRING_FIELDS = [
+  'cpf',
+  'rg',
+  'birthDate',
+  'addressLine',
+  'addressCity',
+  'addressState',
+  'addressZipCode',
+  'phone',
+  'email',
+  'hireDate',
+  'terminationDate',
+  'roleTitle',
+  'department',
+  'costCenterId',
+  'managerId',
+  'bankName',
+  'bankBranch',
+  'bankAccount',
+  'bankPixKey',
+  'notes',
+  'userId',
+  'defaultCommissionPlanId',
+] as const;
+
+function parseCreateEmployeeInput(body: unknown): CreateEmployeeInput {
+  const record = parseObjectBody(body);
+  const name = parseRequiredString(record.name, 'name');
+
+  if (
+    record.employmentType !== undefined &&
+    !['EMPLOYEE', 'CONTRACTOR', 'PARTNER', 'FREELANCER', 'OTHER'].includes(
+      record.employmentType as string,
+    )
+  ) {
+    throw new ValidationError('Field "employmentType" is invalid');
+  }
+  if (
+    record.status !== undefined &&
+    !['ACTIVE', 'INACTIVE', 'ON_LEAVE', 'TERMINATED'].includes(record.status as string)
+  ) {
+    throw new ValidationError('Field "status" is invalid');
+  }
+
+  const data: CreateEmployeeInput = { name };
+  for (const field of EMPLOYEE_STRING_FIELDS) {
+    data[field] = optionalTrimmedString(record[field]);
+  }
+  if (record.employmentType !== undefined) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    data.employmentType = record.employmentType as CreateEmployeeInput['employmentType'];
+  }
+  if (record.status !== undefined) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    data.status = record.status as CreateEmployeeInput['status'];
+  }
+  data.baseSalary = optionalNumber(record.baseSalary);
+  return data;
+}
+
+function parseUpdateEmployeeInput(body: unknown): UpdateEmployeeInput {
+  const record = parseObjectBody(body);
+  const data: UpdateEmployeeInput = {};
+  if (typeof record.name === 'string') {
+    data.name = parseRequiredString(record.name, 'name');
+  }
+  if (
+    record.employmentType !== undefined &&
+    !['EMPLOYEE', 'CONTRACTOR', 'PARTNER', 'FREELANCER', 'OTHER'].includes(
+      record.employmentType as string,
+    )
+  ) {
+    throw new ValidationError('Field "employmentType" is invalid');
+  }
+  if (
+    record.status !== undefined &&
+    !['ACTIVE', 'INACTIVE', 'ON_LEAVE', 'TERMINATED'].includes(record.status as string)
+  ) {
+    throw new ValidationError('Field "status" is invalid');
+  }
+  for (const field of EMPLOYEE_STRING_FIELDS) {
+    if (record[field] !== undefined) {
+      data[field] = optionalTrimmedString(record[field]);
+    }
+  }
+  if (record.employmentType !== undefined) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    data.employmentType = record.employmentType as CreateEmployeeInput['employmentType'];
+  }
+  if (record.status !== undefined) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    data.status = record.status as CreateEmployeeInput['status'];
+  }
+  if (record.baseSalary !== undefined) {
+    data.baseSalary = optionalNumber(record.baseSalary);
+  }
+  return data;
+}
+
+function parseGenerateCommissionInput(body: unknown): GenerateCommissionInput {
+  const record = parseObjectBody(body);
+  const saleId = parseRequiredString(record.saleId, 'saleId');
+  const employeeId = parseRequiredString(record.employeeId, 'employeeId');
+  return {
+    saleId,
+    employeeId,
+    commissionPlanId: optionalTrimmedString(record.commissionPlanId),
+    notes: optionalTrimmedString(record.notes),
+  };
+}
+
+function parseCreateEmployeeDeductionInput(body: unknown): CreateEmployeeDeductionInput {
+  const record = parseObjectBody(body);
+  const employeeId = parseRequiredString(record.employeeId, 'employeeId');
+  const competence = parseRequiredString(record.competence, 'competence');
+  const type = record.type as CreateEmployeeDeductionInput['type'];
+  if (!type || !['ADVANCE', 'ABSENCE', 'BENEFIT', 'LOAN', 'ADJUSTMENT', 'OTHER'].includes(type)) {
+    throw new ValidationError('Field "type" is invalid');
+  }
+  const amount = optionalNumber(record.amount);
+  if (amount === undefined) {
+    throw new ValidationError('Field "amount" is required');
+  }
+  return {
+    employeeId,
+    competence,
+    type,
+    description: optionalTrimmedString(record.description),
+    amount,
+    notes: optionalTrimmedString(record.notes),
+  };
+}
+
+function parseGeneratePayrollInput(body: unknown): GeneratePayrollInput {
+  const record = parseObjectBody(body);
+  const employeeId = parseRequiredString(record.employeeId, 'employeeId');
+  const competence = parseRequiredString(record.competence, 'competence');
+  return {
+    employeeId,
+    competence,
+    benefits: optionalNumber(record.benefits),
+    bonuses: optionalNumber(record.bonuses),
+    reimbursements: optionalNumber(record.reimbursements),
+    additions: optionalNumber(record.additions),
+    dueDate: optionalTrimmedString(record.dueDate),
+    notes: optionalTrimmedString(record.notes),
+  };
+}
+
+function parseCreateRevenueInput(body: unknown): CreateRevenueInput {
+  const record = parseObjectBody(body);
+  const customerId = parseRequiredString(record.customerId, 'customerId');
+  const categoryId = parseRequiredString(record.categoryId, 'categoryId');
+  const description = parseRequiredString(record.description, 'description');
+  const amount = parsePositiveNumber(record.amount, 'amount');
+  const competencyDate = parseRequiredDate(record.competencyDate, 'competencyDate');
+  const dueDate = parseRequiredDate(record.dueDate, 'dueDate');
+  const saleId = typeof record.saleId === 'string' ? record.saleId : undefined;
+  const bookingId = typeof record.bookingId === 'string' ? record.bookingId : undefined;
+  const currency = typeof record.currency === 'string' ? record.currency : 'BRL';
+  let paymentMethod: string | undefined;
+  if (typeof record.paymentMethod === 'string') {
+    const trimmed = record.paymentMethod.trim();
+    paymentMethod = trimmed.length > 0 ? trimmed : undefined;
+  }
+  let notes: string | undefined;
+  if (typeof record.notes === 'string') {
+    const trimmed = record.notes.trim();
+    notes = trimmed.length > 0 ? trimmed : undefined;
+  }
+
+  return {
+    customerId,
+    categoryId,
+    description,
+    amount,
+    competencyDate,
+    dueDate,
+    saleId,
+    bookingId,
+    currency,
+    paymentMethod,
+    notes,
+  };
+}
+
+function parseUpdateRevenueInput(body: unknown): UpdateRevenueInput {
+  const record = parseObjectBody(body);
+  const result: UpdateRevenueInput = {};
+
+  if (record.categoryId !== undefined) {
+    result.categoryId = parseRequiredString(record.categoryId, 'categoryId');
+  }
+  if (record.description !== undefined) {
+    result.description = parseRequiredString(record.description, 'description');
+  }
+  if (record.dueDate !== undefined) {
+    result.dueDate = parseRequiredDate(record.dueDate, 'dueDate');
+  }
+  if (record.paymentMethod !== undefined && typeof record.paymentMethod === 'string') {
+    const trimmed = record.paymentMethod.trim();
+    if (trimmed.length > 0) {
+      result.paymentMethod = trimmed;
+    }
+  }
+  if (record.notes !== undefined && typeof record.notes === 'string') {
+    const trimmed = record.notes.trim();
+    if (trimmed.length > 0) {
+      result.notes = trimmed;
+    }
+  }
+
+  return result;
+}
+
+function parseCreateExpenseInput(body: unknown): CreateExpenseInput {
+  const record = parseObjectBody(body);
+  const categoryId = parseRequiredString(record.categoryId, 'categoryId');
+  const description = parseRequiredString(record.description, 'description');
+  const amount = parsePositiveNumber(record.amount, 'amount');
+  const incurredAt = parseRequiredDate(record.incurredAt, 'incurredAt');
+  const dueDate = parseRequiredDate(record.dueDate, 'dueDate');
+  const supplierId = typeof record.supplierId === 'string' ? record.supplierId : undefined;
+  const currency = typeof record.currency === 'string' ? record.currency : 'BRL';
+  let paymentMethod: string | undefined;
+  if (typeof record.paymentMethod === 'string') {
+    const trimmed = record.paymentMethod.trim();
+    paymentMethod = trimmed.length > 0 ? trimmed : undefined;
+  }
+  let recurrence: string | undefined;
+  if (typeof record.recurrence === 'string') {
+    const trimmed = record.recurrence.trim();
+    recurrence = trimmed.length > 0 ? trimmed : undefined;
+  }
+  let notes: string | undefined;
+  if (typeof record.notes === 'string') {
+    const trimmed = record.notes.trim();
+    notes = trimmed.length > 0 ? trimmed : undefined;
+  }
+  const costCenterId = typeof record.costCenterId === 'string' ? record.costCenterId : undefined;
+
+  return {
+    categoryId,
+    description,
+    amount,
+    incurredAt,
+    dueDate,
+    supplierId,
+    currency,
+    paymentMethod,
+    recurrence,
+    notes,
+    costCenterId,
+  };
+}
+
+function parseUpdateExpenseInput(body: unknown): UpdateExpenseInput {
+  const record = parseObjectBody(body);
+  const result: UpdateExpenseInput = {};
+
+  if (record.categoryId !== undefined) {
+    result.categoryId = parseRequiredString(record.categoryId, 'categoryId');
+  }
+  if (record.description !== undefined) {
+    result.description = parseRequiredString(record.description, 'description');
+  }
+  if (record.dueDate !== undefined) {
+    result.dueDate = parseRequiredDate(record.dueDate, 'dueDate');
+  }
+  if (record.paymentMethod !== undefined && typeof record.paymentMethod === 'string') {
+    const trimmed = record.paymentMethod.trim();
+    if (trimmed.length > 0) {
+      result.paymentMethod = trimmed;
+    }
+  }
+  if (record.recurrence !== undefined && typeof record.recurrence === 'string') {
+    const trimmed = record.recurrence.trim();
+    if (trimmed.length > 0) {
+      result.recurrence = trimmed;
+    }
+  }
+  if (record.notes !== undefined && typeof record.notes === 'string') {
+    const trimmed = record.notes.trim();
+    if (trimmed.length > 0) {
+      result.notes = trimmed;
+    }
+  }
+
+  return result;
+}
+
+function parseCreateCashTransactionInput(body: unknown): CreateCashTransactionInput {
+  const record = parseObjectBody(body);
+  const type = record.type as string;
+  if (!type || !['ENTRY', 'EXIT', 'ADJUSTMENT'].includes(type)) {
+    throw new ValidationError('Field "type" must be ENTRY, EXIT, or ADJUSTMENT');
+  }
+  const amount = parsePositiveNumber(record.amount, 'amount');
+  const occurringAt = parseRequiredDate(record.occurringAt, 'occurringAt');
+  const origin = parseRequiredString(record.origin, 'origin');
+  const relatedRecordId =
+    typeof record.relatedRecordId === 'string' ? record.relatedRecordId : undefined;
+  const relatedRecordType =
+    typeof record.relatedRecordType === 'string' ? record.relatedRecordType : undefined;
+  let notes: string | undefined;
+  if (typeof record.notes === 'string') {
+    const trimmed = record.notes.trim();
+    notes = trimmed.length > 0 ? trimmed : undefined;
+  }
+
+  return {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    type: type as CashTransactionType,
+    amount,
+    occurringAt,
+    origin,
+    relatedRecordId,
+    relatedRecordType,
+    notes,
+  };
+}
+
+function parseCreateReconciliationInput(body: unknown): CreateReconciliationInput {
+  const record = parseObjectBody(body);
+  const reconciliationDate = parseRequiredDate(
+    record.reconciliationDate,
+    'reconciliationDate'
+  );
+  const expectedAmount = parseNonNegativeNumber(record.expectedAmount, 'expectedAmount');
+  const actualAmount = parseNonNegativeNumber(record.actualAmount, 'actualAmount');
+  const paymentId = typeof record.paymentId === 'string' ? record.paymentId : undefined;
+  let notes: string | undefined;
+  if (typeof record.notes === 'string') {
+    const trimmed = record.notes.trim();
+    notes = trimmed.length > 0 ? trimmed : undefined;
+  }
+
+  return {
+    reconciliationDate,
+    expectedAmount,
+    actualAmount,
+    paymentId,
+    notes,
+  };
 }

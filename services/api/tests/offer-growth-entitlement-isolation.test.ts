@@ -277,8 +277,8 @@ function assertSafeTestDatabase(): void {
   if (!['127.0.0.1', 'localhost'].includes(databaseHost)) {
     throw new Error('Entitlement isolation test requires localhost only.');
   }
-  if (databasePort !== 55432) {
-    throw new Error('Entitlement isolation test requires local port 55432.');
+  if (!Number.isInteger(databasePort) || databasePort < 1024 || databasePort > 65535) {
+    throw new Error('Entitlement isolation test requires a safe local database test port.');
   }
   if (!databaseName.includes('test')) {
     throw new Error('Entitlement isolation test requires a database name with a test marker.');

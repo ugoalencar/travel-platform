@@ -36,7 +36,7 @@ export const CREATIVE_BINDING_SOURCE_LABELS: Record<CreativeBinding['source'], s
   manual: 'Conteúdo fixo',
   offer: 'Oferta',
   brand: 'Agência',
-  asset: 'Asset',
+  asset: 'Arquivo',
 };
 
 export const ASSET_TYPE_LABELS: Record<AssetType, string> = {

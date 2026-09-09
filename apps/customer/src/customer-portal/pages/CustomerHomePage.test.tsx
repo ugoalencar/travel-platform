@@ -2,7 +2,13 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { CustomerHomePage } from './CustomerHomePage';
-import type { CustomerProfile, CustomerBookingView, CustomerProposalView } from '../../types/customer-portal';
+import type {
+  CustomerProfile,
+  CustomerBookingView,
+  CustomerProposalView,
+  CustomerDocumentView,
+  CustomerPaymentScheduleItem,
+} from '../../types/customer-portal';
 import type { Trip } from '../../types/trip';
 import type { Offer } from '../../types/offer';
 
@@ -22,6 +28,8 @@ vi.mock('../../lib/customerApi', () => {
     listAvailableOffers: vi.fn(),
     listMyBookings: vi.fn(),
     listMyProposals: vi.fn(),
+    listMyDocuments: vi.fn(),
+    listMyPaymentSchedule: vi.fn(),
     ApiError: MockApiError,
   };
 });
@@ -115,6 +123,9 @@ const proposals: CustomerProposalView[] = [
   },
 ];
 
+const documents: CustomerDocumentView[] = [];
+const paymentSchedule: CustomerPaymentScheduleItem[] = [];
+
 describe('CustomerHomePage', () => {
   it('greets the customer by first name and shows real, non-fabricated counters', async () => {
     const api = await import('../../lib/customerApi');
@@ -123,6 +134,8 @@ describe('CustomerHomePage', () => {
     vi.mocked(api.listAvailableOffers).mockResolvedValue(offers);
     vi.mocked(api.listMyBookings).mockResolvedValue(bookings);
     vi.mocked(api.listMyProposals).mockResolvedValue(proposals);
+    vi.mocked(api.listMyDocuments).mockResolvedValue(documents);
+    vi.mocked(api.listMyPaymentSchedule).mockResolvedValue(paymentSchedule);
 
     render(
       <MemoryRouter initialEntries={['/customer-portal/home']}>
@@ -133,7 +146,7 @@ describe('CustomerHomePage', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('Olá, Maria!')).toBeInTheDocument();
+      expect(screen.getByText(/Olá, Maria!/)).toBeInTheDocument();
     });
     expect(screen.getByText('Viagem a Fortaleza')).toBeInTheDocument();
     // Only 1 of the 2 mocked bookings is future/active -- the counter must

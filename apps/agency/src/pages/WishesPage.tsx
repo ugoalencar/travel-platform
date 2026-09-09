@@ -125,20 +125,26 @@ export function WishesPage() {
 
       <div className="flex items-center gap-3">
         <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <label htmlFor="wishes-search" className="sr-only">
+            Buscar desejos
+          </label>
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />
           <Input
+            id="wishes-search"
             placeholder="Buscar por destino ou cliente…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9"
+            aria-label="Buscar desejos"
           />
         </div>
-        <div className="flex flex-wrap rounded-md border border-slate-200 bg-white p-0.5">
+        <div className="flex flex-wrap rounded-md border border-slate-200 bg-white p-0.5" role="group" aria-label="Filtrar por status">
           {(['ALL', 'ACTIVE', 'MATCHED', 'PROPOSED', 'FULFILLED'] as const).map((opt) => (
             <button
               key={opt}
               type="button"
               onClick={() => setFilter(opt)}
+              aria-pressed={filter === opt}
               className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
                 filter === opt
                   ? 'bg-slate-900 text-white'

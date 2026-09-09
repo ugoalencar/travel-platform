@@ -32,6 +32,704 @@ datasource db {
 //   - Runtime role grants (travel_app_runtime_local, no BYPASSRLS)
 // ============================================================
 
+// ============================================================
+// PLATFORM-LEVEL MODELS (SaaS Control Plane)
+// These are NOT tenant-scoped and managed by platform admins
+// No agency_id on any of these tables
+// ============================================================
+
+enum PlatformUserRole {
+  PLATFORM_OWNER
+  PLATFORM_ADMIN
+  SUPPORT_ADMIN
+  BILLING_ADMIN
+  MARKETING_ADMIN
+  READ_ONLY_AUDITOR
+}
+
+enum SubscriptionStatus {
+  TRIAL
+  ACTIVE
+  PAST_DUE
+  GRACE_PERIOD
+  SUSPENDED
+  CANCELLED
+  COURTESY
+}
+
+enum BillingStatus {
+  ACTIVE
+  PAST_DUE
+  SUSPENDED
+  FAILED
+}
+
+enum CourtesyStatus {
+  NONE
+  ACTIVE
+  EXPIRED
+  CONVERTED
+}
+
+enum BillingInterval {
+  MONTHLY
+  YEARLY
+  QUARTERLY
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  VIEWED
+  PAID
+  PARTIAL
+  OVERDUE
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  SUCCEEDED
+  FAILED
+  CANCELLED
+  REFUNDED
+}
+
+enum DiscountType {
+  PERCENTAGE
+  FIXED_AMOUNT
+  FREE_TRIAL_EXTENSION
+}
+
+enum CouponStatus {
+  ACTIVE
+  INACTIVE
+  EXPIRED
+  EXHAUSTED
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  DEMO_SCHEDULED
+  TRIAL
+  WON
+  LOST
+}
+
+enum FeatureFlagScope {
+  GLOBAL
+  PLAN_ID
+  TENANT_ID
+  USER_ID
+}
+
+enum AuditActionType {
+  CREATED
+  UPDATED
+  DELETED
+  SUSPENDED
+  REACTIVATED
+  GRANTED
+  REVOKED
+  PUBLISHED
+  ARCHIVED
+  IMPERSONATED
+  LOGIN
+  LOGOUT
+  MFA_ENABLED
+  MFA_DISABLED
+  PASSWORD_CHANGED
+  WEBHOOK_PROCESSED
+  PAYMENT_PROCESSED
+}
+
+model PlatformUsers {
+  id            String                @id @default(dbgenerated("(gen_random_uuid())::text"))
+  email         String                @unique
+  passwordHash  String                @map("password_hash")
+  role          PlatformUserRole
+  mfaEnabled    Boolean               @default(false) @map("mfa_enabled")
+  mfaSecret     String?               @map("mfa_secret")
+  lastLoginAt   DateTime?             @map("last_login_at") @db.Timestamptz(6)
+  status        String                @default("ACTIVE")
+  createdAt     DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime              @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relations
+  platformUserAudits     PlatformUserAudit[]
+  subscriberTenantAudits SubscriberTenantAudit[]
+  courtesyAccountAudits  CourtesyAccountAudit[]
+  platformAuditLogs      PlatformAuditLogs[]
+  leadsAssignedTo        Leads[]
+  plansCreatedBy         Plans[]
+  campaignsCreatedBy     PromotionalCampaigns[]
+  couponsCreatedBy       Coupons[]
+  featureFlagsCreatedBy  FeatureFlags[]
+  loginAudits            LoginAudit[]
+
+  @@map("platform_users")
+}
+
+model SubscriberTenants {
+  id                    String                @id @default(dbgenerated("(gen_random_uuid())::text"))
+  agencyId              String                @unique @map("agency_id")
+  contactName           String                @map("contact_name")
+  contactEmail          String                @map("contact_email")
+  contactPhone          String?               @map("contact_phone")
+  legalName             String                @map("legal_name")
+  tradeName             String?               @map("trade_name")
+  cnpj                  String?
+  planId                String?               @map("plan_id")
+  subscriptionStatus    SubscriptionStatus    @default(TRIAL) @map("subscription_status")
+  trialsStartsAt        DateTime?             @map("trial_starts_at") @db.Timestamptz(6)
+  trialEndsAt           DateTime?             @map("trial_ends_at") @db.Timestamptz(6)
+  billingStatus         BillingStatus         @default(ACTIVE) @map("billing_status")
+  courtesyStatus        CourtesyStatus        @default(NONE) @map("courtesy_status")
+  activatedAt           DateTime?             @map("activated_at") @db.Timestamptz(6)
+  suspendedAt           DateTime?             @map("suspended_at") @db.Timestamptz(6)
+  cancelledAt           DateTime?             @map("cancelled_at") @db.Timestamptz(6)
+  storageBytesUsed      BigInt                @default(0) @map("storage_bytes_used")
+  userCount             Int                   @default(0) @map("user_count")
+  customerCount         Int                   @default(0) @map("customer_count")
+  createdAt             DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime              @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relations
+  agency                Agency                @relation(fields: [agencyId], references: [id], onDelete: Restrict)
+  plan                  Plans?                @relation(fields: [planId], references: [id])
+  subscriptions         Subscriptions[]
+  courtesyAccounts      CourtesyAccountS[]
+  billingInvoices       BillingInvoices[]
+  subscriberTenantAudits SubscriberTenantAudit[]
+  leadConversions       LeadConversions[]
+  couponRedemptions     CouponRedemptions[]
+
+  @@map("subscriber_tenants")
+}
+
+model Plans {
+  id                String              @id @default(dbgenerated("(gen_random_uuid())::text"))
+  name              String              @unique
+  slug              String              @unique
+  description       String?
+  priceAmount       Decimal             @map("price_amount") @db.Decimal(12, 2)
+  priceCurrency     String              @default("BRL") @map("price_currency")
+  billingInterval   BillingInterval     @map("billing_interval")
+  maxUsers          Int?                @map("max_users")
+  maxCustomers      Int?                @map("max_customers")
+  storageGb         Int?                @map("storage_gb")
+  features          Json?
+  active            Boolean             @default(true)
+  createdBy         String?             @map("created_by")
+  createdAt         DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relations
+  createdByUser     PlatformUsers?      @relation(fields: [createdBy], references: [id])
+  entitlements      Entitlements[]
+  subscriptions     Subscriptions[]
+  subscriberTenants SubscriberTenants[]
+  courtesyAccounts  CourtesyAccountS[]
+
+  @@map("plans")
+}
+
+model Entitlements {
+  id            String          @id @default(dbgenerated("(gen_random_uuid())::text"))
+  planId        String          @map("plan_id")
+  featureKey    String          @map("feature_key")
+  featureType   String          @map("feature_type")
+  value         Json?
+  limitValue    Int?            @map("limit_value")
+  description   String?
+  createdAt     DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Relations
+  plan          Plans           @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@unique([planId, featureKey], map: "entitlements_plan_feature_idx")
+  @@map("entitlements")
+}
+
+model Subscriptions {
+  id                    String              @id @default(dbgenerated("(gen_random_uuid())::text"))
+  subscriberTenantId    String              @map("subscriber_tenant_id")
+  planId                String              @map("plan_id")
+  billingInterval       BillingInterval     @map("billing_interval")
+  amount                Decimal             @db.Decimal(12, 2)
+  currency              String              @default("BRL")
+  currentPeriodStart    DateTime            @map("current_period_start") @db.Timestamptz(6)
+  currentPeriodEnd      DateTime            @map("current_period_end") @db.Timestamptz(6)
+  nextBillingDate       DateTime?           @map("next_billing_date") @db.Timestamptz(6)
+  trialEndsAt           DateTime?           @map("trial_ends_at") @db.Timestamptz(6)
+  cancelRequestedAt     DateTime?           @map("cancel_requested_at") @db.Timestamptz(6)
+  cancelledAt           DateTime?           @map("cancelled_at") @db.Timestamptz(6)
+  providerReference     String?             @map("provider_reference")
+  providerName          String?             @map("provider_name")
+  createdAt             DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relations
+  subscriberTenant      SubscriberTenants   @relation(fields: [subscriberTenantId], references: [id], onDelete: Cascade)
+  plan                  Plans               @relation(fields: [planId], references: [id], onDelete: Restrict)
+  billingInvoices       BillingInvoices[]
+
+  @@map("subscriptions")
+}
+
+model CourtesyAccountS {
+  id                    String              @id @default(dbgenerated("(gen_random_uuid())::text"))
+  subscriberTenantId    String              @unique @map("subscriber_tenant_id")
+  planId                String              @map("plan_id")
+  reason                String
+  grantedBy             String              @map("granted_by")
+  startsAt              DateTime            @map("starts_at") @db.Timestamptz(6)
+  expiresAt             DateTime            @map("expires_at") @db.Timestamptz(6)
+  autoConvertToPaid     Boolean             @default(false) @map("auto_convert_to_paid")
+  notes                 String?
+  createdAt             DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relations
+  subscriberTenant      SubscriberTenants   @relation(fields: [subscriberTenantId], references: [id], onDelete: Cascade)
+  plan                  Plans               @relation(fields: [planId], references: [id], onDelete: Restrict)
+  grantedByUser         PlatformUsers       @relation(fields: [grantedBy], references: [id])
+  courtesyAccountAudits CourtesyAccountAudit[]
+
+  @@map("courtesy_accounts")
+}
+
+model BillingInvoices {
+  id                    String              @id @default(dbgenerated("(gen_random_uuid())::text"))
+  subscriberTenantId    String              @map("subscriber_tenant_id")
+  subscriptionId        String?             @map("subscription_id")
+  amount                Decimal             @db.Decimal(12, 2)
+  discountAmount        Decimal             @default(0) @map("discount_amount") @db.Decimal(12, 2)
+  taxAmount             Decimal             @default(0) @map("tax_amount") @db.Decimal(12, 2)
+  totalAmount           Decimal             @map("total_amount") @db.Decimal(12, 2)
+  currency              String              @default("BRL")
+  status                InvoiceStatus       @default(DRAFT)
+  periodStart           DateTime            @map("period_start") @db.Timestamptz(6)
+  periodEnd             DateTime            @map("period_end") @db.Timestamptz(6)
+  issuedAt              DateTime?           @map("issued_at") @db.Timestamptz(6)
+  dueDate               DateTime?           @map("due_date") @db.Timestamptz(6)
+  paidAt                DateTime?           @map("paid_at") @db.Timestamptz(6)
+  viewedAt              DateTime?           @map("viewed_at") @db.Timestamptz(6)
+  providerReference     String?             @map("provider_reference")
+  providerName          String?             @map("provider_name")
+  notes                 String?
+  customLineItems       Json?               @default("[]") @map("custom_line_items")
+  createdAt             DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relations
+  subscriberTenant      SubscriberTenants   @relation(fields: [subscriberTenantId], references: [id], onDelete: Cascade)
+  subscription          Subscriptions?      @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  billingPayments       BillingPayments[]
+  couponRedemptions     CouponRedemptions[]
+
+  @@map("billing_invoices")
+}
+
+model BillingPayments {
+  id                    String              @id @default(dbgenerated("(gen_random_uuid())::text"))
+  invoiceId             String              @map("invoice_id")
+  amount                Decimal             @db.Decimal(12, 2)
+  currency              String              @default("BRL")
+  paymentMethod         String?             @map("payment_method")
+  status                PaymentStatus       @default(PENDING)
+  attemptedAt           DateTime?           @map("attempted_at") @db.Timestamptz(6)
+  completedAt           DateTime?           @map("completed_at") @db.Timestamptz(6)
+  failedReason          String?             @map("failed_reason")
+  providerReference     String?             @map("provider_reference")
+  providerName          String?             @map("provider_name")
+  createdAt             DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relations
+  invoice               BillingInvoices     @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@map("billing_payments")
+}
+
+model BillingWebhookEvents {
+  id                    String              @id @default(dbgenerated("(gen_random_uuid())::text"))
+  provider              String
+  providerEventId       String              @unique @map("provider_event_id")
+  eventType             String              @map("event_type")
+  body                  Json
+  signatureValid        Boolean?            @map("signature_valid")
+  processed             Boolean             @default(false)
+  processedAt           DateTime?           @map("processed_at") @db.Timestamptz(6)
+  processingError       String?             @map("processing_error")
+  retryCount            Int                 @default(0) @map("retry_count")
+  nextRetryAt           DateTime?           @map("next_retry_at") @db.Timestamptz(6)
+  receivedAt            DateTime            @default(now()) @map("received_at") @db.Timestamptz(6)
+  createdAt             DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("billing_webhook_events")
+}
+
+model Leads {
+  id                    String              @id @default(dbgenerated("(gen_random_uuid())::text"))
+  name                  String
+  companyName           String?             @map("company_name")
+  email                 String
+  phone                 String?
+  whatsapp              String?
+  userCount             Int?                @map("user_count")
+  customerVolume        Int?                @map("customer_volume")
+  interest              String?
+  source                String?
+  utmSource             String?             @map("utm_source")
+  utmMedium             String?             @map("utm_medium")
+  utmCampaign           String?             @map("utm_campaign")
+  utmTerm               String?             @map("utm_term")
+  utmContent            String?             @map("utm_content")
+  referralCode          String?             @map("referral_code")
+  status                LeadStatus          @default(NEW)
+  assignedTo            String?             @map("assigned_to")
+  convertedSubscriberId String?             @map("converted_subscriber_id")
+  notes                 String?
+  createdAt             DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  contactedAt           DateTime?           @map("contacted_at") @db.Timestamptz(6)
+  convertedAt           DateTime?           @map("converted_at") @db.Timestamptz(6)
+  updatedAt             DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relations
+  assignedToUser        PlatformUsers?      @relation(fields: [assignedTo], references: [id])
+  convertedSubscriber   SubscriberTenants?  @relation(fields: [convertedSubscriberId], references: [id])
+  leadInteractions      LeadInteractions[]
+  leadConversions       LeadConversions[]
+  salesOpportunities    SalesOpportunities[]
+
+  @@map("leads")
+}
+
+model LeadInteractions {
+  id                    String              @id @default(dbgenerated("(gen_random_uuid())::text"))
+  leadId                String              @map("lead_id")
+  interactionType       String              @map("interaction_type")
+  interactionDate       DateTime            @map("interaction_date") @db.Timestamptz(6)
+  notes                 String?
+  outcome               String?
+  interactedBy          String?             @map("interacted_by")
+  createdAt             DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Relations
+  lead                  Leads               @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  actor                 PlatformUsers?      @relation(fields: [interactedBy], references: [id])
+
+  @@map("lead_interactions")
+}
+
+model LeadConversions {
+  id                    String              @id @default(dbgenerated("(gen_random_uuid())::text"))
+  leadId                String              @map("lead_id")
+  subscriberTenantId    String              @map("subscriber_tenant_id")
+  conversionType        String              @map("conversion_type")
+  convertedAt           DateTime            @default(now()) @map("converted_at") @db.Timestamptz(6)
+  convertedBy           String?             @map("converted_by")
+
+  // Relations
+  lead                  Leads               @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  subscriberTenant      SubscriberTenants   @relation(fields: [subscriberTenantId], references: [id], onDelete: Cascade)
+
+  @@map("lead_conversions")
+}
+
+model SalesOpportunities {
+  id                    String              @id @default(dbgenerated("(gen_random_uuid())::text"))
+  leadId                String              @map("lead_id")
+  stage                 String              @default("PROSPECTING")
+  expectedValue         Decimal?            @map("expected_value") @db.Decimal(12, 2)
+  closeDateForecast     DateTime?           @map("close_date_forecast") @db.Timestamptz(6)
+  ownerId               String?             @map("owner_id")
+  notes                 String?
+  createdAt             DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relations
+  lead                  Leads               @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  owner                 PlatformUsers?      @relation(fields: [ownerId], references: [id])
+  salesDemos            SalesDemos[]
+
+  @@map("sales_opportunities")
+}
+
+model SalesDemos {
+  id                    String              @id @default(dbgenerated("(gen_random_uuid())::text"))
+  opportunityId         String              @map("opportunity_id")
+  scheduledFor          DateTime            @map("scheduled_for") @db.Timestamptz(6)
+  attendees             String?
+  outcome               String?
+  outcomeNotes          String?             @map("outcome_notes")
+  createdAt             DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relations
+  opportunity           SalesOpportunities  @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+
+  @@map("sales_demos")
+}
+
+model Coupons {
+  id                    String              @id @default(dbgenerated("(gen_random_uuid())::text"))
+  code                  String              @unique
+  discountType          DiscountType        @map("discount_type")
+  discountValue         Decimal             @map("discount_value") @db.Decimal(12, 2)
+  currency              String              @default("BRL")
+  validFrom             DateTime            @map("valid_from") @db.Timestamptz(6)
+  validUntil            DateTime            @map("valid_until") @db.Timestamptz(6)
+  maxUses               Int?                @map("max_uses")
+  usesCount             Int                 @default(0) @map("uses_count")
+  maxUsesPerTenant      Int                 @default(1) @map("max_uses_per_tenant")
+  minPlanId             String?             @map("min_plan_id")
+  eligiblePlanIds       String[]            @default([]) @map("eligible_plan_ids")
+  referrerId            String?             @map("referrer_id")
+  status                CouponStatus        @default(ACTIVE)
+  createdBy             String              @map("created_by")
+  createdAt             DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relations
+  createdByUser         PlatformUsers       @relation(fields: [createdBy], references: [id])
+  couponRedemptions     CouponRedemptions[]
+
+  @@map("coupons")
+}
+
+model CouponRedemptions {
+  id                    String              @id @default(dbgenerated("(gen_random_uuid())::text"))
+  couponId              String              @map("coupon_id")
+  subscriberTenantId    String              @map("subscriber_tenant_id")
+  redemptionDate        DateTime            @default(now()) @map("redemption_date") @db.Timestamptz(6)
+  discountAmountApplied Decimal?            @map("discount_amount_applied") @db.Decimal(12, 2)
+  trialExtensionDays    Int?                @map("trial_extension_days")
+  invoiceId             String?             @map("invoice_id")
+  notes                 String?
+  createdAt             DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Relations
+  coupon                Coupons             @relation(fields: [couponId], references: [id], onDelete: Cascade)
+  subscriberTenant      SubscriberTenants   @relation(fields: [subscriberTenantId], references: [id], onDelete: Cascade)
+  invoice               BillingInvoices?    @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+
+  @@map("coupon_redemptions")
+}
+
+model PromotionalCampaigns {
+  id                    String              @id @default(dbgenerated("(gen_random_uuid())::text"))
+  name                  String
+  description           String?
+  campaignType          String?             @map("campaign_type")
+  startDate             DateTime            @map("start_date") @db.Timestamptz(6)
+  endDate               DateTime?           @map("end_date") @db.Timestamptz(6)
+  budget                Decimal?            @db.Decimal(12, 2)
+  expectedParticipants  Int?                @map("expected_participants")
+  couponIds             String[]            @default([]) @map("coupon_ids")
+  status                String              @default("DRAFT")
+  createdBy             String              @map("created_by")
+  createdAt             DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relations
+  createdByUser         PlatformUsers       @relation(fields: [createdBy], references: [id])
+
+  @@map("promotional_campaigns")
+}
+
+model LandingPageConfig {
+  id                    String              @id @default(dbgenerated("(gen_random_uuid())::text"))
+  section               String
+  key                   String
+  value                 String?
+  valueType             String?             @map("value_type")
+  isPublished           Boolean             @default(false) @map("is_published")
+  version               Int                 @default(1)
+  publishedVersion      Int?                @map("published_version")
+  publishedAt           DateTime?           @map("published_at") @db.Timestamptz(6)
+  draftAt               DateTime?           @map("draft_at") @db.Timestamptz(6)
+  updatedBy             String?             @map("updated_by")
+  createdAt             DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relations
+  updatedByUser         PlatformUsers?      @relation(fields: [updatedBy], references: [id])
+
+  @@unique([section, key, version], map: "landing_page_config_section_key_version_idx")
+  @@map("landing_page_config")
+}
+
+model LandingPromotions {
+  id                    String              @id @default(dbgenerated("(gen_random_uuid())::text"))
+  type                  String
+  position              String?
+  content               Json
+  associatedCouponId    String?             @map("associated_coupon_id")
+  associatedCampaignId  String?             @map("associated_campaign_id")
+  enabled               Boolean             @default(false)
+  priority              Int                 @default(0)
+  scheduledFrom         DateTime?           @map("scheduled_from") @db.Timestamptz(6)
+  scheduledUntil        DateTime?           @map("scheduled_until") @db.Timestamptz(6)
+  autoDisableAt         DateTime?           @map("auto_disable_at") @db.Timestamptz(6)
+  targetPlanIds         String[]            @default([]) @map("target_plan_ids")
+  targetNewVisitorsOnly Boolean             @default(false) @map("target_new_visitors_only")
+  impressionsCount      Int                 @default(0) @map("impressions_count")
+  clicksCount           Int                 @default(0) @map("clicks_count")
+  createdBy             String              @map("created_by")
+  createdAt             DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relations
+  createdByUser         PlatformUsers       @relation(fields: [createdBy], references: [id])
+
+  @@map("landing_promotions")
+}
+
+model FeatureFlags {
+  id                    String              @id @default(dbgenerated("(gen_random_uuid())::text"))
+  name                  String              @unique
+  description           String?
+  scope                 FeatureFlagScope    @default(GLOBAL)
+  targetId              String?             @map("target_id")
+  percentageRollout     Int?                @map("percentage_rollout")
+  enabled               Boolean             @default(false)
+  config                Json?
+  createdBy             String              @map("created_by")
+  createdAt             DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relations
+  createdByUser         PlatformUsers       @relation(fields: [createdBy], references: [id])
+
+  @@map("feature_flags")
+}
+
+model PlatformAuditLogs {
+  id                    String              @id @default(dbgenerated("(gen_random_uuid())::text"))
+  actorId               String              @map("actor_id")
+  actorEmail            String?             @map("actor_email")
+  actorRole             PlatformUserRole?   @map("actor_role")
+  action                AuditActionType
+  resourceType          String              @map("resource_type")
+  resourceId            String?             @map("resource_id")
+  changes               Json?
+  reason                String?
+  ipAddress             String?             @map("ip_address")
+  userAgent             String?             @map("user_agent")
+  impersonationReason   String?             @map("impersonation_reason")
+  impersonatedTenantId  String?             @map("impersonated_tenant_id")
+  createdAt             DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Relations
+  actor                 PlatformUsers       @relation(fields: [actorId], references: [id], onDelete: Cascade)
+
+  @@map("platform_audit_logs")
+}
+
+model PlatformUserAudit {
+  id                    String              @id @default(dbgenerated("(gen_random_uuid())::text"))
+  platformUserId        String              @map("platform_user_id")
+  action                String
+  details               Json?
+  createdAt             DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Relations
+  user                  PlatformUsers       @relation(fields: [platformUserId], references: [id], onDelete: Cascade)
+
+  @@map("platform_user_audit")
+}
+
+model SubscriberTenantAudit {
+  id                    String              @id @default(dbgenerated("(gen_random_uuid())::text"))
+  subscriberTenantId    String              @map("subscriber_tenant_id")
+  actorId               String?             @map("actor_id")
+  action                String
+  oldValues             Json?               @map("old_values")
+  newValues             Json?               @map("new_values")
+  reason                String?
+  createdAt             DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Relations
+  subscriberTenant      SubscriberTenants   @relation(fields: [subscriberTenantId], references: [id], onDelete: Cascade)
+  actor                 PlatformUsers?      @relation(fields: [actorId], references: [id])
+
+  @@map("subscriber_tenant_audit")
+}
+
+model CourtesyAccountAudit {
+  id                    String              @id @default(dbgenerated("(gen_random_uuid())::text"))
+  courtesyAccountId     String?             @map("courtesy_account_id")
+  actorId               String              @map("actor_id")
+  action                String
+  oldValues             Json?               @map("old_values")
+  newValues             Json?               @map("new_values")
+  reason                String?
+  createdAt             DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Relations
+  courtesyAccount       CourtesyAccountS?   @relation(fields: [courtesyAccountId], references: [id], onDelete: Cascade)
+  actor                 PlatformUsers       @relation(fields: [actorId], references: [id])
+
+  @@map("courtesy_account_audit")
+}
+
+model LoginAudit {
+  id                    String              @id @default(dbgenerated("(gen_random_uuid())::text"))
+  platformUserId        String              @map("platform_user_id")
+  email                 String
+  success               Boolean
+  failureReason         String?             @map("failure_reason")
+  ipAddress             String?             @map("ip_address")
+  userAgent             String?             @map("user_agent")
+  country               String?
+  createdAt             DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Relations
+  user                  PlatformUsers       @relation(fields: [platformUserId], references: [id], onDelete: Cascade)
+
+  @@map("login_audit")
+}
+
+model PlatformSettings {
+  id                        String              @id @default(dbgenerated("(gen_random_uuid())::text"))
+  enableTrials              Boolean             @default(true) @map("enable_trials")
+  trialDurationDays         Int                 @default(14) @map("trial_duration_days")
+  autoSuspendPastDue        Boolean             @default(true) @map("auto_suspend_past_due")
+  suspendAfterDaysPastDue   Int                 @default(30) @map("suspend_after_days_past_due")
+  requireMfaForPlatform     Boolean             @default(false) @map("require_mfa_for_platform")
+  maxStorageGbDefault       Int                 @default(100) @map("max_storage_gb_default")
+  maxUsersDefault           Int                 @default(10) @map("max_users_default")
+  maxCustomersDefault       Int                 @default(100) @map("max_customers_default")
+  createdAt                 DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                 DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("platform_settings")
+}
+
+model SupportCases {
+  id                    String              @id @default(dbgenerated("(gen_random_uuid())::text"))
+  subscriberTenantId    String              @map("subscriber_tenant_id")
+  title                 String
+  description           String
+  status                String              @default("OPEN") // OPEN, IN_PROGRESS, RESOLVED, CLOSED
+  priority              String              @default("MEDIUM") // LOW, MEDIUM, HIGH, CRITICAL
+  assignedToId          String?             @map("assigned_to_id")
+  createdAt             DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relations
+  subscriberTenant      SubscriberTenants   @relation(fields: [subscriberTenantId], references: [id], onDelete: Cascade)
+  assignedTo            PlatformUsers?      @relation(fields: [assignedToId], references: [id], onDelete: SetNull)
+
+  @@map("support_cases")
+}
+
 model Agency {
   id                   String                @id @default(dbgenerated("(gen_random_uuid())::text"))
   name                 String
@@ -56,6 +754,7 @@ model Agency {
   operationalCosts     OperationalCost[]
   customerAccounts     CustomerAccount[]
   customers            Customer[]
+  addresses            CustomerAddress[]
   offers               Offer[]
   proposals            Proposal[]
   sales                Sale[]
@@ -92,6 +791,12 @@ model Agency {
   couponRedemptions       CouponRedemption[]
   connectorActions        ConnectorAction[]
   offerGrowthAuditLog     OfferGrowthAuditLog[]
+  dependents              CustomerDependent[] @relation("AgencyDependents")
+  customerDocuments       CustomerDocument[] @relation("AgencyDocuments")
+  documentAttachments     DocumentAttachment[] @relation("AgencyAttachments")
+  documentExtractions     DocumentExtraction[] @relation("AgencyExtractions")
+  documentVerifications   DocumentVerification[] @relation("AgencyVerifications")
+  documentAuditEvents     DocumentAuditEvent[]
 
   @@map("agencies")
 }
@@ -131,6 +836,9 @@ model User {
   createdCoupons          Coupon[]
   recordedCouponRedemptions CouponRedemption[]
   offerGrowthAuditLogEntries OfferGrowthAuditLog[]
+  verifiedDocuments       CustomerDocument[] @relation("DocumentsVerifiedByUser")
+  reviewedDocuments       DocumentVerification[] @relation("DocumentsReviewedByUser")
+  documentAuditEvents     DocumentAuditEvent[] @relation("DocumentAuditEvents")
 
   @@unique([agencyId, email], map: "users_agency_email_key")
   @@unique([agencyId, id], map: "users_agency_id_key")
@@ -166,6 +874,11 @@ model Customer {
   phone     String?
   cpf       String?
   passport  String?
+  rg        String?
+  nationalIdType String? @map("national_id_type")
+  birthDate DateTime?        @map("birth_date") @db.Date
+  nationality String?
+  whatsapp  String?
   address   Json?
   notes     String?
   status    Status           @default(ACTIVE)
@@ -174,6 +887,7 @@ model Customer {
   updatedAt DateTime         @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
   account   CustomerAccount?
   agency    Agency           @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "customers_agency_fk")
+  addresses CustomerAddress[] @relation("CustomerAddresses")
   bookings  Booking[]
   receivables Receivable[]
   proposals Proposal[]
@@ -186,6 +900,9 @@ model Customer {
   engagements             Engagement[]
   couponGrants            CouponGrant[]
   couponRedemptions       CouponRedemption[]
+  dependents              CustomerDependent[] @relation("CustomerDependents")
+  documents               CustomerDocument[] @relation("CustomerDocuments")
+  documentAuditEvents     DocumentAuditEvent[] @relation("DocumentAuditEvents")
 
   // Migration 001 also enforces active-customer uniqueness with partial
   // indexes not representable here:
@@ -1747,4 +2464,256 @@ enum ConnectorActionStatus {
   PENDING
   SENT
   FAILED
+}
+
+enum AddressType {
+  RESIDENTIAL
+  COMMERCIAL
+  TEMPORARY
+}
+
+model CustomerAddress {
+  id           String        @id @default(dbgenerated("(gen_random_uuid())::text"))
+  agencyId     String        @map("agency_id")
+  customerId   String        @map("customer_id")
+  type         AddressType   @default(RESIDENTIAL)
+  isPrimary    Boolean       @default(false) @map("is_primary")
+  cep          String?
+  street       String
+  number       String
+  complement   String?
+  district     String
+  city         String
+  state        String
+  country      String        @default("Brazil")
+  createdAt    DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt    DateTime?     @map("deleted_at") @db.Timestamptz(6)
+
+  agency       Agency        @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "customer_addresses_agency_fk")
+  customer     Customer      @relation("CustomerAddresses", fields: [agencyId, customerId], references: [agencyId, id], onDelete: Restrict, map: "customer_addresses_customer_tenant_fk")
+
+  @@unique([agencyId, id], map: "customer_addresses_agency_id_key")
+  @@index([agencyId, customerId], map: "customer_addresses_agency_customer_idx")
+  @@map("customer_addresses")
+
+  // Partial unique constraint enforced in migration 019:
+  // UNIQUE (agency_id, customer_id, is_primary) WHERE is_primary = true
+}
+
+// ============================================================
+// CUSTOMER 360: DEPENDENTS / COMPANIONS
+// ============================================================
+
+enum RelationshipType {
+  SPOUSE
+  CHILD
+  PARENT
+  COMPANION
+  OTHER
+}
+
+model CustomerDependent {
+  id               String           @id @default(dbgenerated("(gen_random_uuid())::text"))
+  agencyId         String           @map("agency_id")
+  customerId       String           @map("customer_id")
+  name             String
+  relationshipType RelationshipType @map("relationship_type")
+  birthDate        DateTime?        @map("birth_date") @db.Date
+  cpf              String?
+  nationality      String?
+  notes            String?
+  createdAt        DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime         @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt        DateTime?        @map("deleted_at") @db.Timestamptz(6)
+
+  agency   Agency   @relation("AgencyDependents", fields: [agencyId], references: [id], onDelete: Restrict, map: "customer_dependents_agency_fk")
+  customer Customer @relation("CustomerDependents", fields: [agencyId, customerId], references: [agencyId, id], onDelete: Restrict, map: "customer_dependents_customer_tenant_fk")
+
+  @@unique([agencyId, id], map: "customer_dependents_agency_id_key")
+  @@index([agencyId, customerId], map: "customer_dependents_agency_customer_idx")
+  @@map("customer_dependents")
+}
+
+// ============================================================
+// CUSTOMER 360: DOCUMENTS + OCR
+// ============================================================
+
+enum DocumentType {
+  PASSAPORTE
+  RG
+  CNH
+  CPF
+  VISTO
+  CERTIDAO
+  OUTRO
+}
+
+enum DocumentVerificationStatus {
+  PENDING
+  VERIFIED
+  MISMATCH
+  EXPIRED
+  MANUAL_REVIEW
+}
+
+enum DocumentAttachmentType {
+  FRONT
+  BACK
+  PASSPORT_PAGE
+  VISA
+  OTHER
+}
+
+enum OcrProcessingStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  MANUAL_REVIEW
+}
+
+model CustomerDocument {
+  id                  String                     @id @default(dbgenerated("(gen_random_uuid())::text"))
+  agencyId            String                     @map("agency_id")
+  customerId          String                     @map("customer_id")
+  documentType        DocumentType               @map("document_type")
+  documentNumber      String                     @map("document_number")
+  holderName          String?                    @map("holder_name")
+  holderBirthDate     DateTime?                  @map("holder_birth_date") @db.Date
+  holderNationality   String?                    @map("holder_nationality")
+  issuingCountry      String?                    @map("issuing_country")
+  issuingAuthority    String?                    @map("issuing_authority")
+  issuedDate          DateTime?                  @map("issued_date") @db.Date
+  expiryDate          DateTime?                  @map("expiry_date") @db.Date
+  isExpired           Boolean                    @map("is_expired")
+  verificationStatus  DocumentVerificationStatus @map("verification_status") @default(PENDING)
+  verifiedAt          DateTime?                  @map("verified_at") @db.Timestamptz(6)
+  verifiedByUserId    String?                    @map("verified_by_user_id")
+  notes               String?
+  createdAt           DateTime                   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime                   @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt           DateTime?                  @map("deleted_at") @db.Timestamptz(6)
+
+  agency              Agency                    @relation("AgencyDocuments", fields: [agencyId], references: [id], onDelete: Restrict, map: "customer_documents_agency_fk")
+  customer            Customer                  @relation("CustomerDocuments", fields: [agencyId, customerId], references: [agencyId, id], onDelete: Restrict, map: "customer_documents_customer_tenant_fk")
+  verifiedByUser      User?                     @relation("DocumentsVerifiedByUser", fields: [agencyId, verifiedByUserId], references: [agencyId, id], onDelete: Restrict, map: "customer_documents_verified_by_user_tenant_fk")
+  attachments         DocumentAttachment[]
+  extractions         DocumentExtraction[]
+  verifications       DocumentVerification[]
+  auditEvents         DocumentAuditEvent[] @relation("DocumentAuditEvents")
+
+  @@unique([agencyId, id], map: "customer_documents_agency_id_key")
+  @@index([agencyId, customerId], map: "customer_documents_agency_customer_idx")
+  @@index([agencyId, customerId, documentType], map: "customer_documents_agency_customer_type_idx")
+  @@index([agencyId, expiryDate], map: "customer_documents_expiry_idx")
+  @@map("customer_documents")
+}
+
+model DocumentAttachment {
+  id              String                  @id @default(dbgenerated("(gen_random_uuid())::text"))
+  agencyId        String                  @map("agency_id")
+  documentId      String                  @map("document_id")
+  attachmentType  DocumentAttachmentType  @map("attachment_type")
+  fileName        String                  @map("file_name")
+  fileSizeBytes   Int                     @map("file_size_bytes")
+  fileMimeType    String                  @map("file_mime_type")
+  secureFileKey   String                  @unique @map("secure_file_key")
+  fileHash        String?                 @map("file_hash")
+  createdAt       DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
+  deletedAt       DateTime?               @map("deleted_at") @db.Timestamptz(6)
+
+  agency    Agency           @relation("AgencyAttachments", fields: [agencyId], references: [id], onDelete: Restrict, map: "document_attachments_agency_fk")
+  document  CustomerDocument @relation(fields: [agencyId, documentId], references: [agencyId, id], onDelete: Restrict, map: "document_attachments_document_tenant_fk")
+
+  @@unique([agencyId, id], map: "document_attachments_agency_id_key")
+  @@index([agencyId, documentId], map: "document_attachments_agency_document_idx")
+  @@map("document_attachments")
+}
+
+model DocumentExtraction {
+  id                String              @id @default(dbgenerated("(gen_random_uuid())::text"))
+  agencyId          String              @map("agency_id")
+  documentId        String              @map("document_id")
+  provider          String
+  extractedData     Json                @map("extracted_data") @db.JsonB
+  confidence        Decimal?            @db.Decimal(5, 2)
+  processingStatus  OcrProcessingStatus @map("processing_status") @default(PENDING)
+  processedAt       DateTime?           @map("processed_at") @db.Timestamptz(6)
+  errorMessage      String?             @map("error_message")
+  createdAt         DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  agency            Agency                  @relation("AgencyExtractions", fields: [agencyId], references: [id], onDelete: Restrict, map: "document_extractions_agency_fk")
+  document          CustomerDocument        @relation(fields: [agencyId, documentId], references: [agencyId, id], onDelete: Restrict, map: "document_extractions_document_tenant_fk")
+  verifications     DocumentVerification[]
+
+  @@unique([agencyId, id], map: "document_extractions_agency_id_key")
+  @@index([agencyId, documentId], map: "document_extractions_agency_document_idx")
+  @@index([agencyId, provider, processingStatus], map: "document_extractions_agency_provider_status_idx")
+  @@map("document_extractions")
+}
+
+model DocumentVerification {
+  id                       String           @id @default(dbgenerated("(gen_random_uuid())::text"))
+  agencyId                 String           @map("agency_id")
+  documentId               String           @map("document_id")
+  extractionId             String?          @map("extraction_id")
+  holderNameMatch          Boolean?         @map("holder_name_match")
+  holderBirthDateMatch     Boolean?         @map("holder_birth_date_match")
+  holderNationalityMatch   Boolean?         @map("holder_nationality_match")
+  documentNumberMatch      Boolean?         @map("document_number_match")
+  discrepancies            Json?            @db.JsonB
+  manualReviewNotes        String?          @map("manual_review_notes")
+  reviewedAt               DateTime?        @map("reviewed_at") @db.Timestamptz(6)
+  reviewedByUserId         String?          @map("reviewed_by_user_id")
+  createdAt                DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                DateTime         @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  agency            Agency                @relation("AgencyVerifications", fields: [agencyId], references: [id], onDelete: Restrict, map: "document_verifications_agency_fk")
+  document          CustomerDocument      @relation(fields: [agencyId, documentId], references: [agencyId, id], onDelete: Restrict, map: "document_verifications_document_tenant_fk")
+  extraction        DocumentExtraction?   @relation(fields: [agencyId, extractionId], references: [agencyId, id], onDelete: Restrict, map: "document_verifications_extraction_tenant_fk")
+  reviewedByUser    User?                 @relation("DocumentsReviewedByUser", fields: [agencyId, reviewedByUserId], references: [agencyId, id], onDelete: Restrict, map: "document_verifications_reviewed_by_user_tenant_fk")
+
+  @@unique([agencyId, id], map: "document_verifications_agency_id_key")
+  @@index([agencyId, documentId], map: "document_verifications_agency_document_idx")
+  @@map("document_verifications")
+}
+
+// ============================================================
+// CUSTOMER 360: DOCUMENT AUDIT TRAIL
+// ============================================================
+
+enum DocumentAuditEventType {
+  DOCUMENT_CREATED
+  DOCUMENT_UPDATED
+  ATTACHMENT_UPLOADED
+  ATTACHMENT_DELETED
+  DOCUMENT_VIEWED
+  EXTRACTION_STARTED
+  EXTRACTION_COMPLETED
+  VERIFICATION_COMPLETED
+  DOCUMENT_SOFT_DELETED
+}
+
+model DocumentAuditEvent {
+  id           String                   @id @default(dbgenerated("(gen_random_uuid())::text"))
+  agencyId     String                   @map("agency_id")
+  documentId   String?                  @map("document_id")
+  attachmentId String?                  @map("attachment_id")
+  userId       String?                  @map("user_id")
+  customerId   String?                  @map("customer_id")
+  eventType    DocumentAuditEventType   @map("event_type")
+  metadata     Json?                    @db.JsonB
+  createdAt    DateTime                 @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  agency    Agency           @relation(fields: [agencyId], references: [id], onDelete: Restrict, map: "document_audit_events_agency_fk")
+  document  CustomerDocument? @relation("DocumentAuditEvents", fields: [agencyId, documentId], references: [agencyId, id], onDelete: Restrict, map: "document_audit_events_document_tenant_fk")
+  customer  Customer?        @relation("DocumentAuditEvents", fields: [agencyId, customerId], references: [agencyId, id], onDelete: Restrict, map: "document_audit_events_customer_tenant_fk")
+  user      User?            @relation("DocumentAuditEvents", fields: [agencyId, userId], references: [agencyId, id], onDelete: Restrict, map: "document_audit_events_user_tenant_fk")
+
+  @@index([agencyId, documentId], map: "document_audit_events_agency_document_idx")
+  @@index([agencyId, customerId], map: "document_audit_events_agency_customer_idx")
+  @@index([agencyId, createdAt(sort: Desc)], map: "document_audit_events_agency_created_idx")
+  @@map("document_audit_events")
 }

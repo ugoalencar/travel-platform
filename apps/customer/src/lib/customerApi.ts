@@ -8,7 +8,11 @@ import type { Offer } from '../types/offer';
 import type { BookingPassenger } from '../types/booking';
 import type {
   CustomerAgencyContact,
+  CustomerAirSegmentView,
   CustomerBookingView,
+  CustomerDocumentView,
+  CustomerLandServiceView,
+  CustomerPaymentScheduleItem,
   CustomerProfile,
   CustomerProposalView,
 } from '../types/customer-portal';
@@ -103,6 +107,32 @@ export async function getMyBooking(
 export async function getMyAgencyContact(): Promise<CustomerAgencyContact> {
   const data = await request<{ agency: CustomerAgencyContact }>('/customer-api/agency-contact');
   return data.agency;
+}
+
+export async function listMyTripAirSegments(tripId: string): Promise<CustomerAirSegmentView[]> {
+  const data = await request<{ segments: CustomerAirSegmentView[] }>(
+    `/customer-api/trips/${encodeURIComponent(tripId)}/air-segments`,
+  );
+  return data.segments;
+}
+
+export async function listMyTripLandServices(tripId: string): Promise<CustomerLandServiceView[]> {
+  const data = await request<{ services: CustomerLandServiceView[] }>(
+    `/customer-api/trips/${encodeURIComponent(tripId)}/land-services`,
+  );
+  return data.services;
+}
+
+export async function listMyDocuments(): Promise<CustomerDocumentView[]> {
+  const data = await request<{ documents: CustomerDocumentView[] }>('/customer-api/documents');
+  return data.documents;
+}
+
+export async function listMyPaymentSchedule(): Promise<CustomerPaymentScheduleItem[]> {
+  const data = await request<{ items: CustomerPaymentScheduleItem[] }>(
+    '/customer-api/payment-schedule',
+  );
+  return data.items;
 }
 
 export { ApiError };
