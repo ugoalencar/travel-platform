@@ -1,5 +1,6 @@
 import { Route, Routes } from 'react-router-dom';
 import { AppShell } from './components/layout/AppShell';
+import { OnboardingWizardPage } from './pages/OnboardingWizardPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { CustomersPage } from './pages/CustomersPage';
 import { CustomerDetailPage } from './pages/CustomerDetailPage';
@@ -52,6 +53,11 @@ import { PayrollPage } from './pages/PayrollPage';
 export function App() {
   return (
     <Routes>
+      {/* Outside AppShell on purpose: no sidebar/nav chrome during
+          first-run setup, and staying out of AppShell avoids re-running
+          its onboarding-redirect check while already on this page. */}
+      <Route path="onboarding" element={<OnboardingWizardPage />} />
+
       <Route element={<AppShell />}>
         <Route index element={<DashboardPage />} />
         <Route path="customers" element={<CustomersPage />} />
