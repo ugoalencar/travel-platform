@@ -50,6 +50,11 @@ let app = buildApp({
   readinessCheck: async () => {
     await pool.query('SELECT 1');
   },
+  dbPoolStats: () => ({
+    total: pool.totalCount,
+    idle: pool.idleCount,
+    waiting: pool.waitingCount,
+  }),
 });
 
 let redisClientInstance: RedisClientInstance | undefined = undefined;
@@ -100,6 +105,11 @@ async function main(): Promise<void> {
         readinessCheck: async () => {
           await pool.query('SELECT 1');
         },
+        dbPoolStats: () => ({
+          total: pool.totalCount,
+          idle: pool.idleCount,
+          waiting: pool.waitingCount,
+        }),
         rateLimit: {
           store,
         },

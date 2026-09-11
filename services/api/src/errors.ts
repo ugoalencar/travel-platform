@@ -1,6 +1,15 @@
 import type { FastifyInstance } from 'fastify';
 import { TenantError, UnauthorizedError } from '../../../packages/domain/tenant-context';
 
+declare module 'fastify' {
+  interface FastifyRequest {
+    // SUPPORT-OBS: set here so the structured "request completed" log line
+    // (observability.ts onResponse hook) can carry the same errorCode the
+    // client received, without re-deriving error-class-to-code mapping.
+    observedErrorCode?: string;
+  }
+}
+
 export class ValidationError extends Error {
   readonly code = 'VALIDATION_ERROR';
   readonly statusCode = 400;
@@ -27,11 +36,15 @@ export class CorsOriginNotAllowedError extends Error {
 
 export function registerErrorHandler(app: FastifyInstance): void {
   app.setErrorHandler((error, request, reply) => {
+    const errorCode = getErrorCode(error);
+    request.observedErrorCode =
+      typeof errorCode === 'string' ? errorCode : 'INTERNAL_ERROR';
+
     request.log.error(
       {
         requestId: request.id,
         errorName: getErrorName(error),
-        errorCode: getErrorCode(error),
+        errorCode,
       },
       'API request failed',
     );
