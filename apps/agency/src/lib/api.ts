@@ -2623,12 +2623,15 @@ export const api = {
   },
 
   post: async <T>(path: string, body?: Record<string, unknown>): Promise<{ data: T }> => {
+    // Fastify's JSON content-type parser rejects a request that declares
+    // application/json but sends no body (FST_ERR_CTP_EMPTY_JSON_BODY) --
+    // so when no body is passed, omit both the header and the body
+    // entirely rather than stringifying `undefined`.
     const response = await fetch(`${API_BASE_URL}/api${path}`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
+      ...(body !== undefined
+        ? { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
+        : {}),
     });
     if (!response.ok) {
       const respBody = (await safeJson(response)) as Partial<ApiErrorBody> | null;
@@ -2645,10 +2648,9 @@ export const api = {
   patch: async <T>(path: string, body?: Record<string, unknown>): Promise<{ data: T }> => {
     const response = await fetch(`${API_BASE_URL}/api${path}`, {
       method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
+      ...(body !== undefined
+        ? { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
+        : {}),
     });
     if (!response.ok) {
       const respBody = (await safeJson(response)) as Partial<ApiErrorBody> | null;
