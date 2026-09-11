@@ -13,6 +13,48 @@ interface AgencyProfile {
   name: string;
   email?: string;
   phone?: string;
+  displayName?: string;
+  logoUrl?: string;
+  primaryColor?: string;
+  onboardingCompletedAt?: string;
+  onboardingStep?: string;
+}
+
+export interface AgencyBrandingUpdate {
+  displayName?: string | null;
+  logoUrl?: string | null;
+  primaryColor?: string | null;
+}
+
+export interface Department {
+  id: string;
+  name: string;
+  description: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+const hexColorPattern = /^#[0-9a-fA-F]{6}$/;
+
+function assertValidBrandingInput(input: AgencyBrandingUpdate): void {
+  if (input.primaryColor !== undefined && input.primaryColor !== null) {
+    if (!hexColorPattern.test(input.primaryColor)) {
+      throw new Error('primaryColor deve ser um código hexadecimal válido, ex: #1A2B3C');
+    }
+  }
+  if (input.logoUrl !== undefined && input.logoUrl !== null && input.logoUrl.length > 0) {
+    try {
+      const parsed = new URL(input.logoUrl);
+      if (!['http:', 'https:'].includes(parsed.protocol)) {
+        throw new Error('invalid');
+      }
+    } catch {
+      throw new Error('logoUrl deve ser uma URL http(s) válida');
+    }
+  }
+  if (input.displayName !== undefined && input.displayName !== null && input.displayName.length > 200) {
+    throw new Error('displayName deve ter no máximo 200 caracteres');
+  }
 }
 
 interface TeamMember {
@@ -46,9 +88,15 @@ export async function getAgencyProfile(
     name: string;
     email?: string;
     phone?: string;
+    display_name?: string | null;
+    logo_url?: string | null;
+    primary_color?: string | null;
+    onboarding_completed_at?: string | null;
+    onboarding_step?: string | null;
   }>(
     `
-    SELECT id, name, email, phone
+    SELECT id, name, email, phone, display_name, logo_url, primary_color,
+           onboarding_completed_at, onboarding_step
     FROM agencies
     WHERE id = $1
     `,
@@ -64,6 +112,11 @@ export async function getAgencyProfile(
     name: string;
     email?: string;
     phone?: string;
+    display_name?: string | null;
+    logo_url?: string | null;
+    primary_color?: string | null;
+    onboarding_completed_at?: string | null;
+    onboarding_step?: string | null;
   };
 
   const profile: AgencyProfile = {
@@ -79,10 +132,244 @@ export async function getAgencyProfile(
     profile.phone = agency.phone;
   }
 
+  if (agency.display_name) {
+    profile.displayName = agency.display_name;
+  }
+
+  if (agency.logo_url) {
+    profile.logoUrl = agency.logo_url;
+  }
+
+  if (agency.primary_color) {
+    profile.primaryColor = agency.primary_color;
+  }
+
+  if (agency.onboarding_completed_at) {
+    profile.onboardingCompletedAt = agency.onboarding_completed_at;
+  }
+
+  if (agency.onboarding_step) {
+    profile.onboardingStep = agency.onboarding_step;
+  }
+
   return {
     profile,
     userRole: context.userRole || 'VIEWER',
   };
+}
+
+/**
+ * Update agency branding (displayName, logoUrl, primaryColor).
+ * Caller (route layer) is responsible for RBAC enforcement and audit logging.
+ * RLS on `agencies` ensures only the current tenant's row can be affected.
+ */
+export async function updateAgencyBranding(
+  client: TenantTransactionClient,
+  input: AgencyBrandingUpdate,
+): Promise<AgencyProfile> {
+  assertValidBrandingInput(input);
+  const agencyId = getAgencyId();
+
+  const sets: string[] = [];
+  const values: unknown[] = [];
+  let idx = 1;
+
+  if (input.displayName !== undefined) {
+    sets.push(`display_name = $${idx++}`);
+    values.push(input.displayName);
+  }
+  if (input.logoUrl !== undefined) {
+    sets.push(`logo_url = $${idx++}`);
+    values.push(input.logoUrl);
+  }
+  if (input.primaryColor !== undefined) {
+    sets.push(`primary_color = $${idx++}`);
+    values.push(input.primaryColor);
+  }
+
+  if (sets.length === 0) {
+    const { profile } = await getAgencyProfile(client);
+    return profile;
+  }
+
+  values.push(agencyId);
+
+  const result = await client.query<{
+    id: string;
+    name: string;
+    email?: string;
+    phone?: string;
+    display_name?: string | null;
+    logo_url?: string | null;
+    primary_color?: string | null;
+  }>(
+    `
+    UPDATE agencies
+    SET ${sets.join(', ')}, updated_at = now()
+    WHERE id = $${idx}
+    RETURNING id, name, email, phone, display_name, logo_url, primary_color
+    `,
+    values,
+  );
+
+  if (result.rows.length === 0) {
+    throw new Error('Agency not found');
+  }
+
+  const row = result.rows[0] as {
+    id: string;
+    name: string;
+    email?: string;
+    phone?: string;
+    display_name?: string | null;
+    logo_url?: string | null;
+    primary_color?: string | null;
+  };
+
+  const profile: AgencyProfile = { id: row.id, name: row.name };
+  if (row.email !== undefined) profile.email = row.email;
+  if (row.phone !== undefined) profile.phone = row.phone;
+  if (row.display_name) profile.displayName = row.display_name;
+  if (row.logo_url) profile.logoUrl = row.logo_url;
+  if (row.primary_color) profile.primaryColor = row.primary_color;
+
+  return profile;
+}
+
+/**
+ * Departments (tenant-scoped, RLS-enforced)
+ */
+export async function listDepartments(client: TenantTransactionClient): Promise<Department[]> {
+  getAgencyId();
+  const result = await client.query<{
+    id: string;
+    name: string;
+    description: string | null;
+    created_at: string;
+    updated_at: string;
+  }>(
+    `SELECT id, name, description, created_at, updated_at
+     FROM departments
+     ORDER BY name ASC`,
+  );
+  return result.rows.map((row) => ({
+    id: row.id,
+    name: row.name,
+    description: row.description,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  }));
+}
+
+export async function createDepartment(
+  client: TenantTransactionClient,
+  input: { name: string; description?: string | null },
+): Promise<Department> {
+  const agencyId = getAgencyId();
+  const name = input.name?.trim();
+  if (!name) {
+    throw new Error('name é obrigatório');
+  }
+  const result = await client.query<{
+    id: string;
+    name: string;
+    description: string | null;
+    created_at: string;
+    updated_at: string;
+  }>(
+    `INSERT INTO departments (agency_id, name, description)
+     VALUES ($1, $2, $3)
+     RETURNING id, name, description, created_at, updated_at`,
+    [agencyId, name, input.description ?? null],
+  );
+  const row = result.rows[0];
+  if (!row) {
+    throw new Error('Failed to create department');
+  }
+
+  return {
+    id: row.id,
+    name: row.name,
+    description: row.description,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+export async function updateDepartment(
+  client: TenantTransactionClient,
+  id: string,
+  input: { name?: string; description?: string | null },
+): Promise<Department | null> {
+  getAgencyId();
+  const sets: string[] = [];
+  const values: unknown[] = [];
+  let idx = 1;
+
+  if (input.name !== undefined) {
+    const trimmed = input.name.trim();
+    if (!trimmed) {
+      throw new Error('name não pode ser vazio');
+    }
+    sets.push(`name = $${idx++}`);
+    values.push(trimmed);
+  }
+  if (input.description !== undefined) {
+    sets.push(`description = $${idx++}`);
+    values.push(input.description);
+  }
+
+  if (sets.length === 0) {
+    const result = await client.query<{
+      id: string;
+      name: string;
+      description: string | null;
+      created_at: string;
+      updated_at: string;
+    }>(`SELECT id, name, description, created_at, updated_at FROM departments WHERE id = $1`, [id]);
+    const row = result.rows[0];
+    if (!row) return null;
+    return {
+      id: row.id,
+      name: row.name,
+      description: row.description,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+    };
+  }
+
+  values.push(id);
+
+  const result = await client.query<{
+    id: string;
+    name: string;
+    description: string | null;
+    created_at: string;
+    updated_at: string;
+  }>(
+    `UPDATE departments
+     SET ${sets.join(', ')}, updated_at = now()
+     WHERE id = $${idx}
+     RETURNING id, name, description, created_at, updated_at`,
+    values,
+  );
+
+  const row = result.rows[0];
+  if (!row) return null;
+
+  return {
+    id: row.id,
+    name: row.name,
+    description: row.description,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+export async function deleteDepartment(client: TenantTransactionClient, id: string): Promise<boolean> {
+  getAgencyId();
+  const result = await client.query(`DELETE FROM departments WHERE id = $1`, [id]);
+  return (result.rowCount ?? 0) > 0;
 }
 
 /**

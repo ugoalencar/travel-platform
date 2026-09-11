@@ -2661,4 +2661,16 @@ export const api = {
     const data = (await response.json()) as T;
     return { data };
   },
+
+  delete: async (path: string): Promise<void> => {
+    const response = await fetch(`${API_BASE_URL}/api${path}`, { method: 'DELETE' });
+    if (!response.ok) {
+      const respBody = (await safeJson(response)) as Partial<ApiErrorBody> | null;
+      throw new ApiError(
+        respBody?.error ?? 'Request failed.',
+        respBody?.code ?? 'UNKNOWN_ERROR',
+        response.status,
+      );
+    }
+  },
 };

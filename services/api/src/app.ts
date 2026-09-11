@@ -400,7 +400,26 @@ import {
   getTeamMembers,
   getNotificationSettings,
   updateNotificationSettings,
+  updateAgencyBranding,
+  listDepartments,
+  createDepartment,
+  updateDepartment,
+  deleteDepartment,
 } from './settings-queries';
+import { recordAuditEvent, AuditEventType } from './audit-log';
+import {
+  createInvitation,
+  listInvitations,
+  revokeInvitation,
+  resolvePublicInvitationToken,
+  acceptInvitation,
+} from './invitations';
+import {
+  createPermissionRestriction,
+  listPermissionRestrictions,
+  deletePermissionRestriction,
+  assertNotRestricted,
+} from './permission-restrictions';
 import {
   createPipeline,
   createStage,
@@ -1618,6 +1637,14 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
 
   app.post('/air-services', { preHandler: protectedHooks }, async (request, reply) => {
     requireRole(UserRole.AGENT);
+    // Demonstrable PermissionRestriction slice: a tenant OWNER/ADMIN can
+    // additively restrict the AGENT role from creating air services
+    // in THIS tenant only -- base RBAC (requireRole above) still applies
+    // unchanged, and this check can never widen access.
+    const restrictionContext = getTenantContext();
+    await options.database.withTenantTransaction((client) =>
+      assertNotRestricted(client, restrictionContext.userRole, 'air-services', 'create'),
+    );
     const data = parseCreateAirServiceInput(request.body);
     const airService = await createAirService(options.database, data);
     reply.code(201);
@@ -2378,6 +2405,209 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     );
     return { settings };
   });
+
+  // ------------------------------------------------------------
+  // AGENCY BRANDING
+  // RBAC: read = VIEWER+, update = ADMIN+ (only owner/admin can
+  // rebrand the tenant's identity)
+  // ------------------------------------------------------------
+  app.patch('/settings/branding', { preHandler: protectedHooks }, async (request) => {
+    requireRole(UserRole.ADMIN);
+    const body = request.body as Partial<{
+      displayName: string | null;
+      logoUrl: string | null;
+      primaryColor: string | null;
+    }>;
+    const profile = await options.database.withTenantTransaction(async (client) => {
+      const updated = await updateAgencyBranding(client, body);
+      await recordAuditEvent(client, {
+        eventType: AuditEventType.AGENCY_BRANDING_UPDATED,
+        entityType: 'agency',
+        entityId: updated.id,
+        metadata: { fieldsChanged: Object.keys(body).join(',') },
+      });
+      return updated;
+    });
+    return { profile };
+  });
+
+  // ------------------------------------------------------------
+  // DEPARTMENTS (tenant-scoped CRUD)
+  // RBAC: read = VIEWER+, create/update/delete = MANAGER+
+  // ------------------------------------------------------------
+  app.get('/settings/departments', { preHandler: protectedHooks }, async () => {
+    requireRole(UserRole.VIEWER);
+    const departments = await options.database.withTenantTransaction((client) =>
+      listDepartments(client),
+    );
+    return { departments };
+  });
+
+  app.post('/settings/departments', { preHandler: protectedHooks }, async (request, reply) => {
+    requireRole(UserRole.MANAGER);
+    const body = request.body as { name: string; description?: string | null };
+    const department = await options.database.withTenantTransaction(async (client) => {
+      const created = await createDepartment(client, body);
+      await recordAuditEvent(client, {
+        eventType: AuditEventType.DEPARTMENT_CREATED,
+        entityType: 'department',
+        entityId: created.id,
+      });
+      return created;
+    });
+    reply.code(201);
+    return { department };
+  });
+
+  app.patch(
+    '/settings/departments/:id',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      requireRole(UserRole.MANAGER);
+      const { id } = request.params as { id: string };
+      const body = request.body as { name?: string; description?: string | null };
+      const department = await options.database.withTenantTransaction(async (client) => {
+        const updated = await updateDepartment(client, id, body);
+        if (updated) {
+          await recordAuditEvent(client, {
+            eventType: AuditEventType.DEPARTMENT_UPDATED,
+            entityType: 'department',
+            entityId: id,
+          });
+        }
+        return updated;
+      });
+      if (!department) {
+        reply.code(404);
+        return { error: 'Department not found' };
+      }
+      return { department };
+    },
+  );
+
+  app.delete(
+    '/settings/departments/:id',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      requireRole(UserRole.MANAGER);
+      const { id } = request.params as { id: string };
+      const deleted = await options.database.withTenantTransaction(async (client) => {
+        const ok = await deleteDepartment(client, id);
+        if (ok) {
+          await recordAuditEvent(client, {
+            eventType: AuditEventType.DEPARTMENT_DELETED,
+            entityType: 'department',
+            entityId: id,
+          });
+        }
+        return ok;
+      });
+      if (!deleted) {
+        reply.code(404);
+        return { error: 'Department not found' };
+      }
+      reply.code(204);
+      return null;
+    },
+  );
+
+  // ------------------------------------------------------------
+  // INVITATIONS (staff-side: create/list/revoke)
+  // RBAC: read = ADMIN+, create/revoke = ADMIN+ (an inviter can never
+  // grant a role above their own -- enforced inside createInvitation()).
+  // ------------------------------------------------------------
+  app.get('/settings/invitations', { preHandler: protectedHooks }, async () => {
+    const invitations = await listInvitations(options.database);
+    return { invitations };
+  });
+
+  app.post('/settings/invitations', { preHandler: protectedHooks }, async (request, reply) => {
+    const body = request.body as { email: string; role: UserRole; ttlDays?: number };
+    const context = getTenantContext();
+    const { invitation, token } = await createInvitation(options.database, context.userRole, body);
+    reply.code(201);
+    // NOTE: real email delivery needs a paid external provider -- out of
+    // scope here (flagged in the final report). The token is returned to
+    // the caller (staff UI) exactly once so it can be copied into an
+    // invite link manually until a provider is chosen.
+    return { invitation, token };
+  });
+
+  app.post(
+    '/settings/invitations/:id/revoke',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      const { id } = request.params as { id: string };
+      const revoked = await revokeInvitation(options.database, id);
+      if (!revoked) {
+        reply.code(404);
+        return { error: 'Invitation not found or not pending' };
+      }
+      return { invitation: revoked };
+    },
+  );
+
+  // ------------------------------------------------------------
+  // INVITATIONS (public accept flow -- token-only, no staff auth)
+  // ------------------------------------------------------------
+  app.get('/invitations/:token', async (request, reply) => {
+    const { token } = request.params as { token: string };
+    const info = await resolvePublicInvitationToken(options.database, token);
+    if (!info) {
+      reply.code(404);
+      return { error: 'Convite inválido ou expirado' };
+    }
+    return { email: info.email, role: info.role };
+  });
+
+  app.post('/invitations/:token/accept', async (request, reply) => {
+    const { token } = request.params as { token: string };
+    const body = request.body as { name: string };
+    const info = await resolvePublicInvitationToken(options.database, token);
+    if (!info) {
+      reply.code(404);
+      return { error: 'Convite inválido ou expirado' };
+    }
+    const result = await acceptInvitation(options.database, info, token, body);
+    reply.code(201);
+    return { userId: result.userId, email: result.email, role: result.role };
+  });
+
+  // ------------------------------------------------------------
+  // PERMISSION RESTRICTIONS (additive-only, tenant-scoped)
+  // RBAC: read = VIEWER+, create/delete = ADMIN+. OWNER/ADMIN can never
+  // be restricted (createPermissionRestriction() rejects it).
+  // ------------------------------------------------------------
+  app.get('/settings/permission-restrictions', { preHandler: protectedHooks }, async () => {
+    const restrictions = await listPermissionRestrictions(options.database);
+    return { restrictions };
+  });
+
+  app.post(
+    '/settings/permission-restrictions',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      const body = request.body as { role: UserRole; resource: string; action: string };
+      const restriction = await createPermissionRestriction(options.database, body);
+      reply.code(201);
+      return { restriction };
+    },
+  );
+
+  app.delete(
+    '/settings/permission-restrictions/:id',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      const { id } = request.params as { id: string };
+      const deleted = await deletePermissionRestriction(options.database, id);
+      if (!deleted) {
+        reply.code(404);
+        return { error: 'Permission restriction not found' };
+      }
+      reply.code(204);
+      return null;
+    },
+  );
 
   // Sale RBAC (docs/03-security/authorization.md): "Listar todas" is
   // OWNER/ADMIN/MANAGER only, "Listar próprias" is all 5 roles. userId is
