@@ -416,6 +416,16 @@ BEGIN
 END;
 $$;
 
+DO $$
+BEGIN
+  IF to_regclass('public.departments') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      departments
+    TO travel_app_runtime_local;
+  END IF;
+END;
+$$;
+
 GRANT EXECUTE ON FUNCTION current_agency_id() TO travel_app_runtime_local;
 GRANT EXECUTE ON FUNCTION current_user_id() TO travel_app_runtime_local;
 GRANT EXECUTE ON FUNCTION set_tenant_context(TEXT, TEXT) TO travel_app_runtime_local;
