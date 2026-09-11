@@ -426,6 +426,21 @@ BEGIN
 END;
 $$;
 
+DO $$
+BEGIN
+  IF to_regclass('public.invitations') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      invitations
+    TO travel_app_runtime_local;
+  END IF;
+  IF to_regclass('public.permission_restrictions') IS NOT NULL THEN
+    GRANT SELECT, INSERT, DELETE ON
+      permission_restrictions
+    TO travel_app_runtime_local;
+  END IF;
+END;
+$$;
+
 GRANT EXECUTE ON FUNCTION current_agency_id() TO travel_app_runtime_local;
 GRANT EXECUTE ON FUNCTION current_user_id() TO travel_app_runtime_local;
 GRANT EXECUTE ON FUNCTION set_tenant_context(TEXT, TEXT) TO travel_app_runtime_local;
