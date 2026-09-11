@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { AppShell } from './components/layout/AppShell';
 import { EnrollmentPage } from './pages/EnrollmentPage';
+import { AcceptInvitationPage } from './pages/AcceptInvitationPage';
 import { CustomersPage } from './pages/CustomersPage';
 import { CustomerFormPage } from './pages/CustomerFormPage';
 import { CustomerDetailsPage } from './pages/CustomerDetailsPage';
@@ -88,6 +89,10 @@ export function App() {
           existing customer. Resolves entirely via the :token in the URL,
           which the backend maps to a tenant server-side. */}
       <Route path="enroll/:token" element={<EnrollmentPage />} />
+
+      {/* Public, unauthenticated invite-acceptance form (SaaS Admin,
+          Agent 01). Same shape as /enroll/:token above. */}
+      <Route path="accept-invitation/:token" element={<AcceptInvitationPage />} />
 
       {/* End-customer-facing portal. Entirely separate route tree, shell,
           and nav from the staff admin tree below -- see
