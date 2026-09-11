@@ -42,8 +42,10 @@ if [[ "$DB_HOST" != "127.0.0.1" && "$DB_HOST" != "localhost" && "$DB_HOST" != "p
   exit 1
 fi
 
-# Create backup directory if it doesn't exist
+# Create backup directory if it doesn't exist, restricted to the owning user.
+# Best-effort: some filesystems (e.g. exFAT/NTFS via WSL/Windows mounts) ignore POSIX bits.
 mkdir -p "$BACKUP_DIR"
+chmod 700 "$BACKUP_DIR" 2>/dev/null || true
 
 # Verify PostgreSQL client tools are available
 if ! command -v pg_dump &> /dev/null; then
@@ -71,6 +73,10 @@ if [[ ! -f "$BACKUP_FILE" ]]; then
   echo "ERROR: Backup file was not created"
   exit 1
 fi
+
+# Restrict access to the dump (contains raw tenant data) to the owning user only.
+# Best-effort: some filesystems (e.g. exFAT/NTFS via WSL/Windows mounts) ignore POSIX bits.
+chmod 600 "$BACKUP_FILE" 2>/dev/null || true
 
 # Check backup size
 BACKUP_SIZE=$(stat -f%z "$BACKUP_FILE" 2>/dev/null || stat -c%s "$BACKUP_FILE" 2>/dev/null)
