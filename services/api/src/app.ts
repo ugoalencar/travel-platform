@@ -458,6 +458,8 @@ import type { ConnectorEvent } from '../../../packages/domain/types';
 import { createPlatformAuthenticateHook, type PlatformAuthProvider } from './platform-auth';
 import { PlatformDevAuthProvider } from './platform-dev-auth';
 import { registerPlatformRoutes, registerPublicPlatformRoutes } from './platform-routes';
+import { registerObservability, resolveDeploymentId } from './observability';
+import { createAgencySupportTicket } from './platform-services';
 
 export interface BuildAppOptions {
   authProvider: AuthProvider;
@@ -507,6 +509,16 @@ export interface BuildAppOptions {
   // SEC-E: override the request body size limit in bytes. Defaults to
   // DEFAULT_BODY_LIMIT_BYTES (security-config.ts).
   bodyLimitBytes?: number;
+  // SUPPORT-OBS: identifies which deployment produced a given log line /
+  // /metrics snapshot, so a support agent can correlate a bug report to a
+  // specific release. Defaults to resolveDeploymentId() (env var lookup,
+  // falling back to 'local').
+  deploymentId?: string;
+  // SUPPORT-OBS: optional DB connection-pool stats surfaced on /metrics
+  // (spec: OBSERVABILITY.md "DB connections"). Wire this to `pool.totalCount`
+  // /`idleCount`/`waitingCount` from the real `pg.Pool` in server.ts; omitted
+  // (e.g. in tests) it reports null rather than guessing.
+  dbPoolStats?: () => { total: number; idle: number; waiting: number } | undefined;
 }
 
 interface AgencyProofRow {
@@ -640,6 +652,13 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       'geolocation=(), camera=(), microphone=(), payment=(), usb=(), fullscreen=()'
     );
     done(null, payload);
+  });
+
+  // SUPPORT-OBS: correlation-ID propagation + structured request logging +
+  // in-process metrics. Registered before the error handler so onResponse
+  // still fires (and captures status/duration) for handled errors too.
+  const metrics = registerObservability(app, {
+    deploymentId: options.deploymentId ?? resolveDeploymentId(),
   });
 
   app.decorateRequest('auth', undefined);
@@ -797,6 +816,20 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
   // per field rather than throwing.
   app.get('/version', () => options.versionInfo ?? resolveVersionInfo());
 
+  // SUPPORT-OBS: lightweight metrics surface -- request rates, latency
+  // percentiles, and 4xx/5xx counts from the in-process collector above.
+  // No auth: mirrors /health (operational, not tenant/customer data), and
+  // is deliberately unauthenticated so it can be scraped the same way
+  // /health is. Contains only aggregate counters, never request/response
+  // bodies or identifiers.
+  app.get('/metrics', () => {
+    const snapshot = metrics.snapshot();
+    return {
+      ...snapshot,
+      dbPool: options.dbPoolStats?.() ?? null,
+    };
+  });
+
   app.get('/readiness', async (_request, reply) => {
     try {
       await options.readinessCheck?.();
@@ -825,6 +858,52 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       agencyId: context.agencyId,
       role: context.userRole,
     };
+  });
+
+  // SUPPORT-OBS: agency-facing ticket capture (SUPPORT_CENTER.md "Abrir
+  // chamado" / "Reportar problema"). agencyId/userId/requestId/
+  // correlationId are ALWAYS taken from the authenticated tenant context
+  // and this request's own correlation IDs -- never from the request
+  // body -- so a client cannot spoof which agency/user filed a ticket.
+  // route/appVersion/buildSha/browser are client-reported diagnostic
+  // context only.
+  app.post<{
+    Body: {
+      title: string;
+      description: string;
+      priority?: string;
+      route?: string;
+      appVersion?: string;
+      buildSha?: string;
+      browser?: string;
+    };
+  }>('/support/tickets', { preHandler: protectedHooks }, async (request, reply) => {
+    const context = getTenantContext();
+    const body = request.body ?? ({} as (typeof request)['body']);
+
+    if (!body.title?.trim() || !body.description?.trim()) {
+      throw new ValidationError('title and description are required');
+    }
+
+    // platform-services.ts returns `any` for this row (see its file-level
+    // eslint-disable). Typed `unknown` here so it is only ever forwarded
+    // to the response, never used for auth/tenant decisions.
+    const supportCase: unknown = await createAgencySupportTicket(options.database, {
+      agencyId: context.agencyId,
+      userId: context.userId,
+      requestId: request.requestId ?? request.id,
+      correlationId: request.correlationId ?? request.id,
+      title: body.title,
+      description: body.description,
+      priority: body.priority,
+      route: body.route,
+      appVersion: body.appVersion,
+      buildSha: body.buildSha,
+      browser: body.browser,
+    });
+
+    reply.code(201);
+    return { supportCase };
   });
 
   app.get('/tenant-proof', { preHandler: protectedHooks }, async () => {

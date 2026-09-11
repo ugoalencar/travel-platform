@@ -669,6 +669,15 @@ export async function listSupportCases(database: DatabaseRuntime) {
           c.id,
           c.subscriber_tenant_id AS "subscriberTenantId",
           COALESCE(st.contact_name, st.legal_name) AS "subscriberTenantName",
+          c.agency_id AS "agencyId",
+          c.created_by_user_id AS "createdByUserId",
+          c.source,
+          c.route,
+          c.app_version AS "appVersion",
+          c.build_sha AS "buildSha",
+          c.browser,
+          c.request_id AS "requestId",
+          c.correlation_id AS "correlationId",
           c.title,
           c.description,
           c.status,
@@ -678,7 +687,10 @@ export async function listSupportCases(database: DatabaseRuntime) {
           c.created_at AS "createdAt",
           c.updated_at AS "updatedAt"
         FROM support_cases c
-        JOIN subscriber_tenants st ON st.id = c.subscriber_tenant_id
+        -- LEFT JOIN: an agency-originated ticket (source = 'AGENCY') has
+        -- agency_id set but subscriber_tenant_id NULL -- an inner join
+        -- here would silently drop those rows from every listing.
+        LEFT JOIN subscriber_tenants st ON st.id = c.subscriber_tenant_id
         LEFT JOIN platform_users u ON u.id = c.assigned_to_id
         ORDER BY c.created_at DESC
       `
@@ -691,11 +703,64 @@ export async function createSupportCase(database: DatabaseRuntime, data: Support
   return withPlatform(database, async (client) => {
     const result = await client.query(
       `
-        INSERT INTO support_cases (subscriber_tenant_id, title, description, priority, status)
-        VALUES ($1, $2, $3, COALESCE($4, 'MEDIUM'), 'OPEN')
+        INSERT INTO support_cases (subscriber_tenant_id, title, description, priority, status, source)
+        VALUES ($1, $2, $3, COALESCE($4, 'MEDIUM'), 'OPEN', 'PLATFORM')
         RETURNING id
       `,
       [data.subscriberTenantId, data.title, data.description, data.priority]
+    );
+    return getSupportCaseById(database, String(result.rows[0]?.id));
+  });
+}
+
+export interface AgencySupportTicketInput {
+  // Server-derived, never trusted from the request body: identifies who
+  // is actually filing the ticket. Callers must pass these from the
+  // authenticated tenant context (getTenantContext()) and the request's
+  // own correlation IDs (observability.ts), not from request.body.
+  agencyId: string;
+  userId: string;
+  requestId: string;
+  correlationId: string;
+  title: string;
+  description: string;
+  priority?: string | undefined;
+  // Client-reported diagnostic context only -- used for triage, never for
+  // authorization or tenant resolution.
+  route?: string | undefined;
+  appVersion?: string | undefined;
+  buildSha?: string | undefined;
+  browser?: string | undefined;
+}
+
+export async function createAgencySupportTicket(
+  database: DatabaseRuntime,
+  input: AgencySupportTicketInput
+) {
+  return withPlatform(database, async (client) => {
+    const result = await client.query(
+      `
+        INSERT INTO support_cases (
+          agency_id, created_by_user_id, source,
+          request_id, correlation_id, route, app_version, build_sha, browser,
+          title, description, priority, status
+        )
+        VALUES ($1, $2, 'AGENCY', $3, $4, $5, $6, $7, $8, $9, $10, COALESCE($11, 'MEDIUM'), 'OPEN')
+        RETURNING id
+      `,
+      [
+        input.agencyId,
+        input.userId,
+        input.requestId,
+        input.correlationId,
+        input.route ?? null,
+        input.appVersion ?? null,
+        input.buildSha ?? null,
+        input.browser ?? null,
+        input.title,
+        input.description,
+        input.priority,
+      ]
     );
     return getSupportCaseById(database, String(result.rows[0]?.id));
   });
@@ -722,6 +787,126 @@ export async function updateSupportCase(database: DatabaseRuntime, id: string, d
     );
     return getSupportCaseById(database, id);
   });
+}
+
+// ============================================================
+// SUPPORT SESSION (audited "view as tenant")
+// Spec: docs/travel_platform_ops_security_pack/support/SUPPORT_CENTER.md
+// "Sem impersonation invisível. Sessao temporaria, tenant explicito,
+// motivo, duracao, read-only por padrao e auditoria."
+//
+// This does NOT grant any actual data access by itself -- it only opens
+// (and closes) the audit trail row in support_access_log. A previous scan
+// of the codebase found no impersonation/view-as-tenant mechanism at all
+// (no code path reads support_access_log or lets a platform user assume a
+// tenant's session), so wiring an actual elevated-access session (e.g.
+// minting a scoped tenant context for a platform user) is flagged for
+// human follow-up rather than built here -- that would mean either (a)
+// creating a new way for a platform identity to obtain a tenant session,
+// which touches the auth/tenant boundary the dispatch brief says not to
+// touch structurally, or (b) shipping a half-built access path with an
+// audit trail but no actual read enforcement, which is worse than not
+// shipping it. What IS built and enforced here: a session cannot be
+// opened without support_user_id + explicit tenant + reason + duration,
+// defaults to read_only = true, and every open/close is durably audited.
+// ============================================================
+
+export interface StartSupportSessionInput {
+  supportUserId: string;
+  tenantId: string;
+  reason: string;
+  durationMinutes?: number | undefined;
+  readOnly?: boolean | undefined;
+  ipAddress?: string | undefined;
+  userAgent?: string | undefined;
+}
+
+const MAX_SUPPORT_SESSION_MINUTES = 240;
+
+export async function startSupportSession(database: DatabaseRuntime, input: StartSupportSessionInput) {
+  const reason = input.reason?.trim();
+  if (!reason) {
+    throw new Error('Support session requires an explicit reason');
+  }
+
+  const durationMinutes = Math.min(
+    Math.max(1, Math.floor(input.durationMinutes ?? 30)),
+    MAX_SUPPORT_SESSION_MINUTES
+  );
+  const readOnly = input.readOnly ?? true;
+
+  return withPlatform(database, async (client) => {
+    const result = await client.query(
+      `
+        INSERT INTO support_access_log (
+          support_user_id, impersonated_tenant_id, reason,
+          requested_duration_minutes, expires_at, read_only,
+          ip_address, user_agent
+        )
+        VALUES ($1, $2, $3, $4, now() + ($4 || ' minutes')::interval, $5, $6, $7)
+        RETURNING
+          id, support_user_id AS "supportUserId", impersonated_tenant_id AS "tenantId",
+          reason, requested_duration_minutes AS "durationMinutes", read_only AS "readOnly",
+          access_start AS "accessStart", expires_at AS "expiresAt", access_end AS "accessEnd"
+      `,
+      [input.supportUserId, input.tenantId, reason, durationMinutes, readOnly, input.ipAddress ?? null, input.userAgent ?? null]
+    );
+    return normalizeSupportSession(result.rows[0]);
+  });
+}
+
+export async function endSupportSession(database: DatabaseRuntime, sessionId: string) {
+  return withPlatform(database, async (client) => {
+    const result = await client.query(
+      `
+        UPDATE support_access_log
+        SET access_end = now()
+        WHERE id = $1 AND access_end IS NULL
+        RETURNING
+          id, support_user_id AS "supportUserId", impersonated_tenant_id AS "tenantId",
+          reason, requested_duration_minutes AS "durationMinutes", read_only AS "readOnly",
+          access_start AS "accessStart", expires_at AS "expiresAt", access_end AS "accessEnd"
+      `,
+      [sessionId]
+    );
+    if (result.rows.length === 0) {
+      throw new NotFoundOrAlreadyClosedError();
+    }
+    return normalizeSupportSession(result.rows[0]);
+  });
+}
+
+export async function listSupportSessions(database: DatabaseRuntime) {
+  return withPlatform(database, async (client) => {
+    const result = await client.query(
+      `
+        SELECT
+          id, support_user_id AS "supportUserId", impersonated_tenant_id AS "tenantId",
+          reason, requested_duration_minutes AS "durationMinutes", read_only AS "readOnly",
+          access_start AS "accessStart", expires_at AS "expiresAt", access_end AS "accessEnd"
+        FROM support_access_log
+        ORDER BY access_start DESC
+        LIMIT 200
+      `
+    );
+    return result.rows.map(normalizeSupportSession);
+  });
+}
+
+export class NotFoundOrAlreadyClosedError extends Error {
+  readonly code = 'NOT_FOUND';
+  constructor() {
+    super('Support session not found or already closed');
+  }
+}
+
+function normalizeSupportSession(row: any) {
+  return {
+    ...row,
+    accessStart: iso(row.accessStart),
+    expiresAt: row.expiresAt ? iso(row.expiresAt) : null,
+    accessEnd: row.accessEnd ? iso(row.accessEnd) : null,
+  };
 }
 
 function withPlatform<T>(
