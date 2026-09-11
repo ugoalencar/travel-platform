@@ -32,6 +32,10 @@ import {
   createSupportCase,
   getSupportCaseById,
   updateSupportCase,
+  startSupportSession,
+  endSupportSession,
+  listSupportSessions,
+  NotFoundOrAlreadyClosedError,
 } from './platform-services';
 
 interface PlanCreateRequest {
@@ -383,4 +387,63 @@ export function registerPlatformRoutes(
       return { supportCase };
     }
   );
+
+  // ==================== SUPPORT SESSION (audited "view as tenant") ====================
+  // Spec: SUPPORT_CENTER.md "Support Session -- sem impersonation
+  // invisivel. Sessao temporaria, tenant explicito, motivo, duracao,
+  // read-only por padrao e auditoria." supportUserId is taken from the
+  // authenticated platform principal (request.platformAuth.sub) -- never
+  // from the request body -- so a session can never be opened/audited
+  // under someone else's identity.
+
+  // GET /platform/support-sessions - list audited sessions (open + closed)
+  app.get('/platform/support-sessions', { preHandler: platformAuthHooks }, async () => {
+    const sessions = await listSupportSessions(database);
+    return { sessions };
+  });
+
+  // POST /platform/support-sessions - open a new audited support session
+  app.post<{
+    Body: { tenantId: string; reason: string; durationMinutes?: number; readOnly?: boolean };
+  }>('/platform/support-sessions', { preHandler: platformAuthHooks }, async (request, reply) => {
+    const supportUserId = (request as any).platformAuth?.sub;
+    if (!supportUserId) {
+      reply.code(401);
+      return { error: 'Platform authentication required' };
+    }
+
+    const session = await startSupportSession(database, {
+      supportUserId,
+      tenantId: request.body.tenantId,
+      reason: request.body.reason,
+      durationMinutes: request.body.durationMinutes,
+      readOnly: request.body.readOnly,
+      ipAddress: request.ip,
+      userAgent: headerString(request.headers['user-agent']),
+    });
+    reply.code(201);
+    return { session };
+  });
+
+  // PATCH /platform/support-sessions/:id/end - close an audited support session
+  app.patch<{ Params: { id: string } }>(
+    '/platform/support-sessions/:id/end',
+    { preHandler: platformAuthHooks },
+    async (request, reply) => {
+      try {
+        const session = await endSupportSession(database, request.params.id);
+        return { session };
+      } catch (error) {
+        if (error instanceof NotFoundOrAlreadyClosedError) {
+          reply.code(404);
+          return { error: error.message, code: error.code };
+        }
+        throw error;
+      }
+    }
+  );
+}
+
+function headerString(value: string | string[] | undefined): string | undefined {
+  return Array.isArray(value) ? value[0] : value;
 }
