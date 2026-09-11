@@ -48,6 +48,21 @@ const migrations = [
   '041_finance_categories_cost_centers.sql',
   '042_employees_commission_plans.sql',
   '043_commissions_payroll.sql',
+  '044_commission_entries_dedupe_guard.sql',
+  '045_supplier_category_links_force_rls.sql',
+  '046_customer_360_completion.sql',
+  '047_operacao_occurrences_posttrip.sql',
+  // 048 (support_ticket_capture_context) ALTERs support_cases, a table
+  // created by an earlier ops-pack migration this test's list never
+  // included -- not needed for PermissionRestriction, skipped rather than
+  // pulling in an unrelated dependency chain.
+  '049_enrollment_links.sql',
+  '050_agency_branding_departments.sql',
+  // GET /financial/dashboard and GET /employees now call
+  // assertNotRestricted() (PermissionRestriction, SaaS Admin), which
+  // queries permission_restrictions -- this migration must be applied or
+  // both 500 with a missing-table error regardless of RBAC passing.
+  '051_invitations_permission_restrictions.sql',
 ].map((name) => resolve(repoRoot, 'infrastructure/migrations', name));
 const prepareRolesSql = resolve(repoRoot, 'tests/integration/database/002_prepare_local_roles.sql');
 const composeFile = resolve(repoRoot, 'infrastructure/docker-compose.local-postgres.yml');
