@@ -2516,6 +2516,92 @@ export async function setPostTripChecklistItem(
 }
 
 // ============================================================
+// CLIENT ONBOARDING: enrollment links + submissions
+// (services/api/src/enrollment.ts / app.ts /enrollment-links,
+// /enrollment-submissions routes)
+// ============================================================
+
+export type EnrollmentLinkStatus = 'ACTIVE' | 'REVOKED';
+export type EnrollmentSubmissionStatus =
+  | 'SUBMITTED'
+  | 'CHANGES_REQUESTED'
+  | 'APPROVED'
+  | 'REJECTED';
+
+export interface EnrollmentLink {
+  id: string;
+  agencyId: string;
+  status: EnrollmentLinkStatus;
+  ownerUserId?: string;
+  createdByUserId: string;
+  label?: string;
+  expiresAt: string;
+  revokedAt?: string;
+  lastUsedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface EnrollmentSubmission {
+  id: string;
+  agencyId: string;
+  enrollmentLinkId: string;
+  status: EnrollmentSubmissionStatus;
+  fullName: string;
+  email?: string;
+  phone?: string;
+  cpf?: string;
+  submittedAt: string;
+}
+
+export async function createEnrollmentLink(input: {
+  label?: string;
+  ownerUserId?: string;
+  ttlDays?: number;
+}): Promise<{ link: EnrollmentLink; token: string }> {
+  return request<{ link: EnrollmentLink; token: string }>('/api/enrollment-links', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+}
+
+export async function listEnrollmentLinks(): Promise<EnrollmentLink[]> {
+  const data = await request<{ links: EnrollmentLink[] }>('/api/enrollment-links');
+  return data.links;
+}
+
+export async function revokeEnrollmentLink(id: string): Promise<EnrollmentLink> {
+  const data = await request<{ link: EnrollmentLink }>(
+    `/api/enrollment-links/${encodeURIComponent(id)}/revoke`,
+    { method: 'POST' },
+  );
+  return data.link;
+}
+
+export async function listEnrollmentSubmissions(): Promise<EnrollmentSubmission[]> {
+  const data = await request<{ submissions: EnrollmentSubmission[] }>('/api/enrollment-submissions');
+  return data.submissions;
+}
+
+export async function requestEnrollmentChanges(id: string, notes: string): Promise<EnrollmentSubmission> {
+  const data = await request<{ submission: EnrollmentSubmission }>(
+    `/api/enrollment-submissions/${encodeURIComponent(id)}/request-changes`,
+    { method: 'POST', body: JSON.stringify({ notes }) },
+  );
+  return data.submission;
+}
+
+export async function approveEnrollmentSubmission(
+  id: string,
+  reviewNotes?: string,
+): Promise<{ submission: EnrollmentSubmission; customerId: string; wishId?: string }> {
+  return request<{ submission: EnrollmentSubmission; customerId: string; wishId?: string }>(
+    `/api/enrollment-submissions/${encodeURIComponent(id)}/approve`,
+    { method: 'POST', body: JSON.stringify({ reviewNotes }) },
+  );
+}
+
+// ============================================================
 // GENERIC API CLIENT
 // For use by pages that need flexible API access beyond
 // the specific functions above. Provides get, post, etc.

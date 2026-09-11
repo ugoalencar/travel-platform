@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { AppShell } from './components/layout/AppShell';
+import { EnrollmentPage } from './pages/EnrollmentPage';
 import { CustomersPage } from './pages/CustomersPage';
 import { CustomerFormPage } from './pages/CustomerFormPage';
 import { CustomerDetailsPage } from './pages/CustomerDetailsPage';
@@ -82,6 +83,12 @@ import { PipelineConfigPage } from './pages/commercial/PipelineConfigPage';
 export function App() {
   return (
     <Routes>
+      {/* Public, unauthenticated remote enrollment form (Client Onboarding,
+          Agent 02). No shell -- a prospect isn't a staff user or an
+          existing customer. Resolves entirely via the :token in the URL,
+          which the backend maps to a tenant server-side. */}
+      <Route path="enroll/:token" element={<EnrollmentPage />} />
+
       {/* End-customer-facing portal. Entirely separate route tree, shell,
           and nav from the staff admin tree below -- see
           customer-portal/CustomerPortalShell.tsx. */}

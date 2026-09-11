@@ -31,6 +31,7 @@ const NAV_SECTIONS: NavSection[] = [
     items: [
       { label: 'Leads', to: '/customers', gap: true },
       { label: 'Clientes', to: '/customers' },
+      { label: 'Cadastro Remoto', to: '/enrollment-links' },
       { label: 'Desejos', to: '/wishes' },
       { label: 'Pescador', to: '/pescador' },
       { label: 'Ofertas', to: '/offers' },

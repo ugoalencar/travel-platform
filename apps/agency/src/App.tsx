@@ -44,6 +44,7 @@ import { OccurrencesPage } from './pages/operations/OccurrencesPage';
 import { PostTripPage } from './pages/operations/PostTripPage';
 import { ReportsPage } from './pages/ReportsPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { EnrollmentLinksPage } from './pages/EnrollmentLinksPage';
 import { EmployeesPage } from './pages/EmployeesPage';
 import { CommissionPlansPage } from './pages/CommissionPlansPage';
 import { PayrollPage } from './pages/PayrollPage';
@@ -92,6 +93,7 @@ export function App() {
         <Route path="operations/occurrences" element={<OccurrencesPage />} />
         <Route path="operations/post-trip" element={<PostTripPage />} />
         <Route path="reports" element={<ReportsPage />} />
+        <Route path="enrollment-links" element={<EnrollmentLinksPage />} />
         <Route path="employees" element={<EmployeesPage />} />
         <Route path="commission-plans" element={<CommissionPlansPage />} />
         <Route path="payroll" element={<PayrollPage />} />
