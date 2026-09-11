@@ -1,6 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unnecessary-type-assertion */
 import type { FastifyInstance } from 'fastify';
 import type { PrismaClient } from '@prisma/client';
+import { requirePlatformRole } from './platform-auth';
+import { PlatformUserRole } from '../../../packages/domain/types';
+import { UnauthorizedError } from '../../../packages/domain/tenant-context';
+import { ValidationError } from './errors';
+import {
+  listFeatureFlags,
+  setFeatureFlagEnabled,
+} from './feature-flags';
 import {
   listPlans,
   createPlan,
@@ -381,6 +389,43 @@ export function registerPlatformRoutes(
     async (request) => {
       const supportCase = await updateSupportCase(database, request.params.id, request.body as any);
       return { supportCase };
+    }
+  );
+
+  // ==================== FEATURE FLAGS ====================
+  // Kill switches, not an authorization mechanism -- see feature-flags.ts
+  // header comment. Read is available to any authenticated platform
+  // principal (same posture as the other GET /platform/* list routes
+  // above); the toggle is gated to PLATFORM_OWNER/PLATFORM_ADMIN only,
+  // per the pack's "admin-only route to toggle it" requirement.
+
+  // GET /platform/feature-flags - List all feature flags
+  app.get('/platform/feature-flags', { preHandler: platformAuthHooks }, async () => {
+    const flags = await listFeatureFlags(database as any);
+    return { flags };
+  });
+
+  // POST /platform/feature-flags/:name/toggle - Admin-only kill switch
+  app.post<{ Params: { name: string }; Body: { enabled?: unknown } }>(
+    '/platform/feature-flags/:name/toggle',
+    { preHandler: platformAuthHooks },
+    async (request) => {
+      requirePlatformRole(PlatformUserRole.PLATFORM_OWNER, PlatformUserRole.PLATFORM_ADMIN)(request);
+
+      if (typeof request.body?.enabled !== 'boolean') {
+        throw new ValidationError('Body must include a boolean "enabled" field');
+      }
+
+      const changedBy = request.platformAuth?.sub;
+      if (!changedBy) {
+        throw new UnauthorizedError('Missing platform principal');
+      }
+
+      const flag = await setFeatureFlagEnabled(database as any, request.params.name, {
+        enabled: request.body.enabled,
+        changedBy,
+      });
+      return { flag };
     }
   );
 }
