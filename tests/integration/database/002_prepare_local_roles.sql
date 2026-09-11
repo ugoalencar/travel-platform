@@ -416,6 +416,22 @@ BEGIN
 END;
 $$;
 
+-- Client Onboarding (Agent 02): enrollment link/submission/document tables
+-- (migration 049_enrollment_links.sql) only exist once that migration has
+-- been applied; guard the same way as the blocks above so domains that
+-- only apply earlier migrations are unaffected.
+DO $$
+BEGIN
+  IF to_regclass('public.enrollment_links') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      enrollment_links,
+      enrollment_submissions,
+      enrollment_documents
+    TO travel_app_runtime_local;
+  END IF;
+END;
+$$;
+
 GRANT EXECUTE ON FUNCTION current_agency_id() TO travel_app_runtime_local;
 GRANT EXECUTE ON FUNCTION current_user_id() TO travel_app_runtime_local;
 GRANT EXECUTE ON FUNCTION set_tenant_context(TEXT, TEXT) TO travel_app_runtime_local;
