@@ -6,6 +6,7 @@ import {
 import { getAgencyId } from '../../../packages/domain/tenant-context';
 import type { DatabaseRuntime, TenantTransactionClient } from './database';
 import { ConflictError, NotFoundError, ValidationError } from './errors';
+import { assertPublicHttpUrl, resolveAndValidateHost, SsrfBlockedError } from './ssrf-guard';
 
 const POSTGRES_UNIQUE_VIOLATION = '23505';
 
@@ -79,6 +80,13 @@ export interface ExtractedOfferDraft {
 
 const EXTRACTION_TIMEOUT_MS = 8000;
 const MAX_RAW_CONTENT_LENGTH = 20000;
+// Hard cap on bytes read from the response stream, enforced while streaming
+// (not after buffering the full body) so a malicious/huge origin cannot
+// exhaust memory. Comfortably larger than MAX_RAW_CONTENT_LENGTH since the
+// body is UTF-8 text and we still want a full page's worth of HTML to scan
+// for meta tags before truncating for storage.
+const MAX_RESPONSE_BYTES = 2 * 1024 * 1024; // 2 MiB
+const MAX_REDIRECTS = 5;
 
 /**
  * Actually performs an HTTP fetch of the given URL and extracts structured
@@ -95,26 +103,53 @@ export async function extractOfferFromUrl(url: string): Promise<ExtractedOfferDr
   } catch {
     throw new ValidationError('Field "url" must be a valid absolute URL');
   }
-  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
-    throw new ValidationError('Field "url" must use http or https');
-  }
+  assertPublicHttpUrl(parsed);
   const sourceName = parsed.hostname.replace(/^www\./, '');
 
   let response: Response;
   let bodyText: string;
   try {
+    // Validate the initial target and every redirect hop by hand: `redirect:
+    // 'follow'` would let fetch silently chase a Location header into a
+    // private IP (or into a hostname that only resolves to one after DNS
+    // rebinding) without ever re-checking it. Resolving+validating on every
+    // hop, and reading the body through a size-capped stream instead of
+    // response.text(), are both required to actually close those holes.
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), EXTRACTION_TIMEOUT_MS);
     try {
-      response = await fetch(parsed.toString(), {
-        signal: controller.signal,
-        redirect: 'follow',
-        headers: { Accept: 'text/html,application/json;q=0.9,*/*;q=0.8' },
-      });
+      let current = parsed;
+      let hops = 0;
+      for (;;) {
+        await resolveAndValidateHost(current.hostname);
+        response = await fetch(current.toString(), {
+          signal: controller.signal,
+          redirect: 'manual',
+          // Strip any inbound cookies/auth from ever being forwarded, and
+          // send only the minimal headers this outbound request needs.
+          headers: { Accept: 'text/html,application/json;q=0.9,*/*;q=0.8' },
+        });
+        if (response.status >= 300 && response.status < 400) {
+          const location = response.headers.get('location');
+          if (!location) {
+            throw new SsrfBlockedError('Redirecionamento sem cabeçalho Location');
+          }
+          hops += 1;
+          if (hops > MAX_REDIRECTS) {
+            throw new SsrfBlockedError('Número máximo de redirecionamentos excedido');
+          }
+          const next = new URL(location, current);
+          assertPublicHttpUrl(next);
+          current = next;
+          continue;
+        }
+        break;
+      }
+      parsed = current;
+      bodyText = await readBodyWithCap(response, MAX_RESPONSE_BYTES);
     } finally {
       clearTimeout(timeout);
     }
-    bodyText = await response.text();
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown fetch error';
     return {
@@ -141,6 +176,39 @@ export async function extractOfferFromUrl(url: string): Promise<ExtractedOfferDr
     return extractFromJson(parsed.toString(), sourceName, truncated);
   }
   return extractFromHtml(parsed.toString(), sourceName, truncated);
+}
+
+/**
+ * Reads a fetch Response body through its stream, aborting once `maxBytes`
+ * is exceeded instead of buffering the whole thing first (which is what
+ * `response.text()` does, and what let an oversized/malicious origin exhaust
+ * memory before any truncation ever ran).
+ */
+async function readBodyWithCap(response: Response, maxBytes: number): Promise<string> {
+  const body = response.body;
+  if (!body) {
+    return response.text();
+  }
+  const reader = body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (value) {
+        total += value.byteLength;
+        if (total > maxBytes) {
+          await reader.cancel('response too large').catch(() => undefined);
+          throw new ValidationError('Resposta da origem excede o tamanho máximo permitido');
+        }
+        chunks.push(value);
+      }
+    }
+  } finally {
+    reader.releaseLock();
+  }
+  return Buffer.concat(chunks.map((chunk) => Buffer.from(chunk))).toString('utf8');
 }
 
 function extractFromJson(sourceUrl: string, sourceName: string, body: string): ExtractedOfferDraft {
