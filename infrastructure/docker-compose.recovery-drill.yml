@@ -4,7 +4,7 @@ services:
     container_name: travel-recovery-source
     restart: "no"
     ports:
-      - "127.0.0.1:55433:5432"
+      - "127.0.0.1:${RECOVERY_DRILL_SOURCE_PORT:-55433}:5432"
     environment:
       POSTGRES_DB: travel_recovery_source
       POSTGRES_USER: travel_recovery
@@ -20,7 +20,7 @@ services:
     container_name: travel-recovery-target
     restart: "no"
     ports:
-      - "127.0.0.1:55434:5432"
+      - "127.0.0.1:${RECOVERY_DRILL_TARGET_PORT:-55434}:5432"
     environment:
       POSTGRES_DB: travel_recovery_target
       POSTGRES_USER: travel_recovery
