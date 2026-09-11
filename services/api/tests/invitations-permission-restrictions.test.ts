@@ -19,6 +19,7 @@ import {
   deletePermissionRestriction,
   assertNotRestricted,
 } from '../src/permission-restrictions';
+import { getAgencyProfile, updateOnboardingStep, completeOnboarding } from '../src/settings-queries';
 
 const repoRoot = resolve(import.meta.dirname, '../../..');
 const migration001 = resolve(repoRoot, 'infrastructure/migrations/001_initial_schema.sql');
@@ -322,6 +323,85 @@ describe.sequential('Invitations + PermissionRestrictions data-access layer (Age
       restriction.id,
     ]);
     expect(stillExists.rowCount).toBe(1);
+  });
+
+  // ------------------------------------------------------------
+  // PermissionRestriction — additional real enforcement points
+  // (financial dashboard, employee roster), beyond the original
+  // demonstrable air-services slice. The mechanism itself is already
+  // exhaustively covered above; these confirm the two new route-level
+  // wiring points use the same generic, resource-agnostic check.
+  // ------------------------------------------------------------
+  it('a restriction on financial:view blocks MANAGER but never OWNER/ADMIN', async () => {
+    await runWithTenantContext(adminContextA, () =>
+      createPermissionRestriction(database, { role: UserRole.MANAGER, resource: 'financial', action: 'view' }),
+    );
+
+    await expect(
+      runWithTenantContext(
+        { ...adminContextA, userRole: UserRole.MANAGER },
+        () => database.withTenantTransaction((client) => assertNotRestricted(client, UserRole.MANAGER, 'financial', 'view')),
+      ),
+    ).rejects.toThrow();
+
+    await expect(
+      runWithTenantContext(ownerContextA, () =>
+        database.withTenantTransaction((client) => assertNotRestricted(client, UserRole.OWNER, 'financial', 'view')),
+      ),
+    ).resolves.toBeUndefined();
+  });
+
+  it('a restriction on employees:view blocks MANAGER but does not affect an unrestricted resource', async () => {
+    await runWithTenantContext(adminContextA, () =>
+      createPermissionRestriction(database, { role: UserRole.MANAGER, resource: 'employees', action: 'view' }),
+    );
+
+    await expect(
+      runWithTenantContext(
+        { ...adminContextA, userRole: UserRole.MANAGER },
+        () => database.withTenantTransaction((client) => assertNotRestricted(client, UserRole.MANAGER, 'employees', 'view')),
+      ),
+    ).rejects.toThrow();
+
+    await expect(
+      runWithTenantContext(
+        { ...adminContextA, userRole: UserRole.MANAGER },
+        () => database.withTenantTransaction((client) => assertNotRestricted(client, UserRole.MANAGER, 'financial', 'view')),
+      ),
+    ).resolves.toBeUndefined();
+  });
+
+  // ------------------------------------------------------------
+  // Onboarding wizard progress
+  // ------------------------------------------------------------
+  it('updateOnboardingStep persists the step and is tenant-scoped', async () => {
+    const updated = await runWithTenantContext(adminContextA, () =>
+      database.withTenantTransaction((client) => updateOnboardingStep(client, 'branding')),
+    );
+    expect(updated.onboardingStep).toBe('branding');
+
+    const { profile } = await runWithTenantContext(adminContextA, () =>
+      database.withTenantTransaction((client) => getAgencyProfile(client)),
+    );
+    expect(profile.onboardingStep).toBe('branding');
+
+    const otherTenant = await runWithTenantContext(contextB, () =>
+      database.withTenantTransaction((client) => getAgencyProfile(client)),
+    );
+    expect(otherTenant.profile.onboardingStep).toBeUndefined();
+  });
+
+  it('completeOnboarding sets onboardingCompletedAt and step to done, idempotently', async () => {
+    const first = await runWithTenantContext(adminContextA, () =>
+      database.withTenantTransaction((client) => completeOnboarding(client)),
+    );
+    expect(first.onboardingStep).toBe('done');
+    expect(first.onboardingCompletedAt).toBeTruthy();
+
+    const second = await runWithTenantContext(adminContextA, () =>
+      database.withTenantTransaction((client) => completeOnboarding(client)),
+    );
+    expect(String(second.onboardingCompletedAt)).toBe(String(first.onboardingCompletedAt));
   });
 
   async function resetDatabase(pool: Pool): Promise<void> {

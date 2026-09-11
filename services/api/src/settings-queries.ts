@@ -26,6 +26,12 @@ export interface AgencyBrandingUpdate {
   primaryColor?: string | null;
 }
 
+export interface AgencyProfileUpdate {
+  name?: string;
+  email?: string | null;
+  phone?: string | null;
+}
+
 export interface Department {
   id: string;
   name: string;
@@ -159,6 +165,71 @@ export async function getAgencyProfile(
 }
 
 /**
+ * Update the agency's basic contact profile (name, email, phone) -- distinct
+ * from branding (display identity) and departments/team. Caller (route
+ * layer) is responsible for RBAC enforcement and audit logging. RLS on
+ * `agencies` ensures only the current tenant's row can be affected.
+ */
+export async function updateAgencyProfile(
+  client: TenantTransactionClient,
+  input: AgencyProfileUpdate,
+): Promise<AgencyProfile> {
+  const agencyId = getAgencyId();
+
+  const sets: string[] = [];
+  const values: unknown[] = [];
+  let idx = 1;
+
+  if (input.name !== undefined) {
+    if (!input.name.trim()) {
+      throw new Error('name must not be empty');
+    }
+    sets.push(`name = $${idx++}`);
+    values.push(input.name.trim());
+  }
+  if (input.email !== undefined) {
+    sets.push(`email = $${idx++}`);
+    values.push(input.email);
+  }
+  if (input.phone !== undefined) {
+    sets.push(`phone = $${idx++}`);
+    values.push(input.phone);
+  }
+
+  if (sets.length === 0) {
+    const { profile } = await getAgencyProfile(client);
+    return profile;
+  }
+
+  values.push(agencyId);
+
+  const result = await client.query<{
+    id: string;
+    name: string;
+    email?: string | null;
+    phone?: string | null;
+  }>(
+    `
+    UPDATE agencies
+    SET ${sets.join(', ')}, updated_at = now()
+    WHERE id = $${idx}
+    RETURNING id, name, email, phone
+    `,
+    values,
+  );
+
+  const row = result.rows[0];
+  if (!row) {
+    throw new Error('Agency not found');
+  }
+
+  const profile: AgencyProfile = { id: row.id, name: row.name };
+  if (row.email !== undefined && row.email !== null) profile.email = row.email;
+  if (row.phone !== undefined && row.phone !== null) profile.phone = row.phone;
+  return profile;
+}
+
+/**
  * Update agency branding (displayName, logoUrl, primaryColor).
  * Caller (route layer) is responsible for RBAC enforcement and audit logging.
  * RLS on `agencies` ensures only the current tenant's row can be affected.
@@ -233,6 +304,76 @@ export async function updateAgencyBranding(
   if (row.logo_url) profile.logoUrl = row.logo_url;
   if (row.primary_color) profile.primaryColor = row.primary_color;
 
+  return profile;
+}
+
+/**
+ * Onboarding wizard progress. `step` is a free-form identifier the
+ * frontend defines (e.g. 'profile' | 'branding' | 'team' | 'done') --
+ * this layer only persists whatever the client says it's currently on,
+ * it does not validate a fixed step sequence.
+ */
+const ONBOARDING_STEPS = ['profile', 'branding', 'team', 'done'] as const;
+export type OnboardingStep = (typeof ONBOARDING_STEPS)[number];
+
+export function isValidOnboardingStep(value: unknown): value is OnboardingStep {
+  return typeof value === 'string' && (ONBOARDING_STEPS as readonly string[]).includes(value);
+}
+
+export async function updateOnboardingStep(
+  client: TenantTransactionClient,
+  step: OnboardingStep,
+): Promise<AgencyProfile> {
+  const agencyId = getAgencyId();
+  const result = await client.query<{
+    id: string;
+    name: string;
+    onboarding_step: string | null;
+    onboarding_completed_at: string | null;
+  }>(
+    `
+    UPDATE agencies
+    SET onboarding_step = $1, updated_at = now()
+    WHERE id = $2
+    RETURNING id, name, onboarding_step, onboarding_completed_at
+    `,
+    [step, agencyId],
+  );
+  const row = result.rows[0];
+  if (!row) {
+    throw new Error('Agency not found');
+  }
+  const profile: AgencyProfile = { id: row.id, name: row.name };
+  if (row.onboarding_step) profile.onboardingStep = row.onboarding_step;
+  if (row.onboarding_completed_at) profile.onboardingCompletedAt = row.onboarding_completed_at;
+  return profile;
+}
+
+export async function completeOnboarding(
+  client: TenantTransactionClient,
+): Promise<AgencyProfile> {
+  const agencyId = getAgencyId();
+  const result = await client.query<{
+    id: string;
+    name: string;
+    onboarding_step: string | null;
+    onboarding_completed_at: string | null;
+  }>(
+    `
+    UPDATE agencies
+    SET onboarding_step = 'done', onboarding_completed_at = COALESCE(onboarding_completed_at, now()), updated_at = now()
+    WHERE id = $1
+    RETURNING id, name, onboarding_step, onboarding_completed_at
+    `,
+    [agencyId],
+  );
+  const row = result.rows[0];
+  if (!row) {
+    throw new Error('Agency not found');
+  }
+  const profile: AgencyProfile = { id: row.id, name: row.name };
+  if (row.onboarding_step) profile.onboardingStep = row.onboarding_step;
+  if (row.onboarding_completed_at) profile.onboardingCompletedAt = row.onboarding_completed_at;
   return profile;
 }
 

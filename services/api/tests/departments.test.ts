@@ -12,6 +12,7 @@ import {
   updateDepartment,
   deleteDepartment,
   updateAgencyBranding,
+  updateAgencyProfile,
   getAgencyProfile,
 } from '../src/settings-queries';
 
@@ -215,6 +216,35 @@ describe.sequential('Departments + Agency Branding data-access layer (Agent 01 S
         database.withTenantTransaction((client) =>
           updateAgencyBranding(client, { primaryColor: 'not-a-color' }),
         ),
+      ),
+    ).rejects.toThrow();
+  });
+
+  it('updateAgencyProfile persists name/email/phone for the current tenant only', async () => {
+    const updated = await runWithTenantContext(contextA, () =>
+      database.withTenantTransaction((client) =>
+        updateAgencyProfile(client, {
+          name: 'Agência A Ltda',
+          email: 'contato@agencia-a.test',
+          phone: '+55 11 90000-0000',
+        }),
+      ),
+    );
+
+    expect(updated.name).toBe('Agência A Ltda');
+    expect(updated.email).toBe('contato@agencia-a.test');
+    expect(updated.phone).toBe('+55 11 90000-0000');
+
+    const bProfile = await runWithTenantContext(contextB, () =>
+      database.withTenantTransaction((client) => getAgencyProfile(client)),
+    );
+    expect(bProfile.profile.name).not.toBe('Agência A Ltda');
+  });
+
+  it('rejects an empty name', async () => {
+    await expect(
+      runWithTenantContext(contextA, () =>
+        database.withTenantTransaction((client) => updateAgencyProfile(client, { name: '   ' })),
       ),
     ).rejects.toThrow();
   });

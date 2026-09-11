@@ -400,11 +400,15 @@ import {
   getTeamMembers,
   getNotificationSettings,
   updateNotificationSettings,
+  updateAgencyProfile,
   updateAgencyBranding,
   listDepartments,
   createDepartment,
   updateDepartment,
   deleteDepartment,
+  updateOnboardingStep,
+  completeOnboarding,
+  isValidOnboardingStep,
 } from './settings-queries';
 import { recordAuditEvent, AuditEventType } from './audit-log';
 import {
@@ -2407,6 +2411,30 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
   });
 
   // ------------------------------------------------------------
+  // AGENCY PROFILE (basic contact info: name/email/phone)
+  // RBAC: read = VIEWER+ (see /settings/agency GET above), update = ADMIN+
+  // ------------------------------------------------------------
+  app.patch('/settings/agency', { preHandler: protectedHooks }, async (request) => {
+    requireRole(UserRole.ADMIN);
+    const body = request.body as Partial<{
+      name: string;
+      email: string | null;
+      phone: string | null;
+    }>;
+    const profile = await options.database.withTenantTransaction(async (client) => {
+      const updated = await updateAgencyProfile(client, body);
+      await recordAuditEvent(client, {
+        eventType: AuditEventType.AGENCY_SETTINGS_UPDATED,
+        entityType: 'agency',
+        entityId: updated.id,
+        metadata: { fieldsChanged: Object.keys(body).join(',') },
+      });
+      return updated;
+    });
+    return { profile };
+  });
+
+  // ------------------------------------------------------------
   // AGENCY BRANDING
   // RBAC: read = VIEWER+, update = ADMIN+ (only owner/admin can
   // rebrand the tenant's identity)
@@ -2425,6 +2453,43 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
         entityType: 'agency',
         entityId: updated.id,
         metadata: { fieldsChanged: Object.keys(body).join(',') },
+      });
+      return updated;
+    });
+    return { profile };
+  });
+
+  // ------------------------------------------------------------
+  // ONBOARDING WIZARD (Profile -> Branding -> Team -> Done)
+  // RBAC: ADMIN+ (whoever can rebrand the tenant drives onboarding).
+  // ------------------------------------------------------------
+  app.patch('/settings/onboarding-step', { preHandler: protectedHooks }, async (request) => {
+    requireRole(UserRole.ADMIN);
+    const body = request.body as { step?: unknown };
+    if (!isValidOnboardingStep(body.step)) {
+      throw new ValidationError('step must be one of: profile, branding, team, done');
+    }
+    const profile = await options.database.withTenantTransaction(async (client) => {
+      const updated = await updateOnboardingStep(client, body.step as 'profile' | 'branding' | 'team' | 'done');
+      await recordAuditEvent(client, {
+        eventType: AuditEventType.ONBOARDING_STEP_UPDATED,
+        entityType: 'agency',
+        entityId: updated.id,
+        metadata: { step: body.step },
+      });
+      return updated;
+    });
+    return { profile };
+  });
+
+  app.post('/settings/onboarding/complete', { preHandler: protectedHooks }, async () => {
+    requireRole(UserRole.ADMIN);
+    const profile = await options.database.withTenantTransaction(async (client) => {
+      const updated = await completeOnboarding(client);
+      await recordAuditEvent(client, {
+        eventType: AuditEventType.ONBOARDING_COMPLETED,
+        entityType: 'agency',
+        entityId: updated.id,
       });
       return updated;
     });
@@ -2765,6 +2830,12 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
 
   app.get('/financial/dashboard', { preHandler: protectedHooks }, async (request) => {
     requireRole(UserRole.MANAGER);
+    // PermissionRestriction slice: a tenant OWNER/ADMIN can additively hide
+    // the financial dashboard from MANAGER in THIS tenant only.
+    const restrictionContext = getTenantContext();
+    await options.database.withTenantTransaction((client) =>
+      assertNotRestricted(client, restrictionContext.userRole, 'financial', 'view'),
+    );
     const period = parseCashFlowPeriod(request.query);
     const cashFlow = await getCashFlowSummary(options.database, period);
     return { cashFlow };
@@ -2938,6 +3009,12 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
   // ============================================================
   app.get('/employees', { preHandler: protectedHooks }, async (request) => {
     requireRole(UserRole.MANAGER);
+    // PermissionRestriction slice: a tenant OWNER/ADMIN can additively hide
+    // the employee roster from MANAGER in THIS tenant only.
+    const restrictionContext = getTenantContext();
+    await options.database.withTenantTransaction((client) =>
+      assertNotRestricted(client, restrictionContext.userRole, 'employees', 'view'),
+    );
     const query = request.query as Record<string, string>;
     const employees = await listEmployees(options.database, { status: query.status });
     return { employees };
