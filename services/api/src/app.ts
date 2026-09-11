@@ -31,6 +31,7 @@ import { createCustomerAuthenticateHook, type CustomerAuthProvider } from './cus
 import type { DatabaseRuntime } from './database';
 import { registerCustomerDocumentRoutes } from './routes/customer-documents';
 import { registerOperationsRoutes } from './routes/operations';
+import { resolveVersionInfo, type VersionInfo } from './version';
 import {
   parseCreateOfferInput,
   parseUpdateOfferInput,
@@ -479,6 +480,10 @@ export interface BuildAppOptions {
   ocrProvider?: OcrProviderContract;
   readinessCheck?: () => Promise<void>;
   rateLimit?: RateLimitOptions;
+  // Release/ops hardening: override for /version's computed metadata
+  // (tests only). Defaults to resolveVersionInfo() reading package.json,
+  // infrastructure/migrations/, and env vars at request time.
+  versionInfo?: VersionInfo;
   // Offer & Growth Engine: platform-scoped entitlement-write stopgap
   // (section H). Deliberately NOT part of protectedHooks / agency auth
   // -- see entitlements.ts's header comment for the full rationale and
@@ -785,6 +790,12 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     status: 'ok',
     service: 'api',
   }));
+
+  // Release/ops hardening: unauthenticated version/build metadata (see
+  // RELEASE_UPDATE_STRATEGY.md). No stack traces or filesystem paths are
+  // ever surfaced here -- resolveVersionInfo() fails closed to 'unknown'
+  // per field rather than throwing.
+  app.get('/version', () => options.versionInfo ?? resolveVersionInfo());
 
   app.get('/readiness', async (_request, reply) => {
     try {
