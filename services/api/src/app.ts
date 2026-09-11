@@ -388,7 +388,13 @@ import {
   getTeamMembers,
   getNotificationSettings,
   updateNotificationSettings,
+  updateAgencyBranding,
+  listDepartments,
+  createDepartment,
+  updateDepartment,
+  deleteDepartment,
 } from './settings-queries';
+import { recordAuditEvent, AuditEventType } from './audit-log';
 import {
   createPipeline,
   createStage,
@@ -2252,6 +2258,111 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     );
     return { settings };
   });
+
+  // ------------------------------------------------------------
+  // AGENCY BRANDING
+  // RBAC: read = VIEWER+, update = ADMIN+ (only owner/admin can
+  // rebrand the tenant's identity)
+  // ------------------------------------------------------------
+  app.patch('/settings/branding', { preHandler: protectedHooks }, async (request) => {
+    requireRole(UserRole.ADMIN);
+    const body = request.body as Partial<{
+      displayName: string | null;
+      logoUrl: string | null;
+      primaryColor: string | null;
+    }>;
+    const profile = await options.database.withTenantTransaction(async (client) => {
+      const updated = await updateAgencyBranding(client, body);
+      await recordAuditEvent(client, {
+        eventType: AuditEventType.AGENCY_BRANDING_UPDATED,
+        entityType: 'agency',
+        entityId: updated.id,
+        metadata: { fieldsChanged: Object.keys(body).join(',') },
+      });
+      return updated;
+    });
+    return { profile };
+  });
+
+  // ------------------------------------------------------------
+  // DEPARTMENTS (tenant-scoped CRUD)
+  // RBAC: read = VIEWER+, create/update/delete = MANAGER+
+  // ------------------------------------------------------------
+  app.get('/settings/departments', { preHandler: protectedHooks }, async () => {
+    requireRole(UserRole.VIEWER);
+    const departments = await options.database.withTenantTransaction((client) =>
+      listDepartments(client),
+    );
+    return { departments };
+  });
+
+  app.post('/settings/departments', { preHandler: protectedHooks }, async (request, reply) => {
+    requireRole(UserRole.MANAGER);
+    const body = request.body as { name: string; description?: string | null };
+    const department = await options.database.withTenantTransaction(async (client) => {
+      const created = await createDepartment(client, body);
+      await recordAuditEvent(client, {
+        eventType: AuditEventType.DEPARTMENT_CREATED,
+        entityType: 'department',
+        entityId: created.id,
+      });
+      return created;
+    });
+    reply.code(201);
+    return { department };
+  });
+
+  app.patch(
+    '/settings/departments/:id',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      requireRole(UserRole.MANAGER);
+      const { id } = request.params as { id: string };
+      const body = request.body as { name?: string; description?: string | null };
+      const department = await options.database.withTenantTransaction(async (client) => {
+        const updated = await updateDepartment(client, id, body);
+        if (updated) {
+          await recordAuditEvent(client, {
+            eventType: AuditEventType.DEPARTMENT_UPDATED,
+            entityType: 'department',
+            entityId: id,
+          });
+        }
+        return updated;
+      });
+      if (!department) {
+        reply.code(404);
+        return { error: 'Department not found' };
+      }
+      return { department };
+    },
+  );
+
+  app.delete(
+    '/settings/departments/:id',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      requireRole(UserRole.MANAGER);
+      const { id } = request.params as { id: string };
+      const deleted = await options.database.withTenantTransaction(async (client) => {
+        const ok = await deleteDepartment(client, id);
+        if (ok) {
+          await recordAuditEvent(client, {
+            eventType: AuditEventType.DEPARTMENT_DELETED,
+            entityType: 'department',
+            entityId: id,
+          });
+        }
+        return ok;
+      });
+      if (!deleted) {
+        reply.code(404);
+        return { error: 'Department not found' };
+      }
+      reply.code(204);
+      return null;
+    },
+  );
 
   // Sale RBAC (docs/03-security/authorization.md): "Listar todas" is
   // OWNER/ADMIN/MANAGER only, "Listar próprias" is all 5 roles. userId is
