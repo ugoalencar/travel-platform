@@ -40,6 +40,7 @@ const migration021CustomerDocuments = resolve(repoRoot, 'infrastructure/migratio
 const migration022CustomerDocumentAudit = resolve(repoRoot, 'infrastructure/migrations/022_customer_360_document_audit.sql');
 const migration023CustomerRls = resolve(repoRoot, 'infrastructure/migrations/023_customer_360_rls.sql');
 const migration024ExtendedFinancial = resolve(repoRoot, 'infrastructure/migrations/024_extended_financial_module.sql');
+const migration046CustomerCompletion = resolve(repoRoot, 'infrastructure/migrations/046_customer_360_completion.sql');
 const prepareRolesSql = resolve(repoRoot, 'tests/integration/database/002_prepare_local_roles.sql');
 const seedScript = resolve(repoRoot, 'scripts/seed-demo-data.cjs');
 const composeFile = resolve(repoRoot, 'infrastructure/docker-compose.local-postgres.yml');
@@ -302,6 +303,7 @@ async function applyMigrations(pool: Pool): Promise<void> {
     migration022CustomerDocumentAudit,
     migration023CustomerRls,
     migration024ExtendedFinancial,
+    migration046CustomerCompletion,
     prepareRolesSql,
   ]) {
     await pool.query(readSqlForPg(migration));

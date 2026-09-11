@@ -11,6 +11,10 @@ import { createDatabaseRuntime } from '../src/database';
 const repoRoot = resolve(import.meta.dirname, '../../..');
 const migration001 = resolve(repoRoot, 'infrastructure/migrations/001_initial_schema.sql');
 const migration002 = resolve(repoRoot, 'infrastructure/migrations/002_rls_policies.sql');
+const migration019 = resolve(repoRoot, 'infrastructure/migrations/019_customer_360_addresses.sql');
+const migration020 = resolve(repoRoot, 'infrastructure/migrations/020_customer_360_dependents.sql');
+const migration021 = resolve(repoRoot, 'infrastructure/migrations/021_customer_360_documents.sql');
+const migration046 = resolve(repoRoot, 'infrastructure/migrations/046_customer_360_completion.sql');
 const prepareRolesSql = resolve(repoRoot, 'tests/integration/database/002_prepare_local_roles.sql');
 const composeFile = resolve(repoRoot, 'infrastructure/docker-compose.local-postgres.yml');
 
@@ -673,6 +677,10 @@ async function resetDatabase(pool: Pool): Promise<void> {
   await pool.query('DROP SCHEMA public CASCADE; CREATE SCHEMA public;');
   await pool.query(readSqlForPg(migration001));
   await pool.query(readSqlForPg(migration002));
+  await pool.query(readSqlForPg(migration019));
+  await pool.query(readSqlForPg(migration020));
+  await pool.query(readSqlForPg(migration021));
+  await pool.query(readSqlForPg(migration046));
   await pool.query(readSqlForPg(prepareRolesSql));
   await seedAgenciesAndUsers(pool);
 }

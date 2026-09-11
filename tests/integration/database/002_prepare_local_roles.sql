@@ -185,15 +185,23 @@ $$;
 DO $$
 BEGIN
   IF to_regclass('public.customer_addresses') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON customer_addresses TO travel_app_runtime_local;
+  END IF;
+
+  IF to_regclass('public.customer_dependents') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON customer_dependents TO travel_app_runtime_local;
+  END IF;
+
+  IF to_regclass('public.customer_documents') IS NOT NULL THEN
     GRANT SELECT, INSERT, UPDATE, DELETE ON
-      customer_addresses,
-      customer_dependents,
       customer_documents,
       document_attachments,
       document_extractions,
       document_verifications
     TO travel_app_runtime_local;
+  END IF;
 
+  IF to_regclass('public.document_audit_events') IS NOT NULL THEN
     GRANT SELECT, INSERT ON document_audit_events TO travel_app_runtime_local;
     REVOKE UPDATE, DELETE ON document_audit_events FROM travel_app_runtime_local;
   END IF;
@@ -289,6 +297,16 @@ $$;
 -- broke every other domain's test suite that way.
 DO $$
 BEGIN
+  IF to_regclass('public.notification_preferences') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      notification_preferences
+    TO travel_app_runtime_local;
+  END IF;
+END;
+$$;
+
+DO $$
+BEGIN
   IF to_regclass('public.supplier_category_links') IS NOT NULL THEN
     GRANT SELECT, INSERT, UPDATE, DELETE ON
       supplier_category_links
@@ -372,6 +390,27 @@ BEGIN
   IF to_regclass('public.payroll_entries') IS NOT NULL THEN
     GRANT SELECT, INSERT, UPDATE, DELETE ON
       payroll_entries
+    TO travel_app_runtime_local;
+  END IF;
+END;
+$$;
+
+DO $$
+BEGIN
+  IF to_regclass('public.travel_requirements') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      travel_requirements
+    TO travel_app_runtime_local;
+  END IF;
+END;
+$$;
+
+DO $$
+BEGIN
+  IF to_regclass('public.trip_occurrences') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      trip_occurrences,
+      post_trip_checklist
     TO travel_app_runtime_local;
   END IF;
 END;
