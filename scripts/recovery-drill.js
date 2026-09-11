@@ -12,71 +12,49 @@ const composeFile = resolve(repoRoot, 'infrastructure/docker-compose.recovery-dr
 const migrationsDir = resolve(repoRoot, 'infrastructure/migrations');
 const prepareRolesSql = resolve(repoRoot, 'tests/integration/database/002_prepare_local_roles.sql');
 const rlsRuntimeTestSql = resolve(repoRoot, 'tests/integration/database/003_rls_runtime_test.sql');
+const databaseIntegrationTestFile = resolve(repoRoot, 'tests/integration/database/database.integration.test.ts');
+
+// ── Reuse the canonical expected-tables lists ───────────────────
+// Rather than maintaining a second, drift-prone copy of the migrated
+// table list, extract the arrays that tests/integration/database/database.integration.test.ts
+// already maintains as the single source of truth (updated whenever a migration lands).
+function extractArrayLiteral(source, constName) {
+  const marker = `const ${constName} = [`;
+  const start = source.indexOf(marker);
+  if (start === -1) {
+    throw new Error(`Could not find "${constName}" in ${databaseIntegrationTestFile}`);
+  }
+  const end = source.indexOf('];', start);
+  if (end === -1) {
+    throw new Error(`Could not find end of "${constName}" array in ${databaseIntegrationTestFile}`);
+  }
+  const body = source.slice(start + marker.length, end);
+  return [...body.matchAll(/'([^']+)'/g)].map((m) => m[1]);
+}
+
+const databaseIntegrationTestSource = readFileSync(databaseIntegrationTestFile, 'utf8');
+const expectedTables = extractArrayLiteral(databaseIntegrationTestSource, 'expectedAllTables');
+if (expectedTables.length === 0) {
+  throw new Error('expectedAllTables extraction returned zero tables — check the source file format.');
+}
+// Tenant-scoped subset (FORCE RLS applies only to these, not platform-wide tables).
+const expectedTenantTables = extractArrayLiteral(databaseIntegrationTestSource, 'expectedTenantTables');
+if (expectedTenantTables.length === 0) {
+  throw new Error('expectedTenantTables extraction returned zero tables — check the source file format.');
+}
 
 const projectName = 'travel-recovery-drill';
 const sourceContainer = 'travel-recovery-source';
 const targetContainer = 'travel-recovery-target';
 const sourceHost = '127.0.0.1';
-const sourcePort = '55433';
+const sourcePort = process.env.RECOVERY_DRILL_SOURCE_PORT || '55433';
 const targetHost = '127.0.0.1';
-const targetPort = '55434';
+const targetPort = process.env.RECOVERY_DRILL_TARGET_PORT || '55434';
 const dbName = 'travel_recovery_source';
 const adminUser = 'travel_recovery';
 const adminPassword = 'travel_test_password';
 const runtimeUser = 'travel_app_runtime_local';
 const runtimePassword = 'travel_app_runtime_local_password';
-
-const expectedTables = [
-  'agencies',
-  'agency_entitlements',
-  'audit_logs',
-  'assets',
-  'automation_executions',
-  'automations',
-  'booking_passengers',
-  'bookings',
-  'brokers',
-  'campaign_offers',
-  'campaigns',
-  'commercial_opportunities',
-  'commercial_tasks',
-  'commissions',
-  'connector_actions',
-  'coupon_grants',
-  'coupon_redemptions',
-  'coupons',
-  'customer_accounts',
-  'customer_interactions',
-  'customers',
-  'engagements',
-  'external_offer_captures',
-  'offer_growth_audit_log',
-  'offers',
-  'operation_assignments',
-  'operation_checkpoints',
-  'operational_costs',
-  'operational_staff',
-  'operational_staff_capabilities',
-  'payables',
-  'payment_allocations',
-  'payments',
-  'pipeline_access',
-  'pipeline_stages',
-  'pipelines',
-  'proposals',
-  'publications',
-  'receivables',
-  'route_points',
-  'routes',
-  'sales',
-  'scheduled_departures',
-  'suppliers',
-  'transport_operations',
-  'transport_products',
-  'trips',
-  'users',
-  'wishes',
-];
 
 let passed = 0;
 let failed = 0;
@@ -123,6 +101,11 @@ function run(cmd, args, input, throwOnError = true) {
     encoding: 'utf8',
     input,
     maxBuffer: 1024 * 1024 * 50,
+    env: {
+      ...process.env,
+      RECOVERY_DRILL_SOURCE_PORT: sourcePort,
+      RECOVERY_DRILL_TARGET_PORT: targetPort,
+    },
   });
   const stdout = (result.stdout || '').toString();
   const stderr = (result.stderr || '').toString();
@@ -190,8 +173,10 @@ function readAllMigrations() {
   const files = readdirSync(migrationsDir)
     .filter((f) => /^\d+_.+\.sql$/.test(f))
     .sort();
-  if (files.length !== 15) {
-    throw new Error(`Expected 15 migrations, found ${files.length}`);
+  // Mirrors database.integration.test.ts's readAllMigrations(): a floor, not an
+  // exact count, so this drill does not silently rot every time a migration is added.
+  if (files.length < 15) {
+    throw new Error(`Expected at least 15 migrations, found ${files.length}`);
   }
   return files.map((f) => readSql(resolve(migrationsDir, f))).join('\n');
 }
@@ -233,9 +218,10 @@ async function main() {
 
     // ── Phase 2: Apply migrations to source ────────────────────
     log('PHASE 2: Apply migrations to source');
+    const migrationFileCount = readdirSync(migrationsDir).filter((f) => /^\d+_.+\.sql$/.test(f)).length;
     const migrationsSql = readAllMigrations();
     const migResult = psqlAdmin(sourceContainer, dbName, migrationsSql);
-    record('Migrations applied', !migResult.stderr.includes('ERROR'), '14 migrations');
+    record('Migrations applied', !migResult.stderr.includes('ERROR'), `${migrationFileCount} migrations`);
 
     // ── Phase 3: Prepare roles ─────────────────────────────────
     log('PHASE 3: Prepare runtime role on source');
@@ -396,19 +382,19 @@ async function main() {
       rlsFailures.forEach((f) => console.log(`    ${f.testName}: expected=${f.expected} got=${f.result} ${f.detail}`));
     }
 
-    // 7e. FORCE RLS — check every expected table has FORCE RLS enabled
+    // 7e. FORCE RLS — check every expected tenant-scoped table has FORCE RLS enabled
     const forceRlsRows = psqlAdminLines(targetContainer, 'travel_recovery_target', `
       SELECT relname
       FROM pg_class
       WHERE relnamespace = 'public'::regnamespace
         AND relkind = 'r'
-        AND relname = ANY(ARRAY[${expectedTables.map((t) => `'${t}'`).join(', ')}])
+        AND relname = ANY(ARRAY[${expectedTenantTables.map((t) => `'${t}'`).join(', ')}])
         AND relrowsecurity = TRUE
         AND relforcerowsecurity = TRUE
       ORDER BY relname;
     `);
-    const missingForceRls = expectedTables.filter((t) => !forceRlsRows.includes(t));
-    record('FORCE RLS enabled', missingForceRls.length === 0, missingForceRls.length === 0 ? `${expectedTables.length} tables` : `missing: ${missingForceRls.join(', ')}`);
+    const missingForceRls = expectedTenantTables.filter((t) => !forceRlsRows.includes(t));
+    record('FORCE RLS enabled', missingForceRls.length === 0, missingForceRls.length === 0 ? `${expectedTenantTables.length} tenant tables` : `missing: ${missingForceRls.join(', ')}`);
 
     // 7f. Runtime role — non-superuser, no BYPASSRLS
     const roleInfo = psqlAdminScalar(targetContainer, 'travel_recovery_target', `
