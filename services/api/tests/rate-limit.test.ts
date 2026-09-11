@@ -18,6 +18,14 @@ describe('SEC-B abuse-control policy', () => {
     expect(classifyRateLimitRequest('POST', '/platform/entitlements')).toBe(
       RateLimitClass.SYSTEM_INTERNAL
     );
+    // Client Onboarding (Agent 02): public token-only enrollment surface
+    // must get the strict anonymous policy regardless of method.
+    expect(classifyRateLimitRequest('GET', '/enrollment-api/some-token')).toBe(
+      RateLimitClass.PUBLIC_ANONYMOUS
+    );
+    expect(classifyRateLimitRequest('POST', '/enrollment-api/some-token/submit')).toBe(
+      RateLimitClass.PUBLIC_ANONYMOUS
+    );
   });
 
   it('expires in-memory counters at the configured TTL', async () => {
