@@ -91,6 +91,18 @@ import {
   type UpdateWishInput,
 } from './wishes';
 import {
+  createEnrollmentLink,
+  listEnrollmentLinks,
+  revokeEnrollmentLink,
+  resolvePublicEnrollmentToken,
+  submitEnrollment,
+  listEnrollmentSubmissions,
+  getEnrollmentSubmissionById,
+  requestEnrollmentChanges,
+  approveEnrollmentSubmission,
+  type SubmitEnrollmentInput,
+} from './enrollment';
+import {
   createTrip,
   getTripById,
   listTrips,
@@ -805,6 +817,46 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     return { items };
   });
 
+  // ============================================================
+  // Public enrollment (unauthenticated, token-only). Resolves ONLY by the
+  // opaque token in the URL -- never by any tenant/agency id supplied by
+  // the browser. Every failure mode (missing, malformed, unknown, expired,
+  // revoked token) returns the exact same generic 404 shape, so a caller
+  // cannot use this endpoint as an oracle for whether a given token/tenant
+  // exists. Covered by the global IP-based rate-limit hook
+  // (classifyRateLimitRequest maps /enrollment-api/* to PUBLIC_ANONYMOUS).
+  // ============================================================
+  app.get<{ Params: { token: string } }>('/enrollment-api/:token', async (request, reply) => {
+    const resolved = await resolvePublicEnrollmentToken(options.database, request.params.token);
+    if (!resolved) {
+      return reply.code(404).send({ error: 'Link not found', code: 'NOT_FOUND' });
+    }
+    // Deliberately minimal: no agency name/branding/id leaked here beyond
+    // "this token is currently valid" -- the form itself needs nothing
+    // else to render.
+    return { valid: true };
+  });
+
+  app.post<{ Params: { token: string } }>(
+    '/enrollment-api/:token/submit',
+    async (request, reply) => {
+      const resolved = await resolvePublicEnrollmentToken(options.database, request.params.token);
+      if (!resolved) {
+        return reply.code(404).send({ error: 'Link not found', code: 'NOT_FOUND' });
+      }
+
+      const input = parseSubmitEnrollmentInput(request.body, request.ip);
+      const submission = await submitEnrollment(
+        options.database,
+        resolved,
+        request.params.token,
+        input
+      );
+      reply.code(201);
+      return { submission: { id: submission.id, status: submission.status } };
+    }
+  );
+
   app.get('/health', () => ({
     status: 'ok',
     service: 'api',
@@ -1023,6 +1075,80 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       }
       const trips = await listTripsByCustomer(options.database, request.params.id);
       return { trips };
+    }
+  );
+
+  // ============================================================
+  // Client Onboarding (Agent 02): secure remote enrollment link flow.
+  // Staff-facing (protectedHooks/RBAC) routes first, then the public
+  // token-only surface below (registered outside protectedHooks -- see
+  // the "Public enrollment" block near the end of this function).
+  // ============================================================
+  app.post('/enrollment-links', { preHandler: protectedHooks }, async (request, reply) => {
+    const body = parseCreateEnrollmentLinkInput(request.body);
+    const { link, token } = await createEnrollmentLink(options.database, body);
+    reply.code(201);
+    // The raw token is returned exactly once, here, at creation time --
+    // never persisted, never returned by any other endpoint.
+    return { link, token };
+  });
+
+  app.get('/enrollment-links', { preHandler: protectedHooks }, async () => {
+    const links = await listEnrollmentLinks(options.database);
+    return { links };
+  });
+
+  app.post<{ Params: { id: string } }>(
+    '/enrollment-links/:id/revoke',
+    { preHandler: protectedHooks },
+    async (request) => {
+      const link = await revokeEnrollmentLink(options.database, request.params.id);
+      if (!link) {
+        throw new NotFoundError('Enrollment link not found');
+      }
+      return { link };
+    }
+  );
+
+  app.get('/enrollment-submissions', { preHandler: protectedHooks }, async () => {
+    const submissions = await listEnrollmentSubmissions(options.database);
+    return { submissions };
+  });
+
+  app.get<{ Params: { id: string } }>(
+    '/enrollment-submissions/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      const submission = await getEnrollmentSubmissionById(options.database, request.params.id);
+      if (!submission) {
+        throw new NotFoundError('Enrollment submission not found');
+      }
+      return { submission };
+    }
+  );
+
+  app.post<{ Params: { id: string } }>(
+    '/enrollment-submissions/:id/request-changes',
+    { preHandler: protectedHooks },
+    async (request) => {
+      const notes = parseRequestChangesInput(request.body);
+      const submission = await requestEnrollmentChanges(options.database, request.params.id, {
+        notes,
+      });
+      if (!submission) {
+        throw new NotFoundError('Enrollment submission not found or not awaiting review');
+      }
+      return { submission };
+    }
+  );
+
+  app.post<{ Params: { id: string } }>(
+    '/enrollment-submissions/:id/approve',
+    { preHandler: protectedHooks },
+    async (request) => {
+      const notes = parseOptionalReviewNotes(request.body);
+      const result = await approveEnrollmentSubmission(options.database, request.params.id, notes);
+      return result;
     }
   );
 
@@ -3895,6 +4021,148 @@ function parseUpdateCustomerInput(body: unknown): UpdateCustomerInput {
 
   if (Object.keys(data).length === 0) {
     throw new ValidationError('At least one field must be provided');
+  }
+
+  return data;
+}
+
+// ============================================================
+// Client Onboarding (Agent 02): enrollment request parsing.
+// ============================================================
+function parseCreateEnrollmentLinkInput(body: unknown): {
+  ownerUserId?: string;
+  label?: string;
+  ttlDays?: number;
+} {
+  if (body === undefined || body === null) {
+    return {};
+  }
+  if (typeof body !== 'object' || Array.isArray(body)) {
+    throw new ValidationError('Request body must be an object');
+  }
+  const record = body as Record<string, unknown>;
+  const data: { ownerUserId?: string; label?: string; ttlDays?: number } = {};
+
+  if (record.ownerUserId !== undefined) {
+    if (typeof record.ownerUserId !== 'string' || record.ownerUserId.trim().length === 0) {
+      throw new ValidationError('Field "ownerUserId" must be a non-empty string');
+    }
+    data.ownerUserId = record.ownerUserId;
+  }
+  if (record.label !== undefined) {
+    if (typeof record.label !== 'string') {
+      throw new ValidationError('Field "label" must be a string');
+    }
+    data.label = record.label;
+  }
+  if (record.ttlDays !== undefined) {
+    if (typeof record.ttlDays !== 'number' || !Number.isInteger(record.ttlDays)) {
+      throw new ValidationError('Field "ttlDays" must be an integer');
+    }
+    data.ttlDays = record.ttlDays;
+  }
+
+  return data;
+}
+
+function parseRequestChangesInput(body: unknown): string {
+  if (typeof body !== 'object' || body === null || Array.isArray(body)) {
+    throw new ValidationError('Request body must be an object');
+  }
+  const record = body as Record<string, unknown>;
+  if (typeof record.notes !== 'string' || record.notes.trim().length === 0) {
+    throw new ValidationError('Field "notes" is required and must be a non-empty string');
+  }
+  return record.notes;
+}
+
+function parseOptionalReviewNotes(body: unknown): string | undefined {
+  if (body === undefined || body === null) {
+    return undefined;
+  }
+  if (typeof body !== 'object' || Array.isArray(body)) {
+    throw new ValidationError('Request body must be an object');
+  }
+  const record = body as Record<string, unknown>;
+  if (record.notes === undefined) {
+    return undefined;
+  }
+  if (typeof record.notes !== 'string') {
+    throw new ValidationError('Field "notes" must be a string');
+  }
+  return record.notes;
+}
+
+const ALLOWED_ENROLLMENT_SUBMIT_FIELDS = [
+  'fullName',
+  'email',
+  'phone',
+  'cpf',
+  'birthDate',
+  'dependents',
+  'wishDestination',
+  'wishNotes',
+  'consentGiven',
+  'consentTextVersion',
+] as const;
+
+// consentIp is deliberately NOT an accepted client-supplied field -- it is
+// always derived server-side from request.ip, never trusted from the body.
+function parseSubmitEnrollmentInput(body: unknown, requestIp: string): SubmitEnrollmentInput {
+  if (typeof body !== 'object' || body === null || Array.isArray(body)) {
+    throw new ValidationError('Request body must be an object');
+  }
+  const record = body as Record<string, unknown>;
+
+  for (const key of Object.keys(record)) {
+    if (!(ALLOWED_ENROLLMENT_SUBMIT_FIELDS as readonly string[]).includes(key)) {
+      throw new ValidationError(`Unknown field "${key}" in request body`);
+    }
+  }
+
+  if (typeof record.fullName !== 'string' || record.fullName.trim().length === 0) {
+    throw new ValidationError('Field "fullName" is required and must be a non-empty string');
+  }
+  if (typeof record.consentGiven !== 'boolean' || record.consentGiven !== true) {
+    throw new ValidationError('Consentimento (LGPD) e obrigatorio para enviar o cadastro');
+  }
+
+  const data: SubmitEnrollmentInput = {
+    fullName: record.fullName,
+    consentGiven: true,
+    consentIp: requestIp,
+  };
+
+  for (const field of ['email', 'phone', 'cpf', 'birthDate', 'wishDestination', 'wishNotes', 'consentTextVersion'] as const) {
+    const value = record[field];
+    if (value !== undefined) {
+      if (typeof value !== 'string') {
+        throw new ValidationError(`Field "${field}" must be a string`);
+      }
+      data[field] = value;
+    }
+  }
+
+  if (record.dependents !== undefined) {
+    if (!Array.isArray(record.dependents)) {
+      throw new ValidationError('Field "dependents" must be an array');
+    }
+    data.dependents = record.dependents.map((entry, index) => {
+      if (typeof entry !== 'object' || entry === null || Array.isArray(entry)) {
+        throw new ValidationError(`dependents[${index}] must be an object`);
+      }
+      const dependentRecord = entry as Record<string, unknown>;
+      if (typeof dependentRecord.name !== 'string' || dependentRecord.name.trim().length === 0) {
+        throw new ValidationError(`dependents[${index}].name is required`);
+      }
+      return {
+        name: dependentRecord.name,
+        ...(typeof dependentRecord.birthDate === 'string' ? { birthDate: dependentRecord.birthDate } : {}),
+        ...(typeof dependentRecord.relationship === 'string'
+          ? { relationship: dependentRecord.relationship }
+          : {}),
+      };
+    });
   }
 
   return data;

@@ -412,6 +412,13 @@ export function classifyRateLimitRequest(method: string, url: string): RateLimit
   if (/^\/platform\//.test(path)) {
     return RateLimitClass.SYSTEM_INTERNAL;
   }
+  // Client Onboarding (Agent 02): unauthenticated, token-only enrollment
+  // surface -- classified with the anonymous class rather than
+  // STAFF_READ/STAFF_WRITE so it gets the strict, IP-scoped anonymous
+  // policy regardless of authentication state.
+  if (/^\/enrollment-api\//.test(path)) {
+    return RateLimitClass.PUBLIC_ANONYMOUS;
+  }
   if (path === '/health' || path === '/readiness') {
     return RateLimitClass.PUBLIC_ANONYMOUS;
   }
