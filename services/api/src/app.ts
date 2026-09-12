@@ -317,6 +317,24 @@ import {
   type UpdateRevenueInput,
 } from './financial';
 import {
+  addInsuranceTraveler,
+  createInsuranceDocument,
+  createInsurancePolicy,
+  createInsuranceProduct,
+  getInsurancePolicyById,
+  getInsuranceProductById,
+  listInsuranceDocuments,
+  listInsurancePolicies,
+  listInsuranceProducts,
+  listInsuranceTravelers,
+  updateInsurancePolicyStatus,
+  type CreateInsuranceDocumentInput,
+  type CreateInsurancePolicyInput,
+  type CreateInsuranceProductInput,
+  type AddInsuranceTravelerInput,
+  type InsurancePolicyStatus,
+} from './insurance';
+import {
   approveCapture,
   createExternalOfferCapture,
   extractOfferFromUrl,
@@ -4025,6 +4043,172 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       );
       reply.code(200);
       return { entitlement };
+    }
+  );
+
+  // ============================================================
+  // INSURANCE (Seguro): catalog products, sold policies, covered
+  // travelers, policy documents. Finance convergence: selling a policy
+  // (POST /insurance/policies with saleId) creates a real Receivable
+  // via financial.ts's createReceivable -- never a parallel formula or
+  // AR table. RBAC mirrors /sales (VIEWER reads, AGENT sells/manages,
+  // MANAGER curates the product catalog).
+  // ============================================================
+  app.get('/insurance/products', { preHandler: protectedHooks }, async () => {
+    requireRole(UserRole.VIEWER);
+    const products = await listInsuranceProducts(options.database);
+    return { products };
+  });
+
+  app.get<{ Params: { id: string } }>(
+    '/insurance/products/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      const product = await getInsuranceProductById(options.database, request.params.id);
+      if (!product) throw new NotFoundError('Insurance product not found');
+      return { product };
+    }
+  );
+
+  app.post('/insurance/products', { preHandler: protectedHooks }, async (request, reply) => {
+    requireRole(UserRole.MANAGER);
+    const data = request.body as CreateInsuranceProductInput;
+    const product = await createInsuranceProduct(options.database, data);
+    await options.database.withTenantTransaction((client) =>
+      recordAuditEvent(client, {
+        eventType: AuditEventType.INSURANCE_PRODUCT_CREATED,
+        entityType: 'insurance_product',
+        entityId: product.id,
+        metadata: { fieldsChanged: `${product.insurerName}/${product.planName}` },
+      })
+    );
+    reply.code(201);
+    return { product };
+  });
+
+  app.get('/insurance/policies', { preHandler: protectedHooks }, async () => {
+    requireRole(UserRole.VIEWER);
+    const policies = await listInsurancePolicies(options.database);
+    return { policies };
+  });
+
+  app.get<{ Params: { id: string } }>(
+    '/insurance/policies/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      const policy = await getInsurancePolicyById(options.database, request.params.id);
+      if (!policy) throw new NotFoundError('Insurance policy not found');
+      return { policy };
+    }
+  );
+
+  app.post('/insurance/policies', { preHandler: protectedHooks }, async (request, reply) => {
+    requireRole(UserRole.AGENT);
+    const data = request.body as CreateInsurancePolicyInput;
+    const policy = await createInsurancePolicy(options.database, data);
+    await options.database.withTenantTransaction((client) =>
+      recordAuditEvent(client, {
+        eventType: AuditEventType.INSURANCE_POLICY_CREATED,
+        entityType: 'insurance_policy',
+        entityId: policy.id,
+        metadata: { amount: policy.saleAmount, currency: policy.currency },
+      })
+    );
+    reply.code(201);
+    return { policy };
+  });
+
+  app.patch<{ Params: { id: string } }>(
+    '/insurance/policies/:id/status',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.AGENT);
+      const body = request.body as { status?: InsurancePolicyStatus };
+      if (typeof body.status !== 'string') {
+        throw new ValidationError('Field "status" is required');
+      }
+      const policy = await updateInsurancePolicyStatus(
+        options.database,
+        request.params.id,
+        body.status
+      );
+      if (!policy) throw new NotFoundError('Insurance policy not found');
+      await options.database.withTenantTransaction((client) =>
+        recordAuditEvent(client, {
+          eventType: AuditEventType.INSURANCE_POLICY_STATUS_UPDATED,
+          entityType: 'insurance_policy',
+          entityId: policy.id,
+          metadata: { toStatus: policy.status, status: policy.status },
+        })
+      );
+      return { policy };
+    }
+  );
+
+  app.get<{ Params: { id: string } }>(
+    '/insurance/policies/:id/travelers',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      const travelers = await listInsuranceTravelers(options.database, request.params.id);
+      return { travelers };
+    }
+  );
+
+  app.post<{ Params: { id: string } }>(
+    '/insurance/policies/:id/travelers',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      requireRole(UserRole.AGENT);
+      const body = request.body as Omit<AddInsuranceTravelerInput, 'insurancePolicyId'>;
+      const traveler = await addInsuranceTraveler(options.database, {
+        ...body,
+        insurancePolicyId: request.params.id,
+      });
+      await options.database.withTenantTransaction((client) =>
+        recordAuditEvent(client, {
+          eventType: AuditEventType.INSURANCE_TRAVELER_ADDED,
+          entityType: 'insurance_policy',
+          entityId: traveler.insurancePolicyId,
+        })
+      );
+      reply.code(201);
+      return { traveler };
+    }
+  );
+
+  app.get<{ Params: { id: string } }>(
+    '/insurance/policies/:id/documents',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      const documents = await listInsuranceDocuments(options.database, request.params.id);
+      return { documents };
+    }
+  );
+
+  app.post<{ Params: { id: string } }>(
+    '/insurance/policies/:id/documents',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      requireRole(UserRole.AGENT);
+      const body = request.body as Omit<CreateInsuranceDocumentInput, 'insurancePolicyId'>;
+      const document = await createInsuranceDocument(options.database, {
+        ...body,
+        insurancePolicyId: request.params.id,
+      });
+      await options.database.withTenantTransaction((client) =>
+        recordAuditEvent(client, {
+          eventType: AuditEventType.INSURANCE_DOCUMENT_CREATED,
+          entityType: 'insurance_policy',
+          entityId: document.insurancePolicyId,
+          metadata: { fieldsChanged: document.fileName },
+        })
+      );
+      reply.code(201);
+      return { document };
     }
   );
 
