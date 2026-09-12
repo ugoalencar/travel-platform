@@ -731,6 +731,86 @@ export interface Supplier {
 }
 
 // ============================================================
+// TRAVEL PRODUCT CATALOG DOMAIN
+// ============================================================
+// Separate from Offer (current sales opportunity) and Supplier (supplier
+// master data). A TravelProduct is a reusable, categorized product
+// definition that Offers/SaleItems can reference. "Produto é separado de
+// campanha."
+
+export enum TravelProductCategory {
+  INSURANCE = 'INSURANCE',
+  TOUR = 'TOUR',
+  EXPERIENCE = 'EXPERIENCE',
+  TICKET = 'TICKET',
+  TRANSFER = 'TRANSFER',
+  CAR_RENTAL = 'CAR_RENTAL',
+  ESIM = 'ESIM',
+  LOUNGE = 'LOUNGE',
+  BAGGAGE = 'BAGGAGE',
+  SEAT = 'SEAT',
+  HOTEL = 'HOTEL',
+  CRUISE = 'CRUISE',
+  TRAIN = 'TRAIN',
+  BUS = 'BUS',
+  GUIDE = 'GUIDE',
+  EVENT = 'EVENT',
+  FOOD = 'FOOD',
+  CONCIERGE = 'CONCIERGE',
+  OTHER = 'OTHER',
+}
+
+export interface TravelProduct {
+  id: string;
+  agencyId: string;
+  category: TravelProductCategory;
+  title: string;
+  cost: number;
+  price: number;
+  currency: string;
+  active: boolean;
+  standalone: boolean;
+  proposalEligible: boolean;
+  portalVisible: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  supplierId?: string;
+  /** Future FK to CommercialPartner (Agent 04, not yet landed in this worktree). */
+  partnerId?: string;
+  description?: string;
+  destination?: string;
+  durationText?: string;
+  rules?: string;
+  inclusions?: string;
+  exclusions?: string;
+  minAge?: number;
+  maxAge?: number;
+  capacity?: number;
+  bookingDeadlineDays?: number;
+  cancellationPolicy?: string;
+  markupPercent?: number;
+  commissionPercent?: number;
+  /**
+   * Plain ISO calendar dates ("YYYY-MM-DD"), NOT JS Date objects/timestamps.
+   * The underlying column is a Postgres DATE (no time/timezone component);
+   * modeling it as a string here avoids the classic pg timezone-drift bug
+   * where a DATE round-tripped through a JS Date shifts by a day depending
+   * on the server/client's local timezone.
+   */
+  validFrom?: string;
+  validUntil?: string;
+}
+
+export interface ProductAsset {
+  id: string;
+  agencyId: string;
+  productId: string;
+  assetId: string;
+  sortOrder: number;
+  createdAt: Date;
+}
+
+// ============================================================
 // AIR OPERATIONS DOMAIN
 // ============================================================
 

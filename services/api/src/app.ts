@@ -118,6 +118,19 @@ import {
   updateOffer,
 } from './offers';
 import {
+  attachAssetToProduct,
+  createTravelProduct,
+  deleteTravelProduct,
+  getTravelProductById,
+  listProductAssets,
+  listTravelProducts,
+  updateTravelProduct,
+} from './travel-products';
+import {
+  parseCreateTravelProductInput,
+  parseUpdateTravelProductInput,
+} from './travel-product-input-parsing';
+import {
   acceptProposal,
   cancelProposal,
   createProposal,
@@ -226,6 +239,7 @@ import {
 } from './scheduled-departures';
 import { DepartureServiceType, TripType } from '../../../packages/domain/types';
 import type { SupplierCategory, SupplierType } from '../../../packages/domain/types';
+import { TravelProductCategory } from '../../../packages/domain/types';
 import {
   cancelBooking,
   listBookingsWithCustomer,
@@ -1310,6 +1324,114 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       }
 
       return { offer };
+    }
+  );
+
+  // ============================================================
+  // TRAVEL PRODUCT CATALOG (Agent 07 — Catalog)
+  // ============================================================
+  // TravelProduct is a distinct, categorized product-definition layer
+  // (separate from Offer, the current sales opportunity). See
+  // docs/travel_platform_mega_pack/architecture/PRODUCTS_UPSELL_INSURANCE.md.
+
+  app.get<{ Querystring: { category?: string } }>(
+    '/travel-products',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      const category = request.query.category;
+      if (
+        category !== undefined &&
+        !Object.values(TravelProductCategory).includes(category as TravelProductCategory)
+      ) {
+        throw new ValidationError(`Query param "category" must be a valid TravelProductCategory`);
+      }
+      const products = await listTravelProducts(options.database, {
+        category: category as TravelProductCategory | undefined,
+      });
+      return { products };
+    }
+  );
+
+  app.get<{ Params: { id: string } }>(
+    '/travel-products/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      const product = await getTravelProductById(options.database, request.params.id);
+      if (!product) {
+        throw new NotFoundError('Travel product not found');
+      }
+      return { product };
+    }
+  );
+
+  app.post('/travel-products', { preHandler: protectedHooks }, async (request, reply) => {
+    requireRole(UserRole.MANAGER);
+    const data = parseCreateTravelProductInput(request.body);
+    const product = await createTravelProduct(options.database, data);
+    reply.code(201);
+    return { product };
+  });
+
+  app.patch<{ Params: { id: string } }>(
+    '/travel-products/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.MANAGER);
+      const data = parseUpdateTravelProductInput(request.body);
+      const product = await updateTravelProduct(options.database, request.params.id, data);
+      if (!product) {
+        throw new NotFoundError('Travel product not found');
+      }
+      return { product };
+    }
+  );
+
+  app.delete<{ Params: { id: string } }>(
+    '/travel-products/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.MANAGER);
+      const product = await deleteTravelProduct(options.database, request.params.id);
+      if (!product) {
+        throw new NotFoundError('Travel product not found');
+      }
+      return { product };
+    }
+  );
+
+  app.get<{ Params: { id: string } }>(
+    '/travel-products/:id/assets',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      const product = await getTravelProductById(options.database, request.params.id);
+      if (!product) {
+        throw new NotFoundError('Travel product not found');
+      }
+      const assets = await listProductAssets(options.database, request.params.id);
+      return { assets };
+    }
+  );
+
+  app.post<{ Params: { id: string }; Body: { assetId?: string; sortOrder?: number } }>(
+    '/travel-products/:id/assets',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      requireRole(UserRole.MANAGER);
+      const assetId = request.body?.assetId;
+      if (!assetId || typeof assetId !== 'string') {
+        throw new ValidationError('Field "assetId" is required');
+      }
+      const link = await attachAssetToProduct(
+        options.database,
+        request.params.id,
+        assetId,
+        request.body?.sortOrder ?? 0
+      );
+      reply.code(201);
+      return { link };
     }
   );
 
