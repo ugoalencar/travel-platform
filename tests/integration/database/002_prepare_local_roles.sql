@@ -457,6 +457,24 @@ BEGIN
 END;
 $$;
 
+-- Partner Portal (Agent 04): commercial_partners/partner_contracts/
+-- partner_links/partner_attributions/partner_commissions (migration
+-- 052_commercial_partners.sql) only exist once that migration has been
+-- applied; guard the same way as the blocks above.
+DO $$
+BEGIN
+  IF to_regclass('public.commercial_partners') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      commercial_partners,
+      partner_contracts,
+      partner_links,
+      partner_attributions,
+      partner_commissions
+    TO travel_app_runtime_local;
+  END IF;
+END;
+$$;
+
 GRANT EXECUTE ON FUNCTION current_agency_id() TO travel_app_runtime_local;
 GRANT EXECUTE ON FUNCTION current_user_id() TO travel_app_runtime_local;
 GRANT EXECUTE ON FUNCTION set_tenant_context(TEXT, TEXT) TO travel_app_runtime_local;
