@@ -257,6 +257,12 @@ import {
   updateSale,
 } from './sales';
 import {
+  cancelSaleItem,
+  createSaleItem,
+  listSaleItems,
+  parseCreateSaleItemInput,
+} from './sale-items';
+import {
   allocatePayment,
   cancelExpense,
   cancelRevenue,
@@ -2760,6 +2766,47 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       const sale = await markSalePaid(options.database, request.params.id);
       if (!sale) throw new NotFoundError('Sale not found');
       return { sale };
+    }
+  );
+
+  // Sale items ("Turbine sua Viagem" line items). Read floor mirrors
+  // GET /sales (VIEWER+, tenant-wide list, no narrower client-owned
+  // subset to withhold). Create/cancel mirror the write floors used
+  // elsewhere on Sale: creating a line item changes the Sale's
+  // authoritative total (AGENT+, same floor as PATCH /sales/:id which
+  // also changes `amount`); cancelling reverses that total (MANAGER+,
+  // same floor as POST /sales/:id/cancel).
+  app.get<{ Params: { saleId: string } }>(
+    '/sales/:saleId/items',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      const items = await listSaleItems(options.database, request.params.saleId);
+      return { saleItems: items };
+    }
+  );
+
+  app.post<{ Params: { saleId: string } }>(
+    '/sales/:saleId/items',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      requireRole(UserRole.AGENT);
+      const data = parseCreateSaleItemInput(request.params.saleId, request.body);
+      const saleItem = await createSaleItem(options.database, data);
+
+      reply.code(201);
+      return { saleItem };
+    }
+  );
+
+  app.post<{ Params: { id: string } }>(
+    '/sale-items/:id/cancel',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.MANAGER);
+      const saleItem = await cancelSaleItem(options.database, request.params.id);
+      if (!saleItem) throw new NotFoundError('Sale item not found');
+      return { saleItem };
     }
   );
 

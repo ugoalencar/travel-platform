@@ -162,6 +162,108 @@ export interface Sale {
   updatedAt: Date;
 }
 
+// ============================================================
+// SALE ITEMS / PROPOSAL OPTIONAL ITEMS / UPSELL ("Turbine sua Viagem")
+// Agent 08. See services/api/src/sale-items.ts for the financial
+// integration rationale (own line-level subtotal, no parallel formula
+// for the Sale/Proposal authoritative total or the Sale margin calc).
+// ============================================================
+
+export type SaleItemStatus = 'ACTIVE' | 'CANCELLED';
+export type LineItemSource = 'MANUAL' | 'UPSELL_SUGGESTION';
+
+export interface SaleItem {
+  id: string;
+  agencyId: string;
+  saleId: string;
+  productId?: string;
+  description: string;
+  supplierId?: string;
+  travelers: unknown[];
+  qty: number;
+  unitCost: number;
+  unitPrice: number;
+  taxes: number;
+  fees: number;
+  discount: number;
+  commission: number;
+  lineTotal: number;
+  lineMargin: number;
+  currency: string;
+  status: SaleItemStatus;
+  source: LineItemSource;
+  payableId?: string;
+  createdByUserId?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export type ProposalOptionalItemStatus = 'PENDING' | 'ACCEPTED' | 'DECLINED';
+
+export interface ProposalOptionalItem {
+  id: string;
+  agencyId: string;
+  proposalId: string;
+  productId?: string;
+  description: string;
+  supplierId?: string;
+  travelers: unknown[];
+  qty: number;
+  unitCost: number;
+  unitPrice: number;
+  taxes: number;
+  fees: number;
+  discount: number;
+  commission: number;
+  lineTotal: number;
+  currency: string;
+  status: ProposalOptionalItemStatus;
+  source: LineItemSource;
+  createdByUserId?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export type UpsellConditionType =
+  | 'DESTINATION_MATCHES'
+  | 'INTERNATIONAL_TRIP'
+  | 'HAS_MINOR_TRAVELER'
+  | 'NO_INSURANCE_ITEM'
+  | 'ACTIVE_CAMPAIGN';
+
+export interface UpsellRule {
+  id: string;
+  agencyId: string;
+  name: string;
+  conditionType: UpsellConditionType;
+  conditionValue?: string;
+  suggestedDescription: string;
+  suggestedProductId?: string;
+  suggestedUnitPrice: number;
+  suggestedUnitCost: number;
+  active: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export type UpsellSuggestionStatus = 'PENDING' | 'ACCEPTED' | 'DISMISSED';
+
+export interface UpsellSuggestion {
+  id: string;
+  agencyId: string;
+  ruleId?: string;
+  saleId?: string;
+  proposalId?: string;
+  description: string;
+  suggestedUnitPrice: number;
+  suggestedUnitCost: number;
+  status: UpsellSuggestionStatus;
+  resultingSaleItemId?: string;
+  resultingProposalOptionalItemId?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface Commission {
   id: string;
   agencyId: string;
