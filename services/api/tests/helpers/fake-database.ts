@@ -216,6 +216,7 @@ export function extractionRow(overrides: Record<string, unknown> = {}): Record<s
     provider: 'mock',
     extracted_data: {},
     confidence: null,
+    field_confidence: null,
     processing_status: 'PENDING',
     processed_at: null,
     error_message: null,

@@ -39,6 +39,15 @@ export interface ExtractionResult {
   data?: Record<string, unknown>;
   /** Confidence on a 0-100 scale. */
   confidence?: number;
+  /**
+   * Per-field confidence on a 0-100 scale, keyed by the same field names as
+   * {@link data}. Optional: a provider that only reports one overall score
+   * may omit this and callers fall back to {@link confidence} for every
+   * field. Never used to auto-apply a field -- see document-verification.ts
+   * and NON_NEGOTIABLES.md: a candidate's confidence, however high, never
+   * substitutes for human review.
+   */
+  fieldConfidences?: Record<string, number>;
   error?: string;
 }
 
@@ -67,6 +76,8 @@ export interface MockOcrProviderOptions {
   /** Fields the mock should report for every submission. */
   data?: Record<string, unknown>;
   confidence?: number;
+  /** Fields the mock should report per-field confidence for. */
+  fieldConfidences?: Record<string, number>;
   /** When set, submissions resolve to a failed result carrying this message. */
   failWith?: string;
   /**
@@ -131,6 +142,9 @@ export class MockOcrProvider implements OcrProviderContract {
       status: 'completed',
       data: this.options.data ?? defaultMockData(task.params),
       confidence: this.options.confidence ?? 95,
+      ...(this.options.fieldConfidences !== undefined
+        ? { fieldConfidences: this.options.fieldConfidences }
+        : {}),
     });
   }
 }
