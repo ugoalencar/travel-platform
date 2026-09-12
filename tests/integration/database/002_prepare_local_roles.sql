@@ -457,6 +457,29 @@ BEGIN
 END;
 $$;
 
+-- Partner Campaigns (Agent 10): campaign_attributions is append-only for
+-- runtime traffic (server-recorded impression/click events) -- application
+-- code may read tenant-scoped history and insert a new event, but no
+-- runtime path may alter or delete evidence, matching the audit_logs
+-- pattern above.
+DO $$
+BEGIN
+  IF to_regclass('public.campaign_partner_stubs') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      campaign_partner_stubs,
+      partner_campaigns,
+      campaign_products,
+      campaign_placements
+    TO travel_app_runtime_local;
+  END IF;
+
+  IF to_regclass('public.campaign_attributions') IS NOT NULL THEN
+    GRANT SELECT, INSERT ON campaign_attributions TO travel_app_runtime_local;
+    REVOKE UPDATE, DELETE ON campaign_attributions FROM travel_app_runtime_local;
+  END IF;
+END;
+$$;
+
 GRANT EXECUTE ON FUNCTION current_agency_id() TO travel_app_runtime_local;
 GRANT EXECUTE ON FUNCTION current_user_id() TO travel_app_runtime_local;
 GRANT EXECUTE ON FUNCTION set_tenant_context(TEXT, TEXT) TO travel_app_runtime_local;
