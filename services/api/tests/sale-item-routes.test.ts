@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
@@ -10,17 +10,11 @@ import { createDatabaseRuntime } from '../src/database';
 import { getSaleMargin } from '../src/financial';
 
 const repoRoot = resolve(import.meta.dirname, '../../..');
-const migration001 = resolve(repoRoot, 'infrastructure/migrations/001_initial_schema.sql');
-const migration002 = resolve(repoRoot, 'infrastructure/migrations/002_rls_policies.sql');
-const migration003 = resolve(repoRoot, 'infrastructure/migrations/003_transportation.sql');
-const migration004 = resolve(repoRoot, 'infrastructure/migrations/004_route_points.sql');
-const migration005 = resolve(repoRoot, 'infrastructure/migrations/005_booking.sql');
-const migration006 = resolve(repoRoot, 'infrastructure/migrations/006_field_operations.sql');
-const migration007 = resolve(repoRoot, 'infrastructure/migrations/007_commission_repair.sql');
-const migration010 = resolve(repoRoot, 'infrastructure/migrations/010_financial_foundation.sql');
-const migration015 = resolve(repoRoot, 'infrastructure/migrations/015_audit_logging.sql');
-const migration024 = resolve(repoRoot, 'infrastructure/migrations/024_extended_financial_module.sql');
-const migration052 = resolve(repoRoot, 'infrastructure/migrations/052_sale_items_upsell.sql');
+const migrationsDir = resolve(repoRoot, 'infrastructure/migrations');
+const migrationFiles = readdirSync(migrationsDir)
+  .filter((name) => /^\d+_.+\.sql$/.test(name))
+  .sort()
+  .map((name) => resolve(migrationsDir, name));
 const prepareRolesSql = resolve(repoRoot, 'tests/integration/database/002_prepare_local_roles.sql');
 const composeFile = resolve(repoRoot, 'infrastructure/docker-compose.local-postgres.yml');
 
@@ -114,7 +108,6 @@ describe.sequential('Sale item HTTP routes', () => {
   afterAll(async () => {
     await runtimePool?.end();
     await adminPool?.end();
-    compose(['down', '-v']);
   });
 
   describe('POST /sales/:saleId/items', () => {
@@ -462,7 +455,7 @@ describe.sequential('Sale item HTTP routes', () => {
 
   async function seedSupplier(agencyId: string, name: string): Promise<string> {
     const result = await adminPool.query<{ id: string }>(
-      `INSERT INTO suppliers (agency_id, name, status) VALUES ($1, $2, 'ACTIVE') RETURNING id`,
+      `INSERT INTO suppliers (agency_id, name, active) VALUES ($1, $2, true) RETURNING id`,
       [agencyId, name],
     );
     const id = result.rows[0]?.id;
@@ -520,7 +513,15 @@ function assertSafeTestDatabase(): void {
 }
 
 function resetDisposableDatabase(): void {
-  compose(['down', '-v']);
+  const existing = run(
+    'docker',
+    ['ps', '--filter', `name=${containerName}`, '--filter', 'status=running', '--format', '{{.Names}}'],
+    false,
+  );
+  if (existing.stdout.split(/\r?\n/).map((line) => line.trim()).includes(containerName)) {
+    return;
+  }
+
   compose(['up', '-d']);
 }
 
@@ -566,17 +567,9 @@ function assertContainerIsLocal(): void {
 
 async function resetDatabase(pool: Pool): Promise<void> {
   await pool.query('DROP SCHEMA public CASCADE; CREATE SCHEMA public;');
-  await pool.query(readSqlForPg(migration001));
-  await pool.query(readSqlForPg(migration002));
-  await pool.query(readSqlForPg(migration003));
-  await pool.query(readSqlForPg(migration004));
-  await pool.query(readSqlForPg(migration005));
-  await pool.query(readSqlForPg(migration006));
-  await pool.query(readSqlForPg(migration007));
-  await pool.query(readSqlForPg(migration010));
-  await pool.query(readSqlForPg(migration015));
-  await pool.query(readSqlForPg(migration024));
-  await pool.query(readSqlForPg(migration052));
+  for (const migrationFile of migrationFiles) {
+    await pool.query(readSqlForPg(migrationFile));
+  }
   await pool.query(readSqlForPg(prepareRolesSql));
   await seedAgenciesAndUsers(pool);
 }

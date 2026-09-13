@@ -73,7 +73,8 @@ CREATE TABLE IF NOT EXISTS sale_items (
   CONSTRAINT sale_items_agency_fk FOREIGN KEY (agency_id) REFERENCES agencies (id),
   CONSTRAINT sale_items_sale_fk FOREIGN KEY (agency_id, sale_id) REFERENCES sales (agency_id, id),
   CONSTRAINT sale_items_supplier_fk FOREIGN KEY (agency_id, supplier_id) REFERENCES suppliers (agency_id, id),
-  CONSTRAINT sale_items_payable_fk FOREIGN KEY (agency_id, payable_id) REFERENCES payables (agency_id, id)
+  CONSTRAINT sale_items_payable_fk FOREIGN KEY (agency_id, payable_id) REFERENCES payables (agency_id, id),
+  CONSTRAINT sale_items_agency_id_key UNIQUE (agency_id, id)
 );
 
 CREATE INDEX IF NOT EXISTS sale_items_agency_id_idx ON sale_items (agency_id);
@@ -143,7 +144,8 @@ CREATE TABLE IF NOT EXISTS proposal_optional_items (
 
   CONSTRAINT proposal_optional_items_agency_fk FOREIGN KEY (agency_id) REFERENCES agencies (id),
   CONSTRAINT proposal_optional_items_proposal_fk FOREIGN KEY (agency_id, proposal_id) REFERENCES proposals (agency_id, id),
-  CONSTRAINT proposal_optional_items_supplier_fk FOREIGN KEY (agency_id, supplier_id) REFERENCES suppliers (agency_id, id)
+  CONSTRAINT proposal_optional_items_supplier_fk FOREIGN KEY (agency_id, supplier_id) REFERENCES suppliers (agency_id, id),
+  CONSTRAINT proposal_optional_items_agency_id_key UNIQUE (agency_id, id)
 );
 
 CREATE INDEX IF NOT EXISTS proposal_optional_items_agency_id_idx ON proposal_optional_items (agency_id);
@@ -205,7 +207,8 @@ CREATE TABLE IF NOT EXISTS upsell_rules (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
 
-  CONSTRAINT upsell_rules_agency_fk FOREIGN KEY (agency_id) REFERENCES agencies (id)
+  CONSTRAINT upsell_rules_agency_fk FOREIGN KEY (agency_id) REFERENCES agencies (id),
+  CONSTRAINT upsell_rules_agency_id_key UNIQUE (agency_id, id)
 );
 
 CREATE INDEX IF NOT EXISTS upsell_rules_agency_id_idx ON upsell_rules (agency_id);
