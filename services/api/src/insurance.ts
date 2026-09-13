@@ -6,12 +6,12 @@
  * Spec: docs/travel_platform_mega_pack/architecture/PRODUCTS_UPSELL_INSURANCE.md
  * "Seguro converge em SaleItem + Finance."
  *
- * No SaleItem table exists in this worktree (Agent 08/Upsell owns it
- * concurrently and cannot be depended on). InsurancePolicy therefore carries
- * its own cost/sale/commission values directly and exposes a nullable,
- * unconstrained `saleItemId` for a future integration migration to backfill
- * and constrain once SaleItem lands -- this should be reconciled with
- * SaleItem at integration time, not duplicated permanently.
+ * InsurancePolicy carries its own cost/sale/commission values directly
+ * rather than deferring to SaleItem for them (no duplication issue: these
+ * are insurance-specific fields SaleItem doesn't have). `saleItemId` links
+ * a policy to its SaleItem line item when sold as an upsell on an existing
+ * Sale; it is a nullable, tenant-scoped composite FK to `sale_items`
+ * (agency_id, id) -- see 060_insurance_sale_item_fk.sql.
  *
  * Financial convergence: selling a policy creates a real Receivable through
  * financial.ts's existing `createReceivable`, linked to the policy's sale
@@ -242,6 +242,8 @@ export interface CreateInsurancePolicyInput {
   insuranceProductId: string;
   customerId: string;
   saleId?: string;
+  /** Links this policy to its SaleItem line item (Agent 08's sale_items table), when sold as an upsell on an existing Sale. */
+  saleItemId?: string;
   coverageStart: string;
   coverageEnd: string;
   costAmount: number;
@@ -368,19 +370,23 @@ export async function createInsurancePolicy(
     if (data.saleId !== undefined) {
       await assertTenantRef(client, agencyId, 'sales', data.saleId, 'Sale not found');
     }
+    if (data.saleItemId !== undefined) {
+      await assertTenantRef(client, agencyId, 'sale_items', data.saleItemId, 'Sale item not found');
+    }
 
     const result = await client.query<InsurancePolicyRow>(
       `INSERT INTO insurance_policies
-         (agency_id, insurance_product_id, customer_id, sale_id, policy_number,
+         (agency_id, insurance_product_id, customer_id, sale_id, sale_item_id, policy_number,
           coverage_start, coverage_end, cost_amount, sale_amount, commission_amount,
           currency, emergency_contact_name, emergency_contact_phone, notes)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
        RETURNING ${POLICY_COLUMNS}`,
       [
         agencyId,
         data.insuranceProductId,
         data.customerId,
         data.saleId ?? null,
+        data.saleItemId ?? null,
         data.policyNumber ?? null,
         data.coverageStart,
         data.coverageEnd,
