@@ -419,6 +419,30 @@ import {
   acceptInvitation,
 } from './invitations';
 import {
+  createContractTemplate,
+  updateContractTemplate,
+  listContractTemplates,
+  getContractTemplateById,
+  createContractDocument,
+  listContractDocuments,
+  getContractDocumentById,
+  markContractDocumentReady,
+  sendContractDocument,
+  cancelContractDocument,
+  addContractParty,
+  listContractParties,
+  removeContractParty,
+  revokeContractSignatureLink,
+  resolvePublicSignatureToken,
+  recordPublicSignatureView,
+  submitSignature,
+  type CreateContractTemplateInput,
+  type UpdateContractTemplateInput,
+  type CreateContractDocumentInput,
+  type AddContractPartyInput,
+  type SubmitSignatureInput,
+} from './contracts';
+import {
   createPermissionRestriction,
   listPermissionRestrictions,
   deletePermissionRestriction,
@@ -2636,6 +2660,187 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     const result = await acceptInvitation(options.database, info, token, body);
     reply.code(201);
     return { userId: result.userId, email: result.email, role: result.role };
+  });
+
+  // ------------------------------------------------------------
+  // CONTRACTS (Agent 03): templates, documents, parties -- staff-side.
+  // RBAC enforced inside each service function (requireRole).
+  // ------------------------------------------------------------
+  app.post('/contracts/templates', { preHandler: protectedHooks }, async (request, reply) => {
+    const body = request.body as CreateContractTemplateInput;
+    const template = await createContractTemplate(options.database, body);
+    reply.code(201);
+    return { template };
+  });
+
+  app.get('/contracts/templates', { preHandler: protectedHooks }, async () => {
+    const templates = await listContractTemplates(options.database);
+    return { templates };
+  });
+
+  app.get<{ Params: { id: string } }>(
+    '/contracts/templates/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      const template = await getContractTemplateById(options.database, request.params.id);
+      if (!template) {
+        throw new NotFoundError('Template não encontrado');
+      }
+      return { template };
+    },
+  );
+
+  app.patch<{ Params: { id: string } }>(
+    '/contracts/templates/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      const body = request.body as UpdateContractTemplateInput;
+      const template = await updateContractTemplate(options.database, request.params.id, body);
+      if (!template) {
+        throw new NotFoundError('Template não encontrado');
+      }
+      return { template };
+    },
+  );
+
+  app.post('/contracts/documents', { preHandler: protectedHooks }, async (request, reply) => {
+    const body = request.body as CreateContractDocumentInput;
+    const document = await createContractDocument(options.database, body);
+    reply.code(201);
+    return { document };
+  });
+
+  app.get('/contracts/documents', { preHandler: protectedHooks }, async () => {
+    const documents = await listContractDocuments(options.database);
+    return { documents };
+  });
+
+  app.get<{ Params: { id: string } }>(
+    '/contracts/documents/:id',
+    { preHandler: protectedHooks },
+    async (request) => {
+      const document = await getContractDocumentById(options.database, request.params.id);
+      if (!document) {
+        throw new NotFoundError('Documento não encontrado');
+      }
+      return { document };
+    },
+  );
+
+  app.post<{ Params: { id: string } }>(
+    '/contracts/documents/:id/ready',
+    { preHandler: protectedHooks },
+    async (request) => {
+      const document = await markContractDocumentReady(options.database, request.params.id);
+      return { document };
+    },
+  );
+
+  app.post<{ Params: { id: string } }>(
+    '/contracts/documents/:id/send',
+    { preHandler: protectedHooks },
+    async (request) => {
+      const result = await sendContractDocument(options.database, request.params.id);
+      // Raw signature tokens are returned exactly once, here, at send time
+      // -- never persisted, never returned by any other endpoint. In a
+      // real deployment these are emailed by the provider rather than
+      // handed back to the staff caller, but no such delivery integration
+      // exists yet (LocalSignatureProvider stub only).
+      return { document: result.document, links: result.links };
+    },
+  );
+
+  app.post<{ Params: { id: string } }>(
+    '/contracts/documents/:id/cancel',
+    { preHandler: protectedHooks },
+    async (request) => {
+      const document = await cancelContractDocument(options.database, request.params.id);
+      return { document };
+    },
+  );
+
+  app.post<{ Params: { id: string } }>(
+    '/contracts/documents/:id/parties',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      const body = request.body as AddContractPartyInput;
+      const party = await addContractParty(options.database, request.params.id, body);
+      reply.code(201);
+      return { party };
+    },
+  );
+
+  app.get<{ Params: { id: string } }>(
+    '/contracts/documents/:id/parties',
+    { preHandler: protectedHooks },
+    async (request) => {
+      const parties = await listContractParties(options.database, request.params.id);
+      return { parties };
+    },
+  );
+
+  app.delete<{ Params: { id: string; partyId: string } }>(
+    '/contracts/documents/:id/parties/:partyId',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      const removed = await removeContractParty(
+        options.database,
+        request.params.id,
+        request.params.partyId,
+      );
+      if (!removed) {
+        throw new NotFoundError('Signatário não encontrado');
+      }
+      reply.code(204);
+      return null;
+    },
+  );
+
+  app.post<{ Params: { partyId: string } }>(
+    '/contracts/parties/:partyId/revoke-link',
+    { preHandler: protectedHooks },
+    async (request) => {
+      const revoked = await revokeContractSignatureLink(options.database, request.params.partyId);
+      if (!revoked) {
+        throw new NotFoundError('Link de assinatura ativo não encontrado');
+      }
+      return { revoked: true };
+    },
+  );
+
+  // ------------------------------------------------------------
+  // CONTRACTS (public signing flow -- token-only, no staff auth). Same
+  // generic-rejection posture as /invitations/:token above: an
+  // invalid/expired/revoked/already-signed token always produces the
+  // same 404 body, never revealing which failure mode occurred or
+  // whether any tenant/document/party ever existed for that token.
+  // ------------------------------------------------------------
+  app.get('/contracts/sign/:token', async (request, reply) => {
+    const { token } = request.params as { token: string };
+    const info = await resolvePublicSignatureToken(options.database, token);
+    if (!info) {
+      reply.code(404);
+      return { error: 'Link de assinatura inválido ou expirado' };
+    }
+    await recordPublicSignatureView(options.database, info, token);
+    return { fullName: info.fullName, email: info.email, role: info.role };
+  });
+
+  app.post('/contracts/sign/:token', async (request, reply) => {
+    const { token } = request.params as { token: string };
+    const body = request.body as SubmitSignatureInput;
+    const info = await resolvePublicSignatureToken(options.database, token);
+    if (!info) {
+      reply.code(404);
+      return { error: 'Link de assinatura inválido ou expirado' };
+    }
+    const userAgent = request.headers['user-agent'];
+    const result = await submitSignature(options.database, info, token, {
+      ...body,
+      ipAddress: request.ip,
+      ...(userAgent !== undefined ? { userAgent } : {}),
+    });
+    return { documentStatus: result.documentStatus };
   });
 
   // ------------------------------------------------------------

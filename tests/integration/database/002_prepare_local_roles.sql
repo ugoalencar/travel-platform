@@ -457,6 +457,27 @@ BEGIN
 END;
 $$;
 
+-- Contracts / E-signature (Agent 03). Evidence is append-only: SELECT/INSERT
+-- only, matching the absence of UPDATE/DELETE RLS policies in the migration.
+DO $$
+BEGIN
+  IF to_regclass('public.contract_templates') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      contract_templates,
+      contract_documents,
+      contract_parties,
+      contract_signature_links
+    TO travel_app_runtime_local;
+  END IF;
+
+  IF to_regclass('public.contract_signature_evidence') IS NOT NULL THEN
+    GRANT SELECT, INSERT ON
+      contract_signature_evidence
+    TO travel_app_runtime_local;
+  END IF;
+END;
+$$;
+
 GRANT EXECUTE ON FUNCTION current_agency_id() TO travel_app_runtime_local;
 GRANT EXECUTE ON FUNCTION current_user_id() TO travel_app_runtime_local;
 GRANT EXECUTE ON FUNCTION set_tenant_context(TEXT, TEXT) TO travel_app_runtime_local;
