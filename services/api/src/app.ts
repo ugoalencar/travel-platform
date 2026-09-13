@@ -46,6 +46,7 @@ import { registerPublicationsRoutes } from './routes/publications';
 import { registerProposalsRoutes } from './routes/proposals';
 import { registerReportsRoutes } from './routes/reports';
 import { registerSalesRoutes } from './routes/sales';
+import { registerSaleItemsRoutes } from './routes/sale-items';
 import { registerTravelProductsRoutes } from './routes/travel-products';
 import { registerSettingsExpandedRoutes } from './routes/settings-expanded';
 import { registerSettingsRoutes } from './routes/settings';
@@ -294,6 +295,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
 
   // Sales
   registerSalesRoutes(app, { database: options.database, protectedHooks });
+  registerSaleItemsRoutes(app, { database: options.database, protectedHooks });
 
   // Financial (receivables, payables, payments, costs, categories, revenues, expenses, cash, reconciliations, reports)
   registerFinancialRoutes(app, { database: options.database, protectedHooks });
