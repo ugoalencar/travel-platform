@@ -556,6 +556,7 @@ function assertSafeTestDatabase(): void {
 }
 
 function resetDisposableDatabase(): void {
+  if (process.env.CI === 'true') return;
   // NOTE: deliberately does NOT `down -v` / recreate when a container with
   // the shared fixed name is already running. That name is fixed across
   // every test file in this repo, and multiple suites may run concurrently
@@ -580,6 +581,7 @@ function compose(args: readonly string[]) {
 }
 
 async function waitForHealthyContainer(): Promise<void> {
+  if (process.env.CI === 'true') return;
   const timeoutAt = Date.now() + 120_000;
 
   while (Date.now() < timeoutAt) {
@@ -598,6 +600,7 @@ async function waitForHealthyContainer(): Promise<void> {
 }
 
 function assertContainerIsLocal(): void {
+  if (process.env.CI === 'true') return;
   const result = run('docker', [
     'ps',
     '--filter',

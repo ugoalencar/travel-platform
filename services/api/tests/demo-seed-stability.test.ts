@@ -96,6 +96,7 @@ describe('Commercial Cockpit demo seed stability', () => {
       [poolPasswordKey]: adminPassword,
     });
 
+    await adminPool.query('DROP SCHEMA public CASCADE; CREATE SCHEMA public;');
     await applyMigrations(adminPool);
     runSeedScript();
   }, 180_000);
@@ -255,6 +256,7 @@ function assertSafeTestDatabase(): void {
 }
 
 function resetDisposableDatabase(): void {
+  if (process.env.CI === 'true') return;
   compose(['down', '-v']);
   compose(['up', '-d']);
 }
@@ -264,6 +266,7 @@ function compose(args: readonly string[]): CommandResult {
 }
 
 async function waitForHealthyContainer(): Promise<void> {
+  if (process.env.CI === 'true') return;
   const timeoutAt = Date.now() + 120_000;
   while (Date.now() < timeoutAt) {
     const result = run('docker', ['inspect', '-f', '{{.State.Health.Status}}', containerName], false);

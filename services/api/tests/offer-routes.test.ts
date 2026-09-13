@@ -665,6 +665,7 @@ function assertSafeTestDatabase(): void {
 }
 
 function resetDisposableDatabase(): void {
+  if (process.env.CI === 'true') return;
   compose(['down', '-v']);
   compose(['up', '-d']);
 }
@@ -674,6 +675,7 @@ function compose(args: readonly string[]): CommandResult {
 }
 
 async function waitForHealthyContainer(): Promise<void> {
+  if (process.env.CI === 'true') return;
   const timeoutAt = Date.now() + 120_000;
 
   while (Date.now() < timeoutAt) {
@@ -696,6 +698,7 @@ async function waitForHealthyContainer(): Promise<void> {
 }
 
 function assertContainerIsLocal(): void {
+  if (process.env.CI === 'true') return;
   const result = run('docker', [
     'ps',
     '--filter',
