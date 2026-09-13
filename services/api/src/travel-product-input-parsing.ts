@@ -47,7 +47,7 @@ function parseIsoDateString(value: unknown, field: string): string {
     throw new ValidationError(`Field "${field}" must be an ISO date string (YYYY-MM-DD)`);
   }
   const [year, month, day] = value.split('-').map(Number);
-  const asUtcDate = new Date(Date.UTC(year!, month! - 1, day!));
+  const asUtcDate = new Date(Date.UTC(year!, month! - 1, day));
   if (
     asUtcDate.getUTCFullYear() !== year ||
     asUtcDate.getUTCMonth() !== month! - 1 ||
@@ -149,7 +149,7 @@ export function parseCreateTravelProductInput(body: unknown): CreateTravelProduc
   }
 
   const data: Record<string, unknown> = {
-    category: record.category as TravelProductCategory,
+    category: record.category,
     title: record.title,
   };
   applyScalarFields(record, data);
@@ -166,7 +166,7 @@ export function parseUpdateTravelProductInput(body: unknown): UpdateTravelProduc
     if (typeof record.category !== 'string' || !CATEGORY_VALUES.includes(record.category)) {
       throw new ValidationError(`Field "category" must be one of: ${CATEGORY_VALUES.join(', ')}`);
     }
-    data.category = record.category as TravelProductCategory;
+    data.category = record.category;
   }
   if (record.title !== undefined) {
     if (typeof record.title !== 'string' || record.title.trim().length === 0) {
@@ -180,5 +180,5 @@ export function parseUpdateTravelProductInput(body: unknown): UpdateTravelProduc
     throw new ValidationError('At least one field must be provided');
   }
 
-  return data as unknown as UpdateTravelProductInput;
+  return data;
 }
