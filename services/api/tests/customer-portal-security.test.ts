@@ -37,7 +37,7 @@ const poolPasswordKey = 'pass' + 'word';
 const agencyAId = '10000000-0000-4000-8000-000000000001';
 const agencyBId = '20000000-0000-4000-8000-000000000001';
 
-describe.sequential('Customer portal security (IDOR / tenant / dev-auth gating)', () => {
+describe('Customer portal security (IDOR / tenant / dev-auth gating)', () => {
   let adminPool: Pool;
   let runtimePool: Pool;
   let customerA1Id: string;

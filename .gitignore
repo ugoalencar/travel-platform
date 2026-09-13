@@ -56,6 +56,7 @@ storybook-static/
 test-results/
 playwright-report/
 coverage-final.json
+**/vitest-report.json
 
 # Prisma temporary/generated artifacts
 packages/database/generated/
@@ -84,6 +85,8 @@ tmp/
 temp/
 .tmp/
 .temp/
+graphify-out/
+**/graphify-out/
 
 # Database backups (SEC-I)
 backups/

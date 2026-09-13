@@ -341,6 +341,19 @@ export interface CashFlowPeriod {
   to: Date;
 }
 
+type FinancialReferenceTable =
+  | 'bookings'
+  | 'commissions'
+  | 'cost_centers'
+  | 'customers'
+  | 'employees'
+  | 'financial_categories'
+  | 'operational_costs'
+  | 'payments'
+  | 'sales'
+  | 'suppliers'
+  | 'transport_operations';
+
 export interface CashFlowSummary {
   projected: {
     receivablesDue: number;
@@ -2702,7 +2715,7 @@ async function getCashBalanceForClient(
 async function assertOptionalRef(
   client: TenantTransactionClient,
   agencyId: string,
-  table: string,
+  table: FinancialReferenceTable,
   id: string | undefined,
   message: string,
 ): Promise<void> {
@@ -2715,7 +2728,7 @@ async function assertOptionalRef(
 async function assertRef(
   client: TenantTransactionClient,
   agencyId: string,
-  table: string,
+  table: FinancialReferenceTable,
   id: string,
   message: string,
 ): Promise<void> {

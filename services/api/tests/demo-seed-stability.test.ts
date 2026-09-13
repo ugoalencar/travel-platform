@@ -80,7 +80,7 @@ const cockpitDemoCustomerIds = {
   portoDeGalinhas: 'c0cc0001-0000-4000-8000-00000000000d',
 };
 
-describe.sequential('Commercial Cockpit demo seed stability', () => {
+describe('Commercial Cockpit demo seed stability', () => {
   let adminPool: Pool;
 
   beforeAll(async () => {

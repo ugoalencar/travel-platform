@@ -51,7 +51,7 @@ const principals: Record<string, AuthenticatedPrincipal> = {
   },
 };
 
-describe.sequential('Customer end-to-end validation (Task 3)', () => {
+describe('Customer end-to-end validation (Task 3)', () => {
   let adminPool: Pool;
   let runtimePool: Pool;
 

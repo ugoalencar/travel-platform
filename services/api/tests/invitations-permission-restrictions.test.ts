@@ -78,7 +78,7 @@ const contextB = {
   email: 'user-b@example.test',
 };
 
-describe.sequential('Invitations + PermissionRestrictions data-access layer (Agent 01 SaaS Admin)', () => {
+describe('Invitations + PermissionRestrictions data-access layer (Agent 01 SaaS Admin)', () => {
   let adminPool: Pool;
   let runtimePool: Pool;
   let database: DatabaseRuntime;

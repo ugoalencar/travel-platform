@@ -65,7 +65,7 @@ const principals: Record<string, AuthenticatedPrincipal> = {
   managerA: { userId: userAId, agencyId: agencyAId, role: UserRole.MANAGER, email: 'user-a@example.test' },
 };
 
-describe.sequential('Offer & Growth Engine: Cancun E2E (mandatory)', () => {
+describe('Offer & Growth Engine: Cancun E2E (mandatory)', () => {
   let adminPool: Pool;
   let runtimePool: Pool;
 

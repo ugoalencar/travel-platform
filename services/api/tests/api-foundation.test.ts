@@ -55,7 +55,7 @@ const principals: Record<string, AuthenticatedPrincipal> = {
   },
 };
 
-describe.sequential('P0 Fastify API foundation', () => {
+describe('P0 Fastify API foundation', () => {
   let adminPool: Pool;
   let runtimePool: Pool;
 

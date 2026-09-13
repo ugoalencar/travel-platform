@@ -45,7 +45,7 @@ const principals: Record<string, AuthenticatedPrincipal> = {
   },
 };
 
-describe.sequential('Proposal end-to-end vertical validation', () => {
+describe('Proposal end-to-end vertical validation', () => {
   let adminPool: Pool;
   let runtimePool: Pool;
   let customerAId: string;

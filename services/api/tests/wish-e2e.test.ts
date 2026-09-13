@@ -45,7 +45,7 @@ const principals: Record<string, AuthenticatedPrincipal> = {
   },
 };
 
-describe.sequential('Wish end-to-end vertical validation (Task 3)', () => {
+describe('Wish end-to-end vertical validation (Task 3)', () => {
   let adminPool: Pool;
   let runtimePool: Pool;
   let customerAId: string;

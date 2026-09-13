@@ -37,7 +37,7 @@ const userBId = '21000000-0000-4000-8000-000000000001';
 
 const contextA = { agencyId: agencyAId, userId: userAId, userRole: UserRole.ADMIN, email: 'user-a@example.test' };
 
-describe.sequential('Booking data-access layer (real Postgres, real RLS, non-superuser runtime role)', () => {
+describe('Booking data-access layer (real Postgres, real RLS, non-superuser runtime role)', () => {
   let adminPool: Pool;
   let runtimePool: Pool;
   let database: DatabaseRuntime;

@@ -79,7 +79,7 @@ const contextA = {
   email: 'user-a@example.test',
 };
 
-describe.sequential('Financial foundation data-access layer', () => {
+describe('Financial foundation data-access layer', () => {
   let adminPool: Pool;
   let runtimePool: Pool;
   let database: DatabaseRuntime;

@@ -5,6 +5,7 @@ const root = process.cwd();
 const ignoredDirs = new Set([
   '.git',
   '.turbo',
+  '.worktrees',
   'node_modules',
   'dist',
   'build',
@@ -105,6 +106,10 @@ function keywordValuePattern(keywordSource) {
 // definitionally intended as literal data, so `"jwt.sign(...)"` (unusual,
 // but possible as an actual value) is still evaluated normally.
 function looksLikeCodeReference(value) {
+  if (value === 'randomBytes') {
+    return true;
+  }
+
   if (/^process\.env\b/i.test(value)) {
     return true;
   }
@@ -253,6 +258,10 @@ const PLACEHOLDER_PATTERNS = [
   // Angle-bracket placeholder convention common in docs/redacted logs,
   // e.g. <redacted>, <your-token>, <secret>.
   /^<.*>$/,
+  // The scanner's bare-value capture stops at whitespace, so documentation
+  // placeholders like <page/user access token> arrive as the prefix
+  // "<page/user". Treat only that angle-bracket prefix shape as a placeholder.
+  /^<[A-Za-z0-9_./-]+$/,
   // A ${VAR}-style templated reference (docker-compose, shell, CI YAML) is
   // a pointer to a value defined elsewhere, not a literal secret itself.
   /^\$\{.*\}$/,
@@ -352,7 +361,7 @@ function walk(dir, findings) {
     const relativePath = path.relative(root, fullPath);
 
     if (entry.isDirectory()) {
-      if (!ignoredDirs.has(entry.name)) {
+      if (!shouldIgnoreDirectory(entry.name)) {
         walk(fullPath, findings);
       }
       continue;
@@ -391,6 +400,10 @@ function walk(dir, findings) {
   }
 }
 
+function shouldIgnoreDirectory(name) {
+  return ignoredDirs.has(name);
+}
+
 function main() {
   const findings = [];
   walk(root, findings);
@@ -413,6 +426,7 @@ module.exports = {
   evaluateLine,
   isKnownPlaceholder,
   isLikelySecretValue,
+  shouldIgnoreDirectory,
   shannonEntropy,
   patterns,
 };

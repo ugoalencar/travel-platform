@@ -6,6 +6,7 @@ import {
   evaluateLine,
   isKnownPlaceholder,
   isLikelySecretValue,
+  shouldIgnoreDirectory,
   shannonEntropy,
 } from '../../scripts/check-secrets.cjs';
 
@@ -51,6 +52,21 @@ describe('secrets scanner: placeholders are allowed', () => {
 
   it('does not flag a bare env-var reference with no value', () => {
     expect(names('  - [ ] JWT_SECRET não exposto')).toEqual([]);
+  });
+  it('allows angle-bracket documentation placeholders with spaces', () => {
+    expect(names('  - CONNECTOR_META_ACCESS_TOKEN=<page/user access token>')).toEqual([]);
+  });
+
+  it('allows cryptographic token generation code instead of treating the generator as a secret', () => {
+    expect(names("const token = randomBytes(32).toString('base64url');")).toEqual([]);
+  });
+});
+
+describe('secrets scanner: filesystem traversal scope', () => {
+  it('skips nested worktree directories so historical branches do not drown active findings', () => {
+    expect(shouldIgnoreDirectory('.worktrees')).toBe(true);
+    expect(shouldIgnoreDirectory('node_modules')).toBe(true);
+    expect(shouldIgnoreDirectory('services')).toBe(false);
   });
 });
 

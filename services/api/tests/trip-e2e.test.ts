@@ -45,7 +45,7 @@ const principals: Record<string, AuthenticatedPrincipal> = {
   },
 };
 
-describe.sequential('Trip end-to-end vertical validation (Package 2)', () => {
+describe('Trip end-to-end vertical validation (Package 2)', () => {
   let adminPool: Pool;
   let runtimePool: Pool;
   let customerAId: string;

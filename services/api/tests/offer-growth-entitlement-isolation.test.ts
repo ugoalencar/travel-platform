@@ -66,7 +66,7 @@ const principals: Record<string, AuthenticatedPrincipal> = {
   ownerB: { userId: userBId, agencyId: agencyBId, role: UserRole.OWNER, email: 'user-b@example.test' },
 };
 
-describe.sequential('Offer & Growth Engine: entitlement isolation (mandatory)', () => {
+describe('Offer & Growth Engine: entitlement isolation (mandatory)', () => {
   let adminPool: Pool;
   let runtimePool: Pool;
   let automationAId: string;

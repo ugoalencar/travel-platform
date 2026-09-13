@@ -50,7 +50,7 @@ const contextA = { agencyId: agencyAId, userId: userAId, userRole: UserRole.ADMI
 const contextB = { agencyId: agencyBId, userId: userBId, userRole: UserRole.ADMIN, email: 'user-b@example.test' };
 const viewerContextA = { agencyId: agencyAId, userId: userAId, userRole: UserRole.VIEWER, email: 'user-a@example.test' };
 
-describe.sequential('Enrollment link flow (Agent 02: Client Onboarding)', () => {
+describe('Enrollment link flow (Agent 02: Client Onboarding)', () => {
   let adminPool: Pool;
   let runtimePool: Pool;
   let database: DatabaseRuntime;

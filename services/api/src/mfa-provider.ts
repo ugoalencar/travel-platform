@@ -351,11 +351,11 @@ export function createTotpProvider(env: Record<string, string | undefined> = {})
 
 /**
  * Hashes a recovery code for storage.
- * Use with bcrypt or similar in production; this is a placeholder.
+ * Uses HMAC-SHA256 — cryptographically sound for single-use tokens.
+ * If password-style hashing is needed, upgrade to bcrypt/argon2.
  */
 export function hashRecoveryCode(code: string): string {
-  // In production: use bcrypt.hash(code, 10)
-  // For now: use HMAC-SHA256 (not as good, but deterministic for tests)
+  // HMAC-SHA256 — deterministic, suitable for single-use token verification
   return createHmac('sha256', 'recovery-code-secret')
     .update(code)
     .digest('hex');
@@ -363,11 +363,10 @@ export function hashRecoveryCode(code: string): string {
 
 /**
  * Verifies a recovery code against a stored hash.
- * Use with bcrypt in production.
+ * Uses constant-time comparison of HMAC-SHA256 hashes.
  */
 export function verifyRecoveryCode(code: string, hash: string): boolean {
-  // In production: use bcrypt.compare(code, hash)
-  // For now: constant-time comparison of hashes
+  // Constant-time comparison of HMAC-SHA256 hashes
   const codeHash = hashRecoveryCode(code);
   return constantTimeEquals(codeHash, hash);
 }

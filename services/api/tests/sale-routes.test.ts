@@ -55,7 +55,7 @@ const principals: Record<string, AuthenticatedPrincipal> = {
   ownerAgencyB: { userId: userBId, agencyId: agencyBId, role: UserRole.OWNER, email: 'user-b@example.test' },
 };
 
-describe.sequential('Sale HTTP routes', () => {
+describe('Sale HTTP routes', () => {
   let adminPool: Pool;
   let runtimePool: Pool;
   let customerAId: string;

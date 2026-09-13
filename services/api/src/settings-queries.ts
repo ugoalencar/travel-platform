@@ -621,22 +621,22 @@ export async function updateNotificationSettings(
 
   if (settings.emailNotifications !== undefined) {
     updates.push(`email_notifications = $${paramIndex}`);
-    values.splice(2, 0, settings.emailNotifications);
+    values.push(settings.emailNotifications);
     paramIndex++;
   }
   if (settings.proposalUpdates !== undefined) {
     updates.push(`proposal_updates = $${paramIndex}`);
-    values.splice(2, 0, settings.proposalUpdates);
+    values.push(settings.proposalUpdates);
     paramIndex++;
   }
   if (settings.bookingUpdates !== undefined) {
     updates.push(`booking_updates = $${paramIndex}`);
-    values.splice(2, 0, settings.bookingUpdates);
+    values.push(settings.bookingUpdates);
     paramIndex++;
   }
   if (settings.paymentUpdates !== undefined) {
     updates.push(`payment_updates = $${paramIndex}`);
-    values.splice(2, 0, settings.paymentUpdates);
+    values.push(settings.paymentUpdates);
     paramIndex++;
   }
 

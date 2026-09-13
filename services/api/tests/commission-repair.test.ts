@@ -39,7 +39,7 @@ const userAId = '11000000-0000-4000-8000-000000000001';
  * Commission insert (exercising its pre-existing FKs to sales/agencies)
  * still succeeds unchanged.
  */
-describe.sequential('Commission structural repair (007_commission_repair.sql)', () => {
+describe('Commission structural repair (007_commission_repair.sql)', () => {
   let adminPool: Pool;
 
   beforeAll(async () => {

@@ -88,7 +88,7 @@ const principals: Record<string, AuthenticatedPrincipal> = {
   },
 };
 
-describe.sequential('Customer HTTP routes (Task 2)', () => {
+describe('Customer HTTP routes (Task 2)', () => {
   let adminPool: Pool;
   let runtimePool: Pool;
 

@@ -39,7 +39,7 @@ const userBId = '21000000-0000-4000-8000-000000000001';
 const contextA = { agencyId: agencyAId, userId: userAId, userRole: UserRole.ADMIN, email: 'user-a@example.test' };
 const contextB = { agencyId: agencyBId, userId: userBId, userRole: UserRole.ADMIN, email: 'user-b@example.test' };
 
-describe.sequential('Offer data-access layer (Package 1)', () => {
+describe('Offer data-access layer (Package 1)', () => {
   let adminPool: Pool;
   let runtimePool: Pool;
   let database: DatabaseRuntime;

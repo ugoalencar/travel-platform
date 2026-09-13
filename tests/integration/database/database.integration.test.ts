@@ -1,6 +1,6 @@
 import { spawnSync } from 'node:child_process';
 import { readdirSync, readFileSync } from 'node:fs';
-import { dirname, resolve } from 'node:path';
+import { basename, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
@@ -12,8 +12,11 @@ const constraintsTestSql = resolve(repoRoot, 'tests/integration/database/001_con
 const prepareRolesSql = resolve(repoRoot, 'tests/integration/database/002_prepare_local_roles.sql');
 const rlsRuntimeTestSql = resolve(repoRoot, 'tests/integration/database/003_rls_runtime_test.sql');
 
-const projectName = 'travel-platform-local-postgres';
-const containerName = 'travel-platform-postgres-local';
+const projectName =
+  process.env.DATABASE_TEST_PROJECT_NAME ??
+  `travel-platform-local-postgres-${sanitizeDockerName(basename(repoRoot))}`;
+const containerName =
+  process.env.DATABASE_TEST_CONTAINER_NAME ?? `${projectName}-postgres-local`;
 const postgresImage = 'postgres:15';
 const testMode = process.env.DATABASE_TEST_MODE ?? 'local';
 const isCiMode = testMode === 'ci';
@@ -23,7 +26,7 @@ const databaseName = process.env.DATABASE_TEST_NAME ?? 'travel_platform_test';
 const runtimeUser = 'travel_app_runtime_local';
 const runtimePassword = 'travel_app_runtime_local_password';
 const localHost = process.env.DATABASE_TEST_HOST ?? '127.0.0.1';
-const localPort = process.env.DATABASE_TEST_PORT ?? (isCiMode ? '5432' : '55432');
+const localPort = process.env.DATABASE_TEST_PORT ?? (isCiMode ? '5432' : '0');
 
 const expectedAllTables = [
   'agencies',
@@ -64,6 +67,7 @@ const expectedAllTables = [
   'customer_documents',
   'customer_interactions',
   'customers',
+  'departments',
   'document_attachments',
   'document_audit_events',
   'document_extractions',
@@ -71,6 +75,9 @@ const expectedAllTables = [
   'employee_deductions',
   'employees',
   'engagements',
+  'enrollment_documents',
+  'enrollment_links',
+  'enrollment_submissions',
   'entitlement_changes',
   'entitlements',
   'expenses',
@@ -78,6 +85,7 @@ const expectedAllTables = [
   'feature_flag_audit',
   'feature_flags',
   'financial_categories',
+  'invitations',
   'land_services',
   'landing_page_config',
   'landing_promotions',
@@ -101,6 +109,7 @@ const expectedAllTables = [
   'payment_allocations',
   'payments',
   'payroll_entries',
+  'permission_restrictions',
   'pipeline_access',
   'pipeline_stages',
   'pipelines',
@@ -173,6 +182,7 @@ const expectedTenantTables = [
   'customer_documents',
   'customer_interactions',
   'customers',
+  'departments',
   'document_attachments',
   'document_audit_events',
   'document_extractions',
@@ -180,9 +190,13 @@ const expectedTenantTables = [
   'employee_deductions',
   'employees',
   'engagements',
+  'enrollment_documents',
+  'enrollment_links',
+  'enrollment_submissions',
   'expenses',
   'external_offer_captures',
   'financial_categories',
+  'invitations',
   'land_services',
   'mfa_recovery_codes',
   'mfa_requirements',
@@ -200,6 +214,7 @@ const expectedTenantTables = [
   'payment_allocations',
   'payments',
   'payroll_entries',
+  'permission_restrictions',
   'pipeline_access',
   'pipeline_stages',
   'pipelines',
@@ -231,13 +246,14 @@ const readInsertOnlyTables = [
   'document_audit_events',
   'mfa_totp_attempts',
 ];
+const noUpdateTables = ['permission_restrictions'];
 
 interface CommandResult {
   stdout: string;
   stderr: string;
 }
 
-describe.sequential('database integration migrations and RLS', () => {
+describe('database integration migrations and RLS', () => {
   beforeAll(async () => {
     assertSafeTestDatabase();
     if (isCiMode) {
@@ -399,7 +415,8 @@ describe.sequential('database integration migrations and RLS', () => {
     expect(tableGrantCount).toBe(
       String(
         (expectedTenantTables.length - readInsertOnlyTables.length) * 4 +
-          readInsertOnlyTables.length * 2,
+          readInsertOnlyTables.length * 2 -
+          noUpdateTables.length,
       ),
     );
     expect(
@@ -412,6 +429,16 @@ describe.sequential('database integration migrations and RLS', () => {
         ORDER BY table_name, privilege_type;
       `),
     ).toEqual(readInsertOnlyTables.flatMap((table) => [`${table}:INSERT`, `${table}:SELECT`]));
+    expect(
+      queryAdminLines(`
+        SELECT table_name || ':' || privilege_type
+        FROM information_schema.role_table_grants
+        WHERE table_schema = 'public'
+          AND grantee = '${runtimeUser}'
+          AND table_name = ANY(ARRAY[${noUpdateTables.map((table) => `'${table}'`).join(', ')}])
+        ORDER BY table_name, privilege_type;
+      `),
+    ).toEqual(noUpdateTables.flatMap((table) => [`${table}:DELETE`, `${table}:INSERT`, `${table}:SELECT`]));
     expect(functionGrants).toEqual([
       'clear_tenant_context',
       'current_agency_id',
@@ -442,8 +469,8 @@ function assertSafeTestDatabase(): void {
     throw new Error('CI database mode is allowed only inside GitHub Actions.');
   }
 
-  if (!isCiMode && localPort !== '55432') {
-    throw new Error('Local database integration tests require the approved local port 55432.');
+  if (!isCiMode && !isSafeLocalPort(localPort)) {
+    throw new Error('Local database integration tests require a safe local PostgreSQL port.');
   }
 
   if (isCiMode && localPort !== '5432') {
@@ -487,7 +514,10 @@ function resetDisposableDatabase(): void {
 }
 
 function compose(args: readonly string[]): CommandResult {
-  return run('docker', ['compose', '-f', composeFile, '-p', projectName, ...args]);
+  return run('docker', ['compose', '-f', composeFile, '-p', projectName, ...args], undefined, true, {
+    DATABASE_TEST_CONTAINER_NAME: containerName,
+    DATABASE_TEST_PORT: localPort,
+  });
 }
 
 function psqlAdmin(sql: string): CommandResult {
@@ -704,7 +734,21 @@ function assertContainerIsLocal(): void {
   const output = result.stdout.trim();
 
   expect(output).toContain(postgresImage);
-  expect(output).toContain(`${localHost}:${localPort}->5432/tcp`);
+  expect(output).toContain('->5432/tcp');
+}
+
+function sanitizeDockerName(value: string): string {
+  const sanitized = value.toLowerCase().replace(/[^a-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '');
+  return sanitized.length > 0 ? sanitized : 'workspace';
+}
+
+function isSafeLocalPort(value: string): boolean {
+  if (!/^\d+$/.test(value)) {
+    return false;
+  }
+
+  const port = Number(value);
+  return port === 0 || (port >= 1024 && port <= 65535);
 }
 
 function run(
@@ -712,10 +756,12 @@ function run(
   args: readonly string[],
   input?: string,
   throwOnError = true,
+  environmentOverrides: Record<string, string> = {},
 ): CommandResult {
   const result = spawnSync(command, args, {
     cwd: repoRoot,
     encoding: 'utf8',
+    env: { ...process.env, ...environmentOverrides },
     input,
     maxBuffer: 1024 * 1024 * 20,
   });

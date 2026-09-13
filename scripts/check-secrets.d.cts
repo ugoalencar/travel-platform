@@ -12,5 +12,6 @@ export interface SecretFinding {
 export function evaluateLine(line: string): SecretFinding[];
 export function isKnownPlaceholder(value: string): boolean;
 export function isLikelySecretValue(value: string): boolean;
+export function shouldIgnoreDirectory(name: string): boolean;
 export function shannonEntropy(value: string): number;
 export const patterns: SecretPattern[];

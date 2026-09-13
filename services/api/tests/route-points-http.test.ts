@@ -42,7 +42,7 @@ const principals: Record<string, AuthenticatedPrincipal> = {
   ownerAgencyB: { userId: userBId, agencyId: agencyBId, role: UserRole.OWNER, email: 'user-b@example.test' },
 };
 
-describe.sequential('RoutePoint HTTP routes', () => {
+describe('RoutePoint HTTP routes', () => {
   let adminPool: Pool;
   let runtimePool: Pool;
 

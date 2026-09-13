@@ -32,7 +32,7 @@ const poolPasswordKey = 'pass' + 'word';
 
 const agencyAId = '10000000-0000-4000-8000-000000000001';
 
-describe.sequential('Customer portal HTTP routes (happy path)', () => {
+describe('Customer portal HTTP routes (happy path)', () => {
   let adminPool: Pool;
   let runtimePool: Pool;
   let customerId: string;

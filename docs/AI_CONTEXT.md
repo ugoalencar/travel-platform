@@ -19,11 +19,11 @@ All four apps' ports are locked with `strictPort: true` in their
 silently reassigning which app answers on a given port.
 
 **Backend**: `services/api` (Fastify, single service, port 4000). Route
-handlers live in `services/api/src/app.ts` (large, ~5.7k lines — it is
-the Fastify route registration file for the whole API, not a god
-object to be casually split; see Phase 17 note below). Domain logic is
-split into per-entity files next to it (`sales.ts`, `proposals.ts`,
-`bookings.ts`, `financial.ts`, `customers.ts`, etc.).
+handlers live in `services/api/src/routes/` (31 modules, one per domain).
+The `app.ts` file (~488 LOC) is a thin shell that creates the Fastify
+instance, configures auth/CORS/hooks, and registers all 31 route modules.
+Domain logic is split into per-entity files next to it (`sales.ts`,
+`proposals.ts`, `bookings.ts`, `financial.ts`, `customers.ts`, etc.).
 
 **Shared packages** (`packages/*`):
 - `packages/domain` — shared TypeScript domain types (`types.ts`) and
@@ -87,10 +87,29 @@ seed → start all five services (`scripts/demo-orchestrate.cjs`,
 
 ## Deployment
 
-Not yet centrally documented here — see
+### Staging
+
+- `scripts/seed-staging.sql` — seed script (2 tenants, full data)
+- `scripts/e2e-smoke.mjs` — E2E smoke test runner
+- `docker-compose.staging.yml` — local staging (PostgreSQL + API + frontends)
+- `docs/staging-uat-golive/` — full staging/UAT/golive pack
+- `docs/staging-uat-golive/ENV_CHECKLIST.md` — env vars checklist
+- `docs/staging-uat-golive/STAGING_STATUS.md` — status report
+- `docs/staging-uat-golive/FINAL_GO_NO_GO_REPORT.md` — GO/NO-GO
+
+### Route Modules (31)
+
+`services/api/src/routes/` — one module per domain:
+infrastructure, settings, settings-expanded, customers, customer-documents,
+customer-portal, wishes, proposals, trips, sales, financial, commercial-cockpit,
+transport-suppliers, operations-staff, operations, reports, cost-centers,
+commissions, pescador, enrollment, support, assets, campaigns, publications,
+automations, coupons, offers, connectors, engagements, entitlements,
+offer-growth-audit.
+
+See historical release material in
 `docs/archive/aggressive-release-attack-pack/03_FINANCIAL_COMPLETE.md`
-and its sibling numbered docs for historical release-readiness
-material (see "Historical / Archived Paths" below).
+and its sibling numbered docs.
 
 ## Known Duplication (documented, not yet consolidated)
 

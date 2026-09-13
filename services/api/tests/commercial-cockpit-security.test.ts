@@ -70,7 +70,7 @@ const principals: Record<string, AuthenticatedPrincipal> = {
   managerA2: { userId: userA2Id, agencyId: agencyAId, role: UserRole.MANAGER, email: 'user-a2@example.test' },
 };
 
-describe.sequential('Commercial cockpit security (IDOR / tenant / RBAC / mass-assignment)', () => {
+describe('Commercial cockpit security (IDOR / tenant / RBAC / mass-assignment)', () => {
   let adminPool: Pool;
   let runtimePool: Pool;
   let customerAId: string;

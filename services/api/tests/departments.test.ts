@@ -56,7 +56,7 @@ const contextB = {
   email: 'user-b@example.test',
 };
 
-describe.sequential('Departments + Agency Branding data-access layer (Agent 01 SaaS Admin)', () => {
+describe('Departments + Agency Branding data-access layer (Agent 01 SaaS Admin)', () => {
   let adminPool: Pool;
   let runtimePool: Pool;
   let database: DatabaseRuntime;
