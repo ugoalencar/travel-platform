@@ -685,6 +685,97 @@ export async function deleteCustomerDocument(customerId: string, documentId: str
 }
 
 // ============================================================
+// CUSTOMER 360: OCR EXTRACTION & VERIFICATION
+//
+// The OCR candidate returned here is exactly that -- a candidate. It is never
+// applied to the document automatically anywhere in this client; only an
+// explicit per-field accept (see CustomerDetailPage) turns a candidate value
+// into a real PATCH of the document.
+// ============================================================
+
+export type OcrProcessingStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'MANUAL_REVIEW';
+
+export interface DocumentExtraction {
+  id: string;
+  documentId: string;
+  provider: string;
+  extractedData: Record<string, unknown>;
+  confidence?: number;
+  fieldConfidence?: Record<string, number>;
+  processingStatus: OcrProcessingStatus;
+  processedAt?: string;
+  errorMessage?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DocumentVerification {
+  id: string;
+  documentId: string;
+  extractionId?: string;
+  holderNameMatch?: boolean;
+  holderBirthDateMatch?: boolean;
+  holderNationalityMatch?: boolean;
+  documentNumberMatch?: boolean;
+  discrepancies?: Record<string, unknown>;
+  manualReviewNotes?: string;
+  reviewedAt?: string;
+  reviewedByUserId?: string;
+}
+
+export async function listDocumentExtractions(documentId: string): Promise<DocumentExtraction[]> {
+  const data = await request<{ extractions: DocumentExtraction[] }>(
+    `/api/documents/${encodeURIComponent(documentId)}/extractions`,
+  );
+  return data.extractions;
+}
+
+export async function submitDocumentExtraction(
+  documentId: string,
+  input: { attachmentId: string; fileUrl: string },
+): Promise<DocumentExtraction> {
+  const data = await request<{ extraction: DocumentExtraction }>(
+    `/api/documents/${encodeURIComponent(documentId)}/extract`,
+    { method: 'POST', body: JSON.stringify(input) },
+  );
+  return data.extraction;
+}
+
+export async function pollDocumentExtraction(
+  documentId: string,
+  extractionId: string,
+): Promise<DocumentExtraction> {
+  const data = await request<{ extraction: DocumentExtraction }>(
+    `/api/documents/${encodeURIComponent(documentId)}/extraction/${encodeURIComponent(extractionId)}/poll`,
+    { method: 'POST' },
+  );
+  return data.extraction;
+}
+
+export async function getDocumentVerification(documentId: string): Promise<DocumentVerification | null> {
+  try {
+    const data = await request<{ verification: DocumentVerification }>(
+      `/api/documents/${encodeURIComponent(documentId)}/verification`,
+    );
+    return data.verification;
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) return null;
+    throw error;
+  }
+}
+
+export async function verifyDocumentExtraction(
+  documentId: string,
+  extractionId: string,
+): Promise<DocumentVerification> {
+  const data = await request<{ verification: DocumentVerification }>(
+    `/api/documents/${encodeURIComponent(documentId)}/verify`,
+    { method: 'POST', body: JSON.stringify({ extractionId }) },
+  );
+  return data.verification;
+}
+
+// ============================================================
 // CUSTOMER 360: TRAVEL REQUIREMENTS (Requisitos de viagem)
 // ============================================================
 

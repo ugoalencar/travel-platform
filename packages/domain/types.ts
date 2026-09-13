@@ -1999,6 +1999,8 @@ export interface DocumentExtraction {
   provider: string;
   extractedData: Record<string, unknown>;
   confidence?: number;
+  /** Per-field confidence (0-100), keyed by the same names as extractedData. */
+  fieldConfidence?: Record<string, number>;
   processingStatus: OcrProcessingStatus;
   processedAt?: Date;
   errorMessage?: string;

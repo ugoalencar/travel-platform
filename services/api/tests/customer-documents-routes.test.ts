@@ -535,6 +535,84 @@ describe('Customer 360 routes -- extraction and verification', () => {
     await isolated.close();
   });
 
+  it('polls a PROCESSING extraction and returns the completed candidate', async () => {
+    const isolated = buildTestApp((query) => {
+      const text = query.text;
+      if (text.includes('document_extractions') && text.includes('UPDATE')) {
+        return [
+          extractionRow({
+            processing_status: 'COMPLETED',
+            extracted_data: { holderName: 'MOCK HOLDER' },
+            confidence: 95,
+          }),
+        ];
+      }
+      if (text.includes('document_extractions')) {
+        return [
+          extractionRow({
+            processing_status: 'PROCESSING',
+            extracted_data: { taskId: 'mock-task-1' },
+          }),
+        ];
+      }
+      return defaultResponder(query);
+    });
+    await isolated.ready();
+
+    const response = await isolated.inject({
+      method: 'POST',
+      url: '/documents/doc-1/extraction/ext-1/poll',
+      headers: authHeaders,
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(
+      readJson<{ extraction: { processingStatus: string } }>(response).extraction
+        .processingStatus,
+    ).toBe('COMPLETED');
+    await isolated.close();
+  });
+
+  it('returns a terminal extraction unchanged without re-polling the provider', async () => {
+    const isolated = buildTestApp((query) =>
+      query.text.includes('document_extractions')
+        ? [extractionRow({ processing_status: 'COMPLETED' })]
+        : defaultResponder(query),
+    );
+    await isolated.ready();
+
+    const response = await isolated.inject({
+      method: 'POST',
+      url: '/documents/doc-1/extraction/ext-1/poll',
+      headers: authHeaders,
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(
+      readJson<{ extraction: { processingStatus: string } }>(response).extraction
+        .processingStatus,
+    ).toBe('COMPLETED');
+    await isolated.close();
+  });
+
+  it('404s a poll for an extraction belonging to a different document', async () => {
+    const isolated = buildTestApp((query) =>
+      query.text.includes('document_extractions')
+        ? [extractionRow({ document_id: 'other-doc' })]
+        : defaultResponder(query),
+    );
+    await isolated.ready();
+
+    const response = await isolated.inject({
+      method: 'POST',
+      url: '/documents/doc-1/extraction/ext-1/poll',
+      headers: authHeaders,
+    });
+
+    expect(response.statusCode).toBe(404);
+    await isolated.close();
+  });
+
   it('verifies a document against an extraction and returns 201', async () => {
     const response = await app.inject({
       method: 'POST',

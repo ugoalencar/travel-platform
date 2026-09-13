@@ -231,6 +231,52 @@ describe('document extraction -- completion', () => {
     );
   });
 
+  it('stores and returns a per-field confidence map alongside the overall score', async () => {
+    const database = createFakeDatabase(() => [
+      extractionRow({
+        processing_status: 'COMPLETED',
+        field_confidence: { holderName: 91, documentNumber: 60 },
+      }),
+    ]);
+
+    const extraction = await runWithTenantContext(CONTEXT_A, () =>
+      completeDocumentExtraction(
+        database,
+        'ext-1',
+        { holderName: 'JOAO', documentNumber: 'AB1' },
+        88.5,
+        { holderName: 91, documentNumber: 60 },
+      ),
+    );
+
+    const update = database.findOne('UPDATE document_extractions');
+    expect(update.values).toContain(JSON.stringify({ holderName: 91, documentNumber: 60 }));
+    expect(extraction?.fieldConfidence).toEqual({ holderName: 91, documentNumber: 60 });
+  });
+
+  it('clamps each field confidence into 0..100 independently', async () => {
+    const database = createFakeDatabase(() => [extractionRow()]);
+
+    await runWithTenantContext(CONTEXT_A, () =>
+      completeDocumentExtraction(database, 'ext-1', {}, 50, { a: 150, b: -5 }),
+    );
+
+    expect(database.findOne('UPDATE document_extractions').values).toContain(
+      JSON.stringify({ a: 100, b: 0 }),
+    );
+  });
+
+  it('stores a null field confidence when the provider reported none', async () => {
+    const database = createFakeDatabase(() => [extractionRow()]);
+
+    const extraction = await runWithTenantContext(CONTEXT_A, () =>
+      completeDocumentExtraction(database, 'ext-1', {}, 50),
+    );
+
+    expect(database.findOne('UPDATE document_extractions').values).toContain(null);
+    expect(extraction).not.toHaveProperty('fieldConfidence');
+  });
+
   it('returns null when the extraction belongs to another tenant', async () => {
     const database = createFakeDatabase(() => []);
 
@@ -305,6 +351,30 @@ describe('document extraction -- failure and polling', () => {
 
     expect(extraction?.processingStatus).toBe(OcrProcessingStatus.COMPLETED);
     expect(database.findOne('UPDATE document_extractions').values).toContain(70);
+  });
+
+  it('carries the provider per-field confidence through to completion', async () => {
+    const database = createFakeDatabase(() => [extractionRow({ processing_status: 'COMPLETED' })]);
+    const provider = new MockOcrProvider({
+      data: { holderName: 'X' },
+      confidence: 70,
+      fieldConfidences: { holderName: 82 },
+    });
+    const taskId = await provider.submitForExtraction({
+      agencyId: AGENCY_A,
+      documentId: 'doc-1',
+      attachmentId: 'att-1',
+      fileUrl: FILE_URL,
+      documentType: 'RG',
+    });
+
+    await runWithTenantContext(CONTEXT_A, () =>
+      pollExtraction(database, 'ext-1', taskId, provider),
+    );
+
+    expect(database.findOne('UPDATE document_extractions').values).toContain(
+      JSON.stringify({ holderName: 82 }),
+    );
   });
 
   it('fails the extraction when the provider reports a failure', async () => {

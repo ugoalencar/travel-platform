@@ -125,6 +125,28 @@ describe('MockOcrProvider', () => {
     });
   });
 
+  it('reports per-field confidence when configured to', async () => {
+    const provider = new MockOcrProvider({
+      data: { holderName: 'JOAO', documentNumber: 'AB1' },
+      fieldConfidences: { holderName: 95, documentNumber: 40 },
+    });
+    const taskId = await provider.submitForExtraction(submitParams);
+
+    const result = await provider.getExtractionResult(taskId);
+
+    expect(result?.fieldConfidences).toEqual({ holderName: 95, documentNumber: 40 });
+  });
+
+  it('omits per-field confidence when not configured, leaving only the overall score', async () => {
+    const provider = new MockOcrProvider();
+    const taskId = await provider.submitForExtraction(submitParams);
+
+    const result = await provider.getExtractionResult(taskId);
+
+    expect(result?.fieldConfidences).toBeUndefined();
+    expect(result?.confidence).toBeGreaterThan(0);
+  });
+
   it('exposes a stable provider name for persistence', () => {
     expect(new MockOcrProvider().name).toBe('mock');
   });

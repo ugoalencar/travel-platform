@@ -26,7 +26,11 @@ import {
   deleteCustomerDependent,
   listCustomerDocuments,
   createCustomerDocument,
+  updateCustomerDocument,
   deleteCustomerDocument,
+  listDocumentExtractions,
+  verifyDocumentExtraction,
+  type DocumentExtraction,
   listTravelRequirements,
   createTravelRequirement,
   updateTravelRequirement,
@@ -165,6 +169,166 @@ function Field({ label, value }: { label: string; value?: string | undefined }) 
     <div>
       <dt className="text-xs text-slate-500">{label}</dt>
       <dd className="text-sm text-slate-900">{value && value.length > 0 ? value : '—'}</dd>
+    </div>
+  );
+}
+
+/** Field names the OCR pipeline can extract and that map onto a CustomerDocument. */
+const OCR_REVIEW_FIELDS: { key: keyof CustomerDocument; label: string }[] = [
+  { key: 'holderName', label: 'Nome do titular' },
+  { key: 'holderBirthDate', label: 'Data de nascimento' },
+  { key: 'holderNationality', label: 'Nacionalidade' },
+  { key: 'documentNumber', label: 'Número do documento' },
+  { key: 'issuingCountry', label: 'País emissor' },
+  { key: 'expiryDate', label: 'Validade' },
+];
+
+/** Confidence, on the provider's 0-100 scale, below which a field is flagged for careful review. */
+const LOW_CONFIDENCE_THRESHOLD = 70;
+
+/**
+ * Lets a human confirm or correct OCR-extracted document fields before they
+ * are ever written to the customer record.
+ *
+ * Per NON_NEGOTIABLES.md (OCR section): an extraction is a candidate, never a
+ * verified fact. Nothing here writes to the document automatically -- a
+ * field is only applied when staff explicitly selects it and presses
+ * "Aplicar campos selecionados", which issues one PATCH carrying only the
+ * accepted fields, then records the extraction as verified via
+ * `verifyDocumentExtraction` for audit purposes.
+ */
+function DocumentOcrReview({
+  customerId,
+  document: doc,
+  onApplied,
+}: {
+  customerId: string;
+  document: CustomerDocument;
+  onApplied: () => void;
+}) {
+  const [extraction, setExtraction] = useState<DocumentExtraction | null | 'loading'>('loading');
+  const [selected, setSelected] = useState<Record<string, boolean>>({});
+  const [applying, setApplying] = useState(false);
+  const [reviewError, setReviewError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setExtraction('loading');
+    listDocumentExtractions(doc.id)
+      .then((list) => {
+        if (cancelled) return;
+        const latestCompleted =
+          list.find((e) => e.processingStatus === 'COMPLETED') ?? null;
+        setExtraction(latestCompleted);
+      })
+      .catch(() => {
+        if (!cancelled) setExtraction(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [doc.id]);
+
+  if (extraction === 'loading') {
+    return (
+      <p className="mt-2 text-[11px] text-slate-400">Carregando dados extraídos por OCR…</p>
+    );
+  }
+
+  if (extraction === null) {
+    return (
+      <p className="mt-2 text-[11px] text-slate-400">
+        Nenhuma extração por OCR concluída para este documento ainda. Estes campos serão
+        preenchidos automaticamente e nunca substituirão o cadastro sem revisão manual.
+      </p>
+    );
+  }
+
+  const extractedData = extraction.extractedData;
+  const fieldConfidence = extraction.fieldConfidence ?? {};
+  const overallConfidence = extraction.confidence;
+
+  async function handleApply() {
+    if (!extraction || extraction === 'loading') return;
+    const fieldsToApply: Record<string, string> = {};
+    for (const { key } of OCR_REVIEW_FIELDS) {
+      if (selected[key as string]) {
+        const value = extractedData[key as string];
+        if (typeof value === 'string' && value.trim().length > 0) {
+          fieldsToApply[key as string] = value;
+        }
+      }
+    }
+    if (Object.keys(fieldsToApply).length === 0) return;
+
+    setApplying(true);
+    setReviewError(null);
+    try {
+      await updateCustomerDocument(customerId, doc.id, fieldsToApply);
+      await verifyDocumentExtraction(doc.id, extraction.id).catch(() => undefined);
+      setSelected({});
+      onApplied();
+    } catch (err: unknown) {
+      setReviewError(
+        err instanceof ApiError ? err.message : 'Não foi possível aplicar os campos revisados.',
+      );
+    } finally {
+      setApplying(false);
+    }
+  }
+
+  const anySelected = Object.values(selected).some(Boolean);
+
+  return (
+    <div className="mt-2 space-y-2">
+      <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        {OCR_REVIEW_FIELDS.map(({ key, label }) => {
+          const raw = extractedData[key as string];
+          const value = typeof raw === 'string' ? raw : undefined;
+          const confidence = fieldConfidence[key as string] ?? overallConfidence;
+          const isLow = typeof confidence === 'number' && confidence < LOW_CONFIDENCE_THRESHOLD;
+          return (
+            <div key={key}>
+              <dt className="flex items-center gap-1 text-xs text-slate-500">
+                {value !== undefined && (
+                  <input
+                    type="checkbox"
+                    aria-label={`Aceitar ${label}`}
+                    checked={selected[key as string] === true}
+                    onChange={(e) =>
+                      setSelected((prev) => ({ ...prev, [key as string]: e.target.checked }))
+                    }
+                  />
+                )}
+                {label}
+              </dt>
+              <dd className={`text-sm ${isLow ? 'text-amber-600' : 'text-slate-900'}`}>
+                {value && value.length > 0 ? value : '—'}
+                {typeof confidence === 'number' && (
+                  <span className="ml-1 text-[11px] text-slate-400">
+                    ({Math.round(confidence)}%{isLow ? ' · baixa confiança' : ''})
+                  </span>
+                )}
+              </dd>
+            </div>
+          );
+        })}
+      </dl>
+      {reviewError && <p className="text-xs text-red-600">{reviewError}</p>}
+      <div className="flex items-center justify-between">
+        <p className="text-[11px] text-slate-400">
+          Estes são candidatos extraídos por OCR e nunca substituem o cadastro automaticamente.
+          Selecione os campos corretos e confirme para aplicá-los.
+        </p>
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={!anySelected || applying}
+          onClick={() => { void handleApply(); }}
+        >
+          {applying ? 'Aplicando…' : 'Aplicar campos selecionados'}
+        </Button>
+      </div>
     </div>
   );
 }
@@ -904,19 +1068,7 @@ export function CustomerDetailPage() {
                 </div>
                 <div className="mt-3 rounded-md border border-dashed border-slate-200 bg-slate-50 p-3">
                   <p className="mb-2 text-xs font-medium text-slate-500">Dados extraídos (OCR)</p>
-                  <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                    <Field label="Nome extraído" value="Aguardando extração" />
-                    <Field label="Nascimento" value="Aguardando extração" />
-                    <Field label="Número" value="Aguardando extração" />
-                    <Field label="Nacionalidade" value="Aguardando extração" />
-                    <Field label="Validade" value="Aguardando extração" />
-                    <Field label="Confiança" value="Aguardando extração" />
-                    <Field label="Divergências" value="Nenhuma" />
-                  </dl>
-                  <p className="mt-2 text-[11px] text-slate-400">
-                    A extração automática por OCR ainda não está habilitada. Estes campos serão
-                    preenchidos automaticamente e nunca substituirão o cadastro sem revisão manual.
-                  </p>
+                  {id && <DocumentOcrReview customerId={id} document={doc} onApplied={reloadDocuments} />}
                 </div>
               </div>
             ))

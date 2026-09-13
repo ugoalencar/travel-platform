@@ -16,7 +16,7 @@ import { recordDocumentAuditEvent } from './document-audit';
 import type { OcrProviderContract } from './ocr-provider';
 
 const EXTRACTION_COLUMNS = `id, agency_id, document_id, provider, extracted_data, confidence,
-              processing_status, processed_at, error_message, created_at, updated_at`;
+              field_confidence, processing_status, processed_at, error_message, created_at, updated_at`;
 
 interface DocumentExtractionRow {
   id: string;
@@ -25,6 +25,7 @@ interface DocumentExtractionRow {
   provider: string;
   extracted_data: Record<string, unknown>;
   confidence: string | number | null;
+  field_confidence: Record<string, unknown> | null;
   processing_status: OcrProcessingStatus;
   processed_at: string | null;
   error_message: string | null;
@@ -116,16 +117,19 @@ export async function completeDocumentExtraction(
   extractionId: string,
   extractedData: Record<string, unknown>,
   confidence?: number,
+  fieldConfidence?: Record<string, number>,
 ): Promise<DocumentExtraction | null> {
   const agencyId = getAgencyId();
   const normalizedConfidence = normalizeConfidence(confidence);
+  const normalizedFieldConfidence = normalizeFieldConfidence(fieldConfidence);
 
   return database.withTenantTransaction(async (client) => {
     const result = await client.query<DocumentExtractionRow>(
       `UPDATE document_extractions
        SET extracted_data = $3::jsonb,
            confidence = $4,
-           processing_status = $5,
+           field_confidence = $5::jsonb,
+           processing_status = $6,
            processed_at = now(),
            error_message = NULL,
            updated_at = now()
@@ -136,6 +140,7 @@ export async function completeDocumentExtraction(
         extractionId,
         JSON.stringify(extractedData),
         normalizedConfidence,
+        normalizedFieldConfidence === null ? null : JSON.stringify(normalizedFieldConfidence),
         OcrProcessingStatus.COMPLETED,
       ],
     );
@@ -250,7 +255,13 @@ export async function pollExtraction(
     return failExtraction(database, extractionId, result.error ?? 'Extraction failed');
   }
 
-  return completeDocumentExtraction(database, extractionId, result.data ?? {}, result.confidence);
+  return completeDocumentExtraction(
+    database,
+    extractionId,
+    result.data ?? {},
+    result.confidence,
+    result.fieldConfidences,
+  );
 }
 
 function requireNonBlank(value: unknown, field: string): void {
@@ -264,6 +275,22 @@ function normalizeConfidence(confidence: number | undefined): number | null {
     return null;
   }
   return Math.min(100, Math.max(0, confidence));
+}
+
+function normalizeFieldConfidence(
+  fieldConfidence: Record<string, number> | undefined,
+): Record<string, number> | null {
+  if (fieldConfidence === undefined) {
+    return null;
+  }
+
+  const normalized: Record<string, number> = {};
+  for (const [field, value] of Object.entries(fieldConfidence)) {
+    if (Number.isFinite(value)) {
+      normalized[field] = Math.min(100, Math.max(0, value));
+    }
+  }
+  return Object.keys(normalized).length > 0 ? normalized : null;
 }
 
 function describeError(error: unknown): string {
@@ -285,6 +312,9 @@ export function toDocumentExtraction(row: DocumentExtractionRow): DocumentExtrac
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
     ...(confidence !== undefined && Number.isFinite(confidence) ? { confidence } : {}),
+    ...(row.field_confidence !== null
+      ? { fieldConfidence: row.field_confidence as Record<string, number> }
+      : {}),
     ...(row.processed_at !== null ? { processedAt: new Date(row.processed_at) } : {}),
     ...(row.error_message !== null ? { errorMessage: row.error_message } : {}),
   };

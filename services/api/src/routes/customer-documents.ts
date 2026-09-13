@@ -20,6 +20,7 @@ import {
   DocumentAttachmentType,
   DocumentType,
   DocumentVerificationStatus,
+  OcrProcessingStatus,
   RelationshipType,
   UserRole,
 } from '../../../../packages/domain/types';
@@ -76,6 +77,7 @@ import {
 import {
   getExtraction,
   listExtractionsForDocument,
+  pollExtraction,
   submitDocumentForExtraction,
 } from '../document-extraction';
 import {
@@ -524,6 +526,48 @@ export function registerCustomerDocumentRoutes(
         throw new NotFoundError('Extraction not found');
       }
       return { extraction };
+    },
+  );
+
+  /**
+   * Advance a PROCESSING extraction by polling the provider once.
+   *
+   * Every realistic hosted OCR backend is asynchronous (submit, then poll --
+   * see ocr-provider.ts), so a PROCESSING extraction never self-completes.
+   * This is what the review UI calls to check "is the candidate ready yet",
+   * and it is safe to call repeatedly: a terminal extraction (COMPLETED or
+   * FAILED) is returned unchanged rather than re-queried against the
+   * provider.
+   */
+  app.post<{ Params: { documentId: string; extractionId: string } }>(
+    '/documents/:documentId/extraction/:extractionId/poll',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.AGENT);
+      const extraction = await getExtraction(database, request.params.extractionId);
+      if (!extraction || extraction.documentId !== request.params.documentId) {
+        throw new NotFoundError('Extraction not found');
+      }
+
+      if (extraction.processingStatus !== OcrProcessingStatus.PROCESSING) {
+        return { extraction };
+      }
+
+      const taskId = extraction.extractedData['taskId'];
+      if (typeof taskId !== 'string' || taskId.trim().length === 0) {
+        throw new ValidationError('Extraction has no provider task id to poll');
+      }
+
+      const polled = await pollExtraction(
+        database,
+        request.params.extractionId,
+        taskId,
+        ocrProvider,
+      );
+      if (!polled) {
+        throw new NotFoundError('Extraction not found');
+      }
+      return { extraction: polled };
     },
   );
 
