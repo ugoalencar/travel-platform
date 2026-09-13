@@ -1,0 +1,15 @@
+{
+  "name": "Travel Platform Pilot Delivery Gap Closure Pack",
+  "agents": 7,
+  "goal": "close blockers, stage, validate, pilot",
+  "blockers": [
+    "CI/CD",
+    "Forgot/Reset Password",
+    "MFA/session lifecycle",
+    "Entitlement enforcement audit",
+    "Backup/Restore",
+    "Observability",
+    "Critical Frontend/E2E",
+    "Docs reconciliation"
+  ]
+}
