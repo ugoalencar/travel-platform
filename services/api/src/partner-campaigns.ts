@@ -6,11 +6,9 @@
 // internal "offer growth" marketing campaigns, backed by the `campaigns`
 // table). Do not merge these modules or their tables.
 //
-// `partner_id` references a local `campaign_partner_stubs` table rather
-// than a real CommercialPartner, because Agent 04 (feature/mega-partners,
-// CommercialPartner/PartnerContract/...) has not landed in this worktree.
-// See infrastructure/migrations/052_partner_campaigns.sql for the
-// reconciliation note.
+// `partner_id` now references Agent 04's real `commercial_partners` model
+// via migration 054. `campaign_partner_stubs` remains only as a historical
+// compatibility table for rows created before the reconciliation.
 import { getAgencyId, getUserId } from '../../../packages/domain/tenant-context';
 import type { TenantTransactionClient } from './database';
 import { ConflictError, NotFoundError, ValidationError } from './errors';
@@ -137,7 +135,7 @@ interface PartnerCampaignRow {
 }
 
 // ============================================================
-// Partner stubs (local stand-in for Agent 04's CommercialPartner)
+// Campaign partner directory (lightweight alias over CommercialPartner)
 // ============================================================
 
 export interface CampaignPartnerStub {
@@ -152,8 +150,9 @@ export async function listCampaignPartnerStubs(
 ): Promise<CampaignPartnerStub[]> {
   const agencyId = getAgencyId();
   const result = await client.query<{ id: string; agency_id: string; name: string; created_at: string }>(
-    `SELECT id, agency_id, name, created_at FROM campaign_partner_stubs
-     WHERE agency_id = $1 ORDER BY name ASC`,
+    `SELECT id, agency_id, name, created_at FROM commercial_partners
+     WHERE agency_id = $1 AND status = 'ACTIVE'
+     ORDER BY name ASC`,
     [agencyId],
   );
   return result.rows.map((row) => ({
@@ -174,7 +173,8 @@ export async function createCampaignPartnerStub(
     throw new ValidationError('Field "name" is required');
   }
   const result = await client.query<{ id: string; agency_id: string; name: string; created_at: string }>(
-    `INSERT INTO campaign_partner_stubs (agency_id, name) VALUES ($1, $2)
+    `INSERT INTO commercial_partners (agency_id, partner_type, name)
+     VALUES ($1, 'PJ', $2)
      RETURNING id, agency_id, name, created_at`,
     [agencyId, trimmed],
   );

@@ -457,6 +457,22 @@ BEGIN
 END;
 $$;
 
+-- Partner Portal / Commercial Partners (Agent 04): real external partner
+-- model used by Partner Campaigns after the reconciliation migration.
+DO $$
+BEGIN
+  IF to_regclass('public.commercial_partners') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      commercial_partners,
+      partner_contracts,
+      partner_links,
+      partner_attributions,
+      partner_commissions
+    TO travel_app_runtime_local;
+  END IF;
+END;
+$$;
+
 -- Partner Campaigns (Agent 10): campaign_attributions is append-only for
 -- runtime traffic (server-recorded impression/click events) -- application
 -- code may read tenant-scoped history and insert a new event, but no

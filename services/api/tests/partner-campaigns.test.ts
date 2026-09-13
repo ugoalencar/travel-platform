@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
@@ -26,9 +26,11 @@ import {
 } from '../src/partner-campaigns';
 
 const repoRoot = resolve(import.meta.dirname, '../../..');
-const migration001 = resolve(repoRoot, 'infrastructure/migrations/001_initial_schema.sql');
-const migration002 = resolve(repoRoot, 'infrastructure/migrations/002_rls_policies.sql');
-const migration052 = resolve(repoRoot, 'infrastructure/migrations/052_partner_campaigns.sql');
+const migrationsDir = resolve(repoRoot, 'infrastructure/migrations');
+const migrations = readdirSync(migrationsDir)
+  .filter((name) => /^\d{3}_[a-z0-9_]+\.sql$/.test(name))
+  .sort()
+  .map((name) => resolve(migrationsDir, name));
 const prepareRolesSql = resolve(repoRoot, 'tests/integration/database/002_prepare_local_roles.sql');
 const composeFile = resolve(repoRoot, 'infrastructure/docker-compose.local-postgres.yml');
 
@@ -95,14 +97,24 @@ describe.sequential('Partner Campaigns data-access layer (Agent 10)', () => {
 
   beforeEach(async () => {
     await adminPool.query(
-      'TRUNCATE TABLE campaign_attributions, campaign_placements, campaign_products, partner_campaigns, campaign_partner_stubs RESTART IDENTITY CASCADE',
+      `TRUNCATE TABLE
+        campaign_attributions,
+        campaign_placements,
+        campaign_products,
+        partner_campaigns,
+        campaign_partner_stubs,
+        partner_commissions,
+        partner_attributions,
+        partner_links,
+        partner_contracts,
+        commercial_partners
+       RESTART IDENTITY CASCADE`,
     );
   });
 
   afterAll(async () => {
     await runtimePool?.end();
     await adminPool?.end();
-    compose(['down', '-v']);
   });
 
   it('fails closed with no tenant context established', async () => {
@@ -391,7 +403,15 @@ function assertSafeTestDatabase(): void {
 }
 
 function resetDisposableDatabase(): void {
-  compose(['down', '-v']);
+  const existing = run(
+    'docker',
+    ['ps', '--filter', `name=${containerName}`, '--filter', 'status=running', '--format', '{{.Names}}'],
+    false,
+  );
+  if (existing.stdout.split(/\r?\n/).map((line) => line.trim()).includes(containerName)) {
+    return;
+  }
+
   compose(['up', '-d']);
 }
 
@@ -469,9 +489,9 @@ function assertContainerIsLocal(): void {
 
 async function resetDatabase(pool: Pool): Promise<void> {
   await pool.query('DROP SCHEMA public CASCADE; CREATE SCHEMA public;');
-  await pool.query(readSqlForPg(migration001));
-  await pool.query(readSqlForPg(migration002));
-  await pool.query(readSqlForPg(migration052));
+  for (const migration of migrations) {
+    await pool.query(readSqlForPg(migration));
+  }
   await pool.query(readSqlForPg(prepareRolesSql));
   await seedAgenciesAndUsers(pool);
 }
