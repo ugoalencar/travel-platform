@@ -7,15 +7,18 @@ import type {
 } from 'fastify';
 import {
   createCustomerTenantContextHook,
+  createPartnerTenantContextHook,
   createTenantContextHook,
   getAgencyId,
   type ValidateCustomerAgencyAccess,
+  type ValidatePartnerAgencyAccess,
   type ValidateUserAgencyAccess,
 } from '../../../packages/domain/tenant-context';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import { createAuthenticateHook, type AuthProvider } from './auth';
 import { createCustomerAuthenticateHook, type CustomerAuthProvider } from './customer-auth';
+import { createPartnerAuthenticateHook, type PartnerAuthProvider } from './partner-auth';
 import type { DatabaseRuntime } from './database';
 import { registerAssetsRoutes } from './routes/assets';
 import { registerAutomationsRoutes } from './routes/automations';
@@ -35,6 +38,7 @@ import { registerFinancialRoutes } from './routes/financial';
 import { registerInfrastructureRoutes } from './routes/infrastructure';
 import { registerOfferGrowthAuditRoutes } from './routes/offer-growth-audit';
 import { registerOffersRoutes } from './routes/offers';
+import { registerPartnersRoutes } from './routes/partners';
 import { registerOperationsRoutes } from './routes/operations';
 import { registerOperationsStaffRoutes } from './routes/operations-staff';
 import { registerPescadorRoutes } from './routes/pescador';
@@ -90,6 +94,11 @@ export interface BuildAppOptions {
   platformAuthProvider?: PlatformAuthProvider;
   customerAuthProvider?: CustomerAuthProvider;
   validateCustomerAgencyAccess?: ValidateCustomerAgencyAccess;
+  // Partner portal (Agent 04): same optional/fail-closed shape as the
+  // customer-portal options above -- omitting these leaves /partner-api/*
+  // exercisable but 401ing on every request rather than unmounted.
+  partnerAuthProvider?: PartnerAuthProvider;
+  validatePartnerAgencyAccess?: ValidatePartnerAgencyAccess;
   ocrProvider?: OcrProviderContract;
   readinessCheck?: () => Promise<void>;
   rateLimit?: RateLimitOptions;
@@ -220,6 +229,20 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
   });
   const customerHooks = [customerAuthenticate, establishCustomerTenant, rateLimits.onTrustedTenant];
 
+  // Partner portal (Agent 04): entirely separate auth/tenant-context
+  // pipeline from both the staff protectedHooks and the customer
+  // customerHooks above -- never shares a hook, a decorator, or a
+  // data-access function with either. Mounted under /partner-api/*
+  // (distinct prefix from /api/* and /customer-api/*).
+  const partnerAuthenticate = createPartnerAuthenticateHook(
+    options.partnerAuthProvider ?? { authenticatePartner: () => Promise.resolve(null) }
+  );
+  const establishPartnerTenant = createPartnerTenantContextHook({
+    validatePartnerAgencyAccess:
+      options.validatePartnerAgencyAccess ?? (() => Promise.resolve(false)),
+  });
+  const partnerHooks = [partnerAuthenticate, establishPartnerTenant, rateLimits.onTrustedTenant];
+
   registerCustomerPortalRoutes(app, { database: options.database, customerHooks });
 
   // Infrastructure (health, version, metrics, readiness, me, tenant-proof)
@@ -254,6 +277,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
   registerTripsRoutes(app, { database: options.database, protectedHooks });
   registerOffersRoutes(app, { database: options.database, protectedHooks });
   registerTravelProductsRoutes(app, { database: options.database, protectedHooks });
+  registerPartnersRoutes(app, { database: options.database, protectedHooks, partnerHooks });
   registerProposalsRoutes(app, { database: options.database, protectedHooks });
 
   // Transport suppliers (routes, suppliers, products, departures, agenda)

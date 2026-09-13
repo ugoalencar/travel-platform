@@ -419,10 +419,22 @@ export function classifyRateLimitRequest(method: string, url: string): RateLimit
   if (/^\/enrollment-api\//.test(path)) {
     return RateLimitClass.PUBLIC_ANONYMOUS;
   }
+  // Commercial Partners (Agent 04): unauthenticated, token-only partner
+  // link resolve/convert surface -- same rationale as /enrollment-api/
+  // above.
+  if (/^\/partner-link-api\//.test(path)) {
+    return RateLimitClass.PUBLIC_ANONYMOUS;
+  }
   if (path === '/health' || path === '/readiness') {
     return RateLimitClass.PUBLIC_ANONYMOUS;
   }
   if (/^\/customer-api\//.test(path)) {
+    return isWrite ? RateLimitClass.CUSTOMER_WRITE : RateLimitClass.CUSTOMER_READ;
+  }
+  // Commercial Partners (Agent 04): authenticated self-scope partner
+  // portal -- reuses the CUSTOMER_READ/WRITE policy shape (external,
+  // non-staff caller) rather than STAFF_READ/WRITE.
+  if (/^\/partner-api\//.test(path)) {
     return isWrite ? RateLimitClass.CUSTOMER_WRITE : RateLimitClass.CUSTOMER_READ;
   }
   if (

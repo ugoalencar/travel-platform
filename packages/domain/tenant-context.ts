@@ -139,6 +139,96 @@ export function createCustomerTenantContextHook(options: CustomerTenantContextHo
   };
 }
 
+// ============================================================
+// PARTNER PORTAL TENANT CONTEXT
+// Fully separate from the staff auth/context flow AND from the customer
+// portal flow above. A partner (external affiliate/agent) is not a
+// `users` row with a staff role, and never a `customers` row either --
+// separate types, separate hook, separate request decoration
+// (`partnerAuth`, not `auth`/`customerAuth`). Mirrors the customer-portal
+// pattern exactly, per AGENT_04_PARTNERS mission guidance.
+// ============================================================
+
+export interface PartnerAuthPayload {
+  agencyId: string;
+  partnerId: string;
+}
+
+// Independent DB-backed check that the resolved partnerId actually
+// belongs to the resolved agencyId (mirrors ValidateCustomerAgencyAccess).
+// Must query the `commercial_partners` table -- never trust the auth
+// layer's claim alone.
+export type ValidatePartnerAgencyAccess = (
+  partnerId: string,
+  agencyId: string,
+) => Promise<boolean>;
+
+export interface PartnerTenantContextHookOptions {
+  validatePartnerAgencyAccess: ValidatePartnerAgencyAccess;
+}
+
+export type PartnerTenantFastifyRequest = {
+  partnerAuth?: PartnerAuthPayload;
+  body?: unknown;
+};
+
+// Synthetic, non-secret placeholder, same rationale as CUSTOMER_CONTEXT_ROLE:
+// partner-portal routes never call requireRole()/requireExactRole() and
+// never read userId for anything but this context's own internal
+// consistency.
+const PARTNER_CONTEXT_ROLE = UserRole.VIEWER;
+
+export async function establishPartnerTenantContext(
+  request: PartnerTenantFastifyRequest,
+  options: PartnerTenantContextHookOptions,
+): Promise<TenantContext> {
+  const partnerAuth = request.partnerAuth;
+
+  if (!partnerAuth) {
+    throw new UnauthorizedError('Partner authentication required');
+  }
+
+  if (!isNonEmptyString(partnerAuth.agencyId) || !isNonEmptyString(partnerAuth.partnerId)) {
+    throw new UnauthorizedError('Partner authentication required');
+  }
+
+  const belongsToAgency = await options.validatePartnerAgencyAccess(
+    partnerAuth.partnerId,
+    partnerAuth.agencyId,
+  );
+
+  if (!belongsToAgency) {
+    throw new ForbiddenError('Partner does not belong to this agency');
+  }
+
+  const context: TenantContext = {
+    agencyId: partnerAuth.agencyId,
+    userId: `partner-context:${partnerAuth.partnerId}`,
+    userRole: PARTNER_CONTEXT_ROLE,
+    email: '',
+    partnerId: partnerAuth.partnerId,
+  };
+
+  assertValidTenantContext(context);
+  return context;
+}
+
+export function createPartnerTenantContextHook(options: PartnerTenantContextHookOptions) {
+  return (
+    request: PartnerTenantFastifyRequest,
+    reply: TenantFastifyReply,
+    done: HookHandlerDoneFunction,
+  ): void => {
+    establishPartnerTenantContext(request, options)
+      .then((context) => {
+        tenantStorage.run(context, done);
+      })
+      .catch((error: unknown) => {
+        sendTenantError(reply, error);
+      });
+  };
+}
+
 export interface TenantFastifyReply {
   code(statusCode: number): TenantFastifyReply;
   send(payload: unknown): unknown;
@@ -208,6 +298,23 @@ export function getCustomerId(): string {
   }
 
   return context.customerId as string;
+}
+
+// Partner-portal counterpart to getCustomerId(). Throws if this request's
+// tenant context was not established via establishPartnerTenantContext()
+// (e.g. a staff or customer request has no partnerId at all). Never falls
+// back to trusting a partnerId supplied by the caller.
+export function getPartnerId(): string {
+  const context = getTenantContext();
+
+  if (!isNonEmptyString(context.partnerId ?? '')) {
+    throw new TenantError(
+      'No partner context available on this request.',
+      'NO_PARTNER_CONTEXT',
+    );
+  }
+
+  return context.partnerId as string;
 }
 
 export function createTenantContextHook(options: TenantContextHookOptions) {

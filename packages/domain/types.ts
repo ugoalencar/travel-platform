@@ -14,6 +14,12 @@ export interface TenantContext {
   // every existing staff/admin request. Never read this field directly --
   // use getCustomerId() (throws if unset), mirroring getUserId().
   customerId?: string;
+  // Optional: set only by the partner-portal auth path
+  // (establishPartnerTenantContext in tenant-context.ts). Undefined for
+  // every existing staff/admin/customer request. Never read this field
+  // directly -- use getPartnerId() (throws if unset), mirroring
+  // getCustomerId().
+  partnerId?: string;
 }
 
 export interface Agency {
