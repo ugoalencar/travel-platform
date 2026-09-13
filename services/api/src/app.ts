@@ -42,6 +42,7 @@ import { registerPublicationsRoutes } from './routes/publications';
 import { registerProposalsRoutes } from './routes/proposals';
 import { registerReportsRoutes } from './routes/reports';
 import { registerSalesRoutes } from './routes/sales';
+import { registerTravelProductsRoutes } from './routes/travel-products';
 import { registerSettingsExpandedRoutes } from './routes/settings-expanded';
 import { registerSettingsRoutes } from './routes/settings';
 import { registerSupportRoutes } from './routes/support';
@@ -252,6 +253,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
   registerWishesRoutes(app, { database: options.database, protectedHooks });
   registerTripsRoutes(app, { database: options.database, protectedHooks });
   registerOffersRoutes(app, { database: options.database, protectedHooks });
+  registerTravelProductsRoutes(app, { database: options.database, protectedHooks });
   registerProposalsRoutes(app, { database: options.database, protectedHooks });
 
   // Transport suppliers (routes, suppliers, products, departures, agenda)
