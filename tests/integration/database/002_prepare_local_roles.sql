@@ -475,7 +475,9 @@ $$;
 -- Partner Portal (Agent 04): commercial_partners/partner_contracts/
 -- partner_links/partner_attributions/partner_commissions (migration
 -- 054_commercial_partners.sql) only exist once that migration has been
--- applied; guard the same way as the blocks above.
+-- applied; guard the same way as the blocks above. Also the real external
+-- partner model used by Partner Campaigns after its reconciliation
+-- migration (Agent 10).
 DO $$
 BEGIN
   IF to_regclass('public.commercial_partners') IS NOT NULL THEN
@@ -537,6 +539,31 @@ BEGIN
       insurance_travelers,
       insurance_documents
     TO travel_app_runtime_local;
+  END IF;
+END;
+$$;
+
+-- Partner Campaigns (Agent 10): campaign_attributions is append-only for
+-- runtime traffic (server-recorded impression/click events) -- application
+-- code may read tenant-scoped history and insert a new event, but no
+-- runtime path may alter or delete evidence, matching the audit_logs
+-- pattern above. campaign_partner_stubs remains as a historical
+-- compatibility table after partner_id was reconciled to
+-- commercial_partners (see the Agent 04 block above).
+DO $$
+BEGIN
+  IF to_regclass('public.campaign_partner_stubs') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      campaign_partner_stubs,
+      partner_campaigns,
+      campaign_products,
+      campaign_placements
+    TO travel_app_runtime_local;
+  END IF;
+
+  IF to_regclass('public.campaign_attributions') IS NOT NULL THEN
+    GRANT SELECT, INSERT ON campaign_attributions TO travel_app_runtime_local;
+    REVOKE UPDATE, DELETE ON campaign_attributions FROM travel_app_runtime_local;
   END IF;
 END;
 $$;

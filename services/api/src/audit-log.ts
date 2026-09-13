@@ -114,6 +114,12 @@ export const AuditEventType = {
   INSURANCE_POLICY_STATUS_UPDATED: 'INSURANCE_POLICY_STATUS_UPDATED',
   INSURANCE_TRAVELER_ADDED: 'INSURANCE_TRAVELER_ADDED',
   INSURANCE_DOCUMENT_CREATED: 'INSURANCE_DOCUMENT_CREATED',
+  // Partner Campaigns (Agent 10): external-partner advertising campaigns --
+  // distinct from the internal "offer growth" CAMPAIGN_* events above,
+  // which belong to the unrelated agency-owned campaigns.ts module.
+  PARTNER_CAMPAIGN_CREATED: 'PARTNER_CAMPAIGN_CREATED',
+  PARTNER_CAMPAIGN_STATUS_CHANGED: 'PARTNER_CAMPAIGN_STATUS_CHANGED',
+  CAMPAIGN_PLACEMENT_CREATED: 'CAMPAIGN_PLACEMENT_CREATED',
 } as const;
 
 export type AuditEventType = (typeof AuditEventType)[keyof typeof AuditEventType];
