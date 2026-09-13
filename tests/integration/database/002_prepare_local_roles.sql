@@ -526,6 +526,21 @@ BEGIN
 END;
 $$;
 
+-- Travel Insurance (Agent 09 / Products Upsell): catalog products, sold
+-- policies, covered travelers, policy documents.
+DO $$
+BEGIN
+  IF to_regclass('public.insurance_products') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      insurance_products,
+      insurance_policies,
+      insurance_travelers,
+      insurance_documents
+    TO travel_app_runtime_local;
+  END IF;
+END;
+$$;
+
 GRANT EXECUTE ON FUNCTION current_agency_id() TO travel_app_runtime_local;
 GRANT EXECUTE ON FUNCTION current_user_id() TO travel_app_runtime_local;
 GRANT EXECUTE ON FUNCTION set_tenant_context(TEXT, TEXT) TO travel_app_runtime_local;

@@ -106,6 +106,14 @@ export const AuditEventType = {
   CONTRACT_SIGNATORY_VIEWED: 'CONTRACT_SIGNATORY_VIEWED',
   CONTRACT_SIGNATORY_SIGNED: 'CONTRACT_SIGNATORY_SIGNED',
   CONTRACT_SIGNATORY_DECLINED: 'CONTRACT_SIGNATORY_DECLINED',
+  // Insurance (Agent 09 / Products Upsell): policy sale is the finance
+  // convergence point (creates a Receivable via financial.ts), so it is
+  // audited like other sale-adjacent events.
+  INSURANCE_PRODUCT_CREATED: 'INSURANCE_PRODUCT_CREATED',
+  INSURANCE_POLICY_CREATED: 'INSURANCE_POLICY_CREATED',
+  INSURANCE_POLICY_STATUS_UPDATED: 'INSURANCE_POLICY_STATUS_UPDATED',
+  INSURANCE_TRAVELER_ADDED: 'INSURANCE_TRAVELER_ADDED',
+  INSURANCE_DOCUMENT_CREATED: 'INSURANCE_DOCUMENT_CREATED',
 } as const;
 
 export type AuditEventType = (typeof AuditEventType)[keyof typeof AuditEventType];
