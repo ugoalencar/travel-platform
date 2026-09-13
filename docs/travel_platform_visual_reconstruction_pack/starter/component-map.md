@@ -1,0 +1,27 @@
+# Component Map Starter
+AppShell
+Sidebar
+Topbar
+PageHeader
+Breadcrumbs
+KpiCard
+MetricGrid
+ChartCard
+SectionCard
+DataTable
+FilterBar
+Tabs
+StatusBadge
+FormSection
+FormActions
+ProfileHeader
+CustomerTimeline
+AddressCard
+DependentCard
+DocumentCard
+OCRComparisonPanel
+FinancialKpiCard
+AirLandSplitCard
+FinancialStoryCard
+CashFlowCard
+MarginBreakdownCard

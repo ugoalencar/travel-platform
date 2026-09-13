@@ -1,0 +1,12 @@
+{
+  "name": "Travel Platform API Modularization Phase 0",
+  "agents": 5,
+  "purpose": "characterization + module contract + one pilot + GO/NO-GO",
+  "guardrails": [
+    "No behavior changes",
+    "No public route changes",
+    "No Auth/RBAC/RLS/Tenant changes",
+    "No finance changes",
+    "No migrations"
+  ]
+}

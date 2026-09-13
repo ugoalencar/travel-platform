@@ -1,0 +1,99 @@
+# ============================================================
+# TRAVEL PLATFORM — LOCAL STAGING
+# ============================================================
+# Uso:
+#   docker compose -f docker-compose.staging.yml up -d
+#   docker compose -f docker-compose.staging.yml exec api npm run migrations:apply
+#   docker compose -f docker-compose.staging.yml exec api node scripts/seed-staging.mjs
+#   docker compose -f docker-compose.staging.yml exec api npm run test:smoke
+#
+# Para parar:
+#   docker compose -f docker-compose.staging.yml down -v
+# ============================================================
+
+services:
+  # ============================================================
+  # PostgreSQL
+  # ============================================================
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: travel_staging
+      POSTGRES_USER: staging_user
+      POSTGRES_PASSWORD: staging_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./packages/database/migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U staging_user -d travel_staging"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ============================================================
+  # API
+  # ============================================================
+  api:
+    build:
+      context: .
+      dockerfile: services/api/Dockerfile
+    environment:
+      NODE_ENV: staging
+      PORT: "3000"
+      HOST: "0.0.0.0"
+      DATABASE_URL: postgresql://staging_user:staging_password@db:5432/travel_staging
+      ALLOW_DEV_AUTH: "false"
+      CORS_ORIGINS: "http://localhost:5173,http://localhost:5174"
+      CAPTCHA_ENABLED: "false"
+      OCR_PROVIDER: MOCK
+      RATE_LIMIT_STORE: memory
+    ports:
+      - "3001:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================================
+  # Agency Frontend (dev server)
+  # ============================================================
+  agency-frontend:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - ./apps/agency:/app
+    environment:
+      VITE_API_URL: http://localhost:3000
+    ports:
+      - "5173:5173"
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    depends_on:
+      api:
+        condition: service_healthy
+
+  # ============================================================
+  # Customer Frontend (dev server)
+  # ============================================================
+  customer-frontend:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - ./apps/customer:/app
+    environment:
+      VITE_API_URL: http://localhost:3000
+      VITE_PORTAL_URL: http://localhost:5174
+    ports:
+      - "5174:5174"
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  pgdata:

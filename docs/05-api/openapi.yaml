@@ -1,0 +1,3378 @@
+﻿openapi: 3.1.0
+info:
+  title: Travel Platform API
+  version: 0.1.0
+  description: |
+    Multi-tenant travel agency platform API.
+
+    ## Authentication
+    All authenticated endpoints require a valid JWT token via `Authorization: Bearer <token>` header
+    or `token=<jwt>` cookie.
+
+    JWT payload: `sub` (user id), `agency_id` (tenant id), `role` (UserRole), `email`.
+
+    ## Tenant Isolation
+    Every request is scoped to the tenant derived from the JWT. Resources are never shared across tenants.
+
+    ## RBAC Roles (hierarchical)
+    OWNER > ADMIN > MANAGER > AGENT > VIEWER
+
+    ## Error Format
+    ```json
+    { "error": "message", "code": "ERROR_CODE", "details": {} }
+    ```
+
+servers:
+  - url: http://localhost:3000
+    description: Local development
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Infrastructure
+    description: Health, version, metrics, tenant verification
+  - name: Settings
+    description: Agency profile, team, departments, invitations, permissions
+  - name: Customers
+    description: Customer CRM and sub-resources
+  - name: Wishes
+    description: Customer travel wishes
+  - name: Proposals
+    description: Commercial proposals and offers
+  - name: Trips & Bookings
+    description: Trips, bookings, air/land services
+  - name: Sales
+    description: Sales lifecycle
+  - name: Financial
+    description: Receivables, payables, payments, revenues, expenses, cash, DRE
+  - name: Commercial Cockpit
+    description: Opportunities, tasks, interactions, pipelines, reports
+  - name: Documents
+    description: Customer documents, attachments, OCR, verification
+  - name: Transport
+    description: Routes, suppliers, products, departures, agenda
+  - name: Operations
+    description: Trip occurrences, post-trip, operational staff
+  - name: Reports
+    description: Management and financial reports
+  - name: Pescador
+    description: External offer capture
+  - name: Enrollment
+    description: Customer enrollment links and submissions
+  - name: Customer Portal
+    description: Read-only customer-facing API
+  - name: Support
+    description: Agency support tickets
+  - name: Platform
+    description: Cost centers, commissions, employees, payroll, automations, campaigns, coupons, connectors, assets, publications, engagements
+
+paths:
+  # ============================================================
+  # INFRASTRUCTURE
+  # ============================================================
+  /health:
+    get:
+      tags: [Infrastructure]
+      summary: Health check
+      operationId: getHealth
+      security: []
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, enum: [ok] }
+                  service: { type: string, enum: [api] }
+
+  /version:
+    get:
+      tags: [Infrastructure]
+      summary: Build version info
+      operationId: getVersion
+      security: []
+      responses:
+        '200':
+          description: Version information
+
+  /metrics:
+    get:
+      tags: [Infrastructure]
+      summary: Runtime metrics snapshot
+      operationId: getMetrics
+      security: []
+      responses:
+        '200':
+          description: Metrics including db pool stats
+
+  /readiness:
+    get:
+      tags: [Infrastructure]
+      summary: Readiness probe
+      operationId: getReadiness
+      security: []
+      responses:
+        '200':
+          description: Ready
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, enum: [ready] }
+                  service: { type: string, enum: [api] }
+        '503':
+          description: Not ready
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, enum: [not_ready] }
+                  service: { type: string, enum: [api] }
+
+  /me:
+    get:
+      tags: [Infrastructure]
+      summary: Current user identity and tenant context
+      operationId: getMe
+      responses:
+        '200':
+          description: Current user info
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  userId: { type: string }
+                  agencyId: { type: string }
+                  role: { $ref: '#/components/schemas/UserRole' }
+
+  /tenant-proof:
+    get:
+      tags: [Infrastructure]
+      summary: Verify tenant identity by querying the agency
+      operationId: getTenantProof
+      responses:
+        '200':
+          description: Agency info for current tenant
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  agency:
+                    type: object
+                    properties:
+                      id: { type: string }
+                      name: { type: string }
+
+  # ============================================================
+  # CUSTOMERS
+  # ============================================================
+  /customers:
+    get:
+      tags: [Customers]
+      summary: List all customers
+      operationId: listCustomers
+      responses:
+        '200':
+          description: Customer list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  customers:
+                    type: array
+                    items: { $ref: '#/components/schemas/Customer' }
+    post:
+      tags: [Customers]
+      summary: Create a customer
+      operationId: createCustomer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateCustomerInput' }
+      responses:
+        '201':
+          description: Customer created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  customer: { $ref: '#/components/schemas/Customer' }
+
+  /customers/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      tags: [Customers]
+      summary: Get customer by ID
+      operationId: getCustomerById
+      responses:
+        '200':
+          description: Customer found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  customer: { $ref: '#/components/schemas/Customer' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      tags: [Customers]
+      summary: Update a customer
+      operationId: updateCustomer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateCustomerInput' }
+      responses:
+        '200':
+          description: Customer updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  customer: { $ref: '#/components/schemas/Customer' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /customers/{id}/wishes:
+    get:
+      tags: [Customers, Wishes]
+      summary: List wishes for a customer
+      operationId: listWishesByCustomer
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Wish list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  wishes:
+                    type: array
+                    items: { $ref: '#/components/schemas/Wish' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /customers/{id}/trips:
+    get:
+      tags: [Customers, Trips & Bookings]
+      summary: List trips for a customer
+      operationId: listTripsByCustomer
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Trip list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  trips:
+                    type: array
+                    items: { $ref: '#/components/schemas/Trip' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  # ============================================================
+  # WISHES
+  # ============================================================
+  /wishes:
+    get:
+      tags: [Wishes]
+      summary: List all wishes
+      operationId: listWishes
+      responses:
+        '200':
+          description: Wish list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  wishes:
+                    type: array
+                    items: { $ref: '#/components/schemas/Wish' }
+    post:
+      tags: [Wishes]
+      summary: Create a wish
+      operationId: createWish
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateWishInput' }
+      responses:
+        '201':
+          description: Wish created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  wish: { $ref: '#/components/schemas/Wish' }
+
+  /wishes/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      tags: [Wishes]
+      summary: Get wish by ID
+      operationId: getWishById
+      responses:
+        '200':
+          description: Wish found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  wish: { $ref: '#/components/schemas/Wish' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      tags: [Wishes]
+      summary: Update a wish
+      operationId: updateWish
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateWishInput' }
+      responses:
+        '200':
+          description: Wish updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  wish: { $ref: '#/components/schemas/Wish' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  # ============================================================
+  # TRIPS
+  # ============================================================
+  /trips:
+    get:
+      tags: [Trips & Bookings]
+      summary: List all trips
+      operationId: listTrips
+      responses:
+        '200':
+          description: Trip list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  trips:
+                    type: array
+                    items: { $ref: '#/components/schemas/Trip' }
+    post:
+      tags: [Trips & Bookings]
+      summary: Create a trip
+      operationId: createTrip
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateTripInput' }
+      responses:
+        '201':
+          description: Trip created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  trip: { $ref: '#/components/schemas/Trip' }
+
+  /trips/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      tags: [Trips & Bookings]
+      summary: Get trip by ID
+      operationId: getTripById
+      responses:
+        '200':
+          description: Trip found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  trip: { $ref: '#/components/schemas/Trip' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      tags: [Trips & Bookings]
+      summary: Update a trip
+      operationId: updateTrip
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateTripInput' }
+      responses:
+        '200':
+          description: Trip updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  trip: { $ref: '#/components/schemas/Trip' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /trips/{tripId}/air-services:
+    get:
+      tags: [Trips & Bookings]
+      summary: List air services for a trip
+      operationId: listAirServicesByTrip
+      parameters:
+        - name: tripId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Air service list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  airServices:
+                    type: array
+                    items: { $ref: '#/components/schemas/AirService' }
+
+  /trips/{tripId}/land-services:
+    get:
+      tags: [Trips & Bookings]
+      summary: List land services for a trip
+      operationId: listLandServicesByTrip
+      parameters:
+        - name: tripId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Land service list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  landServices:
+                    type: array
+                    items: { $ref: '#/components/schemas/LandService' }
+
+  # ============================================================
+  # BOOKINGS
+  # ============================================================
+  /bookings:
+    get:
+      tags: [Trips & Bookings]
+      summary: List all bookings
+      operationId: listBookings
+      responses:
+        '200':
+          description: Booking list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  bookings:
+                    type: array
+                    items: { $ref: '#/components/schemas/Booking' }
+    post:
+      tags: [Trips & Bookings]
+      summary: Create a booking
+      operationId: createBooking
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateBookingInput' }
+      responses:
+        '201':
+          description: Booking created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  booking: { $ref: '#/components/schemas/Booking' }
+                  passengers:
+                    type: array
+                    items: { $ref: '#/components/schemas/BookingPassenger' }
+
+  /bookings/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      tags: [Trips & Bookings]
+      summary: Get booking by ID with passengers
+      operationId: getBookingById
+      responses:
+        '200':
+          description: Booking found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  booking: { $ref: '#/components/schemas/Booking' }
+                  passengers:
+                    type: array
+                    items: { $ref: '#/components/schemas/BookingPassenger' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /bookings/{id}/cancel:
+    post:
+      tags: [Trips & Bookings]
+      summary: Cancel a booking
+      operationId: cancelBooking
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason: { type: string }
+      responses:
+        '200':
+          description: Booking cancelled
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  booking: { $ref: '#/components/schemas/Booking' }
+
+  # ============================================================
+  # AIR SERVICES
+  # ============================================================
+  /air-services:
+    get:
+      tags: [Trips & Bookings]
+      summary: List air services (filterable by tripId, customerId)
+      operationId: listAirServices
+      parameters:
+        - name: tripId
+          in: query
+          schema: { type: string }
+        - name: customerId
+          in: query
+          schema: { type: string }
+      responses:
+        '200':
+          description: Air service list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  airServices:
+                    type: array
+                    items: { $ref: '#/components/schemas/AirService' }
+    post:
+      tags: [Trips & Bookings]
+      summary: Create an air service
+      operationId: createAirService
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateAirServiceInput' }
+      responses:
+        '201':
+          description: Air service created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  airService: { $ref: '#/components/schemas/AirService' }
+
+  /air-services/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      tags: [Trips & Bookings]
+      summary: Get air service by ID
+      operationId: getAirServiceById
+      responses:
+        '200':
+          description: Air service found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  airService: { $ref: '#/components/schemas/AirService' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      tags: [Trips & Bookings]
+      summary: Update an air service
+      operationId: updateAirService
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateAirServiceInput' }
+      responses:
+        '200':
+          description: Air service updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  airService: { $ref: '#/components/schemas/AirService' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    delete:
+      tags: [Trips & Bookings]
+      summary: Delete an air service
+      operationId: deleteAirService
+      responses:
+        '200':
+          description: Air service deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  # ============================================================
+  # LAND SERVICES
+  # ============================================================
+  /land-services:
+    get:
+      tags: [Trips & Bookings]
+      summary: List land services (filterable by tripId, customerId)
+      operationId: listLandServices
+      parameters:
+        - name: tripId
+          in: query
+          schema: { type: string }
+        - name: customerId
+          in: query
+          schema: { type: string }
+      responses:
+        '200':
+          description: Land service list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  landServices:
+                    type: array
+                    items: { $ref: '#/components/schemas/LandService' }
+    post:
+      tags: [Trips & Bookings]
+      summary: Create a land service
+      operationId: createLandService
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateLandServiceInput' }
+      responses:
+        '201':
+          description: Land service created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  landService: { $ref: '#/components/schemas/LandService' }
+
+  /land-services/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      tags: [Trips & Bookings]
+      summary: Get land service by ID
+      operationId: getLandServiceById
+      responses:
+        '200':
+          description: Land service found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  landService: { $ref: '#/components/schemas/LandService' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      tags: [Trips & Bookings]
+      summary: Update a land service
+      operationId: updateLandService
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateLandServiceInput' }
+      responses:
+        '200':
+          description: Land service updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  landService: { $ref: '#/components/schemas/LandService' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    delete:
+      tags: [Trips & Bookings]
+      summary: Delete a land service
+      operationId: deleteLandService
+      responses:
+        '200':
+          description: Land service deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  # ============================================================
+  # SALES
+  # ============================================================
+  /sales:
+    get:
+      tags: [Sales]
+      summary: List all sales
+      operationId: listSales
+      responses:
+        '200':
+          description: Sale list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sales:
+                    type: array
+                    items: { $ref: '#/components/schemas/Sale' }
+    post:
+      tags: [Sales]
+      summary: Create a sale
+      operationId: createSale
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateSaleInput' }
+      responses:
+        '201':
+          description: Sale created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sale: { $ref: '#/components/schemas/Sale' }
+
+  /sales/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      tags: [Sales]
+      summary: Get sale by ID
+      operationId: getSaleById
+      responses:
+        '200':
+          description: Sale found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sale: { $ref: '#/components/schemas/Sale' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      tags: [Sales]
+      summary: Update a sale
+      operationId: updateSale
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateSaleInput' }
+      responses:
+        '200':
+          description: Sale updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sale: { $ref: '#/components/schemas/Sale' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  # ============================================================
+  # PROPOSALS
+  # ============================================================
+  /proposals:
+    get:
+      tags: [Proposals]
+      summary: List all proposals
+      operationId: listProposals
+      responses:
+        '200':
+          description: Proposal list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  proposals:
+                    type: array
+                    items: { $ref: '#/components/schemas/Proposal' }
+    post:
+      tags: [Proposals]
+      summary: Create a proposal
+      operationId: createProposal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateProposalInput' }
+      responses:
+        '201':
+          description: Proposal created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  proposal: { $ref: '#/components/schemas/Proposal' }
+
+  /proposals/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      tags: [Proposals]
+      summary: Get proposal by ID
+      operationId: getProposalById
+      responses:
+        '200':
+          description: Proposal found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  proposal: { $ref: '#/components/schemas/Proposal' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      tags: [Proposals]
+      summary: Update a proposal
+      operationId: updateProposal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateProposalInput' }
+      responses:
+        '200':
+          description: Proposal updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  proposal: { $ref: '#/components/schemas/Proposal' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  # ============================================================
+  # OFFERS
+  # ============================================================
+  /offers:
+    get:
+      tags: [Proposals]
+      summary: List all offers
+      operationId: listOffers
+      responses:
+        '200':
+          description: Offer list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  offers:
+                    type: array
+                    items: { $ref: '#/components/schemas/Offer' }
+    post:
+      tags: [Proposals]
+      summary: Create an offer with input items
+      operationId: createOffer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateOfferInput' }
+      responses:
+        '201':
+          description: Offer created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  offer: { $ref: '#/components/schemas/Offer' }
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/OfferItem' }
+
+  /offers/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      tags: [Proposals]
+      summary: Get offer by ID with items
+      operationId: getOfferById
+      responses:
+        '200':
+          description: Offer found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  offer: { $ref: '#/components/schemas/Offer' }
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/OfferItem' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      tags: [Proposals]
+      summary: Update an offer
+      operationId: updateOffer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateOfferInput' }
+      responses:
+        '200':
+          description: Offer updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  offer: { $ref: '#/components/schemas/Offer' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  # ============================================================
+  # FINANCIAL
+  # ============================================================
+  /financials/receivables:
+    get:
+      tags: [Financial]
+      summary: List receivables
+      operationId: listReceivables
+      responses:
+        '200':
+          description: Receivable list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  receivables:
+                    type: array
+                    items: { $ref: '#/components/schemas/Receivable' }
+    post:
+      tags: [Financial]
+      summary: Create a receivable
+      operationId: createReceivable
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateReceivableInput' }
+      responses:
+        '201':
+          description: Receivable created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  receivable: { $ref: '#/components/schemas/Receivable' }
+
+  /financials/receivables/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      tags: [Financial]
+      summary: Get receivable by ID
+      operationId: getReceivableById
+      responses:
+        '200':
+          description: Receivable found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  receivable: { $ref: '#/components/schemas/Receivable' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      tags: [Financial]
+      summary: Update a receivable
+      operationId: updateReceivable
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateReceivableInput' }
+      responses:
+        '200':
+          description: Receivable updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  receivable: { $ref: '#/components/schemas/Receivable' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /financials/receivables/{id}/receive:
+    post:
+      tags: [Financial]
+      summary: Record a payment received against a receivable
+      operationId: receivePayment
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [amount, method]
+              properties:
+                amount: { type: number, format: float }
+                method: { type: string }
+                paymentDate: { type: string, format: date-time }
+                notes: { type: string }
+      responses:
+        '200':
+          description: Payment recorded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  receivable: { $ref: '#/components/schemas/Receivable' }
+                  payment: { $ref: '#/components/schemas/Payment' }
+
+  /financials/payables:
+    get:
+      tags: [Financial]
+      summary: List payables
+      operationId: listPayables
+      responses:
+        '200':
+          description: Payable list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  payables:
+                    type: array
+                    items: { $ref: '#/components/schemas/Payable' }
+    post:
+      tags: [Financial]
+      summary: Create a payable
+      operationId: createPayable
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreatePayableInput' }
+      responses:
+        '201':
+          description: Payable created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  payable: { $ref: '#/components/schemas/Payable' }
+
+  /financials/payables/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      tags: [Financial]
+      summary: Get payable by ID
+      operationId: getPayableById
+      responses:
+        '200':
+          description: Payable found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  payable: { $ref: '#/components/schemas/Payable' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      tags: [Financial]
+      summary: Update a payable
+      operationId: updatePayable
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdatePayableInput' }
+      responses:
+        '200':
+          description: Payable updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  payable: { $ref: '#/components/schemas/Payable' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /financials/payables/{id}/pay:
+    post:
+      tags: [Financial]
+      summary: Record a payment made against a payable
+      operationId: payPayable
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [amount, method]
+              properties:
+                amount: { type: number, format: float }
+                method: { type: string }
+                paymentDate: { type: string, format: date-time }
+                notes: { type: string }
+      responses:
+        '200':
+          description: Payment recorded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  payable: { $ref: '#/components/schemas/Payable' }
+                  payment: { $ref: '#/components/schemas/Payment' }
+
+  /financials/payments:
+    get:
+      tags: [Financial]
+      summary: List all payments
+      operationId: listPayments
+      responses:
+        '200':
+          description: Payment list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  payments:
+                    type: array
+                    items: { $ref: '#/components/schemas/Payment' }
+
+  /financials/revenues:
+    get:
+      tags: [Financial]
+      summary: List revenues
+      operationId: listRevenues
+      responses:
+        '200':
+          description: Revenue list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  revenues:
+                    type: array
+                    items: { $ref: '#/components/schemas/Revenue' }
+
+  /financials/expenses:
+    get:
+      tags: [Financial]
+      summary: List expenses
+      operationId: listExpenses
+      responses:
+        '200':
+          description: Expense list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  expenses:
+                    type: array
+                    items: { $ref: '#/components/schemas/Expense' }
+
+  /financials/cash-entries:
+    get:
+      tags: [Financial]
+      summary: List cash entries
+      operationId: listCashEntries
+      responses:
+        '200':
+          description: Cash entry list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  cashEntries:
+                    type: array
+                    items: { $ref: '#/components/schemas/CashEntry' }
+
+  /financials/dre:
+    get:
+      tags: [Financial]
+      summary: Get DRE (Income Statement)
+      operationId: getDre
+      parameters:
+        - name: startDate
+          in: query
+          schema: { type: string, format: date }
+        - name: endDate
+          in: query
+          schema: { type: string, format: date }
+      responses:
+        '200':
+          description: DRE report
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DreReport' }
+
+  # ============================================================
+  # SETTINGS
+  # ============================================================
+  /settings/profile:
+    get:
+      tags: [Settings]
+      summary: Get agency profile
+      operationId: getAgencyProfile
+      responses:
+        '200':
+          description: Agency profile
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  agency: { $ref: '#/components/schemas/Agency' }
+    patch:
+      tags: [Settings]
+      summary: Update agency profile
+      operationId: updateAgencyProfile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateAgencyInput' }
+      responses:
+        '200':
+          description: Profile updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  agency: { $ref: '#/components/schemas/Agency' }
+
+  /settings/team:
+    get:
+      tags: [Settings]
+      summary: List team members
+      operationId: listTeamMembers
+      responses:
+        '200':
+          description: Team member list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  users:
+                    type: array
+                    items: { $ref: '#/components/schemas/User' }
+
+  /settings/team/{userId}:
+    get:
+      tags: [Settings]
+      summary: Get team member by ID
+      operationId: getTeamMemberById
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: User found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user: { $ref: '#/components/schemas/User' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      tags: [Settings]
+      summary: Update team member role
+      operationId: updateTeamMember
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                role: { $ref: '#/components/schemas/UserRole' }
+      responses:
+        '200':
+          description: User updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user: { $ref: '#/components/schemas/User' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /settings/departments:
+    get:
+      tags: [Settings]
+      summary: List departments
+      operationId: listDepartments
+      responses:
+        '200':
+          description: Department list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  departments:
+                    type: array
+                    items: { $ref: '#/components/schemas/Department' }
+
+  /settings/departments/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string }
+    get:
+      tags: [Settings]
+      summary: Get department by ID
+      operationId: getDepartmentById
+      responses:
+        '200':
+          description: Department found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  department: { $ref: '#/components/schemas/Department' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      tags: [Settings]
+      summary: Update a department
+      operationId: updateDepartment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateDepartmentInput' }
+      responses:
+        '200':
+          description: Department updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  department: { $ref: '#/components/schemas/Department' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    delete:
+      tags: [Settings]
+      summary: Delete a department
+      operationId: deleteDepartment
+      responses:
+        '200':
+          description: Department deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /settings/invitations:
+    get:
+      tags: [Settings]
+      summary: List pending invitations
+      operationId: listInvitations
+      responses:
+        '200':
+          description: Invitation list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  invitations:
+                    type: array
+                    items: { $ref: '#/components/schemas/Invitation' }
+    post:
+      tags: [Settings]
+      summary: Create a new invitation
+      operationId: createInvitation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, role]
+              properties:
+                email: { type: string, format: email }
+                role: { $ref: '#/components/schemas/UserRole' }
+                departmentId: { type: string }
+      responses:
+        '201':
+          description: Invitation created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  invitation: { $ref: '#/components/schemas/Invitation' }
+
+  /settings/invitations/{id}/revoke:
+    post:
+      tags: [Settings]
+      summary: Revoke an invitation
+      operationId: revokeInvitation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Invitation revoked
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+
+  /settings/permissions:
+    get:
+      tags: [Settings]
+      summary: List permission rules
+      operationId: listPermissions
+      responses:
+        '200':
+          description: Permission rule list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  permissions:
+                    type: array
+                    items: { $ref: '#/components/schemas/PermissionRule' }
+
+  # ============================================================
+  # DOCUMENTS
+  # ============================================================
+  /customers/{customerId}/documents:
+    get:
+      tags: [Documents]
+      summary: List documents for a customer
+      operationId: listCustomerDocuments
+      parameters:
+        - name: customerId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Document list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  documents:
+                    type: array
+                    items: { $ref: '#/components/schemas/CustomerDocument' }
+
+  /uploads/attach:
+    post:
+      tags: [Documents]
+      summary: Attach an uploaded file to a domain entity
+      operationId: attachDocument
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file, entityType, entityId]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                entityType: { type: string }
+                entityId: { type: string }
+      responses:
+        '201':
+          description: Attachment created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  document: { $ref: '#/components/schemas/CustomerDocument' }
+
+  /uploads/{id}/verify:
+    post:
+      tags: [Documents]
+      summary: Verify a document (mark as verified)
+      operationId: verifyDocument
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Document verified
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  document: { $ref: '#/components/schemas/CustomerDocument' }
+
+  # ============================================================
+  # TRANSPORT
+  # ============================================================
+  /transport/routes:
+    get:
+      tags: [Transport]
+      summary: List transport routes
+      operationId: listTransportRoutes
+      responses:
+        '200':
+          description: Transport route list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  routes:
+                    type: array
+                    items: { $ref: '#/components/schemas/TransportRoute' }
+    post:
+      tags: [Transport]
+      summary: Create a transport route
+      operationId: createTransportRoute
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateTransportRouteInput' }
+      responses:
+        '201':
+          description: Route created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  route: { $ref: '#/components/schemas/TransportRoute' }
+
+  /transport/routes/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      tags: [Transport]
+      summary: Get transport route by ID
+      operationId: getTransportRouteById
+      responses:
+        '200':
+          description: Route found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  route: { $ref: '#/components/schemas/TransportRoute' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      tags: [Transport]
+      summary: Update a transport route
+      operationId: updateTransportRoute
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateTransportRouteInput' }
+      responses:
+        '200':
+          description: Route updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  route: { $ref: '#/components/schemas/TransportRoute' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /transport/suppliers:
+    get:
+      tags: [Transport]
+      summary: List transport suppliers
+      operationId: listTransportSuppliers
+      responses:
+        '200':
+          description: Supplier list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  suppliers:
+                    type: array
+                    items: { $ref: '#/components/schemas/TransportSupplier' }
+
+  /transport/products:
+    get:
+      tags: [Transport]
+      summary: List transport products (packages)
+      operationId: listTransportProducts
+      responses:
+        '200':
+          description: Product list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  products:
+                    type: array
+                    items: { $ref: '#/components/schemas/TransportProduct' }
+
+  /transport/departures:
+    get:
+      tags: [Transport]
+      summary: List departures
+      operationId: listDepartures
+      responses:
+        '200':
+          description: Departure list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  departures:
+                    type: array
+                    items: { $ref: '#/components/schemas/Departure' }
+
+  /transport/agenda:
+    get:
+      tags: [Transport]
+      summary: Get transport agenda
+      operationId: getTransportAgenda
+      responses:
+        '200':
+          description: Agenda data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  agenda:
+                    type: array
+                    items: { $ref: '#/components/schemas/AgendaItem' }
+
+  # ============================================================
+  # OPERATIONS
+  # ============================================================
+  /trips/{tripId}/occurrences:
+    get:
+      tags: [Operations]
+      summary: List occurrences for a trip
+      operationId: listOccurrences
+      parameters:
+        - name: tripId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Occurrence list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  occurrences:
+                    type: array
+                    items: { $ref: '#/components/schemas/Occurrence' }
+    post:
+      tags: [Operations]
+      summary: Create an occurrence for a trip
+      operationId: createOccurrence
+      parameters:
+        - name: tripId
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateOccurrenceInput' }
+      responses:
+        '201':
+          description: Occurrence created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  occurrence: { $ref: '#/components/schemas/Occurrence' }
+
+  /trips/{tripId}/occurrences/{id}:
+    get:
+      tags: [Operations]
+      summary: Get occurrence by ID
+      operationId: getOccurrenceById
+      parameters:
+        - name: tripId
+          in: path
+          required: true
+          schema: { type: string }
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Occurrence found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  occurrence: { $ref: '#/components/schemas/Occurrence' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      tags: [Operations]
+      summary: Update an occurrence
+      operationId: updateOccurrence
+      parameters:
+        - name: tripId
+          in: path
+          required: true
+          schema: { type: string }
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateOccurrenceInput' }
+      responses:
+        '200':
+          description: Occurrence updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  occurrence: { $ref: '#/components/schemas/Occurrence' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  # ============================================================
+  # COMMERCIAL COCKPIT
+  # ============================================================
+  /cockpit/opportunities:
+    get:
+      tags: [Commercial Cockpit]
+      summary: List opportunities
+      operationId: listOpportunities
+      responses:
+        '200':
+          description: Opportunity list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  opportunities:
+                    type: array
+                    items: { $ref: '#/components/schemas/Opportunity' }
+    post:
+      tags: [Commercial Cockpit]
+      summary: Create an opportunity
+      operationId: createOpportunity
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateOpportunityInput' }
+      responses:
+        '201':
+          description: Opportunity created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  opportunity: { $ref: '#/components/schemas/Opportunity' }
+
+  /cockpit/tasks:
+    get:
+      tags: [Commercial Cockpit]
+      summary: List tasks
+      operationId: listTasks
+      responses:
+        '200':
+          description: Task list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tasks:
+                    type: array
+                    items: { $ref: '#/components/schemas/Task' }
+
+  /cockpit/interactions:
+    get:
+      tags: [Commercial Cockpit]
+      summary: List interactions
+      operationId: listInteractions
+      responses:
+        '200':
+          description: Interaction list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  interactions:
+                    type: array
+                    items: { $ref: '#/components/schemas/Interaction' }
+
+  /cockpit/pipelines:
+    get:
+      tags: [Commercial Cockpit]
+      summary: List pipelines
+      operationId: listPipelines
+      responses:
+        '200':
+          description: Pipeline list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  pipelines:
+                    type: array
+                    items: { $ref: '#/components/schemas/Pipeline' }
+
+  # ============================================================
+  # PEESCADOR
+  # ============================================================
+  /pescador/capture:
+    post:
+      tags: [Pescador]
+      summary: Capture external offer data
+      operationId: capturePescadorOffer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CaptureOfferInput' }
+      responses:
+        '200':
+          description: Captured offer
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  captured: { type: object }
+
+  # ============================================================
+  # ENROLLMENT
+  # ============================================================
+  /enrollment:
+    post:
+      tags: [Enrollment]
+      summary: Generate an enrollment link for a customer
+      operationId: generateEnrollmentLink
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                customerId: { type: string }
+      responses:
+        '200':
+          description: Enrollment link
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  link: { type: string }
+
+  /enrollment/submit:
+    post:
+      tags: [Enrollment]
+      summary: Submit enrollment form
+      operationId: submitEnrollment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EnrollmentSubmissionInput' }
+      responses:
+        '200':
+          description: Submission recorded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  submitted: { type: boolean }
+
+  # ============================================================
+  # CUSTOMER PORTAL
+  # ============================================================
+  /customer-api/me:
+    get:
+      tags: [Customer Portal]
+      summary: Current customer profile
+      operationId: getCustomerPortalMe
+      security: []
+      responses:
+        '200':
+          description: Customer info
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  customer: { $ref: '#/components/schemas/Customer' }
+
+  /customer-api/wishes:
+    get:
+      tags: [Customer Portal]
+      summary: List customer's own wishes
+      operationId: listMyWishes
+      security: []
+      responses:
+        '200':
+          description: Wish list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  wishes:
+                    type: array
+                    items: { $ref: '#/components/schemas/Wish' }
+
+  /customer-api/trips:
+    get:
+      tags: [Customer Portal]
+      summary: List customer's own trips
+      operationId: listMyTrips
+      security: []
+      responses:
+        '200':
+          description: Trip list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  trips:
+                    type: array
+                    items: { $ref: '#/components/schemas/Trip' }
+
+  /customer-api/financials:
+    get:
+      tags: [Customer Portal]
+      summary: Customer's financial summary
+      operationId: getMyFinancials
+      security: []
+      responses:
+        '200':
+          description: Financial summary
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  receivables:
+                    type: array
+                    items: { $ref: '#/components/schemas/Receivable' }
+
+  /customer-api/documents:
+    get:
+      tags: [Customer Portal]
+      summary: Customer's own documents
+      operationId: listMyDocuments
+      security: []
+      responses:
+        '200':
+          description: Document list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  documents:
+                    type: array
+                    items: { $ref: '#/components/schemas/CustomerDocument' }
+
+  /customer-api/sales:
+    get:
+      tags: [Customer Portal]
+      summary: Customer's own sales
+      operationId: listMySales
+      security: []
+      responses:
+        '200':
+          description: Sale list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sales:
+                    type: array
+                    items: { $ref: '#/components/schemas/Sale' }
+
+  # ============================================================
+  # SUPPORT
+  # ============================================================
+  /support/tickets:
+    get:
+      tags: [Support]
+      summary: List support tickets
+      operationId: listSupportTickets
+      responses:
+        '200':
+          description: Ticket list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tickets:
+                    type: array
+                    items: { $ref: '#/components/schemas/SupportTicket' }
+    post:
+      tags: [Support]
+      summary: Create a support ticket
+      operationId: createSupportTicket
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateSupportTicketInput' }
+      responses:
+        '201':
+          description: Ticket created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ticket: { $ref: '#/components/schemas/SupportTicket' }
+
+  /support/tickets/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      tags: [Support]
+      summary: Get ticket by ID
+      operationId: getSupportTicketById
+      responses:
+        '200':
+          description: Ticket found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ticket: { $ref: '#/components/schemas/SupportTicket' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      tags: [Support]
+      summary: Update a ticket
+      operationId: updateSupportTicket
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateSupportTicketInput' }
+      responses:
+        '200':
+          description: Ticket updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ticket: { $ref: '#/components/schemas/SupportTicket' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  # ============================================================
+  # PLATFORM: COST CENTERS, COMMISSIONS, EMPLOYEES, AUTOMATIONS
+  # ============================================================
+  /cost-centers:
+    get:
+      tags: [Platform]
+      summary: List cost centers
+      operationId: listCostCenters
+      responses:
+        '200':
+          description: Cost center list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  costCenters:
+                    type: array
+                    items: { $ref: '#/components/schemas/CostCenter' }
+    post:
+      tags: [Platform]
+      summary: Create a cost center
+      operationId: createCostCenter
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateCostCenterInput' }
+      responses:
+        '201':
+          description: Cost center created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  costCenter: { $ref: '#/components/schemas/CostCenter' }
+
+  /commissions:
+    get:
+      tags: [Platform]
+      summary: List commissions
+      operationId: listCommissions
+      responses:
+        '200':
+          description: Commission list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  commissions:
+                    type: array
+                    items: { $ref: '#/components/schemas/Commission' }
+
+  /employees:
+    get:
+      tags: [Platform]
+      summary: List employees
+      operationId: listEmployees
+      responses:
+        '200':
+          description: Employee list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  employees:
+                    type: array
+                    items: { $ref: '#/components/schemas/Employee' }
+
+  /payroll:
+    get:
+      tags: [Platform]
+      summary: List payroll records
+      operationId: listPayroll
+      responses:
+        '200':
+          description: Payroll list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  payroll:
+                    type: array
+                    items: { $ref: '#/components/schemas/PayrollRecord' }
+
+  /automations:
+    get:
+      tags: [Platform]
+      summary: List automations
+      operationId: listAutomations
+      responses:
+        '200':
+          description: Automation list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  automations:
+                    type: array
+                    items: { $ref: '#/components/schemas/Automation' }
+    post:
+      tags: [Platform]
+      summary: Create an automation
+      operationId: createAutomation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateAutomationInput' }
+      responses:
+        '201':
+          description: Automation created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  automation: { $ref: '#/components/schemas/Automation' }
+
+  /campaigns:
+    get:
+      tags: [Platform]
+      summary: List campaigns
+      operationId: listCampaigns
+      responses:
+        '200':
+          description: Campaign list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  campaigns:
+                    type: array
+                    items: { $ref: '#/components/schemas/Campaign' }
+    post:
+      tags: [Platform]
+      summary: Create a campaign
+      operationId: createCampaign
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateCampaignInput' }
+      responses:
+        '201':
+          description: Campaign created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  campaign: { $ref: '#/components/schemas/Campaign' }
+
+  /coupons:
+    get:
+      tags: [Platform]
+      summary: List coupons
+      operationId: listCoupons
+      responses:
+        '200':
+          description: Coupon list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  coupons:
+                    type: array
+                    items: { $ref: '#/components/schemas/Coupon' }
+    post:
+      tags: [Platform]
+      summary: Create a coupon
+      operationId: createCoupon
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateCouponInput' }
+      responses:
+        '201':
+          description: Coupon created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  coupon: { $ref: '#/components/schemas/Coupon' }
+
+  /connectors:
+    get:
+      tags: [Platform]
+      summary: List connectors
+      operationId: listConnectors
+      responses:
+        '200':
+          description: Connector list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  connectors:
+                    type: array
+                    items: { $ref: '#/components/schemas/Connector' }
+
+  /assets:
+    get:
+      tags: [Platform]
+      summary: List assets
+      operationId: listAssets
+      responses:
+        '200':
+          description: Asset list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  assets:
+                    type: array
+                    items: { $ref: '#/components/schemas/Asset' }
+
+  /publications:
+    get:
+      tags: [Platform]
+      summary: List publications
+      operationId: listPublications
+      responses:
+        '200':
+          description: Publication list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  publications:
+                    type: array
+                    items: { $ref: '#/components/schemas/Publication' }
+
+  /engagements:
+    get:
+      tags: [Platform]
+      summary: List engagements
+      operationId: listEngagements
+      responses:
+        '200':
+          description: Engagement list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  engagements:
+                    type: array
+                    items: { $ref: '#/components/schemas/Engagement' }
+
+  # ============================================================
+  # REPORTS
+  # ============================================================
+  /reports/management:
+    get:
+      tags: [Reports]
+      summary: Management report
+      operationId: getManagementReport
+      parameters:
+        - name: startDate
+          in: query
+          schema: { type: string, format: date }
+        - name: endDate
+          in: query
+          schema: { type: string, format: date }
+      responses:
+        '200':
+          description: Management report
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ManagementReport' }
+
+  /reports/financial:
+    get:
+      tags: [Reports]
+      summary: Financial report
+      operationId: getFinancialReport
+      parameters:
+        - name: startDate
+          in: query
+          schema: { type: string, format: date }
+        - name: endDate
+          in: query
+          schema: { type: string, format: date }
+      responses:
+        '200':
+          description: Financial report
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/FinancialReport' }
+
+# ============================================================
+# COMPONENTS
+# ============================================================
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema: { type: string }
+
+  responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    Forbidden:
+      description: Insufficient permissions
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    BadRequest:
+      description: Invalid input
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+
+  schemas:
+    # ---- Enums ----
+    UserRole:
+      type: string
+      enum: [OWNER, ADMIN, MANAGER, AGENT, VIEWER]
+
+    TripType:
+      type: string
+      enum: [CUSTOM, GROUP, CRUISE, CHARTER, HONEYMOON, BUSINESS]
+
+    CampaignStatus:
+      type: string
+      enum: [DRAFT, ACTIVE, PAUSED, CLOSED]
+
+    PublicationStatus:
+      type: string
+      enum: [DRAFT, PUBLISHED, ARCHIVED]
+
+    AutomationStatus:
+      type: string
+      enum: [DRAFT, ACTIVE, PAUSED, ERROR]
+
+    # ---- Common ----
+    ErrorResponse:
+      type: object
+      required: [error, code]
+      properties:
+        error: { type: string }
+        code: { type: string }
+        details: { type: object }
+
+    # ---- Core Domain ----
+    Agency:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        slug: { type: string }
+        logoUrl: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    User:
+      type: object
+      properties:
+        id: { type: string }
+        email: { type: string, format: email }
+        name: { type: string }
+        role: { $ref: '#/components/schemas/UserRole' }
+        departmentId: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    Customer:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        email: { type: string }
+        phone: { type: string }
+        cpf: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    CreateCustomerInput:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string }
+        email: { type: string }
+        phone: { type: string }
+        cpf: { type: string }
+
+    UpdateCustomerInput:
+      type: object
+      properties:
+        name: { type: string }
+        email: { type: string }
+        phone: { type: string }
+        cpf: { type: string }
+
+    Wish:
+      type: object
+      properties:
+        id: { type: string }
+        customerId: { type: string }
+        destination: { type: string }
+        travelDates: { type: string }
+        tripType: { $ref: '#/components/schemas/TripType' }
+        status: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    CreateWishInput:
+      type: object
+      required: [customerId]
+      properties:
+        customerId: { type: string }
+        destination: { type: string }
+        travelDates: { type: string }
+        tripType: { $ref: '#/components/schemas/TripType' }
+
+    UpdateWishInput:
+      type: object
+      properties:
+        destination: { type: string }
+        travelDates: { type: string }
+        tripType: { $ref: '#/components/schemas/TripType' }
+        status: { type: string }
+
+    Trip:
+      type: object
+      properties:
+        id: { type: string }
+        customerId: { type: string }
+        wishId: { type: string }
+        name: { type: string }
+        tripType: { $ref: '#/components/schemas/TripType' }
+        startDate: { type: string, format: date }
+        endDate: { type: string, format: date }
+        status: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    CreateTripInput:
+      type: object
+      required: [customerId]
+      properties:
+        customerId: { type: string }
+        wishId: { type: string }
+        name: { type: string }
+        tripType: { $ref: '#/components/schemas/TripType' }
+        startDate: { type: string, format: date }
+        endDate: { type: string, format: date }
+
+    UpdateTripInput:
+      type: object
+      properties:
+        name: { type: string }
+        tripType: { $ref: '#/components/schemas/TripType' }
+        startDate: { type: string, format: date }
+        endDate: { type: string, format: date }
+        status: { type: string }
+
+    Booking:
+      type: object
+      properties:
+        id: { type: string }
+        tripId: { type: string }
+        status: { type: string }
+        totalAmount: { type: number, format: float }
+        currency: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    CreateBookingInput:
+      type: object
+      required: [tripId]
+      properties:
+        tripId: { type: string }
+        totalAmount: { type: number, format: float }
+        currency: { type: string }
+
+    BookingPassenger:
+      type: object
+      properties:
+        id: { type: string }
+        bookingId: { type: string }
+        name: { type: string }
+        document: { type: string }
+
+    AirService:
+      type: object
+      properties:
+        id: { type: string }
+        tripId: { type: string }
+        customerId: { type: string }
+        carrier: { type: string }
+        flightNumber: { type: string }
+        departure: { type: string }
+        arrival: { type: string }
+        status: { type: string }
+
+    CreateAirServiceInput:
+      type: object
+      required: [tripId]
+      properties:
+        tripId: { type: string }
+        customerId: { type: string }
+        carrier: { type: string }
+        flightNumber: { type: string }
+        departure: { type: string }
+        arrival: { type: string }
+
+    UpdateAirServiceInput:
+      type: object
+      properties:
+        carrier: { type: string }
+        flightNumber: { type: string }
+        departure: { type: string }
+        arrival: { type: string }
+        status: { type: string }
+
+    LandService:
+      type: object
+      properties:
+        id: { type: string }
+        tripId: { type: string }
+        customerId: { type: string }
+        type: { type: string }
+        description: { type: string }
+        startDate: { type: string, format: date }
+        endDate: { type: string, format: date }
+        status: { type: string }
+
+    CreateLandServiceInput:
+      type: object
+      required: [tripId, type]
+      properties:
+        tripId: { type: string }
+        customerId: { type: string }
+        type: { type: string }
+        description: { type: string }
+        startDate: { type: string, format: date }
+        endDate: { type: string, format: date }
+
+    UpdateLandServiceInput:
+      type: object
+      properties:
+        type: { type: string }
+        description: { type: string }
+        startDate: { type: string, format: date }
+        endDate: { type: string, format: date }
+        status: { type: string }
+
+    Sale:
+      type: object
+      properties:
+        id: { type: string }
+        customerId: { type: string }
+        tripId: { type: string }
+        totalAmount: { type: number, format: float }
+        status: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    CreateSaleInput:
+      type: object
+      required: [customerId, tripId, items]
+      properties:
+        customerId: { type: string }
+        tripId: { type: string }
+        items: { type: array, items: { $ref: '#/components/schemas/SaleItemInput' } }
+
+    SaleItemInput:
+      type: object
+      required: [description, quantity, unitPrice]
+      properties:
+        description: { type: string }
+        quantity: { type: integer }
+        unitPrice: { type: number, format: float }
+
+    UpdateSaleInput:
+      type: object
+      properties:
+        totalAmount: { type: number, format: float }
+        status: { type: string }
+
+    Proposal:
+      type: object
+      properties:
+        id: { type: string }
+        customerId: { type: string }
+        tripId: { type: string }
+        status: { type: string }
+        totalAmount: { type: number, format: float }
+        createdAt: { type: string, format: date-time }
+
+    CreateProposalInput:
+      type: object
+      required: [customerId, tripId, items]
+      properties:
+        customerId: { type: string }
+        tripId: { type: string }
+        items: { type: array, items: { $ref: '#/components/schemas/ProposalItemInput' } }
+
+    ProposalItemInput:
+      type: object
+      required: [description, quantity, unitPrice]
+      properties:
+        description: { type: string }
+        quantity: { type: integer }
+        unitPrice: { type: number, format: float }
+
+    UpdateProposalInput:
+      type: object
+      properties:
+        status: { type: string }
+        totalAmount: { type: number, format: float }
+
+    Offer:
+      type: object
+      properties:
+        id: { type: string }
+        proposalId: { type: string }
+        status: { type: string }
+        version: { type: integer }
+        createdAt: { type: string, format: date-time }
+
+    OfferItem:
+      type: object
+      properties:
+        id: { type: string }
+        offerId: { type: string }
+        description: { type: string }
+        quantity: { type: integer }
+        unitPrice: { type: number, format: float }
+
+    CreateOfferInput:
+      type: object
+      required: [proposalId, items]
+      properties:
+        proposalId: { type: string }
+        items: { type: array, items: { $ref: '#/components/schemas/OfferItemInput' } }
+
+    OfferItemInput:
+      type: object
+      required: [description, quantity, unitPrice]
+      properties:
+        description: { type: string }
+        quantity: { type: integer }
+        unitPrice: { type: number, format: float }
+
+    UpdateOfferInput:
+      type: object
+      properties:
+        status: { type: string }
+
+    # ---- Financial Schemas ----
+    Receivable:
+      type: object
+      properties:
+        id: { type: string }
+        customerId: { type: string }
+        tripId: { type: string }
+        amount: { type: number, format: float }
+        currency: { type: string }
+        dueDate: { type: string, format: date }
+        status: { type: string }
+        paidAmount: { type: number, format: float }
+        createdAt: { type: string, format: date-time }
+
+    CreateReceivableInput:
+      type: object
+      required: [customerId, tripId, amount, dueDate]
+      properties:
+        customerId: { type: string }
+        tripId: { type: string }
+        amount: { type: number, format: float }
+        currency: { type: string }
+        dueDate: { type: string, format: date }
+        description: { type: string }
+
+    UpdateReceivableInput:
+      type: object
+      properties:
+        amount: { type: number, format: float }
+        dueDate: { type: string, format: date }
+        status: { type: string }
+
+    Payable:
+      type: object
+      properties:
+        id: { type: string }
+        supplierId: { type: string }
+        tripId: { type: string }
+        amount: { type: number, format: float }
+        currency: { type: string }
+        dueDate: { type: string, format: date }
+        status: { type: string }
+        paidAmount: { type: number, format: float }
+        createdAt: { type: string, format: date-time }
+
+    CreatePayableInput:
+      type: object
+      required: [supplierId, tripId, amount, dueDate]
+      properties:
+        supplierId: { type: string }
+        tripId: { type: string }
+        amount: { type: number, format: float }
+        currency: { type: string }
+        dueDate: { type: string, format: date }
+        description: { type: string }
+
+    UpdatePayableInput:
+      type: object
+      properties:
+        amount: { type: number, format: float }
+        dueDate: { type: string, format: date }
+        status: { type: string }
+
+    Payment:
+      type: object
+      properties:
+        id: { type: string }
+        amount: { type: number, format: float }
+        method: { type: string }
+        paymentDate: { type: string, format: date-time }
+        notes: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    Revenue:
+      type: object
+      properties:
+        id: { type: string }
+        tripId: { type: string }
+        amount: { type: number, format: float }
+        currency: { type: string }
+        source: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    Expense:
+      type: object
+      properties:
+        id: { type: string }
+        tripId: { type: string }
+        amount: { type: number, format: float }
+        currency: { type: string }
+        category: { type: string }
+        description: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    CashEntry:
+      type: object
+      properties:
+        id: { type: string }
+        type: { type: string }
+        amount: { type: number, format: float }
+        currency: { type: string }
+        description: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    DreReport:
+      type: object
+      properties:
+        revenue: { type: number, format: float }
+        directCosts: { type: number, format: float }
+        grossProfit: { type: number, format: float }
+        operatingExpenses: { type: number, format: float }
+        netIncome: { type: number, format: float }
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              category: { type: string }
+              amount: { type: number, format: float }
+
+    # ---- Settings Schemas ----
+    UpdateAgencyInput:
+      type: object
+      properties:
+        name: { type: string }
+        logoUrl: { type: string }
+
+    Department:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        agencyId: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    UpdateDepartmentInput:
+      type: object
+      properties:
+        name: { type: string }
+
+    Invitation:
+      type: object
+      properties:
+        id: { type: string }
+        email: { type: string }
+        role: { $ref: '#/components/schemas/UserRole' }
+        status: { type: string }
+        expiresAt: { type: string, format: date-time }
+        createdAt: { type: string, format: date-time }
+
+    PermissionRule:
+      type: object
+      properties:
+        id: { type: string }
+        role: { $ref: '#/components/schemas/UserRole' }
+        resource: { type: string }
+        action: { type: string }
+        effect: { type: string, enum: [ALLOW, DENY] }
+
+    # ---- Document Schemas ----
+    CustomerDocument:
+      type: object
+      properties:
+        id: { type: string }
+        customerId: { type: string }
+        entityType: { type: string }
+        entityId: { type: string }
+        fileName: { type: string }
+        fileUrl: { type: string }
+        mimeType: { type: string }
+        verified: { type: boolean }
+        verifiedAt: { type: string, format: date-time }
+        createdAt: { type: string, format: date-time }
+
+    # ---- Transport Schemas ----
+    TransportRoute:
+      type: object
+      properties:
+        id: { type: string }
+        origin: { type: string }
+        destination: { type: string }
+        name: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    CreateTransportRouteInput:
+      type: object
+      required: [origin, destination]
+      properties:
+        origin: { type: string }
+        destination: { type: string }
+        name: { type: string }
+
+    UpdateTransportRouteInput:
+      type: object
+      properties:
+        origin: { type: string }
+        destination: { type: string }
+        name: { type: string }
+
+    TransportSupplier:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        cnpj: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    TransportProduct:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        routeId: { type: string }
+        supplierId: { type: string }
+        price: { type: number, format: float }
+        createdAt: { type: string, format: date-time }
+
+    Departure:
+      type: object
+      properties:
+        id: { type: string }
+        productId: { type: string }
+        departureDate: { type: string, format: date }
+        returnDate: { type: string, format: date }
+        availableSpots: { type: integer }
+        status: { type: string }
+
+    AgendaItem:
+      type: object
+      properties:
+        id: { type: string }
+        routeId: { type: string }
+        date: { type: string, format: date }
+        type: { type: string }
+        description: { type: string }
+
+    # ---- Operations Schemas ----
+    Occurrence:
+      type: object
+      properties:
+        id: { type: string }
+        tripId: { type: string }
+        type: { type: string }
+        description: { type: string }
+        severity: { type: string }
+        status: { type: string }
+        reportedAt: { type: string, format: date-time }
+
+    CreateOccurrenceInput:
+      type: object
+      required: [type, description]
+      properties:
+        type: { type: string }
+        description: { type: string }
+        severity: { type: string }
+
+    UpdateOccurrenceInput:
+      type: object
+      properties:
+        type: { type: string }
+        description: { type: string }
+        severity: { type: string }
+        status: { type: string }
+
+    # ---- Commercial Cockpit Schemas ----
+    Opportunity:
+      type: object
+      properties:
+        id: { type: string }
+        customerId: { type: string }
+        title: { type: string }
+        pipelineId: { type: string }
+        stage: { type: string }
+        value: { type: number, format: float }
+        createdAt: { type: string, format: date-time }
+
+    CreateOpportunityInput:
+      type: object
+      required: [customerId, title]
+      properties:
+        customerId: { type: string }
+        title: { type: string }
+        pipelineId: { type: string }
+        value: { type: number, format: float }
+
+    Task:
+      type: object
+      properties:
+        id: { type: string }
+        title: { type: string }
+        assigneeId: { type: string }
+        entityType: { type: string }
+        entityId: { type: string }
+        dueDate: { type: string, format: date }
+        completedAt: { type: string, format: date-time }
+
+    Interaction:
+      type: object
+      properties:
+        id: { type: string }
+        customerId: { type: string }
+        type: { type: string }
+        direction: { type: string }
+        subject: { type: string }
+        body: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    Pipeline:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        stages: { type: array, items: { type: string } }
+
+    # ---- Platform Schemas ----
+    CostCenter:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        code: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    CreateCostCenterInput:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string }
+        code: { type: string }
+
+    Commission:
+      type: object
+      properties:
+        id: { type: string }
+        userId: { type: string }
+        saleId: { type: string }
+        amount: { type: number, format: float }
+        percentage: { type: number, format: float }
+        status: { type: string }
+
+    Employee:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        cpf: { type: string }
+        role: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    PayrollRecord:
+      type: object
+      properties:
+        id: { type: string }
+        employeeId: { type: string }
+        month: { type: integer }
+        year: { type: integer }
+        grossPay: { type: number, format: float }
+        netPay: { type: number, format: float }
+
+    Automation:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        trigger: { type: string }
+        status: { $ref: '#/components/schemas/AutomationStatus' }
+        createdAt: { type: string, format: date-time }
+
+    CreateAutomationInput:
+      type: object
+      required: [name, trigger]
+      properties:
+        name: { type: string }
+        trigger: { type: string }
+        config: { type: object }
+
+    Campaign:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        status: { $ref: '#/components/schemas/CampaignStatus' }
+        budget: { type: number, format: float }
+        startDate: { type: string, format: date }
+        endDate: { type: string, format: date }
+        createdAt: { type: string, format: date-time }
+
+    CreateCampaignInput:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string }
+        budget: { type: number, format: float }
+        startDate: { type: string, format: date }
+        endDate: { type: string, format: date }
+
+    Coupon:
+      type: object
+      properties:
+        id: { type: string }
+        code: { type: string }
+        discountPercent: { type: number, format: float }
+        maxUses: { type: integer }
+        usedCount: { type: integer }
+        expiresAt: { type: string, format: date-time }
+        createdAt: { type: string, format: date-time }
+
+    CreateCouponInput:
+      type: object
+      required: [code, discountPercent]
+      properties:
+        code: { type: string }
+        discountPercent: { type: number, format: float }
+        maxUses: { type: integer }
+        expiresAt: { type: string, format: date-time }
+
+    Connector:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        type: { type: string }
+        status: { type: string }
+        lastSyncAt: { type: string, format: date-time }
+
+    Asset:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        type: { type: string }
+        url: { type: string }
+
+    Publication:
+      type: object
+      properties:
+        id: { type: string }
+        title: { type: string }
+        content: { type: string }
+        status: { $ref: '#/components/schemas/PublicationStatus' }
+        publishedAt: { type: string, format: date-time }
+
+    Engagement:
+      type: object
+      properties:
+        id: { type: string }
+        customerId: { type: string }
+        type: { type: string }
+        value: { type: number, format: float }
+        createdAt: { type: string, format: date-time }
+
+    # ---- Support Schemas ----
+    SupportTicket:
+      type: object
+      properties:
+        id: { type: string }
+        subject: { type: string }
+        description: { type: string }
+        status: { type: string }
+        priority: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    CreateSupportTicketInput:
+      type: object
+      required: [subject, description]
+      properties:
+        subject: { type: string }
+        description: { type: string }
+        priority: { type: string }
+
+    UpdateSupportTicketInput:
+      type: object
+      properties:
+        status: { type: string }
+        priority: { type: string }
+        description: { type: string }
+
+    # ---- Pescador & Enrollment ----
+    CaptureOfferInput:
+      type: object
+      required: [url]
+      properties:
+        url: { type: string }
+        source: { type: string }
+
+    EnrollmentSubmissionInput:
+      type: object
+      required: [linkToken, formData]
+      properties:
+        linkToken: { type: string }
+        formData: { type: object }
+
+    # ---- Reports ----
+    ManagementReport:
+      type: object
+      properties:
+        period: { type: string }
+        totalSales: { type: number, format: float }
+        totalRevenue: { type: number, format: float }
+        totalExpenses: { type: number, format: float }
+        profit: { type: number, format: float }
+
+    FinancialReport:
+      type: object
+      properties:
+        period: { type: string }
+        receivablesTotal: { type: number, format: float }
+        payablesTotal: { type: number, format: float }
+        cashBalance: { type: number, format: float }

@@ -1,0 +1,28 @@
+{
+  "name": "Travel Platform Mega Implementation Pack",
+  "documented_baseline": "main@382f8f2 - verify before work",
+  "agents": 11,
+  "files": [
+    "README.md",
+    "agents/AGENT_01_SAAS_ADMIN.md",
+    "agents/AGENT_02_CLIENT_ONBOARDING.md",
+    "agents/AGENT_03_CONTRACTS.md",
+    "agents/AGENT_04_PARTNERS.md",
+    "agents/AGENT_05_TRAVELER.md",
+    "agents/AGENT_06_OCR.md",
+    "agents/AGENT_07_CATALOG.md",
+    "agents/AGENT_08_UPSELL.md",
+    "agents/AGENT_09_INSURANCE.md",
+    "agents/AGENT_10_CAMPAIGNS.md",
+    "agents/AGENT_11_INTEGRATOR.md",
+    "agents/ORCHESTRATOR.md",
+    "architecture/DOMAIN_BLUEPRINT.md",
+    "architecture/PRODUCTS_UPSELL_INSURANCE.md",
+    "architecture/TARGET.md",
+    "architecture/TRAVELER_AND_FORMS.md",
+    "governance/AUTONOMY.md",
+    "security/NON_NEGOTIABLES.md",
+    "uat/FINAL_REPORT_TEMPLATE.md",
+    "uat/GATES_AND_UAT.md"
+  ]
+}

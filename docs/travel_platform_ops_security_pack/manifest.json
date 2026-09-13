@@ -1,0 +1,27 @@
+{
+  "name": "Travel Platform Operations & Security Hardening Pack",
+  "agents": 6,
+  "areas": [
+    "release",
+    "support",
+    "security",
+    "https_tls",
+    "backup_dr"
+  ],
+  "critical_checks": [
+    "SQL Injection",
+    "SSRF",
+    "XSS",
+    "CSRF",
+    "IDOR/BOLA",
+    "RLS",
+    "Tenant Isolation",
+    "Uploads",
+    "Tokens",
+    "Webhooks",
+    "HTTPS",
+    "CORS",
+    "Secrets",
+    "Backup/Restore"
+  ]
+}
