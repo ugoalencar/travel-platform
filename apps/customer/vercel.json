@@ -4,5 +4,10 @@
   "buildCommand": "cd ../.. && npm install && npm run build --workspace=apps/customer",
   "outputDirectory": "dist",
   "installCommand": "echo 'handled by buildCommand (workspace install)'",
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "__API_ORIGIN__/$1" },
+    { "source": "/customer-api/(.*)", "destination": "__API_ORIGIN__/customer-api/$1" },
+    { "source": "/customer-auth/(.*)", "destination": "__API_ORIGIN__/customer-auth/$1" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
 }

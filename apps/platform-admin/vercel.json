@@ -4,5 +4,9 @@
   "buildCommand": "cd ../.. && npm install && npm run build --workspace=apps/platform-admin",
   "outputDirectory": "dist",
   "installCommand": "echo 'handled by buildCommand (workspace install)'",
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "__API_ORIGIN__/$1" },
+    { "source": "/platform-auth/(.*)", "destination": "__API_ORIGIN__/platform-auth/$1" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
 }

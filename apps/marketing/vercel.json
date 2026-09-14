@@ -4,5 +4,9 @@
   "buildCommand": "cd ../.. && npm install && npm run build --workspace=apps/marketing",
   "outputDirectory": "dist",
   "installCommand": "echo 'handled by buildCommand (workspace install)'",
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "__API_ORIGIN__/$1" },
+    { "source": "/public/(.*)", "destination": "__API_ORIGIN__/public/$1" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
 }
