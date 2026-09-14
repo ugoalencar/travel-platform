@@ -349,6 +349,33 @@ export async function updateOnboardingStep(
   return profile;
 }
 
+// PlatformFeature values that are actually wired to a real capability in
+// this codebase (see packages/domain/types.ts's PlatformFeature comment --
+// WHATSAPP/AI_ASSISTANT/ADVANCED_ANALYTICS/GDS are inert placeholders with
+// no route checking them, so granting them here would be meaningless).
+//
+// Entitlements are fail-closed by design (no row = not entitled), but
+// nothing anywhere else in this codebase ever creates an agency_entitlements
+// row for a real (non-demo-seeded) agency -- the only write path is the
+// dev-only platform stopgap (entitlements.ts), which cannot run in
+// production. Left as-is, every entitlement-gated route would 403 for
+// every real customer, forever, with no way to fix it short of a full
+// platform-admin UI (explicitly flagged as a future "human decision" in
+// entitlements.ts). Per the pilot's entitlement policy (see
+// docs/.../04_entitlements/ENTITLEMENT_AUDIT.md: "para piloto com plano
+// completo, não bloquear uso"), granting the pilot's own agency every
+// currently-wired feature at onboarding completion is the correct
+// behavior -- multi-plan enforcement (withholding specific features per
+// plan) remains a real requirement before a second, differently-priced
+// customer is onboarded, tracked as a follow-up.
+const ONBOARDING_GRANTED_FEATURES = [
+  'PESCADOR',
+  'CREATIVE_STUDIO',
+  'CAMPAIGNS',
+  'SOCIAL_PUBLISHING',
+  'SOCIAL_AUTOMATION',
+] as const;
+
 export async function completeOnboarding(
   client: TenantTransactionClient,
 ): Promise<AgencyProfile> {
@@ -371,6 +398,16 @@ export async function completeOnboarding(
   if (!row) {
     throw new Error('Agency not found');
   }
+
+  for (const feature of ONBOARDING_GRANTED_FEATURES) {
+    await client.query(
+      `INSERT INTO agency_entitlements (agency_id, feature, enabled, updated_by)
+       VALUES ($1, $2, TRUE, $3)
+       ON CONFLICT (agency_id, feature) DO NOTHING`,
+      [agencyId, feature, `onboarding:${getUserId()}`],
+    );
+  }
+
   const profile: AgencyProfile = { id: row.id, name: row.name };
   if (row.onboarding_step) profile.onboardingStep = row.onboarding_step;
   if (row.onboarding_completed_at) profile.onboardingCompletedAt = row.onboarding_completed_at;

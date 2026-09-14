@@ -5,8 +5,9 @@
 import type { FastifyInstance } from 'fastify';
 import type { preHandlerHookHandler } from 'fastify';
 import { getUserId, requireRole } from '../../../../packages/domain/tenant-context';
-import { UserRole } from '../../../../packages/domain/types';
+import { PlatformFeature, UserRole } from '../../../../packages/domain/types';
 import type { DatabaseRuntime } from '../database';
+import { requireEntitlement } from '../entitlements';
 import {
   assertAllowedFields,
   parseNonNegativeNumber,
@@ -39,12 +40,14 @@ export function registerPescadorRoutes(
   const { database, protectedHooks } = options;
 
   app.get('/pescador/captures', { preHandler: protectedHooks }, async () => {
+    await requireEntitlement(database, PlatformFeature.PESCADOR);
     requireRole(UserRole.AGENT);
     const captures = await listExternalOfferCaptures(database);
     return { captures };
   });
 
   app.post('/pescador/captures', { preHandler: protectedHooks }, async (request, reply) => {
+    await requireEntitlement(database, PlatformFeature.PESCADOR);
     requireRole(UserRole.AGENT);
     const data = parseCreateExternalOfferCaptureInput(request.body);
     const capture = await createExternalOfferCapture(database, data);
@@ -56,6 +59,7 @@ export function registerPescadorRoutes(
     '/pescador/captures/:id',
     { preHandler: protectedHooks },
     async (request) => {
+      await requireEntitlement(database, PlatformFeature.PESCADOR);
       requireRole(UserRole.AGENT);
       const patch = parseUpdateExternalOfferCaptureInput(request.body);
       const capture = await updateExternalOfferCapture(database, request.params.id, patch);
@@ -64,6 +68,7 @@ export function registerPescadorRoutes(
   );
 
   app.post('/pescador/extract', { preHandler: protectedHooks }, async (request) => {
+    await requireEntitlement(database, PlatformFeature.PESCADOR);
     requireRole(UserRole.AGENT);
     const record = parseObjectBody(request.body);
     const url = parseRequiredString(record.url, 'url');
@@ -75,6 +80,7 @@ export function registerPescadorRoutes(
     '/pescador/captures/:id/review',
     { preHandler: protectedHooks },
     async (request) => {
+      await requireEntitlement(database, PlatformFeature.PESCADOR);
       requireRole(UserRole.MANAGER);
       const capture = await moveCaptureToReview(database, request.params.id, getUserId());
       return { capture };
@@ -85,6 +91,7 @@ export function registerPescadorRoutes(
     '/pescador/captures/:id/approve',
     { preHandler: protectedHooks },
     async (request) => {
+      await requireEntitlement(database, PlatformFeature.PESCADOR);
       requireRole(UserRole.MANAGER);
       const capture = await approveCapture(database, request.params.id, getUserId());
       return { capture };
@@ -95,6 +102,7 @@ export function registerPescadorRoutes(
     '/pescador/captures/:id/reject',
     { preHandler: protectedHooks },
     async (request) => {
+      await requireEntitlement(database, PlatformFeature.PESCADOR);
       requireRole(UserRole.MANAGER);
       const capture = await rejectCapture(database, request.params.id, getUserId());
       return { capture };
@@ -105,6 +113,7 @@ export function registerPescadorRoutes(
     '/pescador/captures/:id/publish',
     { preHandler: protectedHooks },
     async (request, reply) => {
+      await requireEntitlement(database, PlatformFeature.PESCADOR);
       requireRole(UserRole.ADMIN);
       const result = await publishCapture(database, request.params.id, getUserId());
       reply.code(201);

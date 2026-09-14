@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
@@ -9,9 +9,11 @@ import type { AuthenticatedPrincipal } from '../src/auth';
 import { createDatabaseRuntime } from '../src/database';
 
 const repoRoot = resolve(import.meta.dirname, '../../..');
-const migration001 = resolve(repoRoot, 'infrastructure/migrations/001_initial_schema.sql');
-const migration002 = resolve(repoRoot, 'infrastructure/migrations/002_rls_policies.sql');
-const migration013 = resolve(repoRoot, 'infrastructure/migrations/013_pescador_foundation.sql');
+const migrationsDir = resolve(repoRoot, 'infrastructure/migrations');
+const migrationFiles = readdirSync(migrationsDir)
+  .filter((name) => /^\d+_.+\.sql$/.test(name))
+  .sort()
+  .map((name) => resolve(migrationsDir, name));
 const prepareRolesSql = resolve(repoRoot, 'tests/integration/database/002_prepare_local_roles.sql');
 const composeFile = resolve(repoRoot, 'infrastructure/docker-compose.local-postgres.yml');
 
@@ -197,6 +199,28 @@ describe('Pescador HTTP routes', () => {
     await app.close();
   });
 
+  it('fails closed when the agency has no PESCADOR entitlement (Pilot Delivery Gap Closure -- Agent 03)', async () => {
+    const app = buildTestApp(runtimePool);
+    await adminPool.query(
+      `UPDATE agency_entitlements SET enabled = false WHERE agency_id = $1 AND feature = 'PESCADOR'`,
+      [agencyAId],
+    );
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/pescador/captures',
+      headers: { 'x-test-principal': 'agent' },
+    });
+    expect(response.statusCode).toBe(403);
+    expect(response.json()).toMatchObject({ error: expect.stringContaining('not entitled') });
+
+    await adminPool.query(
+      `UPDATE agency_entitlements SET enabled = true WHERE agency_id = $1 AND feature = 'PESCADOR'`,
+      [agencyAId],
+    );
+    await app.close();
+  });
+
   function buildTestApp(pool: Pool) {
     return buildApp({
       authProvider: {
@@ -260,9 +284,9 @@ function assertContainerIsLocal(): void {
 
 async function resetDatabase(pool: Pool): Promise<void> {
   await pool.query('DROP SCHEMA public CASCADE; CREATE SCHEMA public;');
-  await pool.query(readSqlForPg(migration001));
-  await pool.query(readSqlForPg(migration002));
-  await pool.query(readSqlForPg(migration013));
+  for (const migrationFile of migrationFiles) {
+    await pool.query(readSqlForPg(migrationFile));
+  }
   await pool.query(readSqlForPg(prepareRolesSql));
   await seedAgenciesAndUsers(pool);
 }
@@ -288,6 +312,17 @@ async function seedAgenciesAndUsers(pool: Pool): Promise<void> {
        ($1, $2, 'user-a@example.test', 'User A', 'ADMIN', 'hash-for-pescador-http-test-only', 'ACTIVE'),
        ($3, $4, 'user-b@example.test', 'User B', 'ADMIN', 'hash-for-pescador-http-test-only', 'ACTIVE')`,
     [userAId, agencyAId, userBId, agencyBId],
+  );
+  // Pescador is entitlement-gated (PlatformFeature.PESCADOR) -- these
+  // routes 403 fail-closed without an enabled agency_entitlements row.
+  // Both agencies entitled here so the RBAC/tenant-isolation assertions
+  // below aren't confounded by entitlement gating; entitlement
+  // enforcement itself has its own dedicated coverage pattern (see
+  // offer-growth-entitlement-isolation.test.ts).
+  await pool.query(
+    `INSERT INTO agency_entitlements (agency_id, feature, enabled, updated_by)
+     VALUES ($1, 'PESCADOR', true, 'test-seed'), ($2, 'PESCADOR', true, 'test-seed')`,
+    [agencyAId, agencyBId],
   );
 }
 
