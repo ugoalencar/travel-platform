@@ -21,6 +21,8 @@ import type { Sale, SaleStatus } from '../types/sale';
 // independent Vite build targets with no existing shared frontend lib, and
 // introducing one is out of scope for this change (see OFFERS_DECISION.md).
 
+import { clearSession, getSessionToken } from './session';
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
 
 export class ApiError extends Error {
@@ -45,11 +47,23 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   if (init?.body !== undefined && !headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json');
   }
+  const token = getSessionToken();
+  if (token && !headers.has('authorization')) {
+    headers.set('authorization', `Bearer ${token}`);
+  }
 
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
     headers,
   });
+
+  if (response.status === 401) {
+    // Expired/revoked/invalid session -- never let a stale token linger
+    // client-side. RequireAuth's next render picks up the cleared session
+    // and redirects to /login; it owns the actual navigation so this stays
+    // a pure data-layer concern.
+    clearSession();
+  }
 
   if (!response.ok) {
     const body = (await safeJson(response)) as Partial<ApiErrorBody> | null;

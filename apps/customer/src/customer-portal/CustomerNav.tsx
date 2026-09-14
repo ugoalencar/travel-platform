@@ -1,4 +1,5 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { logout } from '../lib/customerAuthApi';
 
 // Standalone nav for the end-customer-facing portal. Intentionally does
 // NOT reuse components/layout/Sidebar.tsx (the staff admin nav) -- that
@@ -25,6 +26,13 @@ const LINKS = [
 ] as const;
 
 export function CustomerNav() {
+  const navigate = useNavigate();
+
+  async function handleLogout() {
+    await logout();
+    void navigate('/customer-portal/login', { replace: true });
+  }
+
   return (
     <nav className="border-b border-orange-100 bg-white/80 backdrop-blur sm:border-b-0 sm:border-r sm:w-56 sm:shrink-0">
       <div className="hidden items-center gap-2 px-4 pb-2 pt-5 sm:flex">
@@ -52,6 +60,15 @@ export function CustomerNav() {
             </NavLink>
           </li>
         ))}
+        <li className="shrink-0 sm:mt-2 sm:shrink">
+          <button
+            type="button"
+            onClick={() => void handleLogout()}
+            className="block w-full whitespace-nowrap px-4 py-3 text-left text-sm font-medium text-slate-500 hover:text-slate-900 sm:mx-1 sm:my-0.5 sm:rounded-full sm:hover:bg-orange-50"
+          >
+            Sair
+          </button>
+        </li>
       </ul>
     </nav>
   );

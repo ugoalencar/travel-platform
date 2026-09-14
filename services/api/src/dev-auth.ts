@@ -1,4 +1,5 @@
 import type { IncomingHttpHeaders } from 'node:http';
+import type { Pool } from 'pg';
 import type { AuthProvider } from './auth';
 import type { CustomerAuthProvider } from './customer-auth';
 import { UserRole } from '../../../packages/domain/types';
@@ -89,6 +90,44 @@ export function createServerAccessValidator(
     return Promise.resolve(
       isDevAuthEnabled(environment) && hasAuthorizedDevPrincipal(userId, agencyId),
     );
+  };
+}
+
+// Real, non-dev-only tenant-membership check (Frontend Auth & Session
+// track): a session resolved via createSessionAuthProvider (local-auth.ts)
+// already re-read the user row tenant-scoped inside withAgencyTransaction,
+// so its (userId, agencyId) pair is trustworthy by construction -- but
+// establishTenant's validateUserAgencyAccess gate runs unconditionally
+// regardless of which AuthProvider resolved the principal, and until now
+// only ever recognized the two hardcoded dev principals above. Mirrors
+// createCustomerAccessValidator's real-DB-query shape (customer-portal.ts)
+// exactly, so a real staff login is never rejected here just because
+// ALLOW_DEV_AUTH happens to be off (or the principal isn't the dev demo
+// user).
+export function createStaffAccessValidator(pool: Pool): ValidateUserAgencyAccess {
+  return async function validateStaffAgencyAccess(userId, agencyId) {
+    const result = await pool.query(
+      `SELECT 1 FROM users WHERE id = $1 AND agency_id = $2 AND status = 'ACTIVE'`,
+      [userId, agencyId],
+    );
+    return (result.rowCount ?? 0) > 0;
+  };
+}
+
+/** Tries the dev validator first (cheap, no DB hit, only ever true for the
+ * two hardcoded demo principals), then falls back to a real DB-backed
+ * membership check -- so both the dev bypass and real sessions work side by
+ * side without either one being able to widen the other's access. */
+export function composeUserAgencyValidators(
+  ...validators: ValidateUserAgencyAccess[]
+): ValidateUserAgencyAccess {
+  return async function validateComposed(userId, agencyId) {
+    for (const validator of validators) {
+      if (await validator(userId, agencyId)) {
+        return true;
+      }
+    }
+    return false;
   };
 }
 

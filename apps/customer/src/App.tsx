@@ -76,6 +76,10 @@ import { CustomerProfilePage } from './customer-portal/pages/CustomerProfilePage
 import { CustomerDocumentsPage } from './customer-portal/pages/CustomerDocumentsPage';
 import { CustomerPaymentsPage } from './customer-portal/pages/CustomerPaymentsPage';
 import { CustomerHelpPage } from './customer-portal/pages/CustomerHelpPage';
+import { CustomerLoginPage } from './customer-portal/pages/CustomerLoginPage';
+import { CustomerForgotPasswordPage } from './customer-portal/pages/CustomerForgotPasswordPage';
+import { CustomerResetPasswordPage } from './customer-portal/pages/CustomerResetPasswordPage';
+import { RequireCustomerAuth } from './customer-portal/RequireCustomerAuth';
 import { CommercialDashboardPage } from './pages/commercial/CommercialDashboardPage';
 import { CommercialPipelinePage } from './pages/commercial/CommercialPipelinePage';
 import { CommercialAgendaPage } from './pages/commercial/CommercialAgendaPage';
@@ -96,21 +100,28 @@ export function App() {
 
       {/* End-customer-facing portal. Entirely separate route tree, shell,
           and nav from the staff admin tree below -- see
-          customer-portal/CustomerPortalShell.tsx. */}
-      <Route element={<CustomerPortalShell />}>
-        <Route path="customer-portal" element={<CustomerHomePage />} />
-        <Route path="customer-portal/trips" element={<CustomerTripsPage />} />
-        <Route path="customer-portal/trips/:id" element={<CustomerTripDetailsPage />} />
-        <Route path="customer-portal/offers" element={<CustomerOffersPage />} />
-        <Route path="customer-portal/offers/:id" element={<CustomerOfferDetailsPage />} />
-        <Route path="customer-portal/proposals" element={<CustomerProposalsPage />} />
-        <Route path="customer-portal/proposals/:id" element={<CustomerProposalDetailsPage />} />
-        <Route path="customer-portal/bookings" element={<CustomerBookingsPage />} />
-        <Route path="customer-portal/bookings/:id" element={<CustomerBookingDetailsPage />} />
-        <Route path="customer-portal/profile" element={<CustomerProfilePage />} />
-        <Route path="customer-portal/documents" element={<CustomerDocumentsPage />} />
-        <Route path="customer-portal/payments" element={<CustomerPaymentsPage />} />
-        <Route path="customer-portal/help" element={<CustomerHelpPage />} />
+          customer-portal/CustomerPortalShell.tsx. Login/forgot/reset are
+          public; everything else requires a session. */}
+      <Route path="customer-portal/login" element={<CustomerLoginPage />} />
+      <Route path="customer-portal/forgot-password" element={<CustomerForgotPasswordPage />} />
+      <Route path="customer-portal/reset-password" element={<CustomerResetPasswordPage />} />
+
+      <Route element={<RequireCustomerAuth />}>
+        <Route element={<CustomerPortalShell />}>
+          <Route path="customer-portal" element={<CustomerHomePage />} />
+          <Route path="customer-portal/trips" element={<CustomerTripsPage />} />
+          <Route path="customer-portal/trips/:id" element={<CustomerTripDetailsPage />} />
+          <Route path="customer-portal/offers" element={<CustomerOffersPage />} />
+          <Route path="customer-portal/offers/:id" element={<CustomerOfferDetailsPage />} />
+          <Route path="customer-portal/proposals" element={<CustomerProposalsPage />} />
+          <Route path="customer-portal/proposals/:id" element={<CustomerProposalDetailsPage />} />
+          <Route path="customer-portal/bookings" element={<CustomerBookingsPage />} />
+          <Route path="customer-portal/bookings/:id" element={<CustomerBookingDetailsPage />} />
+          <Route path="customer-portal/profile" element={<CustomerProfilePage />} />
+          <Route path="customer-portal/documents" element={<CustomerDocumentsPage />} />
+          <Route path="customer-portal/payments" element={<CustomerPaymentsPage />} />
+          <Route path="customer-portal/help" element={<CustomerHelpPage />} />
+        </Route>
       </Route>
 
       <Route element={<AppShell />}>

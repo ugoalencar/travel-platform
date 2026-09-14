@@ -1,4 +1,4 @@
-import { Link, Outlet, useLocation } from 'react-router-dom';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
   BarChart3,
   Building2,
@@ -15,7 +15,9 @@ import {
   Zap,
   Megaphone,
   ShieldCheck,
+  LogOut,
 } from 'lucide-react';
+import { logout } from '../lib/platformAuthApi';
 
 // Sidebar structure per docs/travel_platform_visual_functional_blueprint/
 // 04_PLATFORM_ADMIN_SEPARATION.md -- exact section order and labels for the
@@ -88,6 +90,12 @@ const NAV_SECTIONS: NavSection[] = [
 
 export function Layout() {
   const location = useLocation();
+  const navigate = useNavigate();
+
+  async function handleLogout() {
+    await logout();
+    void navigate('/login', { replace: true });
+  }
 
   return (
     <div className="flex h-screen bg-slate-50">
@@ -162,6 +170,14 @@ export function Layout() {
             <span className="text-sm text-slate-700">
               Equipe da Plataforma <span className="text-slate-400">· PLATFORM_OWNER</span>
             </span>
+            <button
+              type="button"
+              onClick={() => void handleLogout()}
+              aria-label="Sair"
+              className="flex h-8 w-8 items-center justify-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+            >
+              <LogOut size={16} />
+            </button>
           </div>
         </header>
         <main className="flex-1 overflow-auto">

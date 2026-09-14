@@ -35,8 +35,23 @@ function useOnboardingRedirect(role: string | undefined): void {
 
 export function AppShell() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
-  const { user } = useCurrentUser();
+  const { user, loading } = useCurrentUser();
+  const navigate = useNavigate();
   useOnboardingRedirect(user?.role);
+
+  // Covers the case RequireAuth's mount-time check can't: a session that
+  // was valid on navigation but got revoked/expired/suspended server-side
+  // before this render (caught by api.ts's global 401 handling, which
+  // clears the token but has no navigate() of its own).
+  useEffect(() => {
+    if (!loading && !user) {
+      void navigate('/login', { replace: true });
+    }
+  }, [loading, user, navigate]);
+
+  if (loading || !user) {
+    return null;
+  }
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-[--color-canvas]">

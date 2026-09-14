@@ -1,7 +1,9 @@
-import { Menu } from 'lucide-react';
+import { Menu, LogOut } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { CURRENT_USER_ROLE_LABELS, type CurrentUser } from '../../hooks/useCurrentUser';
+import { logout } from '../../lib/authApi';
 
 export interface TopbarProps {
   onMenuClick: () => void;
@@ -18,7 +20,13 @@ export interface TopbarProps {
 const DEMO_AGENCY_NAME = 'Horizonte Viagens';
 
 export function Topbar({ onMenuClick, user }: TopbarProps) {
+  const navigate = useNavigate();
   const roleLabel = user ? CURRENT_USER_ROLE_LABELS[user.role] : null;
+
+  async function handleLogout() {
+    await logout();
+    void navigate('/login', { replace: true });
+  }
 
   return (
     <header className="flex h-14 shrink-0 items-center gap-3 border-b border-slate-200 bg-white px-4 sm:px-6">
@@ -45,6 +53,9 @@ export function Topbar({ onMenuClick, user }: TopbarProps) {
         <span className="text-sm text-slate-700">
           {roleLabel ?? 'Carregando…'}
         </span>
+        <Button variant="ghost" size="sm" onClick={() => void handleLogout()} aria-label="Sair">
+          <LogOut className="h-4 w-4" />
+        </Button>
       </div>
     </header>
   );

@@ -17,6 +17,7 @@ import type {
   CustomerProposalView,
 } from '../types/customer-portal';
 import { ApiError } from './api';
+import { clearSession, getSessionToken } from './customerSession';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
 
@@ -26,13 +27,21 @@ interface ApiErrorBody {
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const token = getSessionToken();
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
     headers: {
       'Content-Type': 'application/json',
+      ...(token ? { authorization: `Bearer ${token}` } : {}),
       ...init?.headers,
     },
   });
+
+  if (response.status === 401) {
+    // Expired/revoked/invalid session -- RequireCustomerAuth/CustomerPortalShell
+    // pick up the cleared session on next render and redirect to login.
+    clearSession();
+  }
 
   if (!response.ok) {
     const body = (await safeJson(response)) as Partial<ApiErrorBody> | null;

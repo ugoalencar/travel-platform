@@ -1,5 +1,9 @@
 import { Route, Routes } from 'react-router-dom';
 import { AppShell } from './components/layout/AppShell';
+import { RequireAuth } from './components/auth/RequireAuth';
+import { LoginPage } from './pages/LoginPage';
+import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
+import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { OnboardingWizardPage } from './pages/OnboardingWizardPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { CustomersPage } from './pages/CustomersPage';
@@ -53,12 +57,18 @@ import { PayrollPage } from './pages/PayrollPage';
 export function App() {
   return (
     <Routes>
-      {/* Outside AppShell on purpose: no sidebar/nav chrome during
-          first-run setup, and staying out of AppShell avoids re-running
-          its onboarding-redirect check while already on this page. */}
-      <Route path="onboarding" element={<OnboardingWizardPage />} />
+      {/* Public: no session required. */}
+      <Route path="login" element={<LoginPage />} />
+      <Route path="forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="reset-password" element={<ResetPasswordPage />} />
 
-      <Route element={<AppShell />}>
+      <Route element={<RequireAuth />}>
+        {/* Outside AppShell on purpose: no sidebar/nav chrome during
+            first-run setup, and staying out of AppShell avoids re-running
+            its onboarding-redirect check while already on this page. */}
+        <Route path="onboarding" element={<OnboardingWizardPage />} />
+
+        <Route element={<AppShell />}>
         <Route index element={<DashboardPage />} />
         <Route path="customers" element={<CustomersPage />} />
         <Route path="customers/:id" element={<CustomerDetailPage />} />
@@ -105,6 +115,7 @@ export function App() {
         <Route path="payroll" element={<PayrollPage />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route path="*" element={<NotFoundPage />} />
+        </Route>
       </Route>
     </Routes>
   );

@@ -3,9 +3,11 @@ import { buildApp } from './app';
 import { createCustomerAccessValidator } from './customer-portal';
 import { createDatabaseRuntime, createPlatformDatabaseRuntime } from './database';
 import {
+  composeUserAgencyValidators,
   createServerAccessValidator,
   createServerAuthProvider,
   createServerCustomerAuthProvider,
+  createStaffAccessValidator,
 } from './dev-auth';
 import { assertSafeDatabaseRole, validateProductionEnvironment } from './env';
 import { createRedisRateLimitStore, resolveRateLimitRuntimeConfig, type RedisClientInstance } from './rate-limit';
@@ -38,7 +40,7 @@ const pool = new Pool({
 
 let app = buildApp({
   authProvider: createServerAuthProvider(),
-  validateUserAgencyAccess: createServerAccessValidator(),
+  validateUserAgencyAccess: composeUserAgencyValidators(createServerAccessValidator(), createStaffAccessValidator(pool)),
   database: createDatabaseRuntime(pool),
   platformDatabase: createPlatformDatabaseRuntime(pool),
   // Customer portal: identity comes only from createServerCustomerAuthProvider()
@@ -99,7 +101,7 @@ async function main(): Promise<void> {
       // Recreate app with Redis store if configured
       app = buildApp({
         authProvider: createServerAuthProvider(),
-        validateUserAgencyAccess: createServerAccessValidator(),
+        validateUserAgencyAccess: composeUserAgencyValidators(createServerAccessValidator(), createStaffAccessValidator(pool)),
         database: createDatabaseRuntime(pool),
         platformDatabase: createPlatformDatabaseRuntime(pool),
         customerAuthProvider: createServerCustomerAuthProvider(),

@@ -24,9 +24,14 @@ function devAuthProxyConfig(): ProxyOptions {
     target: API_PROXY_TARGET,
     changeOrigin: true,
     rewrite: (path) => path.replace(/^\/api/, ''),
-    // Use the http-proxy event-based header injection (Vite 7.x style)
+    // Use the http-proxy event-based header injection (Vite 7.x style).
+    // Only injects the synthetic dev principal when the request carries no
+    // real Authorization header -- once real login (Frontend Auth &
+    // Session track) issues a Bearer session token, that token must win,
+    // never be silently overridden by the dev bypass.
     configure: (proxy) => {
-      proxy.on('proxyReq', (proxyReq) => {
+      proxy.on('proxyReq', (proxyReq, req) => {
+        if (req.headers.authorization) return;
         Object.entries(DEV_AUTH_HEADERS).forEach(([name, value]) => {
           proxyReq.setHeader(name, value);
         });
@@ -56,14 +61,15 @@ export default defineConfig(({ command }) => {
               '/api': devAuthProxyConfig(),
             },
             middlewares: [
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
               (req: any, res: any, next: Connect.NextFunction) => {
-                if (req.url?.startsWith('/api')) {
+                if (req.url?.startsWith('/api') && !req.headers.authorization) {
                   Object.entries(DEV_AUTH_HEADERS).forEach(([name, value]) => {
                     req.headers[name] = value;
                   });
                 }
                 next();
+                /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
               },
             ],
           }

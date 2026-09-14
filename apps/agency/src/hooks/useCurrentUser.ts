@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { getSessionToken } from '../lib/session';
 
 // Minimal client-side view of the authenticated principal, fetched from the
 // server-authoritative GET /me (services/api/src/app.ts). This app has no
@@ -35,8 +36,15 @@ export function useCurrentUser(): { user: CurrentUser | null; loading: boolean }
 
   useEffect(() => {
     let cancelled = false;
+    const token = getSessionToken();
 
-    fetch(`${API_BASE_URL}/api/me`)
+    if (!token) {
+      setUser(null);
+      setLoading(false);
+      return;
+    }
+
+    fetch(`${API_BASE_URL}/api/me`, { headers: { authorization: `Bearer ${token}` } })
       .then((response) => (response.ok ? (response.json() as Promise<CurrentUser>) : null))
       .then((data) => {
         if (!cancelled) {

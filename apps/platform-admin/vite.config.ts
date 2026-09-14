@@ -18,12 +18,24 @@ function devAuthProxyConfig(): ProxyOptions {
     changeOrigin: true,
     rewrite: (path) => path.replace(/^\/api/, ''),
     configure: (proxy) => {
-      proxy.on('proxyReq', (proxyReq) => {
+      proxy.on('proxyReq', (proxyReq, req) => {
+        if (req.headers.authorization) return;
         Object.entries(DEV_AUTH_HEADERS).forEach(([name, value]) => {
           proxyReq.setHeader(name, value);
         });
       });
     },
+  };
+}
+
+// /platform-auth/* (login, mfa/verify, logout) is registered by the
+// backend with no prefix rewrite (services/api/src/routes/platform-auth.ts)
+// -- plain pass-through, no dev-header injection, since these are exactly
+// the routes real login uses to obtain the session in the first place.
+function platformAuthProxyConfig(): ProxyOptions {
+  return {
+    target: API_PROXY_TARGET,
+    changeOrigin: true,
   };
 }
 
@@ -42,16 +54,18 @@ export default defineConfig(({ command }) => {
         ? {
             proxy: {
               '/api': devAuthProxyConfig(),
+              '/platform-auth': platformAuthProxyConfig(),
             },
             middlewares: [
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
               (req: any, res: any, next: Connect.NextFunction) => {
-                if (req.url?.startsWith('/api')) {
+                if (req.url?.startsWith('/api') && !req.headers.authorization) {
                   Object.entries(DEV_AUTH_HEADERS).forEach(([name, value]) => {
                     req.headers[name] = value;
                   });
                 }
                 next();
+                /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
               },
             ],
           }

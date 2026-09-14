@@ -33,6 +33,9 @@ function devAuthProxyConfig(): ProxyOptions {
     rewrite: (path) => path.replace(/^\/api/, ''),
     configure: (proxy, _env) => {
       proxy.on('proxyReq', (proxyReq, req, _res) => {
+        // Real Bearer token (Frontend Auth & Session track) always wins --
+        // the dev bypass must never override a real session.
+        if (req.headers.authorization) return;
         console.log('[DEV-AUTH] Intercepted request:', req.method, req.url);
         for (const [name, value] of Object.entries(DEV_AUTH_HEADERS)) {
           console.log(`[DEV-AUTH] Setting header: ${name}=${value}`);
@@ -45,13 +48,15 @@ function devAuthProxyConfig(): ProxyOptions {
 
 // Separate proxy entry for the customer-portal API surface. The backend
 // mounts these routes at /customer-api/* already, so no path rewrite is
-// needed -- only the distinct dev-customer header is injected.
+// needed -- only the distinct dev-customer header is injected, and only
+// when the request carries no real customer session token.
 function devCustomerAuthProxyConfig(): ProxyOptions {
   return {
     target: API_PROXY_TARGET,
     changeOrigin: true,
     configure: (proxy, _env) => {
       proxy.on('proxyReq', (proxyReq, req, _res) => {
+        if (req.headers.authorization) return;
         console.log('[DEV-CUSTOMER-AUTH] Intercepted request:', req.method, req.url);
         for (const [name, value] of Object.entries(DEV_CUSTOMER_AUTH_HEADERS)) {
           console.log(`[DEV-CUSTOMER-AUTH] Setting header: ${name}=${value}`);
@@ -59,6 +64,18 @@ function devCustomerAuthProxyConfig(): ProxyOptions {
         }
       });
     },
+  };
+}
+
+// /customer-auth/* (login, forgot/reset-password, logout) is a distinct,
+// unauthenticated-until-login route family the backend registers with no
+// prefix rewrite (services/api/src/routes/customer-auth.ts) -- plain
+// pass-through, no dev-header injection at all, since these are exactly
+// the routes real login uses to obtain the session in the first place.
+function customerAuthProxyConfig(): ProxyOptions {
+  return {
+    target: API_PROXY_TARGET,
+    changeOrigin: true,
   };
 }
 
@@ -82,21 +99,25 @@ export default defineConfig(({ command }) => {
             proxy: {
               '/api': devAuthProxyConfig(),
               '/customer-api': devCustomerAuthProxyConfig(),
+              '/customer-auth': customerAuthProxyConfig(),
             },
             middlewares: [
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
               (req: any, res: any, next: Connect.NextFunction) => {
-                if (req.url?.startsWith('/api')) {
-                  Object.entries(DEV_AUTH_HEADERS).forEach(([name, value]) => {
-                    req.headers[name] = value;
-                  });
-                }
-                if (req.url?.startsWith('/customer-api')) {
-                  Object.entries(DEV_CUSTOMER_AUTH_HEADERS).forEach(([name, value]) => {
-                    req.headers[name] = value;
-                  });
+                if (!req.headers.authorization) {
+                  if (req.url?.startsWith('/api')) {
+                    Object.entries(DEV_AUTH_HEADERS).forEach(([name, value]) => {
+                      req.headers[name] = value;
+                    });
+                  }
+                  if (req.url?.startsWith('/customer-api')) {
+                    Object.entries(DEV_CUSTOMER_AUTH_HEADERS).forEach(([name, value]) => {
+                      req.headers[name] = value;
+                    });
+                  }
                 }
                 next();
+                /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
               },
             ],
           }
