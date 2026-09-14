@@ -41,7 +41,16 @@ import { registerOffersRoutes } from './routes/offers';
 import { registerContractsRoutes } from './routes/contracts';
 import { registerInsuranceRoutes } from './routes/insurance';
 import { registerAuthRoutes } from './routes/auth';
-import { composeAuthProviders, createSessionAuthProvider } from './session-auth';
+import { registerCustomerAuthRoutes } from './routes/customer-auth';
+import { registerPlatformAuthRoutes } from './routes/platform-auth';
+import {
+  composeAuthProviders,
+  composeCustomerAuthProviders,
+  composePlatformAuthProviders,
+  createSessionAuthProvider,
+} from './session-auth';
+import { createCustomerSessionAuthProvider } from './customer-session-auth';
+import { createPlatformSessionAuthProvider } from './platform-session-auth';
 import { registerPartnerCampaignsRoutes } from './routes/partner-campaigns';
 import { registerPartnersRoutes } from './routes/partners';
 import { registerOperationsRoutes } from './routes/operations';
@@ -236,11 +245,19 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
   app.addHook('onRequest', rateLimits.onRequest);
 
   const platformAuthProvider = options.platformAuthProvider ?? new PlatformDevAuthProvider();
-  const platformAuthenticate = createPlatformAuthenticateHook(platformAuthProvider);
+  const platformAuthenticate = createPlatformAuthenticateHook(
+    options.platformDatabase
+      ? composePlatformAuthProviders(platformAuthProvider, createPlatformSessionAuthProvider(options.platformDatabase))
+      : platformAuthProvider,
+  );
   const platformProtectedHooks = [platformAuthenticate, rateLimits.onTrustedPlatformPrincipal];
 
+  const baseCustomerAuthProvider =
+    options.customerAuthProvider ?? { authenticateCustomer: () => Promise.resolve(null) };
   const customerAuthenticate = createCustomerAuthenticateHook(
-    options.customerAuthProvider ?? { authenticateCustomer: () => Promise.resolve(null) }
+    options.platformDatabase
+      ? composeCustomerAuthProviders(baseCustomerAuthProvider, createCustomerSessionAuthProvider(options.platformDatabase))
+      : baseCustomerAuthProvider,
   );
   const establishCustomerTenant = createCustomerTenantContextHook({
     validateCustomerAgencyAccess:
@@ -303,6 +320,14 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     database: options.database,
     ...(options.platformDatabase ? { platformDatabase: options.platformDatabase } : {}),
     protectedHooks,
+  });
+  registerCustomerAuthRoutes(app, {
+    ...(options.platformDatabase ? { platformDatabase: options.platformDatabase } : {}),
+    customerHooks,
+  });
+  registerPlatformAuthRoutes(app, {
+    ...(options.platformDatabase ? { platformDatabase: options.platformDatabase } : {}),
+    platformProtectedHooks,
   });
   registerPartnerCampaignsRoutes(app, { database: options.database, protectedHooks });
   registerProposalsRoutes(app, { database: options.database, protectedHooks });

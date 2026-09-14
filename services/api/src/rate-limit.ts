@@ -400,14 +400,20 @@ export function classifyRateLimitRequest(method: string, url: string): RateLimit
   const path = url.split('?')[0] ?? url;
   const isWrite = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method);
 
-  if (path === '/auth/login' || path === '/customer-auth/login') {
+  if (path === '/auth/login' || path === '/customer-auth/login' || path === '/platform-auth/login') {
     return RateLimitClass.AUTH_LOGIN;
   }
-  if (/^\/(auth|customer-auth)\/(forgot|recover|reset)/.test(path)) {
+  if (/^\/(auth|customer-auth|platform-auth)\/(forgot|recover|reset)/.test(path)) {
     return RateLimitClass.AUTH_RECOVERY;
   }
   if (/^\/webhooks?\//.test(path)) {
     return RateLimitClass.WEBHOOK_EXTERNAL;
+  }
+  // Platform Admin local auth (Frontend Auth & Session track): a
+  // distinct prefix from /platform/* below -- login/MFA/reset need the
+  // stricter AUTH_LOGIN/AUTH_RECOVERY policy, not SYSTEM_INTERNAL.
+  if (/^\/platform-auth\//.test(path)) {
+    return isWrite ? RateLimitClass.CUSTOMER_WRITE : RateLimitClass.CUSTOMER_READ;
   }
   if (/^\/platform\//.test(path)) {
     return RateLimitClass.SYSTEM_INTERNAL;

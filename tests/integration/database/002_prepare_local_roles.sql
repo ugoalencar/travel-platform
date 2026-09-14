@@ -297,6 +297,10 @@ BEGIN
   IF to_regclass('public.password_reset_tokens') IS NOT NULL THEN
     GRANT SELECT, INSERT, UPDATE ON password_reset_tokens TO travel_app_runtime_local;
   END IF;
+
+  IF to_regclass('public.customer_password_reset_tokens') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE ON customer_password_reset_tokens TO travel_app_runtime_local;
+  END IF;
 END;
 $$;
 
@@ -574,6 +578,28 @@ BEGIN
   IF to_regclass('public.campaign_attributions') IS NOT NULL THEN
     GRANT SELECT, INSERT ON campaign_attributions TO travel_app_runtime_local;
     REVOKE UPDATE, DELETE ON campaign_attributions FROM travel_app_runtime_local;
+  END IF;
+END;
+$$;
+
+-- Platform Admin local auth (Frontend Auth & Session track, 062). Not
+-- tenant-scoped, no RLS (matches platform_users' own documented model),
+-- so plain table grants are the entire access control surface here --
+-- application code (platform-auth.ts / requirePlatformRole()) does the
+-- rest.
+DO $$
+BEGIN
+  IF to_regclass('public.platform_users') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE ON platform_users TO travel_app_runtime_local;
+    GRANT SELECT, INSERT ON platform_user_audit TO travel_app_runtime_local;
+  END IF;
+
+  IF to_regclass('public.platform_sessions') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE ON platform_sessions TO travel_app_runtime_local;
+  END IF;
+
+  IF to_regclass('public.customer_sessions') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE ON customer_sessions TO travel_app_runtime_local;
   END IF;
 END;
 $$;

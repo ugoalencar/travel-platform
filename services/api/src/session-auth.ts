@@ -11,6 +11,8 @@
 
 import type { IncomingHttpHeaders } from 'node:http';
 import type { AuthProvider, AuthenticatedPrincipal } from './auth';
+import type { CustomerAuthProvider } from './customer-auth';
+import type { PlatformAuthProvider } from './platform-auth';
 import type { PlatformDatabaseRuntime } from './database';
 import { resolveSessionByToken } from './local-auth';
 
@@ -43,6 +45,41 @@ export function createSessionAuthProvider(platformDatabase: PlatformDatabaseRunt
  * without either provider needing to know about the other.
  */
 export function composeAuthProviders(...providers: AuthProvider[]): AuthProvider {
+  return {
+    async authenticate(request) {
+      for (const provider of providers) {
+        const principal = await provider.authenticate(request);
+        if (principal) {
+          return principal;
+        }
+      }
+      return null;
+    },
+  };
+}
+
+/** Same compose pattern as composeAuthProviders(), for CustomerAuthProvider's
+ * differently-named method. */
+export function composeCustomerAuthProviders(
+  ...providers: CustomerAuthProvider[]
+): CustomerAuthProvider {
+  return {
+    async authenticateCustomer(request) {
+      for (const provider of providers) {
+        const principal = await provider.authenticateCustomer(request);
+        if (principal) {
+          return principal;
+        }
+      }
+      return null;
+    },
+  };
+}
+
+/** Same compose pattern as composeAuthProviders(), for PlatformAuthProvider. */
+export function composePlatformAuthProviders(
+  ...providers: PlatformAuthProvider[]
+): PlatformAuthProvider {
   return {
     async authenticate(request) {
       for (const provider of providers) {
