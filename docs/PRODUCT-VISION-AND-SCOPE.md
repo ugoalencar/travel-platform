@@ -1061,7 +1061,7 @@ VIEWER (20)  — Apenas visualiza.
 | IDOR protection | Tenant scoping em toda query |
 | Mass assignment | Campos proibidos rejeitados explicitamente |
 | Safe errors | Erros genéricos ao cliente, detalhados em log |
-| Dev-auth dual gating | Headers synthetic em dev, JWT em produção |
+| Dev-auth dual gating | Headers synthetic em dev, sessão local por token opaco (`Authorization: Bearer`) em produção — ver nota de reconciliação em ADR-003, não JWT |
 | Concurrency safety | Transactions com set_tenant_context |
 | Secrets scanning | Script de validação |
 | Migration validation | Script de validação de nomenclatura |
