@@ -1,4 +1,6 @@
-import { NavLink } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
+import { ChevronDown } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import type { CurrentUserRole } from '../../hooks/useCurrentUser';
 
@@ -162,6 +164,41 @@ export interface SidebarProps {
 export function Sidebar({ mobileOpen, onClose, role }: SidebarProps) {
   const isOperationalStaff = role === 'AGENT';
   const sections = isOperationalStaff ? STAFF_OPERATIONAL_SECTIONS : NAV_SECTIONS;
+  const location = useLocation();
+
+  // Areas are collapsed by default -- each section header is a toggle, not
+  // just a label. Requested directly: the previous always-expanded ~50-item
+  // flat list made every area visually identical, impossible to scan one
+  // area at a time. Whichever section contains the current route starts
+  // open so navigating in doesn't hide where you are.
+  const [openSections, setOpenSections] = useState<Set<string>>(() => {
+    const current = sections.find((section) =>
+      section.items.some((item) => (item.to === '/' ? location.pathname === '/' : location.pathname.startsWith(item.to))),
+    );
+    return new Set(current ? [current.label] : [sections[0]?.label ?? '']);
+  });
+
+  useEffect(() => {
+    const current = sections.find((section) =>
+      section.items.some((item) => (item.to === '/' ? location.pathname === '/' : location.pathname.startsWith(item.to))),
+    );
+    if (current) {
+      setOpenSections((prev) => (prev.has(current.label) ? prev : new Set(prev).add(current.label)));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only re-run on route change, not on every sections/setOpenSections identity change
+  }, [location.pathname]);
+
+  function toggleSection(label: string) {
+    setOpenSections((prev) => {
+      const next = new Set(prev);
+      if (next.has(label)) {
+        next.delete(label);
+      } else {
+        next.add(label);
+      }
+      return next;
+    });
+  }
 
   return (
     <>
@@ -191,39 +228,85 @@ export function Sidebar({ mobileOpen, onClose, role }: SidebarProps) {
             Ambiente Operacional
           </p>
         )}
-        <nav className="flex flex-1 flex-col gap-4 overflow-y-auto p-3">
-          {sections.map((section) => (
-            <div key={section.label} className="space-y-1">
-              <p className="px-3 text-[0.68rem] font-bold uppercase tracking-wide text-[--color-sidebar-muted]">
-                {section.label}
-              </p>
-              <div className="flex flex-col gap-0.5">
-                {section.items.map((item) => (
-                  <NavLink
-                    key={`${section.label}-${item.label}`}
-                    to={item.to}
-                    end={item.to === '/'}
-                    onClick={onClose}
-                    title={item.gap ? `${item.label} (tela dedicada prevista em onda futura)` : undefined}
-                    className={({ isActive }) =>
-                      cn(
-                        'flex items-center justify-between rounded-md px-3 py-1.5 text-sm font-medium text-[--color-sidebar-foreground] transition-colors hover:bg-[--color-sidebar-active] hover:text-white',
-                        isActive && 'bg-[--color-sidebar-active] text-white',
-                      )
-                    }
-                  >
-                    <span>{item.label}</span>
-                    {item.gap && (
-                      <span
-                        aria-hidden="true"
-                        className="h-1.5 w-1.5 shrink-0 rounded-full bg-amber-400"
-                      />
-                    )}
-                  </NavLink>
-                ))}
+        {!isOperationalStaff && (
+          <div className="flex items-center justify-end gap-3 border-b border-[--color-sidebar-border] px-3 py-1.5">
+            <button
+              type="button"
+              onClick={() => setOpenSections(new Set(sections.map((s) => s.label)))}
+              className="text-[0.65rem] font-medium uppercase tracking-wide text-[--color-sidebar-muted] hover:text-white"
+            >
+              Expandir tudo
+            </button>
+            <button
+              type="button"
+              onClick={() => setOpenSections(new Set())}
+              className="text-[0.65rem] font-medium uppercase tracking-wide text-[--color-sidebar-muted] hover:text-white"
+            >
+              Recolher tudo
+            </button>
+          </div>
+        )}
+        <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-2">
+          {sections.map((section) => {
+            const isOpen = openSections.has(section.label);
+            const sectionHasActiveItem = section.items.some((item) =>
+              item.to === '/' ? location.pathname === '/' : location.pathname.startsWith(item.to),
+            );
+            return (
+              <div key={section.label} className="rounded-md">
+                <button
+                  type="button"
+                  onClick={() => toggleSection(section.label)}
+                  aria-expanded={isOpen}
+                  className={cn(
+                    'flex w-full items-center justify-between rounded-md px-3 py-2 text-xs font-bold uppercase tracking-wide transition-colors',
+                    sectionHasActiveItem
+                      ? 'bg-[--color-sidebar-active]/40 text-white'
+                      : 'text-[--color-sidebar-muted] hover:bg-white/5 hover:text-white',
+                  )}
+                >
+                  <span className="flex items-center gap-2">
+                    {section.label}
+                    <span className="rounded-full bg-white/10 px-1.5 py-0.5 text-[0.6rem] font-semibold normal-case tracking-normal text-[--color-sidebar-muted]">
+                      {section.items.length}
+                    </span>
+                  </span>
+                  <ChevronDown
+                    className={cn('h-3.5 w-3.5 shrink-0 transition-transform', isOpen && 'rotate-180')}
+                    aria-hidden="true"
+                  />
+                </button>
+                {isOpen && (
+                  <div className="mb-2 mt-0.5 flex flex-col gap-0.5 border-l border-[--color-sidebar-border] pl-2">
+                    {section.items.map((item) => (
+                      <NavLink
+                        key={`${section.label}-${item.label}`}
+                        to={item.to}
+                        end={item.to === '/'}
+                        onClick={onClose}
+                        title={item.gap ? `${item.label} (tela dedicada prevista em onda futura)` : undefined}
+                        className={({ isActive }) =>
+                          cn(
+                            'flex items-center justify-between rounded-md px-3 py-1.5 text-sm font-medium text-[--color-sidebar-foreground] transition-colors hover:bg-[--color-sidebar-active] hover:text-white',
+                            isActive && 'bg-[--color-sidebar-active] text-white',
+                          )
+                        }
+                      >
+                        <span>{item.label}</span>
+                        {item.gap && (
+                          <span
+                            aria-hidden="true"
+                            title="Tela dedicada prevista em onda futura -- ainda reaproveita a tela existente mais próxima"
+                            className="h-1.5 w-1.5 shrink-0 rounded-full bg-amber-400"
+                          />
+                        )}
+                      </NavLink>
+                    ))}
+                  </div>
+                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </nav>
       </aside>
     </>
