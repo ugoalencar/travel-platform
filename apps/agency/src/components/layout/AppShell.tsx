@@ -54,7 +54,7 @@ export function AppShell() {
   }
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-[--color-canvas]">
+    <div className="flex h-screen w-full overflow-hidden bg-(--color-canvas)">
       <Sidebar
         mobileOpen={mobileNavOpen}
         onClose={() => setMobileNavOpen(false)}

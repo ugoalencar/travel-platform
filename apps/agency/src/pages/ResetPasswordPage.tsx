@@ -27,14 +27,14 @@ export function ResetPasswordPage() {
 
   if (!token) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[--color-canvas] px-4">
+      <div className="flex min-h-screen items-center justify-center bg-(--color-canvas) px-4">
         <p className="text-sm text-red-600">Link de redefinição inválido.</p>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[--color-canvas] px-4">
+    <div className="flex min-h-screen items-center justify-center bg-(--color-canvas) px-4">
       <div className="w-full max-w-sm rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
         <h1 className="mb-1 text-xl font-semibold text-slate-900">Definir nova senha</h1>
         {done ? (

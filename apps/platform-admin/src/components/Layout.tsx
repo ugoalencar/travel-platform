@@ -101,14 +101,14 @@ export function Layout() {
     <div className="flex h-screen bg-slate-50">
       {/* Sidebar -- governance palette (indigo/violet), distinct from the
        * Agency app's slate/blue operational sidebar. */}
-      <aside className="flex w-64 shrink-0 flex-col bg-[--color-sidebar] text-white shadow-lg">
-        <div className="flex items-center gap-2 border-b border-[--color-sidebar-border] p-5">
+      <aside className="flex w-64 shrink-0 flex-col bg-(--color-sidebar) text-white shadow-lg">
+        <div className="flex items-center gap-2 border-b border-(--color-sidebar-border) p-5">
           <span className="flex h-8 w-8 items-center justify-center rounded-md bg-violet-600 text-white">
             <ShieldCheck size={18} />
           </span>
           <div>
             <p className="text-sm font-bold leading-tight">Admin da Plataforma</p>
-            <p className="text-[0.7rem] leading-tight text-[--color-sidebar-muted]">
+            <p className="text-[0.7rem] leading-tight text-(--color-sidebar-muted)">
               Controle central do SaaS
             </p>
           </div>
@@ -117,7 +117,7 @@ export function Layout() {
         <nav className="flex flex-1 flex-col gap-4 overflow-y-auto px-3 py-4">
           {NAV_SECTIONS.map((section) => (
             <div key={section.label} className="space-y-1">
-              <p className="px-3 text-[0.65rem] font-bold uppercase tracking-wide text-[--color-sidebar-muted]">
+              <p className="px-3 text-[0.65rem] font-bold uppercase tracking-wide text-(--color-sidebar-muted)">
                 {section.label}
               </p>
               <div className="flex flex-col gap-0.5">
@@ -207,8 +207,8 @@ function NavLink({
       title={title}
       className={`flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
         isActive
-          ? 'bg-[--color-sidebar-active] text-white'
-          : 'text-[--color-sidebar-foreground] hover:bg-[--color-sidebar-active] hover:text-white'
+          ? 'bg-(--color-sidebar-active) text-white'
+          : 'text-(--color-sidebar-foreground) hover:bg-(--color-sidebar-active) hover:text-white'
       }`}
     >
       {children}

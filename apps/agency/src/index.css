@@ -45,5 +45,5 @@
 }
 
 body {
-  @apply bg-[--color-canvas] text-slate-900 antialiased;
+  @apply bg-(--color-canvas) text-slate-900 antialiased;
 }

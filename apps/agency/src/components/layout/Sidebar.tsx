@@ -211,11 +211,11 @@ export function Sidebar({ mobileOpen, onClose, role }: SidebarProps) {
       )}
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 -translate-x-full flex-col bg-[--color-sidebar] transition-transform md:static md:z-auto md:w-64 md:translate-x-0',
+          'fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 -translate-x-full flex-col bg-(--color-sidebar) transition-transform md:static md:z-auto md:w-64 md:translate-x-0',
           mobileOpen && 'translate-x-0',
         )}
       >
-        <div className="flex h-14 shrink-0 items-center gap-2 border-b border-[--color-sidebar-border] px-4">
+        <div className="flex h-14 shrink-0 items-center gap-2 border-b border-(--color-sidebar-border) px-4">
           <span className="flex h-7 w-7 items-center justify-center rounded-md bg-blue-500 text-xs font-bold text-white">
             TP
           </span>
@@ -224,23 +224,23 @@ export function Sidebar({ mobileOpen, onClose, role }: SidebarProps) {
           </span>
         </div>
         {isOperationalStaff && (
-          <p className="border-b border-[--color-sidebar-border] px-4 py-2 text-[0.68rem] font-semibold uppercase tracking-wide text-[--color-sidebar-muted]">
+          <p className="border-b border-(--color-sidebar-border) px-4 py-2 text-[0.68rem] font-semibold uppercase tracking-wide text-(--color-sidebar-muted)">
             Ambiente Operacional
           </p>
         )}
         {!isOperationalStaff && (
-          <div className="flex items-center justify-end gap-3 border-b border-[--color-sidebar-border] px-3 py-1.5">
+          <div className="flex items-center justify-end gap-3 border-b border-(--color-sidebar-border) px-3 py-1.5">
             <button
               type="button"
               onClick={() => setOpenSections(new Set(sections.map((s) => s.label)))}
-              className="text-[0.65rem] font-medium uppercase tracking-wide text-[--color-sidebar-muted] hover:text-white"
+              className="text-[0.65rem] font-medium uppercase tracking-wide text-(--color-sidebar-muted) hover:text-white"
             >
               Expandir tudo
             </button>
             <button
               type="button"
               onClick={() => setOpenSections(new Set())}
-              className="text-[0.65rem] font-medium uppercase tracking-wide text-[--color-sidebar-muted] hover:text-white"
+              className="text-[0.65rem] font-medium uppercase tracking-wide text-(--color-sidebar-muted) hover:text-white"
             >
               Recolher tudo
             </button>
@@ -261,13 +261,13 @@ export function Sidebar({ mobileOpen, onClose, role }: SidebarProps) {
                   className={cn(
                     'flex w-full items-center justify-between rounded-md px-3 py-2 text-xs font-bold uppercase tracking-wide transition-colors',
                     sectionHasActiveItem
-                      ? 'bg-[--color-sidebar-active]/40 text-white'
-                      : 'text-[--color-sidebar-muted] hover:bg-white/5 hover:text-white',
+                      ? 'bg-(--color-sidebar-active)/40 text-white'
+                      : 'text-(--color-sidebar-muted) hover:bg-white/5 hover:text-white',
                   )}
                 >
                   <span className="flex items-center gap-2">
                     {section.label}
-                    <span className="rounded-full bg-white/10 px-1.5 py-0.5 text-[0.6rem] font-semibold normal-case tracking-normal text-[--color-sidebar-muted]">
+                    <span className="rounded-full bg-white/10 px-1.5 py-0.5 text-[0.6rem] font-semibold normal-case tracking-normal text-(--color-sidebar-muted)">
                       {section.items.length}
                     </span>
                   </span>
@@ -277,7 +277,7 @@ export function Sidebar({ mobileOpen, onClose, role }: SidebarProps) {
                   />
                 </button>
                 {isOpen && (
-                  <div className="mb-2 mt-0.5 flex flex-col gap-0.5 border-l border-[--color-sidebar-border] pl-2">
+                  <div className="mb-2 mt-0.5 flex flex-col gap-0.5 border-l border-(--color-sidebar-border) pl-2">
                     {section.items.map((item) => (
                       <NavLink
                         key={`${section.label}-${item.label}`}
@@ -287,8 +287,8 @@ export function Sidebar({ mobileOpen, onClose, role }: SidebarProps) {
                         title={item.gap ? `${item.label} (tela dedicada prevista em onda futura)` : undefined}
                         className={({ isActive }) =>
                           cn(
-                            'flex items-center justify-between rounded-md px-3 py-1.5 text-sm font-medium text-[--color-sidebar-foreground] transition-colors hover:bg-[--color-sidebar-active] hover:text-white',
-                            isActive && 'bg-[--color-sidebar-active] text-white',
+                            'flex items-center justify-between rounded-md px-3 py-1.5 text-sm font-medium text-(--color-sidebar-foreground) transition-colors hover:bg-(--color-sidebar-active) hover:text-white',
+                            isActive && 'bg-(--color-sidebar-active) text-white',
                           )
                         }
                       >
