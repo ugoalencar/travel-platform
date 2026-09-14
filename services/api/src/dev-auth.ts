@@ -99,17 +99,40 @@ export function createServerAccessValidator(
 // so its (userId, agencyId) pair is trustworthy by construction -- but
 // establishTenant's validateUserAgencyAccess gate runs unconditionally
 // regardless of which AuthProvider resolved the principal, and until now
-// only ever recognized the two hardcoded dev principals above. Mirrors
-// createCustomerAccessValidator's real-DB-query shape (customer-portal.ts)
-// exactly, so a real staff login is never rejected here just because
-// ALLOW_DEV_AUTH happens to be off (or the principal isn't the dev demo
-// user).
+// only ever recognized the two hardcoded dev principals above.
+//
+// users_select_tenant's RLS policy (002_rls_policies.sql) is
+// `USING (agency_id = current_agency_id())` -- current_agency_id() reads
+// current_setting('app.current_agency_id', TRUE), which is NULL/empty on
+// a fresh connection. A bare pool.query() with no tenant context set
+// therefore always returns zero rows under this role (travel_app_runtime_local
+// is NOBYPASSRLS by design -- see env.ts's assertSafeDatabaseRole), which
+// silently 403s every real staff session. Confirmed empirically against a
+// real Postgres role while dry-running Track B locally
+// (docker-compose.local-staging.yml) -- local dev testing had missed this
+// because a pooled connection
+// happened to still carry tenant context left over from the immediately
+// preceding login request. Fixed here by explicitly setting tenant context
+// via set_tenant_context() inside a short read-only transaction before the
+// SELECT, exactly like every other tenant-scoped query in this codebase.
 export function createStaffAccessValidator(pool: Pool): ValidateUserAgencyAccess {
   return async function validateStaffAgencyAccess(userId, agencyId) {
-    const result = await pool.query(
-      `SELECT 1 FROM users WHERE id = $1 AND agency_id = $2 AND status = 'ACTIVE'`,
-      [userId, agencyId],
-    );
+    const client = await pool.connect();
+    let result: { rowCount: number | null };
+    try {
+      await client.query('BEGIN');
+      await client.query('SELECT set_tenant_context($1, $2)', [agencyId, userId]);
+      result = await client.query(
+        `SELECT 1 FROM users WHERE id = $1 AND agency_id = $2 AND status = 'ACTIVE'`,
+        [userId, agencyId],
+      );
+      await client.query('ROLLBACK');
+    } catch (error) {
+      await client.query('ROLLBACK').catch(() => undefined);
+      throw error;
+    } finally {
+      client.release();
+    }
     return (result.rowCount ?? 0) > 0;
   };
 }

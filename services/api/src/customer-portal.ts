@@ -22,13 +22,35 @@ import type { DatabaseRuntime } from './database';
 // ============================================================
 // Cross-tenant / cross-customer validator (production + dev use this
 // same function -- there is no "trust the dev header" shortcut here).
+//
+// customers_select_tenant's RLS policy is `USING (agency_id =
+// current_agency_id())`, which reads a per-transaction Postgres setting
+// that a bare pool.query() never sets -- so this always returned zero
+// rows (silently rejecting every real customer session) until fixed here.
+// Found by dry-running Track B locally against a real, NOBYPASSRLS role
+// (see services/api/src/dev-auth.ts's createStaffAccessValidator for the
+// same bug/fix on the staff side, with the full empirical trace). Fixed
+// by explicitly setting tenant context via set_tenant_context() inside a
+// short read-only transaction before the SELECT.
 // ============================================================
 export function createCustomerAccessValidator(pool: Pool): ValidateCustomerAgencyAccess {
   return async function validateCustomerAgencyAccess(customerId, agencyId) {
-    const result = await pool.query(
-      `SELECT 1 FROM customers WHERE id = $1 AND agency_id = $2 AND deleted_at IS NULL`,
-      [customerId, agencyId],
-    );
+    const client = await pool.connect();
+    let result: { rowCount: number | null };
+    try {
+      await client.query('BEGIN');
+      await client.query('SELECT set_tenant_context($1, $2)', [agencyId, customerId]);
+      result = await client.query(
+        `SELECT 1 FROM customers WHERE id = $1 AND agency_id = $2 AND deleted_at IS NULL`,
+        [customerId, agencyId],
+      );
+      await client.query('ROLLBACK');
+    } catch (error) {
+      await client.query('ROLLBACK').catch(() => undefined);
+      throw error;
+    } finally {
+      client.release();
+    }
     return (result.rowCount ?? 0) > 0;
   };
 }

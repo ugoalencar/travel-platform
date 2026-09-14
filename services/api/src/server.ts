@@ -38,31 +38,57 @@ const pool = new Pool({
   connectionTimeoutMillis: Number(process.env.DB_POOL_CONNECTION_TIMEOUT ?? 5000),
 });
 
-let app = buildApp({
-  authProvider: createServerAuthProvider(),
-  validateUserAgencyAccess: composeUserAgencyValidators(createServerAccessValidator(), createStaffAccessValidator(pool)),
-  database: createDatabaseRuntime(pool),
-  platformDatabase: createPlatformDatabaseRuntime(pool),
-  // Customer portal: identity comes only from createServerCustomerAuthProvider()
-  // (dev-only, dual-gated -- see dev-auth.ts). validateCustomerAgencyAccess is
-  // NOT dev-only -- it is a real DB query (customers table) run regardless of
-  // ALLOW_DEV_AUTH, so a misconfigured dev header can never grant access to a
-  // customer who does not actually belong to the resolved agency.
-  customerAuthProvider: createServerCustomerAuthProvider(),
-  validateCustomerAgencyAccess: createCustomerAccessValidator(pool),
-  readinessCheck: async () => {
-    await pool.query('SELECT 1');
-  },
-  dbPoolStats: () => ({
-    total: pool.totalCount,
-    idle: pool.idleCount,
-    waiting: pool.waitingCount,
-  }),
-});
+// Shared between both buildApp() call sites below (baseAppOptions +
+// rateLimit.store when external). Kept as a function, not a call-once
+// object, so nothing here is evaluated before we know whether an external
+// rate-limit store is required.
+function baseAppOptions() {
+  return {
+    authProvider: createServerAuthProvider(),
+    validateUserAgencyAccess: composeUserAgencyValidators(createServerAccessValidator(), createStaffAccessValidator(pool)),
+    database: createDatabaseRuntime(pool),
+    platformDatabase: createPlatformDatabaseRuntime(pool),
+    // Customer portal: identity comes only from createServerCustomerAuthProvider()
+    // (dev-only, dual-gated -- see dev-auth.ts). validateCustomerAgencyAccess is
+    // NOT dev-only -- it is a real DB query (customers table) run regardless of
+    // ALLOW_DEV_AUTH, so a misconfigured dev header can never grant access to a
+    // customer who does not actually belong to the resolved agency.
+    customerAuthProvider: createServerCustomerAuthProvider(),
+    validateCustomerAgencyAccess: createCustomerAccessValidator(pool),
+    readinessCheck: async () => {
+      await pool.query('SELECT 1');
+    },
+    dbPoolStats: () => ({
+      total: pool.totalCount,
+      idle: pool.idleCount,
+      waiting: pool.waitingCount,
+    }),
+  };
+}
+
+// buildApp()'s rate-limit hook throws synchronously when
+// RATE_LIMIT_STORE=external and no store has been injected yet (by design
+// -- see createRateLimitHooks in app.ts, a fail-closed guard against
+// silently falling back to the single-instance in-memory store in
+// production). The external Redis store can only be created async (below,
+// in main()), so building `app` here at module scope must be skipped
+// entirely in that case -- building it early and unconditionally would
+// crash on every production boot that uses external rate limiting, before
+// main() ever runs. `app` stays undefined until main() assigns it in that
+// path; every other path (no external store, e.g. plain `npm run dev`)
+// keeps building synchronously here exactly as before.
+const initialRuntimeConfig = resolveRateLimitRuntimeConfig(process.env);
+let app: ReturnType<typeof buildApp> | undefined =
+  initialRuntimeConfig.store === 'external' ? undefined : buildApp(baseAppOptions());
 
 let redisClientInstance: RedisClientInstance | undefined = undefined;
 
 async function gracefulShutdown(signal: string): Promise<void> {
+  if (!app) {
+    // Received a signal before main() finished standing up the app
+    // (external-rate-limit-store boot path only) -- nothing to drain yet.
+    return;
+  }
   app.log.info({ signal }, 'graceful shutdown initiated');
 
   try {
@@ -98,26 +124,16 @@ async function main(): Promise<void> {
     if (runtimeConfig.store === 'external') {
       const store = await createRedisRateLimitStore(process.env);
       redisClientInstance = store.redisClient;
-      // Recreate app with Redis store if configured
-      app = buildApp({
-        authProvider: createServerAuthProvider(),
-        validateUserAgencyAccess: composeUserAgencyValidators(createServerAccessValidator(), createStaffAccessValidator(pool)),
-        database: createDatabaseRuntime(pool),
-        platformDatabase: createPlatformDatabaseRuntime(pool),
-        customerAuthProvider: createServerCustomerAuthProvider(),
-        validateCustomerAgencyAccess: createCustomerAccessValidator(pool),
-        readinessCheck: async () => {
-          await pool.query('SELECT 1');
-        },
-        dbPoolStats: () => ({
-          total: pool.totalCount,
-          idle: pool.idleCount,
-          waiting: pool.waitingCount,
-        }),
-        rateLimit: {
-          store,
-        },
-      });
+      // First (and only, on this path) buildApp() call -- app was left
+      // undefined at module scope specifically so this is where it happens.
+      app = buildApp({ ...baseAppOptions(), rateLimit: { store } });
+    }
+
+    // Invariant: app is assigned either at module scope (non-external
+    // store) or just above (external store) -- always defined by this
+    // point. Narrows the type rather than asserting past a real gap.
+    if (!app) {
+      throw new Error('Internal error: app was not initialized before startup.');
     }
 
     // DB runtime role guard (production only): refuses to start if the
@@ -128,7 +144,7 @@ async function main(): Promise<void> {
     await app.listen({ port, host });
     app.log.info({ host, port, service: 'api' }, 'service started');
   } catch (error: unknown) {
-    app.log.error(error);
+    app?.log.error(error);
     process.exitCode = 1;
   }
 }

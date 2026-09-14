@@ -1,6 +1,9 @@
 # Staging Deploy Runbook
 
-**Status:** Artifacts prepared, nothing provisioned yet (2026-09-14).
+**Status:** Local dry run passed (2026-09-14) — real HTTPS, real Postgres
+with RLS enforced, real Redis, true `NODE_ENV=production` gates, all
+running against the actual Dockerfile the real host will use. Nothing on
+Vercel/Supabase/a real Node host is provisioned yet.
 **Owner of provisioning:** the user — this session has no Vercel team
 connected and no Supabase/Node-host/Redis credentials. Everything below is
 written so provisioning can happen in one pass once those exist.
@@ -10,6 +13,75 @@ Supersedes the "future architecture" framing in
 `infrastructure/terraform/*` for this environment — it targets GCP and has
 never been applied; it is not the chosen path (per explicit product
 decision, not because it's broken).
+
+## Local dry run (do this before touching Vercel/Supabase)
+
+`infrastructure/docker-compose.local-staging.yml` reproduces the real
+target shape entirely on this machine, so every mistake below was caught
+*before* burning a real deploy cycle:
+
+```
+cd infrastructure
+docker compose -f docker-compose.local-staging.yml -p travel-platform-local-staging up -d postgres-staging redis-staging
+# wait for both healthy, then apply all 62 migrations + tests/integration/database/002_prepare_local_roles.sql
+# against postgres-staging (127.0.0.1:55433, db travel_platform_staging, admin user travel_staging_admin)
+# -- see git history for the one-off seed script used during this dry run (not committed; write your own
+# or adapt scripts/bootstrap-local-db.cjs's shape).
+
+# Build the 4 apps with NO VITE_API_BASE_URL set -- Caddy proxies each
+# app's own /api, /customer-api, /customer-auth, /platform-auth, /public
+# paths to the API container per-origin (Caddyfile.local-staging), exactly
+# mirroring each app's own vite.config.ts dev-proxy path conventions. This
+# is deliberate: it's what caught the /api-prefix mismatch bug below.
+(cd ../apps/agency && npx vite build)
+(cd ../apps/customer && npx vite build)
+(cd ../apps/platform-admin && npx vite build)
+(cd ../apps/marketing && npx vite build)
+
+docker compose -f docker-compose.local-staging.yml -p travel-platform-local-staging build api-staging
+docker compose -f docker-compose.local-staging.yml -p travel-platform-local-staging up -d api-staging caddy-staging
+```
+
+Then open `https://agency.localhost`, `https://portal.localhost`,
+`https://admin.localhost`, `https://www.localhost` (all resolve to
+loopback automatically, RFC 6761, no `/etc/hosts` edit needed). The
+browser will warn about the certificate (Caddy's local/internal CA, not a
+publicly trusted one) — that's expected for a local dry run only.
+
+**Three real bugs this dry run caught, all fixed in this pass, none of
+which any earlier local-dev-server testing had exposed:**
+
+1. **`server.ts` crashed on every production boot with
+   `RATE_LIMIT_STORE=external`.** The module-level `buildApp()` call ran
+   synchronously before the async Redis store existed, and
+   `createRateLimitHooks` fails closed (by design) rather than silently
+   using the single-instance in-memory store in production. Fixed by
+   deferring that first `buildApp()` call until after the Redis store is
+   ready when an external store is required.
+2. **`createStaffAccessValidator` and `createCustomerAccessValidator`
+   (dev-auth.ts / customer-portal.ts) silently 403'd every real
+   session.** Both ran a bare `pool.query()` against a table whose RLS
+   `SELECT` policy requires `agency_id = current_agency_id()` — a
+   per-transaction Postgres setting a bare query never sets. Earlier local
+   testing missed this because a reused pooled connection happened to
+   still carry tenant context from the immediately preceding request.
+   Fixed by explicitly calling `set_tenant_context()` inside a short
+   read-only transaction before each check.
+3. **Every built frontend app calls its API relative to its own origin
+   with app-specific path prefixes** (`/api/*` for agency and
+   platform-admin, `/api/*` + `/customer-api/*` + `/customer-auth/*` for
+   customer, `/public/*` for marketing) that only existed as *dev-proxy*
+   rewrites (`vite.config.ts`), never as a real routing layer. A naive
+   Vercel deploy pointing `VITE_API_BASE_URL` straight at the API host
+   would 404 on every `/api/*` call, since the backend registers those
+   routes with no `/api` prefix at all. `Caddyfile.local-staging` proxies
+   each origin's paths to the API with the same prefix-stripping the dev
+   proxy does — the real Vercel deploy needs the equivalent (Vercel
+   `rewrites` in each app's `vercel.json`, or fix the frontend calls to
+   drop the prefix — not yet decided, see Step 4 below). Also surfaced
+   `apps/marketing`'s `fetch('/public/leads')` calls, which had no
+   `/api` prefix and no proxy entry at all even in local `vite dev` — a
+   pre-existing app-level bug, not something this pass fixes.
 
 ## Topology
 
@@ -101,11 +173,33 @@ For each app, when creating the Vercel project:
 1. **Root Directory**: set to `apps/agency` (or customer/platform-admin/
    marketing respectively) — this is what makes `cd ../..` in
    `buildCommand` land at the repo root.
-2. **Environment variable**: `VITE_API_BASE_URL` = the Node host's HTTPS
-   URL from Step 3 (e.g. `https://api-staging.<domain>`). This is the only
-   env var these apps read (`import.meta.env.VITE_API_BASE_URL` in each
-   app's `src/lib/*.ts`).
-3. Attach a subdomain per app (agency./portal./admin./www.) with Vercel's
+2. **`/api`-prefix problem (found by the local dry run above, NOT yet
+   resolved here)**: setting `VITE_API_BASE_URL` to the Node host's URL and
+   calling it a day will 404 every request — the frontend code calls
+   `${VITE_API_BASE_URL}/api/...`, but the backend registers routes with
+   no `/api` prefix (that stripping only happens in each app's local
+   `vite.config.ts` dev proxy). Two real options, neither implemented yet:
+   - **(a) Vercel rewrites** — add a `rewrites` entry to each app's
+     `vercel.json` proxying `/api/(.*)` (and, for `apps/customer`,
+     `/customer-api/(.*)`, `/customer-auth/(.*)`; for `apps/platform-admin`,
+     `/platform-auth/(.*)`; for `apps/marketing`, `/public/(.*)`) to the
+     Node host with the prefix stripped, then leave `VITE_API_BASE_URL`
+     unset so calls stay relative to the Vercel origin (same-origin from
+     the browser's perspective — also sidesteps CORS entirely for those
+     apps, though `CORS_ALLOWED_ORIGINS` from Step 5 is still required for
+     `services/api` to accept the request when it does cross an origin,
+     e.g. during local dev). This is what `Caddyfile.local-staging` already
+     does and is the closest like-for-like port of what was just verified
+     working.
+   - **(b) Fix the frontend call sites** to not assume a stripped prefix
+     (bigger, touches every `src/lib/*.ts` API client across all 4 apps).
+   Pick one before the first real Vercel deploy — do not assume (a) is
+   already wired just because the Caddy file demonstrates the shape.
+3. **Environment variable**: `VITE_API_BASE_URL` — only needed if going
+   with option (b) above, or if NOT using Vercel rewrites; leave unset if
+   using (a). This is the only env var these apps read
+   (`import.meta.env.VITE_API_BASE_URL` in each app's `src/lib/*.ts`).
+4. Attach a subdomain per app (agency./portal./admin./www.) with Vercel's
    automatic HTTPS.
 
 ## Step 5 — CORS

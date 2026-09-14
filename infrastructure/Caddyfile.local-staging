@@ -1,0 +1,87 @@
+{
+	local_certs
+}
+
+# Mirrors each app's local Vite dev-proxy path conventions exactly (see
+# apps/*/vite.config.ts), because the app code itself calls these paths
+# relative to its OWN origin with no reverse-proxy layer once built for
+# production -- something this local-staging dry run exists specifically to
+# catch before a real Vercel deploy. /api/* is stripped to match
+# vite.config.ts's `rewrite: path => path.replace(/^\/api/, '')`;
+# /customer-api, /customer-auth, /platform-auth, /public are passed through
+# unchanged because the backend registers those exact prefixes itself.
+
+agency.localhost {
+	handle /api/* {
+		uri strip_prefix /api
+		reverse_proxy api-staging:3000
+	}
+	handle {
+		root * /srv/agency
+		encode gzip
+		try_files {path} /index.html
+		file_server
+	}
+}
+
+portal.localhost {
+	handle /api/* {
+		uri strip_prefix /api
+		reverse_proxy api-staging:3000
+	}
+	handle /customer-api/* {
+		reverse_proxy api-staging:3000
+	}
+	handle /customer-auth/* {
+		reverse_proxy api-staging:3000
+	}
+	handle {
+		root * /srv/customer
+		encode gzip
+		try_files {path} /index.html
+		file_server
+	}
+}
+
+admin.localhost {
+	handle /api/* {
+		uri strip_prefix /api
+		reverse_proxy api-staging:3000
+	}
+	handle /platform-auth/* {
+		reverse_proxy api-staging:3000
+	}
+	handle {
+		root * /srv/platform-admin
+		encode gzip
+		try_files {path} /index.html
+		file_server
+	}
+}
+
+www.localhost {
+	# apps/marketing/src/pages/{DemoRequest,TrialSignup}.tsx call
+	# fetch('/public/leads') with NO /api prefix and no VITE_API_BASE_URL --
+	# a pre-existing gap in the marketing app itself (its own vite.config.ts
+	# proxy only ever handled /api/*, never /public/*, so this call already
+	# 404s in local `vite dev` too). Proxied here so the local-staging dry
+	# run can still exercise it; the real fix belongs in the marketing app's
+	# own fetch call, not papered over at the infra layer long-term.
+	handle /public/* {
+		reverse_proxy api-staging:3000
+	}
+	handle /api/* {
+		uri strip_prefix /api
+		reverse_proxy api-staging:3000
+	}
+	handle {
+		root * /srv/marketing
+		encode gzip
+		try_files {path} /index.html
+		file_server
+	}
+}
+
+api.localhost {
+	reverse_proxy api-staging:3000
+}
