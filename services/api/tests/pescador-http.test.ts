@@ -212,7 +212,8 @@ describe('Pescador HTTP routes', () => {
       headers: { 'x-test-principal': 'agent' },
     });
     expect(response.statusCode).toBe(403);
-    expect(response.json()).toMatchObject({ error: expect.stringContaining('not entitled') });
+    const body: { error: string } = response.json();
+    expect(body.error).toContain('not entitled');
 
     await adminPool.query(
       `UPDATE agency_entitlements SET enabled = true WHERE agency_id = $1 AND feature = 'PESCADOR'`,
