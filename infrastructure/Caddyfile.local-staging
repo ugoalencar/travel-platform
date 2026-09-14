@@ -35,6 +35,15 @@ portal.localhost {
 	handle /customer-auth/* {
 		reverse_proxy api-staging:3000
 	}
+	# AcceptInvitationPage.tsx calls fetch('/invitations/:token') and
+	# fetch('/invitations/:token/accept') directly, no /api prefix -- the
+	# backend registers these public routes with no prefix
+	# (routes/settings-expanded.ts). Another pre-existing gap: no proxy
+	# entry for this existed even in apps/customer's own local `vite dev`
+	# before this pass (found the same way as /public/leads above).
+	handle /invitations/* {
+		reverse_proxy api-staging:3000
+	}
 	handle {
 		root * /srv/customer
 		encode gzip

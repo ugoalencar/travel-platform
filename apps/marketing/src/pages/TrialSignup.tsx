@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { agencyLoginUrl } from '../lib/agencyAppUrl';
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
 
 export function TrialSignup() {
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const [form, setForm] = useState({
+    contactName: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -21,8 +22,8 @@ export function TrialSignup() {
     setError('');
 
     // Validate
-    if (!form.email || !form.agencyName) {
-      setError('Nome da agência e email são obrigatórios');
+    if (!form.email || !form.agencyName || !form.contactName) {
+      setError('Nome, agência e email são obrigatórios');
       return;
     }
 
@@ -44,31 +45,32 @@ export function TrialSignup() {
     setLoading(true);
 
     try {
-      // Create lead
-      const utmSource = searchParams.get('utm_source') || 'organic';
-
-      const leadResponse = await fetch('/public/leads', {
+      // Real agency provisioning -- creates the agencies row and the
+      // first OWNER user for real (services/api/src/agency-signup.ts),
+      // not a lead. The session it returns lives on this (marketing)
+      // origin's sessionStorage, which apps/agency can't read across
+      // origins -- so this intentionally does NOT try to smuggle the
+      // token across via the URL (that would leak it into browser
+      // history/referrers). The account is already real at this point;
+      // the redirect below just asks the OWNER to log in once more on
+      // the app that actually owns the session.
+      const response = await fetch(`${API_BASE_URL}/api/agencies/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: form.agencyName,
-          email: form.email,
-          companyName: form.agencyName,
-          source: 'TRIAL_SIGNUP',
-          utmSource: utmSource,
+          agencyName: form.agencyName,
+          contactName: form.contactName,
+          contactEmail: form.email,
+          password: form.password,
         }),
       });
 
-      if (!leadResponse.ok) {
-        throw new Error('Falha ao criar lead');
+      if (!response.ok) {
+        const body = (await response.json().catch(() => ({}))) as { error?: string };
+        throw new Error(body.error ?? 'Falha ao criar a conta');
       }
 
       setSuccess(true);
-
-      // Redirect to login after 2 seconds
-      setTimeout(() => {
-        void navigate(`/login?email=${encodeURIComponent(form.email)}`);
-      }, 2000);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : 'Erro ao processar sua solicitação'
@@ -84,14 +86,18 @@ export function TrialSignup() {
         <div className="max-w-md w-full bg-white p-8 rounded-lg shadow text-center">
           <div className="text-5xl mb-4">✅</div>
           <h1 className="text-2xl font-bold text-green-600 mb-2">
-            Teste Ativado!
+            Conta criada!
           </h1>
-          <p className="text-gray-600 mb-4">
-            Um email de confirmação foi enviado para <strong>{form.email}</strong>
+          <p className="text-gray-600 mb-6">
+            Sua agência <strong>{form.agencyName}</strong> foi criada. Entre com <strong>{form.email}</strong> e a
+            senha que você definiu.
           </p>
-          <p className="text-gray-500 text-sm">
-            Redirecionando para login...
-          </p>
+          <a
+            href={agencyLoginUrl()}
+            className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700"
+          >
+            Ir para o login
+          </a>
         </div>
       </div>
     );
@@ -110,6 +116,20 @@ export function TrialSignup() {
         </div>
 
         <form onSubmit={(event) => void handleSubmit(event)} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Seu nome
+            </label>
+            <input
+              type="text"
+              value={form.contactName}
+              onChange={(e) => setForm({ ...form, contactName: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Seu nome completo"
+              required
+            />
+          </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Nome da Agência
@@ -203,7 +223,7 @@ export function TrialSignup() {
 
           <p className="text-center text-sm text-gray-600">
             Já tem uma conta?{' '}
-            <a href="/login" className="text-blue-600 hover:underline font-medium">
+            <a href={agencyLoginUrl()} className="text-blue-600 hover:underline font-medium">
               Faça login
             </a>
           </p>

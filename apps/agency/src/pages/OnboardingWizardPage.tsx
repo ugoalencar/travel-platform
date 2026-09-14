@@ -37,6 +37,7 @@ export function OnboardingWizardPage() {
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState<'ADMIN' | 'MANAGER' | 'AGENT' | 'VIEWER'>('AGENT');
   const [invitedCount, setInvitedCount] = useState(0);
+  const [lastInviteLink, setLastInviteLink] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -121,7 +122,18 @@ export function OnboardingWizardPage() {
     setSaving(true);
     setError(null);
     try {
-      await api.post('/settings/invitations', { email: inviteEmail.trim(), role: inviteRole });
+      const { data } = await api.post<{ token: string }>('/settings/invitations', {
+        email: inviteEmail.trim(),
+        role: inviteRole,
+      });
+      // No email provider exists anywhere in this codebase yet (see
+      // docs/deployment/STAGING_DEPLOY_RUNBOOK.md's Known Gaps) -- show
+      // the real activation link directly so it can be copied/handed to
+      // the invitee manually, same pattern as CustomerPortalAccessCard
+      // and EnrollmentLinksPage.
+      const portalOrigin = window.location.hostname.replace(/^agency\./, 'portal.');
+      const link = `${window.location.protocol}//${portalOrigin}${window.location.port ? `:${window.location.port}` : ''}/accept-invitation/${data.token}`;
+      setLastInviteLink(link);
       setInvitedCount((n) => n + 1);
       setInviteEmail('');
     } catch (err) {
@@ -310,6 +322,16 @@ export function OnboardingWizardPage() {
               <p className="text-sm text-emerald-700">
                 {invitedCount} {invitedCount === 1 ? 'convite enviado' : 'convites enviados'}.
               </p>
+            )}
+            {lastInviteLink && (
+              <div className="rounded-md bg-slate-50 p-3">
+                <p className="mb-1 text-xs text-slate-500">
+                  Link de ativação (sem provedor de email configurado — copie e envie manualmente):
+                </p>
+                <a href={lastInviteLink} className="break-all text-xs text-blue-700 hover:underline">
+                  {lastInviteLink}
+                </a>
+              </div>
             )}
             <button
               onClick={() => void goToStep('done')}

@@ -8,6 +8,7 @@
     { "source": "/api/(.*)", "destination": "__API_ORIGIN__/$1" },
     { "source": "/customer-api/(.*)", "destination": "__API_ORIGIN__/customer-api/$1" },
     { "source": "/customer-auth/(.*)", "destination": "__API_ORIGIN__/customer-auth/$1" },
+    { "source": "/invitations/(.*)", "destination": "__API_ORIGIN__/invitations/$1" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

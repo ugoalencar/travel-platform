@@ -13,6 +13,7 @@ import { Input } from '../components/ui/input';
 import { Select } from '../components/ui/select';
 import {
   ApiError,
+  api,
   getCustomer,
   updateCustomer,
   listTripsByCustomer,
@@ -692,6 +693,7 @@ export function CustomerDetailPage() {
                 </div>
               </CardContent>
             </Card>
+            <CustomerPortalAccessCard customer={customer} />
           </div>
         </div>
       )}
@@ -1343,5 +1345,73 @@ export function CustomerDetailPage() {
         </form>
       </Modal>
     </div>
+  );
+}
+
+// Navigable Pilot Flow track: grants (or re-grants) this customer access to
+// the Customer Portal. Reuses the existing forgot/reset-password machinery
+// as the activation path -- no new token system. Shows the raw activation
+// link directly (no email provider exists anywhere in this codebase yet;
+// see docs/deployment/STAGING_DEPLOY_RUNBOOK.md's Known Gaps) so staff can
+// copy/hand it to the customer, same as EnrollmentLinksPage.tsx already
+// does for enrollment links.
+function CustomerPortalAccessCard({ customer }: { customer: Customer }) {
+  const [email, setEmail] = useState(customer.email ?? '');
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [activationLink, setActivationLink] = useState<string | null>(null);
+
+  async function handleGrant(event: React.FormEvent) {
+    event.preventDefault();
+    if (!email.trim()) return;
+    setSubmitting(true);
+    setError(null);
+    setActivationLink(null);
+    try {
+      const { data } = await api.post<{ activationToken: string }>(`/customers/${customer.id}/portal-access`, {
+        email: email.trim(),
+      });
+      const portalOrigin = window.location.hostname.replace(/^agency\./, 'portal.');
+      const link = `${window.location.protocol}//${portalOrigin}${window.location.port ? `:${window.location.port}` : ''}/customer-portal/reset-password?token=${data.activationToken}`;
+      setActivationLink(link);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Não foi possível conceder acesso ao portal.');
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <Card>
+      <CardHeader><CardTitle>Acesso ao Portal do Cliente</CardTitle></CardHeader>
+      <CardContent className="space-y-3">
+        <form onSubmit={(e) => void handleGrant(e)} className="space-y-2">
+          <label className="text-xs text-slate-500">
+            E-mail do cliente
+            <Input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="mt-1"
+            />
+          </label>
+          <Button type="submit" size="sm" disabled={submitting}>
+            {submitting ? 'Gerando…' : 'Conceder acesso ao portal'}
+          </Button>
+        </form>
+        {error && <p className="text-sm text-red-600">{error}</p>}
+        {activationLink && (
+          <div className="rounded-md bg-slate-50 p-3">
+            <p className="mb-1 text-xs text-slate-500">
+              Link de ativação (sem provedor de email configurado — copie e envie manualmente):
+            </p>
+            <a href={activationLink} className="break-all text-xs text-blue-700 hover:underline">
+              {activationLink}
+            </a>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }

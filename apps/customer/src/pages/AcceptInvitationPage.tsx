@@ -19,6 +19,8 @@ export function AcceptInvitationPage() {
   const [submitState, setSubmitState] = useState<SubmitState>('idle');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [name, setName] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   useEffect(() => {
     if (!token) {
@@ -44,6 +46,14 @@ export function AcceptInvitationPage() {
       setErrorMessage('Informe seu nome.');
       return;
     }
+    if (password.length < 8) {
+      setErrorMessage('A senha deve ter pelo menos 8 caracteres.');
+      return;
+    }
+    if (password !== confirmPassword) {
+      setErrorMessage('As senhas não coincidem.');
+      return;
+    }
 
     setSubmitState('submitting');
     setErrorMessage(null);
@@ -51,7 +61,7 @@ export function AcceptInvitationPage() {
     fetch(`${API_BASE_URL}/invitations/${encodeURIComponent(token)}/accept`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: name.trim() }),
+      body: JSON.stringify({ name: name.trim(), password }),
     })
       .then(async (res) => {
         if (!res.ok) {
@@ -82,7 +92,7 @@ export function AcceptInvitationPage() {
   if (submitState === 'done') {
     return (
       <CenteredMessage>
-        Conta criada com sucesso! Você já pode entrar com seu e-mail cadastrado pela agência.
+        Conta criada com sucesso! Você já pode entrar com seu e-mail e a senha que definiu.
       </CenteredMessage>
     );
   }
@@ -102,6 +112,44 @@ export function AcceptInvitationPage() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
+            style={{
+              padding: '8px 10px',
+              borderRadius: 6,
+              border: '1px solid #d0d0d0',
+              fontSize: 14,
+              fontFamily: 'inherit',
+            }}
+          />
+        </label>
+
+        <label style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 13 }}>
+          <span style={{ fontWeight: 500, color: '#444' }}>Senha (mín. 8 caracteres) *</span>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            minLength={8}
+            autoComplete="new-password"
+            style={{
+              padding: '8px 10px',
+              borderRadius: 6,
+              border: '1px solid #d0d0d0',
+              fontSize: 14,
+              fontFamily: 'inherit',
+            }}
+          />
+        </label>
+
+        <label style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 13 }}>
+          <span style={{ fontWeight: 500, color: '#444' }}>Confirmar senha *</span>
+          <input
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required
+            minLength={8}
+            autoComplete="new-password"
             style={{
               padding: '8px 10px',
               borderRadius: 6,

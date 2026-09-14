@@ -400,7 +400,12 @@ export function classifyRateLimitRequest(method: string, url: string): RateLimit
   const path = url.split('?')[0] ?? url;
   const isWrite = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method);
 
-  if (path === '/auth/login' || path === '/customer-auth/login' || path === '/platform-auth/login') {
+  if (
+    path === '/auth/login' ||
+    path === '/customer-auth/login' ||
+    path === '/platform-auth/login' ||
+    path === '/agencies/signup'
+  ) {
     return RateLimitClass.AUTH_LOGIN;
   }
   if (/^\/(auth|customer-auth|platform-auth)\/(forgot|recover|reset)/.test(path)) {

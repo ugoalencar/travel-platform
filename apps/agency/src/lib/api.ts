@@ -2712,9 +2712,30 @@ export async function approveEnrollmentSubmission(
 // the specific functions above. Provides get, post, etc.
 // ============================================================
 
+// authHeaders()/handleAuthResponse() mirror request()'s Bearer-token
+// attachment and 401-clears-session handling above -- this object used to
+// call fetch() directly with no Authorization header at all, so every
+// caller (OnboardingWizardPage, SettingsPage, etc.) worked only by
+// accident under the dev-auth proxy and would 401 on every real login
+// (found while building the Navigable Pilot Flow track).
+function authHeaders(hasBody: boolean): HeadersInit {
+  const token = getSessionToken();
+  return {
+    ...(hasBody ? { 'Content-Type': 'application/json' } : {}),
+    ...(token ? { authorization: `Bearer ${token}` } : {}),
+  };
+}
+
+function handleAuthResponse(response: Response): void {
+  if (response.status === 401) {
+    clearSession();
+  }
+}
+
 export const api = {
   get: async <T>(path: string): Promise<{ data: T }> => {
-    const response = await fetch(`${API_BASE_URL}/api${path}`);
+    const response = await fetch(`${API_BASE_URL}/api${path}`, { headers: authHeaders(false) });
+    handleAuthResponse(response);
     if (!response.ok) {
       const body = (await safeJson(response)) as Partial<ApiErrorBody> | null;
       throw new ApiError(
@@ -2734,10 +2755,10 @@ export const api = {
     // entirely rather than stringifying `undefined`.
     const response = await fetch(`${API_BASE_URL}/api${path}`, {
       method: 'POST',
-      ...(body !== undefined
-        ? { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
-        : {}),
+      headers: authHeaders(body !== undefined),
+      ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
     });
+    handleAuthResponse(response);
     if (!response.ok) {
       const respBody = (await safeJson(response)) as Partial<ApiErrorBody> | null;
       throw new ApiError(
@@ -2753,10 +2774,10 @@ export const api = {
   patch: async <T>(path: string, body?: Record<string, unknown>): Promise<{ data: T }> => {
     const response = await fetch(`${API_BASE_URL}/api${path}`, {
       method: 'PATCH',
-      ...(body !== undefined
-        ? { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
-        : {}),
+      headers: authHeaders(body !== undefined),
+      ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
     });
+    handleAuthResponse(response);
     if (!response.ok) {
       const respBody = (await safeJson(response)) as Partial<ApiErrorBody> | null;
       throw new ApiError(
@@ -2770,7 +2791,8 @@ export const api = {
   },
 
   delete: async (path: string): Promise<void> => {
-    const response = await fetch(`${API_BASE_URL}/api${path}`, { method: 'DELETE' });
+    const response = await fetch(`${API_BASE_URL}/api${path}`, { method: 'DELETE', headers: authHeaders(false) });
+    handleAuthResponse(response);
     if (!response.ok) {
       const respBody = (await safeJson(response)) as Partial<ApiErrorBody> | null;
       throw new ApiError(

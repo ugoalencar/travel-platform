@@ -43,6 +43,24 @@ export async function login(agencySlug: string, email: string, password: string)
   return result;
 }
 
+export interface SignUpInput {
+  agencyName: string;
+  contactName: string;
+  contactEmail: string;
+  contactPhone?: string;
+  country?: string;
+  companyIdentifier?: string;
+  password: string;
+}
+
+export async function signUp(input: SignUpInput): Promise<LoginResult> {
+  const result = await postJson<LoginResult>('/api/agencies/signup', input);
+  if (result.state === 'FULLY_AUTHENTICATED') {
+    setSession(result.sessionToken, result.expiresAt);
+  }
+  return result;
+}
+
 export async function verifyMfa(mfaChallengeToken: string, code: string): Promise<LoginResult> {
   const result = await postJson<LoginResult>('/api/auth/mfa/verify', { sessionToken: mfaChallengeToken, code });
   if (result.state === 'FULLY_AUTHENTICATED') {

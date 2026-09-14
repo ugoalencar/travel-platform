@@ -43,6 +43,7 @@ import { registerInsuranceRoutes } from './routes/insurance';
 import { registerAuthRoutes } from './routes/auth';
 import { registerCustomerAuthRoutes } from './routes/customer-auth';
 import { registerPlatformAuthRoutes } from './routes/platform-auth';
+import { registerAgencySignupRoutes } from './routes/agency-signup';
 import {
   composeAuthProviders,
   composeCustomerAuthProviders,
@@ -328,6 +329,9 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
   registerPlatformAuthRoutes(app, {
     ...(options.platformDatabase ? { platformDatabase: options.platformDatabase } : {}),
     platformProtectedHooks,
+  });
+  registerAgencySignupRoutes(app, {
+    ...(options.platformDatabase ? { platformDatabase: options.platformDatabase } : {}),
   });
   registerPartnerCampaignsRoutes(app, { database: options.database, protectedHooks });
   registerProposalsRoutes(app, { database: options.database, protectedHooks });

@@ -22,6 +22,7 @@ import {
 import { listWishesByCustomer } from '../wishes';
 import { listTripsByCustomer } from '../trips';
 import { NotFoundError, ValidationError } from '../errors';
+import { grantCustomerPortalAccess } from '../customer-portal-access';
 
 export interface CustomerRoutesOptions {
   database: DatabaseRuntime;
@@ -113,6 +114,31 @@ export function registerCustomerRoutes(
       const trips = await listTripsByCustomer(database, request.params.id);
       return { trips };
     }
+  );
+
+  // Navigable Pilot Flow track: staff-granted Customer Portal access.
+  // Returns the raw activation link directly in the response (no email
+  // provider exists anywhere in this codebase yet -- see
+  // docs/deployment/STAGING_DEPLOY_RUNBOOK.md's Known Gaps) so staff can
+  // copy/hand it to the customer manually, same pattern already used by
+  // enrollment links (EnrollmentLinksPage.tsx).
+  app.post<{ Params: { id: string }; Body: { email?: string } }>(
+    '/customers/:id/portal-access',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      requireRole(UserRole.AGENT);
+      const email = request.body?.email;
+      if (typeof email !== 'string' || email.trim().length === 0) {
+        throw new ValidationError('Field "email" is required');
+      }
+      const result = await grantCustomerPortalAccess(database, request.params.id, email.trim());
+      reply.code(201);
+      return {
+        activationToken: result.activationToken,
+        expiresAt: result.expiresAt,
+        email: result.email,
+      };
+    },
   );
 }
 

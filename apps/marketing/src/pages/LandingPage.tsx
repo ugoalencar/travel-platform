@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { ArrowRight, CheckCircle } from 'lucide-react';
+import { agencyLoginUrl, agencySignupUrl } from '../lib/agencyAppUrl';
 
 export function LandingPage() {
   return (
@@ -9,9 +10,14 @@ export function LandingPage() {
         <h1 className="text-2xl font-bold text-blue-600">Travel Platform</h1>
         <div className="flex flex-wrap items-center gap-4 sm:gap-6">
           <Link to="/pricing" className="text-gray-700 hover:text-blue-600">Preços</Link>
-          <button className="bg-blue-600 text-white px-4 py-2 sm:px-6 rounded-lg hover:bg-blue-700">
+          <Link to="/demo" className="text-gray-700 hover:text-blue-600">Solicitar acesso</Link>
+          <a href={agencyLoginUrl()} className="text-gray-700 hover:text-blue-600">Entrar</a>
+          <a
+            href={agencySignupUrl()}
+            className="bg-blue-600 text-white px-4 py-2 sm:px-6 rounded-lg hover:bg-blue-700"
+          >
             Começar agora
-          </button>
+          </a>
         </div>
       </nav>
 
@@ -23,10 +29,13 @@ export function LandingPage() {
         <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
           Uma plataforma SaaS completa para agências controlarem reservas, clientes e operações em um só lugar.
         </p>
-        <button className="bg-blue-600 text-white px-8 py-4 rounded-lg hover:bg-blue-700 flex items-center gap-2 mx-auto">
+        <a
+          href={agencySignupUrl()}
+          className="bg-blue-600 text-white px-8 py-4 rounded-lg hover:bg-blue-700 inline-flex items-center gap-2 mx-auto"
+        >
           Iniciar teste grátis
           <ArrowRight size={20} />
-        </button>
+        </a>
       </section>
 
       {/* Recursos */}
@@ -43,9 +52,12 @@ export function LandingPage() {
       <section className="px-4 py-16 text-center bg-blue-600 text-white sm:px-8 sm:py-20">
         <h2 className="text-3xl font-bold mb-6 sm:text-4xl">Pronto para transformar sua agência?</h2>
         <p className="text-lg mb-8">Junte-se a agências de viagens que já usam nossa plataforma.</p>
-        <button className="bg-white text-blue-600 px-8 py-4 rounded-lg font-semibold hover:bg-gray-100">
+        <a
+          href={agencySignupUrl()}
+          className="bg-white text-blue-600 px-8 py-4 rounded-lg font-semibold hover:bg-gray-100 inline-block"
+        >
           Comece seu teste grátis hoje
-        </button>
+        </a>
       </section>
 
       {/* Rodapé */}

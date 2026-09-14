@@ -100,6 +100,12 @@ export default defineConfig(({ command }) => {
               '/api': devAuthProxyConfig(),
               '/customer-api': devCustomerAuthProxyConfig(),
               '/customer-auth': customerAuthProxyConfig(),
+              // AcceptInvitationPage.tsx calls fetch('/invitations/:token')
+              // directly, no /api prefix -- the backend registers this
+              // public route with no prefix (routes/settings-expanded.ts).
+              // Missing entirely before, so this 404'd even in local
+              // `vite dev` (found via the local-staging Caddy dry run).
+              '/invitations': customerAuthProxyConfig(),
             },
             middlewares: [
               /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
