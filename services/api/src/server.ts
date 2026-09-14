@@ -1,7 +1,7 @@
 import { Pool } from 'pg';
 import { buildApp } from './app';
 import { createCustomerAccessValidator } from './customer-portal';
-import { createDatabaseRuntime } from './database';
+import { createDatabaseRuntime, createPlatformDatabaseRuntime } from './database';
 import {
   createServerAccessValidator,
   createServerAuthProvider,
@@ -40,6 +40,7 @@ let app = buildApp({
   authProvider: createServerAuthProvider(),
   validateUserAgencyAccess: createServerAccessValidator(),
   database: createDatabaseRuntime(pool),
+  platformDatabase: createPlatformDatabaseRuntime(pool),
   // Customer portal: identity comes only from createServerCustomerAuthProvider()
   // (dev-only, dual-gated -- see dev-auth.ts). validateCustomerAgencyAccess is
   // NOT dev-only -- it is a real DB query (customers table) run regardless of
@@ -100,6 +101,7 @@ async function main(): Promise<void> {
         authProvider: createServerAuthProvider(),
         validateUserAgencyAccess: createServerAccessValidator(),
         database: createDatabaseRuntime(pool),
+        platformDatabase: createPlatformDatabaseRuntime(pool),
         customerAuthProvider: createServerCustomerAuthProvider(),
         validateCustomerAgencyAccess: createCustomerAccessValidator(pool),
         readinessCheck: async () => {

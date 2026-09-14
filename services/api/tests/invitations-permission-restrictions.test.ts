@@ -199,7 +199,7 @@ describe('Invitations + PermissionRestrictions data-access layer (Agent 01 SaaS 
     expect(info?.agencyId).toBe(agencyAId);
     expect(info?.email).toBe('accepted@example.test');
 
-    const result = await acceptInvitation(database, info!, token, { name: 'Novo Agente' });
+    const result = await acceptInvitation(database, info!, token, { name: 'Novo Agente', password: 'a-strong-password-1' });
     expect(result.role).toBe(UserRole.AGENT);
     expect(result.agencyId).toBe(agencyAId);
 
@@ -226,7 +226,7 @@ describe('Invitations + PermissionRestrictions data-access layer (Agent 01 SaaS 
       createInvitation(database, UserRole.ADMIN, { email: 'reuse@example.test', role: UserRole.AGENT }),
     );
     const info = await resolvePublicInvitationToken(database, token);
-    await acceptInvitation(database, info!, token, { name: 'Primeiro' });
+    await acceptInvitation(database, info!, token, { name: 'Primeiro', password: 'a-strong-password-1' });
 
     const reusedInfo = await resolvePublicInvitationToken(database, token);
     expect(reusedInfo).toBeNull();

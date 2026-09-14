@@ -40,6 +40,8 @@ import { registerOfferGrowthAuditRoutes } from './routes/offer-growth-audit';
 import { registerOffersRoutes } from './routes/offers';
 import { registerContractsRoutes } from './routes/contracts';
 import { registerInsuranceRoutes } from './routes/insurance';
+import { registerAuthRoutes } from './routes/auth';
+import { composeAuthProviders, createSessionAuthProvider } from './session-auth';
 import { registerPartnerCampaignsRoutes } from './routes/partner-campaigns';
 import { registerPartnersRoutes } from './routes/partners';
 import { registerOperationsRoutes } from './routes/operations';
@@ -94,6 +96,15 @@ export interface BuildAppOptions {
   authProvider: AuthProvider;
   validateUserAgencyAccess: ValidateUserAgencyAccess;
   database: DatabaseRuntime;
+  // Local email+password auth (Pilot Delivery Gap Closure -- Agent 02/
+  // Identity): login/MFA/password-reset/session-lookup all need to
+  // resolve tenant context from a caller-supplied token/slug rather than
+  // the ambient request context DatabaseRuntime assumes. Optional and
+  // fail-closed -- omitting it leaves /auth/* mounted but erroring, and
+  // leaves Bearer session-token auth un-composed (dev-auth/OIDC still
+  // work standalone), rather than making it a hard requirement for every
+  // existing caller of buildApp().
+  platformDatabase?: PlatformDatabaseRuntime;
   exposeTestRoutes?: boolean;
   platformAuthProvider?: PlatformAuthProvider;
   customerAuthProvider?: CustomerAuthProvider;
@@ -212,7 +223,11 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
   app.decorateRequest('auth', undefined);
   registerErrorHandler(app);
 
-  const authenticate = createAuthenticateHook(options.authProvider);
+  const authenticate = createAuthenticateHook(
+    options.platformDatabase
+      ? composeAuthProviders(options.authProvider, createSessionAuthProvider(options.platformDatabase))
+      : options.authProvider,
+  );
   const establishTenant = createTenantContextHook({
     validateUserAgencyAccess: options.validateUserAgencyAccess,
   });
@@ -284,6 +299,11 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
   registerPartnersRoutes(app, { database: options.database, protectedHooks, partnerHooks });
   registerContractsRoutes(app, { database: options.database, protectedHooks });
   registerInsuranceRoutes(app, { database: options.database, protectedHooks });
+  registerAuthRoutes(app, {
+    database: options.database,
+    ...(options.platformDatabase ? { platformDatabase: options.platformDatabase } : {}),
+    protectedHooks,
+  });
   registerPartnerCampaignsRoutes(app, { database: options.database, protectedHooks });
   registerProposalsRoutes(app, { database: options.database, protectedHooks });
 

@@ -28,6 +28,11 @@ const nodeGlobals = {
   setImmediate: 'readonly',
   setInterval: 'readonly',
   setTimeout: 'readonly',
+  // Built into Node 18+ (no import needed) -- used by staging/ops scripts
+  // (e.g. scripts/e2e-smoke.mjs) that call the real API over HTTP.
+  fetch: 'readonly',
+  AbortController: 'readonly',
+  AbortSignal: 'readonly',
 };
 
 const vitestGlobals = {

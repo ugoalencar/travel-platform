@@ -37,6 +37,22 @@ export interface PlatformDatabaseRuntime {
     actorLabel: string | null,
     operation: (client: TenantTransactionClient) => Promise<T>,
   ): Promise<T>;
+  /**
+   * Runs `operation` with no tenant context, but with the given Postgres
+   * GUC set to `lookupValue` for the duration of the transaction. Exists
+   * for the "resolve a row by a caller-supplied opaque value before any
+   * tenant context can be established" pattern used throughout this
+   * codebase (invitations' app.invitation_lookup_hash, enrollment's
+   * app.enrollment_lookup_hash, and local-auth.ts's session/password-reset
+   * token lookups and agency-slug resolution) -- the matching RLS policy
+   * on the target table only ever exposes the single row whose column
+   * equals this session-local value, never a scan.
+   */
+  withPublicLookupTransaction<T>(
+    gucName: string,
+    lookupValue: string,
+    operation: (client: TenantTransactionClient) => Promise<T>,
+  ): Promise<T>;
 }
 
 export function createPlatformDatabaseRuntime(pool: Pool): PlatformDatabaseRuntime {
@@ -51,6 +67,28 @@ export function createPlatformDatabaseRuntime(pool: Pool): PlatformDatabaseRunti
       try {
         await client.query('BEGIN');
         await client.query('SELECT set_tenant_context($1, $2)', [targetAgencyId, actorLabel]);
+
+        const result = await operation(createTransactionClient(client));
+        await client.query('COMMIT');
+        return result;
+      } catch (error: unknown) {
+        await rollbackQuietly(client);
+        throw error;
+      } finally {
+        client.release();
+      }
+    },
+
+    async withPublicLookupTransaction<T>(
+      gucName: string,
+      lookupValue: string,
+      operation: (client: TenantTransactionClient) => Promise<T>,
+    ): Promise<T> {
+      const client = await pool.connect();
+
+      try {
+        await client.query('BEGIN');
+        await client.query('SELECT set_config($1, $2, true)', [gucName, lookupValue]);
 
         const result = await operation(createTransactionClient(client));
         await client.query('COMMIT');

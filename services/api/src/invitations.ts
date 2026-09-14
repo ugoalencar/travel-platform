@@ -17,6 +17,7 @@
 // OWNER; a MANAGER cannot invite an ADMIN or OWNER), enforced in
 // createInvitation() in addition to the route-level requireRole() floor.
 import { createHash, randomBytes } from 'node:crypto';
+import { hashPassword } from './password-hashing';
 import {
   getAgencyId,
   getUserId,
@@ -276,6 +277,7 @@ export async function resolvePublicInvitationToken(
 
 export interface AcceptInvitationInput {
   name: string;
+  password: string;
 }
 
 export interface AcceptedInvitationResult {
@@ -295,8 +297,14 @@ export async function acceptInvitation(
   if (!name) {
     throw new ValidationError('Nome é obrigatório');
   }
+  if (!input.password || input.password.length < 8) {
+    throw new ValidationError('Senha deve ter ao menos 8 caracteres');
+  }
 
   const tokenHash = hashInvitationToken(rawToken);
+  // Hashed outside the transaction: scrypt is deliberately CPU-heavy, and
+  // holding a DB connection for that long would be wasteful.
+  const passwordHash = await hashPassword(input.password);
 
   return database.withPlatformTransaction(async (client) => {
     await client.query(`SELECT set_config('app.invitation_lookup_hash', $1, true)`, [tokenHash]);
@@ -322,10 +330,6 @@ export async function acceptInvitation(
       `invitation:${invitationInfo.invitationId}`,
     ]);
 
-    const placeholderPasswordHash = createHash('sha256')
-      .update(randomBytes(32))
-      .digest('hex');
-
     let userResult;
     try {
       userResult = await client.query<{ id: string }>(
@@ -337,7 +341,7 @@ export async function acceptInvitation(
           invitationRow.email,
           name,
           invitationRow.role,
-          placeholderPasswordHash,
+          passwordHash,
         ],
       );
     } catch (error: unknown) {

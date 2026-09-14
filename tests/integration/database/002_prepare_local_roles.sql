@@ -271,21 +271,31 @@ DO $$
 BEGIN
   IF to_regclass('public.auth_sessions') IS NOT NULL THEN
     GRANT SELECT, INSERT ON
-      auth_sessions,
       captcha_verifications,
       mfa_totp_attempts
     TO travel_app_runtime_local;
     REVOKE UPDATE, DELETE ON
-      auth_sessions,
       captcha_verifications,
       mfa_totp_attempts
     FROM travel_app_runtime_local;
+
+    -- auth_sessions needs UPDATE (not DELETE) for the local password-auth
+    -- lifecycle: logout, password-reset-revokes-all-sessions, admin
+    -- revoke, and disable/suspend-invalidates-sessions all set
+    -- invalidated_at/revoked_reason on the existing row rather than
+    -- deleting it (auditability -- see 061_local_password_auth.sql).
+    GRANT SELECT, INSERT, UPDATE ON auth_sessions TO travel_app_runtime_local;
+    REVOKE DELETE ON auth_sessions FROM travel_app_runtime_local;
 
     GRANT SELECT, INSERT, UPDATE, DELETE ON
       mfa_totp_secrets,
       mfa_recovery_codes,
       mfa_requirements
     TO travel_app_runtime_local;
+  END IF;
+
+  IF to_regclass('public.password_reset_tokens') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE ON password_reset_tokens TO travel_app_runtime_local;
   END IF;
 END;
 $$;

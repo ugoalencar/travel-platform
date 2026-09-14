@@ -23,7 +23,7 @@
  * 4. Audit: all verification attempts logged
  */
 
-import { createHmac, randomBytes } from 'node:crypto';
+import { createHash, createHmac, randomBytes } from 'node:crypto';
 
 /**
  * TOTP algorithm configuration.
@@ -351,22 +351,23 @@ export function createTotpProvider(env: Record<string, string | undefined> = {})
 
 /**
  * Hashes a recovery code for storage.
- * Uses HMAC-SHA256 — cryptographically sound for single-use tokens.
- * If password-style hashing is needed, upgrade to bcrypt/argon2.
+ * Plain SHA-256, same pattern as every other high-entropy single-use
+ * token in this codebase (hashInvitationToken, hashEnrollmentToken,
+ * hashPartnerLinkToken). A prior version HMAC'd with a hardcoded
+ * site-wide "secret" literal committed to source control -- that added
+ * no real keying (the "key" was public) while implying a security
+ * property it didn't have; plain hashing is the honest, correct choice
+ * here, consistent with the rest of the codebase.
  */
 export function hashRecoveryCode(code: string): string {
-  // HMAC-SHA256 — deterministic, suitable for single-use token verification
-  return createHmac('sha256', 'recovery-code-secret')
-    .update(code)
-    .digest('hex');
+  return createHash('sha256').update(code).digest('hex');
 }
 
 /**
  * Verifies a recovery code against a stored hash.
- * Uses constant-time comparison of HMAC-SHA256 hashes.
+ * Uses constant-time comparison of SHA-256 hashes.
  */
 export function verifyRecoveryCode(code: string, hash: string): boolean {
-  // Constant-time comparison of HMAC-SHA256 hashes
   const codeHash = hashRecoveryCode(code);
   return constantTimeEquals(codeHash, hash);
 }

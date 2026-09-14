@@ -251,7 +251,7 @@ export function registerSettingsExpandedRoutes(
 
   app.post('/invitations/:token/accept', async (request, reply) => {
     const { token } = request.params as { token: string };
-    const body = request.body as { name: string };
+    const body = request.body as { name: string; password: string };
     const info = await resolvePublicInvitationToken(database, token);
     if (!info) {
       reply.code(404);
