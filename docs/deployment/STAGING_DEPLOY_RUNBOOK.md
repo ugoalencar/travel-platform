@@ -225,10 +225,33 @@ Credentials` is needed.
 ## Step 6 — Verify against the staging acceptance criteria
 
 Once the above is live, walk the criteria list from
-`docs/staging-uat-golive/STAGING_STATUS.md`: HTTPS, API ONLINE, POSTGRES
-ONLINE, MIGRATIONS PASS, RLS PASS, CROSS-TENANT PASS, EMAIL PASS, MFA PASS,
-BACKUP PASS, RESTORE PASS, LOGS PASS, METRICS PASS, HEALTH PASS, READINESS
-PASS, VERSION PASS.
+`docs/staging-uat-golive/STAGING_STATUS.md`. Everything below was actually
+exercised against the local-staging stack (real HTTPS, real Postgres+RLS,
+real Redis, production mode) on 2026-09-14 -- not assumed:
+
+| Criterion | Local result | How it was checked |
+|---|---|---|
+| HTTPS | PASS | `curl -k` 200 on all 5 `*.localhost` origins (self-signed local CA, as expected) |
+| API ONLINE | PASS | `/health`, `/version` respond |
+| POSTGRES ONLINE | PASS | container healthy, API `/readiness` (which itself runs `SELECT 1`) returns `ready` |
+| MIGRATIONS PASS | PASS | all 62 files in `infrastructure/migrations/` applied clean to a fresh schema |
+| RLS PASS | PASS (only after this session's fix) | `createStaffAccessValidator`/`createCustomerAccessValidator` were silently 403ing every real session before the `set_tenant_context()` fix -- see the earlier commit in this doc's history; after the fix, real OWNER/customer/platform-admin logins all reach protected routes |
+| CROSS-TENANT PASS | PASS | seeded a second agency + customer, logged in as Agency A's OWNER, `GET /api/customers/<Agency B's customer id>` returned a clean 404 (`NOT_FOUND`), not a leak or 403-with-existence-signal |
+| EMAIL PASS | **FAIL (unbuilt)** | no SMTP/transactional-email provider exists anywhere in `services/api` -- see Known Gaps below. Not something this local run can pass; it needs to be built |
+| MFA PASS | PASS | real end-to-end drill: `POST /auth/mfa/enroll` -> generated a real TOTP code from the returned base32 secret -> `POST /auth/mfa/enroll/confirm` -> next `POST /auth/login` correctly returned `MFA_REQUIRED` -> `POST /auth/mfa/verify` with a freshly generated code succeeded. Platform Admin's simpler single-secret MFA was already covered earlier; this drill covers staff's richer per-secret/recovery-codes flow |
+| BACKUP PASS | PASS | `pg_dump -F c` against the running staging Postgres container succeeded |
+| RESTORE PASS | PASS | `pg_restore` of that dump into a fresh database succeeded with no errors; restored row counts and the seeded OWNER account verified present and correct afterward |
+| LOGS PASS | PASS | every request logs structured JSON with `requestId`/`correlationId`/`tenantId`/`userId`/`route`/`status`/`duration` |
+| METRICS PASS | PASS | `/metrics` returns 200 |
+| HEALTH PASS | PASS | see API ONLINE |
+| READINESS PASS | PASS | see POSTGRES ONLINE |
+| VERSION PASS | PASS | `/version` returns 200 (values are `"unknown"` placeholders -- `buildSha`/`migrationVersion`/`deploymentId`/`releasedAt` are never populated by anything in this repo; wiring real values into the Docker build is unbuilt scope, not re-checked here) |
+
+None of this proves the *real* Supabase/Vercel/Node-host deploy will behave
+identically -- it proves the application code and migrations are correct
+and that the specific bugs found here are fixed. Backups/restore on a
+managed Supabase project use its own tooling, not raw `pg_dump` against a
+container; re-verify that specifically once Supabase is provisioned.
 
 ## Known gaps this runbook does not close
 
@@ -244,7 +267,15 @@ PASS, VERSION PASS.
 - **Document/object storage**: Supabase Storage is not wired to any
   `StorageProvider` adapter — `docs/deployment/VERCEL_SUPABASE_READINESS.md`
   describes this as a future `SupabaseStorageAdapter`, not yet built.
-- **Backups/restore**: Supabase's own automated backups exist at the
-  platform level for paid tiers, but no restore drill has been run against
-  this schema — "RESTORE PASS" needs an actual rehearsal, not just
-  assuming the platform feature works.
+- **Backups/restore**: a raw `pg_dump`/`pg_restore` drill against this
+  schema now has been run and verified (Step 6) — but that's a generic
+  Postgres drill, not Supabase's own backup mechanism. Supabase's
+  automated backups exist at the platform level for paid tiers; rehearse
+  a restore through Supabase's own tooling specifically once that project
+  exists, don't assume this drill covers it.
+- **`/version` fields are permanent placeholders today**: `buildSha`,
+  `migrationVersion`, `deploymentId`, and `releasedAt` are hardcoded to
+  `"unknown"` — nothing in the Docker build or startup populates them
+  from the actual git commit/migration state/deploy. Fine for a health
+  check ("is `/version` reachable"), useless for actually knowing what's
+  deployed. Wiring real values in is unbuilt scope.
