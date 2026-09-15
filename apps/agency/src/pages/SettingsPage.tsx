@@ -9,6 +9,11 @@ import { api } from '../lib/api';
 interface AgencyProfile {
   id: string;
   name: string;
+  /** Server-generated at signup (name + random suffix), never chosen by
+   * the user, and required to log back in ("Agência" field on the login
+   * form) -- shown here since this is otherwise the only place it's
+   * discoverable. */
+  slug?: string;
   email?: string;
   phone?: string;
   displayName?: string;
@@ -473,6 +478,19 @@ export function SettingsPage() {
                   {profile.name}
                 </p>
               </div>
+              {profile.slug && (
+                <div>
+                  <label className="block text-sm font-medium text-slate-700">
+                    Identificador da agência (usado para entrar)
+                  </label>
+                  <p className="mt-1 flex items-center gap-2 rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-900">
+                    <span className="font-mono">{profile.slug}</span>
+                  </p>
+                  <p className="mt-1 text-xs text-slate-500">
+                    Informe este identificador no campo "Agência" da tela de login.
+                  </p>
+                </div>
+              )}
               <div>
                 <label className="block text-sm font-medium text-slate-700">Email</label>
                 <p className="mt-1 block w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-900">

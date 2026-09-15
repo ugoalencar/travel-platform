@@ -11,6 +11,9 @@ import { getAgencyId, getUserId, getTenantContext } from '../../../packages/doma
 interface AgencyProfile {
   id: string;
   name: string;
+  /** Only populated by getAgencyProfile() -- the update-profile/branding
+   * endpoints don't re-select it (unrelated to what they're updating). */
+  slug?: string;
   email?: string;
   phone?: string;
   displayName?: string;
@@ -92,6 +95,7 @@ export async function getAgencyProfile(
   const agencyRows = await client.query<{
     id: string;
     name: string;
+    slug: string;
     email?: string;
     phone?: string;
     display_name?: string | null;
@@ -101,7 +105,7 @@ export async function getAgencyProfile(
     onboarding_step?: string | null;
   }>(
     `
-    SELECT id, name, email, phone, display_name, logo_url, primary_color,
+    SELECT id, name, slug, email, phone, display_name, logo_url, primary_color,
            onboarding_completed_at, onboarding_step
     FROM agencies
     WHERE id = $1
@@ -116,6 +120,7 @@ export async function getAgencyProfile(
   const agency = agencyRows.rows[0] as {
     id: string;
     name: string;
+    slug: string;
     email?: string;
     phone?: string;
     display_name?: string | null;
@@ -128,6 +133,7 @@ export async function getAgencyProfile(
   const profile: AgencyProfile = {
     id: agency.id,
     name: agency.name,
+    slug: agency.slug,
   };
 
   if (agency.email !== undefined) {

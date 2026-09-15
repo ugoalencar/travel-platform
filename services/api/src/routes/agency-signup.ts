@@ -75,12 +75,18 @@ export function registerAgencySignupRoutes(app: FastifyInstance, options: Agency
       if (result.state === 'MFA_REQUIRED') {
         // Cannot happen right after signup (no MFA enrolled yet), but the
         // type is shared with login() -- handled for completeness.
-        return { state: result.state, mfaChallengeToken: result.sessionToken, expiresAt: result.expiresAt };
+        return {
+          state: result.state,
+          mfaChallengeToken: result.sessionToken,
+          expiresAt: result.expiresAt,
+          agencySlug: result.agencySlug,
+        };
       }
       return {
         state: result.state,
         sessionToken: result.sessionToken,
         expiresAt: result.expiresAt,
+        agencySlug: result.agencySlug,
         user: { id: result.userId, agencyId: result.agencyId, role: result.role, email: result.email },
       };
     } catch (error: unknown) {

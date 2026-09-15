@@ -1,4 +1,4 @@
-import { clearSession, getSessionToken, setSession, type StaffSessionUser } from './session';
+import { clearSession, getSessionToken, rememberAgencySlug, setSession, type StaffSessionUser } from './session';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
 
@@ -39,6 +39,7 @@ export async function login(agencySlug: string, email: string, password: string)
   const result = await postJson<LoginResult>('/api/auth/login', { agencySlug, email, password });
   if (result.state === 'FULLY_AUTHENTICATED') {
     setSession(result.sessionToken, result.expiresAt);
+    rememberAgencySlug(agencySlug);
   }
   return result;
 }
@@ -53,11 +54,18 @@ export interface SignUpInput {
   password: string;
 }
 
-export async function signUp(input: SignUpInput): Promise<LoginResult> {
-  const result = await postJson<LoginResult>('/api/agencies/signup', input);
+export type SignUpResult = LoginResult & { agencySlug: string };
+
+export async function signUp(input: SignUpInput): Promise<SignUpResult> {
+  const result = await postJson<SignUpResult>('/api/agencies/signup', input);
   if (result.state === 'FULLY_AUTHENTICATED') {
     setSession(result.sessionToken, result.expiresAt);
   }
+  // Remember regardless of MFA state -- the slug itself is assigned at
+  // signup time and never changes, and this is the ONLY point in the
+  // whole app where the frontend ever learns it (see session.ts's
+  // rememberAgencySlug doc comment).
+  rememberAgencySlug(result.agencySlug);
   return result;
 }
 

@@ -50,10 +50,12 @@ function randomSlugSuffix(): string {
   return randomUUID().split('-')[0] ?? randomUUID().slice(0, 8);
 }
 
+export type AgencySignUpResult = LoginResult & { agencySlug: string };
+
 export async function signUpAgency(
   platformDatabase: PlatformDatabaseRuntime,
   input: AgencySignUpInput,
-): Promise<LoginResult> {
+): Promise<AgencySignUpResult> {
   if (input.password.length < 8) {
     throw new ValidationError('A senha deve ter pelo menos 8 caracteres');
   }
@@ -94,10 +96,17 @@ export async function signUpAgency(
     throw error;
   }
 
-  return login(platformDatabase, {
+  const result = await login(platformDatabase, {
     agencySlug: slug,
     email: input.contactEmail,
     password: input.password,
     ip: input.ip,
   });
+  // The generated slug (base name + random suffix, never chosen by the
+  // user) is otherwise never surfaced anywhere -- without this, a user
+  // who logs out has no way to know what to type back into the "Agência"
+  // field, and every existing screen (Settings, Topbar) shows nothing
+  // reflecting it either. Real bug reported directly: "criei conta,
+  // saí, e ao entrar de novo disse que não existe."
+  return { ...result, agencySlug: slug };
 }

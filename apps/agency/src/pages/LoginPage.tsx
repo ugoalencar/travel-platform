@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AuthApiError, login, verifyMfa } from '../lib/authApi';
+import { getRememberedAgencySlug } from '../lib/session';
 
 type Step = { kind: 'CREDENTIALS' } | { kind: 'MFA'; mfaChallengeToken: string };
 
@@ -8,7 +9,11 @@ export function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [step, setStep] = useState<Step>({ kind: 'CREDENTIALS' });
-  const [agencySlug, setAgencySlug] = useState('');
+  // Prefilled from the last successful login/signup on this browser (see
+  // session.ts's rememberAgencySlug) -- the slug is server-generated at
+  // signup and never shown anywhere else, so without this a user who logs
+  // out has no way to know what to type back in here.
+  const [agencySlug, setAgencySlug] = useState(() => getRememberedAgencySlug());
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [code, setCode] = useState('');

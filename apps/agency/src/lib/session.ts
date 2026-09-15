@@ -78,3 +78,30 @@ export function clearSession(): void {
 export function hasSession(): boolean {
   return getSessionToken() !== null;
 }
+
+// Agency slug convenience -- NOT the session token, safe in localStorage
+// (survives logout/browser-close on purpose, unlike the token above).
+// Real signup generates a random-suffixed slug the user never chose and
+// that appears nowhere else in the UI, so after logging out there was
+// previously no way to know what to type back into the "Agência" field --
+// reported directly ("criei conta, saí, e ao entrar de novo disse que
+// não existe"). This is a UX convenience only: login() still fails
+// exactly the same generic way if the remembered slug is stale/wrong,
+// and nothing here is treated as authoritative.
+const AGENCY_SLUG_STORAGE_KEY = 'travel_platform_agency_slug';
+
+export function rememberAgencySlug(slug: string): void {
+  try {
+    localStorage.setItem(AGENCY_SLUG_STORAGE_KEY, slug);
+  } catch {
+    // ignore -- pure convenience, never required for login to work
+  }
+}
+
+export function getRememberedAgencySlug(): string {
+  try {
+    return localStorage.getItem(AGENCY_SLUG_STORAGE_KEY) ?? '';
+  } catch {
+    return '';
+  }
+}
