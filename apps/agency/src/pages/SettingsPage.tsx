@@ -5,6 +5,7 @@ import { PageHeader } from '../components/layout/PageHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { LoadingState } from '../components/ui/loading-state';
 import { StatusBadge } from '../components/ui/status-badge';
+import { Modal } from '../components/ui/modal';
 import { api } from '../lib/api';
 
 interface AgencyProfile {
@@ -138,6 +139,10 @@ export function SettingsPage() {
   const [departmentSaving, setDepartmentSaving] = useState(false);
   const [roleSaving, setRoleSaving] = useState<string | null>(null);
   const [roleError, setRoleError] = useState<string | null>(null);
+  // "Entrar" em um membro específico para gerenciar papel + áreas
+  // extras -- pedido diretamente: o admin abre o usuário e lá liga/
+  // desliga áreas, em vez de um controle solto na linha da lista.
+  const [managingMemberId, setManagingMemberId] = useState<string | null>(null);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteName, setInviteName] = useState('');
   const [inviteRole, setInviteRole] = useState<'ADMIN' | 'MANAGER' | 'AGENT' | 'VIEWER'>('AGENT');
@@ -753,46 +758,38 @@ export function SettingsPage() {
               <CardTitle>Membros da Equipe</CardTitle>
             </CardHeader>
             <CardContent>
-              {roleError && <p className="mb-3 text-sm text-red-600">{roleError}</p>}
               {team.length > 0 ? (
                 <div className="space-y-3">
                   {team.map((member) => {
-                    const canEditThisRole = canManageInvitations && member.role !== 'OWNER';
+                    const canManageThisMember = canManageInvitations && member.role !== 'OWNER';
                     return (
-                      <div key={member.id} className="rounded-lg border border-slate-200 p-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1">
-                            <p className="font-medium text-slate-900">{member.name}</p>
-                            <p className="text-sm text-slate-500">{member.email}</p>
-                            <p className="text-xs text-slate-400">
-                              Membro desde {new Date(member.joinedAt).toLocaleDateString('pt-BR')}
-                            </p>
-                          </div>
-                          {canEditThisRole ? (
-                            <select
-                              value={member.role}
-                              disabled={roleSaving === member.id}
-                              onChange={(e) => void handleChangeRole(member.id, e.target.value)}
-                              className={`rounded-md border border-slate-300 px-2 py-1 text-xs font-semibold ${getRoleColor(member.role)}`}
-                            >
-                              {invitableRoles.map((role) => (
-                                <option key={role} value={role}>
-                                  {role}
-                                </option>
-                              ))}
-                            </select>
-                          ) : (
-                            <StatusBadge tone="neutral">
-                              <span className={`px-2 py-1 rounded text-xs font-semibold ${getRoleColor(member.role)}`}>
-                                {member.role}
-                              </span>
-                            </StatusBadge>
+                      <button
+                        key={member.id}
+                        type="button"
+                        onClick={() => canManageThisMember && setManagingMemberId(member.id)}
+                        disabled={!canManageThisMember}
+                        className={`flex w-full items-center justify-between rounded-lg border border-slate-200 p-4 text-left ${
+                          canManageThisMember ? 'cursor-pointer hover:border-slate-300 hover:bg-slate-50' : 'cursor-default'
+                        }`}
+                      >
+                        <div className="flex-1">
+                          <p className="font-medium text-slate-900">{member.name}</p>
+                          <p className="text-sm text-slate-500">{member.email}</p>
+                          <p className="text-xs text-slate-400">
+                            Membro desde {new Date(member.joinedAt).toLocaleDateString('pt-BR')}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <StatusBadge tone="neutral">
+                            <span className={`px-2 py-1 rounded text-xs font-semibold ${getRoleColor(member.role)}`}>
+                              {member.role}
+                            </span>
+                          </StatusBadge>
+                          {canManageThisMember && (
+                            <span className="text-xs font-medium text-blue-600">Gerenciar acesso →</span>
                           )}
                         </div>
-                        {canManageInvitations && member.role === 'AGENT' && (
-                          <AreaGrantsEditor memberId={member.id} />
-                        )}
-                      </div>
+                      </button>
                     );
                   })}
                 </div>
@@ -801,6 +798,42 @@ export function SettingsPage() {
               )}
             </CardContent>
           </Card>
+
+          <Modal
+            open={managingMemberId !== null}
+            onClose={() => setManagingMemberId(null)}
+            title="Gerenciar acesso"
+          >
+            {(() => {
+              const member = team.find((m) => m.id === managingMemberId);
+              if (!member) return null;
+              return (
+                <div className="space-y-4">
+                  <div>
+                    <p className="font-medium text-slate-900">{member.name}</p>
+                    <p className="text-sm text-slate-500">{member.email}</p>
+                  </div>
+                  {roleError && <p className="text-sm text-red-600">{roleError}</p>}
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-slate-700">Papel</label>
+                    <select
+                      value={member.role}
+                      disabled={roleSaving === member.id}
+                      onChange={(e) => void handleChangeRole(member.id, e.target.value)}
+                      className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                    >
+                      {invitableRoles.map((role) => (
+                        <option key={role} value={role}>
+                          {role}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  {member.role === 'AGENT' && <AreaGrantsEditor memberId={member.id} />}
+                </div>
+              );
+            })()}
+          </Modal>
 
           {canManageTeam && (
             <Card>
