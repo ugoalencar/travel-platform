@@ -5,7 +5,6 @@ import {
   Package,
   CreditCard,
   Receipt,
-  Users,
   MessageSquare,
   AlertTriangle,
   Flag,
@@ -28,9 +27,6 @@ interface NavItem {
   label: string;
   to: string;
   icon: typeof BarChart3;
-  /** True when this label maps to a page that doesn't have a fully
-   * dedicated screen yet (folded into the closest existing page). */
-  gap?: boolean;
 }
 
 interface NavSection {
@@ -57,12 +53,11 @@ const NAV_SECTIONS: NavSection[] = [
   },
   {
     label: 'Pessoas',
-    items: [
-      // No dedicated screen yet for platform staff (PLATFORM_OWNER,
-      // BILLING_ADMIN, etc.) -- folded into Configuracoes for now.
-      { label: 'Usuários', to: '/settings', icon: Users, gap: true },
-      { label: 'Suporte', to: '/support', icon: MessageSquare },
-    ],
+    // "Usuários" pointed at this same /settings route as Governança's
+    // "Configurações" below -- no dedicated platform-staff screen exists,
+    // so it was a second label for the same page. Removed rather than
+    // left as a placeholder (redundant-menu sweep requested directly).
+    items: [{ label: 'Suporte', to: '/support', icon: MessageSquare }],
   },
   {
     label: 'Confiabilidade',
@@ -126,20 +121,9 @@ export function Layout() {
                     item.to === '/' ? location.pathname === '/' : location.pathname.startsWith(item.to);
                   const Icon = item.icon;
                   return (
-                    <NavLink
-                      key={`${section.label}-${item.label}`}
-                      to={item.to}
-                      isActive={isActive}
-                      title={item.gap ? `${item.label} (tela dedicada prevista em onda futura)` : undefined}
-                    >
+                    <NavLink key={`${section.label}-${item.label}`} to={item.to} isActive={isActive}>
                       <Icon size={16} />
                       <span className="flex-1">{item.label}</span>
-                      {item.gap && (
-                        <span
-                          aria-hidden="true"
-                          className="h-1.5 w-1.5 shrink-0 rounded-full bg-amber-400"
-                        />
-                      )}
                     </NavLink>
                   );
                 })}

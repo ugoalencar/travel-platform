@@ -8,11 +8,6 @@ import type { CurrentUserRole } from '../../hooks/useCurrentUser';
 interface NavItem {
   label: string;
   to: string;
-  /** True when this label maps to a page that doesn't fully cover the
-   * concept yet (linked to the closest existing screen). Surfaced as a
-   * subtle marker so it's not silently indistinguishable from a complete
-   * mapping -- see the wave 1 report for the full gap list. */
-  gap?: boolean;
 }
 
 interface NavSection {
@@ -20,10 +15,14 @@ interface NavSection {
   items: NavItem[];
 }
 
-// Sidebar structure per docs/travel_platform_visual_functional_blueprint/
-// 02_AGENCY_INFORMATION_ARCHITECTURE.md -- exact section order and labels.
-// Items without a dedicated route yet are mapped to the closest existing
-// page and flagged with `gap: true` (see report for the reasoning per item).
+// Sidebar structure -- one entry per real, distinct screen. Previously had
+// several "gap" placeholder items mapped onto whatever existing page was
+// closest (e.g. "Produtos e Destinos" and "Ofertas" both pointing at
+// /offers, four separate "Pessoal" labels all pointing at /payroll):
+// reported directly as confusing menu clutter ("várias entradas para a
+// mesma coisa... o sistema pode ser completo mas não complexo"). Removed
+// rather than left as decorative placeholders -- a link that lands on the
+// same page as another link adds noise, not capability.
 const NAV_SECTIONS: NavSection[] = [
   {
     label: 'Painel',
@@ -32,12 +31,6 @@ const NAV_SECTIONS: NavSection[] = [
   {
     label: 'CRM & Comercial',
     items: [
-      // "Leads" was a separate entry pointing at this same /customers
-      // screen (gap: true) -- no distinct lead-qualification concept
-      // exists anywhere in this app, so it just read as a duplicate menu
-      // item for the same thing. Removed rather than left marked as a
-      // future gap: reported directly as confusing during a menu-by-menu
-      // review ("Leads e Clientes são iguais").
       { label: 'Clientes', to: '/customers' },
       { label: 'Cadastro Remoto', to: '/enrollment-links' },
       { label: 'Desejos', to: '/wishes' },
@@ -52,13 +45,9 @@ const NAV_SECTIONS: NavSection[] = [
     label: 'Operação',
     items: [
       { label: 'Viagens', to: '/trips' },
-      // Intentional shared route with Comercial's "Reservas" (not a gap):
-      // BookingListPage/BookingDetailPage (SalesJourneyPages.tsx) are
-      // already framed operationally ("Reservas operacionais", trip type,
-      // confirmed/cancelled status per booking), so Operação's "Booking"
-      // is the same underlying record viewed from the ops side, not a
-      // separate concept that needs its own screen.
-      { label: 'Booking', to: '/bookings' },
+      // Reservas (CRM & Comercial) already covers /bookings -- a second
+      // "Booking" entry here pointed at the exact same screen with no
+      // operational-specific view behind it, same redundancy pattern.
       { label: 'Aéreo', to: '/operations/air' },
       { label: 'Terrestre', to: '/operations/land' },
       { label: 'Passageiros', to: '/operations/passengers' },
@@ -77,7 +66,6 @@ const NAV_SECTIONS: NavSection[] = [
       { label: 'Conciliação', to: '/financial/reconciliation' },
       { label: 'Receitas', to: '/financial/revenues' },
       { label: 'Despesas', to: '/financial/expenses' },
-      { label: 'Margens', to: '/financial/dre', gap: true },
       { label: 'DRE Gerencial', to: '/financial/dre' },
       { label: 'Relatórios', to: '/financial/reports' },
     ],
@@ -86,8 +74,6 @@ const NAV_SECTIONS: NavSection[] = [
     label: 'Cadastros',
     items: [
       { label: 'Fornecedores', to: '/suppliers' },
-      { label: 'Categorias', to: '/suppliers', gap: true },
-      { label: 'Produtos e Destinos', to: '/offers', gap: true },
       { label: 'Centros de Custo', to: '/financial/cost-centers' },
       { label: 'Categorias Financeiras', to: '/financial/categories' },
     ],
@@ -97,34 +83,29 @@ const NAV_SECTIONS: NavSection[] = [
     items: [
       { label: 'Funcionários', to: '/employees' },
       { label: 'Planos de Comissão', to: '/commission-plans' },
-      { label: 'Comissões', to: '/payroll' },
-      { label: 'Salários e Benefícios', to: '/payroll', gap: true },
-      { label: 'Descontos e Adiantamentos', to: '/payroll', gap: true },
-      { label: 'Pagamentos', to: '/payroll' },
+      // Comissões, Salários e Benefícios, Descontos e Adiantamentos and
+      // Pagamentos were four separate labels all pointing at this same
+      // single-page screen (PayrollPage.tsx has no per-section deep link)
+      // -- consolidated into one honest entry naming what the page is.
+      { label: 'Folha de Pagamento', to: '/payroll' },
     ],
   },
   {
     label: 'Marketing',
     items: [
       { label: 'Campanhas', to: '/campaigns' },
-      { label: 'Assets', to: '/campaigns', gap: true },
-      { label: 'Publicações', to: '/campaigns', gap: true },
-      { label: 'Automações', to: '/coupons', gap: true },
+      { label: 'Cupons', to: '/coupons' },
     ],
   },
   {
     label: 'Configurações',
     items: [
-      // Points straight at the "Convites" tab (SettingsPage.tsx reads
-      // ?tab= on mount) -- inviting staff is a real, already-built
-      // feature there, but was undiscoverable behind this link landing
-      // on the unrelated "Perfil" tab by default. Reported directly:
-      // "configuração de usuários, não consigo criar outros funcionários."
+      // Both deep-link via ?tab= (SettingsPage.tsx reads it on mount) --
+      // reported directly: "configuração de usuários, não consigo criar
+      // outros funcionários" -- the features existed, they just landed on
+      // the unrelated default "Perfil" tab instead of their own.
       { label: 'Usuários', to: '/settings?tab=invitations' },
-      { label: 'Papéis e Acessos', to: '/settings', gap: true },
-      { label: 'Integrações', to: '/settings', gap: true },
-      { label: 'Parametrizações', to: '/settings', gap: true },
-      { label: 'Logs e Auditoria', to: '/settings', gap: true },
+      { label: 'Papéis e Acessos', to: '/settings?tab=permissions' },
     ],
   },
 ];
@@ -375,7 +356,6 @@ export function Sidebar({ mobileOpen, onClose, role }: SidebarProps) {
                         to={item.to}
                         end={item.to === '/'}
                         onClick={onClose}
-                        title={item.gap ? `${item.label} (tela dedicada prevista em onda futura)` : undefined}
                         className={({ isActive }) =>
                           cn(
                             'flex items-center justify-between rounded-md px-3 py-1.5 text-sm font-medium text-(--color-sidebar-foreground) transition-colors hover:bg-(--color-sidebar-active) hover:text-white',
@@ -384,13 +364,6 @@ export function Sidebar({ mobileOpen, onClose, role }: SidebarProps) {
                         }
                       >
                         <span>{item.label}</span>
-                        {item.gap && (
-                          <span
-                            aria-hidden="true"
-                            title="Tela dedicada prevista em onda futura -- ainda reaproveita a tela existente mais próxima"
-                            className="h-1.5 w-1.5 shrink-0 rounded-full bg-amber-400"
-                          />
-                        )}
                       </NavLink>
                     ))}
                   </div>
