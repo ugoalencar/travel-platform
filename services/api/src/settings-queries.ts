@@ -74,6 +74,11 @@ interface TeamMember {
   email: string;
   role: 'OWNER' | 'ADMIN' | 'MANAGER' | 'AGENT' | 'VIEWER';
   joinedAt: string;
+  /** From the linked `employees` record (066_user_employee_link.sql) --
+   * every user has one, so this surfaces the cargo the admin set at
+   * invite time (or later, in the Funcionários page) right in the Team
+   * list, making the user<->employee link visible instead of implicit. */
+  employeeRoleTitle?: string;
 }
 
 interface NotificationSettings {
@@ -567,11 +572,12 @@ export async function getTeamMembers(client: TenantTransactionClient): Promise<T
   const agencyId = getAgencyId();
 
   const rows = await client.query<
-    { id: string; name: string; email: string; role: string; joined_at: string }
+    { id: string; name: string; email: string; role: string; joined_at: string; employee_role_title: string | null }
   >(
     `
-    SELECT u.id, u.name, u.email, u.role, u.created_at as joined_at
+    SELECT u.id, u.name, u.email, u.role, u.created_at as joined_at, e.role_title as employee_role_title
     FROM users u
+    LEFT JOIN employees e ON e.agency_id = u.agency_id AND e.user_id = u.id
     WHERE u.agency_id = $1
     ORDER BY u.created_at DESC
     `,
@@ -584,6 +590,7 @@ export async function getTeamMembers(client: TenantTransactionClient): Promise<T
     email: row.email,
     role: row.role as 'OWNER' | 'ADMIN' | 'MANAGER' | 'AGENT' | 'VIEWER',
     joinedAt: row.joined_at,
+    ...(row.employee_role_title !== null ? { employeeRoleTitle: row.employee_role_title } : {}),
   }));
 }
 

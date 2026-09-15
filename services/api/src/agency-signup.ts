@@ -87,6 +87,14 @@ export async function signUpAgency(
          VALUES ($1, $2, $3, $4, 'OWNER', $5, 'ACTIVE')`,
         [ownerId, agencyId, input.contactEmail, input.contactName, passwordHash],
       );
+      // Every user must be a linked employee (066_user_employee_link.sql) --
+      // the owner is no exception, created in the same transaction so the
+      // two rows can never drift apart.
+      await client.query(
+        `INSERT INTO employees (agency_id, name, email, phone, hire_date, employment_type, status, user_id)
+         VALUES ($1, $2, $3, $4, CURRENT_DATE, 'PARTNER', 'ACTIVE', $5)`,
+        [agencyId, input.contactName, input.contactEmail, input.contactPhone ?? null, ownerId],
+      );
     });
   } catch (error: unknown) {
     // Postgres unique_violation

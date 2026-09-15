@@ -215,7 +215,15 @@ export function registerSettingsExpandedRoutes(
   });
 
   app.post('/settings/invitations', { preHandler: protectedHooks }, async (request, reply) => {
-    const body = request.body as { email: string; role: UserRole; name?: string; ttlDays?: number };
+    const body = request.body as {
+      email: string;
+      role: UserRole;
+      name?: string;
+      phone?: string;
+      roleTitle?: string;
+      department?: string;
+      ttlDays?: number;
+    };
     const context = getTenantContext();
     const { invitation, token } = await createInvitation(database, context.userRole, body);
     reply.code(201);

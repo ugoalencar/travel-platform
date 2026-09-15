@@ -68,6 +68,13 @@ export interface Invitation {
    * screen is just "confirm and set a password" -- undefined only for
    * invitations created before this field existed. */
   name?: string;
+  /** Employee data captured at invite time (066_user_employee_link.sql)
+   * -- carried into the `employees` record created on accept so every
+   * user is linked to an employee from the moment their account exists,
+   * not just users created before this field existed. */
+  phone?: string;
+  roleTitle?: string;
+  department?: string;
   role: UserRole;
   status: InvitationStatus;
   invitedByUserId: string;
@@ -83,6 +90,9 @@ interface InvitationRow {
   agency_id: string;
   email: string;
   name: string | null;
+  phone: string | null;
+  role_title: string | null;
+  department: string | null;
   role: UserRole;
   status: InvitationStatus;
   invited_by_user_id: string;
@@ -93,8 +103,8 @@ interface InvitationRow {
   updated_at: string;
 }
 
-const INVITATION_COLUMNS = `id, agency_id, email, name, role, status, invited_by_user_id,
-  expires_at, accepted_at, revoked_at, created_at, updated_at`;
+const INVITATION_COLUMNS = `id, agency_id, email, name, phone, role_title, department, role, status,
+  invited_by_user_id, expires_at, accepted_at, revoked_at, created_at, updated_at`;
 
 function toInvitation(row: InvitationRow): Invitation {
   return {
@@ -108,6 +118,9 @@ function toInvitation(row: InvitationRow): Invitation {
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
     ...(row.name !== null ? { name: row.name } : {}),
+    ...(row.phone !== null ? { phone: row.phone } : {}),
+    ...(row.role_title !== null ? { roleTitle: row.role_title } : {}),
+    ...(row.department !== null ? { department: row.department } : {}),
     ...(row.accepted_at !== null ? { acceptedAt: new Date(row.accepted_at) } : {}),
     ...(row.revoked_at !== null ? { revokedAt: new Date(row.revoked_at) } : {}),
   };
@@ -122,6 +135,11 @@ export interface CreateInvitationInput {
   /** Optional -- when set, the invitee's accept-invitation screen shows it
    * read-only instead of asking them to type it themselves. */
   name?: string;
+  /** Employee data captured up front -- carried into the `employees`
+   * record created on accept (see acceptInvitation()). */
+  phone?: string;
+  roleTitle?: string;
+  department?: string;
   ttlDays?: number;
 }
 
@@ -153,6 +171,9 @@ export async function createInvitation(
 
   const ttlDays = normalizeTtlDays(input.ttlDays);
   const name = input.name?.trim() || null;
+  const phone = input.phone?.trim() || null;
+  const roleTitle = input.roleTitle?.trim() || null;
+  const department = input.department?.trim() || null;
   const { token, tokenHash } = generateInvitationToken();
 
   const invitation = await database.withTenantTransaction(async (client) => {
@@ -167,10 +188,10 @@ export async function createInvitation(
     let result;
     try {
       result = await client.query<InvitationRow>(
-        `INSERT INTO invitations (agency_id, email, name, role, token_hash, invited_by_user_id, expires_at)
-         VALUES ($1, $2, $3, $4, $5, $6, now() + ($7 || ' days')::interval)
+        `INSERT INTO invitations (agency_id, email, name, phone, role_title, department, role, token_hash, invited_by_user_id, expires_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, now() + ($10 || ' days')::interval)
          RETURNING ${INVITATION_COLUMNS}`,
-        [agencyId, email, name, input.role, tokenHash, invitedByUserId, ttlDays],
+        [agencyId, email, name, phone, roleTitle, department, input.role, tokenHash, invitedByUserId, ttlDays],
       );
     } catch (error: unknown) {
       if (isUniqueViolation(error)) {
@@ -247,6 +268,9 @@ export interface PublicInvitationInfo {
   invitationId: string;
   email: string;
   name?: string;
+  phone?: string;
+  roleTitle?: string;
+  department?: string;
   role: UserRole;
 }
 
@@ -288,6 +312,9 @@ export async function resolvePublicInvitationToken(
       email: row.email,
       role: row.role,
       ...(row.name !== null ? { name: row.name } : {}),
+      ...(row.phone !== null ? { phone: row.phone } : {}),
+      ...(row.role_title !== null ? { roleTitle: row.role_title } : {}),
+      ...(row.department !== null ? { department: row.department } : {}),
     };
   });
 }
@@ -379,6 +406,23 @@ export async function acceptInvitation(
     if (!userRow) {
       throw new Error('User insert did not return a row');
     }
+
+    // Every user must be a linked employee (066_user_employee_link.sql) --
+    // create it in the same transaction as the user so the two can never
+    // drift apart (no user without an employee, no orphaned employee).
+    await client.query(
+      `INSERT INTO employees (agency_id, name, email, phone, role_title, department, hire_date, employment_type, status, user_id)
+       VALUES ($1, $2, $3, $4, $5, $6, CURRENT_DATE, 'EMPLOYEE', 'ACTIVE', $7)`,
+      [
+        invitationInfo.agencyId,
+        name,
+        invitationRow.email,
+        invitationRow.phone,
+        invitationRow.role_title,
+        invitationRow.department,
+        userRow.id,
+      ],
+    );
 
     await client.query(
       `UPDATE invitations

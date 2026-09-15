@@ -37,6 +37,8 @@ interface TeamMember {
   email: string;
   role: 'OWNER' | 'ADMIN' | 'MANAGER' | 'AGENT' | 'VIEWER';
   joinedAt: string;
+  /** From the linked `employees` record (066_user_employee_link.sql). */
+  employeeRoleTitle?: string;
 }
 
 interface NotificationSettings {
@@ -145,6 +147,12 @@ export function SettingsPage() {
   const [managingMemberId, setManagingMemberId] = useState<string | null>(null);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteName, setInviteName] = useState('');
+  // Employee data captured at invite time (066_user_employee_link.sql) --
+  // every user is now backed by an `employees` record, and this is where
+  // the admin fills it in once instead of it staying blank forever.
+  const [invitePhone, setInvitePhone] = useState('');
+  const [inviteRoleTitle, setInviteRoleTitle] = useState('');
+  const [inviteDepartment, setInviteDepartment] = useState('');
   const [inviteRole, setInviteRole] = useState<'ADMIN' | 'MANAGER' | 'AGENT' | 'VIEWER'>('AGENT');
   const [inviteError, setInviteError] = useState<string | null>(null);
   const [inviteSaving, setInviteSaving] = useState(false);
@@ -312,6 +320,9 @@ export function SettingsPage() {
         email: inviteEmail.trim(),
         name: inviteName.trim(),
         role: inviteRole,
+        ...(invitePhone.trim() ? { phone: invitePhone.trim() } : {}),
+        ...(inviteRoleTitle.trim() ? { roleTitle: inviteRoleTitle.trim() } : {}),
+        ...(inviteDepartment.trim() ? { department: inviteDepartment.trim() } : {}),
       });
       const token = (resp.data as { token?: string }).token;
       if (token) {
@@ -337,6 +348,9 @@ export function SettingsPage() {
       }
       setInviteEmail('');
       setInviteName('');
+      setInvitePhone('');
+      setInviteRoleTitle('');
+      setInviteDepartment('');
       await loadSettings();
     } catch (err) {
       setInviteError(err instanceof Error ? err.message : 'Não foi possível criar o convite.');
@@ -773,7 +787,14 @@ export function SettingsPage() {
                         }`}
                       >
                         <div className="flex-1">
-                          <p className="font-medium text-slate-900">{member.name}</p>
+                          <p className="font-medium text-slate-900">
+                            {member.name}
+                            {member.employeeRoleTitle ? (
+                              <span className="ml-2 text-sm font-normal text-slate-500">
+                                — {member.employeeRoleTitle}
+                              </span>
+                            ) : null}
+                          </p>
                           <p className="text-sm text-slate-500">{member.email}</p>
                           <p className="text-xs text-slate-400">
                             Membro desde {new Date(member.joinedAt).toLocaleDateString('pt-BR')}
@@ -911,9 +932,36 @@ export function SettingsPage() {
                   {inviteSaving ? 'Enviando…' : 'Convidar'}
                 </button>
               </div>
+              {/* Dados do funcionário (066_user_employee_link.sql) -- todo
+                  usuário passa a ser um funcionário vinculado; capturado
+                  aqui, uma vez, no convite, em vez de ficar em branco. */}
+              <div className="flex flex-wrap gap-3">
+                <input
+                  type="text"
+                  value={inviteRoleTitle}
+                  onChange={(e) => setInviteRoleTitle(e.target.value)}
+                  placeholder="Cargo (opcional)"
+                  className="flex-1 min-w-40 rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900"
+                />
+                <input
+                  type="text"
+                  value={inviteDepartment}
+                  onChange={(e) => setInviteDepartment(e.target.value)}
+                  placeholder="Departamento (opcional)"
+                  className="flex-1 min-w-40 rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900"
+                />
+                <input
+                  type="text"
+                  value={invitePhone}
+                  onChange={(e) => setInvitePhone(e.target.value)}
+                  placeholder="Telefone (opcional)"
+                  className="flex-1 min-w-40 rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900"
+                />
+              </div>
               {inviteError && <p className="text-sm text-red-600">{inviteError}</p>}
               <p className="text-xs text-slate-500">
-                Você não pode convidar para um papel acima do seu (ADMIN não pode convidar OWNER).
+                Você não pode convidar para um papel acima do seu (ADMIN não pode convidar OWNER). Cargo, departamento
+                e telefone criam o registro de funcionário vinculado a este usuário.
               </p>
               {createdInviteLink && (
                 <div className="rounded-md border border-emerald-300 bg-emerald-50 p-3 space-y-2">
