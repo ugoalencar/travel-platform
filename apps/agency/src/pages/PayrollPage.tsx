@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { PageHeader } from '../components/layout/PageHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
@@ -255,6 +256,16 @@ export function PayrollPage() {
         </CardHeader>
         {showCommissionForm ? (
           <CardContent className="space-y-3 border-b pb-6">
+            {state.commissionPlans.length === 0 ? (
+              <p className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+                Nenhum plano de comissão cadastrado ainda. Gerar uma comissão exige um plano (percentual ou valor
+                fixo) — crie um em{' '}
+                <Link to="/commission-plans" className="font-medium underline">
+                  Planos de Comissão
+                </Link>{' '}
+                antes de continuar.
+              </p>
+            ) : null}
             <form onSubmit={handleGenerateCommission} className="flex flex-wrap items-end gap-3">
               <LabeledSelect
                 id="comm-employee"
@@ -289,7 +300,11 @@ export function PayrollPage() {
                   <option key={p.id} value={p.id}>{p.name}</option>
                 ))}
               </LabeledSelect>
-              <Button type="submit" size="sm" disabled={busyId === 'generate-commission'}>
+              <Button
+                type="submit"
+                size="sm"
+                disabled={busyId === 'generate-commission' || state.commissionPlans.length === 0}
+              >
                 {busyId === 'generate-commission' ? 'Gerando…' : 'Gerar'}
               </Button>
             </form>
