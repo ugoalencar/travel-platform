@@ -97,7 +97,7 @@ export function registerFinancialRoutes(
   // RECEIVABLES
   // ============================================================
   app.get('/financial/receivables', { preHandler: protectedHooks }, async () => {
-    requireRole(UserRole.MANAGER);
+    await requireRoleOrAreaGrant(database, UserRole.MANAGER, 'FINANCIAL_RECEIVABLES');
     const receivables = await listReceivables(database);
     return { receivables };
   });
@@ -114,7 +114,7 @@ export function registerFinancialRoutes(
   // PAYABLES
   // ============================================================
   app.get('/financial/payables', { preHandler: protectedHooks }, async () => {
-    requireRole(UserRole.MANAGER);
+    await requireRoleOrAreaGrant(database, UserRole.MANAGER, 'FINANCIAL_PAYABLES');
     const payables = await listPayables(database);
     return { payables };
   });
@@ -226,7 +226,7 @@ export function registerFinancialRoutes(
   // DASHBOARD / SUMMARY
   // ============================================================
   app.get('/financial/dashboard', { preHandler: protectedHooks }, async (request) => {
-    await requireRoleOrAreaGrant(database, UserRole.MANAGER, 'FINANCIAL');
+    await requireRoleOrAreaGrant(database, UserRole.MANAGER, 'FINANCIAL_OVERVIEW');
     const restrictionContext = getTenantContext();
     await database.withTenantTransaction((client) =>
       assertNotRestricted(client, restrictionContext.userRole, 'financial', 'view'),
@@ -237,7 +237,7 @@ export function registerFinancialRoutes(
   });
 
   app.get('/financial/summary', { preHandler: protectedHooks }, async () => {
-    await requireRoleOrAreaGrant(database, UserRole.MANAGER, 'FINANCIAL');
+    await requireRoleOrAreaGrant(database, UserRole.MANAGER, 'FINANCIAL_OVERVIEW');
     const summary = await getFinancialSummary(database);
     return { summary };
   });
@@ -265,7 +265,7 @@ export function registerFinancialRoutes(
   // REVENUES
   // ============================================================
   app.get('/financial/revenues', { preHandler: protectedHooks }, async (request) => {
-    requireRole(UserRole.MANAGER);
+    await requireRoleOrAreaGrant(database, UserRole.MANAGER, 'FINANCIAL_REVENUES');
     const query = request.query as Record<string, string>;
     const filters: {
       status?: string;
@@ -338,7 +338,7 @@ export function registerFinancialRoutes(
   // EXPENSES
   // ============================================================
   app.get('/financial/expenses', { preHandler: protectedHooks }, async (request) => {
-    requireRole(UserRole.MANAGER);
+    await requireRoleOrAreaGrant(database, UserRole.MANAGER, 'FINANCIAL_EXPENSES');
     const query = request.query as Record<string, string>;
     const filters: {
       status?: string;
@@ -411,7 +411,7 @@ export function registerFinancialRoutes(
   // CASH TRANSACTIONS
   // ============================================================
   app.get('/financial/cash-transactions', { preHandler: protectedHooks }, async (request) => {
-    requireRole(UserRole.MANAGER);
+    await requireRoleOrAreaGrant(database, UserRole.MANAGER, 'FINANCIAL_CASH');
     const query = request.query as Record<string, string>;
     const filters: {
       type?: string;
@@ -434,7 +434,7 @@ export function registerFinancialRoutes(
   });
 
   app.get('/financial/cash-balance', { preHandler: protectedHooks }, async (request) => {
-    requireRole(UserRole.MANAGER);
+    await requireRoleOrAreaGrant(database, UserRole.MANAGER, 'FINANCIAL_CASH');
     const query = request.query as Record<string, string>;
     const asOf = query.asOf ? new Date(query.asOf) : undefined;
     const balance = await getCashBalance(database, asOf);
@@ -445,7 +445,7 @@ export function registerFinancialRoutes(
   // RECONCILIATIONS
   // ============================================================
   app.get('/financial/reconciliations', { preHandler: protectedHooks }, async (request) => {
-    requireRole(UserRole.MANAGER);
+    await requireRoleOrAreaGrant(database, UserRole.MANAGER, 'FINANCIAL_RECONCILIATION');
     const query = request.query as Record<string, string>;
     const filters: {
       status?: string;
@@ -481,7 +481,7 @@ export function registerFinancialRoutes(
   // FINANCIAL REPORTS
   // ============================================================
   app.get('/financial/dre', { preHandler: protectedHooks }, async (request) => {
-    requireRole(UserRole.MANAGER);
+    await requireRoleOrAreaGrant(database, UserRole.MANAGER, 'FINANCIAL_DRE');
     const query = request.query as Record<string, string>;
     const periodFrom = query.from ? new Date(query.from) : new Date(0);
     const periodTo = query.to ? new Date(query.to) : new Date('2100-01-01T00:00:00.000Z');
@@ -490,7 +490,7 @@ export function registerFinancialRoutes(
   });
 
   app.get('/financial/reports/dre', { preHandler: protectedHooks }, async (request) => {
-    requireRole(UserRole.MANAGER);
+    await requireRoleOrAreaGrant(database, UserRole.MANAGER, 'FINANCIAL_REPORTS');
     const query = request.query as Record<string, string>;
     const periodFrom = query.start_date ? new Date(query.start_date) : new Date(new Date().setDate(1));
     const periodTo = query.end_date ? new Date(query.end_date) : new Date();
@@ -506,7 +506,7 @@ export function registerFinancialRoutes(
   });
 
   app.get('/financial/reports/overdue', { preHandler: protectedHooks }, async (_request) => {
-    requireRole(UserRole.MANAGER);
+    await requireRoleOrAreaGrant(database, UserRole.MANAGER, 'FINANCIAL_REPORTS');
     const overdue = await getOverdueReport(database);
     const allOverdue = [...overdue.receivables, ...overdue.payables];
     const agingBuckets: Array<{ start: number; end: number }> = [
@@ -537,7 +537,7 @@ export function registerFinancialRoutes(
   });
 
   app.get('/financial/reports/margin', { preHandler: protectedHooks }, async (request) => {
-    requireRole(UserRole.MANAGER);
+    await requireRoleOrAreaGrant(database, UserRole.MANAGER, 'FINANCIAL_REPORTS');
     const query = request.query as Record<string, string>;
     const periodFrom = query.start_date ? new Date(query.start_date) : new Date(new Date().setDate(1));
     const periodTo = query.end_date ? new Date(query.end_date) : new Date();
@@ -546,7 +546,7 @@ export function registerFinancialRoutes(
   });
 
   app.get('/financial/reports/cash-flow', { preHandler: protectedHooks }, async (_request) => {
-    requireRole(UserRole.MANAGER);
+    await requireRoleOrAreaGrant(database, UserRole.MANAGER, 'FINANCIAL_REPORTS');
     const report = await getCashFlowReport(database);
     return { report };
   });

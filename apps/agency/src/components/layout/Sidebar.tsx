@@ -163,27 +163,57 @@ const STAFF_OPERATIONAL_SECTIONS: NavSection[] = [
   },
 ];
 
-// Per-user area grants (agent_area_grants -- Navigable Pilot Flow track):
-// an admin can grant a specific AGENT extra sections beyond the fixed
-// STAFF_OPERATIONAL_SECTIONS above, without changing their role. Backend
-// enforcement lives in services/api/src/area-grants.ts /
-// routes/financial.ts -- this is the matching UI side, appended only
-// when GET /settings/my-area-grants actually confirms the grant, never
-// assumed client-side.
-const AREA_GRANT_SECTIONS: Record<'SALES' | 'FINANCIAL', NavSection> = {
-  SALES: {
-    label: 'Vendas',
-    items: [
-      { label: 'Propostas', to: '/proposals' },
-      { label: 'Reservas', to: '/bookings' },
-      { label: 'Vendas', to: '/sales' },
-    ],
-  },
-  FINANCIAL: {
-    label: 'Financeiro',
-    items: [{ label: 'Visão Geral', to: '/financial' }],
-  },
+// Per-user, per-module area grants (agent_area_grants -- Navigable
+// Pilot Flow track): an admin can grant a specific AGENT individual
+// extra modules beyond the fixed STAFF_OPERATIONAL_SECTIONS above,
+// without changing their role. Backend enforcement lives in
+// services/api/src/area-grants.ts / routes/financial.ts -- this is the
+// matching UI side: only modules GET /settings/my-area-grants actually
+// confirms are granted appear here, never assumed client-side. One
+// entry per module value in area-grants.ts's AREA_GRANT_VALUES.
+export type AreaGrantModule =
+  | 'SALES_PROPOSALS'
+  | 'SALES_BOOKINGS'
+  | 'SALES_SALES'
+  | 'FINANCIAL_OVERVIEW'
+  | 'FINANCIAL_RECEIVABLES'
+  | 'FINANCIAL_PAYABLES'
+  | 'FINANCIAL_CASH'
+  | 'FINANCIAL_RECONCILIATION'
+  | 'FINANCIAL_REVENUES'
+  | 'FINANCIAL_EXPENSES'
+  | 'FINANCIAL_DRE'
+  | 'FINANCIAL_REPORTS';
+
+const AREA_GRANT_ITEMS: Record<AreaGrantModule, { section: 'Vendas' | 'Financeiro'; item: NavItem }> = {
+  SALES_PROPOSALS: { section: 'Vendas', item: { label: 'Propostas', to: '/proposals' } },
+  SALES_BOOKINGS: { section: 'Vendas', item: { label: 'Reservas', to: '/bookings' } },
+  SALES_SALES: { section: 'Vendas', item: { label: 'Vendas', to: '/sales' } },
+  FINANCIAL_OVERVIEW: { section: 'Financeiro', item: { label: 'Visão Geral', to: '/financial' } },
+  FINANCIAL_RECEIVABLES: { section: 'Financeiro', item: { label: 'Contas a Receber', to: '/financial/receivables' } },
+  FINANCIAL_PAYABLES: { section: 'Financeiro', item: { label: 'Contas a Pagar', to: '/financial/payables' } },
+  FINANCIAL_CASH: { section: 'Financeiro', item: { label: 'Fluxo de Caixa', to: '/financial/cash-transactions' } },
+  FINANCIAL_RECONCILIATION: { section: 'Financeiro', item: { label: 'Conciliação', to: '/financial/reconciliation' } },
+  FINANCIAL_REVENUES: { section: 'Financeiro', item: { label: 'Receitas', to: '/financial/revenues' } },
+  FINANCIAL_EXPENSES: { section: 'Financeiro', item: { label: 'Despesas', to: '/financial/expenses' } },
+  FINANCIAL_DRE: { section: 'Financeiro', item: { label: 'DRE Gerencial', to: '/financial/dre' } },
+  FINANCIAL_REPORTS: { section: 'Financeiro', item: { label: 'Relatórios', to: '/financial/reports' } },
 };
+
+/** Builds only the sections/items an AGENT's actual grants cover --
+ * an empty grant list means no extra sections at all, and a section
+ * only appears once at least one of its modules is granted. */
+function buildGrantedSections(grantedModules: AreaGrantModule[]): NavSection[] {
+  const bySection = new Map<'Vendas' | 'Financeiro', NavItem[]>();
+  for (const module of grantedModules) {
+    const entry = AREA_GRANT_ITEMS[module];
+    if (!entry) continue;
+    const items = bySection.get(entry.section) ?? [];
+    items.push(entry.item);
+    bySection.set(entry.section, items);
+  }
+  return Array.from(bySection.entries()).map(([label, items]) => ({ label, items }));
+}
 
 // A NavItem's `to` may carry a query string (e.g. '/settings?tab=invitations')
 // to deep-link into a specific tab -- location.pathname never includes one,
@@ -204,18 +234,18 @@ export interface SidebarProps {
 
 export function Sidebar({ mobileOpen, onClose, role }: SidebarProps) {
   const isOperationalStaff = role === 'AGENT';
-  const [grantedAreas, setGrantedAreas] = useState<Array<'SALES' | 'FINANCIAL'>>([]);
+  const [grantedModules, setGrantedModules] = useState<AreaGrantModule[]>([]);
 
   useEffect(() => {
     if (!isOperationalStaff) return;
     let cancelled = false;
     api
-      .get<{ areas: Array<'SALES' | 'FINANCIAL'> }>('/settings/my-area-grants')
+      .get<{ areas: AreaGrantModule[] }>('/settings/my-area-grants')
       .then(({ data }) => {
-        if (!cancelled) setGrantedAreas(data.areas);
+        if (!cancelled) setGrantedModules(data.areas);
       })
       .catch(() => {
-        if (!cancelled) setGrantedAreas([]);
+        if (!cancelled) setGrantedModules([]);
       });
     return () => {
       cancelled = true;
@@ -223,7 +253,7 @@ export function Sidebar({ mobileOpen, onClose, role }: SidebarProps) {
   }, [isOperationalStaff]);
 
   const sections = isOperationalStaff
-    ? [...STAFF_OPERATIONAL_SECTIONS, ...grantedAreas.map((area) => AREA_GRANT_SECTIONS[area])]
+    ? [...STAFF_OPERATIONAL_SECTIONS, ...buildGrantedSections(grantedModules)]
     : NAV_SECTIONS;
   const location = useLocation();
 

@@ -1,10 +1,12 @@
 /**
- * Per-user area grants (Navigable Pilot Flow track, 2026-09-15). See
- * infrastructure/migrations/064_agent_area_grants.sql for the full
- * rationale -- an admin-controlled, additive-on-top-of-role-floor grant,
- * orthogonal to (and never replacing) the fixed OWNER/ADMIN/MANAGER/
- * AGENT/VIEWER role hierarchy. A small, curated, hardcoded set of areas
- * -- not a generic permission builder.
+ * Per-user, per-module area grants (Navigable Pilot Flow track,
+ * 2026-09-15). See infrastructure/migrations/064_agent_area_grants.sql
+ * and 065_agent_area_grants_modules.sql for the full rationale -- an
+ * admin-controlled, additive-on-top-of-role-floor grant, orthogonal to
+ * (and never replacing) the fixed OWNER/ADMIN/MANAGER/AGENT/VIEWER role
+ * hierarchy. A small, curated, hardcoded module list -- not a generic
+ * permission builder -- one value per real screen the admin already
+ * sees in their own sidebar.
  */
 
 import { ForbiddenError, getAgencyId, getUserId, requireRole } from '../../../packages/domain/tenant-context';
@@ -12,7 +14,20 @@ import { UserRole } from '../../../packages/domain/types';
 import type { DatabaseRuntime } from './database';
 import { NotFoundError } from './errors';
 
-export const AREA_GRANT_VALUES = ['SALES', 'FINANCIAL'] as const;
+export const AREA_GRANT_VALUES = [
+  'SALES_PROPOSALS',
+  'SALES_BOOKINGS',
+  'SALES_SALES',
+  'FINANCIAL_OVERVIEW',
+  'FINANCIAL_RECEIVABLES',
+  'FINANCIAL_PAYABLES',
+  'FINANCIAL_CASH',
+  'FINANCIAL_RECONCILIATION',
+  'FINANCIAL_REVENUES',
+  'FINANCIAL_EXPENSES',
+  'FINANCIAL_DRE',
+  'FINANCIAL_REPORTS',
+] as const;
 export type AreaGrant = (typeof AREA_GRANT_VALUES)[number];
 
 export function isAreaGrant(value: unknown): value is AreaGrant {
@@ -33,7 +48,7 @@ export async function listAreaGrants(database: DatabaseRuntime, userId: string):
 /**
  * Replaces the full grant set for one user in one call -- simpler for a
  * checkbox-style admin UI than separate grant/revoke endpoints, and the
- * set is small (2 possible areas) so there's no meaningful cost to
+ * set is small (12 possible modules) so there's no meaningful cost to
  * always sending the whole desired state.
  */
 export async function setAreaGrants(
@@ -72,7 +87,7 @@ export async function setAreaGrants(
   });
 }
 
-/** Returns the current user's own granted areas (self-scoped, no ADMIN
+/** Returns the current user's own granted modules (self-scoped, no ADMIN
  * floor -- every authenticated user can read their own grants, needed
  * by the frontend to decide what to show in their own sidebar). */
 export async function getMyAreaGrants(database: DatabaseRuntime): Promise<AreaGrant[]> {
@@ -89,19 +104,19 @@ export async function getMyAreaGrants(database: DatabaseRuntime): Promise<AreaGr
 
 /**
  * Role-floor check with a narrow, explicit exception: an AGENT who has
- * been granted `area` passes even though their role rank alone wouldn't
- * meet `minRole`. Every role at or above `minRole` already passes
- * regardless of grants (a MANAGER doesn't need a FINANCIAL grant to see
- * financial routes -- they already could). Intentionally NOT a generic
- * replacement for requireRole(): only wired into the two read-only
- * financial overview routes this pass actually scoped
- * (/financial/dashboard, /financial/summary) -- see the migration's own
- * comment for why the rest of financial.ts stays MANAGER/ADMIN-only.
+ * been granted `module` passes even though their role rank alone
+ * wouldn't meet `minRole`. Every role at or above `minRole` already
+ * passes regardless of grants (a MANAGER doesn't need a grant to see
+ * financial routes -- they already could). Wired into each individual
+ * read-only GET route in routes/financial.ts that has a corresponding
+ * module -- mutations on every module stay MANAGER/ADMIN-only
+ * regardless of any grant (the "acompanhar", read-only framing this
+ * feature started from).
  */
 export async function requireRoleOrAreaGrant(
   database: DatabaseRuntime,
   minRole: UserRole,
-  area: AreaGrant,
+  module: AreaGrant,
 ): Promise<void> {
   try {
     requireRole(minRole);
@@ -114,7 +129,7 @@ export async function requireRoleOrAreaGrant(
 
   requireRole(UserRole.AGENT);
   const grants = await getMyAreaGrants(database);
-  if (!grants.includes(area)) {
-    throw new ForbiddenError(`Requires ${minRole} role or an explicit ${area} area grant`);
+  if (!grants.includes(module)) {
+    throw new ForbiddenError(`Requires ${minRole} role or an explicit ${module} grant`);
   }
 }

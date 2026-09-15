@@ -1142,19 +1142,61 @@ export function SettingsPage() {
   );
 }
 
-const AREA_GRANT_OPTIONS: Array<{ value: 'SALES' | 'FINANCIAL'; label: string }> = [
-  { value: 'SALES', label: 'Vendas' },
-  { value: 'FINANCIAL', label: 'Financeiro (acompanhar)' },
+type AreaGrantModule =
+  | 'SALES_PROPOSALS'
+  | 'SALES_BOOKINGS'
+  | 'SALES_SALES'
+  | 'FINANCIAL_OVERVIEW'
+  | 'FINANCIAL_RECEIVABLES'
+  | 'FINANCIAL_PAYABLES'
+  | 'FINANCIAL_CASH'
+  | 'FINANCIAL_RECONCILIATION'
+  | 'FINANCIAL_REVENUES'
+  | 'FINANCIAL_EXPENSES'
+  | 'FINANCIAL_DRE'
+  | 'FINANCIAL_REPORTS';
+
+// Grouped by area so the modal reads as "escolher a área, marcar os
+// módulos dentro dela" -- requested directly: "se eu escolher
+// financeiro devo marcar os módulos que ele tem acesso." Every module
+// here maps 1:1 to a real screen in the OWNER/ADMIN/MANAGER sidebar
+// (NAV_SECTIONS in Sidebar.tsx) and a real backend route
+// (routes/financial.ts / area-grants.ts) -- not a stand-in list.
+const AREA_GRANT_GROUPS: Array<{ area: string; modules: Array<{ value: AreaGrantModule; label: string }> }> = [
+  {
+    area: 'Vendas',
+    modules: [
+      { value: 'SALES_PROPOSALS', label: 'Propostas' },
+      { value: 'SALES_BOOKINGS', label: 'Reservas' },
+      { value: 'SALES_SALES', label: 'Vendas' },
+    ],
+  },
+  {
+    area: 'Financeiro',
+    modules: [
+      { value: 'FINANCIAL_OVERVIEW', label: 'Visão Geral' },
+      { value: 'FINANCIAL_RECEIVABLES', label: 'Contas a Receber' },
+      { value: 'FINANCIAL_PAYABLES', label: 'Contas a Pagar' },
+      { value: 'FINANCIAL_CASH', label: 'Fluxo de Caixa' },
+      { value: 'FINANCIAL_RECONCILIATION', label: 'Conciliação' },
+      { value: 'FINANCIAL_REVENUES', label: 'Receitas' },
+      { value: 'FINANCIAL_EXPENSES', label: 'Despesas' },
+      { value: 'FINANCIAL_DRE', label: 'DRE Gerencial' },
+      { value: 'FINANCIAL_REPORTS', label: 'Relatórios' },
+    ],
+  },
 ];
 
-// Per-user area grants (agent_area_grants -- Navigable Pilot Flow track):
-// AGENT's role never changes; this lets an ADMIN/OWNER additionally grant
-// a SPECIFIC agent visibility into Vendas and/or Financeiro without
-// promoting them to MANAGER (which would expose everything, not just
-// what this one person needs). Requested directly: "ele sempre vai ser
-// um agent eu defino como admin o que cada agente vai poder fazer."
+// Per-user, per-module area grants (agent_area_grants -- Navigable Pilot
+// Flow track): AGENT's role never changes; this lets an ADMIN/OWNER
+// additionally grant a SPECIFIC agent visibility into individual
+// Vendas/Financeiro modules, without promoting them to MANAGER (which
+// would expose everything, not just what this one person needs).
+// Requested directly: "ele sempre vai ser um agent eu defino como admin
+// o que cada agente vai poder fazer" + "preciso de configuração total
+// tipo se eu escolher financeiro devo marcar os módulos."
 function AreaGrantsEditor({ memberId }: { memberId: string }) {
-  const [areas, setAreas] = useState<Array<'SALES' | 'FINANCIAL'>>([]);
+  const [modules, setModules] = useState<AreaGrantModule[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -1163,12 +1205,12 @@ function AreaGrantsEditor({ memberId }: { memberId: string }) {
     let cancelled = false;
     setLoading(true);
     api
-      .get<{ areas: Array<'SALES' | 'FINANCIAL'> }>(`/settings/team/${memberId}/area-grants`)
+      .get<{ areas: AreaGrantModule[] }>(`/settings/team/${memberId}/area-grants`)
       .then(({ data }) => {
-        if (!cancelled) setAreas(data.areas);
+        if (!cancelled) setModules(data.areas);
       })
       .catch(() => {
-        if (!cancelled) setError('Não foi possível carregar as áreas.');
+        if (!cancelled) setError('Não foi possível carregar os módulos.');
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -1178,16 +1220,15 @@ function AreaGrantsEditor({ memberId }: { memberId: string }) {
     };
   }, [memberId]);
 
-  async function toggle(area: 'SALES' | 'FINANCIAL') {
-    const next = areas.includes(area) ? areas.filter((a) => a !== area) : [...areas, area];
+  async function toggle(module: AreaGrantModule) {
+    const next = modules.includes(module) ? modules.filter((m) => m !== module) : [...modules, module];
     setSaving(true);
     setError(null);
     try {
-      const { data } = await api.patch<{ areas: Array<'SALES' | 'FINANCIAL'> }>(
-        `/settings/team/${memberId}/area-grants`,
-        { areas: next },
-      );
-      setAreas(data.areas);
+      const { data } = await api.patch<{ areas: AreaGrantModule[] }>(`/settings/team/${memberId}/area-grants`, {
+        areas: next,
+      });
+      setModules(data.areas);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Não foi possível salvar.');
     } finally {
@@ -1198,25 +1239,30 @@ function AreaGrantsEditor({ memberId }: { memberId: string }) {
   if (loading) return null;
 
   return (
-    <div className="mt-3 border-t border-slate-100 pt-3">
-      <p className="mb-1.5 text-xs font-medium text-slate-500">
-        Áreas extras (além do que AGENT já vê por padrão)
+    <div className="mt-3 space-y-3 border-t border-slate-100 pt-3">
+      <p className="text-xs font-medium text-slate-500">
+        Módulos extras (além do que AGENT já vê por padrão)
       </p>
-      <div className="flex flex-wrap gap-4">
-        {AREA_GRANT_OPTIONS.map((opt) => (
-          <label key={opt.value} className="flex items-center gap-2 text-sm text-slate-700">
-            <input
-              type="checkbox"
-              checked={areas.includes(opt.value)}
-              disabled={saving}
-              onChange={() => void toggle(opt.value)}
-              className="rounded border-slate-300"
-            />
-            {opt.label}
-          </label>
-        ))}
-      </div>
-      {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+      {AREA_GRANT_GROUPS.map((group) => (
+        <div key={group.area}>
+          <p className="mb-1 text-xs font-semibold text-slate-700">{group.area}</p>
+          <div className="flex flex-wrap gap-x-4 gap-y-1.5">
+            {group.modules.map((mod) => (
+              <label key={mod.value} className="flex items-center gap-2 text-sm text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={modules.includes(mod.value)}
+                  disabled={saving}
+                  onChange={() => void toggle(mod.value)}
+                  className="rounded border-slate-300"
+                />
+                {mod.label}
+              </label>
+            ))}
+          </div>
+        </div>
+      ))}
+      {error && <p className="text-xs text-red-600">{error}</p>}
     </div>
   );
 }
