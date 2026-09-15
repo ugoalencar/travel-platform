@@ -31,7 +31,12 @@ const NAV_SECTIONS: NavSection[] = [
   {
     label: 'CRM & Comercial',
     items: [
-      { label: 'Leads', to: '/customers', gap: true },
+      // "Leads" was a separate entry pointing at this same /customers
+      // screen (gap: true) -- no distinct lead-qualification concept
+      // exists anywhere in this app, so it just read as a duplicate menu
+      // item for the same thing. Removed rather than left marked as a
+      // future gap: reported directly as confusing during a menu-by-menu
+      // review ("Leads e Clientes são iguais").
       { label: 'Clientes', to: '/customers' },
       { label: 'Cadastro Remoto', to: '/enrollment-links' },
       { label: 'Desejos', to: '/wishes' },
@@ -109,7 +114,12 @@ const NAV_SECTIONS: NavSection[] = [
   {
     label: 'Configurações',
     items: [
-      { label: 'Usuários', to: '/settings' },
+      // Points straight at the "Convites" tab (SettingsPage.tsx reads
+      // ?tab= on mount) -- inviting staff is a real, already-built
+      // feature there, but was undiscoverable behind this link landing
+      // on the unrelated "Perfil" tab by default. Reported directly:
+      // "configuração de usuários, não consigo criar outros funcionários."
+      { label: 'Usuários', to: '/settings?tab=invitations' },
       { label: 'Papéis e Acessos', to: '/settings', gap: true },
       { label: 'Integrações', to: '/settings', gap: true },
       { label: 'Parametrizações', to: '/settings', gap: true },
@@ -152,6 +162,14 @@ const STAFF_OPERATIONAL_SECTIONS: NavSection[] = [
   },
 ];
 
+// A NavItem's `to` may carry a query string (e.g. '/settings?tab=invitations')
+// to deep-link into a specific tab -- location.pathname never includes one,
+// so every "is this item on the current route" check compares path only.
+function itemMatchesPath(itemTo: string, pathname: string): boolean {
+  const path = itemTo.split('?')[0] ?? itemTo;
+  return path === '/' ? pathname === '/' : pathname.startsWith(path);
+}
+
 export interface SidebarProps {
   mobileOpen: boolean;
   onClose: () => void;
@@ -173,14 +191,14 @@ export function Sidebar({ mobileOpen, onClose, role }: SidebarProps) {
   // open so navigating in doesn't hide where you are.
   const [openSections, setOpenSections] = useState<Set<string>>(() => {
     const current = sections.find((section) =>
-      section.items.some((item) => (item.to === '/' ? location.pathname === '/' : location.pathname.startsWith(item.to))),
+      section.items.some((item) => (itemMatchesPath(item.to, location.pathname))),
     );
     return new Set(current ? [current.label] : [sections[0]?.label ?? '']);
   });
 
   useEffect(() => {
     const current = sections.find((section) =>
-      section.items.some((item) => (item.to === '/' ? location.pathname === '/' : location.pathname.startsWith(item.to))),
+      section.items.some((item) => (itemMatchesPath(item.to, location.pathname))),
     );
     if (current) {
       setOpenSections((prev) => (prev.has(current.label) ? prev : new Set(prev).add(current.label)));
@@ -250,7 +268,7 @@ export function Sidebar({ mobileOpen, onClose, role }: SidebarProps) {
           {sections.map((section) => {
             const isOpen = openSections.has(section.label);
             const sectionHasActiveItem = section.items.some((item) =>
-              item.to === '/' ? location.pathname === '/' : location.pathname.startsWith(item.to),
+              itemMatchesPath(item.to, location.pathname),
             );
             return (
               <div key={section.label} className="rounded-md">

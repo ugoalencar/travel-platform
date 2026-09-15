@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Settings, Users, Bell, Shield, AlertCircle, Palette, Building2, Trash2, Mail, Lock, Copy } from 'lucide-react';
 import { PageHeader } from '../components/layout/PageHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
@@ -100,11 +101,29 @@ function getRoleColor(role: string): string {
   }
 }
 
+type SettingsTab = 'profile' | 'branding' | 'departments' | 'team' | 'invitations' | 'permissions' | 'notifications';
+const SETTINGS_TABS: SettingsTab[] = [
+  'profile',
+  'branding',
+  'departments',
+  'team',
+  'invitations',
+  'permissions',
+  'notifications',
+];
+
 export function SettingsPage() {
+  const [searchParams] = useSearchParams();
   const [state, setState] = useState<LoadState>({ status: 'loading' });
-  const [activeTab, setActiveTab] = useState<
-    'profile' | 'branding' | 'departments' | 'team' | 'invitations' | 'permissions' | 'notifications'
-  >('profile');
+  // Deep-linkable via ?tab= (e.g. Sidebar's "Usuários" -> /settings?tab=invitations)
+  // so a real, already-built feature (inviting staff) isn't stranded behind
+  // a tab nobody would find landing on the default "Perfil" tab. Reported
+  // directly: "configuração de usuários, não consigo criar outros
+  // funcionários" -- the feature existed, it just wasn't reachable.
+  const [activeTab, setActiveTab] = useState<SettingsTab>(() => {
+    const requested = searchParams.get('tab');
+    return SETTINGS_TABS.includes(requested as SettingsTab) ? (requested as SettingsTab) : 'profile';
+  });
   const [brandingForm, setBrandingForm] = useState<{
     displayName: string;
     logoUrl: string;
