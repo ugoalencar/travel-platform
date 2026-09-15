@@ -601,6 +601,10 @@ BEGIN
   IF to_regclass('public.customer_sessions') IS NOT NULL THEN
     GRANT SELECT, INSERT, UPDATE ON customer_sessions TO travel_app_runtime_local;
   END IF;
+
+  IF to_regclass('public.agent_area_grants') IS NOT NULL THEN
+    GRANT SELECT, INSERT, DELETE ON agent_area_grants TO travel_app_runtime_local;
+  END IF;
 END;
 $$;
 

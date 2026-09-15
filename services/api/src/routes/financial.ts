@@ -15,6 +15,7 @@ import {
 } from '../../../../packages/domain/types';
 import type { DatabaseRuntime } from '../database';
 import { ValidationError } from '../errors';
+import { requireRoleOrAreaGrant } from '../area-grants';
 import {
   parseObjectBody,
   assertAllowedFields,
@@ -225,7 +226,7 @@ export function registerFinancialRoutes(
   // DASHBOARD / SUMMARY
   // ============================================================
   app.get('/financial/dashboard', { preHandler: protectedHooks }, async (request) => {
-    requireRole(UserRole.MANAGER);
+    await requireRoleOrAreaGrant(database, UserRole.MANAGER, 'FINANCIAL');
     const restrictionContext = getTenantContext();
     await database.withTenantTransaction((client) =>
       assertNotRestricted(client, restrictionContext.userRole, 'financial', 'view'),
@@ -236,7 +237,7 @@ export function registerFinancialRoutes(
   });
 
   app.get('/financial/summary', { preHandler: protectedHooks }, async () => {
-    requireRole(UserRole.MANAGER);
+    await requireRoleOrAreaGrant(database, UserRole.MANAGER, 'FINANCIAL');
     const summary = await getFinancialSummary(database);
     return { summary };
   });

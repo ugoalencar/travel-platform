@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { ChevronDown } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import { api } from '../../lib/api';
 import type { CurrentUserRole } from '../../hooks/useCurrentUser';
 
 interface NavItem {
@@ -162,6 +163,28 @@ const STAFF_OPERATIONAL_SECTIONS: NavSection[] = [
   },
 ];
 
+// Per-user area grants (agent_area_grants -- Navigable Pilot Flow track):
+// an admin can grant a specific AGENT extra sections beyond the fixed
+// STAFF_OPERATIONAL_SECTIONS above, without changing their role. Backend
+// enforcement lives in services/api/src/area-grants.ts /
+// routes/financial.ts -- this is the matching UI side, appended only
+// when GET /settings/my-area-grants actually confirms the grant, never
+// assumed client-side.
+const AREA_GRANT_SECTIONS: Record<'SALES' | 'FINANCIAL', NavSection> = {
+  SALES: {
+    label: 'Vendas',
+    items: [
+      { label: 'Propostas', to: '/proposals' },
+      { label: 'Reservas', to: '/bookings' },
+      { label: 'Vendas', to: '/sales' },
+    ],
+  },
+  FINANCIAL: {
+    label: 'Financeiro',
+    items: [{ label: 'Visão Geral', to: '/financial' }],
+  },
+};
+
 // A NavItem's `to` may carry a query string (e.g. '/settings?tab=invitations')
 // to deep-link into a specific tab -- location.pathname never includes one,
 // so every "is this item on the current route" check compares path only.
@@ -181,7 +204,27 @@ export interface SidebarProps {
 
 export function Sidebar({ mobileOpen, onClose, role }: SidebarProps) {
   const isOperationalStaff = role === 'AGENT';
-  const sections = isOperationalStaff ? STAFF_OPERATIONAL_SECTIONS : NAV_SECTIONS;
+  const [grantedAreas, setGrantedAreas] = useState<Array<'SALES' | 'FINANCIAL'>>([]);
+
+  useEffect(() => {
+    if (!isOperationalStaff) return;
+    let cancelled = false;
+    api
+      .get<{ areas: Array<'SALES' | 'FINANCIAL'> }>('/settings/my-area-grants')
+      .then(({ data }) => {
+        if (!cancelled) setGrantedAreas(data.areas);
+      })
+      .catch(() => {
+        if (!cancelled) setGrantedAreas([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [isOperationalStaff]);
+
+  const sections = isOperationalStaff
+    ? [...STAFF_OPERATIONAL_SECTIONS, ...grantedAreas.map((area) => AREA_GRANT_SECTIONS[area])]
+    : NAV_SECTIONS;
   const location = useLocation();
 
   // Areas are collapsed by default -- each section header is a toggle, not

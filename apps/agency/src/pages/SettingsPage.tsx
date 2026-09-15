@@ -759,36 +759,38 @@ export function SettingsPage() {
                   {team.map((member) => {
                     const canEditThisRole = canManageInvitations && member.role !== 'OWNER';
                     return (
-                      <div
-                        key={member.id}
-                        className="flex items-center justify-between rounded-lg border border-slate-200 p-4"
-                      >
-                        <div className="flex-1">
-                          <p className="font-medium text-slate-900">{member.name}</p>
-                          <p className="text-sm text-slate-500">{member.email}</p>
-                          <p className="text-xs text-slate-400">
-                            Membro desde {new Date(member.joinedAt).toLocaleDateString('pt-BR')}
-                          </p>
+                      <div key={member.id} className="rounded-lg border border-slate-200 p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <p className="font-medium text-slate-900">{member.name}</p>
+                            <p className="text-sm text-slate-500">{member.email}</p>
+                            <p className="text-xs text-slate-400">
+                              Membro desde {new Date(member.joinedAt).toLocaleDateString('pt-BR')}
+                            </p>
+                          </div>
+                          {canEditThisRole ? (
+                            <select
+                              value={member.role}
+                              disabled={roleSaving === member.id}
+                              onChange={(e) => void handleChangeRole(member.id, e.target.value)}
+                              className={`rounded-md border border-slate-300 px-2 py-1 text-xs font-semibold ${getRoleColor(member.role)}`}
+                            >
+                              {invitableRoles.map((role) => (
+                                <option key={role} value={role}>
+                                  {role}
+                                </option>
+                              ))}
+                            </select>
+                          ) : (
+                            <StatusBadge tone="neutral">
+                              <span className={`px-2 py-1 rounded text-xs font-semibold ${getRoleColor(member.role)}`}>
+                                {member.role}
+                              </span>
+                            </StatusBadge>
+                          )}
                         </div>
-                        {canEditThisRole ? (
-                          <select
-                            value={member.role}
-                            disabled={roleSaving === member.id}
-                            onChange={(e) => void handleChangeRole(member.id, e.target.value)}
-                            className={`rounded-md border border-slate-300 px-2 py-1 text-xs font-semibold ${getRoleColor(member.role)}`}
-                          >
-                            {invitableRoles.map((role) => (
-                              <option key={role} value={role}>
-                                {role}
-                              </option>
-                            ))}
-                          </select>
-                        ) : (
-                          <StatusBadge tone="neutral">
-                            <span className={`px-2 py-1 rounded text-xs font-semibold ${getRoleColor(member.role)}`}>
-                              {member.role}
-                            </span>
-                          </StatusBadge>
+                        {canManageInvitations && member.role === 'AGENT' && (
+                          <AreaGrantsEditor memberId={member.id} />
                         )}
                       </div>
                     );
@@ -1103,6 +1105,85 @@ export function SettingsPage() {
           </Card>
         </div>
       )}
+    </div>
+  );
+}
+
+const AREA_GRANT_OPTIONS: Array<{ value: 'SALES' | 'FINANCIAL'; label: string }> = [
+  { value: 'SALES', label: 'Vendas' },
+  { value: 'FINANCIAL', label: 'Financeiro (acompanhar)' },
+];
+
+// Per-user area grants (agent_area_grants -- Navigable Pilot Flow track):
+// AGENT's role never changes; this lets an ADMIN/OWNER additionally grant
+// a SPECIFIC agent visibility into Vendas and/or Financeiro without
+// promoting them to MANAGER (which would expose everything, not just
+// what this one person needs). Requested directly: "ele sempre vai ser
+// um agent eu defino como admin o que cada agente vai poder fazer."
+function AreaGrantsEditor({ memberId }: { memberId: string }) {
+  const [areas, setAreas] = useState<Array<'SALES' | 'FINANCIAL'>>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    api
+      .get<{ areas: Array<'SALES' | 'FINANCIAL'> }>(`/settings/team/${memberId}/area-grants`)
+      .then(({ data }) => {
+        if (!cancelled) setAreas(data.areas);
+      })
+      .catch(() => {
+        if (!cancelled) setError('Não foi possível carregar as áreas.');
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [memberId]);
+
+  async function toggle(area: 'SALES' | 'FINANCIAL') {
+    const next = areas.includes(area) ? areas.filter((a) => a !== area) : [...areas, area];
+    setSaving(true);
+    setError(null);
+    try {
+      const { data } = await api.patch<{ areas: Array<'SALES' | 'FINANCIAL'> }>(
+        `/settings/team/${memberId}/area-grants`,
+        { areas: next },
+      );
+      setAreas(data.areas);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Não foi possível salvar.');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (loading) return null;
+
+  return (
+    <div className="mt-3 border-t border-slate-100 pt-3">
+      <p className="mb-1.5 text-xs font-medium text-slate-500">
+        Áreas extras (além do que AGENT já vê por padrão)
+      </p>
+      <div className="flex flex-wrap gap-4">
+        {AREA_GRANT_OPTIONS.map((opt) => (
+          <label key={opt.value} className="flex items-center gap-2 text-sm text-slate-700">
+            <input
+              type="checkbox"
+              checked={areas.includes(opt.value)}
+              disabled={saving}
+              onChange={() => void toggle(opt.value)}
+              className="rounded border-slate-300"
+            />
+            {opt.label}
+          </label>
+        ))}
+      </div>
+      {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
     </div>
   );
 }
