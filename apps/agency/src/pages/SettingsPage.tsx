@@ -137,6 +137,7 @@ export function SettingsPage() {
   const [departmentError, setDepartmentError] = useState<string | null>(null);
   const [departmentSaving, setDepartmentSaving] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteName, setInviteName] = useState('');
   const [inviteRole, setInviteRole] = useState<'ADMIN' | 'MANAGER' | 'AGENT' | 'VIEWER'>('AGENT');
   const [inviteError, setInviteError] = useState<string | null>(null);
   const [inviteSaving, setInviteSaving] = useState(false);
@@ -282,27 +283,40 @@ export function SettingsPage() {
   };
 
   const handleCreateInvitation = async () => {
-    if (!inviteEmail.trim()) return;
+    if (!inviteEmail.trim() || !inviteName.trim()) return;
     setInviteSaving(true);
     setInviteError(null);
     setCreatedInviteLink(null);
     try {
       const resp = await api.post<{ token: string }>('/settings/invitations', {
         email: inviteEmail.trim(),
+        name: inviteName.trim(),
         role: inviteRole,
       });
       const token = (resp.data as { token?: string }).token;
       if (token) {
-        // apps/customer (which hosts /accept-invitation/:token) runs on a
-        // different Vite dev port than this app -- see the same pattern in
-        // EnrollmentLinksPage.tsx. In production these are typically the
-        // same origin/subdomain-routed deployment.
+        // apps/customer (which hosts /accept-invitation/:token) is a
+        // different app/origin from this one. VITE_CUSTOMER_APP_URL is an
+        // explicit override for any topology. Otherwise: try the
+        // *.localhost domain-based convention this repo's local-staging
+        // setup and CustomerDetailPage.tsx's portal-access link both use
+        // (agency.<x> -> portal.<x>) first; if the hostname has no
+        // "agency." prefix to rewrite (plain `vite dev`, both apps on
+        // bare "localhost"), fall back to the port-based dev convention
+        // (this app's 5173 -> apps/customer's 5176) instead -- the old
+        // code only ever did the port-based guess, which silently pointed
+        // the link at the wrong app on a port-less domain like
+        // agency.localhost.
+        const hostnameRewritten = window.location.hostname.replace(/^agency\./, 'portal.');
         const customerAppBase: string =
           (import.meta.env.VITE_CUSTOMER_APP_URL as string | undefined) ??
-          window.location.origin.replace(/:\d+$/, ':5176');
+          (hostnameRewritten !== window.location.hostname
+            ? `${window.location.protocol}//${hostnameRewritten}${window.location.port ? `:${window.location.port}` : ''}`
+            : window.location.origin.replace(/:\d+$/, ':5176'));
         setCreatedInviteLink(`${customerAppBase}/accept-invitation/${token}`);
       }
       setInviteEmail('');
+      setInviteName('');
       await loadSettings();
     } catch (err) {
       setInviteError(err instanceof Error ? err.message : 'Não foi possível criar o convite.');
@@ -796,6 +810,13 @@ export function SettingsPage() {
             <CardContent className="space-y-3">
               <div className="flex flex-wrap gap-3">
                 <input
+                  type="text"
+                  value={inviteName}
+                  onChange={(e) => setInviteName(e.target.value)}
+                  placeholder="Nome completo"
+                  className="flex-1 min-w-[180px] rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900"
+                />
+                <input
                   type="email"
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
@@ -815,7 +836,7 @@ export function SettingsPage() {
                 </select>
                 <button
                   onClick={() => void handleCreateInvitation()}
-                  disabled={inviteSaving || !inviteEmail.trim()}
+                  disabled={inviteSaving || !inviteEmail.trim() || !inviteName.trim()}
                   className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50"
                 >
                   {inviteSaving ? 'Enviando…' : 'Convidar'}

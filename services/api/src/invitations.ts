@@ -64,6 +64,10 @@ export interface Invitation {
   id: string;
   agencyId: string;
   email: string;
+  /** Set by the inviting admin up front so the invitee's accept-invitation
+   * screen is just "confirm and set a password" -- undefined only for
+   * invitations created before this field existed. */
+  name?: string;
   role: UserRole;
   status: InvitationStatus;
   invitedByUserId: string;
@@ -78,6 +82,7 @@ interface InvitationRow {
   id: string;
   agency_id: string;
   email: string;
+  name: string | null;
   role: UserRole;
   status: InvitationStatus;
   invited_by_user_id: string;
@@ -88,7 +93,7 @@ interface InvitationRow {
   updated_at: string;
 }
 
-const INVITATION_COLUMNS = `id, agency_id, email, role, status, invited_by_user_id,
+const INVITATION_COLUMNS = `id, agency_id, email, name, role, status, invited_by_user_id,
   expires_at, accepted_at, revoked_at, created_at, updated_at`;
 
 function toInvitation(row: InvitationRow): Invitation {
@@ -102,6 +107,7 @@ function toInvitation(row: InvitationRow): Invitation {
     expiresAt: new Date(row.expires_at),
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
+    ...(row.name !== null ? { name: row.name } : {}),
     ...(row.accepted_at !== null ? { acceptedAt: new Date(row.accepted_at) } : {}),
     ...(row.revoked_at !== null ? { revokedAt: new Date(row.revoked_at) } : {}),
   };
@@ -113,6 +119,9 @@ function toInvitation(row: InvitationRow): Invitation {
 export interface CreateInvitationInput {
   email: string;
   role: UserRole;
+  /** Optional -- when set, the invitee's accept-invitation screen shows it
+   * read-only instead of asking them to type it themselves. */
+  name?: string;
   ttlDays?: number;
 }
 
@@ -143,6 +152,7 @@ export async function createInvitation(
   }
 
   const ttlDays = normalizeTtlDays(input.ttlDays);
+  const name = input.name?.trim() || null;
   const { token, tokenHash } = generateInvitationToken();
 
   const invitation = await database.withTenantTransaction(async (client) => {
@@ -157,10 +167,10 @@ export async function createInvitation(
     let result;
     try {
       result = await client.query<InvitationRow>(
-        `INSERT INTO invitations (agency_id, email, role, token_hash, invited_by_user_id, expires_at)
-         VALUES ($1, $2, $3, $4, $5, now() + ($6 || ' days')::interval)
+        `INSERT INTO invitations (agency_id, email, name, role, token_hash, invited_by_user_id, expires_at)
+         VALUES ($1, $2, $3, $4, $5, $6, now() + ($7 || ' days')::interval)
          RETURNING ${INVITATION_COLUMNS}`,
-        [agencyId, email, input.role, tokenHash, invitedByUserId, ttlDays],
+        [agencyId, email, name, input.role, tokenHash, invitedByUserId, ttlDays],
       );
     } catch (error: unknown) {
       if (isUniqueViolation(error)) {
@@ -236,6 +246,7 @@ export interface PublicInvitationInfo {
   agencyId: string;
   invitationId: string;
   email: string;
+  name?: string;
   role: UserRole;
 }
 
@@ -271,12 +282,22 @@ export async function resolvePublicInvitationToken(
       return null;
     }
 
-    return { agencyId: row.agency_id, invitationId: row.id, email: row.email, role: row.role };
+    return {
+      agencyId: row.agency_id,
+      invitationId: row.id,
+      email: row.email,
+      role: row.role,
+      ...(row.name !== null ? { name: row.name } : {}),
+    };
   });
 }
 
 export interface AcceptInvitationInput {
-  name: string;
+  /** Required only when the invitation itself has no name set (invitations
+   * created before admin-entered names existed) -- otherwise ignored, the
+   * invitation's own name always wins so the invitee can't quietly rename
+   * themselves to something the admin didn't approve. */
+  name?: string;
   password: string;
 }
 
@@ -293,7 +314,10 @@ export async function acceptInvitation(
   rawToken: string,
   input: AcceptInvitationInput,
 ): Promise<AcceptedInvitationResult> {
-  const name = input.name?.trim();
+  // The invitation's own name (set by the admin) always wins when present
+  // -- input.name is only a fallback for invitations created before that
+  // field existed, never a way for the invitee to override it.
+  const name = invitationInfo.name?.trim() || input.name?.trim();
   if (!name) {
     throw new ValidationError('Nome é obrigatório');
   }

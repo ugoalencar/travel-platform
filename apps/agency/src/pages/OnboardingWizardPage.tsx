@@ -35,6 +35,7 @@ export function OnboardingWizardPage() {
   const [profileForm, setProfileForm] = useState({ name: '', email: '', phone: '' });
   const [brandingForm, setBrandingForm] = useState({ displayName: '', logoUrl: '', primaryColor: '' });
   const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteName, setInviteName] = useState('');
   const [inviteRole, setInviteRole] = useState<'ADMIN' | 'MANAGER' | 'AGENT' | 'VIEWER'>('AGENT');
   const [invitedCount, setInvitedCount] = useState(0);
   const [lastInviteLink, setLastInviteLink] = useState<string | null>(null);
@@ -118,12 +119,13 @@ export function OnboardingWizardPage() {
   };
 
   const handleInvite = async () => {
-    if (!inviteEmail.trim()) return;
+    if (!inviteEmail.trim() || !inviteName.trim()) return;
     setSaving(true);
     setError(null);
     try {
       const { data } = await api.post<{ token: string }>('/settings/invitations', {
         email: inviteEmail.trim(),
+        name: inviteName.trim(),
         role: inviteRole,
       });
       // No email provider exists anywhere in this codebase yet (see
@@ -136,6 +138,7 @@ export function OnboardingWizardPage() {
       setLastInviteLink(link);
       setInvitedCount((n) => n + 1);
       setInviteEmail('');
+      setInviteName('');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Não foi possível convidar.');
     } finally {
@@ -294,6 +297,13 @@ export function OnboardingWizardPage() {
             </p>
             <div className="flex flex-wrap gap-3">
               <input
+                type="text"
+                value={inviteName}
+                onChange={(e) => setInviteName(e.target.value)}
+                placeholder="Nome completo"
+                className="flex-1 min-w-[160px] rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900"
+              />
+              <input
                 type="email"
                 value={inviteEmail}
                 onChange={(e) => setInviteEmail(e.target.value)}
@@ -312,7 +322,7 @@ export function OnboardingWizardPage() {
               </select>
               <button
                 onClick={() => void handleInvite()}
-                disabled={saving || !inviteEmail.trim()}
+                disabled={saving || !inviteEmail.trim() || !inviteName.trim()}
                 className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
               >
                 Convidar

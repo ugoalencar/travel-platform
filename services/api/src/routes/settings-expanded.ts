@@ -215,7 +215,7 @@ export function registerSettingsExpandedRoutes(
   });
 
   app.post('/settings/invitations', { preHandler: protectedHooks }, async (request, reply) => {
-    const body = request.body as { email: string; role: UserRole; ttlDays?: number };
+    const body = request.body as { email: string; role: UserRole; name?: string; ttlDays?: number };
     const context = getTenantContext();
     const { invitation, token } = await createInvitation(database, context.userRole, body);
     reply.code(201);
@@ -246,12 +246,12 @@ export function registerSettingsExpandedRoutes(
       reply.code(404);
       return { error: 'Convite invalido ou expirado' };
     }
-    return { email: info.email, role: info.role };
+    return { email: info.email, role: info.role, ...(info.name ? { name: info.name } : {}) };
   });
 
   app.post('/invitations/:token/accept', async (request, reply) => {
     const { token } = request.params as { token: string };
-    const body = request.body as { name: string; password: string };
+    const body = request.body as { name?: string; password: string };
     const info = await resolvePublicInvitationToken(database, token);
     if (!info) {
       reply.code(404);

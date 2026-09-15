@@ -10,7 +10,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
 type ResolveState =
   | { status: 'checking' }
   | { status: 'invalid' }
-  | { status: 'valid'; email: string; role: string };
+  | { status: 'valid'; email: string; role: string; name?: string };
 type SubmitState = 'idle' | 'submitting' | 'done' | 'error';
 
 export function AcceptInvitationPage() {
@@ -33,16 +33,24 @@ export function AcceptInvitationPage() {
           setResolveState({ status: 'invalid' });
           return;
         }
-        const body = (await res.json()) as { email: string; role: string };
-        setResolveState({ status: 'valid', email: body.email, role: body.role });
+        const body = (await res.json()) as { email: string; role: string; name?: string };
+        setResolveState({ status: 'valid', email: body.email, role: body.role, ...(body.name ? { name: body.name } : {}) });
       })
       .catch(() => setResolveState({ status: 'invalid' }));
   }, [token]);
 
+  // The admin already entered the name when creating the invitation
+  // (most invitations, going forward) -- this screen is then just
+  // "confirm and set a password," matching what was requested directly:
+  // the invitee shouldn't have to fill out a second registration form.
+  // Only invitations created before that field existed (no name on the
+  // resolved invitation) still ask for one here.
+  const nameIsPreset = resolveState.status === 'valid' && Boolean(resolveState.name);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!token) return;
-    if (!name.trim()) {
+    if (!nameIsPreset && !name.trim()) {
       setErrorMessage('Informe seu nome.');
       return;
     }
@@ -61,7 +69,7 @@ export function AcceptInvitationPage() {
     fetch(`${API_BASE_URL}/invitations/${encodeURIComponent(token)}/accept`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: name.trim(), password }),
+      body: JSON.stringify({ ...(nameIsPreset ? {} : { name: name.trim() }), password }),
     })
       .then(async (res) => {
         if (!res.ok) {
@@ -99,28 +107,32 @@ export function AcceptInvitationPage() {
 
   return (
     <div style={{ maxWidth: 420, margin: '0 auto', padding: '48px 16px', fontFamily: 'system-ui, sans-serif' }}>
-      <h1 style={{ fontSize: 22, fontWeight: 600, marginBottom: 4 }}>Você foi convidado(a)</h1>
+      <h1 style={{ fontSize: 22, fontWeight: 600, marginBottom: 4 }}>
+        {nameIsPreset ? `Bem-vindo(a), ${resolveState.name}` : 'Você foi convidado(a)'}
+      </h1>
       <p style={{ color: '#666', marginBottom: 24, fontSize: 14 }}>
         <strong>{resolveState.email}</strong> foi convidado(a) como <strong>{resolveState.role}</strong>.
-        Confirme seu nome para concluir.
+        {nameIsPreset ? ' Defina sua senha para concluir.' : ' Confirme seu nome para concluir.'}
       </p>
 
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <label style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 13 }}>
-          <span style={{ fontWeight: 500, color: '#444' }}>Nome completo *</span>
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-            style={{
-              padding: '8px 10px',
-              borderRadius: 6,
-              border: '1px solid #d0d0d0',
-              fontSize: 14,
-              fontFamily: 'inherit',
-            }}
-          />
-        </label>
+        {!nameIsPreset && (
+          <label style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 13 }}>
+            <span style={{ fontWeight: 500, color: '#444' }}>Nome completo *</span>
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              style={{
+                padding: '8px 10px',
+                borderRadius: 6,
+                border: '1px solid #d0d0d0',
+                fontSize: 14,
+                fontFamily: 'inherit',
+              }}
+            />
+          </label>
+        )}
 
         <label style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 13 }}>
           <span style={{ fontWeight: 500, color: '#444' }}>Senha (mín. 8 caracteres) *</span>
