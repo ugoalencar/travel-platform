@@ -136,6 +136,8 @@ export function SettingsPage() {
   const [newDepartmentDescription, setNewDepartmentDescription] = useState('');
   const [departmentError, setDepartmentError] = useState<string | null>(null);
   const [departmentSaving, setDepartmentSaving] = useState(false);
+  const [roleSaving, setRoleSaving] = useState<string | null>(null);
+  const [roleError, setRoleError] = useState<string | null>(null);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteName, setInviteName] = useState('');
   const [inviteRole, setInviteRole] = useState<'ADMIN' | 'MANAGER' | 'AGENT' | 'VIEWER'>('AGENT');
@@ -279,6 +281,19 @@ export function SettingsPage() {
       await loadSettings();
     } catch {
       setDepartmentError('Não foi possível excluir o departamento.');
+    }
+  };
+
+  const handleChangeRole = async (memberId: string, newRole: string) => {
+    setRoleSaving(memberId);
+    setRoleError(null);
+    try {
+      await api.patch(`/settings/team/${memberId}/role`, { role: newRole });
+      await loadSettings();
+    } catch (err) {
+      setRoleError(err instanceof Error ? err.message : 'Não foi possível alterar o papel.');
+    } finally {
+      setRoleSaving(null);
     }
   };
 
@@ -738,27 +753,46 @@ export function SettingsPage() {
               <CardTitle>Membros da Equipe</CardTitle>
             </CardHeader>
             <CardContent>
+              {roleError && <p className="mb-3 text-sm text-red-600">{roleError}</p>}
               {team.length > 0 ? (
                 <div className="space-y-3">
-                  {team.map((member) => (
-                    <div
-                      key={member.id}
-                      className="flex items-center justify-between rounded-lg border border-slate-200 p-4"
-                    >
-                      <div className="flex-1">
-                        <p className="font-medium text-slate-900">{member.name}</p>
-                        <p className="text-sm text-slate-500">{member.email}</p>
-                        <p className="text-xs text-slate-400">
-                          Membro desde {new Date(member.joinedAt).toLocaleDateString('pt-BR')}
-                        </p>
+                  {team.map((member) => {
+                    const canEditThisRole = canManageInvitations && member.role !== 'OWNER';
+                    return (
+                      <div
+                        key={member.id}
+                        className="flex items-center justify-between rounded-lg border border-slate-200 p-4"
+                      >
+                        <div className="flex-1">
+                          <p className="font-medium text-slate-900">{member.name}</p>
+                          <p className="text-sm text-slate-500">{member.email}</p>
+                          <p className="text-xs text-slate-400">
+                            Membro desde {new Date(member.joinedAt).toLocaleDateString('pt-BR')}
+                          </p>
+                        </div>
+                        {canEditThisRole ? (
+                          <select
+                            value={member.role}
+                            disabled={roleSaving === member.id}
+                            onChange={(e) => void handleChangeRole(member.id, e.target.value)}
+                            className={`rounded-md border border-slate-300 px-2 py-1 text-xs font-semibold ${getRoleColor(member.role)}`}
+                          >
+                            {invitableRoles.map((role) => (
+                              <option key={role} value={role}>
+                                {role}
+                              </option>
+                            ))}
+                          </select>
+                        ) : (
+                          <StatusBadge tone="neutral">
+                            <span className={`px-2 py-1 rounded text-xs font-semibold ${getRoleColor(member.role)}`}>
+                              {member.role}
+                            </span>
+                          </StatusBadge>
+                        )}
                       </div>
-                      <StatusBadge tone="neutral">
-                        <span className={`px-2 py-1 rounded text-xs font-semibold ${getRoleColor(member.role)}`}>
-                          {member.role}
-                        </span>
-                      </StatusBadge>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 <p className="text-center text-sm text-slate-500">Nenhum membro na equipe</p>

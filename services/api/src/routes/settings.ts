@@ -10,11 +10,13 @@ import type { preHandlerHookHandler } from 'fastify';
 import { requireRole } from '../../../../packages/domain/tenant-context';
 import { UserRole } from '../../../../packages/domain/types';
 import type { DatabaseRuntime } from '../database';
+import { ValidationError } from '../errors';
 import {
   getAgencyProfile,
   getTeamMembers,
   getNotificationSettings,
   updateNotificationSettings,
+  updateTeamMemberRole,
 } from '../settings-queries';
 
 export interface SettingsRoutesOptions {
@@ -41,6 +43,22 @@ export function registerSettingsRoutes(
     const team = await database.withTenantTransaction((client) => getTeamMembers(client));
     return { team };
   });
+
+  app.patch<{ Params: { id: string }; Body: { role?: string } }>(
+    '/settings/team/:id/role',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.ADMIN);
+      const role = request.body?.role;
+      if (typeof role !== 'string' || !Object.values(UserRole).includes(role as UserRole)) {
+        throw new ValidationError('role inválida');
+      }
+      const member = await database.withTenantTransaction((client) =>
+        updateTeamMemberRole(client, request.params.id, role as UserRole),
+      );
+      return { member };
+    },
+  );
 
   app.get('/settings/notifications', { preHandler: protectedHooks }, async () => {
     requireRole(UserRole.VIEWER);

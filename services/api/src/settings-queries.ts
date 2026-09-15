@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-return */
 import type { TenantTransactionClient } from './database';
-import { getAgencyId, getUserId, getTenantContext } from '../../../packages/domain/tenant-context';
+import { ForbiddenError, getAgencyId, getUserId, getTenantContext } from '../../../packages/domain/tenant-context';
+import { UserRole } from '../../../packages/domain/types';
+import { NotFoundError, ValidationError } from './errors';
 
 // ============================================================
 // SETTINGS QUERIES
@@ -583,6 +585,82 @@ export async function getTeamMembers(client: TenantTransactionClient): Promise<T
     role: row.role as 'OWNER' | 'ADMIN' | 'MANAGER' | 'AGENT' | 'VIEWER',
     joinedAt: row.joined_at,
   }));
+}
+
+const ROLE_RANK: Record<UserRole, number> = {
+  [UserRole.OWNER]: 100,
+  [UserRole.ADMIN]: 80,
+  [UserRole.MANAGER]: 60,
+  [UserRole.AGENT]: 40,
+  [UserRole.VIEWER]: 20,
+};
+
+/**
+ * Change an existing team member's role. No route/UI existed anywhere to
+ * do this before -- Team tab only ever displayed member.role as static
+ * text, so promoting/demoting staff after they'd already accepted an
+ * invitation was impossible. Same RBAC shape as invitations.ts's
+ * createInvitation(): the actor can never grant (or already hold, when
+ * acting on someone else) a role above their own rank, and OWNER can
+ * only ever be granted here -- never assigned, since transferring
+ * ownership is a more sensitive operation this endpoint deliberately
+ * doesn't attempt. Callers self-changing their own role is also
+ * rejected, to prevent an OWNER from accidentally demoting themselves
+ * with no other OWNER left to undo it.
+ */
+export async function updateTeamMemberRole(
+  client: TenantTransactionClient,
+  targetUserId: string,
+  newRole: UserRole,
+): Promise<TeamMember> {
+  const context = getTenantContext();
+  const actorRole = context.userRole;
+  const agencyId = getAgencyId();
+
+  if (!Object.values(UserRole).includes(newRole)) {
+    throw new ValidationError('role inválida');
+  }
+  if (newRole === UserRole.OWNER) {
+    throw new ForbiddenError('Não é possível atribuir o papel OWNER por aqui');
+  }
+  if (targetUserId === getUserId()) {
+    throw new ForbiddenError('Não é possível alterar seu próprio papel');
+  }
+  if ((ROLE_RANK[newRole] ?? 0) > (ROLE_RANK[actorRole] ?? 0)) {
+    throw new ForbiddenError('Não é possível atribuir um papel acima do seu próprio');
+  }
+
+  const targetResult = await client.query<{ role: UserRole }>(
+    `SELECT role FROM users WHERE agency_id = $1 AND id = $2`,
+    [agencyId, targetUserId],
+  );
+  const targetRow = targetResult.rows[0];
+  if (!targetRow) {
+    throw new NotFoundError('Membro não encontrado');
+  }
+  if (targetRow.role === UserRole.OWNER) {
+    throw new ForbiddenError('Não é possível alterar o papel do OWNER');
+  }
+  if ((ROLE_RANK[targetRow.role] ?? 0) > (ROLE_RANK[actorRole] ?? 0)) {
+    throw new ForbiddenError('Não é possível alterar o papel de alguém acima do seu próprio');
+  }
+
+  const updated = await client.query<{ id: string; name: string; email: string; role: string; joined_at: string }>(
+    `UPDATE users SET role = $3, updated_at = now() WHERE agency_id = $1 AND id = $2
+     RETURNING id, name, email, role, created_at as joined_at`,
+    [agencyId, targetUserId, newRole],
+  );
+  const row = updated.rows[0];
+  if (!row) {
+    throw new NotFoundError('Membro não encontrado');
+  }
+  return {
+    id: row.id,
+    name: row.name,
+    email: row.email,
+    role: row.role as 'OWNER' | 'ADMIN' | 'MANAGER' | 'AGENT' | 'VIEWER',
+    joinedAt: row.joined_at,
+  };
 }
 
 /**
