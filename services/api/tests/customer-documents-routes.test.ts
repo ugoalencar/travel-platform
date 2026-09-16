@@ -8,6 +8,9 @@
 
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { IncomingHttpHeaders } from 'node:http';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import type { FastifyInstance } from 'fastify';
 import { buildApp } from '../src/app';
 import { UserRole } from '../../../packages/domain/types';
@@ -15,7 +18,6 @@ import type { AuthenticatedPrincipal } from '../src/auth';
 import { MockOcrProvider } from '../src/ocr-provider';
 import { ValidationError } from '../src/errors';
 import {
-  parseAttachmentInput,
   parseCreateAddressInput,
   parseCreateDependentInput,
   parseCreateDocumentInput,
@@ -129,13 +131,45 @@ function buildTestApp(responder: QueryResponder = defaultResponder): FastifyInst
 let app: FastifyInstance;
 
 beforeAll(async () => {
+  // POST /documents/:documentId/attachments now writes real bytes via
+  // file-storage.ts -- point it at a temp dir for this test process so
+  // nothing lands in the repo tree.
+  process.env.UPLOADS_DIR = mkdtempSync(join(tmpdir(), 'travel-platform-attachments-test-'));
   app = buildTestApp();
   await app.ready();
 });
 
 afterAll(async () => {
   await app.close();
+  if (process.env.UPLOADS_DIR) {
+    rmSync(process.env.UPLOADS_DIR, { recursive: true, force: true });
+  }
 });
+
+/** Builds a minimal valid multipart/form-data body for the attachment
+ * upload route -- one file part plus an `attachmentType` field. */
+function buildAttachmentMultipart(options: {
+  attachmentType: string;
+  fileName: string;
+  mimeType: string;
+  content: Buffer;
+}): { payload: Buffer; contentType: string } {
+  const boundary = '----attachmentTestBoundary';
+  const parts = [
+    `--${boundary}\r\n`,
+    `Content-Disposition: form-data; name="attachmentType"\r\n\r\n`,
+    `${options.attachmentType}\r\n`,
+    `--${boundary}\r\n`,
+    `Content-Disposition: form-data; name="file"; filename="${options.fileName}"\r\n`,
+    `Content-Type: ${options.mimeType}\r\n\r\n`,
+  ].join('');
+  const payload = Buffer.concat([
+    Buffer.from(parts, 'utf8'),
+    options.content,
+    Buffer.from(`\r\n--${boundary}--\r\n`, 'utf8'),
+  ]);
+  return { payload, contentType: `multipart/form-data; boundary=${boundary}` };
+}
 
 describe('Customer 360 routes -- authentication', () => {
   it.each([
@@ -397,17 +431,18 @@ describe('Customer 360 routes -- documents', () => {
 });
 
 describe('Customer 360 routes -- attachments', () => {
-  it('uploads attachment metadata and returns 201', async () => {
+  it('uploads a real file and returns 201', async () => {
+    const { payload, contentType } = buildAttachmentMultipart({
+      attachmentType: 'FRONT',
+      fileName: 'passport.png',
+      mimeType: 'image/png',
+      content: Buffer.from('fake-png-bytes'),
+    });
     const response = await app.inject({
       method: 'POST',
       url: '/documents/doc-1/attachments',
-      headers: authHeaders,
-      payload: {
-        attachmentType: 'FRONT',
-        fileName: 'passport.png',
-        fileSizeBytes: 2048,
-        fileMimeType: 'image/png',
-      },
+      headers: { ...authHeaders, 'content-type': contentType },
+      payload,
     });
 
     expect(response.statusCode).toBe(201);
@@ -415,54 +450,59 @@ describe('Customer 360 routes -- attachments', () => {
   });
 
   it('rejects an executable upload with 400', async () => {
+    const { payload, contentType } = buildAttachmentMultipart({
+      attachmentType: 'FRONT',
+      fileName: 'payload.exe',
+      mimeType: 'application/x-msdownload',
+      content: Buffer.from('MZ'),
+    });
     const response = await app.inject({
       method: 'POST',
       url: '/documents/doc-1/attachments',
-      headers: authHeaders,
-      payload: {
-        attachmentType: 'FRONT',
-        fileName: 'payload.exe',
-        fileSizeBytes: 2048,
-        fileMimeType: 'application/x-msdownload',
-      },
+      headers: { ...authHeaders, 'content-type': contentType },
+      payload,
     });
 
     expect(response.statusCode).toBe(400);
   });
 
   it('rejects a file over the 20 MB ceiling with 400', async () => {
+    const { payload, contentType } = buildAttachmentMultipart({
+      attachmentType: 'FRONT',
+      fileName: 'huge.png',
+      mimeType: 'image/png',
+      content: Buffer.alloc(20 * 1024 * 1024 + 1, 1),
+    });
     const response = await app.inject({
       method: 'POST',
       url: '/documents/doc-1/attachments',
-      headers: authHeaders,
-      payload: {
-        attachmentType: 'FRONT',
-        fileName: 'huge.png',
-        fileSizeBytes: 20 * 1024 * 1024 + 1,
-        fileMimeType: 'image/png',
-      },
+      headers: { ...authHeaders, 'content-type': contentType },
+      payload,
     });
 
     expect(response.statusCode).toBe(400);
-    expect(readJson<{ error: string }>(response).error).toContain('fileSizeBytes');
   });
 
-  it('ignores a caller-supplied secureFileKey', async () => {
+  it('rejects an upload with no attachmentType field', async () => {
+    const boundary = '----noTypeBoundary';
+    const payload = Buffer.from(
+      [
+        `--${boundary}\r\n`,
+        `Content-Disposition: form-data; name="file"; filename="a.png"\r\n`,
+        `Content-Type: image/png\r\n\r\n`,
+        'bytes',
+        `\r\n--${boundary}--\r\n`,
+      ].join(''),
+      'utf8',
+    );
     const response = await app.inject({
       method: 'POST',
       url: '/documents/doc-1/attachments',
-      headers: authHeaders,
-      payload: {
-        attachmentType: 'FRONT',
-        fileName: 'a.png',
-        fileSizeBytes: 10,
-        fileMimeType: 'image/png',
-        secureFileKey: '../../etc/passwd',
-      },
+      headers: { ...authHeaders, 'content-type': `multipart/form-data; boundary=${boundary}` },
+      payload,
     });
 
     expect(response.statusCode).toBe(400);
-    expect(readJson<{ error: string }>(response).error).toContain('secureFileKey');
   });
 
   it('lists attachments for a document', async () => {
@@ -832,40 +872,11 @@ describe('Customer 360 input parsers', () => {
     );
   });
 
-  it('accepts a well-formed attachment payload', () => {
-    expect(
-      parseAttachmentInput({
-        attachmentType: 'BACK',
-        fileName: 'rg.jpg',
-        fileSizeBytes: 1024,
-        fileMimeType: 'image/jpeg',
-        fileHash: 'abc',
-      }),
-    ).toEqual({
-      attachmentType: 'BACK',
-      fileName: 'rg.jpg',
-      fileSizeBytes: 1024,
-      fileMimeType: 'image/jpeg',
-      fileHash: 'abc',
-    });
-  });
-
-  it('rejects a non-integer or missing file size', () => {
-    const base = { attachmentType: 'FRONT', fileName: 'a.png', fileMimeType: 'image/png' };
-
-    expect(() => parseAttachmentInput(base)).toThrow(/fileSizeBytes/);
-    expect(() => parseAttachmentInput({ ...base, fileSizeBytes: 1.5 })).toThrow(/fileSizeBytes/);
-    expect(() => parseAttachmentInput({ ...base, fileSizeBytes: 0 })).toThrow(/fileSizeBytes/);
-  });
-
-  it('rejects an unknown attachment type', () => {
-    expect(() =>
-      parseAttachmentInput({
-        attachmentType: 'SELFIE',
-        fileName: 'a.png',
-        fileSizeBytes: 10,
-        fileMimeType: 'image/png',
-      }),
-    ).toThrow(/attachmentType/);
-  });
+  // Attachment payload validation used to be tested here via
+  // parseAttachmentInput(), a JSON-body parser -- removed when
+  // POST /documents/:documentId/attachments switched to real multipart
+  // file upload (file-storage.ts). The same validation (blocked
+  // filenames, allowed MIME types, size ceiling) still runs, now via
+  // document-attachments.ts's validateFileType/validateFileSize/
+  // isBlockedFileName, already covered by that module's own tests.
 });

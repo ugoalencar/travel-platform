@@ -881,6 +881,93 @@ export interface DocumentVerification {
   reviewedByUserId?: string;
 }
 
+// ============================================================
+// DOCUMENT ATTACHMENTS (real file bytes -- services/api/src/file-storage.ts)
+// The metadata endpoints (list/delete) already existed; upload/download
+// didn't, because no object store was ever wired up anywhere in the
+// codebase despite document-attachments.ts's validation being fully
+// built. Requested directly: "documentação... até mesmo dos seguros" --
+// staff need to attach the actual passport/visa/vaccination scan, not
+// just describe it in a metadata form.
+// ============================================================
+
+export type DocumentAttachmentType = 'FRONT' | 'BACK' | 'PASSPORT_PAGE' | 'VISA' | 'OTHER';
+
+export interface DocumentAttachment {
+  id: string;
+  documentId: string;
+  attachmentType: DocumentAttachmentType;
+  fileName: string;
+  fileSizeBytes: number;
+  fileMimeType: string;
+  createdAt: string;
+}
+
+export async function listDocumentAttachments(documentId: string): Promise<DocumentAttachment[]> {
+  const data = await request<{ attachments: DocumentAttachment[] }>(
+    `/api/documents/${encodeURIComponent(documentId)}/attachments`,
+  );
+  return data.attachments;
+}
+
+export async function uploadDocumentAttachment(
+  documentId: string,
+  file: File,
+  attachmentType: DocumentAttachmentType,
+): Promise<DocumentAttachment> {
+  const form = new FormData();
+  form.append('attachmentType', attachmentType);
+  form.append('file', file, file.name);
+
+  const token = getSessionToken();
+  const response = await fetch(`${API_BASE_URL}/api/documents/${encodeURIComponent(documentId)}/attachments`, {
+    method: 'POST',
+    headers: token ? { authorization: `Bearer ${token}` } : {},
+    body: form,
+  });
+  if (response.status === 401) clearSession();
+  if (!response.ok) {
+    const body = (await safeJson(response)) as Partial<ApiErrorBody> | null;
+    throw new ApiError(
+      translateApiErrorMessage(body?.error ?? 'Request failed.'),
+      body?.code ?? 'UNKNOWN_ERROR',
+      response.status,
+    );
+  }
+  const data = (await response.json()) as { attachment: DocumentAttachment };
+  return data.attachment;
+}
+
+export async function deleteDocumentAttachment(documentId: string, attachmentId: string): Promise<void> {
+  await request(`/api/documents/${encodeURIComponent(documentId)}/attachments/${encodeURIComponent(attachmentId)}`, {
+    method: 'DELETE',
+  });
+}
+
+/** Fetches the file as a blob and opens it in a new tab -- the download
+ * route requires the Bearer token, so a plain `<a href>` can't be used
+ * directly (the browser would navigate there with no auth header). */
+export async function openDocumentAttachment(documentId: string, attachmentId: string): Promise<void> {
+  const token = getSessionToken();
+  const response = await fetch(
+    `${API_BASE_URL}/api/documents/${encodeURIComponent(documentId)}/attachments/${encodeURIComponent(attachmentId)}/download`,
+    { headers: token ? { authorization: `Bearer ${token}` } : {} },
+  );
+  if (response.status === 401) clearSession();
+  if (!response.ok) {
+    const body = (await safeJson(response)) as Partial<ApiErrorBody> | null;
+    throw new ApiError(
+      translateApiErrorMessage(body?.error ?? 'Request failed.'),
+      body?.code ?? 'UNKNOWN_ERROR',
+      response.status,
+    );
+  }
+  const blob = await response.blob();
+  const url = URL.createObjectURL(blob);
+  window.open(url, '_blank');
+  setTimeout(() => URL.revokeObjectURL(url), 60_000);
+}
+
 export async function listDocumentExtractions(documentId: string): Promise<DocumentExtraction[]> {
   const data = await request<{ extractions: DocumentExtraction[] }>(
     `/api/documents/${encodeURIComponent(documentId)}/extractions`,

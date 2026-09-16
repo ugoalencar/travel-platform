@@ -67,6 +67,9 @@ services:
       RATE_LIMIT_STORE: external
       REDIS_URL: redis://redis-staging:6379/0
       CORS_ALLOWED_ORIGINS: https://agency.localhost,https://portal.localhost,https://admin.localhost,https://www.localhost
+      UPLOADS_DIR: /app/uploads
+    volumes:
+      - api_staging_uploads:/app/uploads
 
   caddy-staging:
     image: caddy:2-alpine
@@ -90,3 +93,4 @@ volumes:
   travel_platform_postgres_staging_data:
   caddy_staging_data:
   caddy_staging_config:
+  api_staging_uploads:

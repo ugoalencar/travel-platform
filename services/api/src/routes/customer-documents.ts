@@ -65,15 +65,18 @@ import {
 import { TravelRequirementType, TravelerType } from '../../../../packages/domain/types';
 import { getCustomerById } from '../customers';
 import {
+  calculateFileHash,
   createAttachment,
   deleteAttachment,
   generateSecureFileKey,
+  getAttachmentById,
   listAttachments,
   MAX_ATTACHMENT_BYTES,
   validateFileSize,
   validateFileType,
   isBlockedFileName,
 } from '../document-attachments';
+import { readFile as readStoredFile, saveFile } from '../file-storage';
 import {
   getExtraction,
   listExtractionsForDocument,
@@ -431,6 +434,16 @@ export function registerCustomerDocumentRoutes(
     },
   );
 
+  // Real file bytes (multipart), not the metadata-only JSON shape the
+  // route used to accept -- no object store was ever wired up anywhere
+  // in the codebase (confirmed by a full repo grep) despite
+  // document-attachments.ts's validation/key-minting being fully built,
+  // so "attach a document" had no way to actually receive a file.
+  // Reported directly: "documentação... o cliente normalmente para
+  // viagens internacionais até vacinas são necessárias" -- staff need
+  // to attach the actual passport/visa/vaccination-certificate scan,
+  // not just describe it. See file-storage.ts for the local-disk
+  // object-store adapter this saves into.
   app.post<{ Params: { documentId: string } }>(
     '/documents/:documentId/attachments',
     { preHandler: protectedHooks },
@@ -438,24 +451,80 @@ export function registerCustomerDocumentRoutes(
       requireRole(UserRole.AGENT);
       await assertDocumentExists(request.params.documentId);
 
-      const input = parseAttachmentInput(request.body);
+      const file = await request.file();
+      if (!file) {
+        throw new ValidationError('A file is required');
+      }
+      const attachmentTypeField = file.fields.attachmentType;
+      const attachmentTypeValue =
+        attachmentTypeField && !Array.isArray(attachmentTypeField) && attachmentTypeField.type === 'field'
+          ? String(attachmentTypeField.value)
+          : undefined;
+      if (!attachmentTypeValue || !Object.values(DocumentAttachmentType).includes(attachmentTypeValue as DocumentAttachmentType)) {
+        throw new ValidationError(
+          `Field "attachmentType" must be one of: ${Object.values(DocumentAttachmentType).join(', ')}`,
+        );
+      }
+
+      let buffer: Buffer;
+      try {
+        buffer = await file.toBuffer();
+      } catch (error: unknown) {
+        // @fastify/multipart throws its own FST_REQ_FILE_TOO_LARGE (413) when
+        // the stream exceeds app.ts's registered `limits.fileSize` -- mapped
+        // to the same ValidationError (400) every other size/type rejection
+        // in this route uses, rather than leaking a differently-shaped error.
+        if (error && typeof error === 'object' && 'code' in error && error.code === 'FST_REQ_FILE_TOO_LARGE') {
+          throw new ValidationError(`File size must be between 1 byte and ${MAX_ATTACHMENT_BYTES} bytes`);
+        }
+        throw error;
+      }
+      if (isBlockedFileName(file.filename)) {
+        throw new ValidationError('File type is not permitted');
+      }
+      if (!validateFileType(file.mimetype)) {
+        throw new ValidationError('Unsupported file type');
+      }
+      if (!validateFileSize(buffer.length)) {
+        throw new ValidationError(`File size must be between 1 byte and ${MAX_ATTACHMENT_BYTES} bytes`);
+      }
+
       // The storage key is minted server-side: a client never gets to choose
       // where its bytes land.
-      const secureFileKey = generateSecureFileKey(request.params.documentId, input.fileName);
+      const secureFileKey = generateSecureFileKey(request.params.documentId, file.filename);
+      await saveFile(secureFileKey, buffer);
 
       const attachment = await createAttachment(
         database,
         request.params.documentId,
-        input.attachmentType,
-        input.fileName,
-        input.fileSizeBytes,
-        input.fileMimeType,
+        attachmentTypeValue as DocumentAttachmentType,
+        file.filename,
+        buffer.length,
+        file.mimetype,
         secureFileKey,
-        input.fileHash === undefined ? {} : { fileHash: input.fileHash },
+        { fileHash: calculateFileHash(buffer) },
       );
 
       reply.code(201);
       return { attachment };
+    },
+  );
+
+  app.get<{ Params: { documentId: string; attachmentId: string } }>(
+    '/documents/:documentId/attachments/:attachmentId/download',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      requireRole(UserRole.VIEWER);
+      await assertDocumentExists(request.params.documentId);
+      const attachment = await getAttachmentById(database, request.params.attachmentId);
+      if (!attachment || attachment.documentId !== request.params.documentId) {
+        throw new NotFoundError('Attachment not found');
+      }
+
+      const content = await readStoredFile(attachment.secureFileKey);
+      reply.header('Content-Disposition', `inline; filename="${encodeURIComponent(attachment.fileName)}"`);
+      reply.type(attachment.fileMimeType);
+      return reply.send(content);
     },
   );
 
@@ -1008,62 +1077,3 @@ export function parseUpdateTravelRequirementInput(body: unknown): UpdateTravelRe
   return data;
 }
 
-export interface ParsedAttachmentInput {
-  attachmentType: DocumentAttachmentType;
-  fileName: string;
-  fileSizeBytes: number;
-  fileMimeType: string;
-  fileHash?: string;
-}
-
-const ATTACHMENT_FIELDS = [
-  'attachmentType', 'fileName', 'fileSizeBytes', 'fileMimeType', 'fileHash',
-] as const;
-
-/**
- * Validate an attachment upload's metadata.
- *
- * The size and MIME checks run here, before any service or storage call, so an
- * oversized or executable payload is rejected at the edge rather than after a
- * row has been written.
- */
-export function parseAttachmentInput(body: unknown): ParsedAttachmentInput {
-  const record = asRecord(body);
-  rejectUnknownFields(record, ATTACHMENT_FIELDS);
-
-  const attachmentType = requireEnum(
-    record,
-    'attachmentType',
-    Object.values(DocumentAttachmentType),
-  );
-  const fileName = requireStringField(record, 'fileName');
-  const fileMimeType = requireStringField(record, 'fileMimeType');
-
-  const rawSize = record.fileSizeBytes;
-  if (typeof rawSize !== 'number' || !Number.isInteger(rawSize)) {
-    throw new ValidationError('Field "fileSizeBytes" is required and must be an integer');
-  }
-  if (!validateFileSize(rawSize)) {
-    throw new ValidationError(
-      `Field "fileSizeBytes" must be between 1 and ${MAX_ATTACHMENT_BYTES}`,
-    );
-  }
-  if (isBlockedFileName(fileName)) {
-    throw new ValidationError('File type is not permitted');
-  }
-  if (!validateFileType(fileMimeType)) {
-    throw new ValidationError('Unsupported file type');
-  }
-
-  const parsed: ParsedAttachmentInput = {
-    attachmentType,
-    fileName,
-    fileSizeBytes: rawSize,
-    fileMimeType,
-  };
-
-  const fileHash = optionalString(record, 'fileHash');
-  if (fileHash !== undefined) parsed.fileHash = fileHash;
-
-  return parsed;
-}

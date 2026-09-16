@@ -16,6 +16,8 @@ import {
 } from '../../../packages/domain/tenant-context';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
+import multipart from '@fastify/multipart';
+import { MAX_ATTACHMENT_BYTES } from './document-attachments';
 import { createAuthenticateHook, type AuthProvider } from './auth';
 import { createCustomerAuthenticateHook, type CustomerAuthProvider } from './customer-auth';
 import { createPartnerAuthenticateHook, type PartnerAuthProvider } from './partner-auth';
@@ -194,6 +196,14 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       'x-dev-customer',
     ],
     maxAge: 600,
+  });
+
+  // Document attachments (passport/visa/vaccination-certificate scans,
+  // etc.) -- the only multipart consumer in the API. Limit mirrors
+  // document-attachments.ts's own per-attachment ceiling so an oversized
+  // upload is rejected at the transport layer, not after buffering.
+  void app.register(multipart, {
+    limits: { fileSize: MAX_ATTACHMENT_BYTES, files: 1 },
   });
 
   void app.register(helmet, {

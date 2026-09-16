@@ -32,6 +32,12 @@ import {
   listDocumentExtractions,
   verifyDocumentExtraction,
   type DocumentExtraction,
+  listDocumentAttachments,
+  uploadDocumentAttachment,
+  deleteDocumentAttachment,
+  openDocumentAttachment,
+  type DocumentAttachment,
+  type DocumentAttachmentType,
   listTravelRequirements,
   createTravelRequirement,
   updateTravelRequirement,
@@ -186,6 +192,127 @@ const OCR_REVIEW_FIELDS: { key: keyof CustomerDocument; label: string }[] = [
 
 /** Confidence, on the provider's 0-100 scale, below which a field is flagged for careful review. */
 const LOW_CONFIDENCE_THRESHOLD = 70;
+
+const ATTACHMENT_TYPE_LABELS: Record<DocumentAttachmentType, string> = {
+  FRONT: 'Frente',
+  BACK: 'Verso',
+  PASSPORT_PAGE: 'Página do passaporte',
+  VISA: 'Visto',
+  OTHER: 'Outro',
+};
+
+/**
+ * Real file attachments (passport/visa/vaccination-certificate scans,
+ * etc.) for a document record -- distinct from the metadata form above
+ * (documentType/documentNumber/expiryDate). No object store existed
+ * anywhere in the codebase before this (file-storage.ts is the local-disk
+ * adapter it saves into); this is the first UI that can actually attach
+ * and view a file. Reported directly: "documentação... até mesmo dos
+ * seguros e outras coisas".
+ */
+function DocumentAttachments({ document: doc }: { document: CustomerDocument }) {
+  const [attachments, setAttachments] = useState<DocumentAttachment[] | null>(null);
+  const [attachmentType, setAttachmentType] = useState<DocumentAttachmentType>('FRONT');
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [openingId, setOpeningId] = useState<string | null>(null);
+
+  const load = useCallback(() => {
+    listDocumentAttachments(doc.id)
+      .then(setAttachments)
+      .catch(() => setAttachments([]));
+  }, [doc.id]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    setUploading(true);
+    setError(null);
+    uploadDocumentAttachment(doc.id, file, attachmentType)
+      .then(() => load())
+      .catch((err: unknown) => setError(err instanceof ApiError ? err.message : 'Não foi possível enviar o arquivo.'))
+      .finally(() => setUploading(false));
+  }
+
+  function handleOpen(attachmentId: string) {
+    setOpeningId(attachmentId);
+    openDocumentAttachment(doc.id, attachmentId)
+      .catch((err: unknown) => setError(err instanceof ApiError ? err.message : 'Não foi possível abrir o arquivo.'))
+      .finally(() => setOpeningId(null));
+  }
+
+  function handleDelete(attachmentId: string) {
+    deleteDocumentAttachment(doc.id, attachmentId)
+      .then(() => load())
+      .catch(() => undefined);
+  }
+
+  return (
+    <div className="mt-3 rounded-md border border-dashed border-slate-200 bg-slate-50 p-3">
+      <p className="mb-2 text-xs font-medium text-slate-500">Arquivos anexados</p>
+      {attachments === null ? (
+        <p className="text-[11px] text-slate-400">Carregando anexos…</p>
+      ) : attachments.length === 0 ? (
+        <p className="text-[11px] text-slate-400">Nenhum arquivo anexado ainda.</p>
+      ) : (
+        <ul className="mb-2 space-y-1">
+          {attachments.map((a) => (
+            <li key={a.id} className="flex items-center justify-between gap-2 text-xs text-slate-700">
+              <span>
+                {ATTACHMENT_TYPE_LABELS[a.attachmentType]} — {a.fileName} ({Math.ceil(a.fileSizeBytes / 1024)} KB)
+              </span>
+              <span className="flex shrink-0 items-center gap-2">
+                <button
+                  type="button"
+                  className="font-medium text-blue-600 hover:underline disabled:opacity-50"
+                  disabled={openingId === a.id}
+                  onClick={() => handleOpen(a.id)}
+                >
+                  {openingId === a.id ? 'Abrindo…' : 'Abrir'}
+                </button>
+                <button
+                  type="button"
+                  className="text-red-500 hover:underline"
+                  onClick={() => handleDelete(a.id)}
+                >
+                  Remover
+                </button>
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+      <div className="flex flex-wrap items-center gap-2">
+        <Select
+          className="h-8 w-40 text-xs"
+          value={attachmentType}
+          onChange={(e) => setAttachmentType(e.target.value as DocumentAttachmentType)}
+        >
+          {Object.entries(ATTACHMENT_TYPE_LABELS).map(([value, label]) => (
+            <option key={value} value={value}>{label}</option>
+          ))}
+        </Select>
+        <label className="text-xs">
+          <span className="sr-only">Anexar arquivo</span>
+          <input
+            type="file"
+            accept="image/png,image/jpeg,image/webp,image/tiff,image/heic,application/pdf"
+            disabled={uploading}
+            onChange={handleFileChange}
+            className="text-xs"
+          />
+        </label>
+        {uploading ? <span className="text-[11px] text-slate-400">Enviando…</span> : null}
+      </div>
+      {error ? <p className="mt-1 text-[11px] text-destructive">{error}</p> : null}
+    </div>
+  );
+}
 
 /**
  * Lets a human confirm or correct OCR-extracted document fields before they
@@ -1100,6 +1227,7 @@ export function CustomerDetailPage() {
                     </button>
                   </div>
                 </div>
+                <DocumentAttachments document={doc} />
                 <div className="mt-3 rounded-md border border-dashed border-slate-200 bg-slate-50 p-3">
                   <p className="mb-2 text-xs font-medium text-slate-500">Dados extraídos (OCR)</p>
                   {id && <DocumentOcrReview customerId={id} document={doc} onApplied={reloadDocuments} />}
