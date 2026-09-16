@@ -17,3 +17,16 @@ createRoot(rootElement).render(
     </BrowserRouter>
   </StrictMode>,
 );
+
+// Registered only in production builds -- in `vite dev` the service
+// worker's cache-first static-asset handling would fight Vite's own HMR
+// module fetches.
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {
+      // Installability is a progressive enhancement -- a registration
+      // failure (unsupported browser, blocked storage) must never break
+      // the app itself.
+    });
+  });
+}
