@@ -258,6 +258,11 @@ export interface EnrollmentSubmission {
   id: string;
   agencyId: string;
   enrollmentLinkId: string;
+  /** Human-readable submission reference, e.g. "ENR-2026-000045"
+   * (068_protocol_numbers.sql) -- returned to the prospect right after
+   * submitting, before any staff review, so they have something to
+   * reference if they follow up. */
+  protocolNumber: string;
   status: EnrollmentSubmissionStatus;
   fullName: string;
   email?: string;
@@ -270,6 +275,7 @@ interface EnrollmentSubmissionRow {
   id: string;
   agency_id: string;
   enrollment_link_id: string;
+  protocol_number: string;
   status: EnrollmentSubmissionStatus;
   full_name: string;
   email: string | null;
@@ -278,7 +284,7 @@ interface EnrollmentSubmissionRow {
   submitted_at: string;
 }
 
-const SUBMISSION_SUMMARY_COLUMNS = `id, agency_id, enrollment_link_id, status, full_name, email,
+const SUBMISSION_SUMMARY_COLUMNS = `id, agency_id, enrollment_link_id, protocol_number, status, full_name, email,
   phone, cpf, submitted_at`;
 
 function toSubmissionSummary(row: EnrollmentSubmissionRow): EnrollmentSubmission {
@@ -286,6 +292,7 @@ function toSubmissionSummary(row: EnrollmentSubmissionRow): EnrollmentSubmission
     id: row.id,
     agencyId: row.agency_id,
     enrollmentLinkId: row.enrollment_link_id,
+    protocolNumber: row.protocol_number,
     status: row.status,
     fullName: row.full_name,
     submittedAt: new Date(row.submitted_at),

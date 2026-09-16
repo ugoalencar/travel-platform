@@ -605,6 +605,18 @@ BEGIN
   IF to_regclass('public.agent_area_grants') IS NOT NULL THEN
     GRANT SELECT, INSERT, DELETE ON agent_area_grants TO travel_app_runtime_local;
   END IF;
+
+  -- 068_protocol_numbers.sql: customers.protocol_number/
+  -- enrollment_submissions.protocol_number DEFAULT calls nextval() on
+  -- these sequences -- sequence privileges are separate from table
+  -- privileges in Postgres, so every INSERT fails with 42501 without
+  -- this (confirmed by reproducing it locally).
+  IF EXISTS (SELECT 1 FROM pg_class WHERE relkind = 'S' AND relname = 'customer_protocol_seq') THEN
+    GRANT USAGE ON SEQUENCE customer_protocol_seq TO travel_app_runtime_local;
+  END IF;
+  IF EXISTS (SELECT 1 FROM pg_class WHERE relkind = 'S' AND relname = 'enrollment_protocol_seq') THEN
+    GRANT USAGE ON SEQUENCE enrollment_protocol_seq TO travel_app_runtime_local;
+  END IF;
 END;
 $$;
 

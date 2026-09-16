@@ -124,7 +124,13 @@ export function registerEnrollmentRoutes(
         input
       );
       reply.code(201);
-      return { submission: { id: submission.id, status: submission.status } };
+      return {
+        submission: {
+          id: submission.id,
+          status: submission.status,
+          protocolNumber: submission.protocolNumber,
+        },
+      };
     }
   );
 }

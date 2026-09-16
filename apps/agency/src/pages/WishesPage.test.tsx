@@ -23,6 +23,7 @@ vi.mock('../lib/api', async () => {
 const customerLucas: Customer = {
   id: 'cust-001',
   agencyId: 'agency-demo-001',
+  protocolNumber: 'CLI-2026-000001',
   name: 'Lucas Martins',
   email: 'lucas.martins@email.com',
   status: 'ACTIVE',
@@ -33,6 +34,7 @@ const customerLucas: Customer = {
 const customerAna: Customer = {
   id: 'cust-002',
   agencyId: 'agency-demo-001',
+  protocolNumber: 'CLI-2026-000002',
   name: 'Ana Beatriz Souza',
   status: 'ACTIVE',
   createdAt: '2024-06-20T08:00:00.000Z',

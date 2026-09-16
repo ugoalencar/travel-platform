@@ -34,6 +34,7 @@ export function EnrollmentPage() {
   const [wishNotes, setWishNotes] = useState('');
   const [dependents, setDependents] = useState<DependentInput[]>([]);
   const [consentGiven, setConsentGiven] = useState(false);
+  const [protocolNumber, setProtocolNumber] = useState<string | null>(null);
 
   useEffect(() => {
     if (!token) {
@@ -89,10 +90,13 @@ export function EnrollmentPage() {
       }),
     })
       .then(async (res) => {
+        const body = (await res.json().catch(() => null)) as
+          | { error?: string; submission?: { protocolNumber?: string } }
+          | null;
         if (!res.ok) {
-          const body = (await res.json().catch(() => null)) as { error?: string } | null;
           throw new Error(body?.error ?? 'Não foi possível enviar o cadastro.');
         }
+        setProtocolNumber(body?.submission?.protocolNumber ?? null);
         setSubmitState('done');
       })
       .catch((err: unknown) => {
@@ -118,6 +122,13 @@ export function EnrollmentPage() {
     return (
       <CenteredMessage>
         Cadastro enviado com sucesso! A agência vai revisar suas informações em breve.
+        {protocolNumber ? (
+          <>
+            <br />
+            <br />
+            Guarde seu protocolo: <strong>{protocolNumber}</strong>
+          </>
+        ) : null}
       </CenteredMessage>
     );
   }

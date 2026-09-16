@@ -3,6 +3,8 @@ export type CustomerStatus = 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
 export interface Customer {
   id: string;
   agencyId: string;
+  /** Human-readable registration reference, e.g. "CLI-2026-000123". */
+  protocolNumber: string;
   name: string;
   email?: string;
   phone?: string;

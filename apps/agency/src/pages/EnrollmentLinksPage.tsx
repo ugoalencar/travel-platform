@@ -256,7 +256,10 @@ export function EnrollmentLinksPage() {
               <TableBody>
                 {state.submissions.map((submission) => (
                   <TableRow key={submission.id}>
-                    <TableCell className="font-medium">{submission.fullName}</TableCell>
+                    <TableCell className="font-medium">
+                      {submission.fullName}
+                      <p className="text-xs font-normal text-slate-400">{submission.protocolNumber}</p>
+                    </TableCell>
                     <TableCell>{submission.email || submission.phone || '-'}</TableCell>
                     <TableCell>{SUBMISSION_STATUS_LABEL[submission.status] ?? submission.status}</TableCell>
                     <TableCell>{new Date(submission.submittedAt).toLocaleString('pt-BR')}</TableCell>

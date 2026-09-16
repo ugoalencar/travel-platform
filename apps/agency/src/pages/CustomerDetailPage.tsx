@@ -623,6 +623,7 @@ export function CustomerDetailPage() {
             <ArrowLeft className="h-3 w-3" /> Clientes
           </Link>
           <h1 className="text-2xl font-bold text-slate-900">{customer.name}</h1>
+          <p className="text-xs font-medium text-slate-400">Protocolo {customer.protocolNumber}</p>
         </div>
         <StatusBadge tone={customerStatusTone(customer.status)}>
           {getCustomerStatusLabel(customer.status)}

@@ -2795,6 +2795,7 @@ export interface EnrollmentSubmission {
   id: string;
   agencyId: string;
   enrollmentLinkId: string;
+  protocolNumber: string;
   status: EnrollmentSubmissionStatus;
   fullName: string;
   email?: string;

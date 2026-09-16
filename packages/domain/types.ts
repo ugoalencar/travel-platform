@@ -64,6 +64,10 @@ export interface Broker {
 export interface Customer {
   id: string;
   agencyId: string;
+  /** Human-readable registration reference, e.g. "CLI-2026-000123"
+   * (068_protocol_numbers.sql) -- generated once at creation, never
+   * reused, distinct from the internal UUID id. */
+  protocolNumber: string;
   name: string;
   email?: string;
   phone?: string;

@@ -18,6 +18,7 @@ vi.mock('../lib/api', async () => {
 const customer = {
   id: 'customer-1',
   agencyId: 'agency-1',
+  protocolNumber: 'CLI-2026-000001',
   name: 'Marina Costa',
   email: 'marina@example.com',
   status: 'ACTIVE' as const,

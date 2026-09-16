@@ -179,6 +179,7 @@ export function CustomersPage() {
                       >
                         {c.name}
                       </Link>
+                      <p className="text-xs text-slate-400">{c.protocolNumber}</p>
                     </td>
                     <td className="px-4 py-3 text-slate-600">{c.email ?? '—'}</td>
                     <td className="px-4 py-3 text-slate-600">{c.phone ?? '—'}</td>

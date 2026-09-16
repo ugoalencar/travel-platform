@@ -7,7 +7,7 @@ import { AuditEventType, recordAuditEvent } from './audit-log';
 
 const POSTGRES_UNIQUE_VIOLATION = '23505';
 
-const CUSTOMER_COLUMNS = `id, agency_id, name, email, phone, cpf, passport, rg, national_id_type,
+const CUSTOMER_COLUMNS = `id, agency_id, protocol_number, name, email, phone, cpf, passport, rg, national_id_type,
               birth_date, nationality, whatsapp, social_name, marital_status, profession,
               id_issuing_authority, id_issued_date, emergency_contact_name,
               emergency_contact_relationship, emergency_contact_phone, emergency_contact_whatsapp,
@@ -17,6 +17,7 @@ const CUSTOMER_COLUMNS = `id, agency_id, name, email, phone, cpf, passport, rg, 
 interface CustomerRow {
   id: string;
   agency_id: string;
+  protocol_number: string;
   name: string;
   email: string | null;
   phone: string | null;
@@ -277,6 +278,7 @@ function toCustomer(row: CustomerRow): Customer {
   return {
     id: row.id,
     agencyId: row.agency_id,
+    protocolNumber: row.protocol_number,
     name: row.name,
     status: row.status,
     createdAt: new Date(row.created_at),
