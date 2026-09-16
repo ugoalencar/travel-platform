@@ -11,6 +11,8 @@ import { Modal } from '../components/ui/modal';
 import {
   ApiError,
   createOpportunity,
+  createPipeline,
+  createPipelineStage,
   listCustomers,
   listOpportunities,
   listPipelineStages,
@@ -31,6 +33,7 @@ type LoadState =
   | { status: 'no-pipeline' }
   | {
       status: 'success';
+      pipelines: Pipeline[];
       pipeline: Pipeline;
       stages: PipelineStage[];
       opportunities: CommercialOpportunity[];
@@ -47,11 +50,21 @@ const STAGE_COLOR_CLASSES: Record<PipelineStageColor, string> = {
   PURPLE: 'border-purple-300 bg-purple-50',
 };
 
+const STAGE_COLOR_OPTIONS: Array<{ value: PipelineStageColor; label: string }> = [
+  { value: 'NEUTRAL', label: 'Neutro' },
+  { value: 'BLUE', label: 'Azul' },
+  { value: 'YELLOW', label: 'Amarelo' },
+  { value: 'ORANGE', label: 'Laranja' },
+  { value: 'RED', label: 'Vermelho' },
+  { value: 'GREEN', label: 'Verde' },
+  { value: 'PURPLE', label: 'Roxo' },
+];
+
 // Stage names come from the backend's CommercialStage enum (English,
 // fixed at pipeline-seed time -- see 009_configurable_pipelines.sql /
 // agency-signup.ts) -- translated for display only, never sent back to
-// the API. A custom stage an admin renames later (no UI for that yet)
-// won't match this map and just falls back to showing its own name.
+// the API. A custom stage created here already comes in Portuguese, so
+// it just falls back to showing its own name unchanged.
 const STAGE_NAME_PT: Record<string, string> = {
   PROSPECTING: 'Prospecção',
   INTEREST: 'Interesse',
@@ -69,9 +82,12 @@ function stageLabel(name: string): string {
 }
 
 const emptyNewOpportunity = { customerId: '', destination: '', expectedValue: '' };
+const emptyNewPipeline = { name: '', description: '' };
+const emptyNewStage = { name: '', colorKey: 'NEUTRAL' as PipelineStageColor };
 
 export function PipelinePage() {
   const [state, setState] = useState<LoadState>({ status: 'loading' });
+  const [selectedPipelineId, setSelectedPipelineId] = useState<string | null>(null);
   const [showNewOpportunity, setShowNewOpportunity] = useState(false);
   const [newOpportunity, setNewOpportunity] = useState(emptyNewOpportunity);
   const [formError, setFormError] = useState<string | null>(null);
@@ -79,15 +95,33 @@ export function PipelinePage() {
   const [movingId, setMovingId] = useState<string | null>(null);
   const [dragOverStageId, setDragOverStageId] = useState<string | null>(null);
 
-  const load = useCallback(() => {
+  // Requested directly: "a ideia era poder navegar nos pipelines por
+  // ambiente e até mesmo criar os próprios pipelines" -- one pipeline per
+  // business area (Vendas, Pós-venda, Marketing, ...), switchable here,
+  // plus creating new pipelines and custom stages from this page.
+  const [showNewPipeline, setShowNewPipeline] = useState(false);
+  const [newPipeline, setNewPipeline] = useState(emptyNewPipeline);
+  const [pipelineSaving, setPipelineSaving] = useState(false);
+  const [pipelineFormError, setPipelineFormError] = useState<string | null>(null);
+
+  const [showNewStage, setShowNewStage] = useState(false);
+  const [newStage, setNewStage] = useState(emptyNewStage);
+  const [stageSaving, setStageSaving] = useState(false);
+  const [stageFormError, setStageFormError] = useState<string | null>(null);
+
+  const load = useCallback((preferredPipelineId?: string) => {
     setState({ status: 'loading' });
     listPipelines()
       .then(async (pipelines) => {
-        const pipeline = pipelines.find((p) => p.active) ?? pipelines[0];
+        const pipeline =
+          pipelines.find((p) => p.id === preferredPipelineId) ??
+          pipelines.find((p) => p.active) ??
+          pipelines[0];
         if (!pipeline) {
           setState({ status: 'no-pipeline' });
           return;
         }
+        setSelectedPipelineId(pipeline.id);
         const [stages, opportunities, customers] = await Promise.all([
           listPipelineStages(pipeline.id),
           listOpportunities(pipeline.id),
@@ -95,6 +129,7 @@ export function PipelinePage() {
         ]);
         setState({
           status: 'success',
+          pipelines,
           pipeline,
           stages: [...stages].sort((a, b) => a.sequence - b.sequence),
           opportunities,
@@ -127,22 +162,74 @@ export function PipelinePage() {
   }
 
   if (state.status === 'error') {
-    return <ErrorState description={state.message} onRetry={load} />;
+    return <ErrorState description={state.message} onRetry={() => load()} />;
   }
+
+  const handleCreatePipeline = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newPipeline.name.trim()) return;
+    setPipelineSaving(true);
+    setPipelineFormError(null);
+    createPipeline({
+      name: newPipeline.name.trim(),
+      ...(newPipeline.description.trim() ? { description: newPipeline.description.trim() } : {}),
+    })
+      .then((pipeline) => {
+        setShowNewPipeline(false);
+        setNewPipeline(emptyNewPipeline);
+        load(pipeline.id);
+      })
+      .catch((err: unknown) => {
+        setPipelineFormError(err instanceof ApiError ? err.message : 'Não foi possível criar o pipeline.');
+      })
+      .finally(() => setPipelineSaving(false));
+  };
 
   if (state.status === 'no-pipeline') {
     return (
-      <div>
+      <div className="space-y-6">
         <PageHeader title="Pipeline" description="Acompanhe cada oportunidade comercial do primeiro contato até a venda." />
         <EmptyState
           title="Nenhum pipeline configurado"
-          description="Esta agência ainda não tem um pipeline comercial. Fale com o suporte para configurá-lo."
+          description="Crie o primeiro pipeline comercial desta agência para começar."
+          action={
+            <Button size="sm" onClick={() => setShowNewPipeline(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Novo Pipeline
+            </Button>
+          }
         />
+        <Modal open={showNewPipeline} onClose={() => setShowNewPipeline(false)} title="Novo Pipeline">
+          <form onSubmit={handleCreatePipeline} className="space-y-3">
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-medium text-muted-foreground" htmlFor="pl-name">Nome</label>
+              <Input
+                id="pl-name"
+                value={newPipeline.name}
+                onChange={(e) => setNewPipeline((f) => ({ ...f, name: e.target.value }))}
+                placeholder="Ex.: Vendas, Pós-venda, Marketing"
+                required
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-medium text-muted-foreground" htmlFor="pl-description">Descrição (opcional)</label>
+              <Input
+                id="pl-description"
+                value={newPipeline.description}
+                onChange={(e) => setNewPipeline((f) => ({ ...f, description: e.target.value }))}
+              />
+            </div>
+            {pipelineFormError ? <p className="text-sm text-destructive">{pipelineFormError}</p> : null}
+            <Button type="submit" size="sm" disabled={pipelineSaving}>
+              {pipelineSaving ? 'Criando…' : 'Criar Pipeline'}
+            </Button>
+          </form>
+        </Modal>
       </div>
     );
   }
 
-  const { pipeline, stages, opportunities, customers } = state;
+  const { pipelines, pipeline, stages, opportunities, customers } = state;
   const byStage = new Map<string, CommercialOpportunity[]>();
   for (const stage of stages) byStage.set(stage.id, []);
   for (const opp of opportunities) {
@@ -166,7 +253,7 @@ export function PipelinePage() {
       .then(() => {
         setShowNewOpportunity(false);
         setNewOpportunity(emptyNewOpportunity);
-        load();
+        load(pipeline.id);
       })
       .catch((err: unknown) => {
         setFormError(err instanceof ApiError ? err.message : 'Não foi possível criar a oportunidade.');
@@ -177,7 +264,7 @@ export function PipelinePage() {
   const handleMove = (opportunityId: string, stageId: string) => {
     setMovingId(opportunityId);
     updateOpportunity(opportunityId, { stageId })
-      .then(() => load())
+      .then(() => load(pipeline.id))
       .catch(() => undefined)
       .finally(() => setMovingId(null));
   };
@@ -189,11 +276,33 @@ export function PipelinePage() {
     handleMove(opp.id, next.id);
   };
 
+  const handleCreateStage = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newStage.name.trim()) return;
+    setStageSaving(true);
+    setStageFormError(null);
+    const nextSequence = stages.reduce((max, s) => Math.max(max, s.sequence), 0) + 1;
+    createPipelineStage(pipeline.id, {
+      name: newStage.name.trim(),
+      sequence: nextSequence,
+      colorKey: newStage.colorKey,
+    })
+      .then(() => {
+        setShowNewStage(false);
+        setNewStage(emptyNewStage);
+        load(pipeline.id);
+      })
+      .catch((err: unknown) => {
+        setStageFormError(err instanceof ApiError ? err.message : 'Não foi possível criar a etapa.');
+      })
+      .finally(() => setStageSaving(false));
+  };
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="Pipeline"
-        description={`${pipeline.name} — acompanhe cada oportunidade do primeiro contato até a venda, num só lugar.`}
+        description="Acompanhe cada oportunidade do primeiro contato até a venda, num só lugar."
         breadcrumbs={[{ label: 'Painel', to: '/' }, { label: 'Pipeline' }]}
         actions={
           <Button size="sm" onClick={() => setShowNewOpportunity(true)}>
@@ -203,17 +312,57 @@ export function PipelinePage() {
         }
       />
 
-      {opportunities.length === 0 ? (
+      <div className="flex flex-wrap items-center gap-3">
+        <label className="text-xs font-medium text-muted-foreground" htmlFor="pipeline-select">
+          Ambiente
+        </label>
+        <Select
+          id="pipeline-select"
+          className="w-56"
+          value={selectedPipelineId ?? pipeline.id}
+          onChange={(e) => load(e.target.value)}
+        >
+          {pipelines.map((p) => (
+            <option key={p.id} value={p.id}>{p.name}</option>
+          ))}
+        </Select>
+        <Button size="sm" variant="outline" onClick={() => setShowNewPipeline(true)}>
+          <Plus className="mr-2 h-4 w-4" />
+          Novo Pipeline
+        </Button>
+        {pipeline.description ? (
+          <span className="text-sm text-slate-500">{pipeline.description}</span>
+        ) : null}
+      </div>
+
+      {stages.length === 0 ? (
         <EmptyState
-          title="Nenhuma oportunidade no pipeline"
-          description="Crie uma oportunidade para começar a acompanhar o funil comercial."
+          title="Este pipeline ainda não tem etapas"
+          description="Crie a primeira etapa para começar a montar o funil."
           action={
-            <Button size="sm" onClick={() => setShowNewOpportunity(true)}>
+            <Button size="sm" onClick={() => setShowNewStage(true)}>
               <Plus className="mr-2 h-4 w-4" />
-              Nova Oportunidade
+              Nova Etapa
             </Button>
           }
         />
+      ) : opportunities.length === 0 ? (
+        <div className="space-y-4">
+          <EmptyState
+            title="Nenhuma oportunidade neste pipeline"
+            description="Crie uma oportunidade para começar a acompanhar o funil comercial."
+            action={
+              <Button size="sm" onClick={() => setShowNewOpportunity(true)}>
+                <Plus className="mr-2 h-4 w-4" />
+                Nova Oportunidade
+              </Button>
+            }
+          />
+          <Button type="button" variant="outline" onClick={() => setShowNewStage(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Nova Etapa
+          </Button>
+        </div>
       ) : (
         <div className="flex gap-4 overflow-x-auto pb-4">
           {stages.map((stage) => {
@@ -297,6 +446,17 @@ export function PipelinePage() {
               </div>
             );
           })}
+          <div className="flex w-56 shrink-0 flex-col gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              className="h-full min-h-24 border-dashed text-slate-500"
+              onClick={() => setShowNewStage(true)}
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Nova Etapa
+            </Button>
+          </div>
         </div>
       )}
 
@@ -341,6 +501,67 @@ export function PipelinePage() {
           {formError ? <p className="text-sm text-destructive">{formError}</p> : null}
           <Button type="submit" size="sm" disabled={saving}>
             {saving ? 'Criando…' : 'Criar Oportunidade'}
+          </Button>
+        </form>
+      </Modal>
+
+      <Modal open={showNewPipeline} onClose={() => setShowNewPipeline(false)} title="Novo Pipeline">
+        <form onSubmit={handleCreatePipeline} className="space-y-3">
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-medium text-muted-foreground" htmlFor="pl-name-2">Nome</label>
+            <Input
+              id="pl-name-2"
+              value={newPipeline.name}
+              onChange={(e) => setNewPipeline((f) => ({ ...f, name: e.target.value }))}
+              placeholder="Ex.: Vendas, Pós-venda, Marketing"
+              required
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-medium text-muted-foreground" htmlFor="pl-description-2">Descrição (opcional)</label>
+            <Input
+              id="pl-description-2"
+              value={newPipeline.description}
+              onChange={(e) => setNewPipeline((f) => ({ ...f, description: e.target.value }))}
+            />
+          </div>
+          <p className="text-xs text-slate-500">
+            O pipeline começa sem etapas — use "Nova Etapa" dentro dele para montar o funil do seu jeito.
+          </p>
+          {pipelineFormError ? <p className="text-sm text-destructive">{pipelineFormError}</p> : null}
+          <Button type="submit" size="sm" disabled={pipelineSaving}>
+            {pipelineSaving ? 'Criando…' : 'Criar Pipeline'}
+          </Button>
+        </form>
+      </Modal>
+
+      <Modal open={showNewStage} onClose={() => setShowNewStage(false)} title="Nova Etapa">
+        <form onSubmit={handleCreateStage} className="space-y-3">
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-medium text-muted-foreground" htmlFor="stage-name">Nome</label>
+            <Input
+              id="stage-name"
+              value={newStage.name}
+              onChange={(e) => setNewStage((f) => ({ ...f, name: e.target.value }))}
+              placeholder="Ex.: Qualificação, Fechamento"
+              required
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-medium text-muted-foreground" htmlFor="stage-color">Cor</label>
+            <Select
+              id="stage-color"
+              value={newStage.colorKey}
+              onChange={(e) => setNewStage((f) => ({ ...f, colorKey: e.target.value as PipelineStageColor }))}
+            >
+              {STAGE_COLOR_OPTIONS.map((c) => (
+                <option key={c.value} value={c.value}>{c.label}</option>
+              ))}
+            </Select>
+          </div>
+          {stageFormError ? <p className="text-sm text-destructive">{stageFormError}</p> : null}
+          <Button type="submit" size="sm" disabled={stageSaving}>
+            {stageSaving ? 'Criando…' : 'Criar Etapa'}
           </Button>
         </form>
       </Modal>

@@ -262,6 +262,42 @@ export async function updateOpportunity(
   return data.opportunity;
 }
 
+// Requested directly: "a ideia era poder navegar nos pipelines por
+// ambiente e até mesmo criar os próprios pipelines" -- the backend
+// (pipeline-config.ts) already had full create/configure support for
+// this (ADMIN-only, requirePipelineAdmin()) with no frontend caller at
+// all before this. One pipeline per business area (Vendas, Pós-venda,
+// Marketing, ...), each with its own custom ordered stages.
+export interface CreatePipelineInput {
+  name: string;
+  description?: string;
+}
+
+export async function createPipeline(input: CreatePipelineInput): Promise<Pipeline> {
+  const data = await request<{ pipeline: Pipeline }>('/api/commercial/pipelines', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+  return data.pipeline;
+}
+
+export interface CreateStageInput {
+  name: string;
+  sequence: number;
+  colorKey: PipelineStageColor;
+}
+
+export async function createPipelineStage(
+  pipelineId: string,
+  input: CreateStageInput,
+): Promise<PipelineStage> {
+  const data = await request<{ stage: PipelineStage }>(`/api/commercial/pipelines/${pipelineId}/stages`, {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+  return data.stage;
+}
+
 export type InteractionChannel = 'EMAIL' | 'PHONE' | 'WHATSAPP' | 'IN_PERSON' | 'OTHER';
 export type InteractionDirection = 'INBOUND' | 'OUTBOUND';
 
