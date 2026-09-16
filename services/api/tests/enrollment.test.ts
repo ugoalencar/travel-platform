@@ -401,8 +401,8 @@ async function resetDatabase(pool: Pool): Promise<void> {
   await pool.query(readSqlForPg(migration020));
   await pool.query(readSqlForPg(migration021));
   await pool.query(readSqlForPg(migration046));
-  await pool.query(readSqlForPg(migration068));
   await pool.query(readSqlForPg(migration049));
+  await pool.query(readSqlForPg(migration068));
   await pool.query(readSqlForPg(prepareRolesSql));
   await seedAgenciesAndUsers(pool);
 }

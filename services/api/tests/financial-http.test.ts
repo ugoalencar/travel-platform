@@ -63,6 +63,12 @@ const migrations = [
   // queries permission_restrictions -- this migration must be applied or
   // both 500 with a missing-table error regardless of RBAC passing.
   '051_invitations_permission_restrictions.sql',
+  // requireRoleOrAreaGrant() (financial.ts) queries agent_area_grants to
+  // decide whether an AGENT gets an area-grant exception before falling
+  // back to a 403 -- without this table the check itself throws (500
+  // instead of the expected 403), found via a real CI run.
+  '064_agent_area_grants.sql',
+  '065_agent_area_grants_modules.sql',
   // customers.protocol_number is a required NOT NULL column that
   // createCustomer()/this file's own customer fixture insert always
   // populate -- omitting it 500s with "column protocol_number does not

@@ -45,6 +45,9 @@ const migration046CustomerCompletion = resolve(repoRoot, 'infrastructure/migrati
 // creation always populates -- omitting this migration made every customer
 // insert (including the demo seed script this test runs) fail with
 // "column protocol_number does not exist" (found via a real CI run).
+// 068 ALTERs enrollment_submissions too, which doesn't exist until 049
+// creates it.
+const migration049EnrollmentLinks = resolve(repoRoot, 'infrastructure/migrations/049_enrollment_links.sql');
 const migration068ProtocolNumbers = resolve(repoRoot, 'infrastructure/migrations/068_protocol_numbers.sql');
 const prepareRolesSql = resolve(repoRoot, 'tests/integration/database/002_prepare_local_roles.sql');
 const seedScript = resolve(repoRoot, 'scripts/seed-demo-data.cjs');
@@ -312,6 +315,7 @@ async function applyMigrations(pool: Pool): Promise<void> {
     migration023CustomerRls,
     migration024ExtendedFinancial,
     migration046CustomerCompletion,
+    migration049EnrollmentLinks,
     migration068ProtocolNumbers,
     prepareRolesSql,
   ]) {

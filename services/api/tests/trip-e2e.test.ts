@@ -9,13 +9,56 @@ import type { AuthenticatedPrincipal } from '../src/auth';
 import { createDatabaseRuntime } from '../src/database';
 
 const repoRoot = resolve(import.meta.dirname, '../../..');
-const migration001 = resolve(repoRoot, 'infrastructure/migrations/001_initial_schema.sql');
-const migration002 = resolve(repoRoot, 'infrastructure/migrations/002_rls_policies.sql');
-// 068_protocol_numbers.sql: customers.protocol_number is a required
-// NOT NULL column createCustomer()/the trip fixtures below always rely
-// on -- omitting it made every customer insert fail with 'column
-// protocol_number does not exist' (found via a real CI run).
-const migration068 = resolve(repoRoot, 'infrastructure/migrations/068_protocol_numbers.sql');
+// listTrips()'s category computation (this session's work) does an EXISTS
+// against excursion_customers/air_services/land_services regardless of
+// whether any row matches -- all three tables need to exist for the query
+// to compile. air_services/land_services (039/040) need suppliers (038)
+// and bookings (005), which pull in the sequential 003-018 chain
+// (including FinancialObligationStatus from 010) -- reusing the full
+// 001-024 block (proven working -- the same list financial-http.test.ts/
+// partners.test.ts use) rather than hand-picking dependencies one at a
+// time (found via two rounds of real CI failures: "relation
+// excursion_customers does not exist", then "type
+// FinancialObligationStatus does not exist").
+const migrations = [
+  '001_initial_schema.sql',
+  '002_rls_policies.sql',
+  '003_transportation.sql',
+  '004_route_points.sql',
+  '005_booking.sql',
+  '006_field_operations.sql',
+  '007_commission_repair.sql',
+  '008_commercial_cockpit.sql',
+  '009_configurable_pipelines.sql',
+  '010_financial_foundation.sql',
+  '011_booking_cancellation.sql',
+  '012_operational_staff_assignments.sql',
+  '013_pescador_foundation.sql',
+  '014_offer_growth_foundation.sql',
+  '015_audit_logging.sql',
+  '016_production_auth_captcha_mfa.sql',
+  '017_mfa_rls_p0_fix.sql',
+  '018_local_dev_migration_corrections.sql',
+  '019_customer_360_addresses.sql',
+  '020_customer_360_dependents.sql',
+  '021_customer_360_documents.sql',
+  '022_customer_360_document_audit.sql',
+  '023_customer_360_rls.sql',
+  '024_extended_financial_module.sql',
+  '038_supplier_extended.sql',
+  '039_air_services.sql',
+  '040_land_services.sql',
+  '046_customer_360_completion.sql',
+  // 068 ALTERs enrollment_submissions too, which doesn't exist until 049
+  // creates it.
+  '049_enrollment_links.sql',
+  // customers.protocol_number is a required NOT NULL column
+  // createCustomer()/this file's own fixtures always populate -- omitting
+  // it made every customer insert fail with "column protocol_number does
+  // not exist" (found via a real CI run).
+  '068_protocol_numbers.sql',
+  '071_excursions.sql',
+].map((name) => resolve(repoRoot, 'infrastructure/migrations', name));
 const prepareRolesSql = resolve(repoRoot, 'tests/integration/database/002_prepare_local_roles.sql');
 const composeFile = resolve(repoRoot, 'infrastructure/docker-compose.local-postgres.yml');
 
@@ -711,9 +754,9 @@ function assertContainerIsLocal(): void {
 
 async function resetDatabase(pool: Pool): Promise<void> {
   await pool.query('DROP SCHEMA public CASCADE; CREATE SCHEMA public;');
-  await pool.query(readSqlForPg(migration001));
-  await pool.query(readSqlForPg(migration002));
-  await pool.query(readSqlForPg(migration068));
+  for (const migration of migrations) {
+    await pool.query(readSqlForPg(migration));
+  }
   await pool.query(readSqlForPg(prepareRolesSql));
   await seedAgenciesAndUsers(pool);
 }
