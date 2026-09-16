@@ -1,6 +1,6 @@
 /**
  * Excursões (group trips) -- HTTP surface. See excursions.ts for the
- * fan-out design rationale.
+ * template/departure fan-out design rationale.
  */
 
 import type { FastifyInstance } from 'fastify';
@@ -10,12 +10,15 @@ import { UserRole } from '../../../../packages/domain/types';
 import type { DatabaseRuntime } from '../database';
 import { NotFoundError, ValidationError } from '../errors';
 import {
-  addCustomersToExcursion,
+  addCustomersToDeparture,
+  createDeparture,
   createExcursion,
   deleteExcursion,
+  getDepartureById,
   getExcursionById,
   listExcursions,
-  removeCustomerFromExcursion,
+  removeCustomerFromDeparture,
+  type CreateDepartureInput,
   type CreateExcursionInput,
 } from '../excursions';
 
@@ -33,8 +36,6 @@ function parseCreateExcursionInput(body: unknown): CreateExcursionInput {
   const name = record.name;
   const destination = record.destination;
   const transportType = record.transportType;
-  const startDate = record.startDate;
-  const endDate = record.endDate;
   if (typeof name !== 'string' || !name.trim()) {
     throw new ValidationError('Field "name" is required and must be a non-empty string');
   }
@@ -44,17 +45,8 @@ function parseCreateExcursionInput(body: unknown): CreateExcursionInput {
   if (transportType !== 'AEREO' && transportType !== 'TERRESTRE') {
     throw new ValidationError('Field "transportType" must be AEREO or TERRESTRE');
   }
-  if (typeof startDate !== 'string' || typeof endDate !== 'string') {
-    throw new ValidationError('Fields "startDate" and "endDate" are required');
-  }
 
-  const input: CreateExcursionInput = {
-    name,
-    destination,
-    transportType,
-    startDate,
-    endDate,
-  };
+  const input: CreateExcursionInput = { name, destination, transportType };
 
   const stringFields = [
     'notes', 'airline', 'origin', 'flightNumber', 'cabinClass',
@@ -69,10 +61,25 @@ function parseCreateExcursionInput(body: unknown): CreateExcursionInput {
     const value = record[field];
     if (typeof value === 'number' && !Number.isNaN(value)) input[field] = value;
   }
+
+  return input;
+}
+
+function parseCreateDepartureInput(body: unknown): CreateDepartureInput {
+  if (typeof body !== 'object' || body === null || Array.isArray(body)) {
+    throw new ValidationError('Request body must be an object');
+  }
+  const record = body as Record<string, unknown>;
+  const startDate = record.startDate;
+  const endDate = record.endDate;
+  if (typeof startDate !== 'string' || typeof endDate !== 'string') {
+    throw new ValidationError('Fields "startDate" and "endDate" are required');
+  }
+  const input: CreateDepartureInput = { startDate, endDate };
+  if (typeof record.notes === 'string' && record.notes.trim()) input.notes = record.notes;
   if (Array.isArray(record.customerIds)) {
     input.customerIds = record.customerIds.filter((v): v is string => typeof v === 'string');
   }
-
   return input;
 }
 
@@ -99,13 +106,54 @@ export function registerExcursionRoutes(app: FastifyInstance, options: Excursion
   app.post('/excursions', { preHandler: protectedHooks }, async (request, reply) => {
     requireRole(UserRole.AGENT);
     const data = parseCreateExcursionInput(request.body);
-    const result = await createExcursion(database, data);
+    const excursion = await createExcursion(database, data);
     reply.code(201);
-    return result;
+    return { excursion };
   });
 
+  app.delete<{ Params: { id: string } }>(
+    '/excursions/:id',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      requireRole(UserRole.ADMIN);
+      const deleted = await deleteExcursion(database, request.params.id);
+      if (!deleted) throw new NotFoundError('Excursion not found');
+      reply.code(204);
+      return null;
+    },
+  );
+
+  // ============================================================
+  // DEPARTURES -- a dated use of a template. "O agente escolhe a
+  // excursão e pode colocar o período" -- everything else (destination,
+  // airline/land config, price) is inherited from the template.
+  // ============================================================
+
   app.post<{ Params: { id: string } }>(
-    '/excursions/:id/customers',
+    '/excursions/:id/departures',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      requireRole(UserRole.AGENT);
+      const data = parseCreateDepartureInput(request.body);
+      const result = await createDeparture(database, request.params.id, data);
+      reply.code(201);
+      return result;
+    },
+  );
+
+  app.get<{ Params: { departureId: string } }>(
+    '/excursion-departures/:departureId',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      const found = await getDepartureById(database, request.params.departureId);
+      if (!found) throw new NotFoundError('Departure not found');
+      return found;
+    },
+  );
+
+  app.post<{ Params: { departureId: string } }>(
+    '/excursion-departures/:departureId/customers',
     { preHandler: protectedHooks },
     async (request, reply) => {
       requireRole(UserRole.AGENT);
@@ -116,31 +164,19 @@ export function registerExcursionRoutes(app: FastifyInstance, options: Excursion
       if (customerIds.length === 0) {
         throw new ValidationError('Field "customerIds" must be a non-empty array of strings');
       }
-      const result = await addCustomersToExcursion(database, request.params.id, customerIds);
+      const result = await addCustomersToDeparture(database, request.params.departureId, customerIds);
       reply.code(201);
       return result;
     },
   );
 
-  app.delete<{ Params: { id: string; customerId: string } }>(
-    '/excursions/:id/customers/:customerId',
+  app.delete<{ Params: { departureId: string; customerId: string } }>(
+    '/excursion-departures/:departureId/customers/:customerId',
     { preHandler: protectedHooks },
     async (request, reply) => {
       requireRole(UserRole.AGENT);
-      const removed = await removeCustomerFromExcursion(database, request.params.id, request.params.customerId);
-      if (!removed) throw new NotFoundError('Customer is not assigned to this excursion');
-      reply.code(204);
-      return null;
-    },
-  );
-
-  app.delete<{ Params: { id: string } }>(
-    '/excursions/:id',
-    { preHandler: protectedHooks },
-    async (request, reply) => {
-      requireRole(UserRole.ADMIN);
-      const deleted = await deleteExcursion(database, request.params.id);
-      if (!deleted) throw new NotFoundError('Excursion not found');
+      const removed = await removeCustomerFromDeparture(database, request.params.departureId, request.params.customerId);
+      if (!removed) throw new NotFoundError('Customer is not assigned to this departure');
       reply.code(204);
       return null;
     },

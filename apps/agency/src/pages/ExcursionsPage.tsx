@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
-import { Plus, Plane, Bus, ChevronDown, ChevronUp, X } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Plus, Plane, Bus, ChevronDown, ChevronUp, X, Search } from 'lucide-react';
 import { PageHeader } from '../components/layout/PageHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -11,13 +11,16 @@ import { LoadingState } from '../components/ui/loading-state';
 import { Modal } from '../components/ui/modal';
 import {
   ApiError,
-  addExcursionCustomers,
+  addDepartureCustomers,
   createExcursion,
+  createExcursionDeparture,
+  getExcursion,
+  getExcursionDeparture,
   listCustomers,
   listExcursions,
-  removeExcursionCustomer,
-  getExcursion,
+  removeDepartureCustomer,
   type ExcursionCustomer,
+  type ExcursionDeparture,
   type ExcursionSummary,
   type ExcursionTransportType,
 } from '../lib/api';
@@ -34,8 +37,6 @@ const emptyNewExcursion = {
   name: '',
   destination: '',
   transportType: 'AEREO' as ExcursionTransportType,
-  startDate: '',
-  endDate: '',
   notes: '',
   airline: '',
   origin: '',
@@ -47,18 +48,81 @@ const emptyNewExcursion = {
   cost: '',
 };
 
+/** Every customer picker in this page shows name + birth date together
+ * -- requested directly: "podemos ter várias Amandas... deve vir o
+ * nome seguido da data de nascimento... isso torna assertivo". */
+function customerLabel(c: Customer): string {
+  const birth = c.birthDate ? formatDateBR(c.birthDate, { assumeDateOnly: true }) : null;
+  return birth ? `${c.name} — Nasc. ${birth}` : `${c.name} (sem data de nascimento)`;
+}
+
+/** Search-driven customer picker -- "os clientes que vão participar
+ * dessa excursão deve ser escolhido por busca". */
+function CustomerSearchPicker({
+  customers,
+  excludeIds,
+  selectedIds,
+  onToggle,
+}: {
+  customers: Customer[];
+  excludeIds: Set<string>;
+  selectedIds: Set<string>;
+  onToggle: (customerId: string) => void;
+}) {
+  const [query, setQuery] = useState('');
+  const filtered = useMemo(() => {
+    const normalized = query.trim().toLowerCase();
+    return customers
+      .filter((c) => !excludeIds.has(c.id))
+      .filter((c) => (normalized ? c.name.toLowerCase().includes(normalized) : true));
+  }, [customers, excludeIds, query]);
+
+  return (
+    <div>
+      <div className="relative">
+        <Search className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+        <Input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Buscar cliente pelo nome…"
+          className="pl-7"
+        />
+      </div>
+      <div className="mt-2 max-h-56 space-y-1 overflow-y-auto rounded-md border border-slate-200 p-2">
+        {filtered.length === 0 ? (
+          <p className="px-2 py-1 text-xs text-slate-400">Nenhum cliente encontrado.</p>
+        ) : (
+          filtered.map((c) => (
+            <label key={c.id} className="flex items-center gap-2 rounded px-2 py-1 text-sm hover:bg-slate-50">
+              <input type="checkbox" checked={selectedIds.has(c.id)} onChange={() => onToggle(c.id)} />
+              {customerLabel(c)}
+            </label>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function ExcursionsPage() {
   const [state, setState] = useState<LoadState>({ status: 'loading' });
   const [showNewExcursion, setShowNewExcursion] = useState(false);
   const [newExcursion, setNewExcursion] = useState(emptyNewExcursion);
-  const [selectedCustomerIds, setSelectedCustomerIds] = useState<Set<string>>(new Set());
   const [formError, setFormError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [expandedExcursionId, setExpandedExcursionId] = useState<string | null>(null);
+  const [departures, setDepartures] = useState<ExcursionDeparture[] | null>(null);
+
+  const [showNewDeparture, setShowNewDeparture] = useState(false);
+  const [newDepartureExcursionId, setNewDepartureExcursionId] = useState<string | null>(null);
+  const [newDeparture, setNewDeparture] = useState({ startDate: '', endDate: '', notes: '' });
+  const [departureCustomerIds, setDepartureCustomerIds] = useState<Set<string>>(new Set());
+
+  const [expandedDepartureId, setExpandedDepartureId] = useState<string | null>(null);
   const [roster, setRoster] = useState<ExcursionCustomer[] | null>(null);
-  const [addingCustomerIds, setAddingCustomerIds] = useState<Set<string>>(new Set());
   const [showAddCustomers, setShowAddCustomers] = useState(false);
+  const [addingCustomerIds, setAddingCustomerIds] = useState<Set<string>>(new Set());
 
   const load = useCallback(() => {
     setState({ status: 'loading' });
@@ -74,8 +138,14 @@ export function ExcursionsPage() {
     load();
   }, [load]);
 
-  const loadRoster = useCallback((excursionId: string) => {
+  const loadDepartures = useCallback((excursionId: string) => {
     getExcursion(excursionId)
+      .then((data) => setDepartures(data.departures))
+      .catch(() => setDepartures([]));
+  }, []);
+
+  const loadRoster = useCallback((departureId: string) => {
+    getExcursionDeparture(departureId)
       .then((data) => setRoster(data.customers))
       .catch(() => setRoster([]));
   }, []);
@@ -83,7 +153,7 @@ export function ExcursionsPage() {
   if (state.status === 'loading') {
     return (
       <div>
-        <PageHeader title="Excursões" description="Viagens em grupo — configure uma vez, atribua os clientes." />
+        <PageHeader title="Excursões" description="Modelos de viagem em grupo — reutilizáveis, só a data muda a cada uso." />
         <LoadingState label="Carregando excursões…" />
       </div>
     );
@@ -94,12 +164,11 @@ export function ExcursionsPage() {
   }
 
   const { excursions, customers } = state;
-  const customerName = (id: string) => customers.find((c) => c.id === id)?.name ?? id.slice(0, 8);
 
-  const handleCreate = (e: React.FormEvent) => {
+  const handleCreateExcursion = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newExcursion.name.trim() || !newExcursion.destination.trim() || !newExcursion.startDate || !newExcursion.endDate) {
-      setFormError('Preencha nome, destino e as datas.');
+    if (!newExcursion.name.trim() || !newExcursion.destination.trim()) {
+      setFormError('Preencha nome e destino.');
       return;
     }
     if (newExcursion.transportType === 'AEREO' && (!newExcursion.airline.trim() || !newExcursion.origin.trim())) {
@@ -116,8 +185,6 @@ export function ExcursionsPage() {
       name: newExcursion.name.trim(),
       destination: newExcursion.destination.trim(),
       transportType: newExcursion.transportType,
-      startDate: newExcursion.startDate,
-      endDate: newExcursion.endDate,
       ...(newExcursion.notes.trim() ? { notes: newExcursion.notes.trim() } : {}),
       ...(newExcursion.transportType === 'AEREO'
         ? {
@@ -132,47 +199,87 @@ export function ExcursionsPage() {
           }),
       ...(newExcursion.saleValue ? { saleValue: Number(newExcursion.saleValue) } : {}),
       ...(newExcursion.cost ? { cost: Number(newExcursion.cost) } : {}),
-      customerIds: Array.from(selectedCustomerIds),
     })
       .then(() => {
         setShowNewExcursion(false);
         setNewExcursion(emptyNewExcursion);
-        setSelectedCustomerIds(new Set());
         load();
       })
       .catch((err: unknown) => setFormError(err instanceof ApiError ? err.message : 'Não foi possível criar a excursão.'))
       .finally(() => setSaving(false));
   };
 
-  const toggleExpand = (excursionId: string) => {
-    if (expandedId === excursionId) {
-      setExpandedId(null);
+  const toggleExpandExcursion = (excursionId: string) => {
+    if (expandedExcursionId === excursionId) {
+      setExpandedExcursionId(null);
+      setDepartures(null);
+      setExpandedDepartureId(null);
       setRoster(null);
       return;
     }
-    setExpandedId(excursionId);
+    setExpandedExcursionId(excursionId);
+    setDepartures(null);
+    setExpandedDepartureId(null);
     setRoster(null);
-    loadRoster(excursionId);
+    loadDepartures(excursionId);
   };
 
-  const handleRemoveFromRoster = (excursionId: string, customerId: string) => {
-    removeExcursionCustomer(excursionId, customerId)
+  const openNewDeparture = (excursionId: string) => {
+    setNewDepartureExcursionId(excursionId);
+    setNewDeparture({ startDate: '', endDate: '', notes: '' });
+    setDepartureCustomerIds(new Set());
+    setFormError(null);
+    setShowNewDeparture(true);
+  };
+
+  const handleCreateDeparture = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newDepartureExcursionId || !newDeparture.startDate || !newDeparture.endDate) {
+      setFormError('Preencha o período da excursão.');
+      return;
+    }
+    setSaving(true);
+    setFormError(null);
+    createExcursionDeparture(newDepartureExcursionId, {
+      startDate: newDeparture.startDate,
+      endDate: newDeparture.endDate,
+      ...(newDeparture.notes.trim() ? { notes: newDeparture.notes.trim() } : {}),
+      customerIds: Array.from(departureCustomerIds),
+    })
       .then(() => {
-        loadRoster(excursionId);
+        setShowNewDeparture(false);
+        loadDepartures(newDepartureExcursionId);
         load();
       })
+      .catch((err: unknown) => setFormError(err instanceof ApiError ? err.message : 'Não foi possível criar a utilização.'))
+      .finally(() => setSaving(false));
+  };
+
+  const toggleExpandDeparture = (departureId: string) => {
+    if (expandedDepartureId === departureId) {
+      setExpandedDepartureId(null);
+      setRoster(null);
+      return;
+    }
+    setExpandedDepartureId(departureId);
+    setRoster(null);
+    loadRoster(departureId);
+  };
+
+  const handleRemoveFromRoster = (departureId: string, customerId: string) => {
+    removeDepartureCustomer(departureId, customerId)
+      .then(() => loadRoster(departureId))
       .catch(() => undefined);
   };
 
-  const handleAddCustomers = (excursionId: string) => {
+  const handleAddCustomers = (departureId: string) => {
     const ids = Array.from(addingCustomerIds);
     if (ids.length === 0) return;
-    addExcursionCustomers(excursionId, ids)
+    addDepartureCustomers(departureId, ids)
       .then(() => {
         setShowAddCustomers(false);
         setAddingCustomerIds(new Set());
-        loadRoster(excursionId);
-        load();
+        loadRoster(departureId);
       })
       .catch((err: unknown) => setFormError(err instanceof ApiError ? err.message : 'Não foi possível adicionar clientes.'));
   };
@@ -181,7 +288,7 @@ export function ExcursionsPage() {
     <div className="space-y-6">
       <PageHeader
         title="Excursões"
-        description="Viagens em grupo para o mesmo destino — configure a viagem uma vez e atribua os clientes; todos recebem a mesma configuração de uma vez, em vez de repetir a montagem para cada um."
+        description="Modelo de viagem em grupo reutilizável — cadastre uma vez com destino e configuração; cada uso define apenas o período e os clientes."
         breadcrumbs={[{ label: 'Painel', to: '/' }, { label: 'Operação' }, { label: 'Excursões' }]}
         actions={
           <Button size="sm" onClick={() => { setFormError(null); setShowNewExcursion(true); }}>
@@ -194,7 +301,7 @@ export function ExcursionsPage() {
       {excursions.length === 0 ? (
         <EmptyState
           title="Nenhuma excursão cadastrada"
-          description="Crie uma excursão para agrupar vários clientes na mesma viagem."
+          description="Crie um modelo de excursão para reutilizar em cada grupo que viajar para o mesmo destino."
           action={
             <Button size="sm" onClick={() => setShowNewExcursion(true)}>
               <Plus className="mr-2 h-4 w-4" />
@@ -208,7 +315,7 @@ export function ExcursionsPage() {
             <Card key={exc.id}>
               <CardHeader
                 className="flex cursor-pointer flex-row items-center justify-between space-y-0"
-                onClick={() => toggleExpand(exc.id)}
+                onClick={() => toggleExpandExcursion(exc.id)}
               >
                 <div className="flex items-center gap-3">
                   {exc.transportType === 'AEREO' ? (
@@ -219,80 +326,108 @@ export function ExcursionsPage() {
                   <div>
                     <CardTitle>{exc.name}</CardTitle>
                     <p className="text-xs text-slate-500">
-                      {exc.destination} · {formatDateBR(exc.startDate, { assumeDateOnly: true })} – {formatDateBR(exc.endDate, { assumeDateOnly: true })}
-                      {' · '}{exc.customerCount} cliente{exc.customerCount === 1 ? '' : 's'}
+                      {exc.destination}
+                      {' · '}{exc.departureCount} utilização{exc.departureCount === 1 ? '' : 'ões'}
                       {exc.saleValue !== undefined ? ` · ${formatBRL(exc.saleValue)}/cliente` : ''}
                     </p>
                   </div>
                 </div>
-                {expandedId === exc.id ? <ChevronUp className="h-4 w-4 text-slate-400" /> : <ChevronDown className="h-4 w-4 text-slate-400" />}
+                {expandedExcursionId === exc.id ? <ChevronUp className="h-4 w-4 text-slate-400" /> : <ChevronDown className="h-4 w-4 text-slate-400" />}
               </CardHeader>
-              {expandedId === exc.id ? (
+              {expandedExcursionId === exc.id ? (
                 <CardContent className="space-y-3 border-t pt-4">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-semibold text-slate-700">Clientes na excursão</h4>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => { setAddingCustomerIds(new Set()); setShowAddCustomers(true); }}
-                    >
+                    <h4 className="text-sm font-semibold text-slate-700">Utilizações desta excursão</h4>
+                    <Button size="sm" variant="outline" onClick={() => openNewDeparture(exc.id)}>
                       <Plus className="mr-2 h-4 w-4" />
-                      Adicionar clientes
+                      Nova Utilização
                     </Button>
                   </div>
-                  {roster === null ? (
+                  {departures === null ? (
                     <p className="text-xs text-slate-400">Carregando…</p>
-                  ) : roster.length === 0 ? (
-                    <p className="text-xs text-slate-400">Nenhum cliente atribuído ainda.</p>
+                  ) : departures.length === 0 ? (
+                    <p className="text-xs text-slate-400">Nenhuma utilização ainda. Crie uma definindo o período.</p>
                   ) : (
-                    <ul className="space-y-1">
-                      {roster.map((rc) => (
-                        <li key={rc.id} className="flex items-center justify-between rounded-md border border-slate-200 px-3 py-2 text-sm">
-                          <span>{rc.customerName ?? customerName(rc.customerId)}</span>
+                    <div className="space-y-2">
+                      {departures.map((dep) => (
+                        <div key={dep.id} className="rounded-md border border-slate-200">
                           <button
                             type="button"
-                            aria-label="Remover da excursão"
-                            onClick={() => handleRemoveFromRoster(exc.id, rc.customerId)}
-                            className="text-slate-400 hover:text-red-600"
+                            onClick={() => toggleExpandDeparture(dep.id)}
+                            className="flex w-full items-center justify-between px-3 py-2 text-left text-sm"
                           >
-                            <X className="h-4 w-4" />
+                            <span>
+                              {formatDateBR(dep.startDate, { assumeDateOnly: true })} – {formatDateBR(dep.endDate, { assumeDateOnly: true })}
+                            </span>
+                            {expandedDepartureId === dep.id ? <ChevronUp className="h-4 w-4 text-slate-400" /> : <ChevronDown className="h-4 w-4 text-slate-400" />}
                           </button>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
+                          {expandedDepartureId === dep.id ? (
+                            <div className="space-y-2 border-t border-slate-200 p-3">
+                              <div className="flex items-center justify-between">
+                                <p className="text-xs font-medium text-slate-500">Clientes nesta utilização</p>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => { setAddingCustomerIds(new Set()); setFormError(null); setShowAddCustomers(true); }}
+                                >
+                                  <Plus className="mr-1 h-3.5 w-3.5" />
+                                  Adicionar
+                                </Button>
+                              </div>
+                              {roster === null ? (
+                                <p className="text-xs text-slate-400">Carregando…</p>
+                              ) : roster.length === 0 ? (
+                                <p className="text-xs text-slate-400">Nenhum cliente atribuído ainda.</p>
+                              ) : (
+                                <ul className="space-y-1">
+                                  {roster.map((rc) => (
+                                    <li key={rc.id} className="flex items-center justify-between rounded-md border border-slate-200 px-3 py-1.5 text-sm">
+                                      <span>
+                                        {rc.customerName}
+                                        {rc.customerBirthDate ? (
+                                          <span className="text-slate-400"> — Nasc. {formatDateBR(rc.customerBirthDate, { assumeDateOnly: true })}</span>
+                                        ) : null}
+                                      </span>
+                                      <button
+                                        type="button"
+                                        aria-label="Remover da excursão"
+                                        onClick={() => handleRemoveFromRoster(dep.id, rc.customerId)}
+                                        className="text-slate-400 hover:text-red-600"
+                                      >
+                                        <X className="h-4 w-4" />
+                                      </button>
+                                    </li>
+                                  ))}
+                                </ul>
+                              )}
 
-                  <Modal open={showAddCustomers} onClose={() => setShowAddCustomers(false)} title="Adicionar clientes à excursão">
-                    <div className="space-y-3">
-                      <div className="max-h-64 space-y-1 overflow-y-auto rounded-md border border-slate-200 p-2">
-                        {customers
-                          .filter((c) => !(roster ?? []).some((rc) => rc.customerId === c.id))
-                          .map((c) => (
-                            <label key={c.id} className="flex items-center gap-2 rounded px-2 py-1 text-sm hover:bg-slate-50">
-                              <input
-                                type="checkbox"
-                                checked={addingCustomerIds.has(c.id)}
-                                onChange={(e) => {
-                                  setAddingCustomerIds((prev) => {
-                                    const next = new Set(prev);
-                                    if (e.target.checked) next.add(c.id); else next.delete(c.id);
-                                    return next;
-                                  });
-                                }}
-                              />
-                              {c.name}
-                            </label>
-                          ))}
-                      </div>
-                      {formError ? <p className="text-sm text-destructive">{formError}</p> : null}
-                      <div className="flex justify-end gap-2">
-                        <Button type="button" variant="outline" onClick={() => setShowAddCustomers(false)}>Cancelar</Button>
-                        <Button type="button" onClick={() => handleAddCustomers(exc.id)}>
-                          Adicionar {addingCustomerIds.size > 0 ? `(${addingCustomerIds.size})` : ''}
-                        </Button>
-                      </div>
+                              <Modal open={showAddCustomers} onClose={() => setShowAddCustomers(false)} title="Adicionar clientes">
+                                <div className="space-y-3">
+                                  <CustomerSearchPicker
+                                    customers={customers}
+                                    excludeIds={new Set((roster ?? []).map((rc) => rc.customerId))}
+                                    selectedIds={addingCustomerIds}
+                                    onToggle={(id) => setAddingCustomerIds((prev) => {
+                                      const next = new Set(prev);
+                                      if (next.has(id)) next.delete(id); else next.add(id);
+                                      return next;
+                                    })}
+                                  />
+                                  {formError ? <p className="text-sm text-destructive">{formError}</p> : null}
+                                  <div className="flex justify-end gap-2">
+                                    <Button type="button" variant="outline" onClick={() => setShowAddCustomers(false)}>Cancelar</Button>
+                                    <Button type="button" onClick={() => handleAddCustomers(dep.id)}>
+                                      Adicionar {addingCustomerIds.size > 0 ? `(${addingCustomerIds.size})` : ''}
+                                    </Button>
+                                  </div>
+                                </div>
+                              </Modal>
+                            </div>
+                          ) : null}
+                        </div>
+                      ))}
                     </div>
-                  </Modal>
+                  )}
                 </CardContent>
               ) : null}
             </Card>
@@ -301,7 +436,7 @@ export function ExcursionsPage() {
       )}
 
       <Modal open={showNewExcursion} onClose={() => setShowNewExcursion(false)} title="Nova Excursão">
-        <form onSubmit={handleCreate} className="space-y-3">
+        <form onSubmit={handleCreateExcursion} className="space-y-3">
           {formError ? <p className="text-sm text-destructive">{formError}</p> : null}
           <div className="grid grid-cols-2 gap-3">
             <LabeledInput
@@ -319,33 +454,15 @@ export function ExcursionsPage() {
               required
             />
           </div>
-          <div className="grid grid-cols-3 gap-3">
-            <LabeledSelect
-              id="exc-type"
-              label="Tipo"
-              value={newExcursion.transportType}
-              onChange={(e) => setNewExcursion((f) => ({ ...f, transportType: e.target.value as ExcursionTransportType }))}
-            >
-              <option value="AEREO">Aéreo</option>
-              <option value="TERRESTRE">Terrestre</option>
-            </LabeledSelect>
-            <LabeledInput
-              id="exc-start"
-              label="Início"
-              type="date"
-              value={newExcursion.startDate}
-              onChange={(e) => setNewExcursion((f) => ({ ...f, startDate: e.target.value }))}
-              required
-            />
-            <LabeledInput
-              id="exc-end"
-              label="Fim"
-              type="date"
-              value={newExcursion.endDate}
-              onChange={(e) => setNewExcursion((f) => ({ ...f, endDate: e.target.value }))}
-              required
-            />
-          </div>
+          <LabeledSelect
+            id="exc-type"
+            label="Tipo"
+            value={newExcursion.transportType}
+            onChange={(e) => setNewExcursion((f) => ({ ...f, transportType: e.target.value as ExcursionTransportType }))}
+          >
+            <option value="AEREO">Aéreo</option>
+            <option value="TERRESTRE">Terrestre</option>
+          </LabeledSelect>
 
           {newExcursion.transportType === 'AEREO' ? (
             <div className="grid grid-cols-2 gap-3 rounded-md border border-slate-200 p-3">
@@ -422,33 +539,62 @@ export function ExcursionsPage() {
             />
           </label>
 
-          <div>
-            <p className="mb-1 text-xs font-medium text-slate-500">
-              Clientes ({selectedCustomerIds.size} selecionado{selectedCustomerIds.size === 1 ? '' : 's'})
-            </p>
-            <div className="max-h-48 space-y-1 overflow-y-auto rounded-md border border-slate-200 p-2">
-              {customers.map((c) => (
-                <label key={c.id} className="flex items-center gap-2 rounded px-2 py-1 text-sm hover:bg-slate-50">
-                  <input
-                    type="checkbox"
-                    checked={selectedCustomerIds.has(c.id)}
-                    onChange={(e) => {
-                      setSelectedCustomerIds((prev) => {
-                        const next = new Set(prev);
-                        if (e.target.checked) next.add(c.id); else next.delete(c.id);
-                        return next;
-                      });
-                    }}
-                  />
-                  {c.name}
-                </label>
-              ))}
-            </div>
-          </div>
-
           <div className="flex justify-end gap-2 pt-2">
             <Button type="button" variant="outline" onClick={() => setShowNewExcursion(false)}>Cancelar</Button>
             <Button type="submit" disabled={saving}>{saving ? 'Criando…' : 'Criar Excursão'}</Button>
+          </div>
+        </form>
+      </Modal>
+
+      <Modal open={showNewDeparture} onClose={() => setShowNewDeparture(false)} title="Nova Utilização da Excursão">
+        <form onSubmit={handleCreateDeparture} className="space-y-3">
+          {formError ? <p className="text-sm text-destructive">{formError}</p> : null}
+          <div className="grid grid-cols-2 gap-3">
+            <LabeledInput
+              id="dep-start"
+              label="Início"
+              type="date"
+              value={newDeparture.startDate}
+              onChange={(e) => setNewDeparture((f) => ({ ...f, startDate: e.target.value }))}
+              required
+            />
+            <LabeledInput
+              id="dep-end"
+              label="Fim"
+              type="date"
+              value={newDeparture.endDate}
+              onChange={(e) => setNewDeparture((f) => ({ ...f, endDate: e.target.value }))}
+              required
+            />
+          </div>
+          <label className="text-xs text-slate-500">
+            Observações desta utilização (opcional)
+            <Input
+              value={newDeparture.notes}
+              onChange={(e) => setNewDeparture((f) => ({ ...f, notes: e.target.value }))}
+              className="mt-1"
+            />
+          </label>
+
+          <div>
+            <p className="mb-1 text-xs font-medium text-slate-500">
+              Clientes ({departureCustomerIds.size} selecionado{departureCustomerIds.size === 1 ? '' : 's'})
+            </p>
+            <CustomerSearchPicker
+              customers={customers}
+              excludeIds={new Set()}
+              selectedIds={departureCustomerIds}
+              onToggle={(id) => setDepartureCustomerIds((prev) => {
+                const next = new Set(prev);
+                if (next.has(id)) next.delete(id); else next.add(id);
+                return next;
+              })}
+            />
+          </div>
+
+          <div className="flex justify-end gap-2 pt-2">
+            <Button type="button" variant="outline" onClick={() => setShowNewDeparture(false)}>Cancelar</Button>
+            <Button type="submit" disabled={saving}>{saving ? 'Criando…' : 'Criar Utilização'}</Button>
           </div>
         </form>
       </Modal>

@@ -624,6 +624,9 @@ BEGIN
   IF to_regclass('public.excursion_customers') IS NOT NULL THEN
     GRANT SELECT, INSERT, UPDATE, DELETE ON excursion_customers TO travel_app_runtime_local;
   END IF;
+  IF to_regclass('public.excursion_departures') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON excursion_departures TO travel_app_runtime_local;
+  END IF;
 END;
 $$;
 
