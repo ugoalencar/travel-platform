@@ -12,7 +12,7 @@ import { getAgencyId } from '../../../packages/domain/tenant-context';
 import type { DatabaseRuntime } from './database';
 import { ConflictError, NotFoundError, ValidationError } from './errors';
 import { AuditEventType, recordAuditEvent } from './audit-log';
-import { createCustomer } from './customers';
+import { createCustomer, getCustomerById } from './customers';
 
 const DEPENDENT_COLUMNS = `id, agency_id, customer_id, name, relationship_type, birth_date,
               cpf, nationality, notes, has_power_of_attorney, power_of_attorney_notes,
@@ -46,6 +46,16 @@ export interface CreateDependentInput {
   notes?: string;
   hasPowerOfAttorney?: boolean;
   powerOfAttorneyNotes?: string;
+  /** Link an already-registered customer as this companion, instead of
+   * creating a brand-new standalone dependent record -- avoids ending
+   * up with two separate, conflicting customer records for the same
+   * person later. name/cpf/nationality/birthDate are taken from that
+   * customer's own record when this is set, ignoring any value passed
+   * for those fields, so the two records can never drift apart on
+   * identity data. Requested directly: "ele pode criar um acompanhante
+   * novo ou atrelar um cliente como acompanhante para não gerar
+   * conflito caso seja cliente." */
+  existingCustomerId?: string;
 }
 
 export interface UpdateDependentInput {
@@ -104,29 +114,60 @@ export async function createDependent(
   const agencyId = getAgencyId();
 
   requireNonBlank(data.customerId, 'customerId');
-  requireNonBlank(data.name, 'name');
   requireRelationshipType(data.relationshipType);
 
+  let linkedCustomer: Customer | null = null;
+  if (data.existingCustomerId) {
+    if (data.existingCustomerId === data.customerId) {
+      throw new ValidationError('A customer cannot be their own companion');
+    }
+    linkedCustomer = await getCustomerById(database, data.existingCustomerId);
+    if (!linkedCustomer) {
+      throw new NotFoundError('Customer not found');
+    }
+  } else {
+    requireNonBlank(data.name, 'name');
+  }
+
+  // Identity fields come from the linked customer's own record when one
+  // is attached, never from client input, so the two records can never
+  // drift apart on name/cpf/nationality/birth date.
+  const name = linkedCustomer ? linkedCustomer.name : data.name.trim();
+  const birthDate = linkedCustomer
+    ? (linkedCustomer.birthDate?.toISOString().slice(0, 10) ?? null)
+    : (data.birthDate ?? null);
+  const cpf = linkedCustomer ? (linkedCustomer.cpf ?? null) : (data.cpf ?? null);
+  const nationality = linkedCustomer ? (linkedCustomer.nationality ?? null) : (data.nationality ?? null);
+
   return database.withTenantTransaction(async (client) => {
-    const result = await client.query<CustomerDependentRow>(
-      `INSERT INTO customer_dependents
-         (agency_id, customer_id, name, relationship_type, birth_date, cpf, nationality, notes,
-          has_power_of_attorney, power_of_attorney_notes)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-       RETURNING ${DEPENDENT_COLUMNS}`,
-      [
-        agencyId,
-        data.customerId,
-        data.name.trim(),
-        data.relationshipType,
-        data.birthDate ?? null,
-        data.cpf ?? null,
-        data.nationality ?? null,
-        data.notes ?? null,
-        data.hasPowerOfAttorney ?? false,
-        data.powerOfAttorneyNotes ?? null,
-      ],
-    );
+    let result;
+    try {
+      result = await client.query<CustomerDependentRow>(
+        `INSERT INTO customer_dependents
+           (agency_id, customer_id, name, relationship_type, birth_date, cpf, nationality, notes,
+            has_power_of_attorney, power_of_attorney_notes, converted_customer_id)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+         RETURNING ${DEPENDENT_COLUMNS}`,
+        [
+          agencyId,
+          data.customerId,
+          name,
+          data.relationshipType,
+          birthDate,
+          cpf,
+          nationality,
+          data.notes ?? null,
+          data.hasPowerOfAttorney ?? false,
+          data.powerOfAttorneyNotes ?? null,
+          linkedCustomer?.id ?? null,
+        ],
+      );
+    } catch (error: unknown) {
+      if (isUniqueViolation(error)) {
+        throw new ConflictError('This customer is already linked as a companion elsewhere');
+      }
+      throw error;
+    }
 
     const row = result.rows[0];
     if (!row) {
@@ -308,6 +349,15 @@ export async function convertDependentToCustomer(
   });
 
   return { dependent: updated, customer };
+}
+
+function isUniqueViolation(error: unknown): boolean {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    (error as { code?: unknown }).code === '23505'
+  );
 }
 
 function requireNonBlank(value: unknown, field: string): void {

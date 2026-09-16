@@ -929,7 +929,7 @@ export function parseUpdateAddressInput(body: unknown): UpdateAddressInput {
 
 const DEPENDENT_FIELDS = [
   'name', 'relationshipType', 'birthDate', 'cpf', 'nationality', 'notes',
-  'hasPowerOfAttorney', 'powerOfAttorneyNotes',
+  'hasPowerOfAttorney', 'powerOfAttorneyNotes', 'existingCustomerId',
 ] as const;
 
 export function parseCreateDependentInput(
@@ -939,11 +939,17 @@ export function parseCreateDependentInput(
   const record = asRecord(body);
   rejectUnknownFields(record, DEPENDENT_FIELDS);
 
+  const existingCustomerId = optionalString(record, 'existingCustomerId');
+
   const data: CreateDependentInput = {
     customerId,
-    name: requireStringField(record, 'name'),
+    // Identity comes from the linked customer's own record when one is
+    // attached (service layer resolves it) -- name is only required
+    // from the client when creating a standalone companion.
+    name: existingCustomerId !== undefined ? '' : requireStringField(record, 'name'),
     relationshipType: requireEnum(record, 'relationshipType', Object.values(RelationshipType)),
   };
+  if (existingCustomerId !== undefined) data.existingCustomerId = existingCustomerId;
 
   for (const field of ['birthDate', 'cpf', 'nationality', 'notes', 'powerOfAttorneyNotes'] as const) {
     const value = optionalString(record, field);

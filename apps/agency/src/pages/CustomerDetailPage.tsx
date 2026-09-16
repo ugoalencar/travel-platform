@@ -16,6 +16,7 @@ import {
   api,
   getCustomer,
   updateCustomer,
+  listCustomers,
   listTripsByCustomer,
   listWishesByCustomer,
   listSales,
@@ -497,6 +498,14 @@ export function CustomerDetailPage() {
   const [editingDependent, setEditingDependent] = useState<CustomerDependent | null>(null);
   const [editingCompanion, setEditingCompanion] = useState<CustomerDependent | null>(null);
   const [convertingId, setConvertingId] = useState<string | null>(null);
+  // "Cliente existente" mode on the companion form -- requested
+  // directly: "ele pode criar um acompanhante novo ou atrelar um
+  // cliente como acompanhante para não gerar conflito caso seja
+  // cliente". allCustomers is fetched lazily, only when this mode is
+  // first used, since the page's main load() already makes 8 parallel
+  // calls and most visits never need the full customer list.
+  const [companionMode, setCompanionMode] = useState<'new' | 'existing'>('new');
+  const [allCustomers, setAllCustomers] = useState<Customer[] | null>(null);
   const [requirementModalOpen, setRequirementModalOpen] = useState(false);
   const [personalModalOpen, setPersonalModalOpen] = useState(false);
   const [emergencyModalOpen, setEmergencyModalOpen] = useState(false);
@@ -743,13 +752,21 @@ export function CustomerDetailPage() {
     setSaving(true);
     setFormError(null);
     try {
+      const usingExistingCustomer = !editingCompanion && companionMode === 'existing';
+      const existingCustomerId = usingExistingCustomer ? formString(form, 'existingCustomerId') : undefined;
+      if (usingExistingCustomer && !existingCustomerId) {
+        setFormError('Selecione um cliente.');
+        setSaving(false);
+        return;
+      }
       const input = {
-        name: formString(form, 'name'),
+        name: usingExistingCustomer ? '' : formString(form, 'name'),
         relationshipType: formString(form, 'relationshipType') || 'COMPANION',
-        birthDate: formString(form, 'birthDate') || undefined,
-        cpf: formString(form, 'cpf') || undefined,
-        nationality: formString(form, 'nationality') || undefined,
+        birthDate: usingExistingCustomer ? undefined : (formString(form, 'birthDate') || undefined),
+        cpf: usingExistingCustomer ? undefined : (formString(form, 'cpf') || undefined),
+        nationality: usingExistingCustomer ? undefined : (formString(form, 'nationality') || undefined),
         notes: formString(form, 'notes') || undefined,
+        ...(existingCustomerId ? { existingCustomerId } : {}),
       };
       if (editingCompanion) {
         await updateCustomerDependent(id, editingCompanion.id, input);
@@ -1375,7 +1392,16 @@ export function CustomerDetailPage() {
       {tab === 'companions' && (
         <div className="space-y-3">
           <div className="flex justify-end">
-            <Button size="sm" onClick={() => { setFormError(null); setEditingCompanion(null); setCompanionModalOpen(true); }}>
+            <Button
+              size="sm"
+              onClick={() => {
+                setFormError(null);
+                setEditingCompanion(null);
+                setCompanionMode('new');
+                setCompanionModalOpen(true);
+                if (allCustomers === null) listCustomers().then(setAllCustomers).catch(() => setAllCustomers([]));
+              }}
+            >
               <Plus className="h-4 w-4" /> Novo acompanhante
             </Button>
           </div>
@@ -1579,24 +1605,62 @@ export function CustomerDetailPage() {
           }}
         >
           {formError && <p className="text-sm text-red-600">{formError}</p>}
-          <label className="text-xs text-slate-500">Nome<Input name="name" required defaultValue={editingCompanion?.name} className="mt-1" /></label>
-          <div className="grid grid-cols-2 gap-3">
+
+          {!editingCompanion ? (
+            <div className="flex gap-2 rounded-md bg-slate-100 p-1 text-xs font-medium">
+              <button
+                type="button"
+                onClick={() => setCompanionMode('new')}
+                className={`flex-1 rounded px-2 py-1.5 ${companionMode === 'new' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500'}`}
+              >
+                Novo acompanhante
+              </button>
+              <button
+                type="button"
+                onClick={() => setCompanionMode('existing')}
+                className={`flex-1 rounded px-2 py-1.5 ${companionMode === 'existing' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500'}`}
+              >
+                Cliente existente
+              </button>
+            </div>
+          ) : null}
+
+          {!editingCompanion && companionMode === 'existing' ? (
             <label className="text-xs text-slate-500">
-              Relação
-              <Select name="relationshipType" defaultValue={editingCompanion?.relationshipType ?? 'COMPANION'} className="mt-1">
-                {Object.entries(RELATIONSHIP_LABELS)
-                  .filter(([value]) => value !== 'CHILD')
-                  .map(([value, label]) => (
-                    <option key={value} value={value}>{label}</option>
+              Cliente
+              <Select name="existingCustomerId" required className="mt-1">
+                <option value="">Selecione</option>
+                {(allCustomers ?? [])
+                  .filter((c) => c.id !== id)
+                  .map((c) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
                   ))}
               </Select>
+              <p className="mt-1 text-[11px] text-slate-400">
+                Nome, CPF e nacionalidade vêm do cadastro do cliente selecionado — evita registros duplicados.
+              </p>
             </label>
-            <label className="text-xs text-slate-500">Nascimento<Input type="date" name="birthDate" defaultValue={editingCompanion?.birthDate?.slice(0, 10)} className="mt-1" /></label>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <label className="text-xs text-slate-500">CPF<Input name="cpf" defaultValue={editingCompanion?.cpf} className="mt-1" /></label>
-            <label className="text-xs text-slate-500">Nacionalidade<Input name="nationality" defaultValue={editingCompanion?.nationality ?? 'Brasileira'} className="mt-1" /></label>
-          </div>
+          ) : (
+            <>
+              <label className="text-xs text-slate-500">Nome<Input name="name" required defaultValue={editingCompanion?.name} className="mt-1" /></label>
+              <div className="grid grid-cols-2 gap-3">
+                <label className="text-xs text-slate-500">Nascimento<Input type="date" name="birthDate" defaultValue={editingCompanion?.birthDate?.slice(0, 10)} className="mt-1" /></label>
+                <label className="text-xs text-slate-500">CPF<Input name="cpf" defaultValue={editingCompanion?.cpf} className="mt-1" /></label>
+              </div>
+              <label className="text-xs text-slate-500">Nacionalidade<Input name="nationality" defaultValue={editingCompanion?.nationality ?? 'Brasileira'} className="mt-1" /></label>
+            </>
+          )}
+
+          <label className="text-xs text-slate-500">
+            Relação
+            <Select name="relationshipType" defaultValue={editingCompanion?.relationshipType ?? 'COMPANION'} className="mt-1">
+              {Object.entries(RELATIONSHIP_LABELS)
+                .filter(([value]) => value !== 'CHILD')
+                .map(([value, label]) => (
+                  <option key={value} value={value}>{label}</option>
+                ))}
+            </Select>
+          </label>
           <label className="text-xs text-slate-500">Observações<Input name="notes" defaultValue={editingCompanion?.notes} className="mt-1" /></label>
           <div className="flex justify-end gap-2 pt-2">
             <Button type="button" variant="outline" onClick={() => { setCompanionModalOpen(false); setEditingCompanion(null); }}>Cancelar</Button>

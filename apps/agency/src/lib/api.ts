@@ -747,6 +747,10 @@ export interface CreateDependentInput {
   notes?: string | undefined;
   hasPowerOfAttorney?: boolean | undefined;
   powerOfAttorneyNotes?: string | undefined;
+  /** Link an already-registered customer as this companion instead of
+   * creating a standalone record -- name/cpf/etc come from that
+   * customer's own record server-side. */
+  existingCustomerId?: string | undefined;
 }
 
 export type UpdateDependentInput = Partial<CreateDependentInput>;
