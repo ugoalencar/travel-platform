@@ -1,4 +1,5 @@
 import { clearSession, getSessionToken, rememberAgencySlug, setSession, type StaffSessionUser } from './session';
+import { translateApiErrorMessage } from './errorTranslation';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
 
@@ -23,7 +24,7 @@ async function postJson<T>(path: string, body: unknown): Promise<T> {
   const data = (await response.json().catch(() => ({}))) as Record<string, unknown>;
   if (!response.ok) {
     throw new AuthApiError(
-      typeof data.error === 'string' ? data.error : 'Falha na requisição',
+      translateApiErrorMessage(typeof data.error === 'string' ? data.error : 'Falha na requisição'),
       response.status,
       data.captchaRequired === true,
     );

@@ -47,6 +47,7 @@ import type {
   CreateExternalOfferCaptureInput,
   ExternalOfferCapture,
 } from '../types/pescador';
+import { translateApiErrorMessage } from './errorTranslation';
 
 // Single seam for a future production API base URL. In local dev this stays
 // empty so requests go to relative paths (e.g. `/api/customers`) and are
@@ -85,7 +86,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   if (!response.ok) {
     const body = (await safeJson(response)) as Partial<ApiErrorBody> | null;
     throw new ApiError(
-      body?.error ?? 'Request failed.',
+      translateApiErrorMessage(body?.error ?? 'Request failed.'),
       body?.code ?? 'UNKNOWN_ERROR',
       response.status,
     );

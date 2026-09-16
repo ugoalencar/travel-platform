@@ -22,6 +22,7 @@ import type { Sale, SaleStatus } from '../types/sale';
 // introducing one is out of scope for this change (see OFFERS_DECISION.md).
 
 import { clearSession, getSessionToken } from './session';
+import { translateApiErrorMessage } from './errorTranslation';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
 
@@ -68,7 +69,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   if (!response.ok) {
     const body = (await safeJson(response)) as Partial<ApiErrorBody> | null;
     throw new ApiError(
-      body?.error ?? 'Request failed.',
+      translateApiErrorMessage(body?.error ?? 'Request failed.'),
       body?.code ?? 'UNKNOWN_ERROR',
       response.status,
     );
@@ -2846,7 +2847,7 @@ export const api = {
     if (!response.ok) {
       const body = (await safeJson(response)) as Partial<ApiErrorBody> | null;
       throw new ApiError(
-        body?.error ?? 'Request failed.',
+        translateApiErrorMessage(body?.error ?? 'Request failed.'),
         body?.code ?? 'UNKNOWN_ERROR',
         response.status,
       );
@@ -2869,7 +2870,7 @@ export const api = {
     if (!response.ok) {
       const respBody = (await safeJson(response)) as Partial<ApiErrorBody> | null;
       throw new ApiError(
-        respBody?.error ?? 'Request failed.',
+        translateApiErrorMessage(respBody?.error ?? 'Request failed.'),
         respBody?.code ?? 'UNKNOWN_ERROR',
         response.status,
       );
@@ -2888,7 +2889,7 @@ export const api = {
     if (!response.ok) {
       const respBody = (await safeJson(response)) as Partial<ApiErrorBody> | null;
       throw new ApiError(
-        respBody?.error ?? 'Request failed.',
+        translateApiErrorMessage(respBody?.error ?? 'Request failed.'),
         respBody?.code ?? 'UNKNOWN_ERROR',
         response.status,
       );
@@ -2903,7 +2904,7 @@ export const api = {
     if (!response.ok) {
       const respBody = (await safeJson(response)) as Partial<ApiErrorBody> | null;
       throw new ApiError(
-        respBody?.error ?? 'Request failed.',
+        translateApiErrorMessage(respBody?.error ?? 'Request failed.'),
         respBody?.code ?? 'UNKNOWN_ERROR',
         response.status,
       );
