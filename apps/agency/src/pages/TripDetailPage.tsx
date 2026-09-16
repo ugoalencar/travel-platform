@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, Calendar, MapPin, Pencil } from 'lucide-react';
+import { ArrowLeft, Calendar, ImagePlus, MapPin, Pencil, Trash2 } from 'lucide-react';
 import { PageHeader } from '../components/layout/PageHeader';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -13,16 +13,21 @@ import { Input } from '../components/ui/input';
 import { Textarea } from '../components/ui/textarea';
 import {
   ApiError,
+  deleteTripPhoto,
   getCustomer,
   getTrip,
   listAirServicesByTrip,
   listLandServicesByTrip,
   listSales,
+  listTripPhotos,
+  loadTripPhotoBlobUrl,
   updateTrip,
+  uploadTripPhoto,
   type AirService,
   type AirServiceStatus,
   type LandService,
   type LandServiceStatus,
+  type TripPhoto,
 } from '../lib/api';
 import { formatDateBR } from '../lib/formatDateBR';
 import { getTripStatusLabel } from '../lib/statusLabels';
@@ -33,6 +38,7 @@ import type { Sale, SaleStatus } from '../types/sale';
 
 const TABS = [
   { value: 'overview', label: 'Visão geral' },
+  { value: 'photos', label: 'Fotos' },
   { value: 'itinerary', label: 'Itinerário' },
   { value: 'related', label: 'Relacionados' },
 ];
@@ -88,6 +94,11 @@ export function TripDetailPage() {
   const [formError, setFormError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
+  const [photos, setPhotos] = useState<TripPhoto[]>([]);
+  const [photoThumbs, setPhotoThumbs] = useState<Record<string, string>>({});
+  const [photoError, setPhotoError] = useState<string | null>(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+
   const load = useCallback(() => {
     if (!id) {
       setLoading(false);
@@ -100,16 +111,18 @@ export function TripDetailPage() {
     getTrip(id)
       .then(async (t) => {
         setTrip(t);
-        const [c, air, land, allSales] = await Promise.all([
+        const [c, air, land, allSales, tripPhotos] = await Promise.all([
           getCustomer(t.customerId),
           listAirServicesByTrip(t.id),
           listLandServicesByTrip(t.id),
           listSales(),
+          listTripPhotos(t.id),
         ]);
         setCustomer(c);
         setAirServices(air);
         setLandServices(land);
         setSales(allSales.filter((s) => s.tripId === t.id));
+        setPhotos(tripPhotos);
         setLoading(false);
       })
       .catch((err: unknown) => {
@@ -125,6 +138,53 @@ export function TripDetailPage() {
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const urls: string[] = [];
+    if (trip) {
+      Promise.all(
+        photos.map(async (p) => {
+          const url = await loadTripPhotoBlobUrl(trip.id, p.id);
+          urls.push(url);
+          return [p.id, url] as const;
+        }),
+      )
+        .then((pairs) => {
+          if (!cancelled) setPhotoThumbs(Object.fromEntries(pairs));
+        })
+        .catch(() => undefined);
+    }
+    return () => {
+      cancelled = true;
+      urls.forEach((url) => URL.revokeObjectURL(url));
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [photos, trip?.id]);
+
+  async function handleUploadPhoto(file: File) {
+    if (!trip) return;
+    setUploadingPhoto(true);
+    setPhotoError(null);
+    try {
+      const photo = await uploadTripPhoto(trip.id, file);
+      setPhotos((prev) => [...prev, photo]);
+    } catch (err: unknown) {
+      setPhotoError(err instanceof ApiError ? err.message : 'Não foi possível enviar a foto.');
+    } finally {
+      setUploadingPhoto(false);
+    }
+  }
+
+  async function handleDeletePhoto(photoId: string) {
+    if (!trip) return;
+    try {
+      await deleteTripPhoto(trip.id, photoId);
+      setPhotos((prev) => prev.filter((p) => p.id !== photoId));
+    } catch (err: unknown) {
+      setPhotoError(err instanceof ApiError ? err.message : 'Não foi possível remover a foto.');
+    }
+  }
 
   if (loading) {
     return <LoadingState label="Carregando viagem…" />;
@@ -285,6 +345,59 @@ export function TripDetailPage() {
             </Card>
           </div>
         </div>
+      )}
+
+      {tab === 'photos' && (
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between gap-4">
+            <CardTitle>Fotos da viagem</CardTitle>
+            <label className="inline-flex cursor-pointer items-center gap-2 rounded-md bg-slate-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-slate-800">
+              <ImagePlus className="h-4 w-4" />
+              {uploadingPhoto ? 'Enviando…' : 'Adicionar foto'}
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/jpg,image/webp"
+                className="hidden"
+                disabled={uploadingPhoto}
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) void handleUploadPhoto(file);
+                  e.target.value = '';
+                }}
+              />
+            </label>
+          </CardHeader>
+          <CardContent>
+            {photoError && (
+              <p role="alert" className="mb-3 rounded-md bg-red-50 p-2 text-xs text-red-700">{photoError}</p>
+            )}
+            {photos.length === 0 ? (
+              <p className="py-6 text-center text-sm text-slate-400">
+                Nenhuma foto ainda. As fotos adicionadas aqui aparecem no carrossel do portal do cliente.
+              </p>
+            ) : (
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                {photos.map((photo) => (
+                  <div key={photo.id} className="group relative aspect-square overflow-hidden rounded-lg border border-slate-200 bg-slate-50">
+                    {photoThumbs[photo.id] ? (
+                      <img src={photoThumbs[photo.id]} alt={photo.caption ?? photo.fileName} className="h-full w-full object-cover" />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-xs text-slate-400">Carregando…</div>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => void handleDeletePhoto(photo.id)}
+                      className="absolute right-1.5 top-1.5 rounded-full bg-black/60 p-1.5 opacity-0 transition-opacity group-hover:opacity-100"
+                      aria-label="Remover foto"
+                    >
+                      <Trash2 className="h-3.5 w-3.5 text-white" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       )}
 
       {tab === 'itinerary' && (

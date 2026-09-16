@@ -27,6 +27,8 @@ import {
   listMyTripAirServices,
   listMyTripLandServices,
 } from '../customer-portal';
+import { getTripPhotoById, listTripPhotos } from '../trip-photos';
+import { readFile as readStoredFile } from '../file-storage';
 import type { DatabaseRuntime } from '../database';
 
 export interface CustomerPortalRoutesOptions {
@@ -139,6 +141,42 @@ export function registerCustomerPortalRoutes(
     async (request) => {
       const services = await listMyTripLandServices(database, request.params.id);
       return { services };
+    }
+  );
+
+  // Photo carousel -- ownership is re-checked via getMyTripById (which
+  // itself filters by the caller's own customerId from tenant context,
+  // never a request param) before any photo row is ever touched, so a
+  // customer cannot enumerate another customer's trip photos by id.
+  app.get<{ Params: { id: string } }>(
+    '/customer-api/trips/:id/photos',
+    { preHandler: customerHooks },
+    async (request) => {
+      const trip = await getMyTripById(database, request.params.id);
+      if (!trip) {
+        throw new NotFoundError('Trip not found');
+      }
+      const photos = await listTripPhotos(database, request.params.id);
+      return { photos };
+    }
+  );
+
+  app.get<{ Params: { id: string; photoId: string } }>(
+    '/customer-api/trips/:id/photos/:photoId/download',
+    { preHandler: customerHooks },
+    async (request, reply) => {
+      const trip = await getMyTripById(database, request.params.id);
+      if (!trip) {
+        throw new NotFoundError('Trip not found');
+      }
+      const photo = await getTripPhotoById(database, request.params.photoId);
+      if (!photo || photo.tripId !== request.params.id) {
+        throw new NotFoundError('Photo not found');
+      }
+      const content = await readStoredFile(photo.secureFileKey);
+      reply.header('Content-Disposition', `inline; filename="${encodeURIComponent(photo.fileName)}"`);
+      reply.type(photo.fileMimeType);
+      return reply.send(content);
     }
   );
 

@@ -6,6 +6,9 @@ import {
   getMyTrip,
   listMyTripAirSegments,
   listMyTripLandServices,
+  listMyTripPhotos,
+  loadMyTripPhotoBlobUrl,
+  type CustomerTripPhoto,
 } from '../../lib/customerApi';
 import type { Trip } from '../../types/trip';
 import type {
@@ -61,6 +64,7 @@ export function CustomerTripDetailsPage() {
       {state.status === 'success' && (
         <>
           <TripSummary trip={state.trip} />
+          <TripPhotoCarousel tripId={state.trip.id} />
           <TripItinerary trip={state.trip} />
           <div id="aereo-terrestre">
             <TripAirLandSections tripId={state.trip.id} />
@@ -148,6 +152,110 @@ function friendlyTripStatus(status: Trip['status']): string {
     CANCELLED: 'Cancelada',
   };
   return friendly[status] ?? tripStatusLabel(status);
+}
+
+// --- Carrossel de fotos --------------------------------------------------
+// "o cliente gosta de imagens... cada viagem que ele consultar ter um
+// carrossel de fotos que veio da agência" -- photos are uploaded by
+// agency staff (TripDetailPage's "Fotos" tab, staff app) and rendered
+// here. Renders nothing at all when the trip has no photos yet, rather
+// than an empty-state box, since not every trip will have photos.
+
+function TripPhotoCarousel({ tripId }: { tripId: string }) {
+  const [photos, setPhotos] = useState<CustomerTripPhoto[] | null>(null);
+  const [urls, setUrls] = useState<Record<string, string>>({});
+  const [active, setActive] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    listMyTripPhotos(tripId)
+      .then((list) => {
+        if (!cancelled) setPhotos(list);
+      })
+      .catch(() => {
+        if (!cancelled) setPhotos([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [tripId]);
+
+  useEffect(() => {
+    if (!photos || photos.length === 0) return;
+    let cancelled = false;
+    const objectUrls: string[] = [];
+    Promise.all(
+      photos.map(async (p) => {
+        const url = await loadMyTripPhotoBlobUrl(tripId, p.id);
+        objectUrls.push(url);
+        return [p.id, url] as const;
+      }),
+    )
+      .then((pairs) => {
+        if (!cancelled) setUrls(Object.fromEntries(pairs));
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+      objectUrls.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [photos, tripId]);
+
+  if (photos === null || photos.length === 0) {
+    return null;
+  }
+
+  const current = photos[active];
+
+  return (
+    <div className="overflow-hidden rounded-2xl border-2 border-orange-100 bg-white shadow-md">
+      <div className="relative aspect-video bg-slate-100">
+        {current && urls[current.id] ? (
+          <img
+            src={urls[current.id]}
+            alt={current.caption ?? `Foto da viagem ${active + 1} de ${photos.length}`}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center text-sm text-slate-400">Carregando fotos…</div>
+        )}
+        {photos.length > 1 && (
+          <>
+            <button
+              type="button"
+              onClick={() => setActive((i) => (i - 1 + photos.length) % photos.length)}
+              className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-black/50 px-3 py-2 text-white hover:bg-black/70"
+              aria-label="Foto anterior"
+            >
+              ‹
+            </button>
+            <button
+              type="button"
+              onClick={() => setActive((i) => (i + 1) % photos.length)}
+              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-black/50 px-3 py-2 text-white hover:bg-black/70"
+              aria-label="Próxima foto"
+            >
+              ›
+            </button>
+            <div className="absolute bottom-2 left-1/2 flex -translate-x-1/2 gap-1.5">
+              {photos.map((p, i) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => setActive(i)}
+                  aria-label={`Ir para foto ${i + 1}`}
+                  className={`h-1.5 rounded-full transition-all ${i === active ? 'w-4 bg-white' : 'w-1.5 bg-white/60'}`}
+                />
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+      {current?.caption && (
+        <p className="p-3 text-sm text-slate-600">{current.caption}</p>
+      )}
+    </div>
+  );
 }
 
 // --- Itinerário ---------------------------------------------------------

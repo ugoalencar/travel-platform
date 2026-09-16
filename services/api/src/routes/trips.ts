@@ -48,6 +48,15 @@ import {
 } from '../land-services';
 import { assertNotRestricted } from '../permission-restrictions';
 import { NotFoundError, ValidationError } from '../errors';
+import {
+  createTripPhoto,
+  deleteTripPhoto,
+  generateTripPhotoSecureFileKey,
+  getTripPhotoById,
+  listTripPhotos,
+} from '../trip-photos';
+import { isBlockedFileName, MAX_ATTACHMENT_BYTES, validateFileSize } from '../document-attachments';
+import { readFile as readStoredFile, saveFile } from '../file-storage';
 
 export interface TripsRoutesOptions {
   database: DatabaseRuntime;
@@ -119,6 +128,110 @@ export function registerTripsRoutes(
       }
 
       return { trip };
+    }
+  );
+
+  // ============================================================
+  // TRIP PHOTOS -- "o cliente gosta de imagens... cada viagem que ele
+  // consultar ter um carrossel de fotos que veio da agência". Staff
+  // upload real bytes here; the customer portal (routes/customer-
+  // portal.ts) exposes read-only list/download of the same rows.
+  // ============================================================
+
+  const assertTripExists = async (tripId: string): Promise<void> => {
+    const trip = await getTripById(database, tripId);
+    if (!trip) throw new NotFoundError('Trip not found');
+  };
+
+  app.get<{ Params: { tripId: string } }>(
+    '/trips/:tripId/photos',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      await assertTripExists(request.params.tripId);
+      const photos = await listTripPhotos(database, request.params.tripId);
+      return { photos };
+    }
+  );
+
+  app.post<{ Params: { tripId: string } }>(
+    '/trips/:tripId/photos',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      requireRole(UserRole.AGENT);
+      await assertTripExists(request.params.tripId);
+
+      const file = await request.file();
+      if (!file) {
+        throw new ValidationError('A file is required');
+      }
+      const captionField = file.fields.caption;
+      const caption =
+        captionField && !Array.isArray(captionField) && captionField.type === 'field'
+          ? String(captionField.value)
+          : undefined;
+
+      let buffer: Buffer;
+      try {
+        buffer = await file.toBuffer();
+      } catch (error: unknown) {
+        if (error && typeof error === 'object' && 'code' in error && error.code === 'FST_REQ_FILE_TOO_LARGE') {
+          throw new ValidationError(`File size must be between 1 byte and ${MAX_ATTACHMENT_BYTES} bytes`);
+        }
+        throw error;
+      }
+      if (isBlockedFileName(file.filename)) {
+        throw new ValidationError('File type is not permitted');
+      }
+      if (!validateFileSize(buffer.length)) {
+        throw new ValidationError(`File size must be between 1 byte and ${MAX_ATTACHMENT_BYTES} bytes`);
+      }
+
+      const secureFileKey = generateTripPhotoSecureFileKey(request.params.tripId, file.filename);
+      await saveFile(secureFileKey, buffer);
+
+      const photo = await createTripPhoto(database, {
+        tripId: request.params.tripId,
+        fileName: file.filename,
+        fileMimeType: file.mimetype,
+        fileSizeBytes: buffer.length,
+        secureFileKey,
+        ...(caption ? { caption } : {}),
+      });
+
+      reply.code(201);
+      return { photo };
+    }
+  );
+
+  app.get<{ Params: { tripId: string; photoId: string } }>(
+    '/trips/:tripId/photos/:photoId/download',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      requireRole(UserRole.VIEWER);
+      await assertTripExists(request.params.tripId);
+      const photo = await getTripPhotoById(database, request.params.photoId);
+      if (!photo || photo.tripId !== request.params.tripId) {
+        throw new NotFoundError('Photo not found');
+      }
+      const content = await readStoredFile(photo.secureFileKey);
+      reply.header('Content-Disposition', `inline; filename="${encodeURIComponent(photo.fileName)}"`);
+      reply.type(photo.fileMimeType);
+      return reply.send(content);
+    }
+  );
+
+  app.delete<{ Params: { tripId: string; photoId: string } }>(
+    '/trips/:tripId/photos/:photoId',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.AGENT);
+      await assertTripExists(request.params.tripId);
+      const photo = await deleteTripPhoto(database, request.params.photoId);
+      if (!photo || photo.tripId !== request.params.tripId) {
+        throw new NotFoundError('Photo not found');
+      }
+      return { photo };
     }
   );
 

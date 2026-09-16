@@ -636,6 +636,9 @@ BEGIN
   IF to_regclass('public.pescador_search_results') IS NOT NULL THEN
     GRANT SELECT, INSERT, UPDATE, DELETE ON pescador_search_results TO travel_app_runtime_local;
   END IF;
+  IF to_regclass('public.trip_photos') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON trip_photos TO travel_app_runtime_local;
+  END IF;
 END;
 $$;
 

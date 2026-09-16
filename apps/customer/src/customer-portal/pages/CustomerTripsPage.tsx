@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ApiError, listMyTrips } from '../../lib/customerApi';
 import type { Trip } from '../../types/trip';
@@ -10,8 +10,11 @@ type LoadState =
   | { status: 'error'; message: string }
   | { status: 'success'; trips: Trip[] };
 
+type TripFilter = 'upcoming' | 'past';
+
 export function CustomerTripsPage() {
   const [state, setState] = useState<LoadState>({ status: 'loading' });
+  const [filter, setFilter] = useState<TripFilter>('upcoming');
 
   useEffect(() => {
     let cancelled = false;
@@ -30,12 +33,58 @@ export function CustomerTripsPage() {
     };
   }, []);
 
+  const { upcoming, past } = useMemo(() => {
+    if (state.status !== 'success') return { upcoming: [] as Trip[], past: [] as Trip[] };
+    const now = Date.now();
+    const upcomingTrips: Trip[] = [];
+    const pastTrips: Trip[] = [];
+    for (const trip of state.trips) {
+      if (new Date(trip.endDate).getTime() >= now && trip.status !== 'CANCELLED') {
+        upcomingTrips.push(trip);
+      } else {
+        pastTrips.push(trip);
+      }
+    }
+    upcomingTrips.sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
+    pastTrips.sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
+    return { upcoming: upcomingTrips, past: pastTrips };
+  }, [state]);
+
+  const visible = filter === 'upcoming' ? upcoming : past;
+
   return (
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-slate-900">Minhas viagens</h1>
         <p className="mt-2 text-slate-600">Explore e gerencie todas as suas aventuras planejadas</p>
       </div>
+
+      {state.status === 'success' && (
+        <div className="flex w-fit rounded-xl border-2 border-orange-100 bg-white p-1" role="tablist" aria-label="Filtrar viagens">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={filter === 'upcoming'}
+            onClick={() => setFilter('upcoming')}
+            className={`rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
+              filter === 'upcoming' ? 'bg-[#f97362] text-white' : 'text-slate-600 hover:bg-slate-50'
+            }`}
+          >
+            Próximas ({upcoming.length})
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={filter === 'past'}
+            onClick={() => setFilter('past')}
+            className={`rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
+              filter === 'past' ? 'bg-[#f97362] text-white' : 'text-slate-600 hover:bg-slate-50'
+            }`}
+          >
+            Histórico ({past.length})
+          </button>
+        </div>
+      )}
 
       <div aria-live="polite">
         {state.status === 'loading' && (
@@ -50,17 +99,21 @@ export function CustomerTripsPage() {
             <p className="mt-1">{state.message}</p>
           </div>
         )}
-        {state.status === 'success' && state.trips.length === 0 && (
+        {state.status === 'success' && visible.length === 0 && (
           <div className="rounded-lg border border-slate-200 bg-slate-50 p-8 text-center">
             <p className="text-2xl" aria-hidden="true">🌍</p>
-            <p className="mt-2 text-sm font-medium text-slate-600">Nenhuma viagem por aqui ainda.</p>
-            <p className="mt-1 text-xs text-slate-500">Fale com sua agência para agendar sua próxima aventura!</p>
+            <p className="mt-2 text-sm font-medium text-slate-600">
+              {filter === 'upcoming' ? 'Nenhuma viagem futura por aqui ainda.' : 'Nenhuma viagem no seu histórico ainda.'}
+            </p>
+            {filter === 'upcoming' && (
+              <p className="mt-1 text-xs text-slate-500">Fale com sua agência para agendar sua próxima aventura!</p>
+            )}
           </div>
         )}
       </div>
-      {state.status === 'success' && (
+      {state.status === 'success' && visible.length > 0 && (
         <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {state.trips.map((trip) => (
+          {visible.map((trip) => (
             <li key={trip.id}>
               <TripCard trip={trip} />
             </li>

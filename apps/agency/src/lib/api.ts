@@ -1220,6 +1220,75 @@ export async function updateTrip(id: string, input: UpdateTripInput): Promise<Tr
 }
 
 // ============================================================
+// TRIP PHOTOS (carrossel de fotos que veio da agência)
+// ============================================================
+
+export interface TripPhoto {
+  id: string;
+  tripId: string;
+  fileName: string;
+  fileMimeType: string;
+  fileSizeBytes: number;
+  caption?: string;
+  sortOrder: number;
+  createdAt: string;
+}
+
+export async function listTripPhotos(tripId: string): Promise<TripPhoto[]> {
+  const data = await request<{ photos: TripPhoto[] }>(`/api/trips/${encodeURIComponent(tripId)}/photos`);
+  return data.photos;
+}
+
+export async function uploadTripPhoto(tripId: string, file: File, caption?: string): Promise<TripPhoto> {
+  const form = new FormData();
+  if (caption) form.append('caption', caption);
+  form.append('file', file, file.name);
+
+  const token = getSessionToken();
+  const response = await fetch(`${API_BASE_URL}/api/trips/${encodeURIComponent(tripId)}/photos`, {
+    method: 'POST',
+    headers: token ? { authorization: `Bearer ${token}` } : {},
+    body: form,
+  });
+  if (response.status === 401) clearSession();
+  if (!response.ok) {
+    const body = (await safeJson(response)) as Partial<ApiErrorBody> | null;
+    throw new ApiError(
+      translateApiErrorMessage(body?.error ?? 'Request failed.'),
+      body?.code ?? 'UNKNOWN_ERROR',
+      response.status,
+    );
+  }
+  const data = (await response.json()) as { photo: TripPhoto };
+  return data.photo;
+}
+
+export async function deleteTripPhoto(tripId: string, photoId: string): Promise<void> {
+  await request(`/api/trips/${encodeURIComponent(tripId)}/photos/${encodeURIComponent(photoId)}`, {
+    method: 'DELETE',
+  });
+}
+
+export function tripPhotoDownloadUrl(tripId: string, photoId: string): string {
+  return `${API_BASE_URL}/api/trips/${encodeURIComponent(tripId)}/photos/${encodeURIComponent(photoId)}/download`;
+}
+
+/** Fetches the photo as a blob URL -- the download route requires the
+ * Bearer token, so a plain `<img src>` can't hit it directly. */
+export async function loadTripPhotoBlobUrl(tripId: string, photoId: string): Promise<string> {
+  const token = getSessionToken();
+  const response = await fetch(tripPhotoDownloadUrl(tripId, photoId), {
+    headers: token ? { authorization: `Bearer ${token}` } : {},
+  });
+  if (response.status === 401) clearSession();
+  if (!response.ok) {
+    throw new ApiError('Não foi possível carregar a foto.', 'UNKNOWN_ERROR', response.status);
+  }
+  const blob = await response.blob();
+  return URL.createObjectURL(blob);
+}
+
+// ============================================================
 // PROPOSALS
 // ============================================================
 

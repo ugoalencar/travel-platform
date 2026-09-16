@@ -78,6 +78,40 @@ export async function getMyTrip(id: string): Promise<Trip> {
   return data.trip;
 }
 
+export interface CustomerTripPhoto {
+  id: string;
+  tripId: string;
+  fileName: string;
+  fileMimeType: string;
+  caption?: string;
+  sortOrder: number;
+}
+
+export async function listMyTripPhotos(tripId: string): Promise<CustomerTripPhoto[]> {
+  const data = await request<{ photos: CustomerTripPhoto[] }>(
+    `/customer-api/trips/${encodeURIComponent(tripId)}/photos`,
+  );
+  return data.photos;
+}
+
+export function myTripPhotoDownloadUrl(tripId: string, photoId: string): string {
+  return `${API_BASE_URL}/customer-api/trips/${encodeURIComponent(tripId)}/photos/${encodeURIComponent(photoId)}/download`;
+}
+
+/** The download route requires the Bearer token, so a plain `<img src>` can't hit it directly. */
+export async function loadMyTripPhotoBlobUrl(tripId: string, photoId: string): Promise<string> {
+  const token = getSessionToken();
+  const response = await fetch(myTripPhotoDownloadUrl(tripId, photoId), {
+    headers: token ? { authorization: `Bearer ${token}` } : {},
+  });
+  if (response.status === 401) clearSession();
+  if (!response.ok) {
+    throw new ApiError('Não foi possível carregar a foto.', 'UNKNOWN_ERROR', response.status);
+  }
+  const blob = await response.blob();
+  return URL.createObjectURL(blob);
+}
+
 export async function listAvailableOffers(): Promise<Offer[]> {
   const data = await request<{ offers: Offer[] }>('/customer-api/offers');
   return data.offers;
