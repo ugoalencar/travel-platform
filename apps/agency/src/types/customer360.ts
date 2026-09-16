@@ -36,6 +36,8 @@ export interface CustomerDependent {
    * notarized or judicial travel authorization in that case. */
   hasPowerOfAttorney: boolean;
   powerOfAttorneyNotes?: string;
+  /** Set once this companion has been promoted into their own customer record. */
+  convertedCustomerId?: string;
   createdAt: string;
   updatedAt: string;
   deletedAt?: string;

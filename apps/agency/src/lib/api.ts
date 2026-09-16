@@ -781,6 +781,16 @@ export async function updateCustomerDependent(
   return data.dependent;
 }
 
+export async function convertDependentToCustomer(
+  customerId: string,
+  dependentId: string,
+): Promise<{ dependent: CustomerDependent; customer: Customer }> {
+  return request<{ dependent: CustomerDependent; customer: Customer }>(
+    `/api/customers/${encodeURIComponent(customerId)}/dependents/${encodeURIComponent(dependentId)}/convert-to-customer`,
+    { method: 'POST' },
+  );
+}
+
 export async function deleteCustomerDependent(customerId: string, dependentId: string): Promise<void> {
   await request<{ dependent: CustomerDependent }>(
     `/api/customers/${encodeURIComponent(customerId)}/dependents/${encodeURIComponent(dependentId)}`,

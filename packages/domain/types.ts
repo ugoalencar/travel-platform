@@ -1998,6 +1998,10 @@ export interface CustomerDependent {
    * (069_dependent_power_of_attorney.sql). */
   hasPowerOfAttorney: boolean;
   powerOfAttorneyNotes?: string;
+  /** Set once this companion has been promoted into their own
+   * `customers` row (070_dependent_convert_to_customer.sql) -- never
+   * set for a minor (CHILD), who stays tied to their guardian. */
+  convertedCustomerId?: string;
   createdAt: Date;
   updatedAt: Date;
   deletedAt?: Date;

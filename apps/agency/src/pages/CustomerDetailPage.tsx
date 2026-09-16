@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Map, Heart, FileText, CalendarCheck, Phone, Mail, Home, IdCard, Users, Plus, Trash2, Star, ShieldCheck, Clock, Wallet, UserCog } from 'lucide-react';
+import { ArrowLeft, Map, Heart, FileText, CalendarCheck, Phone, Mail, Home, IdCard, Users, Plus, Trash2, Pencil, Star, ShieldCheck, Clock, Wallet, UserCog } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
 import { StatusBadge } from '../components/ui/status-badge';
 import { Tabs } from '../components/ui/tabs';
@@ -24,7 +24,9 @@ import {
   deleteCustomerAddress,
   listCustomerDependents,
   createCustomerDependent,
+  updateCustomerDependent,
   deleteCustomerDependent,
+  convertDependentToCustomer,
   listCustomerDocuments,
   createCustomerDocument,
   updateCustomerDocument,
@@ -492,6 +494,9 @@ export function CustomerDetailPage() {
   const [documentModalOpen, setDocumentModalOpen] = useState(false);
   const [dependentModalOpen, setDependentModalOpen] = useState(false);
   const [companionModalOpen, setCompanionModalOpen] = useState(false);
+  const [editingDependent, setEditingDependent] = useState<CustomerDependent | null>(null);
+  const [editingCompanion, setEditingCompanion] = useState<CustomerDependent | null>(null);
+  const [convertingId, setConvertingId] = useState<string | null>(null);
   const [requirementModalOpen, setRequirementModalOpen] = useState(false);
   const [personalModalOpen, setPersonalModalOpen] = useState(false);
   const [emergencyModalOpen, setEmergencyModalOpen] = useState(false);
@@ -698,15 +703,17 @@ export function CustomerDetailPage() {
 
   // Dependentes tab is reserved for minors (relationshipType is always
   // CHILD here, not user-selectable) -- adult travel companions go
-  // through handleCreateCompanion / the separate Acompanhantes tab
+  // through handleSubmitCompanion / the separate Acompanhantes tab
   // instead. Requested directly: "um ajuste nos dependentes deve ser
-  // somente para menores de idade... colocar aba acompanhante".
-  async function handleCreateDependent(form: FormData) {
+  // somente para menores de idade... colocar aba acompanhante". Same
+  // handler covers create and edit (editingDependent set -> PATCH),
+  // completing the CRUD that only had create/delete before.
+  async function handleSubmitDependent(form: FormData) {
     if (!id) return;
     setSaving(true);
     setFormError(null);
     try {
-      await createCustomerDependent(id, {
+      const input = {
         name: formString(form, 'name'),
         relationshipType: 'CHILD',
         birthDate: formString(form, 'birthDate') || undefined,
@@ -715,8 +722,14 @@ export function CustomerDetailPage() {
         notes: formString(form, 'notes') || undefined,
         hasPowerOfAttorney: form.get('hasPowerOfAttorney') === 'on',
         powerOfAttorneyNotes: formString(form, 'powerOfAttorneyNotes') || undefined,
-      });
+      };
+      if (editingDependent) {
+        await updateCustomerDependent(id, editingDependent.id, input);
+      } else {
+        await createCustomerDependent(id, input);
+      }
       setDependentModalOpen(false);
+      setEditingDependent(null);
       reloadDependents();
     } catch (err: unknown) {
       setFormError(err instanceof ApiError ? err.message : 'Não foi possível salvar o dependente.');
@@ -725,25 +738,48 @@ export function CustomerDetailPage() {
     }
   }
 
-  async function handleCreateCompanion(form: FormData) {
+  async function handleSubmitCompanion(form: FormData) {
     if (!id) return;
     setSaving(true);
     setFormError(null);
     try {
-      await createCustomerDependent(id, {
+      const input = {
         name: formString(form, 'name'),
         relationshipType: formString(form, 'relationshipType') || 'COMPANION',
         birthDate: formString(form, 'birthDate') || undefined,
         cpf: formString(form, 'cpf') || undefined,
         nationality: formString(form, 'nationality') || undefined,
         notes: formString(form, 'notes') || undefined,
-      });
+      };
+      if (editingCompanion) {
+        await updateCustomerDependent(id, editingCompanion.id, input);
+      } else {
+        await createCustomerDependent(id, input);
+      }
       setCompanionModalOpen(false);
+      setEditingCompanion(null);
       reloadDependents();
     } catch (err: unknown) {
       setFormError(err instanceof ApiError ? err.message : 'Não foi possível salvar o acompanhante.');
     } finally {
       setSaving(false);
+    }
+  }
+
+  // Requested directly: "ao mesmo tempo que ele é um acompanhante ele
+  // vira um cliente e entra na mira de ofertas" -- promotes a
+  // companion into a real, independent customer record.
+  async function handleConvertCompanion(dependentId: string) {
+    if (!id) return;
+    setConvertingId(dependentId);
+    setFormError(null);
+    try {
+      await convertDependentToCustomer(id, dependentId);
+      reloadDependents();
+    } catch (err: unknown) {
+      setFormError(err instanceof ApiError ? err.message : 'Não foi possível converter em cliente.');
+    } finally {
+      setConvertingId(null);
     }
   }
 
@@ -1286,7 +1322,7 @@ export function CustomerDetailPage() {
             </button>.
           </p>
           <div className="flex justify-end">
-            <Button size="sm" onClick={() => { setFormError(null); setDependentModalOpen(true); }}>
+            <Button size="sm" onClick={() => { setFormError(null); setEditingDependent(null); setDependentModalOpen(true); }}>
               <Plus className="h-4 w-4" /> Novo dependente
             </Button>
           </div>
@@ -1313,13 +1349,22 @@ export function CustomerDetailPage() {
                       </p>
                     ) : null}
                   </div>
-                  <button
-                    aria-label="Excluir dependente"
-                    onClick={() => { void handleDeleteDependent(d.id); }}
-                    className="rounded-md p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+                  <div className="flex items-center gap-1">
+                    <button
+                      aria-label="Editar dependente"
+                      onClick={() => { setFormError(null); setEditingDependent(d); setDependentModalOpen(true); }}
+                      className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </button>
+                    <button
+                      aria-label="Excluir dependente"
+                      onClick={() => { void handleDeleteDependent(d.id); }}
+                      className="rounded-md p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
               </div>
             ))
@@ -1330,7 +1375,7 @@ export function CustomerDetailPage() {
       {tab === 'companions' && (
         <div className="space-y-3">
           <div className="flex justify-end">
-            <Button size="sm" onClick={() => { setFormError(null); setCompanionModalOpen(true); }}>
+            <Button size="sm" onClick={() => { setFormError(null); setEditingCompanion(null); setCompanionModalOpen(true); }}>
               <Plus className="h-4 w-4" /> Novo acompanhante
             </Button>
           </div>
@@ -1345,20 +1390,49 @@ export function CustomerDetailPage() {
               <div key={d.id} className="rounded-lg border border-slate-200 bg-white p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="text-sm font-semibold text-slate-900">{d.name}</p>
+                    <p className="text-sm font-semibold text-slate-900">
+                      {d.name}
+                      {d.convertedCustomerId ? (
+                        <Link
+                          to={`/customers/${d.convertedCustomerId}`}
+                          className="ml-2 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 hover:bg-green-200"
+                        >
+                          Cliente ↗
+                        </Link>
+                      ) : null}
+                    </p>
                     <p className="text-xs text-slate-500">
                       {RELATIONSHIP_LABELS[d.relationshipType] ?? d.relationshipType}
                       {d.birthDate ? ` · Nasc. ${formatDateBR(d.birthDate, { assumeDateOnly: true })}` : ''}
                       {d.cpf ? ` · CPF ${d.cpf}` : ''}
                     </p>
                   </div>
-                  <button
-                    aria-label="Excluir acompanhante"
-                    onClick={() => { void handleDeleteDependent(d.id); }}
-                    className="rounded-md p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+                  <div className="flex items-center gap-1">
+                    {!d.convertedCustomerId ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={convertingId === d.id}
+                        onClick={() => { void handleConvertCompanion(d.id); }}
+                      >
+                        {convertingId === d.id ? 'Convertendo…' : 'Virar Cliente'}
+                      </Button>
+                    ) : null}
+                    <button
+                      aria-label="Editar acompanhante"
+                      onClick={() => { setFormError(null); setEditingCompanion(d); setCompanionModalOpen(true); }}
+                      className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </button>
+                    <button
+                      aria-label="Excluir acompanhante"
+                      onClick={() => { void handleDeleteDependent(d.id); }}
+                      className="rounded-md p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
               </div>
             ))
@@ -1446,25 +1520,29 @@ export function CustomerDetailPage() {
         </form>
       </Modal>
 
-      <Modal open={dependentModalOpen} onClose={() => setDependentModalOpen(false)} title="Novo dependente (menor de idade)">
+      <Modal
+        open={dependentModalOpen}
+        onClose={() => { setDependentModalOpen(false); setEditingDependent(null); }}
+        title={editingDependent ? 'Editar dependente' : 'Novo dependente (menor de idade)'}
+      >
         <form
           className="space-y-3"
           onSubmit={(e) => {
             e.preventDefault();
-            void handleCreateDependent(new FormData(e.currentTarget));
+            void handleSubmitDependent(new FormData(e.currentTarget));
           }}
         >
           {formError && <p className="text-sm text-red-600">{formError}</p>}
-          <label className="text-xs text-slate-500">Nome<Input name="name" required className="mt-1" /></label>
+          <label className="text-xs text-slate-500">Nome<Input name="name" required defaultValue={editingDependent?.name} className="mt-1" /></label>
           <div className="grid grid-cols-2 gap-3">
-            <label className="text-xs text-slate-500">Nascimento<Input type="date" name="birthDate" className="mt-1" /></label>
-            <label className="text-xs text-slate-500">CPF<Input name="cpf" className="mt-1" /></label>
+            <label className="text-xs text-slate-500">Nascimento<Input type="date" name="birthDate" defaultValue={editingDependent?.birthDate?.slice(0, 10)} className="mt-1" /></label>
+            <label className="text-xs text-slate-500">CPF<Input name="cpf" defaultValue={editingDependent?.cpf} className="mt-1" /></label>
           </div>
-          <label className="text-xs text-slate-500">Nacionalidade<Input name="nationality" defaultValue="Brasileira" className="mt-1" /></label>
-          <label className="text-xs text-slate-500">Observações<Input name="notes" className="mt-1" /></label>
+          <label className="text-xs text-slate-500">Nacionalidade<Input name="nationality" defaultValue={editingDependent?.nationality ?? 'Brasileira'} className="mt-1" /></label>
+          <label className="text-xs text-slate-500">Observações<Input name="notes" defaultValue={editingDependent?.notes} className="mt-1" /></label>
           <div className="rounded-md border border-amber-200 bg-amber-50 p-3">
             <label className="flex items-start gap-2 text-xs font-medium text-amber-900">
-              <input type="checkbox" name="hasPowerOfAttorney" className="mt-0.5 h-4 w-4" />
+              <input type="checkbox" name="hasPowerOfAttorney" defaultChecked={editingDependent?.hasPowerOfAttorney} className="mt-0.5 h-4 w-4" />
               Viaja com procuração / autorização
             </label>
             <p className="mt-1 text-xs text-amber-800">
@@ -1473,30 +1551,39 @@ export function CustomerDetailPage() {
             </p>
             <label className="mt-2 block text-xs text-amber-800">
               Detalhes da procuração/autorização
-              <Input name="powerOfAttorneyNotes" className="mt-1" placeholder="Ex.: autorização judicial, processo nº..." />
+              <Input
+                name="powerOfAttorneyNotes"
+                defaultValue={editingDependent?.powerOfAttorneyNotes}
+                className="mt-1"
+                placeholder="Ex.: autorização judicial, processo nº..."
+              />
             </label>
           </div>
           <div className="flex justify-end gap-2 pt-2">
-            <Button type="button" variant="outline" onClick={() => setDependentModalOpen(false)}>Cancelar</Button>
+            <Button type="button" variant="outline" onClick={() => { setDependentModalOpen(false); setEditingDependent(null); }}>Cancelar</Button>
             <Button type="submit" disabled={saving}>Salvar</Button>
           </div>
         </form>
       </Modal>
 
-      <Modal open={companionModalOpen} onClose={() => setCompanionModalOpen(false)} title="Novo acompanhante">
+      <Modal
+        open={companionModalOpen}
+        onClose={() => { setCompanionModalOpen(false); setEditingCompanion(null); }}
+        title={editingCompanion ? 'Editar acompanhante' : 'Novo acompanhante'}
+      >
         <form
           className="space-y-3"
           onSubmit={(e) => {
             e.preventDefault();
-            void handleCreateCompanion(new FormData(e.currentTarget));
+            void handleSubmitCompanion(new FormData(e.currentTarget));
           }}
         >
           {formError && <p className="text-sm text-red-600">{formError}</p>}
-          <label className="text-xs text-slate-500">Nome<Input name="name" required className="mt-1" /></label>
+          <label className="text-xs text-slate-500">Nome<Input name="name" required defaultValue={editingCompanion?.name} className="mt-1" /></label>
           <div className="grid grid-cols-2 gap-3">
             <label className="text-xs text-slate-500">
               Relação
-              <Select name="relationshipType" defaultValue="COMPANION" className="mt-1">
+              <Select name="relationshipType" defaultValue={editingCompanion?.relationshipType ?? 'COMPANION'} className="mt-1">
                 {Object.entries(RELATIONSHIP_LABELS)
                   .filter(([value]) => value !== 'CHILD')
                   .map(([value, label]) => (
@@ -1504,15 +1591,15 @@ export function CustomerDetailPage() {
                   ))}
               </Select>
             </label>
-            <label className="text-xs text-slate-500">Nascimento<Input type="date" name="birthDate" className="mt-1" /></label>
+            <label className="text-xs text-slate-500">Nascimento<Input type="date" name="birthDate" defaultValue={editingCompanion?.birthDate?.slice(0, 10)} className="mt-1" /></label>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <label className="text-xs text-slate-500">CPF<Input name="cpf" className="mt-1" /></label>
-            <label className="text-xs text-slate-500">Nacionalidade<Input name="nationality" defaultValue="Brasileira" className="mt-1" /></label>
+            <label className="text-xs text-slate-500">CPF<Input name="cpf" defaultValue={editingCompanion?.cpf} className="mt-1" /></label>
+            <label className="text-xs text-slate-500">Nacionalidade<Input name="nationality" defaultValue={editingCompanion?.nationality ?? 'Brasileira'} className="mt-1" /></label>
           </div>
-          <label className="text-xs text-slate-500">Observações<Input name="notes" className="mt-1" /></label>
+          <label className="text-xs text-slate-500">Observações<Input name="notes" defaultValue={editingCompanion?.notes} className="mt-1" /></label>
           <div className="flex justify-end gap-2 pt-2">
-            <Button type="button" variant="outline" onClick={() => setCompanionModalOpen(false)}>Cancelar</Button>
+            <Button type="button" variant="outline" onClick={() => { setCompanionModalOpen(false); setEditingCompanion(null); }}>Cancelar</Button>
             <Button type="submit" disabled={saving}>Salvar</Button>
           </div>
         </form>

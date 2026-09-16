@@ -6,16 +6,17 @@
  * emitted into audit metadata in the clear.
  */
 
-import type { CustomerDependent } from '../../../packages/domain/types';
+import type { Customer, CustomerDependent } from '../../../packages/domain/types';
 import { RelationshipType } from '../../../packages/domain/types';
 import { getAgencyId } from '../../../packages/domain/tenant-context';
 import type { DatabaseRuntime } from './database';
-import { ValidationError } from './errors';
+import { ConflictError, NotFoundError, ValidationError } from './errors';
 import { AuditEventType, recordAuditEvent } from './audit-log';
+import { createCustomer } from './customers';
 
 const DEPENDENT_COLUMNS = `id, agency_id, customer_id, name, relationship_type, birth_date,
               cpf, nationality, notes, has_power_of_attorney, power_of_attorney_notes,
-              created_at, updated_at, deleted_at`;
+              converted_customer_id, created_at, updated_at, deleted_at`;
 
 interface CustomerDependentRow {
   id: string;
@@ -29,6 +30,7 @@ interface CustomerDependentRow {
   notes: string | null;
   has_power_of_attorney: boolean;
   power_of_attorney_notes: string | null;
+  converted_customer_id: string | null;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
@@ -244,6 +246,70 @@ export async function deleteDependent(
   });
 }
 
+/**
+ * Promotes a companion (never a minor -- CHILD dependents stay tied to
+ * their guardian, never independently sold to) into a real, independent
+ * `customers` row, so they can be found in Clientes/Propostas/Vendas/
+ * Ofertas like any other customer. The original dependent record is
+ * kept and linked via converted_customer_id, not deleted -- the
+ * companion relationship to the original customer still matters for
+ * trip planning even after they become a customer in their own right.
+ *
+ * Not atomic across the two inserts (createCustomer manages its own
+ * transaction) -- if the link update below fails after the customer
+ * was created, the customer row is simply left unlinked rather than
+ * rolled back, same tradeoff every other multi-step flow in this
+ * codebase (e.g. enrollment) already makes.
+ */
+export async function convertDependentToCustomer(
+  database: DatabaseRuntime,
+  dependentId: string,
+): Promise<{ dependent: CustomerDependent; customer: Customer }> {
+  const dependent = await getDependentById(database, dependentId);
+  if (!dependent) {
+    throw new NotFoundError('Dependent not found');
+  }
+  if (dependent.relationshipType === RelationshipType.CHILD) {
+    throw new ValidationError('A minor dependent cannot be converted into a customer');
+  }
+  if (dependent.convertedCustomerId) {
+    throw new ConflictError('This companion has already been converted into a customer');
+  }
+
+  const customer = await createCustomer(database, {
+    name: dependent.name,
+    ...(dependent.birthDate ? { birthDate: dependent.birthDate.toISOString().slice(0, 10) } : {}),
+    ...(dependent.cpf ? { cpf: dependent.cpf } : {}),
+    ...(dependent.nationality ? { nationality: dependent.nationality } : {}),
+    notes: `Convertido(a) a partir do acompanhante de ${dependent.customerId}.`,
+  });
+
+  const agencyId = getAgencyId();
+  const updated = await database.withTenantTransaction(async (client) => {
+    const result = await client.query<CustomerDependentRow>(
+      `UPDATE customer_dependents
+       SET converted_customer_id = $1, updated_at = now()
+       WHERE agency_id = $2 AND id = $3 AND deleted_at IS NULL
+       RETURNING ${DEPENDENT_COLUMNS}`,
+      [customer.id, agencyId, dependentId],
+    );
+    const row = result.rows[0];
+    if (!row) {
+      throw new NotFoundError('Dependent not found');
+    }
+    const linkedDependent = toCustomerDependent(row);
+    await recordAuditEvent(client, {
+      eventType: AuditEventType.CUSTOMER_DEPENDENT_UPDATED,
+      entityType: 'customer_dependent',
+      entityId: linkedDependent.id,
+      metadata: { customerId: linkedDependent.customerId, fieldsChanged: ['converted_customer_id'] },
+    });
+    return linkedDependent;
+  });
+
+  return { dependent: updated, customer };
+}
+
 function requireNonBlank(value: unknown, field: string): void {
   if (typeof value !== 'string' || value.trim().length === 0) {
     throw new ValidationError(`Field "${field}" is required and must be a non-empty string`);
@@ -274,6 +340,7 @@ function toCustomerDependent(row: CustomerDependentRow): CustomerDependent {
     ...(row.nationality !== null ? { nationality: row.nationality } : {}),
     ...(row.notes !== null ? { notes: row.notes } : {}),
     ...(row.power_of_attorney_notes !== null ? { powerOfAttorneyNotes: row.power_of_attorney_notes } : {}),
+    ...(row.converted_customer_id !== null ? { convertedCustomerId: row.converted_customer_id } : {}),
     ...(row.deleted_at !== null ? { deletedAt: new Date(row.deleted_at) } : {}),
   };
 }

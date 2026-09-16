@@ -36,6 +36,7 @@ import {
   type UpdateAddressInput,
 } from '../customer-addresses';
 import {
+  convertDependentToCustomer,
   createDependent,
   deleteDependent,
   getDependentById,
@@ -273,6 +274,26 @@ export function registerCustomerDocumentRoutes(
         throw new NotFoundError('Dependent not found');
       }
       return { dependent };
+    },
+  );
+
+  // Promotes a companion into a real, independent customer record --
+  // requested directly: "ao mesmo tempo que ele é um acompanhante ele
+  // vira um cliente e entra na mira de ofertas". ADMIN-gated (not just
+  // AGENT like the rest of this resource) since it creates a brand new
+  // billable-relationship customer record, not just edits the dependent.
+  app.post<{ Params: { customerId: string; dependentId: string } }>(
+    '/customers/:customerId/dependents/:dependentId/convert-to-customer',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      requireRole(UserRole.ADMIN);
+      const existing = await getDependentById(database, request.params.dependentId);
+      if (!existing || existing.customerId !== request.params.customerId) {
+        throw new NotFoundError('Dependent not found');
+      }
+      const result = await convertDependentToCustomer(database, request.params.dependentId);
+      reply.code(201);
+      return result;
     },
   );
 
