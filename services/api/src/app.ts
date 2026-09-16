@@ -42,6 +42,7 @@ import { registerOfferGrowthAuditRoutes } from './routes/offer-growth-audit';
 import { registerOffersRoutes } from './routes/offers';
 import { registerContractsRoutes } from './routes/contracts';
 import { registerInsuranceRoutes } from './routes/insurance';
+import { registerExcursionRoutes } from './routes/excursions';
 import { registerAuthRoutes } from './routes/auth';
 import { registerCustomerAuthRoutes } from './routes/customer-auth';
 import { registerPlatformAuthRoutes } from './routes/platform-auth';
@@ -327,6 +328,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
   registerPartnersRoutes(app, { database: options.database, protectedHooks, partnerHooks });
   registerContractsRoutes(app, { database: options.database, protectedHooks });
   registerInsuranceRoutes(app, { database: options.database, protectedHooks });
+  registerExcursionRoutes(app, { database: options.database, protectedHooks });
   registerAuthRoutes(app, {
     database: options.database,
     ...(options.platformDatabase ? { platformDatabase: options.platformDatabase } : {}),

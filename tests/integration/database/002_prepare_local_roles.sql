@@ -617,6 +617,13 @@ BEGIN
   IF EXISTS (SELECT 1 FROM pg_class WHERE relkind = 'S' AND relname = 'enrollment_protocol_seq') THEN
     GRANT USAGE ON SEQUENCE enrollment_protocol_seq TO travel_app_runtime_local;
   END IF;
+
+  IF to_regclass('public.excursions') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON excursions TO travel_app_runtime_local;
+  END IF;
+  IF to_regclass('public.excursion_customers') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON excursion_customers TO travel_app_runtime_local;
+  END IF;
 END;
 $$;
 

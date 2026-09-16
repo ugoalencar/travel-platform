@@ -3105,6 +3105,105 @@ export async function addInsuranceTraveler(
   return data.traveler;
 }
 
+// ============================================================
+// EXCURSÕES (group trips -- services/api/src/excursions.ts). Configure
+// a shared trip once (destination, dates, air or land details) and
+// assign customers; the backend fans out one Trip + one AirService/
+// LandService per customer automatically. Requested directly: "o
+// atendente vai só setar os clientes na excursão e assim todos os
+// clientes recebem de uma vez as configurações da viagem."
+// ============================================================
+
+export type ExcursionTransportType = 'AEREO' | 'TERRESTRE';
+
+export interface Excursion {
+  id: string;
+  name: string;
+  destination: string;
+  transportType: ExcursionTransportType;
+  startDate: string;
+  endDate: string;
+  notes?: string;
+  airline?: string;
+  origin?: string;
+  flightNumber?: string;
+  cabinClass?: string;
+  landDescription?: string;
+  landServiceType?: string;
+  saleValue?: number;
+  cost?: number;
+  currency: string;
+}
+
+export interface ExcursionSummary extends Excursion {
+  customerCount: number;
+}
+
+export interface ExcursionCustomer {
+  id: string;
+  excursionId: string;
+  customerId: string;
+  customerName?: string;
+  tripId?: string;
+  airServiceId?: string;
+  landServiceId?: string;
+}
+
+export interface CreateExcursionInput {
+  name: string;
+  destination: string;
+  transportType: ExcursionTransportType;
+  startDate: string;
+  endDate: string;
+  notes?: string;
+  airline?: string;
+  origin?: string;
+  flightNumber?: string;
+  cabinClass?: string;
+  landDescription?: string;
+  landServiceType?: string;
+  saleValue?: number;
+  cost?: number;
+  currency?: string;
+  customerIds?: string[];
+}
+
+export async function listExcursions(): Promise<ExcursionSummary[]> {
+  const data = await request<{ excursions: ExcursionSummary[] }>('/api/excursions');
+  return data.excursions;
+}
+
+export async function getExcursion(id: string): Promise<{ excursion: Excursion; customers: ExcursionCustomer[] }> {
+  return request(`/api/excursions/${encodeURIComponent(id)}`);
+}
+
+export async function createExcursion(
+  input: CreateExcursionInput,
+): Promise<{ excursion: Excursion; assignedCount: number }> {
+  return request('/api/excursions', { method: 'POST', body: JSON.stringify(input) });
+}
+
+export async function addExcursionCustomers(
+  excursionId: string,
+  customerIds: string[],
+): Promise<{ addedCount: number }> {
+  return request(`/api/excursions/${encodeURIComponent(excursionId)}/customers`, {
+    method: 'POST',
+    body: JSON.stringify({ customerIds }),
+  });
+}
+
+export async function removeExcursionCustomer(excursionId: string, customerId: string): Promise<void> {
+  await request(
+    `/api/excursions/${encodeURIComponent(excursionId)}/customers/${encodeURIComponent(customerId)}`,
+    { method: 'DELETE' },
+  );
+}
+
+export async function deleteExcursion(id: string): Promise<void> {
+  await request(`/api/excursions/${encodeURIComponent(id)}`, { method: 'DELETE' });
+}
+
 export const api = {
   get: async <T>(path: string): Promise<{ data: T }> => {
     const response = await fetch(`${API_BASE_URL}/api${path}`, { headers: authHeaders(false) });

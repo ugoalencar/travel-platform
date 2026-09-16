@@ -55,6 +55,11 @@ const NAV_SECTIONS: NavSection[] = [
     label: 'Operação',
     items: [
       { label: 'Viagens', to: '/trips' },
+      // Requested directly: "quando uma viagem aérea ou terrestre vai
+      // agregar vários clientes para o mesmo destino ... esse produto
+      // pode ser uma área em operação" -- configure the shared trip
+      // once, assign customers, backend fans out per-customer records.
+      { label: 'Excursões', to: '/excursions' },
       // Reservas (CRM & Comercial) already covers /bookings -- a second
       // "Booking" entry here pointed at the exact same screen with no
       // operational-specific view behind it, same redundancy pattern.
