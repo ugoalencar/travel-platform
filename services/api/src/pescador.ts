@@ -619,3 +619,420 @@ function isUniqueViolation(error: unknown): boolean {
     (error as { code?: unknown }).code === POSTGRES_UNIQUE_VIOLATION
   );
 }
+
+// ============================================================
+// PESCADOR v2 -- multi-source search (sources, searches, results)
+// ============================================================
+
+export interface PescadorSource {
+  id: string;
+  agencyId: string;
+  name: string;
+  urlTemplate: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface SourceRow {
+  id: string;
+  agency_id: string;
+  name: string;
+  url_template: string;
+  created_at: string;
+  updated_at: string;
+}
+
+const SOURCE_COLUMNS = `id, agency_id, name, url_template, created_at, updated_at`;
+
+export interface CreateSourceInput {
+  name: string;
+  urlTemplate: string;
+}
+
+function toSource(row: SourceRow): PescadorSource {
+  return {
+    id: row.id,
+    agencyId: row.agency_id,
+    name: row.name,
+    urlTemplate: row.url_template,
+    createdAt: new Date(row.created_at),
+    updatedAt: new Date(row.updated_at),
+  };
+}
+
+export async function listSources(database: DatabaseRuntime): Promise<PescadorSource[]> {
+  const agencyId = getAgencyId();
+  return database.withTenantTransaction(async (client) => {
+    const result = await client.query<SourceRow>(
+      `SELECT ${SOURCE_COLUMNS} FROM pescador_sources WHERE agency_id = $1 ORDER BY created_at DESC`,
+      [agencyId],
+    );
+    return result.rows.map(toSource);
+  });
+}
+
+export async function createSource(
+  database: DatabaseRuntime,
+  data: CreateSourceInput,
+): Promise<PescadorSource> {
+  const agencyId = getAgencyId();
+  if (data.name.trim().length === 0) {
+    throw new ValidationError('Field "name" is required and must be non-empty');
+  }
+  if (data.urlTemplate.trim().length === 0) {
+    throw new ValidationError('Field "urlTemplate" is required and must be non-empty');
+  }
+  let parsedTemplate: URL;
+  try {
+    // The template still needs to be a well-formed absolute URL once the
+    // {placeholder} tokens are stripped out for validation purposes --
+    // real substitution (and SSRF re-validation of the *substituted*
+    // URL) happens per-search in buildSearchUrl/extractOfferFromUrl.
+    parsedTemplate = new URL(
+      data.urlTemplate.replace(/\{[a-zA-Z]+\}/g, 'placeholder'),
+    );
+  } catch {
+    throw new ValidationError('Field "urlTemplate" must be a valid absolute URL (with optional {placeholders})');
+  }
+  assertPublicHttpUrl(parsedTemplate);
+
+  return database.withTenantTransaction(async (client) => {
+    const result = await client.query<SourceRow>(
+      `INSERT INTO pescador_sources (agency_id, name, url_template)
+       VALUES ($1, $2, $3)
+       RETURNING ${SOURCE_COLUMNS}`,
+      [agencyId, data.name.trim(), data.urlTemplate.trim()],
+    );
+    const row = result.rows[0];
+    if (!row) throw new Error('PescadorSource insert did not return a row');
+    return toSource(row);
+  });
+}
+
+export async function deleteSource(database: DatabaseRuntime, id: string): Promise<boolean> {
+  const agencyId = getAgencyId();
+  return database.withTenantTransaction(async (client) => {
+    const result = await client.query(
+      `DELETE FROM pescador_sources WHERE agency_id = $1 AND id = $2`,
+      [agencyId, id],
+    );
+    return (result.rowCount ?? 0) > 0;
+  });
+}
+
+export interface PescadorSearch {
+  id: string;
+  agencyId: string;
+  origin?: string;
+  destination: string;
+  departureDate: Date;
+  returnDate?: Date;
+  resultsLimit: number;
+  createdByUserId?: string;
+  createdAt: Date;
+}
+
+interface SearchRow {
+  id: string;
+  agency_id: string;
+  origin: string | null;
+  destination: string;
+  departure_date: string;
+  return_date: string | null;
+  results_limit: number;
+  created_by_user_id: string | null;
+  created_at: string;
+}
+
+const SEARCH_COLUMNS = `id, agency_id, origin, destination, departure_date, return_date,
+  results_limit, created_by_user_id, created_at`;
+
+function toSearch(row: SearchRow): PescadorSearch {
+  return {
+    id: row.id,
+    agencyId: row.agency_id,
+    destination: row.destination,
+    departureDate: new Date(row.departure_date),
+    resultsLimit: row.results_limit,
+    createdAt: new Date(row.created_at),
+    ...(row.origin !== null ? { origin: row.origin } : {}),
+    ...(row.return_date !== null ? { returnDate: new Date(row.return_date) } : {}),
+    ...(row.created_by_user_id !== null ? { createdByUserId: row.created_by_user_id } : {}),
+  };
+}
+
+export interface PescadorSearchResult {
+  id: string;
+  agencyId: string;
+  searchId: string;
+  sourceId?: string;
+  sourceName: string;
+  targetUrl: string;
+  title?: string;
+  description?: string;
+  price?: number;
+  currency?: string;
+  fetchError?: string;
+  publishedOfferId?: string;
+  createdAt: Date;
+}
+
+interface ResultRow {
+  id: string;
+  agency_id: string;
+  search_id: string;
+  source_id: string | null;
+  source_name: string;
+  target_url: string;
+  title: string | null;
+  description: string | null;
+  price: string | null;
+  currency: string | null;
+  fetch_error: string | null;
+  published_offer_id: string | null;
+  created_at: string;
+}
+
+const RESULT_COLUMNS = `id, agency_id, search_id, source_id, source_name, target_url, title,
+  description, price, currency, fetch_error, published_offer_id, created_at`;
+
+function toSearchResult(row: ResultRow): PescadorSearchResult {
+  return {
+    id: row.id,
+    agencyId: row.agency_id,
+    searchId: row.search_id,
+    sourceName: row.source_name,
+    targetUrl: row.target_url,
+    createdAt: new Date(row.created_at),
+    ...(row.source_id !== null ? { sourceId: row.source_id } : {}),
+    ...(row.title !== null ? { title: row.title } : {}),
+    ...(row.description !== null ? { description: row.description } : {}),
+    ...(row.price !== null ? { price: Number(row.price) } : {}),
+    ...(row.currency !== null ? { currency: row.currency } : {}),
+    ...(row.fetch_error !== null ? { fetchError: row.fetch_error } : {}),
+    ...(row.published_offer_id !== null ? { publishedOfferId: row.published_offer_id } : {}),
+  };
+}
+
+export interface RunSearchInput {
+  origin?: string;
+  destination: string;
+  departureDate: Date;
+  returnDate?: Date;
+  resultsLimit: number;
+}
+
+const RESULTS_LIMIT_OPTIONS = [1, 5, 10];
+
+function formatDateForUrl(date: Date): string {
+  const part = date.toISOString().slice(0, 10);
+  return part;
+}
+
+/**
+ * Substitutes the {origin}/{destination}/{departureDate}/{returnDate}
+ * placeholders in a source's url_template with the concrete search
+ * criteria. Every substituted value is URL-encoded so a destination like
+ * "São Paulo, SP" cannot break the resulting URL's structure.
+ */
+function buildSearchUrl(template: string, input: RunSearchInput): string {
+  return template
+    .replace(/\{origin\}/g, encodeURIComponent(input.origin ?? ''))
+    .replace(/\{destination\}/g, encodeURIComponent(input.destination))
+    .replace(/\{departureDate\}/g, encodeURIComponent(formatDateForUrl(input.departureDate)))
+    .replace(/\{returnDate\}/g, encodeURIComponent(input.returnDate ? formatDateForUrl(input.returnDate) : ''));
+}
+
+/**
+ * Runs a search: persists the search criteria, then queries up to
+ * `resultsLimit` registered sources (oldest-registered first), fetching
+ * each source's constructed URL through the same SSRF-guarded
+ * extract-from-URL pipeline the single-URL capture flow already used.
+ * Each source yields at most one real, genuinely-fetched result today --
+ * a fetch failure is stored as an honest fetch_error, never a fabricated
+ * price. A future per-source integration (a real fare-search API) can
+ * later make a single source yield several of the requested results
+ * without changing this shape.
+ */
+export async function runSearch(
+  database: DatabaseRuntime,
+  input: RunSearchInput,
+  createdByUserId: string,
+): Promise<{ search: PescadorSearch; results: PescadorSearchResult[] }> {
+  const agencyId = getAgencyId();
+
+  if (input.destination.trim().length === 0) {
+    throw new ValidationError('Field "destination" is required and must be non-empty');
+  }
+  if (!RESULTS_LIMIT_OPTIONS.includes(input.resultsLimit)) {
+    throw new ValidationError('Field "resultsLimit" must be 1, 5 or 10');
+  }
+  if (input.returnDate && input.returnDate.getTime() < input.departureDate.getTime()) {
+    throw new ValidationError('Field "returnDate" must not be before "departureDate"');
+  }
+
+  const search = await database.withTenantTransaction(async (client) => {
+    const result = await client.query<SearchRow>(
+      `INSERT INTO pescador_searches
+         (agency_id, origin, destination, departure_date, return_date, results_limit, created_by_user_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       RETURNING ${SEARCH_COLUMNS}`,
+      [
+        agencyId,
+        input.origin ?? null,
+        input.destination.trim(),
+        input.departureDate,
+        input.returnDate ?? null,
+        input.resultsLimit,
+        createdByUserId,
+      ],
+    );
+    const row = result.rows[0];
+    if (!row) throw new Error('PescadorSearch insert did not return a row');
+    return toSearch(row);
+  });
+
+  const sources = await listSources(database);
+  const queried = sources.slice(0, input.resultsLimit);
+
+  const results: PescadorSearchResult[] = [];
+  for (const source of queried) {
+    const targetUrl = buildSearchUrl(source.urlTemplate, input);
+    const draft = await extractOfferFromUrl(targetUrl);
+    const row = await database.withTenantTransaction(async (client) => {
+      const inserted = await client.query<ResultRow>(
+        `INSERT INTO pescador_search_results
+           (agency_id, search_id, source_id, source_name, target_url, title, description,
+            price, currency, fetch_error)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+         RETURNING ${RESULT_COLUMNS}`,
+        [
+          agencyId,
+          search.id,
+          source.id,
+          source.name,
+          targetUrl,
+          draft.normalizedTitle ?? null,
+          draft.normalizedDescription ?? null,
+          draft.foundPrice ?? null,
+          draft.currency ?? null,
+          draft.fetchError ?? null,
+        ],
+      );
+      const insertedRow = inserted.rows[0];
+      if (!insertedRow) throw new Error('PescadorSearchResult insert did not return a row');
+      return insertedRow;
+    });
+    results.push(toSearchResult(row));
+  }
+
+  return { search, results };
+}
+
+export async function listSearches(database: DatabaseRuntime): Promise<PescadorSearch[]> {
+  const agencyId = getAgencyId();
+  return database.withTenantTransaction(async (client) => {
+    const result = await client.query<SearchRow>(
+      `SELECT ${SEARCH_COLUMNS} FROM pescador_searches WHERE agency_id = $1 ORDER BY created_at DESC`,
+      [agencyId],
+    );
+    return result.rows.map(toSearch);
+  });
+}
+
+export async function listSearchResults(
+  database: DatabaseRuntime,
+  searchId: string,
+): Promise<PescadorSearchResult[]> {
+  const agencyId = getAgencyId();
+  return database.withTenantTransaction(async (client) => {
+    const result = await client.query<ResultRow>(
+      `SELECT ${RESULT_COLUMNS} FROM pescador_search_results
+       WHERE agency_id = $1 AND search_id = $2
+       ORDER BY created_at ASC`,
+      [agencyId, searchId],
+    );
+    return result.rows.map(toSearchResult);
+  });
+}
+
+/** Results are explicitly not a repository -- the agent may delete any
+ * one of them at any time (fares change constantly), independent of
+ * whether it was ever published. */
+export async function deleteSearchResult(database: DatabaseRuntime, id: string): Promise<boolean> {
+  const agencyId = getAgencyId();
+  return database.withTenantTransaction(async (client) => {
+    const result = await client.query(
+      `DELETE FROM pescador_search_results WHERE agency_id = $1 AND id = $2`,
+      [agencyId, id],
+    );
+    return (result.rowCount ?? 0) > 0;
+  });
+}
+
+export async function deleteSearch(database: DatabaseRuntime, id: string): Promise<boolean> {
+  const agencyId = getAgencyId();
+  return database.withTenantTransaction(async (client) => {
+    const result = await client.query(
+      `DELETE FROM pescador_searches WHERE agency_id = $1 AND id = $2`,
+      [agencyId, id],
+    );
+    return (result.rowCount ?? 0) > 0;
+  });
+}
+
+export interface PublishSearchResultResult {
+  result: PescadorSearchResult;
+  offer: Offer;
+}
+
+/** Converts a search result into a real Offer -- the durable outcome of
+ * a search, mirroring publishCapture's shape. Requires a title and a
+ * price since those become the Offer's name/price. */
+export async function publishSearchResult(
+  database: DatabaseRuntime,
+  id: string,
+): Promise<PublishSearchResultResult> {
+  const agencyId = getAgencyId();
+  return database.withTenantTransaction(async (client) => {
+    const existing = await client.query<ResultRow>(
+      `SELECT ${RESULT_COLUMNS} FROM pescador_search_results WHERE agency_id = $1 AND id = $2 FOR UPDATE`,
+      [agencyId, id],
+    );
+    const row = existing.rows[0];
+    if (!row) throw new NotFoundError('Search result not found');
+    const current = toSearchResult(row);
+
+    if (current.publishedOfferId) {
+      const offer = await loadOffer(client, agencyId, current.publishedOfferId);
+      return { result: current, offer };
+    }
+    if (!current.title) {
+      throw new ValidationError('Search result requires a title before publish');
+    }
+    if (current.price === undefined) {
+      throw new ValidationError('Search result requires a price before publish');
+    }
+
+    const offerResult = await client.query<OfferRow>(
+      `INSERT INTO offers (agency_id, name, description, price)
+       VALUES ($1, $2, $3, $4)
+       RETURNING ${OFFER_COLUMNS}`,
+      [agencyId, current.title, current.description ?? null, current.price],
+    );
+    const offerRow = offerResult.rows[0];
+    if (!offerRow) throw new Error('Offer insert did not return a row');
+
+    const updated = await client.query<ResultRow>(
+      `UPDATE pescador_search_results
+       SET published_offer_id = $3
+       WHERE agency_id = $1 AND id = $2
+       RETURNING ${RESULT_COLUMNS}`,
+      [agencyId, id, offerRow.id],
+    );
+    const updatedRow = updated.rows[0];
+    if (!updatedRow) throw new Error('Search result update did not return a row');
+
+    return { result: toSearchResult(updatedRow), offer: toOffer(offerRow) };
+  });
+}

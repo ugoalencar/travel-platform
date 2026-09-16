@@ -1468,6 +1468,115 @@ export async function publishCapture(id: string): Promise<PublishCaptureResult> 
   });
 }
 
+// ============================================================
+// PESCADOR v2 (multi-source search)
+// ============================================================
+
+export interface PescadorSource {
+  id: string;
+  agencyId: string;
+  name: string;
+  urlTemplate: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export async function listPescadorSources(): Promise<PescadorSource[]> {
+  const data = await request<{ sources: PescadorSource[] }>('/api/pescador/sources');
+  return data.sources;
+}
+
+export interface CreatePescadorSourceInput {
+  name: string;
+  urlTemplate: string;
+}
+
+export async function createPescadorSource(input: CreatePescadorSourceInput): Promise<PescadorSource> {
+  const data = await request<{ source: PescadorSource }>('/api/pescador/sources', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+  return data.source;
+}
+
+export async function deletePescadorSource(id: string): Promise<void> {
+  await request<void>(`/api/pescador/sources/${encodeURIComponent(id)}`, { method: 'DELETE' });
+}
+
+export interface PescadorSearch {
+  id: string;
+  agencyId: string;
+  origin?: string;
+  destination: string;
+  departureDate: string;
+  returnDate?: string;
+  resultsLimit: number;
+  createdByUserId?: string;
+  createdAt: string;
+}
+
+export interface PescadorSearchResult {
+  id: string;
+  agencyId: string;
+  searchId: string;
+  sourceId?: string;
+  sourceName: string;
+  targetUrl: string;
+  title?: string;
+  description?: string;
+  price?: number;
+  currency?: string;
+  fetchError?: string;
+  publishedOfferId?: string;
+  createdAt: string;
+}
+
+export async function listPescadorSearches(): Promise<PescadorSearch[]> {
+  const data = await request<{ searches: PescadorSearch[] }>('/api/pescador/searches');
+  return data.searches;
+}
+
+export interface RunPescadorSearchInput {
+  origin?: string;
+  destination: string;
+  departureDate: string;
+  returnDate?: string;
+  resultsLimit: 1 | 5 | 10;
+}
+
+export async function runPescadorSearch(
+  input: RunPescadorSearchInput,
+): Promise<{ search: PescadorSearch; results: PescadorSearchResult[] }> {
+  return request('/api/pescador/searches', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+}
+
+export async function deletePescadorSearch(id: string): Promise<void> {
+  await request<void>(`/api/pescador/searches/${encodeURIComponent(id)}`, { method: 'DELETE' });
+}
+
+export async function listPescadorSearchResults(searchId: string): Promise<PescadorSearchResult[]> {
+  const data = await request<{ results: PescadorSearchResult[] }>(
+    `/api/pescador/searches/${encodeURIComponent(searchId)}/results`,
+  );
+  return data.results;
+}
+
+export async function deletePescadorSearchResult(id: string): Promise<void> {
+  await request<void>(`/api/pescador/results/${encodeURIComponent(id)}`, { method: 'DELETE' });
+}
+
+export interface PublishPescadorSearchResultResult {
+  result: PescadorSearchResult;
+  offer: Offer;
+}
+
+export async function publishPescadorSearchResult(id: string): Promise<PublishPescadorSearchResultResult> {
+  return request(`/api/pescador/results/${encodeURIComponent(id)}/publish`, { method: 'POST' });
+}
+
 
 export type { CustomerStatus, WishStatus, TripStatus, ProposalStatus, Proposal, Sale, SaleStatus };
 
