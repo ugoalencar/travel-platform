@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Search, Plus, Users } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/card';
 import { PageHeader } from '../components/layout/PageHeader';
@@ -26,6 +26,7 @@ function statusTone(status: CustomerStatus) {
 const emptyNewCustomer = { name: '', email: '', phone: '', notes: '' };
 
 export function CustomersPage() {
+  const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'ALL' | CustomerStatus>('ALL');
   const [customers, setCustomers] = useState<Customer[] | null>(null);
@@ -74,7 +75,7 @@ export function CustomersPage() {
     setSaving(true);
     setFormError(null);
     try {
-      await createCustomer({
+      const created = await createCustomer({
         name: newCustomer.name.trim(),
         email: newCustomer.email.trim() || undefined,
         phone: newCustomer.phone.trim() || undefined,
@@ -82,7 +83,13 @@ export function CustomersPage() {
       });
       setShowNewCustomer(false);
       setNewCustomer(emptyNewCustomer);
-      load();
+      // Straight to the detail page instead of back to the list -- the
+      // quick-add form only captures the essentials; dependents,
+      // documents and travel requirements live on the detail page and
+      // were easy to never discover otherwise. Reported directly: "o
+      // cadastro de cliente parece um cadastro bem simples... não
+      // encontrei em nenhum lugar onde será feito um cadastro completo."
+      void navigate(`/customers/${created.id}?new=1`);
     } catch (err: unknown) {
       setFormError(err instanceof ApiError ? err.message : 'Não foi possível salvar o cliente.');
     } finally {

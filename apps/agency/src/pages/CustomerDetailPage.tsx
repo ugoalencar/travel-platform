@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Map, Heart, FileText, CalendarCheck, Phone, Mail, Home, IdCard, Users, Plus, Trash2, Star, ShieldCheck, Clock, Wallet, UserCog } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
 import { StatusBadge } from '../components/ui/status-badge';
@@ -342,7 +342,12 @@ function customerStatusTone(s: CustomerStatus) {
 
 export function CustomerDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const [tab, setTab] = useState('overview');
+  const [searchParams, setSearchParams] = useSearchParams();
+  // Deep-links a tab (e.g. from CustomersPage's post-creation redirect)
+  // and flags a just-created customer so the completion banner below
+  // shows once, right when it's actually useful.
+  const [tab, setTab] = useState(() => searchParams.get('tab') ?? 'overview');
+  const [showCompletionBanner, setShowCompletionBanner] = useState(() => searchParams.get('new') === '1');
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [wishes, setWishes] = useState<Wish[]>([]);
   const [trips, setTrips] = useState<Trip[]>([]);
@@ -629,6 +634,32 @@ export function CustomerDetailPage() {
           {getCustomerStatusLabel(customer.status)}
         </StatusBadge>
       </div>
+
+      {showCompletionBanner ? (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3">
+          <p className="text-sm text-blue-900">
+            Cliente cadastrado. O cadastro rápido só pega o essencial — complete com dependentes,
+            documentos e requisitos de viagem (passaporte, visto, vacinação, seguro) quando fizer sentido.
+          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button size="sm" variant="outline" onClick={() => setTab('dependents')}>Dependentes</Button>
+            <Button size="sm" variant="outline" onClick={() => setTab('documents')}>Documentos</Button>
+            <Button size="sm" variant="outline" onClick={() => setTab('requirements')}>Requisitos de viagem</Button>
+            <button
+              type="button"
+              className="text-xs font-medium text-blue-700 hover:underline"
+              onClick={() => {
+                setShowCompletionBanner(false);
+                const next = new URLSearchParams(searchParams);
+                next.delete('new');
+                setSearchParams(next, { replace: true });
+              }}
+            >
+              Dispensar
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       <Tabs items={TABS} value={tab} onValueChange={setTab} />
 
