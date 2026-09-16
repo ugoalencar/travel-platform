@@ -60,6 +60,30 @@ describe('secrets scanner: placeholders are allowed', () => {
   it('allows cryptographic token generation code instead of treating the generator as a secret', () => {
     expect(names("const token = randomBytes(32).toString('base64url');")).toEqual([]);
   });
+
+  // Repository stabilization pass (CI-02): the scanner was flagging ~80
+  // lines across the real auth modules (local-auth.ts, customer-local-
+  // auth.ts, session-auth.ts, routes/auth.ts, apps/*/lib/*Api.ts) even
+  // though every one of them was either a function call or a plain
+  // variable reference, never a literal secret.
+  it('allows a bare function-call value (the char right after it is an opening paren)', () => {
+    expect(names('  const token = getSessionToken();')).toEqual([]);
+    expect(names("  const rawToken = generateOpaqueToken();")).toEqual([]);
+    expect(names("    const password = requireString(body.password, 'password');")).toEqual([]);
+  });
+
+  it('allows a bare identifier named after the keyword itself (not a literal value)', () => {
+    expect(names('    sessionToken: rawToken,')).toEqual([]);
+    expect(names("      payload: { agencySlug: agencySlugA, email: ownerAEmail, password: ownerAPassword },")).toEqual([]);
+    expect(names('    return { activationToken: rawToken, expiresAt, email };')).toEqual([]);
+  });
+
+  it('still detects a real-looking mixed-case value even though it superficially resembles an identifier', () => {
+    // Regression guard: an earlier version of this fix used a blanket
+    // "bare camelCase identifier" rule, which incorrectly swallowed real
+    // secret-shaped values like this one (no keyword suffix, not a call).
+    expect(names('DB_PASSWORD=pR7mK2vLq9XnW4tZbYcQ2x')).toContain('PASSWORD');
+  });
 });
 
 describe('secrets scanner: filesystem traversal scope', () => {

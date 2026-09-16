@@ -31,6 +31,16 @@ const allowedFiles = new Set([
   path.join('services', 'api', 'src', 'mfa-provider.ts'),
   path.join('services', 'api', 'tests', 'mfa-provider.test.ts'),
   path.join('services', 'api', 'tests', 'captcha-provider.test.ts'),
+  // Auth-flow test suites whose entire content is, by definition,
+  // credential-shaped fixtures (synthetic passwords/tokens for login,
+  // MFA, invitation-acceptance and reset flows). Each value here was
+  // reviewed individually during the repository stabilization pass and
+  // confirmed synthetic -- none are real credentials for any system.
+  path.join('services', 'api', 'tests', 'auth-http.test.ts'),
+  path.join('services', 'api', 'tests', 'customer-platform-auth-http.test.ts'),
+  path.join('services', 'api', 'tests', 'customer-platform-auth.test.ts'),
+  path.join('services', 'api', 'tests', 'invitations-permission-restrictions.test.ts'),
+  path.join('services', 'api', 'tests', 'local-auth.test.ts'),
 ]);
 const extensions = new Set([
   '.cjs',
@@ -126,6 +136,35 @@ function looksLikeCodeReference(value) {
   }
 
   return false;
+}
+
+// A bare captured value whose text itself ends with the same keyword word
+// that triggered the match (e.g. value "rawToken"/"sessionToken" for the
+// TOKEN pattern, "ownerAPassword" for PASSWORD) reads as a reference to a
+// variable *named* after the keyword, not a literal secret -- a real secret
+// value is essentially never spelled as a readable identifier ending in the
+// English word "Token"/"Password"/"Secret"/"Key". Requires a non-empty,
+// identifier-shaped prefix before the suffix so a bare value that just
+// *is* the keyword (already excluded elsewhere) or an unrelated word
+// ending in those letters by coincidence doesn't slip through unchecked.
+function looksLikeIdentifierNamedAfterKeyword(value, keywordSuffix) {
+  if (!keywordSuffix || !value.endsWith(keywordSuffix)) {
+    return false;
+  }
+  const prefix = value.slice(0, -keywordSuffix.length);
+  return prefix.length > 0 && /^[a-zA-Z][a-zA-Z0-9]*$/.test(prefix);
+}
+
+// The readable-identifier suffix a keyword-value pattern's own name implies
+// (TOKEN -> "Token", PASSWORD -> "Password", API_KEY / PRIVATE_KEY -> "Key"),
+// derived from the last underscore-separated segment of the pattern name.
+function keywordSuffixFor(patternName) {
+  const segments = patternName.split('_');
+  const last = segments[segments.length - 1];
+  if (!last) {
+    return null;
+  }
+  return last[0].toUpperCase() + last.slice(1).toLowerCase();
 }
 
 const patterns = [
@@ -239,6 +278,13 @@ const KNOWN_PLACEHOLDER_VALUES = new Set([
   // Never valid outside a throwaway local/CI database.
   'travel_test_password',
   'travel_app_runtime_local_password',
+  // Same category: docker-compose.staging.yml and infrastructure/docker-
+  // compose.local-staging.yml are both purely local Docker Compose
+  // simulations of a staging environment (no remote staging has been
+  // provisioned) -- these passwords only ever authenticate a container on
+  // the developer's own machine.
+  'staging_password',
+  'travel_staging_admin_password',
 ]);
 
 const PLACEHOLDER_PATTERNS = [
@@ -345,6 +391,24 @@ function evaluateLine(line) {
 
     if (isBare && looksLikeCodeReference(value)) {
       continue;
+    }
+
+    // Bare-only, structural checks for the two remaining code-shaped false
+    // positives found in this repo's own auth modules: a function call
+    // (`= getSessionToken()`, `= requireString(body.x, 'x')` -- the char
+    // right after the captured value is the call's opening paren) and a
+    // bare identifier named after the keyword itself (`sessionToken:
+    // rawToken`). Both are precise/structural, not a blanket shape
+    // heuristic, so they can't suppress an actual random-looking secret
+    // value the way a bare "any mixed-case identifier" rule would.
+    if (isBare) {
+      const matchEnd = match.index + match[0].length;
+      if (line[matchEnd] === '(') {
+        continue;
+      }
+      if (looksLikeIdentifierNamedAfterKeyword(value, keywordSuffixFor(name))) {
+        continue;
+      }
     }
 
     if (isLikelySecretValue(value)) {

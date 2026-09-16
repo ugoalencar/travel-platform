@@ -57,6 +57,7 @@ describe('Tenant repository placeholder error safety', () => {
         repository
           .create({
             name: 'Real Customer',
+            protocolNumber: 'CLI-2026-000001',
             email: sensitiveEmail,
             cpf: sensitiveCpf,
             notes: sensitiveNotes,
