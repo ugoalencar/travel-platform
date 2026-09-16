@@ -2,7 +2,9 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, screen } from '@testing-library/react';
 import { renderRouted } from '../test/render';
 
-vi.mock('../lib/api', () => {
+vi.mock('../lib/api', async () => {
+  // eslint-disable-next-line @typescript-eslint/consistent-type-imports
+  const actual = await vi.importActual<typeof import('../lib/api')>('../lib/api');
   class MockApiError extends Error {
     code: string;
     status: number;
@@ -13,6 +15,7 @@ vi.mock('../lib/api', () => {
     }
   }
   return {
+    ...actual,
     getDashboardSummary: vi.fn().mockResolvedValue({
       openOpportunitiesCount: 2,
       followUpsDueTodayCount: 3,

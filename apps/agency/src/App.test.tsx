@@ -36,6 +36,7 @@ vi.mock('./lib/api', async () => {
     listSales: vi.fn(),
     listAirServicesByTrip: vi.fn(),
     listLandServicesByTrip: vi.fn(),
+    listTripPhotos: vi.fn(),
   };
 });
 
@@ -109,6 +110,7 @@ beforeEach(() => {
   vi.mocked(api.listSales).mockResolvedValue([]);
   vi.mocked(api.listAirServicesByTrip).mockResolvedValue([]);
   vi.mocked(api.listLandServicesByTrip).mockResolvedValue([]);
+  vi.mocked(api.listTripPhotos).mockResolvedValue([]);
 });
 
 describe('App', () => {
@@ -120,6 +122,10 @@ describe('App', () => {
   it('renders the sidebar navigation links', async () => {
     renderRouted('/');
     await screen.findByRole('heading', { name: 'Painel' });
+    // Sections are collapsed by default (only the section containing the
+    // current route starts open) -- "Expandir tudo" opens every section so
+    // this test can see links outside "Painel" without navigating first.
+    fireEvent.click(screen.getByRole('button', { name: 'Expandir tudo' }));
     const nav = screen.getByRole('navigation');
     expect(nav.querySelector('a[href="/customers"]')).not.toBeNull();
     expect(nav.querySelector('a[href="/wishes"]')).not.toBeNull();
@@ -129,6 +135,7 @@ describe('App', () => {
   it('organizes agency navigation into the approved Portuguese groups', async () => {
     renderRouted('/');
     await screen.findByRole('heading', { name: 'Painel' });
+    fireEvent.click(screen.getByRole('button', { name: 'Expandir tudo' }));
 
     const nav = screen.getByRole('navigation');
     expect(nav).toHaveTextContent('Painel');
@@ -150,6 +157,7 @@ describe('App', () => {
   it('navigates to the customers list from the sidebar', async () => {
     renderRouted('/');
     await screen.findByRole('heading', { name: 'Painel' });
+    fireEvent.click(screen.getByRole('button', { name: 'Expandir tudo' }));
     fireEvent.click(screen.getByRole('link', { name: /Clientes/ }));
     expect(await screen.findByRole('heading', { name: 'Clientes' })).toBeInTheDocument();
   });
@@ -157,6 +165,7 @@ describe('App', () => {
   it('navigates to the wishes list from the sidebar', async () => {
     renderRouted('/');
     await screen.findByRole('heading', { name: 'Painel' });
+    fireEvent.click(screen.getByRole('button', { name: 'Expandir tudo' }));
     fireEvent.click(screen.getByRole('link', { name: /Desejos/ }));
     expect(await screen.findByRole('heading', { name: 'Desejos' })).toBeInTheDocument();
   });
@@ -164,6 +173,7 @@ describe('App', () => {
   it('navigates to the trips list from the sidebar', async () => {
     renderRouted('/');
     await screen.findByRole('heading', { name: 'Painel' });
+    fireEvent.click(screen.getByRole('button', { name: 'Expandir tudo' }));
     fireEvent.click(screen.getByRole('link', { name: /Viagens/ }));
     expect(await screen.findByRole('heading', { name: 'Viagens' })).toBeInTheDocument();
   });

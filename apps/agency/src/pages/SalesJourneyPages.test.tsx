@@ -4,7 +4,9 @@ import { describe, expect, it, vi } from 'vitest';
 import { App } from '../App';
 import * as api from '../lib/api';
 
-vi.mock('../lib/api', () => {
+vi.mock('../lib/api', async () => {
+  // eslint-disable-next-line @typescript-eslint/consistent-type-imports
+  const actual = await vi.importActual<typeof import('../lib/api')>('../lib/api');
   class MockApiError extends Error {
     code: string;
     status: number;
@@ -16,6 +18,7 @@ vi.mock('../lib/api', () => {
   }
 
   return {
+  ...actual,
   ApiError: MockApiError,
   listProposals: vi.fn(() => Promise.resolve([])),
   getProposal: vi.fn(() => Promise.reject(new Error('Not found'))),

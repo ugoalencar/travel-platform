@@ -136,7 +136,7 @@ describe('api client error mapping', () => {
     );
 
     await expect(listCustomers()).rejects.toMatchObject({
-      message: 'Request failed.',
+      message: 'Falha na requisição.',
       code: 'UNKNOWN_ERROR',
       status: 500,
     });
