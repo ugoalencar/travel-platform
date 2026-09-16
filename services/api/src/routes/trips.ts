@@ -64,9 +64,21 @@ export function registerTripsRoutes(
   // TRIPS
   // ============================================================
 
-  app.get('/trips', { preHandler: protectedHooks }, async () => {
+  app.get<{
+    Querystring: { customerId?: string; category?: string; startDate?: string; endDate?: string };
+  }>('/trips', { preHandler: protectedHooks }, async (request) => {
     requireRole(UserRole.VIEWER);
-    const trips = await listTrips(database);
+    const { customerId, category, startDate, endDate } = request.query;
+    const validCategories = ['AEREO', 'TERRESTRE', 'EXCURSAO', 'OUTRO'];
+    if (category !== undefined && !validCategories.includes(category)) {
+      throw new ValidationError('Field "category" must be one of AEREO, TERRESTRE, EXCURSAO, OUTRO');
+    }
+    const trips = await listTrips(database, {
+      customerId,
+      startDate,
+      endDate,
+      category: category as 'AEREO' | 'TERRESTRE' | 'EXCURSAO' | 'OUTRO' | undefined,
+    });
     return { trips };
   });
 

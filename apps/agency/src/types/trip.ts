@@ -5,6 +5,8 @@ export type TripStatus =
   | 'COMPLETED'
   | 'CANCELLED';
 
+export type TripCategory = 'AEREO' | 'TERRESTRE' | 'EXCURSAO' | 'OUTRO';
+
 export interface Trip {
   id: string;
   agencyId: string;
@@ -19,4 +21,5 @@ export interface Trip {
   notes?: string;
   createdAt: string;
   updatedAt: string;
+  category: TripCategory;
 }

@@ -1173,8 +1173,21 @@ export interface UpdateTripInput {
   notes?: string | undefined;
 }
 
-export async function listTrips(): Promise<Trip[]> {
-  const data = await request<{ trips: Trip[] }>('/api/trips');
+export interface ListTripsFilters {
+  customerId?: string | undefined;
+  category?: Trip['category'] | undefined;
+  startDate?: string | undefined;
+  endDate?: string | undefined;
+}
+
+export async function listTrips(filters: ListTripsFilters = {}): Promise<Trip[]> {
+  const params = new URLSearchParams();
+  if (filters.customerId) params.set('customerId', filters.customerId);
+  if (filters.category) params.set('category', filters.category);
+  if (filters.startDate) params.set('startDate', filters.startDate);
+  if (filters.endDate) params.set('endDate', filters.endDate);
+  const query = params.toString();
+  const data = await request<{ trips: Trip[] }>(`/api/trips${query ? `?${query}` : ''}`);
   return data.trips;
 }
 

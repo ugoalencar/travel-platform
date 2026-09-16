@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Plus, Map as MapIcon } from 'lucide-react';
+import { Search, Plus, Map as MapIcon, X } from 'lucide-react';
 import { PageHeader } from '../components/layout/PageHeader';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -14,7 +14,7 @@ import { Modal } from '../components/ui/modal';
 import { ApiError, createTrip, listCustomers, listTrips } from '../lib/api';
 import { getTripStatusLabel } from '../lib/statusLabels';
 import { formatDateBR } from '../lib/formatDateBR';
-import type { Trip, TripStatus } from '../types/trip';
+import type { Trip, TripCategory, TripStatus } from '../types/trip';
 import type { Customer } from '../types/customer';
 
 function statusTone(s: TripStatus) {
@@ -23,6 +23,13 @@ function statusTone(s: TripStatus) {
   if (s === 'CANCELLED') return 'inactive' as const;
   return 'neutral' as const;
 }
+
+const CATEGORY_TABS: { value: 'ALL' | TripCategory; label: string }[] = [
+  { value: 'ALL', label: 'Todas' },
+  { value: 'TERRESTRE', label: 'Terrestre' },
+  { value: 'AEREO', label: 'Aérea' },
+  { value: 'EXCURSAO', label: 'Excursões' },
+];
 
 const emptyNewTrip = {
   customerId: '',
@@ -35,7 +42,11 @@ const emptyNewTrip = {
 
 export function TripsPage() {
   const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState<'ALL' | TripStatus>('ALL');
+  const [statusFilter, setStatusFilter] = useState<'ALL' | TripStatus>('ALL');
+  const [category, setCategory] = useState<'ALL' | TripCategory>('ALL');
+  const [customerFilter, setCustomerFilter] = useState('');
+  const [periodStart, setPeriodStart] = useState('');
+  const [periodEnd, setPeriodEnd] = useState('');
   const [trips, setTrips] = useState<Trip[] | null>(null);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -49,10 +60,20 @@ export function TripsPage() {
     [customers],
   );
 
+  const hasFilters = category !== 'ALL' || !!customerFilter || !!periodStart || !!periodEnd;
+
   const load = useCallback(() => {
     setError(null);
     setTrips(null);
-    Promise.all([listTrips(), listCustomers()])
+    Promise.all([
+      listTrips({
+        category: category === 'ALL' ? undefined : category,
+        customerId: customerFilter || undefined,
+        startDate: periodStart || undefined,
+        endDate: periodEnd || undefined,
+      }),
+      listCustomers(),
+    ])
       .then(([t, c]) => {
         setTrips(t);
         setCustomers(c);
@@ -60,7 +81,7 @@ export function TripsPage() {
       .catch((err: unknown) => {
         setError(err instanceof ApiError ? err.message : 'Não foi possível carregar as viagens.');
       });
-  }, []);
+  }, [category, customerFilter, periodStart, periodEnd]);
 
   useEffect(() => {
     load();
@@ -80,11 +101,20 @@ export function TripsPage() {
       t.name.toLowerCase().includes(search.toLowerCase()) ||
       t.destination.toLowerCase().includes(search.toLowerCase()) ||
       (customer?.name.toLowerCase().includes(search.toLowerCase()) ?? false);
-    const matchesFilter = filter === 'ALL' || t.status === filter;
-    return matchesSearch && matchesFilter;
+    const matchesStatus = statusFilter === 'ALL' || t.status === statusFilter;
+    return matchesSearch && matchesStatus;
   });
 
   const activeCustomers = customers.filter((c) => c.status === 'ACTIVE');
+
+  function clearFilters() {
+    setSearch('');
+    setStatusFilter('ALL');
+    setCategory('ALL');
+    setCustomerFilter('');
+    setPeriodStart('');
+    setPeriodEnd('');
+  }
 
   function openCreate() {
     setNewTrip({ ...emptyNewTrip, customerId: activeCustomers[0]?.id ?? '' });
@@ -129,7 +159,7 @@ export function TripsPage() {
     <div className="space-y-6">
       <PageHeader
         title="Viagens"
-        description={`${trips.length} viagens registradas`}
+        description={`${trips.length} viagens ${hasFilters ? 'encontradas com os filtros aplicados' : 'registradas'}`}
         breadcrumbs={[{ label: 'Painel', to: '/' }, { label: 'Viagens' }]}
         actions={
           <Button size="sm" onClick={openCreate}>
@@ -139,8 +169,27 @@ export function TripsPage() {
         }
       />
 
-      <div className="flex items-center gap-3">
-        <div className="relative flex-1 max-w-sm">
+      <div className="flex flex-wrap rounded-md border border-slate-200 bg-white p-0.5" role="tablist" aria-label="Filtrar por área">
+        {CATEGORY_TABS.map((tab) => (
+          <button
+            key={tab.value}
+            type="button"
+            role="tab"
+            aria-selected={category === tab.value}
+            onClick={() => setCategory(tab.value)}
+            className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+              category === tab.value
+                ? 'bg-slate-900 text-white'
+                : 'text-slate-600 hover:bg-slate-50'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="flex flex-wrap items-end gap-3">
+        <div className="relative flex-1 min-w-[200px] max-w-sm">
           <label htmlFor="trips-search" className="sr-only">
             Buscar viagens
           </label>
@@ -154,15 +203,55 @@ export function TripsPage() {
             aria-label="Buscar viagens"
           />
         </div>
+
+        <div className="min-w-[180px]">
+          <label htmlFor="trips-customer-filter" className="mb-1 block text-xs font-medium text-slate-700">
+            Cliente
+          </label>
+          <Select
+            id="trips-customer-filter"
+            value={customerFilter}
+            onChange={(e) => setCustomerFilter(e.target.value)}
+          >
+            <option value="">Todos os clientes</option>
+            {customers.map((c) => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </Select>
+        </div>
+
+        <div>
+          <label htmlFor="trips-period-start" className="mb-1 block text-xs font-medium text-slate-700">
+            Período — de
+          </label>
+          <Input
+            id="trips-period-start"
+            type="date"
+            value={periodStart}
+            onChange={(e) => setPeriodStart(e.target.value)}
+          />
+        </div>
+        <div>
+          <label htmlFor="trips-period-end" className="mb-1 block text-xs font-medium text-slate-700">
+            até
+          </label>
+          <Input
+            id="trips-period-end"
+            type="date"
+            value={periodEnd}
+            onChange={(e) => setPeriodEnd(e.target.value)}
+          />
+        </div>
+
         <div className="flex flex-wrap rounded-md border border-slate-200 bg-white p-0.5" role="group" aria-label="Filtrar por status">
           {(['ALL', 'PLANNED', 'CONFIRMED', 'IN_PROGRESS', 'COMPLETED'] as const).map((opt) => (
             <button
               key={opt}
               type="button"
-              onClick={() => setFilter(opt)}
-              aria-pressed={filter === opt}
+              onClick={() => setStatusFilter(opt)}
+              aria-pressed={statusFilter === opt}
               className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
-                filter === opt
+                statusFilter === opt
                   ? 'bg-slate-900 text-white'
                   : 'text-slate-600 hover:bg-slate-50'
               }`}
@@ -171,16 +260,23 @@ export function TripsPage() {
             </button>
           ))}
         </div>
+
+        {(hasFilters || search || statusFilter !== 'ALL') && (
+          <Button variant="outline" size="sm" onClick={clearFilters}>
+            <X className="h-3.5 w-3.5" />
+            Limpar filtros
+          </Button>
+        )}
       </div>
 
       {filtered.length === 0 ? (
         <EmptyState
           title="Nenhuma viagem encontrada"
-          description={search ? 'Tente outro termo de busca.' : 'Crie a primeira viagem a partir de um desejo.'}
+          description={search || hasFilters ? 'Tente ajustar a busca ou os filtros.' : 'Crie a primeira viagem a partir de um desejo.'}
           icon={<MapIcon className="h-8 w-8" />}
           action={
-            search ? (
-              <Button variant="outline" size="sm" onClick={() => { setSearch(''); setFilter('ALL'); }}>
+            search || hasFilters ? (
+              <Button variant="outline" size="sm" onClick={clearFilters}>
                 Limpar filtros
               </Button>
             ) : (

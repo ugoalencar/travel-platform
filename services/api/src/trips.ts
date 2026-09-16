@@ -20,6 +20,32 @@ interface TripRow {
   updated_at: string;
 }
 
+export type TripCategory = 'AEREO' | 'TERRESTRE' | 'EXCURSAO' | 'OUTRO';
+
+export interface TripWithCategory extends Trip {
+  category: TripCategory;
+}
+
+interface TripRowWithCategory extends TripRow {
+  is_excursion: boolean;
+  is_air: boolean;
+  is_land: boolean;
+}
+
+export interface ListTripsFilters {
+  customerId?: string | undefined;
+  category?: TripCategory | undefined;
+  startDate?: string | undefined;
+  endDate?: string | undefined;
+}
+
+function toCategory(row: TripRowWithCategory): TripCategory {
+  if (row.is_excursion) return 'EXCURSAO';
+  if (row.is_air) return 'AEREO';
+  if (row.is_land) return 'TERRESTRE';
+  return 'OUTRO';
+}
+
 export interface CreateTripInput {
   name: string;
   destination: string;
@@ -38,22 +64,52 @@ export interface UpdateTripInput {
   notes?: string;
 }
 
-const TRIP_COLUMNS = `id, agency_id, customer_id, sale_id, name, destination, description,
-              start_date, end_date, status, notes, created_at, updated_at`;
+const TRIP_COLUMN_NAMES = [
+  'id', 'agency_id', 'customer_id', 'sale_id', 'name', 'destination', 'description',
+  'start_date', 'end_date', 'status', 'notes', 'created_at', 'updated_at',
+] as const;
+const TRIP_COLUMNS = TRIP_COLUMN_NAMES.join(', ');
 
-export async function listTrips(database: DatabaseRuntime): Promise<Trip[]> {
+export async function listTrips(
+  database: DatabaseRuntime,
+  filters: ListTripsFilters = {},
+): Promise<TripWithCategory[]> {
   const agencyId = getAgencyId();
 
+  const conditions = ['t.agency_id = $1'];
+  const values: unknown[] = [agencyId];
+
+  if (filters.customerId) {
+    values.push(filters.customerId);
+    conditions.push(`t.customer_id = $${values.length}`);
+  }
+  if (filters.startDate) {
+    values.push(filters.startDate);
+    conditions.push(`t.end_date >= $${values.length}`);
+  }
+  if (filters.endDate) {
+    values.push(filters.endDate);
+    conditions.push(`t.start_date <= $${values.length}`);
+  }
+
   return database.withTenantTransaction(async (client) => {
-    const result = await client.query<TripRow>(
-      `SELECT ${TRIP_COLUMNS}
-       FROM trips
-       WHERE agency_id = $1
-       ORDER BY created_at DESC`,
-      [agencyId],
+    const result = await client.query<TripRowWithCategory>(
+      `SELECT ${TRIP_COLUMN_NAMES.map((c) => `t.${c}`).join(', ')},
+              EXISTS (SELECT 1 FROM excursion_customers ec WHERE ec.agency_id = t.agency_id AND ec.trip_id = t.id) AS is_excursion,
+              EXISTS (SELECT 1 FROM air_services a WHERE a.agency_id = t.agency_id AND a.trip_id = t.id) AS is_air,
+              EXISTS (SELECT 1 FROM land_services l WHERE l.agency_id = t.agency_id AND l.trip_id = t.id) AS is_land
+       FROM trips t
+       WHERE ${conditions.join(' AND ')}
+       ORDER BY t.created_at DESC`,
+      values,
     );
 
-    return result.rows.map(toTrip);
+    let rows = result.rows;
+    if (filters.category) {
+      rows = rows.filter((row) => toCategory(row) === filters.category);
+    }
+
+    return rows.map((row) => ({ ...toTrip(row), category: toCategory(row) }));
   });
 }
 

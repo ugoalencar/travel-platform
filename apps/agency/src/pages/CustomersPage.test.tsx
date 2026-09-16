@@ -107,6 +107,7 @@ const tripPortugal: Trip = {
   startDate: '2026-10-15T00:00:00.000Z',
   endDate: '2026-10-28T00:00:00.000Z',
   status: 'CONFIRMED',
+  category: 'TERRESTRE',
   createdAt: '2026-07-20T10:00:00.000Z',
   updatedAt: '2026-08-10T14:30:00.000Z',
 };
