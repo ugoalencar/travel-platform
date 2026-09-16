@@ -2964,6 +2964,131 @@ function handleAuthResponse(response: Response): void {
   }
 }
 
+// ============================================================
+// INSURANCE (services/api/src/insurance.ts + routes/insurance.ts).
+// Full backend (products, policies, travelers, documents; a sold
+// policy with a saleId auto-creates a real Receivable) with zero
+// frontend surface before this -- same pattern as the Pipeline gap.
+// Requested directly: "documentação... até mesmo dos seguros".
+// ============================================================
+
+export type InsurancePolicyStatus = 'QUOTED' | 'ISSUED' | 'ACTIVE' | 'EXPIRED' | 'CANCELLED';
+
+export interface InsuranceProduct {
+  id: string;
+  insurerName: string;
+  supplierId: string | null;
+  brokerName: string | null;
+  planName: string;
+  coverageDescription: string | null;
+  costAmount: number;
+  priceAmount: number;
+  currency: string;
+  active: boolean;
+}
+
+export interface CreateInsuranceProductInput {
+  insurerName: string;
+  planName: string;
+  supplierId?: string;
+  brokerName?: string;
+  coverageDescription?: string;
+  costAmount: number;
+  priceAmount: number;
+  currency?: string;
+}
+
+export interface InsurancePolicy {
+  id: string;
+  insuranceProductId: string;
+  customerId: string;
+  saleId: string | null;
+  policyNumber: string | null;
+  coverageStart: string;
+  coverageEnd: string;
+  costAmount: number;
+  saleAmount: number;
+  commissionAmount: number;
+  currency: string;
+  status: InsurancePolicyStatus;
+  notes: string | null;
+}
+
+export interface CreateInsurancePolicyInput {
+  insuranceProductId: string;
+  customerId: string;
+  saleId?: string;
+  coverageStart: string;
+  coverageEnd: string;
+  costAmount: number;
+  saleAmount: number;
+  commissionAmount?: number;
+  policyNumber?: string;
+  notes?: string;
+}
+
+export interface InsuranceTraveler {
+  id: string;
+  insurancePolicyId: string;
+  customerId: string | null;
+  dependentId: string | null;
+}
+
+export async function listInsuranceProducts(): Promise<InsuranceProduct[]> {
+  const data = await request<{ products: InsuranceProduct[] }>('/api/insurance/products');
+  return data.products;
+}
+
+export async function createInsuranceProduct(input: CreateInsuranceProductInput): Promise<InsuranceProduct> {
+  const data = await request<{ product: InsuranceProduct }>('/api/insurance/products', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+  return data.product;
+}
+
+export async function listInsurancePolicies(): Promise<InsurancePolicy[]> {
+  const data = await request<{ policies: InsurancePolicy[] }>('/api/insurance/policies');
+  return data.policies;
+}
+
+export async function createInsurancePolicy(input: CreateInsurancePolicyInput): Promise<InsurancePolicy> {
+  const data = await request<{ policy: InsurancePolicy }>('/api/insurance/policies', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+  return data.policy;
+}
+
+export async function updateInsurancePolicyStatus(
+  id: string,
+  status: InsurancePolicyStatus,
+): Promise<InsurancePolicy> {
+  const data = await request<{ policy: InsurancePolicy }>(`/api/insurance/policies/${encodeURIComponent(id)}/status`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status }),
+  });
+  return data.policy;
+}
+
+export async function listInsuranceTravelers(policyId: string): Promise<InsuranceTraveler[]> {
+  const data = await request<{ travelers: InsuranceTraveler[] }>(
+    `/api/insurance/policies/${encodeURIComponent(policyId)}/travelers`,
+  );
+  return data.travelers;
+}
+
+export async function addInsuranceTraveler(
+  policyId: string,
+  input: { customerId?: string; dependentId?: string },
+): Promise<InsuranceTraveler> {
+  const data = await request<{ traveler: InsuranceTraveler }>(
+    `/api/insurance/policies/${encodeURIComponent(policyId)}/travelers`,
+    { method: 'POST', body: JSON.stringify(input) },
+  );
+  return data.traveler;
+}
+
 export const api = {
   get: async <T>(path: string): Promise<{ data: T }> => {
     const response = await fetch(`${API_BASE_URL}/api${path}`, { headers: authHeaders(false) });

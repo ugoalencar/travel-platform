@@ -41,6 +41,11 @@ const NAV_SECTIONS: NavSection[] = [
       { label: 'Desejos', to: '/wishes' },
       { label: 'Pescador', to: '/pescador' },
       { label: 'Ofertas', to: '/offers' },
+      // Full backend (products, policies, travelers, documents; a sold
+      // policy with a saleId auto-creates a real Receivable) existed
+      // with zero frontend surface -- requested directly: "documentação
+      // ... até mesmo dos seguros".
+      { label: 'Seguros', to: '/insurance' },
       { label: 'Propostas', to: '/proposals' },
       { label: 'Reservas', to: '/bookings' },
       { label: 'Vendas', to: '/sales' },
