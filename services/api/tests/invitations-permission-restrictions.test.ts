@@ -107,6 +107,16 @@ describe('Invitations + PermissionRestrictions data-access layer (Agent 01 SaaS 
   beforeEach(async () => {
     await adminPool.query('TRUNCATE TABLE invitations RESTART IDENTITY CASCADE');
     await adminPool.query('TRUNCATE TABLE permission_restrictions RESTART IDENTITY CASCADE');
+    // acceptInvitation() (066_user_employee_link.sql) now auto-creates a
+    // linked employees row for every new user -- deleting a test-created
+    // user without first deleting its employees row fails with a 23503
+    // FK violation (employees_user_tenant_fk is RESTRICT, found via a
+    // real CI run).
+    await adminPool.query(`DELETE FROM employees WHERE user_id NOT IN ($1, $2, $3)`, [
+      ownerAId,
+      adminAId,
+      userBId,
+    ]);
     await adminPool.query(`DELETE FROM users WHERE id NOT IN ($1, $2, $3)`, [
       ownerAId,
       adminAId,

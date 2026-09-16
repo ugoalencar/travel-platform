@@ -54,6 +54,10 @@ const migrations = [
   // Commercial Partners (Agent 04): CommercialPartner/PartnerContract/
   // PartnerLink/PartnerAttribution/PartnerCommission + payables extension.
   '054_commercial_partners.sql',
+  // customers.protocol_number is a required NOT NULL column this file's
+  // customer fixtures always populate -- omitting it 500s with "column
+  // protocol_number does not exist" (found via a real CI run).
+  '068_protocol_numbers.sql',
 ].map((name) => resolve(repoRoot, 'infrastructure/migrations', name));
 const prepareRolesSql = resolve(repoRoot, 'tests/integration/database/002_prepare_local_roles.sql');
 const composeFile = resolve(repoRoot, 'infrastructure/docker-compose.local-postgres.yml');

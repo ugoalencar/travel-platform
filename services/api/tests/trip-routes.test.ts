@@ -15,6 +15,12 @@ const migration019 = resolve(repoRoot, 'infrastructure/migrations/019_customer_3
 const migration020 = resolve(repoRoot, 'infrastructure/migrations/020_customer_360_dependents.sql');
 const migration021 = resolve(repoRoot, 'infrastructure/migrations/021_customer_360_documents.sql');
 const migration046 = resolve(repoRoot, 'infrastructure/migrations/046_customer_360_completion.sql');
+// 068_protocol_numbers.sql: customers.protocol_number is a required NOT NULL
+// column (with a UNIQUE constraint and a server-side default) that
+// createCustomer() always populates -- omitting this migration made every
+// customer INSERT in this suite fail with 'column protocol_number does not
+// exist' (found via a real CI run, not assumed).
+const migration068 = resolve(repoRoot, 'infrastructure/migrations/068_protocol_numbers.sql');
 const prepareRolesSql = resolve(repoRoot, 'tests/integration/database/002_prepare_local_roles.sql');
 const composeFile = resolve(repoRoot, 'infrastructure/docker-compose.local-postgres.yml');
 
@@ -764,6 +770,7 @@ async function resetDatabase(pool: Pool): Promise<void> {
   await pool.query(readSqlForPg(migration020));
   await pool.query(readSqlForPg(migration021));
   await pool.query(readSqlForPg(migration046));
+  await pool.query(readSqlForPg(migration068));
   await pool.query(readSqlForPg(prepareRolesSql));
   await seedAgenciesAndUsers(pool);
 }

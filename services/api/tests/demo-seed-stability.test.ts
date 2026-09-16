@@ -41,6 +41,11 @@ const migration022CustomerDocumentAudit = resolve(repoRoot, 'infrastructure/migr
 const migration023CustomerRls = resolve(repoRoot, 'infrastructure/migrations/023_customer_360_rls.sql');
 const migration024ExtendedFinancial = resolve(repoRoot, 'infrastructure/migrations/024_extended_financial_module.sql');
 const migration046CustomerCompletion = resolve(repoRoot, 'infrastructure/migrations/046_customer_360_completion.sql');
+// customers.protocol_number is a required NOT NULL column that customer
+// creation always populates -- omitting this migration made every customer
+// insert (including the demo seed script this test runs) fail with
+// "column protocol_number does not exist" (found via a real CI run).
+const migration068ProtocolNumbers = resolve(repoRoot, 'infrastructure/migrations/068_protocol_numbers.sql');
 const prepareRolesSql = resolve(repoRoot, 'tests/integration/database/002_prepare_local_roles.sql');
 const seedScript = resolve(repoRoot, 'scripts/seed-demo-data.cjs');
 const composeFile = resolve(repoRoot, 'infrastructure/docker-compose.local-postgres.yml');
@@ -307,6 +312,7 @@ async function applyMigrations(pool: Pool): Promise<void> {
     migration023CustomerRls,
     migration024ExtendedFinancial,
     migration046CustomerCompletion,
+    migration068ProtocolNumbers,
     prepareRolesSql,
   ]) {
     await pool.query(readSqlForPg(migration));

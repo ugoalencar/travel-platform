@@ -63,6 +63,11 @@ const migrations = [
   // queries permission_restrictions -- this migration must be applied or
   // both 500 with a missing-table error regardless of RBAC passing.
   '051_invitations_permission_restrictions.sql',
+  // customers.protocol_number is a required NOT NULL column that
+  // createCustomer()/this file's own customer fixture insert always
+  // populate -- omitting it 500s with "column protocol_number does not
+  // exist" (found via a real CI run).
+  '068_protocol_numbers.sql',
 ].map((name) => resolve(repoRoot, 'infrastructure/migrations', name));
 const prepareRolesSql = resolve(repoRoot, 'tests/integration/database/002_prepare_local_roles.sql');
 const composeFile = resolve(repoRoot, 'infrastructure/docker-compose.local-postgres.yml');

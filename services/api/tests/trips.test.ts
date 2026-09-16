@@ -16,6 +16,11 @@ import {
 const repoRoot = resolve(import.meta.dirname, '../../..');
 const migration001 = resolve(repoRoot, 'infrastructure/migrations/001_initial_schema.sql');
 const migration002 = resolve(repoRoot, 'infrastructure/migrations/002_rls_policies.sql');
+// 068_protocol_numbers.sql: customers.protocol_number is a required
+// NOT NULL column createCustomer()/the trip fixtures below always rely
+// on -- omitting it made every customer insert fail with 'column
+// protocol_number does not exist' (found via a real CI run).
+const migration068 = resolve(repoRoot, 'infrastructure/migrations/068_protocol_numbers.sql');
 const prepareRolesSql = resolve(repoRoot, 'tests/integration/database/002_prepare_local_roles.sql');
 const composeFile = resolve(repoRoot, 'infrastructure/docker-compose.local-postgres.yml');
 
@@ -374,6 +379,7 @@ async function resetDatabase(pool: Pool): Promise<void> {
   await pool.query('DROP SCHEMA public CASCADE; CREATE SCHEMA public;');
   await pool.query(readSqlForPg(migration001));
   await pool.query(readSqlForPg(migration002));
+  await pool.query(readSqlForPg(migration068));
   await pool.query(readSqlForPg(prepareRolesSql));
   await seedAgenciesAndUsers(pool);
 }
