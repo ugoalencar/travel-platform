@@ -95,6 +95,39 @@ export async function signUpAgency(
          VALUES ($1, $2, $3, $4, CURRENT_DATE, 'PARTNER', 'ACTIVE', $5)`,
         [agencyId, input.contactName, input.contactEmail, input.contactPhone ?? null, ownerId],
       );
+      // Every agency needs a default pipeline to create commercial
+      // opportunities in at all -- migration 009_configurable_pipelines.sql
+      // seeded one for every agency that existed AT MIGRATION TIME, but
+      // signup never mirrored that seed, so every agency created since
+      // has zero pipelines (found while building the Pipeline page: "o
+      // pipeline não estou vendo" -- the backend existed but no agency
+      // created post-migration could ever use it). Exact 1:1 mirror of
+      // that migration's seed data (name, stage names/order/colors) so
+      // both paths produce an identical default pipeline.
+      const pipelineId = randomUUID();
+      await client.query(
+        `INSERT INTO pipelines (id, agency_id, name, description, active)
+         VALUES ($1, $2, 'Comercial', 'Pipeline padrão da agência.', true)`,
+        [pipelineId, agencyId],
+      );
+      const stages: Array<[string, number, string, string]> = [
+        ['PROSPECTING', 1, 'NEUTRAL', 'NORMAL'],
+        ['INTEREST', 2, 'BLUE', 'NORMAL'],
+        ['QUOTE', 3, 'BLUE', 'NORMAL'],
+        ['PROPOSAL_SENT', 4, 'YELLOW', 'NORMAL'],
+        ['WAITING_CUSTOMER', 5, 'YELLOW', 'ATTENTION'],
+        ['NEGOTIATION', 6, 'ORANGE', 'ATTENTION'],
+        ['WON', 7, 'GREEN', 'SUCCESS'],
+        ['POST_SALE', 8, 'PURPLE', 'NORMAL'],
+        ['LOST', 9, 'RED', 'ATTENTION'],
+      ];
+      for (const [name, sequence, colorKey, visualLevel] of stages) {
+        await client.query(
+          `INSERT INTO pipeline_stages (agency_id, pipeline_id, name, sequence, color_key, visual_level, active)
+           VALUES ($1, $2, $3, $4, $5::"PipelineStageColor", $6::"PipelineStageVisualLevel", true)`,
+          [agencyId, pipelineId, name, sequence, colorKey, visualLevel],
+        );
+      }
     });
   } catch (error: unknown) {
     // Postgres unique_violation

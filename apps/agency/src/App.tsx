@@ -10,6 +10,7 @@ import { DashboardPage } from './pages/DashboardPage';
 import { CustomersPage } from './pages/CustomersPage';
 import { CustomerDetailPage } from './pages/CustomerDetailPage';
 import { WishesPage } from './pages/WishesPage';
+import { PipelinePage } from './pages/PipelinePage';
 import { WishDetailPage } from './pages/WishDetailPage';
 import { TripsPage } from './pages/TripsPage';
 import { TripDetailPage } from './pages/TripDetailPage';
@@ -75,6 +76,7 @@ export function App() {
         <Route path="customers" element={<CustomersPage />} />
         <Route path="customers/:id" element={<CustomerDetailPage />} />
         <Route path="wishes" element={<WishesPage />} />
+        <Route path="pipeline" element={<PipelinePage />} />
         <Route path="wishes/:id" element={<WishDetailPage />} />
         <Route path="trips" element={<TripsPage />} />
         <Route path="trips/:id" element={<TripDetailPage />} />

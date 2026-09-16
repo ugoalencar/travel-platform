@@ -33,6 +33,11 @@ const NAV_SECTIONS: NavSection[] = [
     items: [
       { label: 'Clientes', to: '/customers' },
       { label: 'Cadastro Remoto', to: '/enrollment-links' },
+      // Requested directly: "Sinto falta de um ambiente ... o pipeline
+      // não estou vendo" -- commercial_opportunities/pipeline backend
+      // already existed (kanban stages, lead-to-close funnel) with zero
+      // frontend surface. New PipelinePage.tsx is that surface.
+      { label: 'Pipeline', to: '/pipeline' },
       { label: 'Desejos', to: '/wishes' },
       { label: 'Pescador', to: '/pescador' },
       { label: 'Ofertas', to: '/offers' },

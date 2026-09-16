@@ -154,6 +154,113 @@ export async function listProposalsWaiting(): Promise<ProposalWaiting[]> {
   return data.proposals;
 }
 
+// ============================================================
+// PIPELINE (commercial_opportunities + configurable pipelines --
+// services/api/src/routes/commercial-cockpit.ts, pipeline-config.ts).
+// Backend existed with no frontend surface at all before this page --
+// requested directly: "Sinto falta de um ambiente ... o pipeline não
+// estou vendo esse". Kanban stage lives on
+// CommercialOpportunity.pipelineId/stageId (the old `.stage` enum field
+// is deprecated/read-only, never sent from here).
+// ============================================================
+
+export interface Pipeline {
+  id: string;
+  name: string;
+  description?: string;
+  active: boolean;
+  notificationsEnabled: boolean;
+}
+
+export type PipelineStageColor = 'NEUTRAL' | 'BLUE' | 'YELLOW' | 'ORANGE' | 'RED' | 'GREEN' | 'PURPLE';
+
+export interface PipelineStage {
+  id: string;
+  pipelineId: string;
+  name: string;
+  sequence: number;
+  colorKey: PipelineStageColor;
+  active: boolean;
+}
+
+export interface CommercialOpportunity {
+  id: string;
+  customerId: string;
+  customerName?: string;
+  wishId?: string;
+  proposalId?: string;
+  saleId?: string;
+  responsibleUserId?: string;
+  destination?: string;
+  tripDateFrom?: string;
+  tripDateTo?: string;
+  expectedValue?: number;
+  pipelineId: string;
+  stageId: string;
+  nextActionAt?: string;
+  lastInteractionAt?: string;
+  lostReason?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export async function listPipelines(): Promise<Pipeline[]> {
+  const data = await request<{ pipelines: Pipeline[] }>('/api/commercial/pipelines');
+  return data.pipelines;
+}
+
+export async function listPipelineStages(pipelineId: string): Promise<PipelineStage[]> {
+  const data = await request<{ stages: PipelineStage[] }>(`/api/commercial/pipelines/${pipelineId}/stages`);
+  return data.stages;
+}
+
+export async function listOpportunities(pipelineId: string): Promise<CommercialOpportunity[]> {
+  const data = await request<{ opportunities: CommercialOpportunity[]; total: number }>(
+    `/api/commercial/opportunities?pipelineId=${pipelineId}&limit=200`,
+  );
+  return data.opportunities;
+}
+
+export interface CreateOpportunityInput {
+  customerId: string;
+  pipelineId: string;
+  stageId: string;
+  wishId?: string;
+  proposalId?: string;
+  saleId?: string;
+  destination?: string;
+  expectedValue?: number;
+  nextActionAt?: string;
+}
+
+export async function createOpportunity(input: CreateOpportunityInput): Promise<CommercialOpportunity> {
+  const data = await request<{ opportunity: CommercialOpportunity }>('/api/commercial/opportunities', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+  return data.opportunity;
+}
+
+export interface UpdateOpportunityInput {
+  stageId?: string;
+  responsibleUserId?: string | null;
+  nextActionAt?: string | null;
+  lostReason?: string | null;
+  expectedValue?: number | null;
+  destination?: string | null;
+}
+
+export async function updateOpportunity(
+  id: string,
+  input: UpdateOpportunityInput,
+): Promise<CommercialOpportunity> {
+  const data = await request<{ opportunity: CommercialOpportunity }>(`/api/commercial/opportunities/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(input),
+  });
+  return data.opportunity;
+}
+
 export type InteractionChannel = 'EMAIL' | 'PHONE' | 'WHATSAPP' | 'IN_PERSON' | 'OTHER';
 export type InteractionDirection = 'INBOUND' | 'OUTBOUND';
 
