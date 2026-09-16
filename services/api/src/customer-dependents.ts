@@ -14,7 +14,8 @@ import { ValidationError } from './errors';
 import { AuditEventType, recordAuditEvent } from './audit-log';
 
 const DEPENDENT_COLUMNS = `id, agency_id, customer_id, name, relationship_type, birth_date,
-              cpf, nationality, notes, created_at, updated_at, deleted_at`;
+              cpf, nationality, notes, has_power_of_attorney, power_of_attorney_notes,
+              created_at, updated_at, deleted_at`;
 
 interface CustomerDependentRow {
   id: string;
@@ -26,6 +27,8 @@ interface CustomerDependentRow {
   cpf: string | null;
   nationality: string | null;
   notes: string | null;
+  has_power_of_attorney: boolean;
+  power_of_attorney_notes: string | null;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
@@ -39,6 +42,8 @@ export interface CreateDependentInput {
   cpf?: string;
   nationality?: string;
   notes?: string;
+  hasPowerOfAttorney?: boolean;
+  powerOfAttorneyNotes?: string;
 }
 
 export interface UpdateDependentInput {
@@ -48,6 +53,8 @@ export interface UpdateDependentInput {
   cpf?: string | null;
   nationality?: string | null;
   notes?: string | null;
+  hasPowerOfAttorney?: boolean;
+  powerOfAttorneyNotes?: string | null;
 }
 
 export async function listDependents(
@@ -101,8 +108,9 @@ export async function createDependent(
   return database.withTenantTransaction(async (client) => {
     const result = await client.query<CustomerDependentRow>(
       `INSERT INTO customer_dependents
-         (agency_id, customer_id, name, relationship_type, birth_date, cpf, nationality, notes)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+         (agency_id, customer_id, name, relationship_type, birth_date, cpf, nationality, notes,
+          has_power_of_attorney, power_of_attorney_notes)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
        RETURNING ${DEPENDENT_COLUMNS}`,
       [
         agencyId,
@@ -113,6 +121,8 @@ export async function createDependent(
         data.cpf ?? null,
         data.nationality ?? null,
         data.notes ?? null,
+        data.hasPowerOfAttorney ?? false,
+        data.powerOfAttorneyNotes ?? null,
       ],
     );
 
@@ -168,6 +178,8 @@ export async function updateDependent(
   if (data.cpf !== undefined) assign('cpf', data.cpf);
   if (data.nationality !== undefined) assign('nationality', data.nationality);
   if (data.notes !== undefined) assign('notes', data.notes);
+  if (data.hasPowerOfAttorney !== undefined) assign('has_power_of_attorney', data.hasPowerOfAttorney);
+  if (data.powerOfAttorneyNotes !== undefined) assign('power_of_attorney_notes', data.powerOfAttorneyNotes);
 
   if (fields.length === 0) {
     return getDependentById(database, id);
@@ -254,12 +266,14 @@ function toCustomerDependent(row: CustomerDependentRow): CustomerDependent {
     customerId: row.customer_id,
     name: row.name,
     relationshipType: row.relationship_type,
+    hasPowerOfAttorney: row.has_power_of_attorney,
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
     ...(row.birth_date !== null ? { birthDate: new Date(row.birth_date) } : {}),
     ...(row.cpf !== null ? { cpf: row.cpf } : {}),
     ...(row.nationality !== null ? { nationality: row.nationality } : {}),
     ...(row.notes !== null ? { notes: row.notes } : {}),
+    ...(row.power_of_attorney_notes !== null ? { powerOfAttorneyNotes: row.power_of_attorney_notes } : {}),
     ...(row.deleted_at !== null ? { deletedAt: new Date(row.deleted_at) } : {}),
   };
 }

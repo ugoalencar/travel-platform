@@ -58,6 +58,7 @@ const TABS = [
   { value: 'personal', label: 'Dados Pessoais' },
   { value: 'addresses', label: 'Endereços' },
   { value: 'dependents', label: 'Dependentes' },
+  { value: 'companions', label: 'Acompanhantes' },
   { value: 'documents', label: 'Documentos' },
   { value: 'requirements', label: 'Requisitos de viagem' },
   { value: 'preferences', label: 'Preferências' },
@@ -490,6 +491,7 @@ export function CustomerDetailPage() {
   const [addressModalOpen, setAddressModalOpen] = useState(false);
   const [documentModalOpen, setDocumentModalOpen] = useState(false);
   const [dependentModalOpen, setDependentModalOpen] = useState(false);
+  const [companionModalOpen, setCompanionModalOpen] = useState(false);
   const [requirementModalOpen, setRequirementModalOpen] = useState(false);
   const [personalModalOpen, setPersonalModalOpen] = useState(false);
   const [emergencyModalOpen, setEmergencyModalOpen] = useState(false);
@@ -694,6 +696,11 @@ export function CustomerDetailPage() {
     reloadDocuments();
   }
 
+  // Dependentes tab is reserved for minors (relationshipType is always
+  // CHILD here, not user-selectable) -- adult travel companions go
+  // through handleCreateCompanion / the separate Acompanhantes tab
+  // instead. Requested directly: "um ajuste nos dependentes deve ser
+  // somente para menores de idade... colocar aba acompanhante".
   async function handleCreateDependent(form: FormData) {
     if (!id) return;
     setSaving(true);
@@ -701,16 +708,40 @@ export function CustomerDetailPage() {
     try {
       await createCustomerDependent(id, {
         name: formString(form, 'name'),
-        relationshipType: formString(form, 'relationshipType') || 'OTHER',
+        relationshipType: 'CHILD',
         birthDate: formString(form, 'birthDate') || undefined,
         cpf: formString(form, 'cpf') || undefined,
         nationality: formString(form, 'nationality') || undefined,
         notes: formString(form, 'notes') || undefined,
+        hasPowerOfAttorney: form.get('hasPowerOfAttorney') === 'on',
+        powerOfAttorneyNotes: formString(form, 'powerOfAttorneyNotes') || undefined,
       });
       setDependentModalOpen(false);
       reloadDependents();
     } catch (err: unknown) {
       setFormError(err instanceof ApiError ? err.message : 'Não foi possível salvar o dependente.');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleCreateCompanion(form: FormData) {
+    if (!id) return;
+    setSaving(true);
+    setFormError(null);
+    try {
+      await createCustomerDependent(id, {
+        name: formString(form, 'name'),
+        relationshipType: formString(form, 'relationshipType') || 'COMPANION',
+        birthDate: formString(form, 'birthDate') || undefined,
+        cpf: formString(form, 'cpf') || undefined,
+        nationality: formString(form, 'nationality') || undefined,
+        notes: formString(form, 'notes') || undefined,
+      });
+      setCompanionModalOpen(false);
+      reloadDependents();
+    } catch (err: unknown) {
+      setFormError(err instanceof ApiError ? err.message : 'Não foi possível salvar o acompanhante.');
     } finally {
       setSaving(false);
     }
@@ -747,6 +778,13 @@ export function CustomerDetailPage() {
   const proposals: never[] = [];
   const bookings: never[] = [];
 
+  // Dependentes tab is reserved for minors (CHILD); every other
+  // relationship (spouse, parent, companion, other) is an adult and
+  // lives in the Acompanhantes tab instead. Both read from the same
+  // `dependents` list/table -- the split is presentation-only.
+  const minorDependents = dependents.filter((d) => d.relationshipType === 'CHILD');
+  const adultCompanions = dependents.filter((d) => d.relationshipType !== 'CHILD');
+
   return (
     <div className="space-y-8">
       <div className="flex items-start justify-between gap-4">
@@ -770,6 +808,7 @@ export function CustomerDetailPage() {
           </p>
           <div className="flex flex-wrap items-center gap-2">
             <Button size="sm" variant="outline" onClick={() => setTab('dependents')}>Dependentes</Button>
+            <Button size="sm" variant="outline" onClick={() => setTab('companions')}>Acompanhantes</Button>
             <Button size="sm" variant="outline" onClick={() => setTab('documents')}>Documentos</Button>
             <Button size="sm" variant="outline" onClick={() => setTab('requirements')}>Requisitos de viagem</Button>
             <button
@@ -1240,19 +1279,69 @@ export function CustomerDetailPage() {
 
       {tab === 'dependents' && (
         <div className="space-y-3">
+          <p className="text-xs text-slate-500">
+            Somente menores de idade que viajam com o titular. Para um adulto que viaja junto, use a aba{' '}
+            <button type="button" className="font-medium text-blue-600 hover:underline" onClick={() => setTab('companions')}>
+              Acompanhantes
+            </button>.
+          </p>
           <div className="flex justify-end">
             <Button size="sm" onClick={() => { setFormError(null); setDependentModalOpen(true); }}>
               <Plus className="h-4 w-4" /> Novo dependente
             </Button>
           </div>
-          {dependents.length === 0 ? (
+          {minorDependents.length === 0 ? (
             <EmptyState
               title="Nenhum dependente"
-              description="Cadastre um dependente ou acompanhante de viagem."
+              description="Cadastre um filho(a) menor de idade que viaja com este cliente."
               icon={<Users className="h-8 w-8" />}
             />
           ) : (
-            dependents.map((d) => (
+            minorDependents.map((d) => (
+              <div key={d.id} className="rounded-lg border border-slate-200 bg-white p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">{d.name}</p>
+                    <p className="text-xs text-slate-500">
+                      {RELATIONSHIP_LABELS[d.relationshipType] ?? d.relationshipType}
+                      {d.birthDate ? ` · Nasc. ${formatDateBR(d.birthDate, { assumeDateOnly: true })}` : ''}
+                      {d.cpf ? ` · CPF ${d.cpf}` : ''}
+                    </p>
+                    {d.hasPowerOfAttorney ? (
+                      <p className="mt-1 text-xs font-medium text-amber-700">
+                        Possui procuração{d.powerOfAttorneyNotes ? ` — ${d.powerOfAttorneyNotes}` : ''}
+                      </p>
+                    ) : null}
+                  </div>
+                  <button
+                    aria-label="Excluir dependente"
+                    onClick={() => { void handleDeleteDependent(d.id); }}
+                    className="rounded-md p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      )}
+
+      {tab === 'companions' && (
+        <div className="space-y-3">
+          <div className="flex justify-end">
+            <Button size="sm" onClick={() => { setFormError(null); setCompanionModalOpen(true); }}>
+              <Plus className="h-4 w-4" /> Novo acompanhante
+            </Button>
+          </div>
+          {adultCompanions.length === 0 ? (
+            <EmptyState
+              title="Nenhum acompanhante"
+              description="Cadastre um adulto que viaja junto com este cliente."
+              icon={<Users className="h-8 w-8" />}
+            />
+          ) : (
+            adultCompanions.map((d) => (
               <div key={d.id} className="rounded-lg border border-slate-200 bg-white p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div>
@@ -1264,7 +1353,7 @@ export function CustomerDetailPage() {
                     </p>
                   </div>
                   <button
-                    aria-label="Excluir dependente"
+                    aria-label="Excluir acompanhante"
                     onClick={() => { void handleDeleteDependent(d.id); }}
                     className="rounded-md p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600"
                   >
@@ -1357,7 +1446,7 @@ export function CustomerDetailPage() {
         </form>
       </Modal>
 
-      <Modal open={dependentModalOpen} onClose={() => setDependentModalOpen(false)} title="Novo dependente">
+      <Modal open={dependentModalOpen} onClose={() => setDependentModalOpen(false)} title="Novo dependente (menor de idade)">
         <form
           className="space-y-3"
           onSubmit={(e) => {
@@ -1368,12 +1457,51 @@ export function CustomerDetailPage() {
           {formError && <p className="text-sm text-red-600">{formError}</p>}
           <label className="text-xs text-slate-500">Nome<Input name="name" required className="mt-1" /></label>
           <div className="grid grid-cols-2 gap-3">
+            <label className="text-xs text-slate-500">Nascimento<Input type="date" name="birthDate" className="mt-1" /></label>
+            <label className="text-xs text-slate-500">CPF<Input name="cpf" className="mt-1" /></label>
+          </div>
+          <label className="text-xs text-slate-500">Nacionalidade<Input name="nationality" defaultValue="Brasileira" className="mt-1" /></label>
+          <label className="text-xs text-slate-500">Observações<Input name="notes" className="mt-1" /></label>
+          <div className="rounded-md border border-amber-200 bg-amber-50 p-3">
+            <label className="flex items-start gap-2 text-xs font-medium text-amber-900">
+              <input type="checkbox" name="hasPowerOfAttorney" className="mt-0.5 h-4 w-4" />
+              Viaja com procuração / autorização
+            </label>
+            <p className="mt-1 text-xs text-amber-800">
+              Lembrete: em alguns casos (ex.: menor viajando sem um dos responsáveis) a autorização precisa ser
+              judicial. Anexe o documento na aba Documentos.
+            </p>
+            <label className="mt-2 block text-xs text-amber-800">
+              Detalhes da procuração/autorização
+              <Input name="powerOfAttorneyNotes" className="mt-1" placeholder="Ex.: autorização judicial, processo nº..." />
+            </label>
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button type="button" variant="outline" onClick={() => setDependentModalOpen(false)}>Cancelar</Button>
+            <Button type="submit" disabled={saving}>Salvar</Button>
+          </div>
+        </form>
+      </Modal>
+
+      <Modal open={companionModalOpen} onClose={() => setCompanionModalOpen(false)} title="Novo acompanhante">
+        <form
+          className="space-y-3"
+          onSubmit={(e) => {
+            e.preventDefault();
+            void handleCreateCompanion(new FormData(e.currentTarget));
+          }}
+        >
+          {formError && <p className="text-sm text-red-600">{formError}</p>}
+          <label className="text-xs text-slate-500">Nome<Input name="name" required className="mt-1" /></label>
+          <div className="grid grid-cols-2 gap-3">
             <label className="text-xs text-slate-500">
-              Parentesco
+              Relação
               <Select name="relationshipType" defaultValue="COMPANION" className="mt-1">
-                {Object.entries(RELATIONSHIP_LABELS).map(([value, label]) => (
-                  <option key={value} value={value}>{label}</option>
-                ))}
+                {Object.entries(RELATIONSHIP_LABELS)
+                  .filter(([value]) => value !== 'CHILD')
+                  .map(([value, label]) => (
+                    <option key={value} value={value}>{label}</option>
+                  ))}
               </Select>
             </label>
             <label className="text-xs text-slate-500">Nascimento<Input type="date" name="birthDate" className="mt-1" /></label>
@@ -1384,7 +1512,7 @@ export function CustomerDetailPage() {
           </div>
           <label className="text-xs text-slate-500">Observações<Input name="notes" className="mt-1" /></label>
           <div className="flex justify-end gap-2 pt-2">
-            <Button type="button" variant="outline" onClick={() => setDependentModalOpen(false)}>Cancelar</Button>
+            <Button type="button" variant="outline" onClick={() => setCompanionModalOpen(false)}>Cancelar</Button>
             <Button type="submit" disabled={saving}>Salvar</Button>
           </div>
         </form>

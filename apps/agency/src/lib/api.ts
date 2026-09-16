@@ -745,6 +745,8 @@ export interface CreateDependentInput {
   cpf?: string | undefined;
   nationality?: string | undefined;
   notes?: string | undefined;
+  hasPowerOfAttorney?: boolean | undefined;
+  powerOfAttorneyNotes?: string | undefined;
 }
 
 export type UpdateDependentInput = Partial<CreateDependentInput>;

@@ -31,6 +31,11 @@ export interface CustomerDependent {
   cpf?: string;
   nationality?: string;
   notes?: string;
+  /** Only meaningful for a minor (relationshipType CHILD) traveling
+   * without both legal guardians -- some routes/countries require a
+   * notarized or judicial travel authorization in that case. */
+  hasPowerOfAttorney: boolean;
+  powerOfAttorneyNotes?: string;
   createdAt: string;
   updatedAt: string;
   deletedAt?: string;

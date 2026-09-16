@@ -908,6 +908,7 @@ export function parseUpdateAddressInput(body: unknown): UpdateAddressInput {
 
 const DEPENDENT_FIELDS = [
   'name', 'relationshipType', 'birthDate', 'cpf', 'nationality', 'notes',
+  'hasPowerOfAttorney', 'powerOfAttorneyNotes',
 ] as const;
 
 export function parseCreateDependentInput(
@@ -923,10 +924,12 @@ export function parseCreateDependentInput(
     relationshipType: requireEnum(record, 'relationshipType', Object.values(RelationshipType)),
   };
 
-  for (const field of ['birthDate', 'cpf', 'nationality', 'notes'] as const) {
+  for (const field of ['birthDate', 'cpf', 'nationality', 'notes', 'powerOfAttorneyNotes'] as const) {
     const value = optionalString(record, field);
     if (value !== undefined) data[field] = value;
   }
+  const hasPowerOfAttorney = optionalBoolean(record, 'hasPowerOfAttorney');
+  if (hasPowerOfAttorney !== undefined) data.hasPowerOfAttorney = hasPowerOfAttorney;
 
   return data;
 }
@@ -947,10 +950,12 @@ export function parseUpdateDependentInput(body: unknown): UpdateDependentInput {
   );
   if (relationshipType !== undefined) data.relationshipType = relationshipType;
 
-  for (const field of ['birthDate', 'cpf', 'nationality', 'notes'] as const) {
+  for (const field of ['birthDate', 'cpf', 'nationality', 'notes', 'powerOfAttorneyNotes'] as const) {
     const value = nullableString(record, field);
     if (value !== undefined) data[field] = value;
   }
+  const hasPowerOfAttorney = optionalBoolean(record, 'hasPowerOfAttorney');
+  if (hasPowerOfAttorney !== undefined) data.hasPowerOfAttorney = hasPowerOfAttorney;
 
   return data;
 }
