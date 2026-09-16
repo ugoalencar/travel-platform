@@ -354,6 +354,18 @@ describe('database integration migrations and RLS', () => {
     assertSafeTestDatabase();
     if (isCiMode) {
       await waitForPostgresConnection();
+      // The CI postgres service is shared across the whole job -- by the
+      // time this step runs, the "Unit tests" step's own disposable-DB
+      // test files (customers.test.ts and friends) have already connected
+      // to this exact service (their own container spin-up is a no-op
+      // when CI=true) and each left behind whatever curated migration
+      // subset it applies for itself. Without this reset, "applies every
+      // ordered migration to an empty local database" runs against
+      // whatever schema the last such file left, not an empty one --
+      // found via a real CI run ("type Plan already exists" / duplicate
+      // key errors, because migrations 001+ had already been applied
+      // once by an earlier step).
+      psqlAdmin('DROP SCHEMA public CASCADE; CREATE SCHEMA public;');
     } else {
       resetDisposableDatabase();
       await waitForHealthyContainer();
