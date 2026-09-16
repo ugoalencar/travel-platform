@@ -321,6 +321,52 @@ BEGIN
 END;
 $$;
 
+-- Repository stabilization (CI-03) regression: excursion_customers.trip_id
+-- used to be a composite (agency_id, trip_id) FK with ON DELETE SET NULL,
+-- which made Postgres try to null agency_id too (NOT NULL) whenever a
+-- referenced Trip was deleted -- fixed in migration 075 to a single-column
+-- FK on trip_id alone. This proves a real trip deletion with a roster row
+-- still pointing at it now succeeds and only trip_id is cleared.
+INSERT INTO trips (id, agency_id, customer_id, name, destination, start_date, end_date, status)
+VALUES ('19000000-0000-4000-8000-000000000002', '10000000-0000-4000-8000-000000000001', '13000000-0000-4000-8000-000000000001', 'Disposable FK-test trip', 'Testland', DATE '2027-06-01', DATE '2027-06-05', 'PLANNED');
+
+INSERT INTO excursions (id, agency_id, name, destination, transport_type, currency)
+VALUES ('28000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', 'FK-test excursion', 'Testland', 'TERRESTRE', 'BRL');
+
+INSERT INTO excursion_departures (id, agency_id, excursion_id, start_date, end_date)
+VALUES ('28000000-0000-4000-8000-000000000002', '10000000-0000-4000-8000-000000000001', '28000000-0000-4000-8000-000000000001', DATE '2027-06-01', DATE '2027-06-05');
+
+INSERT INTO excursion_customers (id, agency_id, excursion_departure_id, customer_id, trip_id)
+VALUES ('28000000-0000-4000-8000-000000000003', '10000000-0000-4000-8000-000000000001', '28000000-0000-4000-8000-000000000002', '13000000-0000-4000-8000-000000000001', '19000000-0000-4000-8000-000000000002');
+
+DO $$
+BEGIN
+  BEGIN
+    DELETE FROM trips WHERE id = '19000000-0000-4000-8000-000000000002';
+    PERFORM pg_temp.local_record_result('Trip delete with excursion roster reference', 'PASS', 'PASS');
+  EXCEPTION WHEN OTHERS THEN
+    PERFORM pg_temp.local_record_result('Trip delete with excursion roster reference', 'PASS', 'FAIL', SQLSTATE || ' ' || SQLERRM);
+  END;
+END;
+$$;
+
+DO $$
+DECLARE
+  v_agency_id TEXT;
+  v_trip_id TEXT;
+BEGIN
+  SELECT agency_id, trip_id INTO v_agency_id, v_trip_id
+  FROM excursion_customers
+  WHERE id = '28000000-0000-4000-8000-000000000003';
+
+  IF v_agency_id = '10000000-0000-4000-8000-000000000001' AND v_trip_id IS NULL THEN
+    PERFORM pg_temp.local_record_result('Excursion roster survives trip delete with trip_id nulled', 'PASS', 'PASS');
+  ELSE
+    PERFORM pg_temp.local_record_result('Excursion roster survives trip delete with trip_id nulled', 'PASS', 'FAIL', 'agency_id=' || COALESCE(v_agency_id, 'NULL') || ' trip_id=' || COALESCE(v_trip_id, 'NULL'));
+  END IF;
+END;
+$$;
+
 SELECT test_name, expected, result, detail
 FROM local_test_results
 ORDER BY test_name;

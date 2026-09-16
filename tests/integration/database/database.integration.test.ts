@@ -31,6 +31,7 @@ const localPort = process.env.DATABASE_TEST_PORT ?? (isCiMode ? '5432' : '0');
 const expectedAllTables = [
   'agencies',
   'agency_entitlements',
+  'agent_area_grants',
   'air_services',
   'assets',
   'audit_logs',
@@ -44,17 +45,27 @@ const expectedAllTables = [
   'booking_passengers',
   'bookings',
   'brokers',
+  'campaign_attributions',
   'campaign_audit',
   'campaign_offers',
+  'campaign_partner_stubs',
+  'campaign_placements',
+  'campaign_products',
   'campaigns',
   'captcha_verifications',
   'cash_transactions',
   'commercial_opportunities',
+  'commercial_partners',
   'commercial_tasks',
   'commission_entries',
   'commission_plans',
   'commissions',
   'connector_actions',
+  'contract_documents',
+  'contract_parties',
+  'contract_signature_evidence',
+  'contract_signature_links',
+  'contract_templates',
   'cost_centers',
   'coupon_grants',
   'coupon_redemptions',
@@ -66,6 +77,8 @@ const expectedAllTables = [
   'customer_dependents',
   'customer_documents',
   'customer_interactions',
+  'customer_password_reset_tokens',
+  'customer_sessions',
   'customers',
   'departments',
   'document_attachments',
@@ -80,11 +93,18 @@ const expectedAllTables = [
   'enrollment_submissions',
   'entitlement_changes',
   'entitlements',
+  'excursion_customers',
+  'excursion_departures',
+  'excursions',
   'expenses',
   'external_offer_captures',
   'feature_flag_audit',
   'feature_flags',
   'financial_categories',
+  'insurance_documents',
+  'insurance_policies',
+  'insurance_products',
+  'insurance_travelers',
   'invitations',
   'land_services',
   'landing_page_config',
@@ -105,11 +125,20 @@ const expectedAllTables = [
   'operational_costs',
   'operational_staff',
   'operational_staff_capabilities',
+  'partner_attributions',
+  'partner_campaigns',
+  'partner_commissions',
+  'partner_contracts',
+  'partner_links',
+  'password_reset_tokens',
   'payables',
   'payment_allocations',
   'payments',
   'payroll_entries',
   'permission_restrictions',
+  'pescador_search_results',
+  'pescador_searches',
+  'pescador_sources',
   'pipeline_access',
   'pipeline_stages',
   'pipelines',
@@ -117,12 +146,14 @@ const expectedAllTables = [
   'platform_audit_logs',
   'platform_coupon_redemptions',
   'platform_coupons',
+  'platform_sessions',
   'platform_settings',
   'platform_user_audit',
   'platform_users',
   'post_trip_checklist',
   'product_assets',
   'promotional_campaigns',
+  'proposal_optional_items',
   'proposals',
   'publications',
   'receivables',
@@ -130,6 +161,7 @@ const expectedAllTables = [
   'revenues',
   'route_points',
   'routes',
+  'sale_items',
   'sales',
   'sales_demos',
   'sales_opportunities',
@@ -148,13 +180,17 @@ const expectedAllTables = [
   'travel_products',
   'travel_requirements',
   'trip_occurrences',
+  'trip_photos',
   'trips',
+  'upsell_rules',
+  'upsell_suggestions',
   'users',
   'wishes',
 ];
 const expectedTenantTables = [
   'agencies',
   'agency_entitlements',
+  'agent_area_grants',
   'air_services',
   'assets',
   'audit_logs',
@@ -164,16 +200,26 @@ const expectedTenantTables = [
   'booking_passengers',
   'bookings',
   'brokers',
+  'campaign_attributions',
   'campaign_offers',
+  'campaign_partner_stubs',
+  'campaign_placements',
+  'campaign_products',
   'campaigns',
   'captcha_verifications',
   'cash_transactions',
   'commercial_opportunities',
+  'commercial_partners',
   'commercial_tasks',
   'commission_entries',
   'commission_plans',
   'commissions',
   'connector_actions',
+  'contract_documents',
+  'contract_parties',
+  'contract_signature_evidence',
+  'contract_signature_links',
+  'contract_templates',
   'cost_centers',
   'coupon_grants',
   'coupon_redemptions',
@@ -183,6 +229,8 @@ const expectedTenantTables = [
   'customer_dependents',
   'customer_documents',
   'customer_interactions',
+  'customer_password_reset_tokens',
+  'customer_sessions',
   'customers',
   'departments',
   'document_attachments',
@@ -195,9 +243,16 @@ const expectedTenantTables = [
   'enrollment_documents',
   'enrollment_links',
   'enrollment_submissions',
+  'excursion_customers',
+  'excursion_departures',
+  'excursions',
   'expenses',
   'external_offer_captures',
   'financial_categories',
+  'insurance_documents',
+  'insurance_policies',
+  'insurance_products',
+  'insurance_travelers',
   'invitations',
   'land_services',
   'mfa_recovery_codes',
@@ -212,16 +267,26 @@ const expectedTenantTables = [
   'operational_costs',
   'operational_staff',
   'operational_staff_capabilities',
+  'partner_attributions',
+  'partner_campaigns',
+  'partner_commissions',
+  'partner_contracts',
+  'partner_links',
+  'password_reset_tokens',
   'payables',
   'payment_allocations',
   'payments',
   'payroll_entries',
   'permission_restrictions',
+  'pescador_search_results',
+  'pescador_searches',
+  'pescador_sources',
   'pipeline_access',
   'pipeline_stages',
   'pipelines',
   'post_trip_checklist',
   'product_assets',
+  'proposal_optional_items',
   'proposals',
   'publications',
   'receivables',
@@ -229,6 +294,7 @@ const expectedTenantTables = [
   'revenues',
   'route_points',
   'routes',
+  'sale_items',
   'sales',
   'scheduled_departures',
   'supplier_category_links',
@@ -238,19 +304,45 @@ const expectedTenantTables = [
   'travel_products',
   'travel_requirements',
   'trip_occurrences',
+  'trip_photos',
   'trips',
+  'upsell_rules',
+  'upsell_suggestions',
   'users',
   'wishes',
 ];
 const readInsertOnlyTables = [
   'audit_logs',
-  'auth_sessions',
+  'campaign_attributions',
   'captcha_verifications',
   'cash_transactions',
+  'contract_signature_evidence',
   'document_audit_events',
   'mfa_totp_attempts',
+  'platform_user_audit',
 ];
-const noUpdateTables = ['permission_restrictions'];
+// SELECT/INSERT/UPDATE but no DELETE -- session and reset-token tables:
+// a session/token is revoked or marked used via UPDATE, never physically
+// deleted by application code. auth_sessions was previously (incorrectly)
+// listed in readInsertOnlyTables above -- its real grant has always
+// included UPDATE (needed to mark a session revoked), confirmed against
+// the actual migrated grants rather than assumed.
+const noDeleteTables = [
+  'auth_sessions',
+  'customer_password_reset_tokens',
+  'customer_sessions',
+  'password_reset_tokens',
+  'platform_sessions',
+  'platform_users',
+];
+const noUpdateTables = ['agent_area_grants', 'permission_restrictions'];
+// Tables the runtime role is granted on but that are not tenant-scoped
+// (no agency_id, no RLS) -- platform-admin-only tables, matching their
+// own migrations' documented model. Not part of expectedTenantTables
+// (which backs the FORCE RLS check), but still counted here so the
+// grant-count assertion below covers every granted table, not just the
+// tenant ones.
+const nonTenantGrantedTables = ['platform_sessions', 'platform_user_audit', 'platform_users'];
 
 interface CommandResult {
   stdout: string;
@@ -304,7 +396,7 @@ describe('database integration migrations and RLS', () => {
     expect(result.stdout).toContain('Sale Agency A -> Proposal B');
     expect(result.stdout).toContain('Trip Agency A -> Sale B');
     expect(result.stdout).toContain('Proposal snapshot after Offer change');
-    expect(result.stdout).toContain('(23 rows)');
+    expect(result.stdout).toContain('(25 rows)');
     expect(result.stderr).not.toContain('ERROR');
   });
 
@@ -416,11 +508,19 @@ describe('database integration migrations and RLS', () => {
       ORDER BY routine_name;
     `);
 
+    // Every table the runtime role is actually granted on -- the tenant
+    // (RLS-backed) tables plus the handful of platform-only tables that
+    // are granted but not tenant-scoped (nonTenantGrantedTables above).
+    const allGrantedTablesCount = expectedTenantTables.length + nonTenantGrantedTables.length;
+    const fullCrudTablesCount =
+      allGrantedTablesCount - readInsertOnlyTables.length - noDeleteTables.length - noUpdateTables.length;
+
     expect(tableGrantCount).toBe(
       String(
-        (expectedTenantTables.length - readInsertOnlyTables.length) * 4 +
-          readInsertOnlyTables.length * 2 -
-          noUpdateTables.length,
+        fullCrudTablesCount * 4 +
+          readInsertOnlyTables.length * 2 +
+          noDeleteTables.length * 3 +
+          noUpdateTables.length * 3,
       ),
     );
     expect(
@@ -433,6 +533,18 @@ describe('database integration migrations and RLS', () => {
         ORDER BY table_name, privilege_type;
       `),
     ).toEqual(readInsertOnlyTables.flatMap((table) => [`${table}:INSERT`, `${table}:SELECT`]));
+    expect(
+      queryAdminLines(`
+        SELECT table_name || ':' || privilege_type
+        FROM information_schema.role_table_grants
+        WHERE table_schema = 'public'
+          AND grantee = '${runtimeUser}'
+          AND table_name = ANY(ARRAY[${noDeleteTables.map((table) => `'${table}'`).join(', ')}])
+        ORDER BY table_name, privilege_type;
+      `),
+    ).toEqual(
+      noDeleteTables.flatMap((table) => [`${table}:INSERT`, `${table}:SELECT`, `${table}:UPDATE`]),
+    );
     expect(
       queryAdminLines(`
         SELECT table_name || ':' || privilege_type
