@@ -4,6 +4,8 @@ import { PageHeader } from '../components/layout/PageHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { StatCard } from '../components/ui/stat-card';
 import { api } from '../lib/api';
+import { getTripStatusLabel } from '../lib/statusLabels';
+import type { TripStatus } from '../types/trip';
 
 interface SalesByPeriod {
   period: string;
@@ -332,7 +334,7 @@ export function ReportsPage() {
             <ul className="space-y-2">
               {tripsData.map((item) => (
                 <li key={item.status} className="flex items-center justify-between text-sm">
-                  <span className="text-slate-700">{item.status}</span>
+                  <span className="text-slate-700">{getTripStatusLabel(item.status as TripStatus)}</span>
                   <span className="font-medium text-slate-900">{item.count}</span>
                 </li>
               ))}

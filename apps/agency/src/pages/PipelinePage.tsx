@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Plus } from 'lucide-react';
+import { ArrowRight, Plus } from 'lucide-react';
 import { PageHeader } from '../components/layout/PageHeader';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -47,6 +47,27 @@ const STAGE_COLOR_CLASSES: Record<PipelineStageColor, string> = {
   PURPLE: 'border-purple-300 bg-purple-50',
 };
 
+// Stage names come from the backend's CommercialStage enum (English,
+// fixed at pipeline-seed time -- see 009_configurable_pipelines.sql /
+// agency-signup.ts) -- translated for display only, never sent back to
+// the API. A custom stage an admin renames later (no UI for that yet)
+// won't match this map and just falls back to showing its own name.
+const STAGE_NAME_PT: Record<string, string> = {
+  PROSPECTING: 'Prospecção',
+  INTEREST: 'Interesse',
+  QUOTE: 'Orçamento',
+  PROPOSAL_SENT: 'Proposta Enviada',
+  WAITING_CUSTOMER: 'Aguardando Cliente',
+  NEGOTIATION: 'Negociação',
+  WON: 'Ganho',
+  POST_SALE: 'Pós-venda',
+  LOST: 'Perdido',
+};
+
+function stageLabel(name: string): string {
+  return STAGE_NAME_PT[name] ?? name;
+}
+
 const emptyNewOpportunity = { customerId: '', destination: '', expectedValue: '' };
 
 export function PipelinePage() {
@@ -56,6 +77,7 @@ export function PipelinePage() {
   const [formError, setFormError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [movingId, setMovingId] = useState<string | null>(null);
+  const [dragOverStageId, setDragOverStageId] = useState<string | null>(null);
 
   const load = useCallback(() => {
     setState({ status: 'loading' });
@@ -127,6 +149,7 @@ export function PipelinePage() {
     const list = byStage.get(opp.stageId);
     if (list) list.push(opp);
   }
+  const stageIndex = new Map(stages.map((s, i) => [s.id, i]));
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
@@ -159,6 +182,13 @@ export function PipelinePage() {
       .finally(() => setMovingId(null));
   };
 
+  const handleAdvance = (opp: CommercialOpportunity) => {
+    const index = stageIndex.get(opp.stageId) ?? -1;
+    const next = stages[index + 1];
+    if (!next) return;
+    handleMove(opp.id, next.id);
+  };
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -188,17 +218,41 @@ export function PipelinePage() {
         <div className="flex gap-4 overflow-x-auto pb-4">
           {stages.map((stage) => {
             const stageOpportunities = byStage.get(stage.id) ?? [];
+            const isLastStage = (stageIndex.get(stage.id) ?? -1) === stages.length - 1;
             return (
-              <div key={stage.id} className="flex w-72 shrink-0 flex-col gap-3">
+              <div
+                key={stage.id}
+                className={`flex w-72 shrink-0 flex-col gap-3 rounded-lg p-1 transition-colors ${
+                  dragOverStageId === stage.id ? 'bg-slate-200/60' : ''
+                }`}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setDragOverStageId(stage.id);
+                }}
+                onDragLeave={() => setDragOverStageId((current) => (current === stage.id ? null : current))}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setDragOverStageId(null);
+                  const opportunityId = e.dataTransfer.getData('text/plain');
+                  if (opportunityId) handleMove(opportunityId, stage.id);
+                }}
+              >
                 <div className="flex items-center justify-between px-1">
-                  <h3 className="text-sm font-semibold text-slate-700">{stage.name}</h3>
+                  <h3 className="text-sm font-semibold text-slate-700">{stageLabel(stage.name)}</h3>
                   <span className="text-xs font-medium text-slate-400">{stageOpportunities.length}</span>
                 </div>
                 <div className="flex flex-col gap-2">
                   {stageOpportunities.map((opp) => (
                     <div
                       key={opp.id}
-                      className={`rounded-lg border p-3 shadow-sm ${STAGE_COLOR_CLASSES[stage.colorKey]}`}
+                      draggable
+                      onDragStart={(e) => {
+                        e.dataTransfer.setData('text/plain', opp.id);
+                        e.dataTransfer.effectAllowed = 'move';
+                      }}
+                      className={`cursor-grab rounded-lg border p-3 shadow-sm active:cursor-grabbing ${STAGE_COLOR_CLASSES[stage.colorKey]} ${
+                        movingId === opp.id ? 'opacity-50' : ''
+                      }`}
                     >
                       <p className="text-sm font-semibold text-slate-900">{customerName(opp.customerId)}</p>
                       {opp.destination ? (
@@ -212,16 +266,31 @@ export function PipelinePage() {
                           Próxima ação: {formatDateBR(opp.nextActionAt, { includeTime: true })}
                         </p>
                       ) : null}
-                      <Select
-                        className="mt-2 h-8 text-xs"
-                        value={stage.id}
-                        disabled={movingId === opp.id}
-                        onChange={(e) => handleMove(opp.id, e.target.value)}
-                      >
-                        {stages.map((s) => (
-                          <option key={s.id} value={s.id}>{s.name}</option>
-                        ))}
-                      </Select>
+                      <div className="mt-2 flex items-center gap-2">
+                        <Select
+                          className="h-8 flex-1 text-xs"
+                          value={stage.id}
+                          disabled={movingId === opp.id}
+                          onChange={(e) => handleMove(opp.id, e.target.value)}
+                        >
+                          {stages.map((s) => (
+                            <option key={s.id} value={s.id}>{stageLabel(s.name)}</option>
+                          ))}
+                        </Select>
+                        {!isLastStage ? (
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            className="h-8 w-8 shrink-0 p-0"
+                            disabled={movingId === opp.id}
+                            title="Avançar para a próxima etapa"
+                            onClick={() => handleAdvance(opp)}
+                          >
+                            <ArrowRight className="h-3.5 w-3.5" />
+                          </Button>
+                        ) : null}
+                      </div>
                     </div>
                   ))}
                 </div>
