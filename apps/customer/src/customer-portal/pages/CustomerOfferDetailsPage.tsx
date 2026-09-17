@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { ApiError, getAvailableOffer } from '../../lib/customerApi';
+import { ApiError, getAvailableOffer, recordOfferInterest } from '../../lib/customerApi';
 import type { Offer } from '../../types/offer';
 import { BackLink } from '../BackLink';
 import { OfferImagePlaceholder } from './CustomerOffersPage';
@@ -50,9 +50,22 @@ export function CustomerOfferDetailsPage() {
   );
 }
 
+type InterestState = 'idle' | 'saving' | 'sent' | 'error';
+
 function OfferDetails({ offer }: { offer: Offer }) {
+  const [interest, setInterest] = useState<InterestState>('idle');
   const validFromDate = offer.validFrom ? new Date(offer.validFrom) : null;
   const validUntilDate = offer.validUntil ? new Date(offer.validUntil) : null;
+
+  async function handleInterest() {
+    setInterest('saving');
+    try {
+      await recordOfferInterest(offer.id);
+      setInterest('sent');
+    } catch {
+      setInterest('error');
+    }
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -60,14 +73,33 @@ function OfferDetails({ offer }: { offer: Offer }) {
         <OfferImagePlaceholder name={offer.name} className="h-48 rounded-xl text-5xl" />
       </div>
 
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div className="flex-1">
           <h1 className="text-3xl font-bold tracking-tight text-slate-900">{offer.name}</h1>
           <p className="mt-2 text-3xl font-bold text-purple-700">
             {offer.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
           </p>
         </div>
+        <button
+          type="button"
+          onClick={() => void handleInterest()}
+          disabled={interest === 'saving' || interest === 'sent'}
+          className="shrink-0 rounded-full bg-[#f97362] px-6 py-3 text-sm font-bold text-white shadow-md hover:bg-[#e85f4d] disabled:cursor-not-allowed disabled:opacity-70 transition-colors"
+        >
+          {interest === 'sent' ? '✓ Interesse enviado!' : interest === 'saving' ? 'Enviando...' : '❤️ Tenho interesse'}
+        </button>
       </div>
+
+      {interest === 'sent' && (
+        <p className="text-sm font-medium text-green-700">
+          Sua agência foi avisada do seu interesse e vai entrar em contato em breve.
+        </p>
+      )}
+      {interest === 'error' && (
+        <p className="text-sm font-medium text-red-700">
+          Não foi possível registrar seu interesse agora. Tente novamente.
+        </p>
+      )}
 
       {offer.description && (
         <div className="rounded-xl border-2 border-slate-200 bg-white p-5 shadow-sm">
@@ -95,7 +127,6 @@ function OfferDetails({ offer }: { offer: Offer }) {
           </div>
         </div>
       )}
-      {/* No purchase/checkout flow yet -- this vertical is informational only. */}
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ApiError, listMyDocuments } from '../../lib/customerApi';
 import type { CustomerDocumentView } from '../../types/customer-portal';
+import { Tabs } from '../Tabs';
 
 type LoadState =
   | { status: 'loading' }
@@ -87,44 +88,78 @@ export function CustomerDocumentsPage() {
       </div>
 
       {state.status === 'success' && state.data.length > 0 && (
-        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {state.data.map((doc) => {
-            const verification = VERIFICATION_COPY[doc.verificationStatus] ?? {
-              label: doc.verificationStatus,
-              className: 'bg-slate-100 text-slate-700',
-            };
-            return (
-              <li
-                key={doc.id}
-                className="rounded-xl border-2 border-orange-100 bg-white p-5 shadow-sm"
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <span className="text-2xl" aria-hidden="true">
-                    {DOCUMENT_TYPE_ICON[doc.documentType] ?? '📄'}
-                  </span>
-                  <span className={`rounded-full px-3 py-1 text-xs font-semibold ${verification.className}`}>
-                    {verification.label}
-                  </span>
-                </div>
-                <p className="mt-3 font-semibold text-slate-900">
-                  {DOCUMENT_TYPE_LABELS[doc.documentType] ?? doc.documentType}
-                </p>
-                <p className="text-sm text-slate-600">Número: {doc.documentNumber}</p>
-                {doc.expiryDate && (
-                  <p className="text-sm text-slate-600">
-                    Validade: {new Date(doc.expiryDate).toLocaleDateString('pt-BR')}
-                  </p>
-                )}
-                {doc.attachments.length > 0 && (
-                  <p className="mt-2 text-xs text-slate-500">
-                    {doc.attachments.length} arquivo(s) anexado(s)
-                  </p>
-                )}
-              </li>
-            );
-          })}
-        </ul>
+        <DocumentsTabs documents={state.data} />
       )}
     </div>
+  );
+}
+
+const DOCUMENT_TABS = [
+  { key: 'all', label: 'Todos' },
+  { key: 'available', label: 'Disponíveis' },
+  { key: 'pending', label: 'Pendentes' },
+] as const;
+
+function DocumentsTabs({ documents }: { documents: CustomerDocumentView[] }) {
+  return (
+    <Tabs tabs={DOCUMENT_TABS}>
+      {(activeKey) => {
+        const filtered = documents.filter((doc) => {
+          if (activeKey === 'available') return doc.verificationStatus === 'VERIFIED';
+          if (activeKey === 'pending') {
+            return doc.verificationStatus === 'PENDING' || doc.verificationStatus === 'MISMATCH';
+          }
+          return true;
+        });
+
+        if (filtered.length === 0) {
+          return (
+            <p className="text-sm text-slate-500">
+              Nenhum documento nesta categoria.
+            </p>
+          );
+        }
+
+        return (
+          <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {filtered.map((doc) => {
+              const verification = VERIFICATION_COPY[doc.verificationStatus] ?? {
+                label: doc.verificationStatus,
+                className: 'bg-slate-100 text-slate-700',
+              };
+              return (
+                <li
+                  key={doc.id}
+                  className="rounded-xl border-2 border-orange-100 bg-white p-5 shadow-sm"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="text-2xl" aria-hidden="true">
+                      {DOCUMENT_TYPE_ICON[doc.documentType] ?? '📄'}
+                    </span>
+                    <span className={`rounded-full px-3 py-1 text-xs font-semibold ${verification.className}`}>
+                      {verification.label}
+                    </span>
+                  </div>
+                  <p className="mt-3 font-semibold text-slate-900">
+                    {DOCUMENT_TYPE_LABELS[doc.documentType] ?? doc.documentType}
+                  </p>
+                  <p className="text-sm text-slate-600">Número: {doc.documentNumber}</p>
+                  {doc.expiryDate && (
+                    <p className="text-sm text-slate-600">
+                      Validade: {new Date(doc.expiryDate).toLocaleDateString('pt-BR')}
+                    </p>
+                  )}
+                  {doc.attachments.length > 0 && (
+                    <p className="mt-2 text-xs text-slate-500">
+                      {doc.attachments.length} arquivo(s) anexado(s)
+                    </p>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        );
+      }}
+    </Tabs>
   );
 }

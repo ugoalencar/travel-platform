@@ -16,6 +16,7 @@ import type {
   CustomerProfile,
   CustomerProposalView,
 } from '../types/customer-portal';
+import type { CustomerTravelRequirementView } from '../types/travelRequirement';
 import { ApiError } from './api';
 import { clearSession, getSessionToken } from './customerSession';
 
@@ -164,6 +165,22 @@ export async function listMyTripLandServices(tripId: string): Promise<CustomerLa
     `/customer-api/trips/${encodeURIComponent(tripId)}/land-services`,
   );
   return data.services;
+}
+
+export async function listMyTripRequirements(
+  tripId: string,
+): Promise<CustomerTravelRequirementView[]> {
+  const data = await request<{ requirements: CustomerTravelRequirementView[] }>(
+    `/customer-api/trips/${encodeURIComponent(tripId)}/requirements`,
+  );
+  return data.requirements;
+}
+
+export async function recordOfferInterest(offerId: string): Promise<void> {
+  await request<{ recorded: boolean }>(
+    `/customer-api/offers/${encodeURIComponent(offerId)}/interest`,
+    { method: 'POST', body: '{}' },
+  );
 }
 
 export async function listMyDocuments(): Promise<CustomerDocumentView[]> {

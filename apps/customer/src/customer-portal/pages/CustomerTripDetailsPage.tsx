@@ -4,9 +4,12 @@ import {
   ApiError,
   getMyAgencyContact,
   getMyTrip,
+  listMyDocuments,
+  listMyPaymentSchedule,
   listMyTripAirSegments,
   listMyTripLandServices,
   listMyTripPhotos,
+  listMyTripRequirements,
   loadMyTripPhotoBlobUrl,
   type CustomerTripPhoto,
 } from '../../lib/customerApi';
@@ -14,10 +17,14 @@ import type { Trip } from '../../types/trip';
 import type {
   CustomerAgencyContact,
   CustomerAirSegmentView,
+  CustomerDocumentView,
   CustomerLandServiceView,
+  CustomerPaymentScheduleItem,
 } from '../../types/customer-portal';
+import type { CustomerTravelRequirementView } from '../../types/travelRequirement';
 import { tripStatusLabel } from '../../lib/statusLabels';
 import { BackLink } from '../BackLink';
+import { Tabs } from '../Tabs';
 import { Timeline, type TimelineStep } from '../Timeline';
 import { destinationEmoji, destinationGradient } from '../destinationArt';
 
@@ -65,17 +72,43 @@ export function CustomerTripDetailsPage() {
         <>
           <TripSummary trip={state.trip} />
           <TripPhotoCarousel tripId={state.trip.id} />
-          <TripItinerary trip={state.trip} />
-          <div id="aereo-terrestre">
-            <TripAirLandSections tripId={state.trip.id} />
-          </div>
-          <TripPassengers />
-          <TripAgencyContact />
+          <Tabs tabs={TRIP_TABS}>
+            {(activeKey) => {
+              if (activeKey === 'itinerary') {
+                return (
+                  <div className="flex flex-col gap-4">
+                    <TripItinerary trip={state.trip} />
+                    <TripAirLandSections tripId={state.trip.id} />
+                  </div>
+                );
+              }
+              if (activeKey === 'documents') {
+                return <TripDocuments />;
+              }
+              if (activeKey === 'payments') {
+                return <TripPayments />;
+              }
+              return (
+                <div className="flex flex-col gap-4">
+                  <TripNextSteps tripId={state.trip.id} />
+                  <TripPassengers />
+                  <TripAgencyContact />
+                </div>
+              );
+            }}
+          </Tabs>
         </>
       )}
     </div>
   );
 }
+
+const TRIP_TABS = [
+  { key: 'overview', label: 'Visão geral' },
+  { key: 'itinerary', label: 'Itinerário' },
+  { key: 'documents', label: 'Documentos' },
+  { key: 'payments', label: 'Pagamentos' },
+] as const;
 
 // --- Resumo -----------------------------------------------------------
 
@@ -385,6 +418,167 @@ function TripAirLandSections({ tripId }: { tripId: string }) {
         )}
       </div>
     </div>
+  );
+}
+
+// --- Próximos passos -----------------------------------------------------
+// Real requirements checklist (travel_requirements), scoped to this trip.
+// Renders nothing when the trip has no requirements registered yet,
+// rather than a fabricated generic checklist.
+
+const REQUIREMENT_LABELS: Record<CustomerTravelRequirementView['type'], string> = {
+  PASSAPORTE_VALIDO: 'Passaporte válido',
+  VISTO: 'Visto',
+  VACINACAO: 'Vacinação',
+  SEGURO: 'Seguro viagem',
+  AUTORIZACAO: 'Autorização de viagem',
+  OUTROS: 'Outro requisito',
+};
+
+function TripNextSteps({ tripId }: { tripId: string }) {
+  const [requirements, setRequirements] = useState<CustomerTravelRequirementView[] | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    listMyTripRequirements(tripId)
+      .then((list) => {
+        if (!cancelled) setRequirements(list);
+      })
+      .catch(() => {
+        if (!cancelled) setRequirements([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [tripId]);
+
+  if (requirements === null || requirements.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="rounded-xl border-2 border-slate-200 bg-white p-5 shadow-sm">
+      <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-600">
+        ✅ Próximos passos
+      </h3>
+      <ul className="flex flex-col gap-3">
+        {requirements.map((req) => (
+          <li key={req.id} className="flex items-start gap-3">
+            <span
+              className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs ${
+                req.fulfilled ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
+              }`}
+              aria-hidden="true"
+            >
+              {req.fulfilled ? '✓' : '!'}
+            </span>
+            <div>
+              <p className="text-sm font-medium text-slate-900">
+                {REQUIREMENT_LABELS[req.type] ?? req.type}
+              </p>
+              <p className="text-xs text-slate-500">
+                {req.fulfilled ? 'Concluído' : req.required ? 'Pendente' : 'Opcional, ainda pendente'}
+                {req.expirationDate &&
+                  ` · válido até ${new Date(req.expirationDate).toLocaleDateString('pt-BR')}`}
+              </p>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+// --- Documentos (tab) -----------------------------------------------------
+// Reuses the same real customer-wide document list shown on the
+// standalone Documentos page -- Document has no trip_id relation in the
+// schema, so this intentionally does not fabricate trip-only filtering.
+
+function TripDocuments() {
+  const [documents, setDocuments] = useState<CustomerDocumentView[] | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    listMyDocuments()
+      .then((list) => {
+        if (!cancelled) setDocuments(list);
+      })
+      .catch(() => {
+        if (!cancelled) setDocuments([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (documents === null) {
+    return <p className="text-sm text-slate-500">Carregando...</p>;
+  }
+  if (documents.length === 0) {
+    return <p className="text-sm text-slate-500">Nenhum documento cadastrado ainda.</p>;
+  }
+
+  return (
+    <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      {documents.map((doc) => (
+        <li key={doc.id} className="rounded-lg border border-slate-200 p-3 text-sm">
+          <p className="font-semibold text-slate-900">{doc.documentType}</p>
+          <p className="text-slate-600">Número: {doc.documentNumber}</p>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+// --- Pagamentos (tab) ------------------------------------------------------
+// Reuses the same real customer-wide payment schedule shown on the
+// standalone Pagamentos page -- receivables have no trip_id relation
+// either, so this shows the customer's full real schedule, not a
+// fabricated trip-only subset.
+
+function TripPayments() {
+  const [items, setItems] = useState<CustomerPaymentScheduleItem[] | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    listMyPaymentSchedule()
+      .then((list) => {
+        if (!cancelled) setItems(list);
+      })
+      .catch(() => {
+        if (!cancelled) setItems([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (items === null) {
+    return <p className="text-sm text-slate-500">Carregando...</p>;
+  }
+  if (items.length === 0) {
+    return <p className="text-sm text-slate-500">Nenhuma parcela cadastrada.</p>;
+  }
+
+  return (
+    <ul className="flex flex-col gap-3">
+      {items.map((item) => (
+        <li
+          key={item.id}
+          className="flex items-center justify-between rounded-lg border border-slate-200 p-3 text-sm"
+        >
+          <div>
+            <p className="font-semibold text-slate-900">{item.description}</p>
+            <p className="text-slate-600">
+              Vence em {new Date(item.dueAt).toLocaleDateString('pt-BR')}
+            </p>
+          </div>
+          <p className="font-bold text-slate-900">
+            {item.amountRemaining.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+          </p>
+        </li>
+      ))}
+    </ul>
   );
 }
 

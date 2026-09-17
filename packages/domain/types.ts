@@ -1621,6 +1621,7 @@ export enum EngagementType {
   FORM = 'FORM',
   QR = 'QR',
   COUPON_REQUEST = 'COUPON_REQUEST',
+  INTEREST = 'INTEREST',
 }
 
 export interface Engagement {

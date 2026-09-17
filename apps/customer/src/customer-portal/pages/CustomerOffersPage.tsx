@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ApiError, listAvailableOffers } from '../../lib/customerApi';
 import type { Offer } from '../../types/offer';
+import { destinationEmoji, destinationGradient } from '../destinationArt';
 
 type LoadState =
   | { status: 'loading' }
@@ -52,24 +53,31 @@ export function CustomerOffersPage() {
             <Link
               key={offer.id}
               to={`/customer-portal/offers/${offer.id}`}
-              className="flex flex-col gap-3 rounded-xl border-2 border-slate-200 bg-white p-4 shadow-md hover:shadow-lg hover:border-purple-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-600 transition-all"
+              className="flex flex-col gap-3 overflow-hidden rounded-xl border-2 border-slate-200 bg-white shadow-md hover:shadow-lg hover:border-purple-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-600 transition-all"
             >
-              <OfferImagePlaceholder name={offer.name} />
-              <div className="flex-1 flex flex-col gap-2">
-                <p className="font-bold text-lg text-slate-900">{offer.name}</p>
-                {offer.description && (
-                  <p className="line-clamp-2 text-sm text-slate-600">{offer.description}</p>
-                )}
+              <div
+                className={`flex h-32 items-center justify-center bg-gradient-to-br ${destinationGradient(offer.name)} text-4xl`}
+                aria-hidden="true"
+              >
+                {destinationEmoji(offer.name)}
               </div>
-              <div className="border-t border-slate-100 pt-3">
-                <p className="text-xl font-bold text-purple-700">
-                  {offer.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                </p>
-                {offer.validUntil && (
-                  <p className="text-xs text-slate-500 mt-2">
-                    <span aria-hidden="true">⏰</span> Válida até {new Date(offer.validUntil).toLocaleDateString('pt-BR')}
+              <div className="flex flex-1 flex-col gap-3 px-4 pb-4">
+                <div className="flex-1 flex flex-col gap-2">
+                  <p className="font-bold text-lg text-slate-900">{offer.name}</p>
+                  {offer.description && (
+                    <p className="line-clamp-2 text-sm text-slate-600">{offer.description}</p>
+                  )}
+                </div>
+                <div className="border-t border-slate-100 pt-3">
+                  <p className="text-xl font-bold text-purple-700">
+                    {offer.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                   </p>
-                )}
+                  {offer.validUntil && (
+                    <p className="text-xs text-slate-500 mt-2">
+                      <span aria-hidden="true">⏰</span> Válida até {new Date(offer.validUntil).toLocaleDateString('pt-BR')}
+                    </p>
+                  )}
+                </div>
               </div>
             </Link>
           ))}

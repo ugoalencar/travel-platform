@@ -24,8 +24,10 @@ import {
   listMyPaymentSchedule,
   listMyProposals,
   listMyTrips,
+  listMyTravelRequirements,
   listMyTripAirServices,
   listMyTripLandServices,
+  recordMyOfferInterest,
 } from '../customer-portal';
 import { getTripPhotoById, listTripPhotos } from '../trip-photos';
 import { readFile as readStoredFile } from '../file-storage';
@@ -92,6 +94,16 @@ export function registerCustomerPortalRoutes(
     }
   );
 
+  app.post<{ Params: { id: string } }>(
+    '/customer-api/offers/:id/interest',
+    { preHandler: customerHooks },
+    async (request, reply) => {
+      await recordMyOfferInterest(database, request.params.id);
+      reply.code(201);
+      return { recorded: true };
+    }
+  );
+
   app.get('/customer-api/proposals', { preHandler: customerHooks }, async () => {
     const proposals = await listMyProposals(database);
     return { proposals };
@@ -141,6 +153,19 @@ export function registerCustomerPortalRoutes(
     async (request) => {
       const services = await listMyTripLandServices(database, request.params.id);
       return { services };
+    }
+  );
+
+  app.get<{ Params: { id: string } }>(
+    '/customer-api/trips/:id/requirements',
+    { preHandler: customerHooks },
+    async (request) => {
+      const trip = await getMyTripById(database, request.params.id);
+      if (!trip) {
+        throw new NotFoundError('Trip not found');
+      }
+      const requirements = await listMyTravelRequirements(database, request.params.id);
+      return { requirements };
     }
   );
 

@@ -14,10 +14,14 @@ import type {
   Offer,
   Proposal,
   Trip,
+  TravelRequirement,
 } from '../../../packages/domain/types';
+import { EngagementType } from '../../../packages/domain/types';
 import { getAgencyId, getCustomerId } from '../../../packages/domain/tenant-context';
 import type { ValidateCustomerAgencyAccess } from '../../../packages/domain/tenant-context';
 import type { DatabaseRuntime } from './database';
+import { insertEngagement } from './engagements';
+import { NotFoundError } from './errors';
 
 // ============================================================
 // Cross-tenant / cross-customer validator (production + dev use this
@@ -303,6 +307,100 @@ function toOffer(row: OfferRow): Offer {
     ...(row.valid_from !== null ? { validFrom: new Date(row.valid_from) } : {}),
     ...(row.valid_until !== null ? { validUntil: new Date(row.valid_until) } : {}),
   };
+}
+
+// ============================================================
+// Travel requirements -- "Próximos passos" checklist for a trip. Reuses
+// the existing travel_requirements table (Customer 360). row.notes is
+// deliberately NEVER copied into the returned shape below, same
+// convention as toTrip() above -- it is internal agency-only free text.
+// ============================================================
+interface TravelRequirementRow {
+  id: string;
+  agency_id: string;
+  customer_id: string;
+  traveler_type: TravelRequirement['travelerType'];
+  dependent_id: string | null;
+  trip_id: string | null;
+  destination: string | null;
+  type: TravelRequirement['type'];
+  required: boolean;
+  fulfilled: boolean;
+  document_id: string | null;
+  expiration_date: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+const TRAVEL_REQUIREMENT_COLUMNS = `id, agency_id, customer_id, traveler_type, dependent_id,
+              trip_id, destination, type, required, fulfilled, document_id, expiration_date,
+              created_at, updated_at`;
+
+export async function listMyTravelRequirements(
+  database: DatabaseRuntime,
+  tripId?: string,
+): Promise<TravelRequirement[]> {
+  const agencyId = getAgencyId();
+  const customerId = getCustomerId();
+
+  return database.withTenantTransaction(async (client) => {
+    const result = await client.query<TravelRequirementRow>(
+      `SELECT ${TRAVEL_REQUIREMENT_COLUMNS} FROM travel_requirements
+       WHERE agency_id = $1 AND customer_id = $2 AND deleted_at IS NULL
+         AND ($3::text IS NULL OR trip_id = $3)
+       ORDER BY created_at DESC`,
+      [agencyId, customerId, tripId ?? null],
+    );
+    return result.rows.map(toTravelRequirement);
+  });
+}
+
+function toTravelRequirement(row: TravelRequirementRow): TravelRequirement {
+  return {
+    id: row.id,
+    agencyId: row.agency_id,
+    customerId: row.customer_id,
+    travelerType: row.traveler_type,
+    type: row.type,
+    required: row.required,
+    fulfilled: row.fulfilled,
+    createdAt: new Date(row.created_at),
+    updatedAt: new Date(row.updated_at),
+    ...(row.dependent_id !== null ? { dependentId: row.dependent_id } : {}),
+    ...(row.trip_id !== null ? { tripId: row.trip_id } : {}),
+    ...(row.destination !== null ? { destination: row.destination } : {}),
+    ...(row.document_id !== null ? { documentId: row.document_id } : {}),
+    ...(row.expiration_date !== null ? { expirationDate: new Date(row.expiration_date) } : {}),
+  };
+}
+
+// ============================================================
+// Offer interest -- "Tenho interesse" CTA. Records a real, agency-visible
+// engagement (EngagementType.INTEREST) the agency can follow up on via
+// the existing staff-side engagements list. Re-validates the offer is a
+// real, currently-available offer for this customer's own agency before
+// recording anything (never trusts an id blindly).
+// ============================================================
+export async function recordMyOfferInterest(
+  database: DatabaseRuntime,
+  offerId: string,
+): Promise<void> {
+  const agencyId = getAgencyId();
+  const customerId = getCustomerId();
+
+  const offer = await getAvailableOfferById(database, offerId);
+  if (!offer) {
+    throw new NotFoundError('Offer not found');
+  }
+
+  await database.withTenantTransaction((client) =>
+    insertEngagement(client, agencyId, {
+      type: EngagementType.INTEREST,
+      channel: 'customer_portal',
+      offerId,
+      customerId,
+    }),
+  );
 }
 
 // ============================================================

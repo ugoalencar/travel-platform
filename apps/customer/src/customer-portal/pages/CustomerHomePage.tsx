@@ -11,6 +11,7 @@ import {
   listMyTrips,
 } from '../../lib/customerApi';
 import type { Trip } from '../../types/trip';
+import type { Offer } from '../../types/offer';
 import type { CustomerDocumentView, CustomerPaymentScheduleItem } from '../../types/customer-portal';
 import { tripStatusLabel } from '../../lib/statusLabels';
 import { destinationEmoji, destinationGradient } from '../destinationArt';
@@ -18,11 +19,17 @@ import { destinationEmoji, destinationGradient } from '../destinationArt';
 interface HomeData {
   firstName: string;
   nextTrip: Trip | null;
-  offersCount: number;
+  offers: Offer[];
   activeBookingsCount: number;
   proposalsCount: number;
   pendingDocuments: CustomerDocumentView[];
   nextPayment: CustomerPaymentScheduleItem | null;
+}
+
+function currencyCompact(value: number): string {
+  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(
+    value,
+  );
 }
 
 type LoadState =
@@ -65,7 +72,7 @@ export function CustomerHomePage() {
           data: {
             firstName: firstNameOf(profile.name),
             nextTrip,
-            offersCount: offers.length,
+            offers,
             activeBookingsCount,
             proposalsCount: proposals.length,
             pendingDocuments,
@@ -122,7 +129,7 @@ export function CustomerHomePage() {
             <PendingDocumentsCard documents={state.data.pendingDocuments} />
           )}
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <SummaryCard
               title="Reservas ativas"
               value={String(state.data.activeBookingsCount)}
@@ -137,16 +144,41 @@ export function CustomerHomePage() {
               icon="📋"
               color="amber"
             />
-            <SummaryCard
-              title="Ofertas disponíveis"
-              value={String(state.data.offersCount)}
-              linkTo="/customer-portal/offers"
-              icon="🎁"
-              color="purple"
-            />
           </div>
+
+          {state.data.offers.length > 0 && <AgencyOffersCarousel offers={state.data.offers} />}
         </div>
       )}
+    </div>
+  );
+}
+
+function AgencyOffersCarousel({ offers }: { offers: Offer[] }) {
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-bold text-slate-900">🎁 Ofertas da sua agência</h2>
+        <Link to="/customer-portal/offers" className="text-sm font-semibold text-[#f97362] hover:underline">
+          Ver todas →
+        </Link>
+      </div>
+      <div className="flex gap-4 overflow-x-auto pb-2">
+        {offers.slice(0, 6).map((offer) => (
+          <Link
+            key={offer.id}
+            to={`/customer-portal/offers/${offer.id}`}
+            className="block w-56 shrink-0 overflow-hidden rounded-xl border-2 border-orange-100 bg-white shadow-sm hover:shadow-md hover:border-orange-200 transition-all"
+          >
+            <div className={`h-24 bg-gradient-to-br ${destinationGradient(offer.name)} flex items-center justify-center text-3xl`}>
+              {destinationEmoji(offer.name)}
+            </div>
+            <div className="p-3">
+              <p className="line-clamp-1 text-sm font-semibold text-slate-900">{offer.name}</p>
+              <p className="mt-1 text-base font-bold text-[#f97362]">{currencyCompact(offer.price)}</p>
+            </div>
+          </Link>
+        ))}
+      </div>
     </div>
   );
 }

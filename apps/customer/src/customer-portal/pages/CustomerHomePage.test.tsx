@@ -153,5 +153,9 @@ describe('CustomerHomePage', () => {
     // reflect the server-computed isFuture flag, not bookings.length.
     const activeBookingsValue = screen.getAllByText('1');
     expect(activeBookingsValue.length).toBeGreaterThan(0);
+
+    // Real "Ofertas da sua agência" carousel, backed by listAvailableOffers.
+    expect(screen.getByText('🎁 Ofertas da sua agência')).toBeInTheDocument();
+    expect(screen.getByText('Promo')).toBeInTheDocument();
   });
 });
