@@ -3,6 +3,12 @@
 @theme {
   --font-sans:
     'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* Direction A premium travel-technology palette -- mirrors
+     apps/agency/src/index.css's tokens (marketing is a fully separate
+     app/deploy target, so these are copied, not literally shared). */
+  --color-travel-navy: #0f2a4a;
+  --color-travel-cyan: #06b6d4;
+  --color-action-blue: #2563eb;
 }
 
 :root {

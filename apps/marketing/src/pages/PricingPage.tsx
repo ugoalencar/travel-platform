@@ -1,31 +1,34 @@
 import { Link } from 'react-router-dom';
 import { Check } from 'lucide-react';
+import { agencySignupUrl } from '../lib/agencyAppUrl';
 
 export function PricingPage() {
   return (
     <div className="bg-white">
       {/* Navegação */}
-      <nav className="flex justify-between items-center px-8 py-4 border-b">
-        <h1 className="text-2xl font-bold text-blue-600">Travel Platform</h1>
-        <Link to="/" className="text-gray-700 hover:text-blue-600">
+      <nav className="flex items-center justify-between border-b border-slate-100 px-4 py-4 sm:px-8">
+        <h1 className="text-xl font-bold text-(--color-travel-navy)">Travel Platform</h1>
+        <Link to="/" className="text-sm font-medium text-slate-600 hover:text-(--color-travel-navy)">
           Voltar
         </Link>
       </nav>
 
       {/* Preços */}
-      <section className="px-8 py-20">
-        <h2 className="text-4xl font-bold mb-12 text-center">Preços simples e transparentes</h2>
+      <section className="px-4 py-16 sm:px-8 sm:py-20">
+        <h2 className="mb-12 text-center text-3xl font-bold text-slate-900 sm:text-4xl">Preços simples e transparentes</h2>
 
-        <div className="grid grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <div className="mx-auto grid max-w-6xl gap-6 sm:grid-cols-3 sm:gap-8">
           <PlanCard
             name="Inicial"
             price="R$ 99"
             features={['10 usuários', '100 GB de armazenamento', 'Suporte básico', 'Recursos essenciais']}
+            ctaLabel="Criar conta"
+            ctaHref={agencySignupUrl()}
           />
           <PlanCard
             name="Profissional"
             price="R$ 299"
-            featured={true}
+            featured
             features={[
               '50 usuários',
               '500 GB de armazenamento',
@@ -33,6 +36,8 @@ export function PricingPage() {
               'Todos os recursos',
               'Integrações personalizadas',
             ]}
+            ctaLabel="Criar conta"
+            ctaHref={agencySignupUrl()}
           />
           <PlanCard
             name="Empresarial"
@@ -44,13 +49,15 @@ export function PricingPage() {
               'Todos os recursos',
               'Gerente de conta dedicado',
             ]}
+            ctaLabel="Fale com nosso time"
+            ctaHref="/demo"
           />
         </div>
       </section>
 
       {/* Rodapé */}
-      <footer className="bg-gray-900 text-white px-8 py-8 text-center">
-        <p>&copy; 2025 Travel Platform. Todos os direitos reservados.</p>
+      <footer className="bg-slate-900 px-8 py-8 text-center text-white">
+        <p className="text-sm text-white/70">&copy; {new Date().getFullYear()} Travel Platform. Todos os direitos reservados.</p>
       </footer>
     </div>
   );
@@ -61,32 +68,39 @@ function PlanCard({
   price,
   features,
   featured,
+  ctaLabel,
+  ctaHref,
 }: {
   name: string;
   price: string;
   features: string[];
   featured?: boolean;
+  ctaLabel: string;
+  ctaHref: string;
 }) {
+  const isExternal = ctaHref.startsWith('http');
+  const ctaClassName = `mt-8 block w-full rounded-lg py-2 text-center font-semibold transition-colors ${
+    featured ? 'bg-(--color-travel-navy) text-white hover:bg-slate-800' : 'bg-slate-100 text-slate-900 hover:bg-slate-200'
+  }`;
+
   return (
-    <div className={`border rounded-lg p-8 ${featured ? 'border-blue-600 shadow-lg' : 'border-gray-200'}`}>
-      {featured && <span className="text-blue-600 font-semibold text-sm">RECOMENDADO</span>}
-      <h3 className="text-2xl font-bold mb-2 mt-2">{name}</h3>
-      <p className="text-3xl font-bold text-blue-600 mb-6">{price}</p>
-      <ul className="space-y-3 mb-8">
+    <div className={`rounded-xl border p-8 ${featured ? 'border-(--color-travel-navy) shadow-lg' : 'border-slate-200'}`}>
+      {featured && <span className="text-xs font-semibold uppercase tracking-wide text-(--color-travel-navy)">Recomendado</span>}
+      <h3 className="mb-2 mt-2 text-2xl font-bold text-slate-900">{name}</h3>
+      <p className="mb-6 text-3xl font-bold text-(--color-travel-navy)">{price}</p>
+      <ul className="space-y-3">
         {features.map((feature) => (
-          <li key={feature} className="flex items-center gap-2">
+          <li key={feature} className="flex items-center gap-2 text-slate-700">
             <Check size={20} className="text-green-600" />
             <span>{feature}</span>
           </li>
         ))}
       </ul>
-      <button
-        className={`w-full py-2 rounded-lg font-semibold transition-colors ${
-          featured ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
-        }`}
-      >
-        Escolher plano
-      </button>
+      {isExternal ? (
+        <a href={ctaHref} className={ctaClassName}>{ctaLabel}</a>
+      ) : (
+        <Link to={ctaHref} className={ctaClassName}>{ctaLabel}</Link>
+      )}
     </div>
   );
 }

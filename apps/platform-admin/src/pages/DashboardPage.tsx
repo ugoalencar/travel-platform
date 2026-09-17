@@ -40,6 +40,10 @@ interface SupportCase {
   status: 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED';
 }
 
+interface HealthInfo {
+  status: string;
+}
+
 export function DashboardPage() {
   const [metrics, setMetrics] = useState<FinancialMetrics | null>(null);
   const [growth, setGrowth] = useState<GrowthData[]>([]);
@@ -48,6 +52,7 @@ export function DashboardPage() {
   const [planDist, setPlanDist] = useState<PlanData[]>([]);
   const [activeAgencies, setActiveAgencies] = useState<number | null>(null);
   const [openSupportCases, setOpenSupportCases] = useState<number | null>(null);
+  const [health, setHealth] = useState<HealthInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -56,7 +61,7 @@ export function DashboardPage() {
       try {
         setLoading(true);
 
-        const [metricsRes, growthRes, mrrRes, funnelRes, distRes, subscribersRes, supportRes] =
+        const [metricsRes, growthRes, mrrRes, funnelRes, distRes, subscribersRes, supportRes, healthRes] =
           await Promise.all([
             fetch('/api/platform/financial'),
             fetch('/api/platform/analytics/subscriber-growth'),
@@ -65,6 +70,7 @@ export function DashboardPage() {
             fetch('/api/platform/analytics/plan-distribution'),
             fetch('/api/platform/subscribers'),
             fetch('/api/platform/support'),
+            fetch('/api/health'),
           ]);
 
         if (!metricsRes.ok) throw new Error('Não foi possível carregar as métricas');
@@ -104,6 +110,16 @@ export function DashboardPage() {
           ).length;
           setOpenSupportCases(open);
         }
+
+        // Real /health check -- no incidents table/endpoint exists anywhere
+        // in the backend, so "Incidentes Ativos" (previously hardcoded to
+        // "1") is intentionally not shown here; this is the one piece of
+        // real operational telemetry the backend actually exposes today.
+        if (healthRes.ok) {
+          setHealth((await healthRes.json()) as HealthInfo);
+        } else {
+          setHealth({ status: 'down' });
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Não foi possível carregar os dados');
       } finally {
@@ -128,24 +144,31 @@ export function DashboardPage() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold">Visão Geral da Plataforma</h1>
-        <p className="mt-1 text-sm text-slate-500">
-          KPIs de governança do SaaS -- agências assinantes, saúde do sistema e operação de suporte.
-        </p>
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-(--color-sidebar) via-slate-900 to-(--color-platform-accent)/50 p-8 text-white shadow-lg">
+        <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-white/10" />
+        <div className="relative">
+          <p className="text-xs font-semibold uppercase tracking-wide text-white/60">Control plane</p>
+          <h1 className="mt-1 text-3xl font-bold">Visão Geral da Plataforma</h1>
+          <p className="mt-2 text-sm text-white/70">
+            Agências assinantes, saúde do sistema e operação de suporte.
+          </p>
+        </div>
       </div>
 
       {/* Key Metrics Grid -- per 04_PLATFORM_ADMIN_SEPARATION.md dashboard spec */}
-      <div className="grid grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 gap-6 lg:grid-cols-4">
         <StatCard title="Agências Ativas" value={(activeAgencies ?? metrics.activeSubscriptions).toString()} />
         <StatCard title="MRR" value={`R$ ${metrics.mrr.toLocaleString('pt-BR')}`} />
         <StatCard title="Assinaturas Ativas" value={metrics.activeSubscriptions.toString()} />
         <StatCard title="Taxa de Cancelamento" value={`${metrics.churnRate.toFixed(2)}%`} />
       </div>
-      <div className="grid grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 gap-6 lg:grid-cols-3">
         <StatCard title="Tickets de Suporte Abertos" value={(openSupportCases ?? 0).toString()} />
-        <StatCard title="Incidentes Ativos" value="1" accent="text-amber-600" />
-        <StatCard title="Saúde do Sistema" value="Saudável" accent="text-emerald-600" />
+        <StatCard
+          title="Saúde da API"
+          value={health?.status === 'ok' ? 'Operacional' : health ? 'Indisponível' : '—'}
+          {...(health ? { accent: health.status === 'ok' ? 'text-emerald-600' : 'text-red-600' } : {})}
+        />
         <StatCard title="ARR" value={`R$ ${metrics.arr.toLocaleString('pt-BR')}`} />
       </div>
 

@@ -171,13 +171,14 @@ export function OnboardingWizardPage() {
 
   return (
     <div className="mx-auto flex min-h-screen max-w-2xl flex-col justify-center px-4 py-12">
+      <p className="mb-6 text-center text-lg font-bold text-(--color-travel-navy)">Travel Platform</p>
       <div className="mb-8 flex items-center justify-center gap-4">
         {STEPS.map((s, i) => (
           <div key={s.key} className="flex items-center gap-2">
             {i < stepIndex ? (
-              <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+              <CheckCircle2 className="h-5 w-5 text-(--color-travel-navy)" />
             ) : (
-              <Circle className={`h-5 w-5 ${i === stepIndex ? 'text-slate-900' : 'text-slate-300'}`} />
+              <Circle className={`h-5 w-5 ${i === stepIndex ? 'text-(--color-travel-navy)' : 'text-slate-300'}`} />
             )}
             <span className={`text-sm ${i === stepIndex ? 'font-semibold text-slate-900' : 'text-slate-500'}`}>
               {s.label}
@@ -225,7 +226,7 @@ export function OnboardingWizardPage() {
             <button
               onClick={() => void handleSaveProfile()}
               disabled={saving}
-              className="w-full rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50"
+              className="w-full rounded-md bg-(--color-travel-navy) px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50"
             >
               {saving ? 'Salvando…' : 'Continuar'}
             </button>
@@ -277,7 +278,7 @@ export function OnboardingWizardPage() {
               <button
                 onClick={() => void handleSaveBranding()}
                 disabled={saving}
-                className="flex-1 rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50"
+                className="flex-1 rounded-md bg-(--color-travel-navy) px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50"
               >
                 {saving ? 'Salvando…' : 'Continuar'}
               </button>
@@ -346,7 +347,7 @@ export function OnboardingWizardPage() {
             <button
               onClick={() => void goToStep('done')}
               disabled={saving}
-              className="w-full rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50"
+              className="w-full rounded-md bg-(--color-travel-navy) px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50"
             >
               Continuar
             </button>
@@ -357,17 +358,26 @@ export function OnboardingWizardPage() {
       {step === 'done' && (
         <Card>
           <CardHeader>
-            <CardTitle>Tudo pronto!</CardTitle>
+            <CardTitle>Seu ambiente está pronto</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-slate-600">
-              Sua agência está configurada. Você pode ajustar tudo isso a qualquer momento em
-              Configurações.
+              Você pode ajustar tudo isso a qualquer momento em Configurações.
             </p>
+            <dl className="grid grid-cols-2 gap-3 rounded-lg border border-slate-200 p-4 text-sm">
+              <dt className="text-slate-500">Agência</dt>
+              <dd className="text-right font-medium text-slate-900">{profileForm.name || '—'}</dd>
+              <dt className="text-slate-500">Convites enviados</dt>
+              <dd className="text-right font-medium text-slate-900">{invitedCount}</dd>
+              <dt className="text-slate-500">Marca personalizada</dt>
+              <dd className="text-right font-medium text-slate-900">
+                {brandingForm.displayName || brandingForm.logoUrl ? 'Configurada' : 'Não configurada ainda'}
+              </dd>
+            </dl>
             <button
               onClick={() => void handleFinish()}
               disabled={saving}
-              className="w-full rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50"
+              className="w-full rounded-md bg-(--color-travel-navy) px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50"
             >
               {saving ? 'Finalizando…' : 'Ir para o painel'}
             </button>

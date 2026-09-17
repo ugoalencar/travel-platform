@@ -1,59 +1,134 @@
+import { useEffect, useState } from 'react';
+
+interface HealthInfo {
+  status: string;
+  service: string;
+}
+
+interface VersionInfo {
+  appVersion: string;
+  buildSha: string;
+  migrationVersion: string;
+  deploymentId: string;
+  releasedAt: string;
+}
+
+interface ReadinessInfo {
+  status: string;
+  service?: string;
+}
+
+type LoadState =
+  | { status: 'loading' }
+  | { status: 'error'; message: string }
+  | {
+      status: 'success';
+      health: HealthInfo | null;
+      readiness: ReadinessInfo | null;
+      version: VersionInfo | null;
+    };
+
 export function HealthPage() {
-  const healthChecks = [
-    { name: 'Servidor API', status: 'SAUDAVEL', latency: '45ms', uptime: '99.9%' },
-    { name: 'Banco de dados', status: 'SAUDAVEL', latency: '12ms', uptime: '100%' },
-    { name: 'Cache Redis', status: 'SAUDAVEL', latency: '3ms', uptime: '99.99%' },
-    { name: 'Armazenamento', status: 'SAUDAVEL', latency: '156ms', uptime: '99.95%' },
-    { name: 'Servico de email', status: 'SAUDAVEL', latency: '750ms', uptime: '99.8%' },
-  ];
+  const [state, setState] = useState<LoadState>({ status: 'loading' });
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function fetchStatus(path: string) {
+      try {
+        const res = await fetch(path);
+        if (!res.ok) return null;
+        return (await res.json()) as unknown;
+      } catch {
+        return null;
+      }
+    }
+
+    Promise.all([
+      fetchStatus('/api/health') as Promise<HealthInfo | null>,
+      fetchStatus('/api/readiness') as Promise<ReadinessInfo | null>,
+      fetchStatus('/api/version') as Promise<VersionInfo | null>,
+    ])
+      .then(([health, readiness, version]) => {
+        if (cancelled) return;
+        setState({ status: 'success', health, readiness, version });
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return;
+        setState({ status: 'error', message: err instanceof Error ? err.message : 'Não foi possível verificar o status.' });
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-8">Saude do Sistema</h1>
+      <h1 className="mb-8 text-3xl font-bold">Saúde do Sistema</h1>
 
-      <div className="bg-white rounded-lg shadow p-6 mb-6">
-        <div className="grid grid-cols-3 gap-4">
-          <div>
-            <p className="text-sm text-gray-600">Status geral</p>
-            <p className="text-3xl font-bold text-emerald-700">SAUDAVEL</p>
+      {state.status === 'loading' && <p className="text-sm text-slate-500">Verificando…</p>}
+      {state.status === 'error' && <p className="text-sm text-red-600">{state.message}</p>}
+
+      {state.status === 'success' && (
+        <div className="space-y-6">
+          <div className="rounded-lg bg-white p-6 shadow">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <div>
+                <p className="text-sm text-slate-600">API (/health)</p>
+                <p className={`text-2xl font-bold ${state.health?.status === 'ok' ? 'text-emerald-700' : 'text-red-600'}`}>
+                  {state.health ? state.health.status.toUpperCase() : 'INDISPONÍVEL'}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-slate-600">Prontidão (/readiness)</p>
+                <p className={`text-2xl font-bold ${state.readiness?.status === 'ready' ? 'text-emerald-700' : 'text-red-600'}`}>
+                  {state.readiness ? state.readiness.status.toUpperCase() : 'INDISPONÍVEL'}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-slate-600">Versão implantada</p>
+                <p className="text-2xl font-bold text-slate-700">
+                  {state.version?.appVersion ?? '—'}
+                </p>
+              </div>
+            </div>
           </div>
-          <div>
-            <p className="text-sm text-gray-600">Tempo medio de resposta</p>
-            <p className="text-3xl font-bold text-blue-600">193ms</p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-600">Uptime (30d)</p>
-            <p className="text-3xl font-bold text-slate-700">99.95%</p>
-          </div>
+
+          {state.version && (
+            <div className="overflow-hidden rounded-lg bg-white shadow">
+              <table className="w-full">
+                <tbody className="divide-y">
+                  <tr>
+                    <td className="px-6 py-3 text-sm font-medium text-slate-600">Build (SHA)</td>
+                    <td className="px-6 py-3 text-sm text-slate-900">{state.version.buildSha}</td>
+                  </tr>
+                  <tr>
+                    <td className="px-6 py-3 text-sm font-medium text-slate-600">Versão de migração</td>
+                    <td className="px-6 py-3 text-sm text-slate-900">{state.version.migrationVersion}</td>
+                  </tr>
+                  <tr>
+                    <td className="px-6 py-3 text-sm font-medium text-slate-600">Deployment</td>
+                    <td className="px-6 py-3 text-sm text-slate-900">{state.version.deploymentId}</td>
+                  </tr>
+                  <tr>
+                    <td className="px-6 py-3 text-sm font-medium text-slate-600">Lançada em</td>
+                    <td className="px-6 py-3 text-sm text-slate-900">
+                      {Number.isNaN(new Date(state.version.releasedAt).getTime())
+                        ? '—'
+                        : new Date(state.version.releasedAt).toLocaleString('pt-BR')}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* No latency/uptime-history telemetry exists in the backend yet
+              (no metrics-collector persistence exposed to this app) -- this
+              intentionally does not show fabricated latency/uptime numbers. */}
         </div>
-      </div>
-
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-gray-50 border-b">
-            <tr>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Componente</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Status</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Latencia</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Disponibilidade</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y">
-            {healthChecks.map((check, idx) => (
-              <tr key={idx} className="hover:bg-gray-50">
-                <td className="px-6 py-4 text-sm font-medium">{check.name}</td>
-                <td className="px-6 py-4">
-                  <span className="px-2 py-1 bg-emerald-100 text-emerald-900 rounded text-xs font-semibold">
-                    {check.status}
-                  </span>
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-600">{check.latency}</td>
-                <td className="px-6 py-4 text-sm text-gray-600">{check.uptime}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      )}
     </div>
   );
 }

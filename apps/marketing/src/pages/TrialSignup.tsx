@@ -200,10 +200,7 @@ export function TrialSignup() {
               className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
             />
             <span className="ml-2 text-sm text-gray-600">
-              Concordo com os{' '}
-              <a href="/terms" className="text-blue-600 hover:underline">
-                Termos de Serviço
-              </a>
+              Concordo com os Termos de Serviço
             </span>
           </label>
 

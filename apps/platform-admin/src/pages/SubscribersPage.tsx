@@ -141,6 +141,7 @@ export function SubscribersPage() {
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Agência</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Email</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Cidade</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Plano</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Status</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Desde</th>
               <th className="px-6 py-3 text-right text-sm font-semibold text-gray-900">Ações</th>
@@ -149,7 +150,7 @@ export function SubscribersPage() {
           <tbody className="divide-y">
             {filteredSubscribers.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-6 py-4 text-center text-gray-600">
+                <td colSpan={7} className="px-6 py-4 text-center text-gray-600">
                   Nenhum assinante encontrado
                 </td>
               </tr>
@@ -159,6 +160,7 @@ export function SubscribersPage() {
                   <td className="px-6 py-4 font-medium">{subscriber.name}</td>
                   <td className="px-6 py-4 text-sm text-gray-600">{subscriber.email}</td>
                   <td className="px-6 py-4 text-sm">{subscriber.city || '-'}</td>
+                  <td className="px-6 py-4 text-sm">{subscriber.subscription?.plan_name ?? '-'}</td>
                   <td className="px-6 py-4">
                     <span className={`${statusColors[subscriber.status]} px-2 py-1 rounded text-sm font-medium`}>
                       {STATUS_LABELS[subscriber.status]}

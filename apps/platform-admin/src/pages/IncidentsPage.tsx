@@ -1,103 +1,29 @@
-import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { AlertTriangle } from 'lucide-react';
 
-interface Incident {
-  id: string;
-  title: string;
-  status: 'INVESTIGATING' | 'IDENTIFIED' | 'MONITORING' | 'RESOLVED';
-  severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
-  affectedSystems: string[];
-  startTime: string;
-  resolvedAt?: string;
-}
-
-const STATUS_LABELS: Record<Incident['status'], string> = {
-  INVESTIGATING: 'Investigando',
-  IDENTIFIED: 'Identificado',
-  MONITORING: 'Monitorando',
-  RESOLVED: 'Resolvido',
-};
-
-const SEVERITY_LABELS: Record<Incident['severity'], string> = {
-  LOW: 'Baixa',
-  MEDIUM: 'Média',
-  HIGH: 'Alta',
-  CRITICAL: 'Crítica',
-};
-
+// No incident-tracking table/endpoint exists anywhere in the backend
+// (confirmed: services/api/src has no incident/postmortem domain). This
+// page previously showed two hardcoded fake incidents -- replaced with an
+// honest empty state rather than fabricated operational telemetry.
+// Real system status lives on the "Saúde do Sistema" page (/health,
+// /readiness, /version), which this page links to.
 export function IncidentsPage() {
-  const [incidents] = useState<Incident[]>([
-    {
-      id: '1',
-      title: 'Pico de latência na API',
-      status: 'RESOLVED',
-      severity: 'HIGH',
-      affectedSystems: ['API', 'Banco de dados'],
-      startTime: '2026-08-29T14:30:00Z',
-      resolvedAt: '2026-08-29T15:45:00Z',
-    },
-    {
-      id: '2',
-      title: 'Problemas de conexão com Redis',
-      status: 'MONITORING',
-      severity: 'MEDIUM',
-      affectedSystems: ['Cache'],
-      startTime: '2026-08-29T10:00:00Z',
-    },
-  ]);
-
-  const statusColors: Record<string, string> = {
-    INVESTIGATING: 'bg-red-100 text-red-800',
-    IDENTIFIED: 'bg-orange-100 text-orange-800',
-    MONITORING: 'bg-yellow-100 text-yellow-800',
-    RESOLVED: 'bg-green-100 text-green-800',
-  };
-
-  const severityColors: Record<string, string> = {
-    LOW: 'bg-blue-100 text-blue-800',
-    MEDIUM: 'bg-yellow-100 text-yellow-800',
-    HIGH: 'bg-orange-100 text-orange-800',
-    CRITICAL: 'bg-red-100 text-red-800',
-  };
-
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-8">Incidentes</h1>
+      <h1 className="mb-8 text-3xl font-bold">Incidentes</h1>
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-gray-50 border-b">
-            <tr>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Título</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Status</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Severidade</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Sistemas</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Início</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y">
-            {incidents.map((incident) => (
-              <tr key={incident.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 text-sm font-medium">{incident.title}</td>
-                <td className="px-6 py-4">
-                  <span className={`px-2 py-1 rounded text-xs font-semibold ${statusColors[incident.status]}`}>
-                    {STATUS_LABELS[incident.status]}
-                  </span>
-                </td>
-                <td className="px-6 py-4">
-                  <span className={`px-2 py-1 rounded text-xs font-semibold ${severityColors[incident.severity]}`}>
-                    {SEVERITY_LABELS[incident.severity]}
-                  </span>
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-600">
-                  {incident.affectedSystems.join(', ')}
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-600">
-                  {new Date(incident.startTime).toLocaleString()}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="rounded-lg border border-dashed border-slate-300 bg-white p-10 text-center">
+        <AlertTriangle className="mx-auto h-8 w-8 text-slate-400" />
+        <p className="mt-3 text-sm font-medium text-slate-600">
+          Nenhum sistema de rastreamento de incidentes está conectado ainda.
+        </p>
+        <p className="mt-1 text-sm text-slate-500">
+          Para status operacional em tempo real, consulte{' '}
+          <Link to="/health" className="text-(--color-platform-accent) hover:underline">
+            Saúde do Sistema
+          </Link>
+          .
+        </p>
       </div>
     </div>
   );
