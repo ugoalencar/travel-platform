@@ -38,6 +38,23 @@
   --radius-card: 0.75rem;
   --shadow-card: 0 1px 2px 0 rgb(15 23 42 / 0.04), 0 1px 3px 0 rgb(15 23 42 / 0.06);
   --shadow-card-hover: 0 4px 12px 0 rgb(15 23 42 / 0.08);
+
+  /* Premium travel-operations palette (Direction A visual reconstruction,
+   * docs/visual-reference/direction-a-dashboard.png). Used by the
+   * Dashboard's hero/KPI-chip/chart accents -- deliberately not folded
+   * into the generic status-* tokens above, which stay reserved for
+   * StatusBadge's semantic meaning. */
+  --color-travel-navy: #0f2a4a;
+  --color-travel-cyan: #06b6d4;
+  --color-action-blue: #2563eb;
+  --color-kpi-green-bg: #ecfdf5;
+  --color-kpi-green-fg: #059669;
+  --color-kpi-blue-bg: #eff6ff;
+  --color-kpi-blue-fg: #2563eb;
+  --color-kpi-purple-bg: #f5f3ff;
+  --color-kpi-purple-fg: #7c3aed;
+  --color-kpi-orange-bg: #fff7ed;
+  --color-kpi-orange-fg: #c2410c;
 }
 
 :root {

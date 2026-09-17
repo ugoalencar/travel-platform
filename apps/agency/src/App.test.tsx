@@ -37,6 +37,12 @@ vi.mock('./lib/api', async () => {
     listAirServicesByTrip: vi.fn(),
     listLandServicesByTrip: vi.fn(),
     listTripPhotos: vi.fn(),
+    getDashboardSummary: vi.fn(),
+    getUpcomingTravel: vi.fn(),
+    getSalesReportByPeriod: vi.fn(),
+    listPipelines: vi.fn(),
+    listOpportunities: vi.fn(),
+    listOffers: vi.fn(),
   };
 });
 
@@ -111,6 +117,30 @@ beforeEach(() => {
   vi.mocked(api.listAirServicesByTrip).mockResolvedValue([]);
   vi.mocked(api.listLandServicesByTrip).mockResolvedValue([]);
   vi.mocked(api.listTripPhotos).mockResolvedValue([]);
+  vi.mocked(api.getDashboardSummary).mockResolvedValue({
+    openOpportunitiesCount: 0,
+    followUpsDueTodayCount: 0,
+    overdueFollowUpsCount: 0,
+    proposalsWaitingCount: 0,
+    sentProposalsCount: 0,
+    acceptedProposalsCount: 0,
+    openProposalValueSum: '0',
+    salesThisMonthCount: 0,
+    salesThisMonthTotal: '0',
+    pendingSalesCount: 0,
+    confirmedSalesCount: 0,
+    paidSalesCount: 0,
+    overdueReceivablesCount: 0,
+    cancelledBookingsCount: 0,
+    pescadorReviewQueueCount: 0,
+    upcomingTripsCount: 0,
+    postSalePendingCount: 0,
+  });
+  vi.mocked(api.getUpcomingTravel).mockResolvedValue({ operational: [], commercial: [] });
+  vi.mocked(api.getSalesReportByPeriod).mockResolvedValue([]);
+  vi.mocked(api.listPipelines).mockResolvedValue([]);
+  vi.mocked(api.listOpportunities).mockResolvedValue([]);
+  vi.mocked(api.listOffers).mockResolvedValue([]);
 });
 
 describe('App', () => {

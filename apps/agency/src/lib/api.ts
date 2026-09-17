@@ -324,6 +324,28 @@ export async function listRecentInteractions(limit = 5): Promise<CustomerInterac
 }
 
 // ============================================================
+// SALES REPORT (services/api/src/reports.ts) -- reused by the dashboard
+// for a real monthly revenue trend instead of a fabricated chart.
+// MANAGER+ only server-side; the dashboard treats a 403 here as "no
+// chart for this role" rather than an error, since AGENT-role users are
+// still meant to see the rest of the page.
+// ============================================================
+
+export interface SalesReportRow {
+  key: string;
+  label: string;
+  count: number;
+  total: number;
+}
+
+export async function getSalesReportByPeriod(from: string, to: string): Promise<SalesReportRow[]> {
+  const data = await request<{ rows: SalesReportRow[] }>(
+    `/api/reports/sales?groupBy=period&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`,
+  );
+  return data.rows;
+}
+
+// ============================================================
 // OFFERS (GET /offers) -- same domain/contract apps/customer's
 // OffersPage already uses. See docs/plans/OFFERS_DECISION.md.
 // ============================================================

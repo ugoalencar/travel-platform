@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, screen } from '@testing-library/react';
+import { cleanup, fireEvent, screen, waitFor } from '@testing-library/react';
 import { renderRouted } from '../test/render';
 
 vi.mock('../lib/api', async () => {
@@ -19,7 +19,7 @@ vi.mock('../lib/api', async () => {
     getDashboardSummary: vi.fn().mockResolvedValue({
       openOpportunitiesCount: 2,
       followUpsDueTodayCount: 3,
-      overdueFollowUpsCount: 0,
+      overdueFollowUpsCount: 1,
       proposalsWaitingCount: 4,
       sentProposalsCount: 5,
       acceptedProposalsCount: 6,
@@ -47,30 +47,59 @@ vi.mock('../lib/api', async () => {
         },
       ],
     }),
-    listProposalsWaiting: vi.fn().mockResolvedValue([
+    getSalesReportByPeriod: vi.fn().mockResolvedValue([
+      { key: '2026-08', label: '2026-08', count: 3, total: 12000 },
+      { key: '2026-09', label: '2026-09', count: 5, total: 45000 },
+    ]),
+    listPipelines: vi.fn().mockResolvedValue([
+      { id: 'pipe-1', name: 'Vendas', description: '', active: true, notificationsEnabled: true },
+    ]),
+    listOpportunities: vi.fn().mockResolvedValue([
       {
-        id: 'p1',
-        agencyId: 'a1',
+        id: 'opp-1',
         customerId: 'c1',
-        status: 'SENT',
-        total: '3200.00',
-        validUntil: '2026-10-01',
-        notes: 'Proposta família Martins',
+        customerName: 'Carla Mendes',
+        destination: 'Maldivas',
+        expectedValue: 28500,
+        pipelineId: 'pipe-1',
+        stageId: 'stage-1',
+        createdAt: '2026-09-01T00:00:00.000Z',
+        updatedAt: '2026-09-05T00:00:00.000Z',
       },
     ]),
-    listRecentInteractions: vi.fn().mockResolvedValue([
+    listOffers: vi.fn().mockResolvedValue([
       {
-        id: 'i1',
+        id: 'offer-1',
         agencyId: 'a1',
-        customerId: 'c1',
-        userId: 'u1',
-        channel: 'WHATSAPP',
-        direction: 'INBOUND',
-        occurredAt: '2026-08-27T10:00:00.000Z',
-        summary: 'Cliente confirmou interesse na proposta',
-        createdAt: '2026-08-27T10:00:00.000Z',
+        name: 'Cancún tudo incluído',
+        description: 'Pacote completo',
+        price: 6890,
+        status: 'ACTIVE',
+        createdAt: '2026-08-01T00:00:00.000Z',
+        updatedAt: '2026-08-01T00:00:00.000Z',
       },
     ]),
+    listCustomers: vi.fn().mockResolvedValue([
+      {
+        id: 'c1',
+        agencyId: 'a1',
+        protocolNumber: 'CLI-2026-000001',
+        name: 'Carla Mendes',
+        status: 'ACTIVE',
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-01T00:00:00.000Z',
+      },
+    ]),
+    createProposal: vi.fn().mockResolvedValue({
+      id: 'proposal-1',
+      agencyId: 'a1',
+      customerId: 'c1',
+      offerId: 'offer-1',
+      proposedPrice: 6890,
+      status: 'DRAFT',
+      createdAt: '2026-09-10T00:00:00.000Z',
+      updatedAt: '2026-09-10T00:00:00.000Z',
+    }),
     ApiError: MockApiError,
   };
 });
@@ -81,25 +110,50 @@ afterEach(() => {
 });
 
 describe('DashboardPage', () => {
-  it('shows stat cards populated from the real dashboard aggregate', async () => {
+  it('shows KPI chips populated from the real dashboard aggregate', async () => {
     renderRouted('/');
     expect(await screen.findByText('Vendas (mês)')).toBeInTheDocument();
-    expect(screen.getAllByText('Propostas aguardando resposta').length).toBeGreaterThan(0);
+    expect(screen.getByText('Propostas aguardando resposta')).toBeInTheDocument();
     expect(screen.getByText('Viagens futuras')).toBeInTheDocument();
     expect(screen.getByText('11')).toBeInTheDocument();
     expect(screen.getByText('Vendas pendentes')).toBeInTheDocument();
     expect(screen.getByText('Follow-ups hoje')).toBeInTheDocument();
   });
 
-  it('shows recent customer activity from /commercial/interactions', async () => {
+  it('shows real opportunities from the default pipeline', async () => {
     renderRouted('/');
-    expect(await screen.findByText('Atividade recente de clientes')).toBeInTheDocument();
-    expect(screen.getByText('Cliente confirmou interesse na proposta')).toBeInTheDocument();
+    expect(await screen.findByText('Oportunidades em andamento')).toBeInTheDocument();
+    expect(screen.getByText('Carla Mendes')).toBeInTheDocument();
+    expect(screen.getByText('Maldivas')).toBeInTheDocument();
   });
 
-  it('shows proposals waiting for a response from /commercial/proposals-waiting', async () => {
+  it('shows the offers carousel and wires "Ofertar ao cliente" to a real proposal', async () => {
+    const api = await import('../lib/api');
     renderRouted('/');
-    expect((await screen.findAllByText('Propostas aguardando resposta')).length).toBeGreaterThan(0);
-    expect(screen.getByText('Proposta família Martins')).toBeInTheDocument();
+
+    expect(await screen.findByText('Ofertas em destaque')).toBeInTheDocument();
+    expect(screen.getByText('Cancún tudo incluído')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Ofertar ao cliente' }));
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'c1' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Criar proposta' }));
+
+    await waitFor(() =>
+      expect(api.createProposal).toHaveBeenCalledWith({
+        customerId: 'c1',
+        offerId: 'offer-1',
+        proposedPrice: 6890,
+      }),
+    );
+    expect(await screen.findByRole('link', { name: 'Ver proposta' })).toHaveAttribute(
+      'href',
+      '/proposals/proposal-1',
+    );
+  });
+
+  it('shows an operational alert derived from real overdue follow-ups', async () => {
+    renderRouted('/');
+    expect(await screen.findByText('Alertas operacionais')).toBeInTheDocument();
+    expect(screen.getByText('1 follow-up atrasado')).toBeInTheDocument();
   });
 });
