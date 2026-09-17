@@ -3,7 +3,7 @@
 Controlled visual propagation of the already-approved Direction A system into four operational surfaces: Customer 360, Finance Cockpit, Operations/Trips, Commercial Pipeline. No redesign of the approved screens (Agency Dashboard, Customer App); no domain reconstruction.
 
 - **Main HEAD before:** `0a25e06` (feat(customer): rebuild Customer App per Direction A visual reference — Phase 2)
-- **Main HEAD after:** _(this commit, pushed at the end of this round)_
+- **Main HEAD after:** `e34b2f5` (feat(agency): propagate Direction A into Customer 360, Finance, Operations, Pipeline — Phase 3A)
 
 ## Files changed
 
@@ -73,7 +73,7 @@ Validated at 1440 (primary target for all four surfaces, matching the spec's req
 
 ## CI result
 
-Pending — will be confirmed green via a real GitHub Actions run (`gh run watch`) after push, per this repo's established verification discipline. Not claimed complete until that run is observed green.
+**Green.** Confirmed via real GitHub Actions run `35252907090` (`gh run watch --exit-status`, exit code 0) on commit `e34b2f5`. All Quality Gates steps passed (lint, typecheck, secret scan, dependency audit, migration naming, unit tests, security tests, database/RLS integration tests, build); only pre-existing warnings unrelated to this round's files (`ReportsPage.test.tsx`, `StatusPill.tsx`, `platform-admin/SettingsPage.tsx`, `packages/domain/platform-context.ts`).
 
 ## FINAL STATUS
 
