@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ArrowRight, Plus } from 'lucide-react';
-import { PageHeader } from '../components/layout/PageHeader';
+import { ArrowRight, FileText, Heart, Plus } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Select } from '../components/ui/select';
@@ -81,6 +81,15 @@ function stageLabel(name: string): string {
   return STAGE_NAME_PT[name] ?? name;
 }
 
+// Opportunities have no dedicated "entered this stage at" timestamp --
+// updatedAt is the closest real signal (it changes on every stage move,
+// see updateOpportunity), so this is an honest approximation, not exact.
+function daysInStage(updatedAt: string): string {
+  const days = Math.floor((Date.now() - new Date(updatedAt).getTime()) / (1000 * 60 * 60 * 24));
+  if (days <= 0) return 'hoje';
+  return `${days}d`;
+}
+
 const emptyNewOpportunity = { customerId: '', destination: '', expectedValue: '' };
 const emptyNewPipeline = { name: '', description: '' };
 const emptyNewStage = { name: '', colorKey: 'NEUTRAL' as PipelineStageColor };
@@ -154,8 +163,8 @@ export function PipelinePage() {
 
   if (state.status === 'loading') {
     return (
-      <div>
-        <PageHeader title="Pipeline" description="Acompanhe cada oportunidade comercial do primeiro contato até a venda." />
+      <div className="space-y-6">
+        <h1 className="text-2xl font-bold text-slate-900">Pipeline</h1>
         <LoadingState label="Carregando pipeline…" />
       </div>
     );
@@ -188,7 +197,7 @@ export function PipelinePage() {
   if (state.status === 'no-pipeline') {
     return (
       <div className="space-y-6">
-        <PageHeader title="Pipeline" description="Acompanhe cada oportunidade comercial do primeiro contato até a venda." />
+        <h1 className="text-2xl font-bold text-slate-900">Pipeline</h1>
         <EmptyState
           title="Nenhum pipeline configurado"
           description="Crie o primeiro pipeline comercial desta agência para começar."
@@ -298,19 +307,28 @@ export function PipelinePage() {
       .finally(() => setStageSaving(false));
   };
 
+  const totalPipelineValue = opportunities.reduce((sum, o) => sum + (o.expectedValue ?? 0), 0);
+
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Pipeline"
-        description="Acompanhe cada oportunidade do primeiro contato até a venda, num só lugar."
-        breadcrumbs={[{ label: 'Painel', to: '/' }, { label: 'Pipeline' }]}
-        actions={
-          <Button size="sm" onClick={() => setShowNewOpportunity(true)}>
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-(--color-travel-navy) via-slate-800 to-(--color-travel-cyan)/40 p-6 text-white shadow-lg sm:p-8">
+        <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-white/10" />
+        <div className="relative flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-white/60">Pipeline comercial</p>
+            <h1 className="mt-1 text-2xl font-bold sm:text-3xl">{pipeline.name}</h1>
+            {pipeline.description && <p className="mt-1 text-sm text-white/70">{pipeline.description}</p>}
+            <p className="mt-3 text-sm text-white/85">
+              {opportunities.length} oportunidade{opportunities.length !== 1 ? 's' : ''} ·{' '}
+              <span className="font-semibold">{formatBRL(totalPipelineValue)}</span> em negociação
+            </p>
+          </div>
+          <Button size="sm" variant="outline" className="shrink-0 border-white/30 bg-white/10 text-white hover:bg-white/20" onClick={() => setShowNewOpportunity(true)}>
             <Plus className="mr-2 h-4 w-4" />
             Nova Oportunidade
           </Button>
-        }
-      />
+        </div>
+      </div>
 
       <div className="flex flex-wrap items-center gap-3">
         <label className="text-xs font-medium text-muted-foreground" htmlFor="pipeline-select">
@@ -330,9 +348,6 @@ export function PipelinePage() {
           <Plus className="mr-2 h-4 w-4" />
           Novo Pipeline
         </Button>
-        {pipeline.description ? (
-          <span className="text-sm text-slate-500">{pipeline.description}</span>
-        ) : null}
       </div>
 
       {stages.length === 0 ? (
@@ -390,6 +405,11 @@ export function PipelinePage() {
                   <h3 className="text-sm font-semibold text-slate-700">{stageLabel(stage.name)}</h3>
                   <span className="text-xs font-medium text-slate-400">{stageOpportunities.length}</span>
                 </div>
+                {stageOpportunities.length > 0 && (
+                  <p className="px-1 text-xs font-medium text-slate-500">
+                    {formatBRL(stageOpportunities.reduce((sum, o) => sum + (o.expectedValue ?? 0), 0))}
+                  </p>
+                )}
                 <div className="flex flex-col gap-2">
                   {stageOpportunities.map((opp) => (
                     <div
@@ -403,7 +423,10 @@ export function PipelinePage() {
                         movingId === opp.id ? 'opacity-50' : ''
                       }`}
                     >
-                      <p className="text-sm font-semibold text-slate-900">{customerName(opp.customerId)}</p>
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="text-sm font-semibold text-slate-900">{opp.customerName ?? customerName(opp.customerId)}</p>
+                        <span className="shrink-0 text-[11px] font-medium text-slate-400">{daysInStage(opp.updatedAt)}</span>
+                      </div>
                       {opp.destination ? (
                         <p className="text-xs text-slate-600">{opp.destination}</p>
                       ) : null}
@@ -415,6 +438,28 @@ export function PipelinePage() {
                           Próxima ação: {formatDateBR(opp.nextActionAt, { includeTime: true })}
                         </p>
                       ) : null}
+                      {(opp.wishId || opp.proposalId) && (
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {opp.wishId && (
+                            <Link
+                              to={`/wishes/${opp.wishId}`}
+                              onClick={(e) => e.stopPropagation()}
+                              className="inline-flex items-center gap-1 rounded-full bg-white/70 px-2 py-0.5 text-[11px] font-medium text-slate-600 hover:bg-white"
+                            >
+                              <Heart className="h-3 w-3" /> Desejo
+                            </Link>
+                          )}
+                          {opp.proposalId && (
+                            <Link
+                              to={`/proposals/${opp.proposalId}`}
+                              onClick={(e) => e.stopPropagation()}
+                              className="inline-flex items-center gap-1 rounded-full bg-white/70 px-2 py-0.5 text-[11px] font-medium text-slate-600 hover:bg-white"
+                            >
+                              <FileText className="h-3 w-3" /> Proposta
+                            </Link>
+                          )}
+                        </div>
+                      )}
                       <div className="mt-2 flex items-center gap-2">
                         <Select
                           className="h-8 flex-1 text-xs"

@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, Calendar, ImagePlus, MapPin, Pencil, Trash2 } from 'lucide-react';
-import { PageHeader } from '../components/layout/PageHeader';
+import { ArrowLeft, Bus, Calendar, Compass, ImagePlus, MapPin, Pencil, Plane, Trash2 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { StatusBadge } from '../components/ui/status-badge';
@@ -248,30 +247,44 @@ export function TripDetailPage() {
     }
   }
 
+  const CategoryIcon = trip.category === 'AEREO' ? Plane : trip.category === 'EXCURSAO' ? Compass : Bus;
+
   return (
     <div className="space-y-6">
-      <PageHeader
-        title={trip.name}
-        description={`${customer?.name ?? 'Cliente'} · ${trip.destination}`}
-        breadcrumbs={[
-          { label: 'Painel', to: '/' },
-          { label: 'Viagens', to: '/trips' },
-          { label: trip.name },
-        ]}
-        actions={
-          <StatusBadge tone={tripStatusTone(trip.status)}>
-            {getTripStatusLabel(trip.status)}
-          </StatusBadge>
-        }
-      />
+      <Link to="/trips" className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-700">
+        <ArrowLeft className="h-3 w-3" /> Viagens
+      </Link>
 
-      <div className="flex items-center justify-between">
-        <Tabs items={TABS} value={tab} onValueChange={setTab} />
-        <Button variant="outline" size="sm" onClick={openEdit}>
-          <Pencil className="h-4 w-4" />
-          Editar
-        </Button>
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-(--color-travel-navy) via-slate-800 to-(--color-travel-cyan)/40 p-6 text-white shadow-lg sm:p-8">
+        <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-white/10" />
+        <div className="relative flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0 space-y-1">
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/15">
+                <CategoryIcon className="h-4 w-4" />
+              </span>
+              <h1 className="text-2xl font-bold sm:text-3xl">{trip.name}</h1>
+              <StatusBadge tone={tripStatusTone(trip.status)}>
+                {getTripStatusLabel(trip.status)}
+              </StatusBadge>
+            </div>
+            <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-sm text-white/85">
+              <span className="inline-flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5" /> {trip.destination}</span>
+              <span className="inline-flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5" /> {formatDateBR(trip.startDate, { assumeDateOnly: true })} — {formatDateBR(trip.endDate, { assumeDateOnly: true })}</span>
+              {customer && (
+                <Link to={`/customers/${customer.id}`} className="inline-flex items-center gap-1.5 underline decoration-white/40 hover:decoration-white">
+                  {customer.name}
+                </Link>
+              )}
+            </div>
+          </div>
+          <Button size="sm" variant="outline" className="shrink-0 border-white/30 bg-white/10 text-white hover:bg-white/20" onClick={openEdit}>
+            <Pencil className="mr-1.5 h-3.5 w-3.5" /> Editar
+          </Button>
+        </div>
       </div>
+
+      <Tabs items={TABS} value={tab} onValueChange={setTab} />
 
       {tab === 'overview' && (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">

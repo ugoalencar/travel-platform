@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Plus, Map as MapIcon, X } from 'lucide-react';
+import { Search, Plus, Map as MapIcon, X, Bus, Plane, Compass } from 'lucide-react';
 import { PageHeader } from '../components/layout/PageHeader';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -23,6 +23,13 @@ function statusTone(s: TripStatus) {
   if (s === 'CANCELLED') return 'inactive' as const;
   return 'neutral' as const;
 }
+
+const CATEGORY_BADGE: Record<TripCategory, { label: string; icon: typeof Bus; className: string }> = {
+  TERRESTRE: { label: 'Terrestre', icon: Bus, className: 'bg-(--color-kpi-green-bg) text-(--color-kpi-green-fg)' },
+  AEREO: { label: 'Aérea', icon: Plane, className: 'bg-(--color-kpi-blue-bg) text-(--color-kpi-blue-fg)' },
+  EXCURSAO: { label: 'Excursão', icon: Compass, className: 'bg-(--color-kpi-purple-bg) text-(--color-kpi-purple-fg)' },
+  OUTRO: { label: 'Outro', icon: MapIcon, className: 'bg-(--color-kpi-orange-bg) text-(--color-kpi-orange-fg)' },
+};
 
 const CATEGORY_TABS: { value: 'ALL' | TripCategory; label: string }[] = [
   { value: 'ALL', label: 'Todas' },
@@ -291,23 +298,32 @@ export function TripsPage() {
         <div className="space-y-3">
           {filtered.map((trip) => {
             const customer = customerById.get(trip.customerId);
+            const categoryBadge = CATEGORY_BADGE[trip.category];
+            const CategoryIcon = categoryBadge?.icon;
             return (
               <Link
                 key={trip.id}
                 to={`/trips/${trip.id}`}
                 className="block rounded-lg border border-slate-200 bg-white p-4 transition-colors hover:bg-slate-50"
               >
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-slate-900">{trip.name}</p>
-                    <p className="text-xs text-slate-500">{customer?.name ?? 'Cliente'} · {trip.destination}</p>
-                    <p className="text-xs text-slate-400">
-                      {formatDateBR(trip.startDate, { assumeDateOnly: true })} —{' '}
-                      {formatDateBR(trip.endDate, { assumeDateOnly: true })}
-                    </p>
-                    {trip.description && (
-                      <p className="mt-1 text-xs text-slate-500 line-clamp-1">{trip.description}</p>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-3">
+                    {categoryBadge && CategoryIcon && (
+                      <span className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${categoryBadge.className}`} title={categoryBadge.label}>
+                        <CategoryIcon className="h-4 w-4" />
+                      </span>
                     )}
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-slate-900">{trip.name}</p>
+                      <p className="text-xs text-slate-500">{customer?.name ?? 'Cliente'} · {trip.destination}</p>
+                      <p className="text-xs text-slate-400">
+                        {formatDateBR(trip.startDate, { assumeDateOnly: true })} —{' '}
+                        {formatDateBR(trip.endDate, { assumeDateOnly: true })}
+                      </p>
+                      {trip.description && (
+                        <p className="mt-1 text-xs text-slate-500 line-clamp-1">{trip.description}</p>
+                      )}
+                    </div>
                   </div>
                   <StatusBadge tone={statusTone(trip.status)}>
                     {getTripStatusLabel(trip.status)}

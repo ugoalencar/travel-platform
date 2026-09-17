@@ -323,6 +323,19 @@ export async function listRecentInteractions(limit = 5): Promise<CustomerInterac
   return data.interactions;
 }
 
+// Customer 360's real activity timeline -- same GET /commercial/interactions
+// list as above, just scoped by the customerId filter the backend already
+// supports (services/api/src/commercial-cockpit-parsers.ts parseInteractionFilters).
+export async function listCustomerInteractions(
+  customerId: string,
+  limit = 50,
+): Promise<CustomerInteraction[]> {
+  const data = await request<{ interactions: CustomerInteraction[] }>(
+    `/api/commercial/interactions?customerId=${encodeURIComponent(customerId)}&limit=${limit}`,
+  );
+  return data.interactions;
+}
+
 // ============================================================
 // SALES REPORT (services/api/src/reports.ts) -- reused by the dashboard
 // for a real monthly revenue trend instead of a fabricated chart.

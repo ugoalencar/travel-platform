@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Map, Heart, FileText, CalendarCheck, Phone, Mail, Home, IdCard, Users, Plus, Trash2, Pencil, Star, ShieldCheck, Clock, Wallet, UserCog } from 'lucide-react';
+import { ArrowLeft, Map, Heart, FileText, CalendarCheck, Phone, Mail, Home, IdCard, Users, Plus, Trash2, Pencil, Star, ShieldCheck, Clock, Wallet, UserCog, MapPin } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
+import { KpiChip } from '../components/ui/kpi-chip';
 import { StatusBadge } from '../components/ui/status-badge';
 import { Tabs } from '../components/ui/tabs';
 import { EmptyState } from '../components/ui/empty-state';
@@ -45,6 +46,8 @@ import {
   createTravelRequirement,
   updateTravelRequirement,
   deleteTravelRequirement,
+  listCustomerInteractions,
+  type CustomerInteraction,
 } from '../lib/api';
 import { formatDateBR } from '../lib/formatDateBR';
 import { formatBRL } from '../lib/formatCurrency';
@@ -86,6 +89,14 @@ const SALE_STATUS_LABELS: Record<string, string> = {
   PAID: 'Paga',
   CANCELLED: 'Cancelada',
   REFUNDED: 'Reembolsada',
+};
+
+const INTERACTION_CHANNEL_LABELS: Record<string, string> = {
+  EMAIL: 'E-mail',
+  PHONE: 'Telefone',
+  WHATSAPP: 'WhatsApp',
+  IN_PERSON: 'Presencial',
+  OTHER: 'Outro',
 };
 
 const TRAVEL_REQUIREMENT_TYPE_LABELS: Record<TravelRequirementType, string> = {
@@ -487,6 +498,7 @@ export function CustomerDetailPage() {
   const [dependents, setDependents] = useState<CustomerDependent[]>([]);
   const [requirements, setRequirements] = useState<TravelRequirement[]>([]);
   const [sales, setSales] = useState<Sale[]>([]);
+  const [interactions, setInteractions] = useState<CustomerInteraction[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [notFound, setNotFound] = useState(false);
@@ -530,8 +542,9 @@ export function CustomerDetailPage() {
       listCustomerDependents(id),
       listTravelRequirements(id),
       listSales(),
+      listCustomerInteractions(id).catch(() => []),
     ])
-      .then(([c, w, t, a, doc, dep, req, allSales]) => {
+      .then(([c, w, t, a, doc, dep, req, allSales, interactionList]) => {
         setCustomer(c);
         setWishes(w);
         setTrips(t);
@@ -540,6 +553,7 @@ export function CustomerDetailPage() {
         setDependents(dep);
         setRequirements(req);
         setSales(allSales.filter((s) => s.customerId === id));
+        setInteractions(interactionList);
         setLoading(false);
       })
       .catch((err: unknown) => {
@@ -838,19 +852,53 @@ export function CustomerDetailPage() {
   const minorDependents = dependents.filter((d) => d.relationshipType === 'CHILD');
   const adultCompanions = dependents.filter((d) => d.relationshipType !== 'CHILD');
 
+  const primaryAddress = addresses.find((a) => a.isPrimary) ?? addresses[0] ?? null;
+  const upcomingTripsCount = trips.filter((t) => t.status !== 'CANCELLED' && t.status !== 'COMPLETED').length;
+  const pendingRequirementsCount = requirements.filter((r) => r.required && !r.fulfilled).length;
+
   return (
     <div className="space-y-8">
-      <div className="flex items-start justify-between gap-4">
-        <div className="space-y-2">
-          <Link to="/customers" className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-700">
-            <ArrowLeft className="h-3 w-3" /> Clientes
-          </Link>
-          <h1 className="text-2xl font-bold text-slate-900">{customer.name}</h1>
-          <p className="text-xs font-medium text-slate-400">Protocolo {customer.protocolNumber}</p>
+      <Link to="/customers" className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-700">
+        <ArrowLeft className="h-3 w-3" /> Clientes
+      </Link>
+
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-(--color-travel-navy) via-slate-800 to-(--color-travel-cyan)/40 p-6 text-white shadow-lg sm:p-8">
+        <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-white/10" />
+        <div className="relative flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0 space-y-1">
+            <div className="flex flex-wrap items-center gap-3">
+              <h1 className="text-2xl font-bold sm:text-3xl">{customer.name}</h1>
+              <StatusBadge tone={customerStatusTone(customer.status)}>
+                {getCustomerStatusLabel(customer.status)}
+              </StatusBadge>
+            </div>
+            <p className="text-xs font-medium text-white/60">Protocolo {customer.protocolNumber}</p>
+            <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-sm text-white/85">
+              {customer.email && (
+                <span className="inline-flex items-center gap-1.5"><Mail className="h-3.5 w-3.5" /> {customer.email}</span>
+              )}
+              {(customer.whatsapp || customer.phone) && (
+                <span className="inline-flex items-center gap-1.5"><Phone className="h-3.5 w-3.5" /> {customer.whatsapp || customer.phone}</span>
+              )}
+              {primaryAddress && (
+                <span className="inline-flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5" /> {primaryAddress.city}, {primaryAddress.state}</span>
+              )}
+              <span className="inline-flex items-center gap-1.5"><CalendarCheck className="h-3.5 w-3.5" /> Cliente desde {formatDateBR(customer.createdAt)}</span>
+            </div>
+          </div>
+          <div className="flex shrink-0 flex-wrap gap-2">
+            <Button size="sm" variant="outline" className="border-white/30 bg-white/10 text-white hover:bg-white/20" onClick={() => setPersonalModalOpen(true)}>
+              <Pencil className="mr-1.5 h-3.5 w-3.5" /> Editar cliente
+            </Button>
+          </div>
         </div>
-        <StatusBadge tone={customerStatusTone(customer.status)}>
-          {getCustomerStatusLabel(customer.status)}
-        </StatusBadge>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <KpiChip label="Viagens" value={String(trips.length)} icon={<Map className="h-5 w-5" />} tone="blue" />
+        <KpiChip label="Próximas viagens" value={String(upcomingTripsCount)} icon={<CalendarCheck className="h-5 w-5" />} tone="green" />
+        <KpiChip label="Desejos" value={String(wishes.length)} icon={<Heart className="h-5 w-5" />} tone="purple" />
+        <KpiChip label="Requisitos pendentes" value={String(pendingRequirementsCount)} icon={<ShieldCheck className="h-5 w-5" />} tone="orange" />
       </div>
 
       {showCompletionBanner ? (
@@ -1179,6 +1227,11 @@ export function CustomerDetailPage() {
               ...trips.map((t) => ({ date: t.createdAt, label: 'Viagem', description: `Viagem "${t.name}" registrada.` })),
               ...requirements.map((r) => ({ date: r.createdAt, label: 'Requisito de viagem', description: `Requisito ${TRAVEL_REQUIREMENT_TYPE_LABELS[r.type] ?? r.type} adicionado.` })),
               ...sales.map((s) => ({ date: s.createdAt, label: 'Venda', description: `Venda de ${formatBRL(s.total)} registrada.` })),
+              ...interactions.map((i) => ({
+                date: i.occurredAt,
+                label: `Interação (${INTERACTION_CHANNEL_LABELS[i.channel] ?? i.channel})`,
+                description: i.summary,
+              })),
             ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
             if (events.length === 0) {

@@ -29,6 +29,7 @@ import {
   YAxis,
 } from 'recharts';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
+import { KpiChip } from '../components/ui/kpi-chip';
 import { Button } from '../components/ui/button';
 import { Select } from '../components/ui/select';
 import { Modal } from '../components/ui/modal';
@@ -465,37 +466,6 @@ function SummaryRow({ label, value }: { label: string; value: string }) {
       <span className="text-sm text-slate-500">{label}</span>
       <span className="text-sm font-semibold text-slate-900">{value}</span>
     </div>
-  );
-}
-
-const KPI_TONE_CLASSES: Record<'green' | 'blue' | 'purple' | 'orange', string> = {
-  green: 'bg-(--color-kpi-green-bg) text-(--color-kpi-green-fg)',
-  blue: 'bg-(--color-kpi-blue-bg) text-(--color-kpi-blue-fg)',
-  purple: 'bg-(--color-kpi-purple-bg) text-(--color-kpi-purple-fg)',
-  orange: 'bg-(--color-kpi-orange-bg) text-(--color-kpi-orange-fg)',
-};
-
-function KpiChip({
-  label,
-  value,
-  icon,
-  tone,
-}: {
-  label: string;
-  value: string;
-  icon: React.ReactNode;
-  tone: 'green' | 'blue' | 'purple' | 'orange';
-}) {
-  return (
-    <Card className="flex items-center gap-4 p-5 transition-all duration-200 hover:shadow-md hover:border-slate-300">
-      <span className={cn('flex h-11 w-11 shrink-0 items-center justify-center rounded-xl', KPI_TONE_CLASSES[tone])}>
-        {icon}
-      </span>
-      <div className="min-w-0">
-        <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{label}</p>
-        <p className="text-xl font-bold text-slate-900">{value}</p>
-      </div>
-    </Card>
   );
 }
 

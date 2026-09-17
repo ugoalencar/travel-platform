@@ -34,6 +34,7 @@ vi.mock('./lib/api', async () => {
     listCustomerDependents: vi.fn(),
     listTravelRequirements: vi.fn(),
     listSales: vi.fn(),
+    listCustomerInteractions: vi.fn(),
     listAirServicesByTrip: vi.fn(),
     listLandServicesByTrip: vi.fn(),
     listTripPhotos: vi.fn(),
@@ -114,6 +115,7 @@ beforeEach(() => {
   vi.mocked(api.listCustomerDependents).mockResolvedValue([]);
   vi.mocked(api.listTravelRequirements).mockResolvedValue([]);
   vi.mocked(api.listSales).mockResolvedValue([]);
+  vi.mocked(api.listCustomerInteractions).mockResolvedValue([]);
   vi.mocked(api.listAirServicesByTrip).mockResolvedValue([]);
   vi.mocked(api.listLandServicesByTrip).mockResolvedValue([]);
   vi.mocked(api.listTripPhotos).mockResolvedValue([]);

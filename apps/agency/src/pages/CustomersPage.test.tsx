@@ -21,6 +21,7 @@ vi.mock('../lib/api', async () => {
     listCustomerDependents: vi.fn(),
     listTravelRequirements: vi.fn(),
     listSales: vi.fn(),
+    listCustomerInteractions: vi.fn(),
   };
 });
 
@@ -130,6 +131,7 @@ beforeEach(() => {
   vi.mocked(api.listCustomerDependents).mockResolvedValue([]);
   vi.mocked(api.listTravelRequirements).mockResolvedValue([]);
   vi.mocked(api.listSales).mockResolvedValue([]);
+  vi.mocked(api.listCustomerInteractions).mockResolvedValue([]);
 });
 
 describe('CustomersPage', () => {
@@ -202,8 +204,8 @@ describe('CustomerDetailPage', () => {
   it('shows customer profile info and privacy-respecting data via API', async () => {
     renderRouted('/customers/cust-001');
     expect(await screen.findByRole('heading', { name: 'Lucas Martins' })).toBeInTheDocument();
-    expect(screen.getByText('lucas.martins@email.com')).toBeInTheDocument();
-    expect(screen.getByText('(11) 99876-5432')).toBeInTheDocument();
+    expect(screen.getAllByText('lucas.martins@email.com')[0]).toBeInTheDocument();
+    expect(screen.getAllByText('(11) 99876-5432')[0]).toBeInTheDocument();
   });
 
   it('shows summary counts from API data', async () => {
