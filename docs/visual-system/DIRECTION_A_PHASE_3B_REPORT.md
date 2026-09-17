@@ -3,7 +3,7 @@
 Final major visual reconstruction phase: closes the visual experience end-to-end across the public Landing page, staff Login/MFA/Forgot/Reset, Signup/Onboarding, and Platform Admin. No redesign of already-approved Direction A screens (Agency Dashboard, Customer App, Customer 360, Finance, Operations, Pipeline). No Auth/MFA/RBAC/RLS/Tenant/financial-formula changes.
 
 - **Main HEAD before:** `baed5fa` (docs: record confirmed green CI result for Phase 3A)
-- **Main HEAD after:** _(this commit, pushed at the end of this round)_
+- **Main HEAD after:** `f04270b` (feat(auth,marketing,platform-admin): close Direction A end-to-end — Phase 3B)
 
 ## Pages changed
 
@@ -97,7 +97,7 @@ Landing and Login validated at both 1440 and 390 live via Playwright — confirm
 
 ## CI run id / status
 
-Pending — will be confirmed green via a real GitHub Actions run (`gh run watch --exit-status`) after push, per this repo's established verification discipline. Not claimed complete until that run is observed green.
+**Green.** Confirmed via real GitHub Actions run `35257147121` (`gh run watch --exit-status`, exit code 0) on commit `f04270b`. All Quality Gates steps passed (lint, typecheck, secret scan, dependency audit, migration naming, unit tests, security tests, database/RLS integration tests, build); only pre-existing warnings unrelated to this round's files.
 
 ## FINAL STATUS
 
