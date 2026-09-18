@@ -68,6 +68,12 @@ services:
       REDIS_URL: redis://redis-staging:6379/0
       CORS_ALLOWED_ORIGINS: https://agency.localhost,https://portal.localhost,https://admin.localhost,https://www.localhost
       UPLOADS_DIR: /app/uploads
+      # Real values injected via shell env at `docker compose up` time
+      # (RESEND_API_KEY=... docker compose ...) -- never written to this
+      # file. See docs/operations/EMAIL_PROVIDER_RESEND.md.
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      EMAIL_FROM: ${EMAIL_FROM:-}
+      EMAIL_REPLY_TO: ${EMAIL_REPLY_TO:-}
     volumes:
       - api_staging_uploads:/app/uploads
 

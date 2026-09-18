@@ -112,6 +112,50 @@ Cada tentativa de envio gera um log estruturado (JSON) via `console.log`, com:
 | Log mostra `email.*.failed` com `errorCode` diferente de `EMAIL_PROVIDER_NOT_CONFIGURED` | Falha real do provedor (rede, domínio não verificado, destinatário inválido) | `EmailProviderSendError.message` no log (nunca contém a API key) |
 | Convite/ativação retorna 500 mas o registro já existe no banco | Comportamento esperado (ver seção "Fluxos") — o token ainda é válido | Reenviar manualmente ou usar o link já existente na UI |
 
-## Teste real pendente (requer credencial externa)
+## Teste real com credencial — status atual (DNS em propagação)
 
-Esta rodada implementou, testou (com provedor mockado) e documentou a integração completa. **O envio real de um e-mail e a confirmação de recebimento em uma caixa postal real dependem de uma `RESEND_API_KEY` real e de um domínio verificado — nenhum dos dois existe nesta sessão.** Assim que o proprietário do produto fornecer essas credenciais, o teste manual descrito em `docs/release/RELEASE_CANDIDATE_VALIDATION.md` (seção "Teste real") deve ser executado antes de considerar o piloto liberado com e-mail 100% confirmado ponta a ponta.
+Uma `RESEND_API_KEY` real foi fornecida e configurada (apenas via variável de ambiente do container, nunca no Git — ver `infrastructure/docker-compose.local-staging.yml`, que só referencia `${RESEND_API_KEY:-}`, nunca o valor real). Dois testes de envio real foram executados contra a API do Resend a partir do ambiente de staging local, com o seguinte resultado:
+
+```
+STATUS: 403
+BODY: {"statusCode":403,"message":"The mail.travelplataforma.com.br domain is not verified.
+       Please, add and verify your domain on https://resend.com/domains","name":"validation_error"}
+```
+
+**Confirmado de forma independente** (consulta DNS pública direta, fora do Resend): `nslookup -type=TXT mail.travelplataforma.com.br` e `nslookup -type=CNAME resend._domainkey.mail.travelplataforma.com.br` não retornaram nenhum registro SPF/DKIM publicado — apenas o SOA do domínio raiz (`travelplataforma.com.br`). Ou seja, **os registros DNS do subdomínio de envio ainda não estão propagados/publicados**, confirmado tanto pelo Resend quanto por uma consulta DNS pública independente. O proprietário do produto confirmou que a configuração DNS ainda está em andamento.
+
+**Isto não é uma falha de código.** O comportamento observado é exatamente o esperado: o `ResendEmailProvider` fez a chamada real, recebeu a rejeição real do provedor, e propagou um `EmailProviderSendError` real — sem fingir sucesso em nenhum momento (confirmado também pelo `email-provider.test.ts`, que testa esse exato cenário com um mock).
+
+**Próximos passos (fora do escopo de código, dependem apenas da propagação DNS):**
+1. Aguardar a propagação dos registros SPF/DKIM já configurados no provedor de DNS (`a.sec.dns.br` / registro.br, conforme a consulta acima) — pode levar de minutos a algumas horas, dependendo do TTL configurado.
+2. Confirmar no painel do Resend (`https://resend.com/domains`) que o domínio aparece como **Verified** (não apenas "pendente").
+3. Repetir a consulta DNS pública (`nslookup -type=TXT mail.travelplataforma.com.br`) até os registros aparecerem.
+4. Somente então repetir o teste real de envio (comando documentado abaixo) e, se bem-sucedido, executar a lista completa dos 4 fluxos reais (convite, forgot/reset staff, ativação/reset Customer Portal) antes de considerar o P1 definitivamente fechado com prova de entrega real.
+
+### Comando usado para o teste real (reprodutível quando o DNS propagar)
+
+```bash
+# Dentro do container travel-platform-api-staging, com RESEND_API_KEY/EMAIL_FROM
+# já injetados via variável de ambiente (nunca via arquivo versionado):
+node -e "
+const { ResendEmailProvider } = require('/app/services/api/dist/services/api/src/email/resend-provider.js');
+const provider = new ResendEmailProvider({
+  apiKey: process.env.RESEND_API_KEY,
+  from: process.env.EMAIL_FROM,
+  replyTo: process.env.EMAIL_REPLY_TO,
+});
+provider.send({
+  to: 'endereco-real-para-teste@example.com',
+  subject: 'Teste real - Travel Platform (Resend)',
+  html: '<p>Teste real de entrega.</p>',
+  text: 'Teste real de entrega.',
+}).then((r) => console.log('SUCESSO:', JSON.stringify(r))).catch((e) => console.error('ERRO:', e.message));
+"
+```
+
+## Status do P1 (ausência de e-mail real)
+
+- **Implementação:** completa (abstração desacoplada, 4 fluxos conectados, fail-closed, templates, observabilidade segura).
+- **Testes automatizados (mock):** completos e verdes (`email-provider.test.ts`, 15/15; mais 3 suítes de integração reais confirmando 3 dos 4 fluxos disparando o e-mail corretamente com o provedor de desenvolvimento).
+- **Teste real contra o provedor real (Resend, chave real):** executado — confirma que o código funciona corretamente e trata o erro real do provedor sem fingir sucesso.
+- **Prova de entrega em caixa postal real:** **ainda não obtida** — bloqueada exclusivamente pela propagação DNS do subdomínio de envio, uma dependência externa e temporária, não uma falha de implementação.

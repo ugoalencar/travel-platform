@@ -42,7 +42,7 @@ Testado ao vivo via `https://agency.localhost/api/{health,readiness,version}`:
 
 Nenhum segredo ou dado sensível exposto em nenhum dos três endpoints — confirmado por inspeção direta da resposta.
 
-## Fase 4 — E-mail real — **RESOLVIDO nesta rodada**
+## Fase 4 — E-mail real — **IMPLEMENTADO, teste real de entrega BLOQUEADO por DNS em propagação**
 
 **Status anterior:** não existia nenhum provedor SMTP/e-mail transacional implementado em `services/api` (confirmado por inspeção direta do código-fonte nesta mesma sessão, rodada anterior).
 
@@ -64,9 +64,21 @@ Os 4 pontos de disparo já existentes no código foram conectados ao envio real:
 
 **Pendência honesta:** a ativação do Portal do Cliente (`grantCustomerPortalAccess`) não recebeu um teste de integração dedicado nesta rodada (exigiria infraestrutura de tenant-context adicional não presente nos arquivos de teste existentes) — mas a função de e-mail de alto nível que ela chama (`sendCustomerActivationEmail`) está testada isoladamente com sucesso, e a integração de código foi confirmada por typecheck e lint limpos.
 
-**Teste real com credencial externa (pendente, fora do escopo desta sessão):** o envio real para uma caixa postal de verdade e a verificação de domínio no Resend dependem de uma `RESEND_API_KEY` real e de um subdomínio verificado (SPF/DKIM/DMARC), que esta sessão não possui — é uma decisão/credencial do proprietário do produto, não uma tarefa de código. Assim que fornecida, executar manualmente: (1) criar funcionário → receber convite → abrir link → ativar → login; (2) forgot password → receber e-mail → redefinir → login; (3) customer activation/reset → receber e-mail → login no Customer App. Documentar evidências sem expor tokens.
+**Teste real executado com credencial real do proprietário do produto** (chave Resend real, configurada apenas via variável de ambiente do container, nunca no Git). Resultado:
 
-**Classificação atualizada: P1 fechado.** Nenhum P1 permanece aberto nesta validação.
+```
+STATUS: 403
+BODY: {"statusCode":403,"message":"The mail.travelplataforma.com.br domain is not verified.
+       Please, add and verify your domain on https://resend.com/domains","name":"validation_error"}
+```
+
+**Confirmado de forma independente** (consulta DNS pública, fora do Resend): `nslookup -type=TXT mail.travelplataforma.com.br` e `nslookup -type=CNAME resend._domainkey.mail.travelplataforma.com.br` não retornaram nenhum registro SPF/DKIM publicado — apenas o SOA do domínio raiz. O proprietário do produto confirmou que a configuração DNS ainda está em andamento (registros configurados no provedor de DNS, mas ainda não propagados/publicados publicamente).
+
+**Isto não é uma falha de código.** O `ResendEmailProvider` fez a chamada real, recebeu a rejeição real do provedor e propagou um erro real — exatamente o comportamento fail-closed que esta implementação foi desenhada para ter, sem fingir sucesso em nenhum momento. Ver `docs/operations/EMAIL_PROVIDER_RESEND.md` para o diagnóstico completo e o comando exato para repetir o teste assim que o DNS propagar.
+
+**Os 4 fluxos reais (convite, forgot/reset staff, ativação/reset Customer Portal) não puderam ser exercidos ponta a ponta com confirmação de recebimento em caixa postal externa nesta rodada** — o pré-requisito (domínio de envio aceito pelo Resend) ainda não foi atingido. Assim que o DNS propagar e o teste direto (documentado acima) retornar sucesso, os 4 fluxos devem ser reexecutados e suas evidências (sem expor tokens) anexadas a este relatório antes de declarar o P1 definitivamente fechado.
+
+**Classificação: P1 permanece aberto**, especificamente pela ausência de prova de entrega real — não pela ausência de implementação, que está completa, testada e correta. Causa: propagação DNS externa, com correção em andamento pelo proprietário do produto, sem ação de código pendente.
 
 ## Fase 5 — Auth / Sessões / MFA
 
@@ -172,14 +184,14 @@ Não auditado exaustivamente nesta rodada (fora do orçamento de tempo). Achado 
 
 ## Riscos principais
 
-1. **Credencial real do Resend ainda não fornecida** — a integração está completa e testada (mockada), mas nenhum e-mail real chegou a uma caixa postal de verdade ainda; isso é uma dependência externa (decisão do proprietário do produto), não um risco de código.
+1. **DNS do domínio de envio (`mail.travelplataforma.com.br`) ainda em propagação** — credencial real já fornecida e testada contra o Resend real; o Resend e uma consulta DNS pública independente confirmam que os registros SPF/DKIM ainda não estão publicados. Nenhum e-mail real chegou a uma caixa postal de verdade ainda. Dependência externa (propagação DNS), não um risco de código.
 2. **Ausência de staging remoto real** — todo o teste foi local; a primeira execução em infraestrutura de nuvem real pode revelar problemas de rede/DNS/variáveis de ambiente ainda não vistos.
 3. **Ausência de monitoramento externo** — se algo falhar durante o piloto, a detecção depende de alguém checando manualmente, não de um alerta automático.
 4. **`/version` incompleto** — dificulta confirmar com certeza absoluta qual commit está rodando em um ambiente remoto real, se um dia existir.
 
 ## Pendências
 
-- Fornecer `RESEND_API_KEY` real + verificar domínio de envio (SPF/DKIM/DMARC) — decisão/ação externa do proprietário do produto, ver `docs/operations/EMAIL_PROVIDER_RESEND.md`.
+- Aguardar propagação dos registros DNS (SPF/DKIM) de `mail.travelplataforma.com.br` e reconfirmar "Verified" no Resend para a API key em uso; depois reexecutar o teste real de envio e os 4 fluxos ponta a ponta — ver `docs/operations/EMAIL_PROVIDER_RESEND.md`.
 - Provisionamento de staging remoto real equivalente ao piloto.
 - Configuração de variáveis de versão/build no deploy real.
 - Monitoramento externo (fora do escopo desta rodada de engenharia).
@@ -190,17 +202,18 @@ Não auditado exaustivamente nesta rodada (fora do orçamento de tempo). Achado 
 - Run `35365474088` (rodada de validação inicial, commit `8da1e3e`).
 - Run `35376395447` (`gh run watch --exit-status`, exit code 0), no commit `cbd8fbf` — inclui a integração real do Resend (módulo `services/api/src/email/`, testes novos, atualização dos 4 pontos de disparo). Apenas os mesmos warnings pré-existentes já confirmados em rodadas anteriores.
 
-## Veredito final (atualizado após a integração do Resend)
+## Veredito final (atualizado após tentativa real de envio com credencial e domínio real)
 
-Conforme o critério explícito desta rodada ("atualizar o verdict para PRONTO PARA PILOTO somente se P0 = 0 e P1 = 0"):
+Conforme o critério explícito desta rodada ("responder PRONTO PARA PILOTO somente se os envios reais forem confirmados e P0=0/P1=0"): **os envios reais ainda não foram confirmados** (bloqueados por propagação DNS, ver Fase 4). Portanto:
 
-**TRAVEL PLATFORM — PRONTO PARA PILOTO**
+**TRAVEL PLATFORM — BLOQUEADO PARA PILOTO**
 
 - **P0 abertos: 0.**
-- **P1 abertos: 0** — o único P1 (ausência de e-mail real) foi resolvido nesta rodada (ver Fase 4 atualizada acima) e confirmado por testes de integração reais.
-- **P2 aberto: 1** — gap Offer → Opportunity (Fase 9), com workaround real já em uso; não bloqueia.
-- **P3 abertos: 2** — `role="alert"` ausente em telas secundárias; verbosidade de log em erro de conexão pg. Ambos cosméticos, não bloqueiam.
-- **Ressalva real remanescente:** o envio de e-mail está implementado, testado (com provedor mockado) e fail-closed corretamente, mas o teste ponta a ponta com uma caixa postal real depende de uma `RESEND_API_KEY` e domínio verificado que só o proprietário do produto pode fornecer — até isso ser feito, o comportamento em staging/produção é fail-closed (falha visível, não falso-positivo), o que é seguro, mas significa que nenhum convite/reset real chegará a uma caixa de entrada até essa credencial existir.
-- Gaps operacionais também remanescentes (não são bugs de código): ausência de staging remoto real, ausência de monitoramento externo.
+- **P1 abertos: 1** — e-mail real: implementação completa, testada (mock) e confirmada fail-closed contra o provedor real (Resend), mas **sem prova de entrega em caixa postal real ainda**, bloqueada exclusivamente pela propagação DNS do subdomínio `mail.travelplataforma.com.br` (confirmado tanto pelo Resend quanto por consulta DNS pública independente). Sem ação de código pendente — depende apenas da propagação DNS, já em andamento pelo proprietário do produto.
+- **P2 aberto: 1** — gap Offer → Opportunity (Fase 9), com workaround real já em uso; não bloqueia por si só.
+- **P3 abertos: 2** — `role="alert"` ausente em telas secundárias; verbosidade de log em erro de conexão pg. Cosméticos, não bloqueiam por si só.
+- Gaps operacionais remanescentes (não são bugs de código): ausência de staging remoto real, ausência de monitoramento externo.
+
+**Motivo exato do bloqueio:** o critério desta rodada exige confirmação real de entrega para os 4 fluxos de e-mail antes de fechar o P1, e essa confirmação depende de um pré-requisito externo (propagação DNS) que ainda não foi atingido — não de uma falha de implementação. Assim que os registros DNS propagarem e o Resend aceitar o domínio como verificado para a API key em uso, reexecutar o teste direto documentado em `docs/operations/EMAIL_PROVIDER_RESEND.md` e, em caso de sucesso, os 4 fluxos reais (convite, forgot/reset staff, ativação/reset Customer Portal), então atualizar este veredito.
 
 Ver `docs/release/PILOT_READINESS_CHECKLIST.md` para o checklist completo e `docs/operations/PILOT_RUNBOOK.md` para os procedimentos operacionais do piloto.

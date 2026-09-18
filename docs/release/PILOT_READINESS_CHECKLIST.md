@@ -59,8 +59,8 @@ Legenda: ✅ OK | ⚠️ Ressalva (P2/P3 ou gap operacional documentado) | ❌ B
 
 ## Email
 
-- ✅ **Resolvido.** Provedor real (Resend) integrado via abstração desacoplada (`services/api/src/email`). Convite de funcionário, reset de senha (staff e cliente) e ativação do Portal do Cliente agora disparam envio real. Comportamento fail-closed confirmado (produção/staging sem credencial lança `EMAIL_PROVIDER_NOT_CONFIGURED`, nunca finge sucesso). Testes de integração reais confirmaram os 3 dos 4 fluxos disparando o provedor corretamente (convite, forgot-password staff, forgot-password cliente); o 4º (ativação do Portal do Cliente) tem a função de e-mail testada isoladamente com sucesso, mas sem teste de integração dedicado nesta rodada. Ver `docs/operations/EMAIL_PROVIDER_RESEND.md`.
-- ⚠️ **Pendência real remanescente:** o envio real para uma caixa postal de verdade depende de uma `RESEND_API_KEY` real e de um domínio verificado, que esta sessão não possui — isso é uma decisão/credencial externa do proprietário do produto, não um bug de código. Até essa credencial ser configurada, o ambiente de staging local (que já roda com `NODE_ENV=production`) falha de propósito (fail-closed) em qualquer tentativa real de envio.
+- ✅ **Implementação completa.** Provedor real (Resend) integrado via abstração desacoplada (`services/api/src/email`). Convite de funcionário, reset de senha (staff e cliente) e ativação do Portal do Cliente disparam envio real. Comportamento fail-closed confirmado tanto com mock quanto contra o provedor real (produção/staging sem credencial lança `EMAIL_PROVIDER_NOT_CONFIGURED`; com credencial real mas domínio não aceito, propaga o erro real do provedor — nunca finge sucesso). Testes de integração reais confirmaram 3 dos 4 fluxos disparando o provedor corretamente (convite, forgot-password staff, forgot-password cliente); o 4º (ativação do Portal do Cliente) tem a função de e-mail testada isoladamente com sucesso, mas sem teste de integração dedicado. Ver `docs/operations/EMAIL_PROVIDER_RESEND.md`.
+- ❌ **BLOQUEIO remanescente — sem prova de entrega real.** Credencial real (Resend) e domínio (`travelplataforma.com.br`) já registrados; domínio de envio `mail.travelplataforma.com.br` ainda **não aceito pelo Resend** ao tentar enviar (`403 domain not verified`), confirmado também por consulta DNS pública independente (nenhum registro SPF/DKIM publicado ainda). Bloqueado exclusivamente por propagação DNS, em andamento pelo proprietário do produto — sem ação de código pendente. Os 4 fluxos reais não puderam ser exercidos ponta a ponta com confirmação de recebimento em caixa postal externa nesta rodada.
 
 ## Storage
 
@@ -102,11 +102,11 @@ Legenda: ✅ OK | ⚠️ Ressalva (P2/P3 ou gap operacional documentado) | ❌ B
 
 | Prioridade | Item | Bloqueia piloto? |
 |---|---|---|
-| — | E-mail real | **Resolvido** — provedor Resend integrado, fail-closed confirmado. Pendência remanescente: credencial real (`RESEND_API_KEY`) e domínio verificado, a fornecer externamente. |
+| P1 | E-mail real — sem prova de entrega | **Sim** — implementação completa e testada (mock + fail-closed real contra o Resend), mas bloqueada por propagação DNS do domínio de envio (`mail.travelplataforma.com.br`), confirmado pelo Resend e por consulta DNS pública independente. Sem ação de código pendente. |
 | — | Staging remoto real ausente | Gap operacional, não é bug de código |
 | — | Monitoramento externo ausente | Gap operacional |
 | P2 | Gap Offer → Opportunity | Não (workaround real já em uso) — conhecido, não corrigido nesta rodada |
 | P3 | `role="alert"` ausente em telas secundárias | Não — conhecido, não corrigido nesta rodada |
 | P3 | Verbosidade de log em erro de conexão pg | Não — conhecido, não corrigido nesta rodada |
 
-**P0 abertos: 0. P1 abertos: 0.**
+**P0 abertos: 0. P1 abertos: 1** (e-mail — bloqueado por DNS em propagação, não por código).
