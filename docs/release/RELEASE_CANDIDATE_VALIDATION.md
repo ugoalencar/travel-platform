@@ -12,6 +12,7 @@ Validação final de engenharia, operação e prontidão de piloto, executada ap
 | Working tree | Limpo (sem alterações não commitadas) |
 | CI mais recente | `35306261626` — **success** |
 | Node | `v24.19.0` |
+| Commit desta atualização (integração do Resend) | `cbd8fbf5ba0a949a5cc753f530602d057effd765` |
 | PostgreSQL (staging local) | `15.18` |
 | Redis (staging local) | `7.4.11` (redis-cli) |
 | Migration mais recente | `077_platform_admin_table_grants.sql` |
@@ -185,7 +186,9 @@ Não auditado exaustivamente nesta rodada (fora do orçamento de tempo). Achado 
 
 ## CI
 
-**Verde.** Confirmado via execução real do GitHub Actions, run `35365474088` (`gh run watch --exit-status`, exit code 0), no commit `8da1e3e` (este relatório e os demais três documentos desta rodada). Nenhuma correção adicional de código foi necessária nesta rodada de validação (apenas testes/investigação reais, sem alteração de código-fonte além dos quatro relatórios em `docs/`). Apenas os mesmos warnings pré-existentes já confirmados em rodadas anteriores.
+**Verde.** Duas confirmações reais via GitHub Actions:
+- Run `35365474088` (rodada de validação inicial, commit `8da1e3e`).
+- Run `35376395447` (`gh run watch --exit-status`, exit code 0), no commit `cbd8fbf` — inclui a integração real do Resend (módulo `services/api/src/email/`, testes novos, atualização dos 4 pontos de disparo). Apenas os mesmos warnings pré-existentes já confirmados em rodadas anteriores.
 
 ## Veredito final (atualizado após a integração do Resend)
 

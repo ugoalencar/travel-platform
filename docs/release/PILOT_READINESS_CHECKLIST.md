@@ -1,6 +1,6 @@
 # Checklist de Prontidão para Piloto — Travel Platform
 
-Referência: `docs/release/RELEASE_CANDIDATE_VALIDATION.md` (evidências completas). Commit validado: `9e70997b5e75238693e3dad5027c0382f5816bcc`.
+Referência: `docs/release/RELEASE_CANDIDATE_VALIDATION.md` (evidências completas). Commit validado: `cbd8fbf5ba0a949a5cc753f530602d057effd765` (integração real do Resend — CI verde no run `35376395447`).
 
 Legenda: ✅ OK | ⚠️ Ressalva (P2/P3 ou gap operacional documentado) | ❌ Bloqueio (P0/P1)
 
