@@ -33,8 +33,8 @@ Adicionadas em `.env.production.example`:
 
 ```bash
 RESEND_API_KEY=__INJECT_FROM_SECRETS_MANAGER__
-EMAIL_FROM="Travel Platform <no-reply@mail.travel-platform.com>"
-EMAIL_REPLY_TO=suporte@travel-platform.com
+EMAIL_FROM="Travel Platform <no-reply@mail.travelplataforma.com.br>"
+EMAIL_REPLY_TO=suporte@travelplataforma.com.br
 ```
 
 Reutilizadas (já existiam, não foram inventadas nomes novos): `APP_URL` (app da agência, usado para o link de reset de senha do staff) e `CUSTOMER_PORTAL_URL` (portal do cliente, usado para o link de convite/ativação/reset do cliente).
@@ -43,18 +43,21 @@ Reutilizadas (já existiam, não foram inventadas nomes novos): `APP_URL` (app d
 
 ## Configuração do Resend (domínio de envio)
 
-**Não foi inventado nenhum domínio real.** O proprietário do produto precisa:
+**Domínio real registrado pelo proprietário do produto: `travelplataforma.com.br`.** Decisão tomada nesta rodada:
 
-1. Criar uma conta no [Resend](https://resend.com).
-2. Adicionar um **subdomínio transacional dedicado** (recomendado, não o domínio raiz) — por exemplo `mail.<dominio-real>` ou `notify.<dominio-real>`.
-3. Configurar os registros DNS que o Resend exigir para verificar esse subdomínio:
-   - **SPF**: registro `TXT` apontando para os servidores do Resend (o próprio painel do Resend mostra o valor exato ao adicionar o domínio).
-   - **DKIM**: registros `CNAME` (geralmente 3) que o Resend gera automaticamente ao adicionar o domínio.
-   - **DMARC** (recomendado, não obrigatório pelo Resend, mas recomendado para entregabilidade): registro `TXT` em `_dmarc.<subdomínio>`, política inicial sugerida `p=none` para observar antes de enforçar.
-4. Gerar uma API Key no painel do Resend e injetá-la como `RESEND_API_KEY` via gerenciador de segredos do ambiente de piloto (nunca em arquivo versionado).
-5. Definir `EMAIL_FROM` usando exatamente o domínio verificado (ex.: `"Travel Platform <no-reply@mail.<dominio-real>>"`).
+- **Domínio de envio (verificar no Resend): `mail.travelplataforma.com.br`** — subdomínio transacional dedicado, não o domínio raiz (prática recomendada para reputação de envio e para isolar o tráfego transacional do resto do domínio).
+- **`EMAIL_FROM`**: `"Travel Platform <no-reply@mail.travelplataforma.com.br>"`.
+- **`EMAIL_REPLY_TO`**: `suporte@travelplataforma.com.br` — este fica no domínio raiz (é só um cabeçalho de resposta, não precisa de verificação SPF/DKIM).
 
-**Esta sessão não alterou nenhum DNS automaticamente** — essa etapa é exclusivamente manual, do proprietário do produto/domínio.
+Passos que o proprietário do produto executa (esta sessão não altera DNS automaticamente):
+
+1. No painel do Resend, adicionar o domínio **`mail.travelplataforma.com.br`** (não `travelplataforma.com.br` direto).
+2. Configurar os registros DNS que o Resend exigir para verificar esse subdomínio:
+   - **SPF**: registro `TXT` apontando para os servidores do Resend (o painel mostra o valor exato ao adicionar o domínio).
+   - **DKIM**: registros `CNAME` (geralmente 3) que o Resend gera automaticamente.
+   - **DMARC** (recomendado, não obrigatório pelo Resend, mas recomendado para entregabilidade): registro `TXT` em `_dmarc.mail.travelplataforma.com.br`, política inicial sugerida `p=none` para observar antes de enforçar.
+3. Gerar uma API Key no painel do Resend e injetá-la como `RESEND_API_KEY` via gerenciador de segredos do ambiente de piloto (nunca em arquivo versionado, nunca em chat).
+4. Confirmar no próprio painel do Resend que o domínio aparece como "Verified" antes de considerar o e-mail real liberado para o piloto.
 
 ## Fluxos que agora enviam e-mail real
 
