@@ -171,4 +171,12 @@ Não auditado exaustivamente nesta rodada (fora do orçamento de tempo). Achado 
 
 ## CI
 
-Confirmado verde, run `35306261626` e `35305659253` (últimos dois commits da rodada anterior), ambos em `main`. Nenhuma correção adicional de código foi necessária nesta rodada de validação (apenas testes/investigação, sem alteração de código-fonte além do que já estava commitado).
+**Verde.** Confirmado via execução real do GitHub Actions, run `35365474088` (`gh run watch --exit-status`, exit code 0), no commit `8da1e3e` (este relatório e os demais três documentos desta rodada). Nenhuma correção adicional de código foi necessária nesta rodada de validação (apenas testes/investigação reais, sem alteração de código-fonte além dos quatro relatórios em `docs/`). Apenas os mesmos warnings pré-existentes já confirmados em rodadas anteriores.
+
+## Veredito final
+
+**TRAVEL PLATFORM — BLOQUEADO PARA PILOTO**
+
+Motivo do bloqueio: **1 item P1 aberto** — ausência de provedor de e-mail transacional real (Fase 4), classificado como bloqueio de piloto pelos próprios critérios desta missão ("Se SMTP/provider não estiver configurado: marcar como BLOQUEIO DE PILOTO"). Nenhum P0 foi encontrado. Todas as demais dimensões (disponibilidade, segurança/tenancy, dados/backup-restore, fluxos de negócio) foram validadas com sucesso e sem bloqueio.
+
+Ver `docs/release/PILOT_READINESS_CHECKLIST.md` para o checklist completo e `docs/operations/PILOT_RUNBOOK.md` para os procedimentos operacionais do piloto assim que o bloqueio de e-mail for resolvido.
