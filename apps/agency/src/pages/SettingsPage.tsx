@@ -401,7 +401,7 @@ export function SettingsPage() {
   if (state.status === 'loading') {
     return (
       <div>
-        <PageHeader title="Configurações" description="Gerenciar configurações da agência..." />
+        <PageHeader title="Configurações" description="Gerenciar configurações da agência." />
         <LoadingState label="Carregando configurações…" />
       </div>
     );
@@ -411,7 +411,7 @@ export function SettingsPage() {
     return (
       <div className="space-y-6">
         <PageHeader title="Configurações" description="Gerenciar configurações da agência." />
-        <Card className="border-red-200 bg-red-50">
+        <Card className="border-red-200 bg-red-50" role="alert">
           <CardContent className="flex items-start gap-3 pt-6">
             <AlertCircle className="h-5 w-5 flex-shrink-0 text-red-600" />
             <div className="text-sm text-red-800">

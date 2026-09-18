@@ -34,7 +34,10 @@ export function PageHeader({ title, description, breadcrumbs, actions }: PageHea
             ))}
           </nav>
         )}
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">{title}</h1>
+        <h1 className="flex items-center gap-2.5 text-2xl font-bold tracking-tight text-slate-900">
+          <span className="h-6 w-1 shrink-0 rounded-full bg-(--color-travel-navy)" aria-hidden="true" />
+          {title}
+        </h1>
         {description && <p className="text-sm text-slate-600">{description}</p>}
       </div>
       {actions && <div className="flex items-center gap-2">{actions}</div>}

@@ -311,15 +311,32 @@ const expectedTenantTables = [
   'users',
   'wishes',
 ];
+// Alphabetical order -- the assertion below compares against a query
+// sorted by table_name, so this array must stay sorted too. The Platform
+// Admin entries (billing_webhook_audit, campaign_audit, ...) were added
+// by 077_platform_admin_table_grants.sql / 002_prepare_local_roles.sql --
+// append-only audit/evidence/change-log tables, same convention as
+// audit_logs.
 const readInsertOnlyTables = [
   'audit_logs',
+  'billing_webhook_audit',
   'campaign_attributions',
+  'campaign_audit',
   'captcha_verifications',
   'cash_transactions',
   'contract_signature_evidence',
+  'courtesy_account_audit',
   'document_audit_events',
+  'entitlement_changes',
+  'feature_flag_audit',
+  'login_audit',
   'mfa_totp_attempts',
+  'platform_audit_logs',
   'platform_user_audit',
+  'sensitive_operations_log',
+  'subscriber_tenant_audit',
+  'subscription_state_changes',
+  'support_access_log',
 ];
 // SELECT/INSERT/UPDATE but no DELETE -- session and reset-token tables:
 // a session/token is revoked or marked used via UPDATE, never physically
@@ -342,7 +359,48 @@ const noUpdateTables = ['agent_area_grants', 'permission_restrictions'];
 // (which backs the FORCE RLS check), but still counted here so the
 // grant-count assertion below covers every granted table, not just the
 // tenant ones.
-const nonTenantGrantedTables = ['platform_sessions', 'platform_user_audit', 'platform_users'];
+const nonTenantGrantedTables = [
+  'platform_sessions',
+  'platform_user_audit',
+  'platform_users',
+  // Added by 077_platform_admin_table_grants.sql -- these 32 tables existed
+  // since migrations 026-036 but were never granted to the runtime role
+  // (a real bug, found via Direction A Phase 3B live verification: every
+  // Platform Admin data page failed with Postgres 42501). None has RLS
+  // (confirmed directly), so none belongs in expectedTenantTables.
+  'billing_invoices',
+  'billing_payments',
+  'billing_webhook_audit',
+  'billing_webhook_events',
+  'campaign_audit',
+  'courtesy_account_audit',
+  'courtesy_accounts',
+  'entitlement_changes',
+  'entitlements',
+  'feature_flag_audit',
+  'feature_flags',
+  'landing_page_config',
+  'landing_promotions',
+  'lead_conversions',
+  'lead_interactions',
+  'leads',
+  'login_audit',
+  'plans',
+  'platform_audit_logs',
+  'platform_coupon_redemptions',
+  'platform_coupons',
+  'platform_settings',
+  'promotional_campaigns',
+  'sales_demos',
+  'sales_opportunities',
+  'sensitive_operations_log',
+  'subscriber_tenant_audit',
+  'subscriber_tenants',
+  'subscription_state_changes',
+  'subscriptions',
+  'support_access_log',
+  'support_cases',
+];
 
 interface CommandResult {
   stdout: string;

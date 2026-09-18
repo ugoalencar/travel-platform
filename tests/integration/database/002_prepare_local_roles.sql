@@ -642,6 +642,120 @@ BEGIN
 END;
 $$;
 
+-- Platform Admin domain (migrations 026-036 and others): subscriber
+-- tenants, billing, plans/entitlements, feature flags, leads, support,
+-- and platform/audit tables. Never granted here before -- found via
+-- Direction A Phase 3B live verification (every Platform Admin data
+-- page failed with 42501) and confirmed the source migrations
+-- themselves never included a GRANT either (unlike most other
+-- domains). None of these tables has RLS (platform-global, not
+-- tenant-scoped -- access control is the separate /platform-auth
+-- pipeline, not Postgres RLS), matching the platform_users block
+-- above. See infrastructure/migrations/077_platform_admin_table_grants.sql
+-- for the equivalent forward-only fix applied to real deployments.
+DO $$
+BEGIN
+  -- Full CRUD: core platform entity tables (mutable by application code).
+  IF to_regclass('public.subscriber_tenants') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON subscriber_tenants TO travel_app_runtime_local;
+  END IF;
+  IF to_regclass('public.plans') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON plans, entitlements TO travel_app_runtime_local;
+  END IF;
+  IF to_regclass('public.subscriptions') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON subscriptions TO travel_app_runtime_local;
+  END IF;
+  IF to_regclass('public.courtesy_accounts') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON courtesy_accounts TO travel_app_runtime_local;
+  END IF;
+  IF to_regclass('public.leads') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      leads,
+      lead_conversions,
+      lead_interactions,
+      sales_demos,
+      sales_opportunities
+    TO travel_app_runtime_local;
+  END IF;
+  IF to_regclass('public.support_cases') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON support_cases TO travel_app_runtime_local;
+  END IF;
+  IF to_regclass('public.billing_invoices') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      billing_invoices,
+      billing_payments,
+      billing_webhook_events
+    TO travel_app_runtime_local;
+  END IF;
+  IF to_regclass('public.feature_flags') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON feature_flags TO travel_app_runtime_local;
+  END IF;
+  IF to_regclass('public.promotional_campaigns') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      promotional_campaigns,
+      platform_coupons,
+      platform_coupon_redemptions
+    TO travel_app_runtime_local;
+  END IF;
+  IF to_regclass('public.landing_page_config') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      landing_page_config,
+      landing_promotions
+    TO travel_app_runtime_local;
+  END IF;
+  IF to_regclass('public.platform_settings') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON platform_settings TO travel_app_runtime_local;
+  END IF;
+
+  -- Append-only audit/evidence/change-log tables -- SELECT/INSERT only,
+  -- matching the audit_logs and campaign_attributions pattern above.
+  IF to_regclass('public.subscriber_tenant_audit') IS NOT NULL THEN
+    GRANT SELECT, INSERT ON subscriber_tenant_audit TO travel_app_runtime_local;
+    REVOKE UPDATE, DELETE ON subscriber_tenant_audit FROM travel_app_runtime_local;
+  END IF;
+  IF to_regclass('public.entitlement_changes') IS NOT NULL THEN
+    GRANT SELECT, INSERT ON entitlement_changes TO travel_app_runtime_local;
+    REVOKE UPDATE, DELETE ON entitlement_changes FROM travel_app_runtime_local;
+  END IF;
+  IF to_regclass('public.subscription_state_changes') IS NOT NULL THEN
+    GRANT SELECT, INSERT ON subscription_state_changes TO travel_app_runtime_local;
+    REVOKE UPDATE, DELETE ON subscription_state_changes FROM travel_app_runtime_local;
+  END IF;
+  IF to_regclass('public.courtesy_account_audit') IS NOT NULL THEN
+    GRANT SELECT, INSERT ON courtesy_account_audit TO travel_app_runtime_local;
+    REVOKE UPDATE, DELETE ON courtesy_account_audit FROM travel_app_runtime_local;
+  END IF;
+  IF to_regclass('public.support_access_log') IS NOT NULL THEN
+    GRANT SELECT, INSERT ON support_access_log TO travel_app_runtime_local;
+    REVOKE UPDATE, DELETE ON support_access_log FROM travel_app_runtime_local;
+  END IF;
+  IF to_regclass('public.billing_webhook_audit') IS NOT NULL THEN
+    GRANT SELECT, INSERT ON billing_webhook_audit TO travel_app_runtime_local;
+    REVOKE UPDATE, DELETE ON billing_webhook_audit FROM travel_app_runtime_local;
+  END IF;
+  IF to_regclass('public.feature_flag_audit') IS NOT NULL THEN
+    GRANT SELECT, INSERT ON feature_flag_audit TO travel_app_runtime_local;
+    REVOKE UPDATE, DELETE ON feature_flag_audit FROM travel_app_runtime_local;
+  END IF;
+  IF to_regclass('public.campaign_audit') IS NOT NULL THEN
+    GRANT SELECT, INSERT ON campaign_audit TO travel_app_runtime_local;
+    REVOKE UPDATE, DELETE ON campaign_audit FROM travel_app_runtime_local;
+  END IF;
+  IF to_regclass('public.platform_audit_logs') IS NOT NULL THEN
+    GRANT SELECT, INSERT ON platform_audit_logs TO travel_app_runtime_local;
+    REVOKE UPDATE, DELETE ON platform_audit_logs FROM travel_app_runtime_local;
+  END IF;
+  IF to_regclass('public.login_audit') IS NOT NULL THEN
+    GRANT SELECT, INSERT ON login_audit TO travel_app_runtime_local;
+    REVOKE UPDATE, DELETE ON login_audit FROM travel_app_runtime_local;
+  END IF;
+  IF to_regclass('public.sensitive_operations_log') IS NOT NULL THEN
+    GRANT SELECT, INSERT ON sensitive_operations_log TO travel_app_runtime_local;
+    REVOKE UPDATE, DELETE ON sensitive_operations_log FROM travel_app_runtime_local;
+  END IF;
+END;
+$$;
+
 GRANT EXECUTE ON FUNCTION current_agency_id() TO travel_app_runtime_local;
 GRANT EXECUTE ON FUNCTION current_user_id() TO travel_app_runtime_local;
 GRANT EXECUTE ON FUNCTION set_tenant_context(TEXT, TEXT) TO travel_app_runtime_local;
