@@ -18,6 +18,7 @@
 // createInvitation() in addition to the route-level requireRole() floor.
 import { createHash, randomBytes } from 'node:crypto';
 import { hashPassword } from './password-hashing';
+import { sendEmployeeInvitationEmail } from './email';
 import {
   getAgencyId,
   getUserId,
@@ -214,7 +215,35 @@ export async function createInvitation(
     return created;
   });
 
+  // Sent after the invitation row is committed -- the invitation already
+  // exists and is valid even if delivery fails. Unlike forgot-password,
+  // this is not an anti-enumeration surface (the inviter already knows
+  // the invitee's email, since they typed it), so a delivery failure
+  // propagates as a real error instead of being swallowed -- the caller
+  // (route) can then decide whether to still show the manual-copy-link
+  // fallback the UI already has.
+  let agencyName: string | undefined;
+  try {
+    agencyName = await getAgencyDisplayName(database);
+  } catch {
+    agencyName = undefined;
+  }
+  await sendEmployeeInvitationEmail({
+    to: email,
+    token,
+    ...(agencyName ? { agencyName } : {}),
+    ...(name ? { inviteeName: name } : {}),
+  });
+
   return { invitation, token };
+}
+
+async function getAgencyDisplayName(database: DatabaseRuntime): Promise<string | undefined> {
+  const agencyId = getAgencyId();
+  return database.withTenantTransaction(async (client) => {
+    const result = await client.query<{ name: string }>(`SELECT name FROM agencies WHERE id = $1`, [agencyId]);
+    return result.rows[0]?.name;
+  });
 }
 
 export async function listInvitations(database: DatabaseRuntime): Promise<Invitation[]> {

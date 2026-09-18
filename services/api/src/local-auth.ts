@@ -32,6 +32,7 @@ import { UserRole } from '../../../packages/domain/types';
 import type { DatabaseRuntime, PlatformDatabaseRuntime, TenantTransactionClient } from './database';
 import { ConflictError, NotFoundError, ValidationError } from './errors';
 import { hashPassword, unusablePasswordHash, verifyPassword } from './password-hashing';
+import { sendStaffPasswordResetEmail } from './email';
 import {
   createTotpProvider,
   hashRecoveryCode,
@@ -564,8 +565,8 @@ export async function forgotPassword(
   }
 
   await withAgencyAudit(platformDatabase, agency.agencyId, 'forgot-password', async (client) => {
-    const result = await client.query<{ id: string; status: string }>(
-      `SELECT id, status FROM users WHERE agency_id = $1 AND email = $2`,
+    const result = await client.query<{ id: string; status: string; email: string }>(
+      `SELECT id, status, email FROM users WHERE agency_id = $1 AND email = $2`,
       [agency.agencyId, email],
     );
     const user = result.rows[0];
@@ -588,14 +589,25 @@ export async function forgotPassword(
       entityId: user.id,
     });
 
-    // No email provider is wired in this codebase yet (see
-    // docs/travel_platform_pilot_delivery_gap_closure_pack --
-    // OBSERVABILITY_MINIMUM.md and the standby list do not mention one
-    // either). Mirrors the existing invitation/enrollment pattern: the
-    // raw token would be emailed by a real provider in production; until
-    // one is wired, it is returned to the caller so the flow is testable
-    // end-to-end. NEVER logged.
-    void rawToken;
+    const agencyNameResult = await client.query<{ name: string }>(
+      `SELECT name FROM agencies WHERE id = $1`,
+      [agency.agencyId],
+    );
+
+    // Send the real reset email -- but never let a delivery failure leak
+    // through the HTTP response, which must stay generic regardless of
+    // whether the account exists (anti-enumeration). A misconfigured/down
+    // provider is still logged loudly inside sendStaffPasswordResetEmail
+    // (fail-closed at the observability layer, not at the public response).
+    try {
+      await sendStaffPasswordResetEmail({
+        to: user.email,
+        token: rawToken,
+        ...(agencyNameResult.rows[0]?.name ? { agencyName: agencyNameResult.rows[0].name } : {}),
+      });
+    } catch {
+      // Already logged by the email module itself. Never rethrow here.
+    }
   });
 }
 

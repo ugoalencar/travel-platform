@@ -22,6 +22,7 @@ import { NotFoundError } from './errors';
 import { hashPassword, unusablePasswordHash, verifyPassword } from './password-hashing';
 import { AuditEventType, recordAuditEvent } from './audit-log';
 import { resolveAgencyIdBySlug } from './local-auth';
+import { sendCustomerPasswordResetEmail } from './email';
 
 const SESSION_TTL_MS = 24 * 60 * 60 * 1000; // 24h
 const PASSWORD_RESET_TTL_MS = 30 * 60 * 1000; // 30 min
@@ -229,8 +230,8 @@ export async function customerForgotPassword(
   if (!agency) return;
 
   await withAgencyAudit(platformDatabase, agency.agencyId, 'customer-forgot-password', async (client) => {
-    const result = await client.query<{ id: string; customer_id: string; status: string }>(
-      `SELECT id, customer_id, status FROM customer_accounts WHERE agency_id = $1 AND email = $2`,
+    const result = await client.query<{ id: string; customer_id: string; status: string; email: string }>(
+      `SELECT id, customer_id, status, email FROM customer_accounts WHERE agency_id = $1 AND email = $2`,
       [agency.agencyId, email],
     );
     const account = result.rows[0];
@@ -250,7 +251,24 @@ export async function customerForgotPassword(
       entityType: 'customer_account',
       entityId: account.id,
     });
-    void rawToken; // no email provider wired yet -- see local-auth.ts's identical note
+
+    const agencyNameResult = await client.query<{ name: string }>(
+      `SELECT name FROM agencies WHERE id = $1`,
+      [agency.agencyId],
+    );
+
+    // Same posture as the staff flow: never let a delivery failure leak
+    // through the generic HTTP response (anti-enumeration). The email
+    // module itself logs failures loudly.
+    try {
+      await sendCustomerPasswordResetEmail({
+        to: account.email,
+        token: rawToken,
+        ...(agencyNameResult.rows[0]?.name ? { agencyName: agencyNameResult.rows[0].name } : {}),
+      });
+    } catch {
+      // Already logged. Never rethrow here.
+    }
   });
 }
 

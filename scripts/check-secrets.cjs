@@ -41,6 +41,11 @@ const allowedFiles = new Set([
   path.join('services', 'api', 'tests', 'customer-platform-auth.test.ts'),
   path.join('services', 'api', 'tests', 'invitations-permission-restrictions.test.ts'),
   path.join('services', 'api', 'tests', 'local-auth.test.ts'),
+  // Email-provider test suite: every "API key"/"token" value here is a
+  // synthetic fixture used to prove the Resend provider/factory never
+  // logs or leaks a real secret -- reviewed individually, none are real
+  // credentials for any system.
+  path.join('services', 'api', 'tests', 'email-provider.test.ts'),
 ]);
 const extensions = new Set([
   '.cjs',

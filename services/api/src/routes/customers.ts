@@ -22,7 +22,7 @@ import {
 import { listWishesByCustomer } from '../wishes';
 import { listTripsByCustomer } from '../trips';
 import { NotFoundError, ValidationError } from '../errors';
-import { grantCustomerPortalAccess } from '../customer-portal-access';
+import { grantCustomerPortalAccess, sendCustomerPortalActivationEmail } from '../customer-portal-access';
 
 export interface CustomerRoutesOptions {
   database: DatabaseRuntime;
@@ -117,11 +117,12 @@ export function registerCustomerRoutes(
   );
 
   // Navigable Pilot Flow track: staff-granted Customer Portal access.
-  // Returns the raw activation link directly in the response (no email
-  // provider exists anywhere in this codebase yet -- see
-  // docs/deployment/STAGING_DEPLOY_RUNBOOK.md's Known Gaps) so staff can
-  // copy/hand it to the customer manually, same pattern already used by
-  // enrollment links (EnrollmentLinksPage.tsx).
+  // Sends a real activation email (services/api/src/email) now that a
+  // provider is wired. Still returns the raw activationToken in the
+  // response too -- unchanged contract, so the existing UI fallback
+  // (CustomerPortalAccessCard showing the link) keeps working as a
+  // manual-copy backup if delivery fails or in development, matching
+  // the same posture as the employee invitation flow.
   app.post<{ Params: { id: string }; Body: { email?: string } }>(
     '/customers/:id/portal-access',
     { preHandler: protectedHooks },
@@ -132,6 +133,7 @@ export function registerCustomerRoutes(
         throw new ValidationError('Field "email" is required');
       }
       const result = await grantCustomerPortalAccess(database, request.params.id, email.trim());
+      await sendCustomerPortalActivationEmail(result);
       reply.code(201);
       return {
         activationToken: result.activationToken,

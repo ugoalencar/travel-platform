@@ -21,6 +21,7 @@ import { getAgencyId } from '../../../packages/domain/tenant-context';
 import type { DatabaseRuntime } from './database';
 import { ConflictError, NotFoundError } from './errors';
 import { unusablePasswordHash } from './password-hashing';
+import { sendCustomerActivationEmail } from './email';
 
 const ACTIVATION_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days -- an activation link, not a short-lived reset
 
@@ -28,6 +29,7 @@ export interface GrantPortalAccessResult {
   activationToken: string;
   expiresAt: Date;
   email: string;
+  agencyName?: string;
 }
 
 export async function grantCustomerPortalAccess(
@@ -85,6 +87,33 @@ export async function grantCustomerPortalAccess(
       [agencyId, accountId, tokenHash, expiresAt],
     );
 
-    return { activationToken: rawToken, expiresAt, email };
+    const agencyNameResult = await client.query<{ name: string }>(`SELECT name FROM agencies WHERE id = $1`, [
+      agencyId,
+    ]);
+
+    return {
+      activationToken: rawToken,
+      expiresAt,
+      email,
+      ...(agencyNameResult.rows[0]?.name ? { agencyName: agencyNameResult.rows[0].name } : {}),
+    };
+  });
+}
+
+/**
+ * Sends the real activation email for a `GrantPortalAccessResult` just
+ * created by grantCustomerPortalAccess(). Kept as a separate call (not
+ * inlined into the transaction above) so a delivery failure never rolls
+ * back the already-created customer_accounts row -- the account exists
+ * and the token is valid even if the email bounces. Not an
+ * anti-enumeration surface (the staff caller already knows this
+ * customer's email), so failures propagate as a real error, matching
+ * the invitation flow's posture.
+ */
+export async function sendCustomerPortalActivationEmail(result: GrantPortalAccessResult): Promise<void> {
+  await sendCustomerActivationEmail({
+    to: result.email,
+    token: result.activationToken,
+    ...(result.agencyName ? { agencyName: result.agencyName } : {}),
   });
 }

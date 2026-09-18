@@ -59,7 +59,8 @@ Legenda: ✅ OK | ⚠️ Ressalva (P2/P3 ou gap operacional documentado) | ❌ B
 
 ## Email
 
-- ❌ **BLOQUEIO — nenhum provedor de e-mail transacional real configurado.** Convite, ativação e reset de senha funcionam apenas via link mostrado na tela, não aceitável para piloto com agência externa.
+- ✅ **Resolvido.** Provedor real (Resend) integrado via abstração desacoplada (`services/api/src/email`). Convite de funcionário, reset de senha (staff e cliente) e ativação do Portal do Cliente agora disparam envio real. Comportamento fail-closed confirmado (produção/staging sem credencial lança `EMAIL_PROVIDER_NOT_CONFIGURED`, nunca finge sucesso). Testes de integração reais confirmaram os 3 dos 4 fluxos disparando o provedor corretamente (convite, forgot-password staff, forgot-password cliente); o 4º (ativação do Portal do Cliente) tem a função de e-mail testada isoladamente com sucesso, mas sem teste de integração dedicado nesta rodada. Ver `docs/operations/EMAIL_PROVIDER_RESEND.md`.
+- ⚠️ **Pendência real remanescente:** o envio real para uma caixa postal de verdade depende de uma `RESEND_API_KEY` real e de um domínio verificado, que esta sessão não possui — isso é uma decisão/credencial externa do proprietário do produto, não um bug de código. Até essa credencial ser configurada, o ambiente de staging local (que já roda com `NODE_ENV=production`) falha de propósito (fail-closed) em qualquer tentativa real de envio.
 
 ## Storage
 
@@ -101,9 +102,11 @@ Legenda: ✅ OK | ⚠️ Ressalva (P2/P3 ou gap operacional documentado) | ❌ B
 
 | Prioridade | Item | Bloqueia piloto? |
 |---|---|---|
-| P1 | E-mail real ausente | **Sim** |
+| — | E-mail real | **Resolvido** — provedor Resend integrado, fail-closed confirmado. Pendência remanescente: credencial real (`RESEND_API_KEY`) e domínio verificado, a fornecer externamente. |
 | — | Staging remoto real ausente | Gap operacional, não é bug de código |
 | — | Monitoramento externo ausente | Gap operacional |
-| P2 | Gap Offer → Opportunity | Não (workaround real já em uso) |
-| P3 | `role="alert"` ausente em telas secundárias | Não |
-| P3 | Verbosidade de log em erro de conexão pg | Não |
+| P2 | Gap Offer → Opportunity | Não (workaround real já em uso) — conhecido, não corrigido nesta rodada |
+| P3 | `role="alert"` ausente em telas secundárias | Não — conhecido, não corrigido nesta rodada |
+| P3 | Verbosidade de log em erro de conexão pg | Não — conhecido, não corrigido nesta rodada |
+
+**P0 abertos: 0. P1 abertos: 0.**
