@@ -3,7 +3,7 @@
 Rodada de polimento incremental sobre o sistema Direction A já aprovado (Fases 1, 2, 3A e 3B). Sem redesign, sem novo sistema visual, sem mudança de arquitetura. Foco: auditoria de consistência, correção de bugs reais encontrados em UAT ponta a ponta, e resolução do problema documentado de grants do Platform Admin.
 
 - **HEAD inicial:** `dc710e7` (docs: registrar CI verde da Phase 3B)
-- **HEAD final:** _(este commit, ao final da rodada)_
+- **HEAD final:** `ab9e47a` (fix(platform-admin): grant runtime role access to 32 platform tables)
 
 ## Telas auditadas
 
@@ -116,11 +116,9 @@ Fluxos executados ao vivo via Playwright contra staging local real (dados reais,
 
 ## CI
 
-Pendente — será confirmado via execução real do GitHub Actions (`gh run watch --exit-status`) após o push, seguindo a disciplina de verificação já estabelecida neste repositório. Não será declarado concluído com CI vermelho.
+**Verde.** Confirmado via execução real do GitHub Actions, run `35305659253` (`gh run watch --exit-status`, exit code 0) no commit `ab9e47a`. Todas as etapas do Quality Gates passaram (lint, typecheck, scan de segredos, auditoria de dependências, validação de nomenclatura de migrations, testes unitários, testes de segurança, testes de banco/RLS, build); apenas os mesmos warnings pré-existentes, não relacionados a esta rodada.
 
 ## STATUS FINAL
 
 **DIRECTION A — POLIMENTO E UAT CONCLUÍDOS**
 **RELEASE CANDIDATE PRONTO PARA REVISÃO**
-
-_(sujeito à confirmação final do CI verde, registrada como atualização deste relatório logo após a execução real do GitHub Actions)_
