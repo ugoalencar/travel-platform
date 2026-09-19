@@ -63,7 +63,7 @@ export function CustomerHelpPage() {
         <p className="mt-2 text-slate-600">Estamos aqui para tornar sua viagem mais tranquila.</p>
       </div>
 
-      <section className="rounded-xl border-2 border-orange-100 bg-white p-6 shadow-sm">
+      <section className="rounded-xl border-2 border-blue-100 bg-white p-6 shadow-sm">
         <h2 className="mb-3 text-lg font-semibold text-slate-900">📞 Fale com sua agência</h2>
         {state.status === 'loading' && <p className="text-sm text-slate-500">Carregando...</p>}
         {state.status === 'error' && (
@@ -77,13 +77,13 @@ export function CustomerHelpPage() {
             {state.agency.email && (
               <a
                 href={`mailto:${state.agency.email}`}
-                className="text-[#f97362] hover:underline"
+                className="text-[#2563eb] hover:underline"
               >
                 ✉️ {state.agency.email}
               </a>
             )}
             {state.agency.phone && (
-              <a href={`tel:${state.agency.phone}`} className="text-[#f97362] hover:underline">
+              <a href={`tel:${state.agency.phone}`} className="text-[#2563eb] hover:underline">
                 📱 {state.agency.phone}
               </a>
             )}
@@ -102,7 +102,7 @@ export function CustomerHelpPage() {
           {FAQ_ITEMS.map((item) => (
             <li
               key={item.question}
-              className="rounded-xl border-2 border-orange-100 bg-white p-4 shadow-sm"
+              className="rounded-xl border-2 border-blue-100 bg-white p-4 shadow-sm"
             >
               <p className="font-semibold text-slate-900">{item.question}</p>
               <p className="mt-1 text-sm text-slate-600">{item.answer}</p>

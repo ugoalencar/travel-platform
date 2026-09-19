@@ -120,7 +120,7 @@ function TripSummary({ trip }: { trip: Trip }) {
   const emoji = destinationEmoji(trip.destination);
 
   return (
-    <div className={`overflow-hidden rounded-2xl border-2 border-orange-100 bg-gradient-to-br ${gradient} shadow-md`}>
+    <div className={`overflow-hidden rounded-2xl border-2 border-blue-100 bg-gradient-to-br ${gradient} shadow-md`}>
       <div className="flex flex-col gap-4 bg-white/55 p-6 backdrop-blur-sm sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-700">
@@ -241,7 +241,7 @@ function TripPhotoCarousel({ tripId }: { tripId: string }) {
   const current = photos[active];
 
   return (
-    <div className="overflow-hidden rounded-2xl border-2 border-orange-100 bg-white shadow-md">
+    <div className="overflow-hidden rounded-2xl border-2 border-blue-100 bg-white shadow-md">
       <div className="relative aspect-video bg-slate-100">
         {current && urls[current.id] ? (
           <img
@@ -599,7 +599,7 @@ function TripPassengers() {
       </h3>
       <p className="text-sm text-slate-600">
         Os passageiros ficam registrados em cada reserva. Confira em{' '}
-        <a href="/customer-portal/bookings" className="text-[#f97362] hover:underline">
+        <a href="/customer-portal/bookings" className="text-[#2563eb] hover:underline">
           Minhas Reservas
         </a>
         .
@@ -630,7 +630,7 @@ function TripAgencyContact() {
   }, []);
 
   return (
-    <div className="rounded-xl border-2 border-orange-100 bg-white p-5 shadow-sm">
+    <div className="rounded-xl border-2 border-blue-100 bg-white p-5 shadow-sm">
       <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-600">
         📞 Contato da agência
       </h3>
@@ -640,12 +640,12 @@ function TripAgencyContact() {
         <div className="flex flex-col gap-1 text-sm">
           <p className="font-semibold text-slate-900">{agency.name}</p>
           {agency.email && (
-            <a href={`mailto:${agency.email}`} className="text-[#f97362] hover:underline">
+            <a href={`mailto:${agency.email}`} className="text-[#2563eb] hover:underline">
               ✉️ {agency.email}
             </a>
           )}
           {agency.phone && (
-            <a href={`tel:${agency.phone}`} className="text-[#f97362] hover:underline">
+            <a href={`tel:${agency.phone}`} className="text-[#2563eb] hover:underline">
               📱 {agency.phone}
             </a>
           )}

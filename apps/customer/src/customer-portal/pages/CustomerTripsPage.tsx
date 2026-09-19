@@ -60,14 +60,14 @@ export function CustomerTripsPage() {
       </div>
 
       {state.status === 'success' && (
-        <div className="flex w-fit rounded-xl border-2 border-orange-100 bg-white p-1" role="tablist" aria-label="Filtrar viagens">
+        <div className="flex w-fit rounded-xl border-2 border-blue-100 bg-white p-1" role="tablist" aria-label="Filtrar viagens">
           <button
             type="button"
             role="tab"
             aria-selected={filter === 'upcoming'}
             onClick={() => setFilter('upcoming')}
             className={`rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
-              filter === 'upcoming' ? 'bg-[#f97362] text-white' : 'text-slate-600 hover:bg-slate-50'
+              filter === 'upcoming' ? 'bg-[#2563eb] text-white' : 'text-slate-600 hover:bg-slate-50'
             }`}
           >
             Próximas ({upcoming.length})
@@ -78,7 +78,7 @@ export function CustomerTripsPage() {
             aria-selected={filter === 'past'}
             onClick={() => setFilter('past')}
             className={`rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
-              filter === 'past' ? 'bg-[#f97362] text-white' : 'text-slate-600 hover:bg-slate-50'
+              filter === 'past' ? 'bg-[#2563eb] text-white' : 'text-slate-600 hover:bg-slate-50'
             }`}
           >
             Histórico ({past.length})
@@ -134,7 +134,7 @@ function TripCard({ trip }: { trip: Trip }) {
   return (
     <Link
       to={`/customer-portal/trips/${trip.id}`}
-      className={`block overflow-hidden rounded-2xl border-2 border-orange-100 shadow-md hover:shadow-lg transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#f97362]`}
+      className={`block overflow-hidden rounded-2xl border-2 border-blue-100 shadow-md hover:shadow-lg transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563eb]`}
     >
       <div className={`flex h-24 items-center justify-center bg-gradient-to-br ${gradient} text-4xl`} aria-hidden="true">
         {emoji}

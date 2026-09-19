@@ -119,7 +119,7 @@ function BookingDetails({
       </div>
 
       {booking.notes && (
-        <div className="rounded-xl border-2 border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 p-5 shadow-sm">
+        <div className="rounded-xl border-2 border-amber-200 bg-gradient-to-br from-amber-50 to-amber-100 p-5 shadow-sm">
           <h3 className="text-sm font-semibold uppercase tracking-wide text-amber-900 mb-2">📌 Observações</h3>
           <p className="text-sm text-amber-800">{booking.notes}</p>
         </div>

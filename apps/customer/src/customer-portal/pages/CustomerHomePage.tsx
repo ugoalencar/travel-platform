@@ -94,11 +94,21 @@ export function CustomerHomePage() {
 
   return (
     <div className="flex flex-col gap-8">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-4xl font-bold tracking-tight text-slate-900">
-          {state.status === 'success' ? `Olá, ${state.data.firstName}! 👋` : 'Olá! 👋'}
-        </h1>
-        <p className="text-lg text-slate-600">Aqui está tudo o que você precisa para sua viagem</p>
+      {/* Hero -- same premium navy/cyan gradient treatment as the Agency
+          dashboard's hero (apps/agency/src/pages/DashboardPage.tsx), so
+          the portal reads as the same product whether the customer is on
+          the web panel or the app, not a separate lower-tier surface. */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-(--portal-navy) via-slate-800 to-(--portal-cyan)/40 p-8 text-white shadow-lg">
+        <div className="relative z-10 max-w-xl">
+          <p className="text-xs font-semibold uppercase tracking-wider text-cyan-200">Sua viagem</p>
+          <h1 className="mt-1 text-3xl font-bold tracking-tight sm:text-4xl">
+            {state.status === 'success' ? `Olá, ${state.data.firstName}! 👋` : 'Olá! 👋'}
+          </h1>
+          <p className="mt-2 text-sm text-slate-200 sm:text-base">
+            Aqui está tudo o que você precisa para sua viagem
+          </p>
+        </div>
+        <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-1/2 opacity-30 [background:radial-gradient(circle_at_70%_50%,rgba(6,182,212,0.6),transparent_60%)] sm:block" />
       </div>
 
       <div aria-live="polite">
@@ -158,7 +168,7 @@ function AgencyOffersCarousel({ offers }: { offers: Offer[] }) {
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-bold text-slate-900">🎁 Ofertas da sua agência</h2>
-        <Link to="/customer-portal/offers" className="text-sm font-semibold text-[#f97362] hover:underline">
+        <Link to="/customer-portal/offers" className="text-sm font-semibold text-[#2563eb] hover:underline">
           Ver todas →
         </Link>
       </div>
@@ -167,14 +177,14 @@ function AgencyOffersCarousel({ offers }: { offers: Offer[] }) {
           <Link
             key={offer.id}
             to={`/customer-portal/offers/${offer.id}`}
-            className="block w-56 shrink-0 overflow-hidden rounded-xl border-2 border-orange-100 bg-white shadow-sm hover:shadow-md hover:border-orange-200 transition-all"
+            className="block w-56 shrink-0 overflow-hidden rounded-xl border-2 border-blue-100 bg-white shadow-sm hover:shadow-md hover:border-blue-200 transition-all"
           >
             <div className={`h-24 bg-gradient-to-br ${destinationGradient(offer.name)} flex items-center justify-center text-3xl`}>
               {destinationEmoji(offer.name)}
             </div>
             <div className="p-3">
               <p className="line-clamp-1 text-sm font-semibold text-slate-900">{offer.name}</p>
-              <p className="mt-1 text-base font-bold text-[#f97362]">{currencyCompact(offer.price)}</p>
+              <p className="mt-1 text-base font-bold text-[#2563eb]">{currencyCompact(offer.price)}</p>
             </div>
           </Link>
         ))}
@@ -202,7 +212,7 @@ function NextTripCard({ trip }: { trip: Trip | null }) {
   return (
     <Link
       to={`/customer-portal/trips/${trip.id}`}
-      className={`block overflow-hidden rounded-2xl border-2 border-orange-100 bg-gradient-to-br ${gradient} shadow-md hover:shadow-lg transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#f97362]`}
+      className={`block overflow-hidden rounded-2xl border-2 border-blue-100 bg-gradient-to-br ${gradient} shadow-md hover:shadow-lg transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563eb]`}
     >
       <div className="flex flex-col gap-4 bg-white/55 p-6 backdrop-blur-sm sm:flex-row sm:items-center sm:justify-between">
         <div className="flex-1">
@@ -226,7 +236,7 @@ function NextTripCard({ trip }: { trip: Trip | null }) {
 
         {countdownDays !== null && (
           <div className="flex shrink-0 flex-col items-center justify-center rounded-2xl bg-white/90 px-6 py-4 text-center shadow-sm">
-            <span className="text-4xl font-black text-[#f97362]">{countdownDays}</span>
+            <span className="text-4xl font-black text-[#2563eb]">{countdownDays}</span>
             <span className="text-xs font-semibold uppercase tracking-wide text-slate-600">
               {countdownDays === 1 ? 'dia para viajar' : 'dias para viajar'}
             </span>
@@ -250,7 +260,7 @@ function AgencyMessageCard({ trip }: { trip: Trip | null }) {
   // minimal per the blueprint's guidance to not over-build this section.
   const message = agencyMessageFor(trip);
   return (
-    <div className="rounded-xl border-2 border-orange-100 bg-white p-5 shadow-sm">
+    <div className="rounded-xl border-2 border-blue-100 bg-white p-5 shadow-sm">
       <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-600">
         💬 Avisos da agência
       </h3>
@@ -290,7 +300,7 @@ function NextPaymentCard({ payment }: { payment: CustomerPaymentScheduleItem | n
   return (
     <Link
       to="/customer-portal/payments"
-      className="block rounded-xl border-2 border-orange-100 bg-white p-5 shadow-sm hover:shadow-md hover:border-orange-200 transition-all"
+      className="block rounded-xl border-2 border-blue-100 bg-white p-5 shadow-sm hover:shadow-md hover:border-blue-200 transition-all"
     >
       <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-600">
         💳 Próximo pagamento
@@ -345,7 +355,7 @@ const colorSchemes = {
     focus: 'focus-visible:outline-blue-600',
   },
   amber: {
-    bg: 'from-amber-50 to-orange-50',
+    bg: 'from-amber-50 to-blue-50',
     border: 'border-amber-200 hover:border-amber-300',
     icon: 'text-amber-600',
     badge: 'text-amber-900 bg-amber-100',

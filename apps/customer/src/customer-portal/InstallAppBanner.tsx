@@ -52,15 +52,15 @@ export function InstallAppBanner() {
   }
 
   return (
-    <div className="flex items-center gap-3 border-b-2 border-orange-100 bg-white px-4 py-2.5 text-sm sm:px-6">
-      <Download className="h-4 w-4 shrink-0 text-[#f97362]" />
+    <div className="flex items-center gap-3 border-b-2 border-blue-100 bg-white px-4 py-2.5 text-sm sm:px-6">
+      <Download className="h-4 w-4 shrink-0 text-[#2563eb]" />
       <p className="flex-1 text-slate-700">
         Instale o app <strong>Minha Viagem</strong> na tela inicial para acesso rápido.
       </p>
       <button
         type="button"
         onClick={() => void handleInstall()}
-        className="shrink-0 rounded-lg bg-[#f97362] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#e85f4d]"
+        className="shrink-0 rounded-lg bg-[#2563eb] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#e85f4d]"
       >
         Instalar
       </button>

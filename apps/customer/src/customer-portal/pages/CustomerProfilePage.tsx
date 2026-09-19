@@ -86,7 +86,7 @@ export function CustomerProfilePage() {
           )}
 
           {state.agency && (
-            <div className="rounded-xl border-2 border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 p-6 shadow-sm">
+            <div className="rounded-xl border-2 border-amber-200 bg-gradient-to-br from-amber-50 to-amber-100 p-6 shadow-sm">
               <h2 className="flex items-center gap-2 text-lg font-bold text-slate-900 mb-4">
                 <span aria-hidden="true">🏢</span>
                 Sua Agência

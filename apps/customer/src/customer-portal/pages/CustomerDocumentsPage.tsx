@@ -130,7 +130,7 @@ function DocumentsTabs({ documents }: { documents: CustomerDocumentView[] }) {
               return (
                 <li
                   key={doc.id}
-                  className="rounded-xl border-2 border-orange-100 bg-white p-5 shadow-sm"
+                  className="rounded-xl border-2 border-blue-100 bg-white p-5 shadow-sm"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <span className="text-2xl" aria-hidden="true">

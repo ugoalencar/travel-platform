@@ -19,8 +19,8 @@ export function CustomerForgotPasswordPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-orange-50/40 px-4">
-      <div className="w-full max-w-sm rounded-xl border border-orange-100 bg-white p-8 shadow-sm">
+    <div className="flex min-h-screen items-center justify-center bg-blue-50/40 px-4">
+      <div className="w-full max-w-sm rounded-xl border border-blue-100 bg-white p-8 shadow-sm">
         <h1 className="mb-1 text-xl font-semibold text-[color:var(--portal-ink)]">Redefinir senha</h1>
         {submitted ? (
           <p className="mt-4 text-sm text-slate-600">
@@ -57,7 +57,7 @@ export function CustomerForgotPasswordPage() {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full rounded-md bg-[#f97362] px-3 py-2 text-sm font-medium text-white disabled:opacity-60"
+              className="w-full rounded-md bg-[#2563eb] px-3 py-2 text-sm font-medium text-white disabled:opacity-60"
             >
               {submitting ? 'Enviando…' : 'Enviar instruções'}
             </button>

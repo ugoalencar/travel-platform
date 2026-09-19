@@ -15,17 +15,24 @@ body {
 
 /* Customer-portal-only design tokens (see
    docs/travel_platform_visual_functional_blueprint/03_CUSTOMER_PORTAL_UX.md
-   "Visual"). Scoped to .customer-portal-shell so this app's OTHER
-   (staff-facing) routes are unaffected -- this file is shared by both.
-   Deliberately warm/light: cream background, coral/amber accents. This is
-   NOT the Agency app's dark sidebar theme and NOT Platform Admin's violet
-   governance theme -- the point of this wave is that the portal should
-   read as its own, friendlier, consumer-facing product. */
+   "Visual" and docs/visual-reference/direction-a-customer-app.png).
+   Scoped to .customer-portal-shell so this app's OTHER (staff-facing)
+   routes are unaffected -- this file is shared by both. Mirrors the
+   Agency app's premium navy/blue palette (--color-sidebar, --color-travel-navy,
+   --color-action-blue in apps/agency/src/index.css) so the customer gets
+   the same premium look whether on the web panel or the mobile app --
+   requested directly: the portal should not look like a separate,
+   lower-tier product. */
 .customer-portal-shell {
-  --portal-bg: #fffaf3;
+  --portal-bg: #f4f6fb;
   --portal-surface: #ffffff;
-  --portal-accent: #f97362;
-  --portal-accent-soft: #ffe4d6;
-  --portal-ink: #3a2e2a;
+  --portal-accent: #2563eb;
+  --portal-accent-soft: #eff6ff;
+  --portal-ink: #0f172a;
+  --portal-sidebar: #0f172a;
+  --portal-sidebar-foreground: #cbd5e1;
+  --portal-sidebar-active: #1e293b;
+  --portal-navy: #0f2a4a;
+  --portal-cyan: #06b6d4;
   background-color: var(--portal-bg);
 }

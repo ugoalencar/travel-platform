@@ -84,7 +84,7 @@ function OfferDetails({ offer }: { offer: Offer }) {
           type="button"
           onClick={() => void handleInterest()}
           disabled={interest === 'saving' || interest === 'sent'}
-          className="shrink-0 rounded-full bg-[#f97362] px-6 py-3 text-sm font-bold text-white shadow-md hover:bg-[#e85f4d] disabled:cursor-not-allowed disabled:opacity-70 transition-colors"
+          className="shrink-0 rounded-full bg-[#2563eb] px-6 py-3 text-sm font-bold text-white shadow-md hover:bg-[#e85f4d] disabled:cursor-not-allowed disabled:opacity-70 transition-colors"
         >
           {interest === 'sent' ? '✓ Interesse enviado!' : interest === 'saving' ? 'Enviando...' : '❤️ Tenho interesse'}
         </button>
