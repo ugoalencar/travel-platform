@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ArrowRight,
@@ -14,6 +15,15 @@ import {
   Server,
 } from 'lucide-react';
 import { agencyLoginUrl, agencySignupUrl } from '../lib/agencyAppUrl';
+import {
+  getPublicBanners,
+  getPublicLanding,
+  getPublicPartners,
+  isSafeHref,
+  type PublicBanner,
+  type PublicLanding,
+  type PublicPartner,
+} from '../lib/publicCommercialApi';
 
 const PRODUCT_AREAS = [
   { icon: Users, title: 'CRM / Cliente 360', desc: 'Todo o histórico, documentos e viagens do cliente em um só lugar.' },
@@ -33,8 +43,56 @@ const SECURITY_ITEMS = [
 ];
 
 export function LandingPage() {
+  // Consome o Landing CMS público do Platform Admin (Conteúdo & Parcerias,
+  // META PÓS-PILOTO 01/fechamento). Sempre lê /public/landing,
+  // /public/partners, /public/banners -- nunca draft, nunca exige auth de
+  // Platform Admin (ver docs/product/PLATFORM_ADMIN_COMERCIAL_PARCERIAS.md).
+  // Falha suave: se nada foi publicado ainda, ou a chamada falhar, a
+  // página inteira permanece no conteúdo estático abaixo -- nenhuma seção
+  // desta página depende de os dados dinâmicos terem carregado.
+  const [landing, setLanding] = useState<PublicLanding | null>(null);
+  const [partners, setPartners] = useState<PublicPartner[]>([]);
+  const [banners, setBanners] = useState<PublicBanner[]>([]);
+
+  useEffect(() => {
+    void getPublicLanding().then(setLanding);
+    void getPublicPartners().then(setPartners);
+    void getPublicBanners('LANDING').then(setBanners);
+  }, []);
+
+  const heroTitle = landing?.page.heroTitle || 'Transforme sua agência em uma operação mais inteligente.';
+  const heroSubtitle =
+    landing?.page.heroSubtitle ||
+    'O Travel Platform centraliza clientes, comercial, viagens, financeiro, equipe e o portal do seu cliente em um único lugar — para agências de viagens que querem operar com clareza.';
+  const ctaPrimaryLabel = landing?.page.ctaPrimaryLabel || 'Criar conta';
+  const ctaPrimaryUrl = isSafeHref(landing?.page.ctaPrimaryUrl) ? landing?.page.ctaPrimaryUrl : agencySignupUrl();
+  const ctaSecondaryLabel = landing?.page.ctaSecondaryLabel || 'Entrar';
+  const ctaSecondaryUrl = isSafeHref(landing?.page.ctaSecondaryUrl) ? landing?.page.ctaSecondaryUrl : agencyLoginUrl();
+
+  const faqSections = (landing?.sections ?? []).filter((s) => s.type === 'FAQ' && s.enabled);
+  const testimonialSections = (landing?.sections ?? []).filter((s) => s.type === 'TESTIMONIALS' && s.enabled);
+
   return (
     <div className="bg-white">
+      {/* Banners ativos (placement LANDING) -- gerenciados em Platform
+          Admin > Conteúdo > Banners. Ausentes por padrão: nenhum banner
+          publicado ainda não altera o layout. */}
+      {banners.length > 0 && (
+        <div className="bg-amber-50 px-4 py-2 text-center text-sm text-amber-900">
+          {banners.map((banner) => (
+            <div key={banner.id}>
+              <strong>{banner.title}</strong>
+              {banner.subtitle ? <span> — {banner.subtitle}</span> : null}
+              {banner.ctaLabel && isSafeHref(banner.ctaUrl) ? (
+                <a href={banner.ctaUrl ?? undefined} className="ml-2 underline">
+                  {banner.ctaLabel}
+                </a>
+              ) : null}
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Navegação */}
       <nav className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 px-4 py-4 sm:px-8">
         <h1 className="text-xl font-bold text-(--color-travel-navy)">Travel Platform</h1>
@@ -55,26 +113,21 @@ export function LandingPage() {
       <section className="relative overflow-hidden bg-gradient-to-br from-(--color-travel-navy) via-slate-800 to-(--color-travel-cyan)/40 px-4 py-20 text-white sm:px-8 sm:py-28">
         <div className="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full bg-white/10" />
         <div className="relative mx-auto max-w-3xl text-center">
-          <h2 className="text-4xl font-bold sm:text-5xl">
-            Transforme sua agência em uma operação mais inteligente.
-          </h2>
-          <p className="mx-auto mt-6 max-w-2xl text-lg text-white/80">
-            O Travel Platform centraliza clientes, comercial, viagens, financeiro, equipe e o portal do seu
-            cliente em um único lugar — para agências de viagens que querem operar com clareza.
-          </p>
+          <h2 className="text-4xl font-bold sm:text-5xl">{heroTitle}</h2>
+          <p className="mx-auto mt-6 max-w-2xl text-lg text-white/80">{heroSubtitle}</p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <a
-              href={agencySignupUrl()}
+              href={ctaPrimaryUrl}
               className="inline-flex items-center gap-2 rounded-lg bg-white px-6 py-3 font-semibold text-(--color-travel-navy) hover:bg-slate-100"
             >
-              Criar conta
+              {ctaPrimaryLabel}
               <ArrowRight size={18} />
             </a>
             <a
-              href={agencyLoginUrl()}
+              href={ctaSecondaryUrl}
               className="inline-flex items-center gap-2 rounded-lg border border-white/30 bg-white/10 px-6 py-3 font-semibold text-white hover:bg-white/20"
             >
-              Entrar
+              {ctaSecondaryLabel}
             </a>
           </div>
         </div>
@@ -120,6 +173,68 @@ export function LandingPage() {
           ))}
         </div>
       </section>
+
+      {/* Parceiros públicos -- gerenciados em Platform Admin > Parcerias >
+          Parceiros. Só renderiza se houver ao menos um parceiro público
+          publicado; nunca exibe internal_notes/contato (a API pública já
+          nunca retorna esses campos). */}
+      {partners.length > 0 && (
+        <section className="px-4 py-16 sm:px-8 sm:py-20">
+          <h2 className="text-center text-3xl font-bold text-slate-900 sm:text-4xl">Nossos parceiros</h2>
+          <div className="mx-auto mt-10 flex max-w-5xl flex-wrap items-center justify-center gap-8">
+            {partners.map((partner) =>
+              isSafeHref(partner.websiteUrl) ? (
+                <a
+                  key={partner.id}
+                  href={partner.websiteUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-sm font-semibold text-slate-700 hover:text-(--color-travel-navy)"
+                >
+                  {partner.name}
+                </a>
+              ) : (
+                <span key={partner.id} className="text-sm font-semibold text-slate-700">
+                  {partner.name}
+                </span>
+              )
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* Depoimentos publicados (seções type=TESTIMONIALS habilitadas) */}
+      {testimonialSections.length > 0 && (
+        <section className="bg-slate-50 px-4 py-16 sm:px-8 sm:py-20">
+          <h2 className="text-center text-3xl font-bold text-slate-900 sm:text-4xl">O que dizem sobre nós</h2>
+          <div className="mx-auto mt-10 grid max-w-5xl gap-6 sm:grid-cols-2">
+            {testimonialSections.map((section) => (
+              <div key={section.id} className="rounded-xl border border-slate-200 bg-white p-6">
+                {section.title && <p className="font-semibold text-slate-900">{section.title}</p>}
+                {section.content && <p className="mt-2 text-sm text-slate-600">{section.content}</p>}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* FAQ publicado (seções type=FAQ habilitadas, gerenciadas em
+          Platform Admin > Conteúdo > FAQ) */}
+      {faqSections.length > 0 && (
+        <section className="px-4 py-16 sm:px-8 sm:py-20">
+          <h2 className="text-center text-3xl font-bold text-slate-900 sm:text-4xl">Perguntas frequentes</h2>
+          <div className="mx-auto mt-10 max-w-3xl space-y-4">
+            {faqSections
+              .sort((a, b) => a.sortOrder - b.sortOrder)
+              .map((section) => (
+                <div key={section.id} className="rounded-xl border border-slate-200 p-5">
+                  <p className="font-semibold text-slate-900">{section.title}</p>
+                  {section.content && <p className="mt-2 text-sm text-slate-600">{section.content}</p>}
+                </div>
+              ))}
+          </div>
+        </section>
+      )}
 
       {/* Chamada final */}
       <section className="bg-gradient-to-br from-(--color-travel-navy) via-slate-800 to-(--color-travel-cyan)/40 px-4 py-16 text-center text-white sm:px-8 sm:py-20">

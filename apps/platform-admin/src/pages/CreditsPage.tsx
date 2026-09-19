@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface Credit {
   id: string;
@@ -9,6 +9,13 @@ interface Credit {
   currency: string;
   status: 'PENDING' | 'AVAILABLE' | 'APPLIED' | 'CANCELLED';
   appliedAt: string | null;
+}
+
+interface AgencySearchResult {
+  id: string;
+  name: string;
+  slug: string;
+  status: string;
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -27,13 +34,53 @@ const NEXT_STATUS: Record<string, string | null> = {
 
 export function CreditsPage() {
   const [credits, setCredits] = useState<Credit[]>([]);
+  const [agencyNames, setAgencyNames] = useState<Record<string, AgencySearchResult>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [form, setForm] = useState({ agencyId: '', sourceType: 'REFERRAL', amount: '' });
+  const [form, setForm] = useState({ sourceType: 'REFERRAL', amount: '' });
+  const [selectedAgency, setSelectedAgency] = useState<AgencySearchResult | null>(null);
+  const [agencyQuery, setAgencyQuery] = useState('');
+  const [agencyResults, setAgencyResults] = useState<AgencySearchResult[]>([]);
+  const [showResults, setShowResults] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     void load();
   }, []);
+
+  // Busca com debounce -- Platform Admin > Parcerias > Créditos > seletor
+  // de agência. Chama GET /platform/agencies/search?q=, que por sua vez
+  // usa a função SECURITY DEFINER platform_search_agencies (migração 079)
+  // para ler além da própria agência sem enfraquecer o RLS de `agencies`.
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (!agencyQuery.trim()) {
+      setAgencyResults([]);
+      return;
+    }
+    debounceRef.current = setTimeout(() => {
+      void searchAgencies(agencyQuery);
+    }, 250);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [agencyQuery]);
+
+  async function searchAgencies(q: string) {
+    try {
+      const response = await fetch(`/api/platform/agencies/search?q=${encodeURIComponent(q)}`);
+      if (!response.ok) return;
+      const data = (await response.json()) as { agencies: AgencySearchResult[] };
+      setAgencyResults(data.agencies);
+      setAgencyNames((prev) => {
+        const next = { ...prev };
+        for (const agency of data.agencies) next[agency.id] = agency;
+        return next;
+      });
+    } catch {
+      // Falha na busca não deve travar o formulário -- apenas fica sem sugestões.
+    }
+  }
 
   async function load() {
     try {
@@ -42,6 +89,7 @@ export function CreditsPage() {
       if (!creditsRes.ok) throw new Error('Não foi possível carregar os créditos');
       const creditsData = (await creditsRes.json()) as { credits: Credit[] };
       setCredits(creditsData.credits);
+      await resolveAgencyNames(creditsData.credits);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao carregar');
     } finally {
@@ -49,13 +97,34 @@ export function CreditsPage() {
     }
   }
 
+  // Resolve nome/slug para as agências já presentes no ledger (não só a
+  // que está sendo selecionada agora), usando o mesmo endpoint de busca
+  // com o id exato -- a função platform_search_agencies também casa por
+  // id = search_query.
+  async function resolveAgencyNames(list: Credit[]) {
+    const unresolvedIds = Array.from(new Set(list.map((c) => c.agencyId))).filter(
+      (id) => !(id in agencyNames)
+    );
+    for (const id of unresolvedIds) {
+      try {
+        const response = await fetch(`/api/platform/agencies/search?q=${encodeURIComponent(id)}`);
+        if (!response.ok) continue;
+        const data = (await response.json()) as { agencies: AgencySearchResult[] };
+        const match = data.agencies.find((a) => a.id === id);
+        if (match) setAgencyNames((prev) => ({ ...prev, [id]: match }));
+      } catch {
+        // Melhor mostrar o ID cru do que travar a tela por uma agência não resolvida.
+      }
+    }
+  }
+
   async function createCredit() {
-    if (!form.agencyId || !form.amount) return;
+    if (!selectedAgency || !form.amount) return;
     const response = await fetch('/api/platform/referral-credits', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        agencyId: form.agencyId,
+        agencyId: selectedAgency.id,
         sourceType: form.sourceType,
         amount: Number(form.amount),
       }),
@@ -64,7 +133,9 @@ export function CreditsPage() {
       setError('Não foi possível criar o crédito');
       return;
     }
-    setForm({ agencyId: '', sourceType: 'REFERRAL', amount: '' });
+    setSelectedAgency(null);
+    setAgencyQuery('');
+    setForm({ sourceType: 'REFERRAL', amount: '' });
     await load();
   }
 
@@ -79,6 +150,11 @@ export function CreditsPage() {
     await load();
   }
 
+  function agencyLabel(id: string): string {
+    const agency = agencyNames[id];
+    return agency ? `${agency.name} (${agency.slug})` : id;
+  }
+
   if (loading) return <div className="text-center py-8">Carregando...</div>;
 
   return (
@@ -91,12 +167,62 @@ export function CreditsPage() {
 
       <div className="bg-white rounded-lg shadow p-6 mb-6 space-y-3">
         <h2 className="text-lg font-bold">Novo crédito</h2>
-        <input
-          placeholder="ID da agência (agencies.id)"
-          value={form.agencyId}
-          onChange={(e) => setForm({ ...form, agencyId: e.target.value })}
-          className="w-full px-3 py-2 border rounded-lg text-sm"
-        />
+
+        <div className="relative">
+          <label className="block text-xs font-medium text-gray-600 mb-1">Agência</label>
+          {selectedAgency ? (
+            <div className="flex items-center justify-between rounded-lg border bg-blue-50 px-3 py-2 text-sm">
+              <span>
+                <strong>{selectedAgency.name}</strong>{' '}
+                <span className="text-gray-500">
+                  ({selectedAgency.slug} · {selectedAgency.status})
+                </span>
+              </span>
+              <button
+                onClick={() => {
+                  setSelectedAgency(null);
+                  setAgencyQuery('');
+                }}
+                className="text-xs text-gray-500 hover:text-gray-800"
+              >
+                Trocar
+              </button>
+            </div>
+          ) : (
+            <>
+              <input
+                placeholder="Buscar por nome, slug ou ID..."
+                value={agencyQuery}
+                onChange={(e) => {
+                  setAgencyQuery(e.target.value);
+                  setShowResults(true);
+                }}
+                onFocus={() => setShowResults(true)}
+                className="w-full px-3 py-2 border rounded-lg text-sm"
+              />
+              {showResults && agencyResults.length > 0 && (
+                <div className="absolute z-10 mt-1 w-full rounded-lg border bg-white shadow-lg max-h-56 overflow-y-auto">
+                  {agencyResults.map((agency) => (
+                    <button
+                      key={agency.id}
+                      onClick={() => {
+                        setSelectedAgency(agency);
+                        setShowResults(false);
+                      }}
+                      className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-50 border-b last:border-b-0"
+                    >
+                      <span className="font-medium">{agency.name}</span>{' '}
+                      <span className="text-gray-500">
+                        ({agency.slug} · {agency.status})
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
         <div className="grid grid-cols-2 gap-3">
           <input
             placeholder="Origem (ex.: REFERRAL)"
@@ -114,7 +240,8 @@ export function CreditsPage() {
         </div>
         <button
           onClick={() => void createCredit()}
-          className="px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium"
+          disabled={!selectedAgency || !form.amount}
+          className="px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium disabled:opacity-40"
         >
           Registrar crédito
         </button>
@@ -134,7 +261,7 @@ export function CreditsPage() {
           <tbody>
             {credits.map((c) => (
               <tr key={c.id} className="border-b">
-                <td className="py-2 px-4 font-mono text-xs">{c.agencyId}</td>
+                <td className="py-2 px-4">{agencyLabel(c.agencyId)}</td>
                 <td className="py-2 px-4">{c.sourceType}</td>
                 <td className="py-2 px-4">
                   {c.amount.toLocaleString('pt-BR', { style: 'currency', currency: c.currency })}

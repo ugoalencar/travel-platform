@@ -774,6 +774,17 @@ GRANT EXECUTE ON FUNCTION current_agency_id() TO travel_app_runtime_local;
 GRANT EXECUTE ON FUNCTION current_user_id() TO travel_app_runtime_local;
 GRANT EXECUTE ON FUNCTION set_tenant_context(TEXT, TEXT) TO travel_app_runtime_local;
 GRANT EXECUTE ON FUNCTION clear_tenant_context() TO travel_app_runtime_local;
+-- 079_platform_agency_search.sql's own GRANT EXECUTE is wiped out by the
+-- unconditional `REVOKE ALL ON ALL FUNCTIONS IN SCHEMA public FROM PUBLIC`
+-- above (same reason current_agency_id() etc. need re-granting here too).
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM pg_proc WHERE proname = 'platform_search_agencies'
+  ) THEN
+    GRANT EXECUTE ON FUNCTION platform_search_agencies(TEXT) TO travel_app_runtime_local;
+  END IF;
+END $$;
 
 SELECT rolname, rolsuper, rolbypassrls, rolcreatedb, rolcreaterole
 FROM pg_roles

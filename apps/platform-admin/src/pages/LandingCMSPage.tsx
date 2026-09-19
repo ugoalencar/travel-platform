@@ -45,6 +45,7 @@ export function LandingCMSPage() {
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [newSectionType, setNewSectionType] = useState('FEATURES');
+  const [showPreview, setShowPreview] = useState(false);
 
   useEffect(() => {
     void load();
@@ -139,14 +140,12 @@ export function LandingCMSPage() {
           >
             {page.status === 'PUBLISHED' ? 'Publicado' : 'Rascunho'}
           </span>
-          <a
-            href="/preview/landing"
-            target="_blank"
-            rel="noreferrer"
+          <button
+            onClick={() => setShowPreview(!showPreview)}
             className="px-3 py-2 border rounded-lg text-sm font-medium hover:bg-gray-50"
           >
-            Preview
-          </a>
+            {showPreview ? 'Fechar preview' : 'Preview'}
+          </button>
           <button
             onClick={() => void publish()}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700"
@@ -162,6 +161,46 @@ export function LandingCMSPage() {
       {message && (
         <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
           {message}
+        </div>
+      )}
+
+      {/* Preview do RASCUNHO -- lê os mesmos dados já carregados nesta
+          página (GET /platform/landing, autenticado como Platform Admin).
+          Nunca sai por uma rota pública: é só esta renderização local.
+          A landing pública real (app marketing) só reflete o que foi
+          publicado -- ver "Histórico de publicações" abaixo. */}
+      {showPreview && (
+        <div className="rounded-lg shadow p-6 mb-6 bg-gradient-to-br from-slate-800 to-slate-900 text-white">
+          <p className="text-xs font-semibold uppercase tracking-wide text-amber-300 mb-3">
+            Preview do rascunho — ainda não visível ao público
+          </p>
+          <h2 className="text-3xl font-bold">{page.heroTitle || '(Hero title vazio)'}</h2>
+          <p className="mt-2 text-white/80">{page.heroSubtitle || '(Hero subtitle vazio)'}</p>
+          <div className="mt-4 flex gap-3">
+            {page.ctaPrimaryLabel && (
+              <span className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-slate-900">
+                {page.ctaPrimaryLabel}
+              </span>
+            )}
+            {page.ctaSecondaryLabel && (
+              <span className="rounded-lg border border-white/30 px-4 py-2 text-sm font-semibold">
+                {page.ctaSecondaryLabel}
+              </span>
+            )}
+          </div>
+          {sections.filter((s) => s.enabled).length > 0 && (
+            <div className="mt-6 border-t border-white/20 pt-4 space-y-2">
+              {sections
+                .filter((s) => s.enabled)
+                .sort((a, b) => a.sortOrder - b.sortOrder)
+                .map((s) => (
+                  <p key={s.id} className="text-sm text-white/80">
+                    <span className="font-semibold">{s.type}</span>
+                    {s.title ? `: ${s.title}` : ''}
+                  </p>
+                ))}
+            </div>
+          )}
         </div>
       )}
 

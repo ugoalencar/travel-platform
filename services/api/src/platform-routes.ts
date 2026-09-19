@@ -43,6 +43,7 @@ import {
   createPartnerCommission,
   updatePartnerCommissionStatus,
   recordCommercialAudit,
+  searchAgencies,
 } from './platform-commercial';
 import {
   listPlans,
@@ -879,6 +880,17 @@ export function registerPlatformRoutes(
         { status: request.body.status }
       );
       return { commission };
+    }
+  );
+
+  // ---- Busca de agência (seletor da tela de Créditos) ----
+
+  app.get<{ Querystring: { q?: string } }>(
+    '/platform/agencies/search',
+    { preHandler: platformAuthHooks },
+    async (request) => {
+      const agencies = await searchAgencies(database, request.query.q ?? '');
+      return { agencies };
     }
   );
 }

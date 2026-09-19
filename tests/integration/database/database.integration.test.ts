@@ -655,6 +655,12 @@ describe('database integration migrations and RLS', () => {
       'clear_tenant_context',
       'current_agency_id',
       'current_user_id',
+      // Added by 079_platform_agency_search.sql -- SECURITY DEFINER
+      // function for the Créditos agency selector (Fechamento da META 01).
+      // Narrow, non-sensitive (id/name/slug/status only), does not touch
+      // agencies' RLS -- see that migration's header for the full
+      // rationale.
+      'platform_search_agencies',
       'set_tenant_context',
     ]);
   });

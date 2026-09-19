@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return -- platform-commercial.ts's exported functions are intentionally loosely typed (same convention as platform-services.ts), matching this test file's own row-shape assertions. */
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call -- platform-commercial.ts's exported functions are intentionally loosely typed (same convention as platform-services.ts), matching this test file's own row-shape assertions. */
 import { readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -31,6 +31,7 @@ import {
   recordCommercialAudit,
   assertSafeExternalUrl,
   sanitizePlainText,
+  searchAgencies,
 } from '../src/platform-commercial';
 
 const repoRoot = resolve(import.meta.dirname, '../../..');
@@ -596,6 +597,67 @@ describe('Platform Admin Comercial & Parcerias (data-access layer)', () => {
       expect(partners.statusCode).toBe(200);
       expect(banners.statusCode).toBe(200);
       await app.close();
+    });
+
+    it('GET /platform/agencies/search requires platform auth (unauthenticated rejected)', async () => {
+      const app = buildTestApp();
+      const response = await app.inject({ method: 'GET', url: '/platform/agencies/search?q=agency' });
+      expect(response.statusCode).toBe(401);
+      await app.close();
+    });
+
+    it('GET /platform/agencies/search is allowed for any authenticated platform role (read, not write)', async () => {
+      const app = buildTestApp();
+      const response = await app.inject({
+        method: 'GET',
+        url: '/platform/agencies/search?q=Agency',
+        headers: { 'x-test-platform-role': PlatformUserRole.READ_ONLY_AUDITOR },
+      });
+      expect(response.statusCode).toBe(200);
+      const body = response.json();
+      expect(body.agencies.some((a: { id: string }) => a.id === agencyId)).toBe(true);
+      await app.close();
+    });
+  });
+
+  // ------------------------------------------------------------
+  // Agency search (Fechamento da META 01 -- seletor de Créditos)
+  // ------------------------------------------------------------
+  describe('Agency search', () => {
+    it('finds an agency by partial name and returns only id/name/slug/status', async () => {
+      const results = await searchAgencies(database, 'Commercial Test');
+      expect(results.length).toBeGreaterThan(0);
+      const match = results.find((a) => a.id === agencyId);
+      expect(match).toBeDefined();
+      expect(match).toEqual({
+        id: agencyId,
+        name: 'Agency Commercial Test',
+        slug: 'agency-commercial-test',
+        status: 'ACTIVE',
+      });
+      // No sensitive columns (cnpj, email, phone, address, settings) --
+      // the SECURITY DEFINER function itself only ever selects these 4.
+      expect(Object.keys(match as object).sort()).toEqual(['id', 'name', 'slug', 'status'].sort());
+    });
+
+    it('finds an agency by exact id', async () => {
+      const results = await searchAgencies(database, agencyId);
+      expect(results.some((a) => a.id === agencyId)).toBe(true);
+    });
+
+    it('finds an agency by slug', async () => {
+      const results = await searchAgencies(database, 'agency-commercial-test');
+      expect(results.some((a) => a.id === agencyId)).toBe(true);
+    });
+
+    it('returns an empty match set for a query with no results', async () => {
+      const results = await searchAgencies(database, 'no-agency-matches-this-string-xyz');
+      expect(results).toHaveLength(0);
+    });
+
+    it('an empty query returns real agencies (bounded list), not zero results', async () => {
+      const results = await searchAgencies(database, '');
+      expect(results.length).toBeGreaterThan(0);
     });
   });
 

@@ -960,6 +960,40 @@ function mapBenefit(row: any) {
 }
 
 // ============================================================
+// AGENCY SEARCH (for the Créditos agency selector -- Fechamento da
+// META 01). Calls the SECURITY DEFINER function created in
+// 079_platform_agency_search.sql -- see that migration's header for why
+// a plain SELECT against `agencies` cannot work here (FORCE RLS). Never
+// returns cnpj/email/phone/address/settings -- the function itself only
+// selects id/name/slug/status, so there is no sensitive data to leak
+// even if this call site changes in the future.
+// ============================================================
+
+export interface AgencySearchResult {
+  id: string;
+  name: string;
+  slug: string;
+  status: string;
+}
+
+export async function searchAgencies(
+  database: DatabaseRuntime,
+  query: string
+): Promise<AgencySearchResult[]> {
+  return withPlatform(database, async (client) => {
+    const result = await client.query(`SELECT * FROM platform_search_agencies($1)`, [
+      query.trim(),
+    ]);
+    return result.rows.map((row: any) => ({
+      id: row.id,
+      name: row.name,
+      slug: row.slug,
+      status: row.status,
+    }));
+  });
+}
+
+// ============================================================
 // 6. CRÉDITOS (referral credit ledger)
 // ============================================================
 
