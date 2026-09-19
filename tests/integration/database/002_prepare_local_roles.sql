@@ -391,6 +391,16 @@ $$;
 
 DO $$
 BEGIN
+  IF to_regclass('public.employee_commission_rules') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      employee_commission_rules
+    TO travel_app_runtime_local;
+  END IF;
+END;
+$$;
+
+DO $$
+BEGIN
   IF to_regclass('public.employee_deductions') IS NOT NULL THEN
     GRANT SELECT, INSERT, UPDATE, DELETE ON
       employee_deductions

@@ -2467,6 +2467,11 @@ export async function listEmployees(status?: string): Promise<Employee[]> {
   return data.employees;
 }
 
+export async function getEmployeeById(id: string): Promise<Employee> {
+  const data = await request<{ employee: Employee }>(`/api/employees/${encodeURIComponent(id)}`);
+  return data.employee;
+}
+
 export async function createEmployee(input: EmployeeInput): Promise<Employee> {
   const data = await request<{ employee: Employee }>('/api/employees', {
     method: 'POST',
@@ -2501,7 +2506,12 @@ export interface CommissionEntry {
   employeeId: string;
   saleId: string;
   tripId?: string;
-  commissionPlanId: string;
+  commissionPlanId?: string;
+  commissionRuleId?: string;
+  productType?: EmployeeCommissionProductType;
+  sourceItemId?: string;
+  sourceItemType?: string;
+  quantity?: number;
   calculationBase: number;
   rate?: number;
   amount: number;
@@ -2555,6 +2565,152 @@ export async function createPayableFromCommission(id: string): Promise<{ payable
   return request<{ payableId: string }>(`/api/commissions/${encodeURIComponent(id)}/create-payable`, {
     method: 'POST',
   });
+}
+
+// ============================================================
+// EMPLOYEE COMMISSION RULES (Comissionamento por Funcionário e Produto)
+// ============================================================
+
+export type EmployeeCommissionProductType =
+  | 'AIR'
+  | 'EXCURSION'
+  | 'LAND'
+  | 'INSURANCE'
+  | 'PACKAGE'
+  | 'HOTEL'
+  | 'TRANSFER';
+
+export type EmployeeCommissionCalculationType = 'PERCENTAGE' | 'FIXED';
+
+export type EmployeeCommissionBasis =
+  | 'PRODUCT_TOTAL'
+  | 'PACKAGE_TOTAL'
+  | 'PER_PASSENGER'
+  | 'PER_TICKET'
+  | 'FIXED_PER_PASSENGER'
+  | 'FIXED_PER_TICKET'
+  | 'FIXED_PER_SALE';
+
+export type EmployeeCommissionRuleStatus = 'ACTIVE' | 'INACTIVE';
+
+export interface EmployeeCommissionRule {
+  id: string;
+  agencyId: string;
+  employeeId: string;
+  productType: EmployeeCommissionProductType;
+  calculationType: EmployeeCommissionCalculationType;
+  calculationBasis: EmployeeCommissionBasis;
+  percentageRate?: number;
+  fixedAmount?: number;
+  currency: string;
+  validFrom?: string;
+  validUntil?: string;
+  status: EmployeeCommissionRuleStatus;
+  createdByUserId?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface EmployeeCommissionRuleInput {
+  employeeId: string;
+  productType: EmployeeCommissionProductType;
+  calculationType: EmployeeCommissionCalculationType;
+  calculationBasis: EmployeeCommissionBasis;
+  percentageRate?: number | undefined;
+  fixedAmount?: number | undefined;
+  currency?: string | undefined;
+  validFrom?: string | undefined;
+  validUntil?: string | undefined;
+}
+
+export async function listEmployeeCommissionRules(filters?: {
+  employeeId?: string;
+  productType?: string;
+}): Promise<EmployeeCommissionRule[]> {
+  const params = new URLSearchParams();
+  if (filters?.employeeId) params.set('employeeId', filters.employeeId);
+  if (filters?.productType) params.set('productType', filters.productType);
+  const qs = params.toString() ? `?${params.toString()}` : '';
+  const data = await request<{ rules: EmployeeCommissionRule[] }>(`/api/employee-commission-rules${qs}`);
+  return data.rules;
+}
+
+export async function createEmployeeCommissionRule(
+  input: EmployeeCommissionRuleInput,
+): Promise<EmployeeCommissionRule> {
+  const data = await request<{ rule: EmployeeCommissionRule }>('/api/employee-commission-rules', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+  return data.rule;
+}
+
+export async function updateEmployeeCommissionRuleStatus(
+  id: string,
+  status: EmployeeCommissionRuleStatus,
+): Promise<EmployeeCommissionRule> {
+  const data = await request<{ rule: EmployeeCommissionRule }>(
+    `/api/employee-commission-rules/${encodeURIComponent(id)}/status`,
+    { method: 'PATCH', body: JSON.stringify({ status }) },
+  );
+  return data.rule;
+}
+
+export interface GenerateEmployeeCommissionInput {
+  saleId: string;
+  employeeId: string;
+  productType: EmployeeCommissionProductType;
+  sourceItemId?: string;
+  manualBaseAmount?: number;
+  manualQuantity?: number;
+  notes?: string;
+}
+
+export async function generateEmployeeCommission(
+  input: GenerateEmployeeCommissionInput,
+): Promise<CommissionEntry> {
+  const data = await request<{ commission: CommissionEntry }>('/api/commissions/generate-by-product', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+  return data.commission;
+}
+
+export async function listMyCommissions(): Promise<CommissionEntry[]> {
+  const data = await request<{ commissions: CommissionEntry[] }>('/api/commissions/mine');
+  return data.commissions;
+}
+
+export interface EmployeeCommissionReportRow {
+  id: string;
+  employeeId: string;
+  employeeName: string;
+  saleId: string;
+  customerName: string | null;
+  productType: string | null;
+  calculationBase: number;
+  rate: number | null;
+  amount: number;
+  status: string;
+  createdAt: string;
+}
+
+export async function getEmployeeCommissionsReport(filters?: {
+  employeeId?: string;
+  productType?: string;
+  status?: string;
+  from?: string;
+  to?: string;
+}): Promise<EmployeeCommissionReportRow[]> {
+  const params = new URLSearchParams();
+  if (filters?.employeeId) params.set('employeeId', filters.employeeId);
+  if (filters?.productType) params.set('productType', filters.productType);
+  if (filters?.status) params.set('status', filters.status);
+  if (filters?.from) params.set('from', filters.from);
+  if (filters?.to) params.set('to', filters.to);
+  const qs = params.toString() ? `?${params.toString()}` : '';
+  const data = await request<{ rows: EmployeeCommissionReportRow[] }>(`/api/commissions/report${qs}`);
+  return data.rows;
 }
 
 // ============================================================

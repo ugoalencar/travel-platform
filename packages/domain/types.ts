@@ -593,7 +593,15 @@ export interface CommissionEntry {
   employeeId: string;
   saleId: string;
   tripId: string | undefined;
-  commissionPlanId: string;
+  // Exactly one of commissionPlanId (legacy, global-plan path) or
+  // commissionRuleId+productType (per-employee-per-product path) is set
+  // -- enforced by commission_entries_lineage_check (080 migration).
+  commissionPlanId: string | undefined;
+  commissionRuleId: string | undefined;
+  productType: EmployeeCommissionProductType | undefined;
+  sourceItemId: string | undefined;
+  sourceItemType: string | undefined;
+  quantity: number | undefined;
   calculationBase: number;
   rate: number | undefined;
   amount: number;
@@ -602,6 +610,64 @@ export interface CommissionEntry {
   approvedBy: string | undefined;
   paidAt: Date | undefined;
   notes: string | undefined;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// ============================================================
+// Employee Commission Rules (Comissionamento por Funcionário e Produto)
+// -- evolves the commission domain above (CommissionPlan/CommissionEntry)
+// to support per-employee, per-product-type rules. Deliberately a
+// separate, narrower concept from CommissionPlan (which stays as-is for
+// broad/global plans) -- see docs/product/COMISSIONAMENTO_FUNCIONARIOS.md
+// "Estado atual" for the full audit of why this isn't a rename/reuse of
+// an existing type.
+// ============================================================
+
+export enum EmployeeCommissionProductType {
+  AIR = 'AIR',
+  EXCURSION = 'EXCURSION',
+  LAND = 'LAND',
+  INSURANCE = 'INSURANCE',
+  PACKAGE = 'PACKAGE',
+  HOTEL = 'HOTEL',
+  TRANSFER = 'TRANSFER',
+}
+
+export enum EmployeeCommissionCalculationType {
+  PERCENTAGE = 'PERCENTAGE',
+  FIXED = 'FIXED',
+}
+
+export enum EmployeeCommissionBasis {
+  PRODUCT_TOTAL = 'PRODUCT_TOTAL',
+  PACKAGE_TOTAL = 'PACKAGE_TOTAL',
+  PER_PASSENGER = 'PER_PASSENGER',
+  PER_TICKET = 'PER_TICKET',
+  FIXED_PER_PASSENGER = 'FIXED_PER_PASSENGER',
+  FIXED_PER_TICKET = 'FIXED_PER_TICKET',
+  FIXED_PER_SALE = 'FIXED_PER_SALE',
+}
+
+export enum EmployeeCommissionRuleStatus {
+  ACTIVE = 'ACTIVE',
+  INACTIVE = 'INACTIVE',
+}
+
+export interface EmployeeCommissionRule {
+  id: string;
+  agencyId: string;
+  employeeId: string;
+  productType: EmployeeCommissionProductType;
+  calculationType: EmployeeCommissionCalculationType;
+  calculationBasis: EmployeeCommissionBasis;
+  percentageRate: number | undefined;
+  fixedAmount: number | undefined;
+  currency: string;
+  validFrom: Date | undefined;
+  validUntil: Date | undefined;
+  status: EmployeeCommissionRuleStatus;
+  createdByUserId: string | undefined;
   createdAt: Date;
   updatedAt: Date;
 }

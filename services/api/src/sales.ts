@@ -3,6 +3,7 @@ import { getAgencyId, getUserId } from '../../../packages/domain/tenant-context'
 import type { DatabaseRuntime, TenantTransactionClient } from './database';
 import { ConflictError, NotFoundError, ValidationError } from './errors';
 import { AuditEventType, recordAuditEvent } from './audit-log';
+import { cancelCommissionsForSale } from './employee-commissions';
 
 interface SaleRow {
   id: string;
@@ -383,6 +384,14 @@ export async function cancelSale(
        WHERE agency_id = $1 AND sale_id = $2 AND status IN ('OPEN', 'PARTIALLY_PAID')`,
       [agencyId, id],
     );
+
+    // Audited gap (docs/product/COMISSIONAMENTO_FUNCIONARIOS.md "Cancelamento"):
+    // cancelling a sale must not leave an orphaned PENDING/APPROVED
+    // commission for a sale that no longer exists commercially. Conservative
+    // policy: PAYABLE/PAID commissions (money already queued/disbursed) are
+    // left untouched -- reversing disbursed money is a real financial-policy
+    // decision outside this fix's scope.
+    await cancelCommissionsForSale(client, agencyId, id);
 
     const row = updated.rows[0];
     if (!row) throw new Error('Sale cancellation did not return a row');

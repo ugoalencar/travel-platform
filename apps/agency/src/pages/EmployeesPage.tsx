@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { PageHeader } from '../components/layout/PageHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
@@ -349,12 +350,21 @@ export function EmployeesPage() {
               <TableBody>
                 {state.employees.map((employee) => (
                   <TableRow key={employee.id}>
-                    <TableCell className="font-medium">{employee.name}</TableCell>
+                    <TableCell className="font-medium">
+                      <Link to={`/employees/${employee.id}`} className="hover:underline">
+                        {employee.name}
+                      </Link>
+                    </TableCell>
                     <TableCell>{employee.roleTitle || '-'}</TableCell>
                     <TableCell>{employee.department || '-'}</TableCell>
                     <TableCell>{costCenterName(employee.costCenterId)}</TableCell>
                     <TableCell>{STATUSES.find((s) => s.value === employee.status)?.label ?? employee.status}</TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right space-x-2">
+                      <Link to={`/employees/${employee.id}`}>
+                        <Button size="sm" variant="outline">
+                          Ver
+                        </Button>
+                      </Link>
                       <Button size="sm" variant="outline" onClick={() => startEdit(employee)}>
                         Editar
                       </Button>

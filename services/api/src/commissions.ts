@@ -14,7 +14,12 @@ interface CommissionEntryRow {
   employee_id: string;
   sale_id: string;
   trip_id: string | null;
-  commission_plan_id: string;
+  commission_plan_id: string | null;
+  commission_rule_id: string | null;
+  product_type: CommissionEntry['productType'] | null;
+  source_item_id: string | null;
+  source_item_type: string | null;
+  quantity: string | null;
   calculation_base: string;
   rate: string | null;
   amount: string;
@@ -28,6 +33,7 @@ interface CommissionEntryRow {
 }
 
 const COMMISSION_ENTRY_COLUMNS = `id, agency_id, employee_id, sale_id, trip_id, commission_plan_id,
+  commission_rule_id, product_type, source_item_id, source_item_type, quantity,
   calculation_base, rate, amount, status, approved_at, approved_by, paid_at, notes,
   created_at, updated_at`;
 
@@ -51,7 +57,12 @@ function toCommissionEntry(row: CommissionEntryRow): CommissionEntry {
     employeeId: row.employee_id,
     saleId: row.sale_id,
     tripId: row.trip_id ?? undefined,
-    commissionPlanId: row.commission_plan_id,
+    commissionPlanId: row.commission_plan_id ?? undefined,
+    commissionRuleId: row.commission_rule_id ?? undefined,
+    productType: row.product_type ?? undefined,
+    sourceItemId: row.source_item_id ?? undefined,
+    sourceItemType: row.source_item_type ?? undefined,
+    quantity: row.quantity !== null ? Number(row.quantity) : undefined,
     calculationBase: Number(row.calculation_base),
     rate: row.rate !== null ? Number(row.rate) : undefined,
     amount: Number(row.amount),

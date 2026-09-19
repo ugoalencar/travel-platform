@@ -55,6 +55,7 @@ import { ReportsPage } from './pages/ReportsPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { EnrollmentLinksPage } from './pages/EnrollmentLinksPage';
 import { EmployeesPage } from './pages/EmployeesPage';
+import { EmployeeDetailPage } from './pages/EmployeeDetailPage';
 import { CommissionPlansPage } from './pages/CommissionPlansPage';
 import { PayrollPage } from './pages/PayrollPage';
 
@@ -119,6 +120,7 @@ export function App() {
         <Route path="reports" element={<ReportsPage />} />
         <Route path="enrollment-links" element={<EnrollmentLinksPage />} />
         <Route path="employees" element={<EmployeesPage />} />
+        <Route path="employees/:id" element={<EmployeeDetailPage />} />
         <Route path="commission-plans" element={<CommissionPlansPage />} />
         <Route path="payroll" element={<PayrollPage />} />
         <Route path="settings" element={<SettingsPage />} />

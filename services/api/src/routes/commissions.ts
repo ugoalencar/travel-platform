@@ -41,6 +41,20 @@ import {
   type GenerateCommissionInput,
 } from '../commissions';
 import {
+  createEmployeeCommissionRule,
+  getEmployeeCommissionRuleById,
+  listEmployeeCommissionRules,
+  updateEmployeeCommissionRuleStatus,
+  type EmployeeCommissionRuleInput,
+} from '../employee-commission-rules';
+import {
+  generateEmployeeCommission,
+  getEmployeeCommissionsReport,
+  listMyCommissionEntries,
+  type GenerateEmployeeCommissionInput,
+} from '../employee-commissions';
+import { EmployeeCommissionCalculationType, EmployeeCommissionRuleStatus } from '../../../../packages/domain/types';
+import {
   approvePayrollEntry,
   createEmployeeDeduction,
   deleteEmployeeDeduction,
@@ -251,6 +265,103 @@ export function registerCommissionsRoutes(
       return result;
     },
   );
+
+  // ============================================================
+  // EMPLOYEE COMMISSION RULES (per employee, per product type --
+  // Comissionamento por Funcionário e Produto)
+  // ============================================================
+  app.get('/employee-commission-rules', { preHandler: protectedHooks }, async (request) => {
+    requireRole(UserRole.MANAGER);
+    const query = request.query as Record<string, string>;
+    const rules = await listEmployeeCommissionRules(database, {
+      employeeId: query.employeeId,
+      productType: query.productType,
+    });
+    return { rules };
+  });
+
+  app.get<{ Params: { id: string } }>(
+    '/employee-commission-rules/:id',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      requireRole(UserRole.MANAGER);
+      const rule = await getEmployeeCommissionRuleById(database, request.params.id);
+      if (!rule) {
+        reply.code(404);
+        return { error: 'Commission rule not found' };
+      }
+      return { rule };
+    },
+  );
+
+  // Rule management restricted to ADMIN+ (spec: "Não permitir que AGENT
+  // altere sua própria regra" -- and MANAGER cannot either; only ADMIN/OWNER).
+  app.post('/employee-commission-rules', { preHandler: protectedHooks }, async (request, reply) => {
+    requireRole(UserRole.ADMIN);
+    const data = parseEmployeeCommissionRuleInput(request.body);
+    const rule = await createEmployeeCommissionRule(database, data, getUserId());
+    reply.code(201);
+    return { rule };
+  });
+
+  app.patch<{ Params: { id: string }; Body: { status?: string } }>(
+    '/employee-commission-rules/:id/status',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      requireRole(UserRole.ADMIN);
+      const status = request.body?.status as EmployeeCommissionRuleStatus | undefined;
+      if (!status || !Object.values(EmployeeCommissionRuleStatus).includes(status)) {
+        throw new ValidationError('Field "status" is invalid');
+      }
+      const rule = await updateEmployeeCommissionRuleStatus(database, request.params.id, status);
+      if (!rule) {
+        reply.code(404);
+        return { error: 'Commission rule not found' };
+      }
+      return { rule };
+    },
+  );
+
+  // ============================================================
+  // EMPLOYEE COMMISSIONS -- per-product generation, self-view, report
+  // ============================================================
+
+  // Same AGENT-allowed gate as the pre-existing /commissions/generate --
+  // generation triggers a real, backend-computed commission from a real
+  // rule; it never accepts a commission amount/rate from the client.
+  app.post(
+    '/commissions/generate-by-product',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      requireRole(UserRole.AGENT);
+      const data = parseGenerateEmployeeCommissionInput(request.body);
+      const commission = await generateEmployeeCommission(database, data);
+      reply.code(201);
+      return { commission };
+    },
+  );
+
+  // Self-view: strictly the calling user's own linked employee record --
+  // never accepts an employeeId query param. Available to AGENT+ (spec:
+  // "Um agente poderá visualizar suas próprias comissões").
+  app.get('/commissions/mine', { preHandler: protectedHooks }, async () => {
+    requireRole(UserRole.AGENT);
+    const commissions = await listMyCommissionEntries(database, getUserId());
+    return { commissions };
+  });
+
+  app.get('/commissions/report', { preHandler: protectedHooks }, async (request) => {
+    requireRole(UserRole.MANAGER);
+    const query = request.query as Record<string, string>;
+    const rows = await getEmployeeCommissionsReport(database, {
+      employeeId: query.employeeId,
+      productType: query.productType,
+      status: query.status,
+      from: query.from,
+      to: query.to,
+    });
+    return { rows };
+  });
 
   // ============================================================
   // EMPLOYEE DEDUCTIONS
@@ -523,6 +634,65 @@ function parseGenerateCommissionInput(body: unknown): GenerateCommissionInput {
     saleId,
     employeeId,
     commissionPlanId: optionalTrimmedString(record.commissionPlanId),
+    notes: optionalTrimmedString(record.notes),
+  };
+}
+
+const VALID_PRODUCT_TYPES = ['AIR', 'EXCURSION', 'LAND', 'INSURANCE', 'PACKAGE', 'HOTEL', 'TRANSFER'];
+const VALID_CALC_TYPES = Object.values(EmployeeCommissionCalculationType) as string[];
+const VALID_BASES = [
+  'PRODUCT_TOTAL',
+  'PACKAGE_TOTAL',
+  'PER_PASSENGER',
+  'PER_TICKET',
+  'FIXED_PER_PASSENGER',
+  'FIXED_PER_TICKET',
+  'FIXED_PER_SALE',
+];
+
+function parseEmployeeCommissionRuleInput(body: unknown): EmployeeCommissionRuleInput {
+  const record = parseObjectBody(body);
+  const employeeId = parseRequiredString(record.employeeId, 'employeeId');
+  const productType = record.productType as EmployeeCommissionRuleInput['productType'];
+  if (!productType || !VALID_PRODUCT_TYPES.includes(productType)) {
+    throw new ValidationError('Field "productType" is invalid');
+  }
+  const calculationType = record.calculationType as EmployeeCommissionRuleInput['calculationType'];
+  if (!calculationType || !VALID_CALC_TYPES.includes(calculationType)) {
+    throw new ValidationError('Field "calculationType" is invalid');
+  }
+  const calculationBasis = record.calculationBasis as EmployeeCommissionRuleInput['calculationBasis'];
+  if (!calculationBasis || !VALID_BASES.includes(calculationBasis)) {
+    throw new ValidationError('Field "calculationBasis" is invalid');
+  }
+  return {
+    employeeId,
+    productType,
+    calculationType,
+    calculationBasis,
+    percentageRate: optionalNumber(record.percentageRate),
+    fixedAmount: optionalNumber(record.fixedAmount),
+    currency: optionalTrimmedString(record.currency),
+    validFrom: optionalTrimmedString(record.validFrom),
+    validUntil: optionalTrimmedString(record.validUntil),
+  };
+}
+
+function parseGenerateEmployeeCommissionInput(body: unknown): GenerateEmployeeCommissionInput {
+  const record = parseObjectBody(body);
+  const saleId = parseRequiredString(record.saleId, 'saleId');
+  const employeeId = parseRequiredString(record.employeeId, 'employeeId');
+  const productType = record.productType as GenerateEmployeeCommissionInput['productType'];
+  if (!productType || !VALID_PRODUCT_TYPES.includes(productType)) {
+    throw new ValidationError('Field "productType" is invalid');
+  }
+  return {
+    saleId,
+    employeeId,
+    productType,
+    sourceItemId: optionalTrimmedString(record.sourceItemId),
+    manualBaseAmount: optionalNumber(record.manualBaseAmount),
+    manualQuantity: optionalNumber(record.manualQuantity),
     notes: optionalTrimmedString(record.notes),
   };
 }

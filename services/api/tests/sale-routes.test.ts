@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
@@ -9,16 +9,20 @@ import type { AuthenticatedPrincipal } from '../src/auth';
 import { createDatabaseRuntime } from '../src/database';
 
 const repoRoot = resolve(import.meta.dirname, '../../..');
-const migration001 = resolve(repoRoot, 'infrastructure/migrations/001_initial_schema.sql');
-const migration002 = resolve(repoRoot, 'infrastructure/migrations/002_rls_policies.sql');
-const migration003 = resolve(repoRoot, 'infrastructure/migrations/003_transportation.sql');
-const migration004 = resolve(repoRoot, 'infrastructure/migrations/004_route_points.sql');
-const migration005 = resolve(repoRoot, 'infrastructure/migrations/005_booking.sql');
-const migration006 = resolve(repoRoot, 'infrastructure/migrations/006_field_operations.sql');
-const migration007 = resolve(repoRoot, 'infrastructure/migrations/007_commission_repair.sql');
-const migration010 = resolve(repoRoot, 'infrastructure/migrations/010_financial_foundation.sql');
-const migration015 = resolve(repoRoot, 'infrastructure/migrations/015_audit_logging.sql');
-const migration024 = resolve(repoRoot, 'infrastructure/migrations/024_extended_financial_module.sql');
+// Was a hand-curated subset of migrations. Switched to "every migration, in
+// order" (same pattern as invitations-permission-restrictions.test.ts /
+// platform-commercial.test.ts) because cancelSale()'s commission-cancellation
+// cascade (Comissionamento por Funcionário e Produto) unconditionally queries
+// commission_entries now, and that table's own transitive dependency chain
+// (cost_centers -> air_services/land_services -> customer_dependents -> ...)
+// turned out too deep to hand-pick safely -- a curated subset here would be
+// forever chasing the real schema's dependency graph instead of just using
+// the real, authoritative migration sequence like production does.
+const migrationsDir = resolve(repoRoot, 'infrastructure/migrations');
+const migrationFiles = readdirSync(migrationsDir)
+  .filter((name) => /^\d+_.+\.sql$/.test(name))
+  .sort()
+  .map((name) => resolve(migrationsDir, name));
 const prepareRolesSql = resolve(repoRoot, 'tests/integration/database/002_prepare_local_roles.sql');
 const composeFile = resolve(repoRoot, 'infrastructure/docker-compose.local-postgres.yml');
 
@@ -944,16 +948,9 @@ function assertContainerIsLocal(): void {
 
 async function resetDatabase(pool: Pool): Promise<void> {
   await pool.query('DROP SCHEMA public CASCADE; CREATE SCHEMA public;');
-  await pool.query(readSqlForPg(migration001));
-  await pool.query(readSqlForPg(migration002));
-  await pool.query(readSqlForPg(migration003));
-  await pool.query(readSqlForPg(migration004));
-  await pool.query(readSqlForPg(migration005));
-  await pool.query(readSqlForPg(migration006));
-  await pool.query(readSqlForPg(migration007));
-  await pool.query(readSqlForPg(migration010));
-  await pool.query(readSqlForPg(migration015));
-  await pool.query(readSqlForPg(migration024));
+  for (const migrationFile of migrationFiles) {
+    await pool.query(readSqlForPg(migrationFile));
+  }
   await pool.query(readSqlForPg(prepareRolesSql));
   await seedAgenciesAndUsers(pool);
 }
