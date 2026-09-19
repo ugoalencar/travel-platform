@@ -93,11 +93,89 @@ Estado de teste (parceiro e indicação de QA) removido do banco de staging apó
 
 Duas re-execuções foram necessárias por flakiness de infraestrutura local (conflito de nome de container Docker entre workers paralelos e um teste de formatação de moeda pré-existente e não relacionado a esta feature) — ambas confirmadas como não relacionadas ao código desta feature após reexecução isolada e limpeza do container órfão.
 
-## Pendências
+## Pendências (rodada original — ambas fechadas abaixo)
 
-- O link "Preview" da Landing CMS aponta para `/preview/landing`, uma rota que o app `marketing` ainda precisa implementar para consumir `GET /public/landing`. A API pública já está pronta, testada e validada manualmente — falta apenas o consumo visual no app de marketing, fora do escopo desta rodada (spec não pediu alterações no app `marketing`).
-- A tela de Créditos pede o `agencies.id` diretamente em texto, sem um seletor amigável — porque o endpoint `/platform/subscribers` existente retorna `subscriber_tenants.id`, não `agencies.id`. Corrigir isso exigiria expor `agency_id` nesse endpoint pré-existente, fora do escopo desta feature.
-- Nenhum pagamento automático de comissão, nenhuma alteração de billing recorrente, nenhum Marketplace/Amadeus/GDS — por instrução explícita (ver `docs/roadmap/MARKETPLACE_FUTURE.md`).
+- ~~O link "Preview" da Landing CMS aponta para `/preview/landing`...~~ **Fechado.** Ver "Fechamento da META 01" abaixo.
+- ~~A tela de Créditos pede o `agencies.id` diretamente em texto...~~ **Fechado.** Ver "Fechamento da META 01" abaixo.
+- Nenhum pagamento automático de comissão, nenhuma alteração de billing recorrente, nenhum Marketplace/Amadeus/GDS — por instrução explícita (ver `docs/roadmap/MARKETPLACE_FUTURE.md`). Continua fora de escopo.
+
+---
+
+# Fechamento da META 01 — Landing Pública Dinâmica + UX de Créditos
+
+Rodada curta, sem novo domínio, fechando as duas pendências acima.
+
+- **Commit:** `9bcd2c5`
+- **CI run:** `35452925381` — ✅ sucesso
+- **Branch:** `main`
+
+## 1. Integração com o app `marketing`
+
+`apps/marketing/src/pages/LandingPage.tsx` agora consome `GET /public/landing`, `GET /public/partners` e `GET /public/banners` via um novo cliente (`apps/marketing/src/lib/publicCommercialApi.ts`), com o mesmo padrão de `fetch('/public/...')` já usado por `DemoRequest.tsx`/`TrialSignup.tsx` (sem prefixo `/api`, proxy já configurado em `vite.config.ts` e no `Caddyfile.local-staging`).
+
+**Abordagem deliberadamente aditiva, não um redesign:**
+- Hero title/subtitle/CTAs: se a landing publicada tiver esses campos preenchidos, sobrepõem o texto estático; senão, mantém o texto estático original como fallback — nunca quebra, nunca fica vazio.
+- Seções **Parceiros**, **Depoimentos** e **FAQ**: só renderizam se houver conteúdo real publicado (parceiros públicos, ou seções `TESTIMONIALS`/`FAQ` habilitadas); ausentes por padrão, sem alterar o layout quando não há nada publicado.
+- Banners: renderizados como uma faixa simples no topo, só quando há banner `ACTIVE` dentro da janela para o placement `LANDING`.
+- As seções estáticas existentes (Áreas do produto, Segurança) **não foram tocadas**.
+
+**Draft nunca vaza:** `getPublicLanding()` só chama `GET /public/landing`, que por sua vez só lê `platform_landing_publications` (nunca as tabelas de rascunho) — a mesma garantia de arquitetura da rodada anterior, agora com um consumidor real.
+
+**Falha suave:** toda função do cliente (`getPublicLanding`, `getPublicPartners`, `getPublicBanners`) captura qualquer erro e retorna `null`/`[]` — uma API lenta, fora do ar, ou sem nada publicado nunca quebra a página pública.
+
+**Cache:** `apps/marketing` é uma SPA estática (Vite, sem SSR). O fetch acontece em tempo de execução no navegador (`useEffect` no carregamento da página), não em build-time — portanto uma publicação no Platform Admin fica visível no próximo carregamento de página do visitante, sem rebuild e sem infraestrutura de invalidação de cache. Nenhuma infraestrutura de cache foi criada.
+
+**Segurança:** além da validação já existente no backend (`assertSafeExternalUrl`), o cliente de marketing tem sua própria checagem client-side (`isSafeHref`, testada isoladamente) como defesa em profundidade antes de renderizar qualquer `href` dinâmico (CTA do hero, CTA de banner, link de parceiro) — nunca confia cegamente no valor armazenado. React escapa todo texto por padrão; nenhum `dangerouslySetInnerHTML` foi usado em lugar nenhum desta integração.
+
+## 2. Preview (draft vs published)
+
+`LandingCMSPage.tsx`: o botão "Preview" (antes um link quebrado para `/preview/landing`, uma rota que nunca existiu) agora abre um painel de preview **dentro do próprio Platform Admin**, renderizando os mesmos dados de rascunho já carregados pela página (`GET /platform/landing`, autenticado). Rotulado explicitamente "PREVIEW DO RASCUNHO — AINDA NÃO VISÍVEL AO PÚBLICO". Nunca sai por nenhuma rota pública — é só uma renderização local dos dados já em memória.
+
+Confirmado por QA real: editar o rascunho e abrir o preview **não** altera o que `GET /public/landing` retorna; só depois de clicar em "Publicar" o público muda.
+
+## 3. Seletor de agência em Créditos
+
+Nenhum endpoint existente listava `agencies` de forma adequada para um seletor (`/platform/subscribers` retorna `subscriber_tenants.id`, uma tabela praticamente vazia no ambiente de staging — 0 de 26 agências tinham uma linha correspondente).
+
+**Descoberta real durante a implementação:** a tabela `agencies` tem `FORCE ROW LEVEL SECURITY` (migração 002), então nenhuma consulta direta a partir de uma transação platform-scoped (sem contexto de tenant) jamais listaria mais de uma agência. Criar um novo endpoint de busca exigiria, portanto, ou enfraquecer a política de RLS de `agencies`, ou usar o mecanismo padrão do Postgres para esse exato cenário: uma função `SECURITY DEFINER` estreita.
+
+`infrastructure/migrations/079_platform_agency_search.sql` cria `platform_search_agencies(search_query TEXT)`, uma função SQL `SECURITY DEFINER` de propriedade da role de migração (que tem `BYPASSRLS`), retornando **apenas** `id`, `name`, `slug`, `status` — nunca `cnpj`/`email`/`phone`/`address`/`settings`. **Nenhuma política de RLS existente foi alterada, criada ou enfraquecida** — `agencies_select_tenant` e as demais continuam exatamente como estavam; esta função é um escape hatch adicional, não uma mudança na política.
+
+`GET /platform/agencies/search?q=` (novo, `platformAuthHooks`, leitura permitida a qualquer role de Platform Admin — não é uma escrita) chama essa função via `searchAgencies()` em `platform-commercial.ts`.
+
+`CreditsPage.tsx`: campo de texto livre substituído por um seletor com busca (debounce de 250ms) por nome/slug/ID, mostrando nome + slug + status nos resultados e no próprio ledger (antes mostrava o `agencyId` cru).
+
+## QA real (navegador, staging local) — fechamento da META 01
+
+Executado contra `https://admin.localhost` e `https://www.localhost` reais (staging local, Postgres real, migrações 078+079 aplicadas):
+
+1. **Landing:** editar hero do rascunho → salvar → **Preview** (painel mostra o novo texto, rotulado como rascunho) → landing pública (`www.localhost`) confirmada **sem alteração** → **Publicar** → landing pública confirmada **com o novo hero real**.
+2. **Parceiros:** criar parceiro real → marcar público + ativo → landing pública confirmada exibindo a nova seção "Nossos parceiros" com o parceiro real, sem qualquer redesign do restante da página.
+3. **Créditos:** buscar "Local Staging" no seletor → resultado real retornado (`Local Staging Agency (local-staging-agency · ACTIVE)`) → selecionar → criar crédito de R$ 250 → confirmado no ledger com nome/slug resolvidos (não o ID cru).
+
+Estado de teste (parceiro e crédito de QA) removido do banco de staging após a validação.
+
+## Testes automatizados — fechamento da META 01
+
+- `services/api/tests/platform-commercial.test.ts` — agora **46/46 testes** (7 novos): busca de agência por nome parcial/ID exato/slug, nenhum resultado para query sem match, query vazia retorna lista real, resultado contém **apenas** `id`/`name`/`slug`/`status` (nenhum campo sensível), `GET /platform/agencies/search` exige autenticação de Platform Admin (401 sem auth), permitido para qualquer role autenticada (é leitura).
+- `apps/marketing/src/lib/publicCommercialApi.test.ts` (novo, **8/8 testes**): `isSafeHref` aceita http(s) absoluto e caminho interno; rejeita protocol-relative, `javascript:`, `data:`, nulo/vazio/inválido.
+
+## Gates executados (monorepo completo) — fechamento da META 01
+
+| Gate | Resultado |
+|---|---|
+| `npm run lint` | 0 erros (warnings pré-existentes apenas) |
+| `npm run typecheck` | limpo |
+| `npm run test` | 90/90 arquivos, 1533/1533 testes (API) + suítes das demais apps, todas verdes |
+| `npm run test:security` | 5/5 arquivos, 58/58 testes |
+| `npm run test:db` | 1/1 arquivo, 9/9 testes (inclui a nova cobertura de grant da função `platform_search_agencies`) |
+| `npm run build` | 7/7 pacotes |
+
+Uma re-execução foi necessária por flakiness de infraestrutura local (conflito de nome de container Docker entre workers paralelos), confirmada como não relacionada ao código desta rodada após limpeza do container órfão e reexecução.
+
+## Pendências (após o fechamento)
+
+Nenhuma pendência não-bloqueante restante desta feature. Fora de escopo permanece, por instrução explícita: Marketplace, Amadeus/GDS, billing recorrente completo, pagamento automático de comissão (ver `docs/roadmap/MARKETPLACE_FUTURE.md`).
 
 ## Documentação
 
@@ -108,4 +186,4 @@ Duas re-execuções foram necessárias por flakiness de infraestrutura local (co
 
 ## STATUS FINAL
 
-**PLATFORM ADMIN COMERCIAL & PARCERIAS — PRONTO PARA REVISÃO**
+**META 01 — FECHADA COMPLETAMENTE**
