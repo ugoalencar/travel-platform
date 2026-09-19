@@ -107,13 +107,13 @@ function renderApp(initialEntries: string[] = ['/']) {
 
 describe('App', () => {
   it('renders without crashing', () => {
-    renderApp();
+    renderApp(['/customers']);
     expect(screen.getByText('Travel Platform')).toBeInTheDocument();
   });
 
-  it('redirects "/" to "/customers" and renders the CustomersPage', async () => {
+  it('redirects "/" to the customer portal login (portal.* domain is customer-facing)', async () => {
     renderApp(['/']);
-    expect(await screen.findByRole('heading', { name: 'Clientes' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Entrar' })).toBeInTheDocument();
   });
 
   it('renders CustomersPage when navigating to "/customers"', async () => {
@@ -122,23 +122,23 @@ describe('App', () => {
   });
 
   it('renders the sidebar shell with Travel Platform branding', () => {
-    renderApp();
+    renderApp(['/customers']);
     expect(screen.getByText('Travel Platform')).toBeInTheDocument();
   });
 
   it('renders "Clientes" as a real navigation link', () => {
-    renderApp();
+    renderApp(['/customers']);
     const link = screen.getByRole('link', { name: 'Clientes' });
     expect(link).toHaveAttribute('href', '/customers');
   });
 
   it('does not render the dead "Dashboard" placeholder nav item (no route exists for it)', () => {
-    renderApp();
+    renderApp(['/customers']);
     expect(screen.queryByText('Dashboard')).not.toBeInTheDocument();
   });
 
   it('renders "Viagens" as a real navigation link', () => {
-    renderApp();
+    renderApp(['/customers']);
     const link = screen.getByRole('link', { name: 'Viagens' });
     expect(link).toHaveAttribute('href', '/trips');
   });
@@ -149,7 +149,7 @@ describe('App', () => {
   });
 
   it('renders "Desejos" as a real navigation link', () => {
-    renderApp();
+    renderApp(['/customers']);
     const link = screen.getByRole('link', { name: 'Desejos' });
     expect(link).toHaveAttribute('href', '/wishes');
   });
@@ -166,7 +166,7 @@ describe('App', () => {
   });
 
   it('renders "Ofertas" as a real navigation link', () => {
-    renderApp();
+    renderApp(['/customers']);
     const link = screen.getByRole('link', { name: 'Ofertas' });
     expect(link).toHaveAttribute('href', '/offers');
   });
@@ -194,7 +194,7 @@ describe('App', () => {
   });
 
   it('renders "Propostas" as a real navigation link', () => {
-    renderApp();
+    renderApp(['/customers']);
     const link = screen.getByRole('link', { name: 'Propostas' });
     expect(link).toHaveAttribute('href', '/proposals');
   });
@@ -222,7 +222,7 @@ describe('App', () => {
   });
 
   it('renders "Rotas" as a real navigation link', () => {
-    renderApp();
+    renderApp(['/customers']);
     const link = screen.getByRole('link', { name: 'Rotas' });
     expect(link).toHaveAttribute('href', '/transport/routes');
   });
@@ -252,7 +252,7 @@ describe('App', () => {
   });
 
   it('renders "Produtos de transporte" as a real navigation link', () => {
-    renderApp();
+    renderApp(['/customers']);
     const link = screen.getByRole('link', { name: 'Produtos de transporte' });
     expect(link).toHaveAttribute('href', '/transport/products');
   });
@@ -288,7 +288,7 @@ describe('App', () => {
   });
 
   it('renders "Fornecedores" as a real navigation link', () => {
-    renderApp();
+    renderApp(['/customers']);
     const link = screen.getByRole('link', { name: 'Fornecedores' });
     expect(link).toHaveAttribute('href', '/transport/suppliers');
   });
@@ -318,7 +318,7 @@ describe('App', () => {
   });
 
   it('renders "Saídas" as a real navigation link', () => {
-    renderApp();
+    renderApp(['/customers']);
     const link = screen.getByRole('link', { name: 'Saídas' });
     expect(link).toHaveAttribute('href', '/transport/departures');
   });
@@ -350,7 +350,7 @@ describe('App', () => {
   });
 
   it('renders "Agenda" as a real navigation link', () => {
-    renderApp();
+    renderApp(['/customers']);
     const link = screen.getByRole('link', { name: 'Agenda' });
     expect(link).toHaveAttribute('href', '/transport/agenda');
   });
@@ -363,7 +363,7 @@ describe('App', () => {
   });
 
   it('renders "Vendas" as a real navigation link', () => {
-    renderApp();
+    renderApp(['/customers']);
     const link = screen.getByRole('link', { name: 'Vendas' });
     expect(link).toHaveAttribute('href', '/sales');
   });
@@ -391,7 +391,7 @@ describe('App', () => {
   });
 
   it('renders "Financeiro" section with link to /financial', () => {
-    renderApp();
+    renderApp(['/customers']);
     const link = screen.getByRole('link', { name: 'Financeiro' });
     expect(link).toHaveAttribute('href', '/financial');
   });
@@ -404,7 +404,7 @@ describe('App', () => {
   });
 
   it('renders "Pescador" as a real navigation link', () => {
-    renderApp();
+    renderApp(['/customers']);
     const link = screen.getByRole('link', { name: 'Pescador' });
     expect(link).toHaveAttribute('href', '/pescador');
   });
