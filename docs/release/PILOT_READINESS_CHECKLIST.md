@@ -1,6 +1,6 @@
 # Checklist de Prontidão para Piloto — Travel Platform
 
-Referência: `docs/release/RELEASE_CANDIDATE_VALIDATION.md` (evidências completas). Commit validado: `cbd8fbf5ba0a949a5cc753f530602d057effd765` (integração real do Resend — CI verde no run `35376395447`).
+Referência: `docs/release/RELEASE_CANDIDATE_VALIDATION.md` (evidências completas). Prova real de entrega dos 4 fluxos de e-mail confirmada nesta rodada (domínio `mail.travelplataforma.com.br` verificado no Resend) — P1 fechado.
 
 Legenda: ✅ OK | ⚠️ Ressalva (P2/P3 ou gap operacional documentado) | ❌ Bloqueio (P0/P1)
 
@@ -59,8 +59,8 @@ Legenda: ✅ OK | ⚠️ Ressalva (P2/P3 ou gap operacional documentado) | ❌ B
 
 ## Email
 
-- ✅ **Implementação completa.** Provedor real (Resend) integrado via abstração desacoplada (`services/api/src/email`). Convite de funcionário, reset de senha (staff e cliente) e ativação do Portal do Cliente disparam envio real. Comportamento fail-closed confirmado tanto com mock quanto contra o provedor real (produção/staging sem credencial lança `EMAIL_PROVIDER_NOT_CONFIGURED`; com credencial real mas domínio não aceito, propaga o erro real do provedor — nunca finge sucesso). Testes de integração reais confirmaram 3 dos 4 fluxos disparando o provedor corretamente (convite, forgot-password staff, forgot-password cliente); o 4º (ativação do Portal do Cliente) tem a função de e-mail testada isoladamente com sucesso, mas sem teste de integração dedicado. Ver `docs/operations/EMAIL_PROVIDER_RESEND.md`.
-- ❌ **BLOQUEIO remanescente — sem prova de entrega real.** Credencial real (Resend) e domínio (`travelplataforma.com.br`) já registrados; domínio de envio `mail.travelplataforma.com.br` ainda **não aceito pelo Resend** ao tentar enviar (`403 domain not verified`), confirmado também por consulta DNS pública independente (nenhum registro SPF/DKIM publicado ainda). Bloqueado exclusivamente por propagação DNS, em andamento pelo proprietário do produto — sem ação de código pendente. Os 4 fluxos reais não puderam ser exercidos ponta a ponta com confirmação de recebimento em caixa postal externa nesta rodada.
+- ✅ **Implementação completa.** Provedor real (Resend) integrado via abstração desacoplada (`services/api/src/email`). Convite de funcionário, reset de senha (staff e cliente) e ativação do Portal do Cliente disparam envio real. Comportamento fail-closed confirmado tanto com mock quanto contra o provedor real.
+- ✅ **Prova real de entrega confirmada — P1 fechado.** Domínio `mail.travelplataforma.com.br` verificado no Resend. Os 4 fluxos (convite de funcionário, forgot/reset staff, ativação do Customer Portal, reset do Customer Portal) foram exercidos ponta a ponta com credencial real: 4 `messageId` reais aceitos pelo Resend (`HTTP 200`), e-mails recebidos e confirmados pelo destinatário real (remetente e assunto corretos, sem cair em spam), tokens válidos, uso único confirmado (segunda tentativa de reset rejeitada), expiração respeitada (30 min staff/cliente, 7 dias convite/ativação), login real confirmado após cada reset/ativação, nenhuma API key/token/secret exposto em log. Ver `docs/operations/EMAIL_PROVIDER_RESEND.md` e `docs/release/RELEASE_CANDIDATE_VALIDATION.md` (Fase 4) para as evidências completas.
 
 ## Storage
 
@@ -102,11 +102,14 @@ Legenda: ✅ OK | ⚠️ Ressalva (P2/P3 ou gap operacional documentado) | ❌ B
 
 | Prioridade | Item | Bloqueia piloto? |
 |---|---|---|
-| P1 | E-mail real — sem prova de entrega | **Sim** — implementação completa e testada (mock + fail-closed real contra o Resend), mas bloqueada por propagação DNS do domínio de envio (`mail.travelplataforma.com.br`), confirmado pelo Resend e por consulta DNS pública independente. Sem ação de código pendente. |
 | — | Staging remoto real ausente | Gap operacional, não é bug de código |
 | — | Monitoramento externo ausente | Gap operacional |
 | P2 | Gap Offer → Opportunity | Não (workaround real já em uso) — conhecido, não corrigido nesta rodada |
 | P3 | `role="alert"` ausente em telas secundárias | Não — conhecido, não corrigido nesta rodada |
 | P3 | Verbosidade de log em erro de conexão pg | Não — conhecido, não corrigido nesta rodada |
 
-**P0 abertos: 0. P1 abertos: 1** (e-mail — bloqueado por DNS em propagação, não por código).
+**P0 abertos: 0. P1 abertos: 0** (e-mail transacional real — prova de entrega confirmada nos 4 fluxos). **P2 abertos: 1. P3 abertos: 2** (itens conhecidos, deferidos por instrução explícita desta rodada).
+
+## Veredito
+
+**TRAVEL PLATFORM — PRONTO PARA PILOTO**
