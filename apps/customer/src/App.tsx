@@ -125,7 +125,9 @@ export function App() {
       </Route>
 
       <Route element={<AppShell />}>
-        <Route index element={<Navigate to="/customers" replace />} />
+        {/* Root of this domain is customer-facing (portal.*) -- must land on
+            the customer portal, never the staff admin tree below. */}
+        <Route index element={<Navigate to="/customer-portal" replace />} />
         <Route path="customers" element={<CustomersPage />} />
         <Route path="customers/new" element={<CustomerFormPage />} />
         <Route path="customers/:id" element={<CustomerDetailsPage />} />
