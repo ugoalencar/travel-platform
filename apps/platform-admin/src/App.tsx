@@ -15,6 +15,13 @@ import { IncidentsPage } from './pages/IncidentsPage';
 import { FeatureFlagsPage } from './pages/FeatureFlagsPage';
 import { HealthPage } from './pages/HealthPage';
 import { AuditPage } from './pages/AuditPage';
+import { LandingCMSPage } from './pages/LandingCMSPage';
+import { BannersPage } from './pages/BannersPage';
+import { FAQPage } from './pages/FAQPage';
+import { PartnersPage } from './pages/PartnersPage';
+import { ReferralsPage } from './pages/ReferralsPage';
+import { CommissionsPage } from './pages/CommissionsPage';
+import { CreditsPage } from './pages/CreditsPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
 export function App() {
@@ -37,6 +44,13 @@ export function App() {
           <Route path="feature-flags" element={<FeatureFlagsPage />} />
           <Route path="health" element={<HealthPage />} />
           <Route path="audit" element={<AuditPage />} />
+          <Route path="content/landing" element={<LandingCMSPage />} />
+          <Route path="content/banners" element={<BannersPage />} />
+          <Route path="content/faq" element={<FAQPage />} />
+          <Route path="partnerships/partners" element={<PartnersPage />} />
+          <Route path="partnerships/referrals" element={<ReferralsPage />} />
+          <Route path="partnerships/commissions" element={<CommissionsPage />} />
+          <Route path="partnerships/credits" element={<CreditsPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Route>

@@ -144,8 +144,17 @@ const expectedAllTables = [
   'pipelines',
   'plans',
   'platform_audit_logs',
+  'platform_banners',
   'platform_coupon_redemptions',
   'platform_coupons',
+  'platform_landing_page',
+  'platform_landing_publications',
+  'platform_landing_sections',
+  'platform_partner_benefits',
+  'platform_partner_commissions',
+  'platform_partners',
+  'platform_referral_credits',
+  'platform_referrals',
   'platform_sessions',
   'platform_settings',
   'platform_user_audit',
@@ -332,6 +341,7 @@ const readInsertOnlyTables = [
   'login_audit',
   'mfa_totp_attempts',
   'platform_audit_logs',
+  'platform_landing_publications',
   'platform_user_audit',
   'sensitive_operations_log',
   'subscriber_tenant_audit',
@@ -400,6 +410,22 @@ const nonTenantGrantedTables = [
   'subscriptions',
   'support_access_log',
   'support_cases',
+  // Added by 078_platform_commercial_partnerships.sql -- Platform Admin
+  // Comercial & Parcerias (Landing CMS, banners, platform-level
+  // Partners/Referrals/Benefits/Credits/Commissions). Platform-global,
+  // no RLS -- distinct from the tenant-scoped commercial_partners family
+  // (054/058/059). platform_referral_credits has an agency_id FK but is
+  // written exclusively by Platform Admin routes, never by tenant/agency
+  // runtime code, so it belongs here rather than in expectedTenantTables.
+  'platform_banners',
+  'platform_landing_page',
+  'platform_landing_publications',
+  'platform_landing_sections',
+  'platform_partner_benefits',
+  'platform_partner_commissions',
+  'platform_partners',
+  'platform_referral_credits',
+  'platform_referrals',
 ];
 
 interface CommandResult {

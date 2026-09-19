@@ -10,6 +10,41 @@ import {
   setFeatureFlagEnabled,
 } from './feature-flags';
 import {
+  getOrCreateLandingDraft,
+  updateLandingDraft,
+  listLandingSections,
+  createLandingSection,
+  updateLandingSection,
+  deleteLandingSection,
+  publishLanding,
+  getPublishedLanding,
+  listLandingPublications,
+  listBanners,
+  listActiveBannersForPlacement,
+  createBanner,
+  updateBanner,
+  deleteBanner,
+  listPartners,
+  getPartnerById,
+  listPublicPartners,
+  createPartner,
+  updatePartner,
+  listReferrals,
+  getReferralById,
+  createReferral,
+  updateReferralStatus,
+  listPartnerBenefits,
+  createPartnerBenefit,
+  updatePartnerBenefitStatus,
+  listReferralCredits,
+  createReferralCredit,
+  updateReferralCreditStatus,
+  listPartnerCommissions,
+  createPartnerCommission,
+  updatePartnerCommissionStatus,
+  recordCommercialAudit,
+} from './platform-commercial';
+import {
   listPlans,
   createPlan,
   deletePlan,
@@ -96,6 +131,39 @@ export function registerPublicPlatformRoutes(
       }
     }
   );
+
+  // ==================== PUBLIC LANDING / PARTNERS / BANNERS ====================
+  // The ONLY reads the public landing site is allowed to use. Each of
+  // these functions independently enforces its own "public" boundary at
+  // the query level (published-only, is_public=true, ACTIVE+in-window) --
+  // never returns draft content, internal notes, or private contacts.
+
+  // GET /public/landing - published landing content (or null if never published)
+  app.get('/public/landing', async () => {
+    const landing = await getPublishedLanding(database);
+    return { landing };
+  });
+
+  // GET /public/partners - public-safe partner directory
+  app.get('/public/partners', async () => {
+    const partners = await listPublicPartners(database);
+    return { partners };
+  });
+
+  // GET /public/banners?placement=LANDING - active banners for a placement
+  app.get<{ Querystring: { placement?: string } }>('/public/banners', async (request, reply) => {
+    const placement = request.query.placement ?? 'LANDING';
+    try {
+      const banners = await listActiveBannersForPlacement(database, placement);
+      return { banners };
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        reply.code(400);
+        return { error: error.message };
+      }
+      throw error;
+    }
+  });
 }
 
 export function registerPlatformRoutes(
@@ -485,6 +553,332 @@ export function registerPlatformRoutes(
         }
         throw error;
       }
+    }
+  );
+
+  // ==================== COMERCIAL & PARCERIAS (META PÓS-PILOTO 01) ====================
+  // Reads: any authenticated platform principal (platformAuthHooks), same
+  // posture as every other GET /platform/* route above. Writes: gated
+  // inline to PLATFORM_OWNER/PLATFORM_ADMIN only, same convention as the
+  // feature-flags toggle above -- "Somente Platform Admin autorizado"
+  // (spec section 11). Every mutating action also writes one row to
+  // platform_audit_logs via recordCommercialAudit (spec section 10).
+  function requireCommercialWriteAccess(request: any): { actorId: string; actorEmail?: string; actorRole?: string } {
+    requirePlatformRole(PlatformUserRole.PLATFORM_OWNER, PlatformUserRole.PLATFORM_ADMIN)(request);
+    const auth = request.platformAuth;
+    if (!auth?.sub) throw new UnauthorizedError('Missing platform principal');
+    return { actorId: auth.sub, actorEmail: auth.email, actorRole: auth.role };
+  }
+
+  // ---- Landing CMS ----
+
+  app.get('/platform/landing', { preHandler: platformAuthHooks }, async () => {
+    const page = await getOrCreateLandingDraft(database);
+    const sections = await listLandingSections(database, page.id);
+    const publications = await listLandingPublications(database, page.id);
+    return { page, sections, publications };
+  });
+
+  app.patch<{ Params: { id: string }; Body: any }>(
+    '/platform/landing/:id',
+    { preHandler: platformAuthHooks },
+    async (request) => {
+      const actor = requireCommercialWriteAccess(request);
+      const page = await updateLandingDraft(database, request.params.id, request.body as any, actor.actorId);
+      await recordCommercialAudit(database, actor, 'UPDATED', 'landing_page', page.id, 'landing.draft.updated', request.body as any);
+      return { page };
+    }
+  );
+
+  app.post<{ Params: { id: string }; Body: any }>(
+    '/platform/landing/:id/sections',
+    { preHandler: platformAuthHooks },
+    async (request, reply) => {
+      const actor = requireCommercialWriteAccess(request);
+      const section = await createLandingSection(database, request.params.id, request.body as any);
+      await recordCommercialAudit(database, actor, 'CREATED', 'landing_section', section.id, 'landing.section.created', request.body as any);
+      reply.code(201);
+      return { section };
+    }
+  );
+
+  app.patch<{ Params: { id: string }; Body: any }>(
+    '/platform/landing/sections/:id',
+    { preHandler: platformAuthHooks },
+    async (request) => {
+      const actor = requireCommercialWriteAccess(request);
+      const section = await updateLandingSection(database, request.params.id, request.body as any);
+      await recordCommercialAudit(database, actor, 'UPDATED', 'landing_section', section.id, 'landing.section.updated', request.body as any);
+      return { section };
+    }
+  );
+
+  app.delete<{ Params: { id: string } }>(
+    '/platform/landing/sections/:id',
+    { preHandler: platformAuthHooks },
+    async (request, reply) => {
+      const actor = requireCommercialWriteAccess(request);
+      await deleteLandingSection(database, request.params.id);
+      await recordCommercialAudit(database, actor, 'DELETED', 'landing_section', request.params.id, 'landing.section.deleted');
+      reply.code(204);
+      return null;
+    }
+  );
+
+  app.post<{ Params: { id: string } }>(
+    '/platform/landing/:id/publish',
+    { preHandler: platformAuthHooks },
+    async (request, reply) => {
+      const actor = requireCommercialWriteAccess(request);
+      const publication = await publishLanding(database, request.params.id, actor.actorId);
+      await recordCommercialAudit(database, actor, 'PUBLISHED', 'landing_page', request.params.id, 'landing.published', {
+        publicationId: publication.id,
+      });
+      reply.code(201);
+      return { publication };
+    }
+  );
+
+  // ---- Banners ----
+
+  app.get<{ Querystring: { placement?: string } }>(
+    '/platform/banners',
+    { preHandler: platformAuthHooks },
+    async (request) => {
+      const banners = await listBanners(database, request.query.placement);
+      return { banners };
+    }
+  );
+
+  app.post<{ Body: any }>('/platform/banners', { preHandler: platformAuthHooks }, async (request, reply) => {
+    const actor = requireCommercialWriteAccess(request);
+    const banner = await createBanner(database, request.body as any, actor.actorId);
+    await recordCommercialAudit(database, actor, 'CREATED', 'banner', banner.id, 'banner.created', request.body as any);
+    reply.code(201);
+    return { banner };
+  });
+
+  app.patch<{ Params: { id: string }; Body: any }>(
+    '/platform/banners/:id',
+    { preHandler: platformAuthHooks },
+    async (request) => {
+      const actor = requireCommercialWriteAccess(request);
+      const banner = await updateBanner(database, request.params.id, request.body as any);
+      await recordCommercialAudit(database, actor, 'UPDATED', 'banner', banner.id, 'banner.updated', request.body as any);
+      return { banner };
+    }
+  );
+
+  app.delete<{ Params: { id: string } }>(
+    '/platform/banners/:id',
+    { preHandler: platformAuthHooks },
+    async (request, reply) => {
+      const actor = requireCommercialWriteAccess(request);
+      await deleteBanner(database, request.params.id);
+      await recordCommercialAudit(database, actor, 'DELETED', 'banner', request.params.id, 'banner.deleted');
+      reply.code(204);
+      return null;
+    }
+  );
+
+  // ---- Partners ----
+
+  app.get('/platform/partners', { preHandler: platformAuthHooks }, async () => {
+    const partners = await listPartners(database);
+    return { partners };
+  });
+
+  app.get<{ Params: { id: string } }>(
+    '/platform/partners/:id',
+    { preHandler: platformAuthHooks },
+    async (request) => {
+      const partner = await getPartnerById(database, request.params.id);
+      if (!partner) throw new ValidationError('Partner not found');
+      return { partner };
+    }
+  );
+
+  app.post<{ Body: any }>('/platform/partners', { preHandler: platformAuthHooks }, async (request, reply) => {
+    const actor = requireCommercialWriteAccess(request);
+    const partner = await createPartner(database, request.body as any, actor.actorId);
+    await recordCommercialAudit(database, actor, 'CREATED', 'partner', partner.id, 'partner.created', request.body as any);
+    reply.code(201);
+    return { partner };
+  });
+
+  app.patch<{ Params: { id: string }; Body: any }>(
+    '/platform/partners/:id',
+    { preHandler: platformAuthHooks },
+    async (request) => {
+      const actor = requireCommercialWriteAccess(request);
+      const partner = await updatePartner(database, request.params.id, request.body as any);
+      await recordCommercialAudit(database, actor, 'UPDATED', 'partner', partner.id, 'partner.updated', request.body as any);
+      return { partner };
+    }
+  );
+
+  // ---- Referrals ----
+
+  app.get('/platform/referrals', { preHandler: platformAuthHooks }, async () => {
+    const referrals = await listReferrals(database);
+    return { referrals };
+  });
+
+  app.get<{ Params: { id: string } }>(
+    '/platform/referrals/:id',
+    { preHandler: platformAuthHooks },
+    async (request) => {
+      const referral = await getReferralById(database, request.params.id);
+      if (!referral) throw new ValidationError('Referral not found');
+      return { referral };
+    }
+  );
+
+  app.post<{ Body: any }>('/platform/referrals', { preHandler: platformAuthHooks }, async (request, reply) => {
+    const actor = requireCommercialWriteAccess(request);
+    const referral = await createReferral(database, request.body as any);
+    await recordCommercialAudit(database, actor, 'CREATED', 'referral', referral.id, 'referral.created', request.body as any);
+    reply.code(201);
+    return { referral };
+  });
+
+  app.patch<{ Params: { id: string }; Body: { status: string; notes?: string } }>(
+    '/platform/referrals/:id/status',
+    { preHandler: platformAuthHooks },
+    async (request) => {
+      const actor = requireCommercialWriteAccess(request);
+      const referral = await updateReferralStatus(
+        database,
+        request.params.id,
+        request.body.status,
+        request.body.notes
+      );
+      await recordCommercialAudit(database, actor, 'UPDATED', 'referral', referral.id, 'referral.status_changed', {
+        status: request.body.status,
+      });
+      return { referral };
+    }
+  );
+
+  // ---- Benefícios ----
+
+  app.get<{ Querystring: { partnerId?: string } }>(
+    '/platform/partner-benefits',
+    { preHandler: platformAuthHooks },
+    async (request) => {
+      const benefits = await listPartnerBenefits(database, request.query.partnerId);
+      return { benefits };
+    }
+  );
+
+  app.post<{ Body: any }>(
+    '/platform/partner-benefits',
+    { preHandler: platformAuthHooks },
+    async (request, reply) => {
+      const actor = requireCommercialWriteAccess(request);
+      const benefit = await createPartnerBenefit(database, request.body as any, actor.actorId);
+      await recordCommercialAudit(database, actor, 'CREATED', 'partner_benefit', benefit.id, 'partner_benefit.created', request.body as any);
+      reply.code(201);
+      return { benefit };
+    }
+  );
+
+  app.patch<{ Params: { id: string }; Body: { status: string } }>(
+    '/platform/partner-benefits/:id',
+    { preHandler: platformAuthHooks },
+    async (request) => {
+      const actor = requireCommercialWriteAccess(request);
+      const benefit = await updatePartnerBenefitStatus(database, request.params.id, request.body.status);
+      await recordCommercialAudit(database, actor, 'UPDATED', 'partner_benefit', benefit.id, 'partner_benefit.status_changed', {
+        status: request.body.status,
+      });
+      return { benefit };
+    }
+  );
+
+  // ---- Créditos ----
+
+  app.get<{ Querystring: { agencyId?: string } }>(
+    '/platform/referral-credits',
+    { preHandler: platformAuthHooks },
+    async (request) => {
+      const credits = await listReferralCredits(database, request.query.agencyId);
+      return { credits };
+    }
+  );
+
+  app.post<{ Body: any }>(
+    '/platform/referral-credits',
+    { preHandler: platformAuthHooks },
+    async (request, reply) => {
+      const actor = requireCommercialWriteAccess(request);
+      const credit = await createReferralCredit(database, request.body as any, actor.actorId);
+      await recordCommercialAudit(database, actor, 'CREATED', 'referral_credit', credit.id, 'referral_credit.created', request.body as any);
+      reply.code(201);
+      return { credit };
+    }
+  );
+
+  app.patch<{ Params: { id: string }; Body: { status: string } }>(
+    '/platform/referral-credits/:id',
+    { preHandler: platformAuthHooks },
+    async (request) => {
+      const actor = requireCommercialWriteAccess(request);
+      const credit = await updateReferralCreditStatus(database, request.params.id, request.body.status);
+      await recordCommercialAudit(database, actor, 'UPDATED', 'referral_credit', credit.id, 'referral_credit.status_changed', {
+        status: request.body.status,
+      });
+      return { credit };
+    }
+  );
+
+  // ---- Comissões ----
+
+  app.get<{ Querystring: { partnerId?: string } }>(
+    '/platform/partner-commissions',
+    { preHandler: platformAuthHooks },
+    async (request) => {
+      const commissions = await listPartnerCommissions(database, request.query.partnerId);
+      return { commissions };
+    }
+  );
+
+  app.post<{ Body: any }>(
+    '/platform/partner-commissions',
+    { preHandler: platformAuthHooks },
+    async (request, reply) => {
+      const actor = requireCommercialWriteAccess(request);
+      const commission = await createPartnerCommission(database, request.body as any);
+      await recordCommercialAudit(
+        database,
+        actor,
+        'CREATED',
+        'partner_commission',
+        commission.id,
+        'partner_commission.created',
+        request.body as any
+      );
+      reply.code(201);
+      return { commission };
+    }
+  );
+
+  app.patch<{ Params: { id: string }; Body: { status: string } }>(
+    '/platform/partner-commissions/:id',
+    { preHandler: platformAuthHooks },
+    async (request) => {
+      const actor = requireCommercialWriteAccess(request);
+      const commission = await updatePartnerCommissionStatus(database, request.params.id, request.body.status);
+      await recordCommercialAudit(
+        database,
+        actor,
+        'UPDATED',
+        'partner_commission',
+        commission.id,
+        'partner_commission.status_changed',
+        { status: request.body.status }
+      );
+      return { commission };
     }
   );
 }

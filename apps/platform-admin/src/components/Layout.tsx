@@ -15,6 +15,13 @@ import {
   Megaphone,
   ShieldCheck,
   LogOut,
+  FileText,
+  Image,
+  HelpCircle,
+  Handshake,
+  Share2,
+  Percent,
+  Wallet,
 } from 'lucide-react';
 import { logout } from '../lib/platformAuthApi';
 
@@ -79,6 +86,29 @@ const NAV_SECTIONS: NavSection[] = [
     items: [
       { label: 'Leads', to: '/leads', icon: Zap },
       { label: 'Marketing', to: '/marketing', icon: Megaphone },
+    ],
+  },
+  // Platform Admin Comercial & Parcerias (META PÓS-PILOTO 01) -- Landing
+  // CMS/Banners/FAQ (Travel Plataforma's own marketing content) and
+  // Partners/Referrals/Commissions/Credits (the platform's own commercial
+  // partnership program). Deliberately separate from any agency-facing
+  // concept -- this is Travel Plataforma's own commercial layer, not a
+  // tenant/agency feature.
+  {
+    label: 'Conteúdo',
+    items: [
+      { label: 'Landing', to: '/content/landing', icon: FileText },
+      { label: 'Banners', to: '/content/banners', icon: Image },
+      { label: 'FAQ', to: '/content/faq', icon: HelpCircle },
+    ],
+  },
+  {
+    label: 'Parcerias',
+    items: [
+      { label: 'Parceiros', to: '/partnerships/partners', icon: Handshake },
+      { label: 'Indicações', to: '/partnerships/referrals', icon: Share2 },
+      { label: 'Comissões', to: '/partnerships/commissions', icon: Percent },
+      { label: 'Créditos', to: '/partnerships/credits', icon: Wallet },
     ],
   },
 ];

@@ -706,6 +706,20 @@ BEGIN
   IF to_regclass('public.platform_settings') IS NOT NULL THEN
     GRANT SELECT, INSERT, UPDATE, DELETE ON platform_settings TO travel_app_runtime_local;
   END IF;
+  IF to_regclass('public.platform_landing_page') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      platform_landing_page,
+      platform_landing_sections,
+      platform_banners,
+      platform_partners,
+      platform_referrals,
+      platform_partner_benefits,
+      platform_referral_credits,
+      platform_partner_commissions
+    TO travel_app_runtime_local;
+    GRANT SELECT, INSERT ON platform_landing_publications TO travel_app_runtime_local;
+    REVOKE UPDATE, DELETE ON platform_landing_publications FROM travel_app_runtime_local;
+  END IF;
 
   -- Append-only audit/evidence/change-log tables -- SELECT/INSERT only,
   -- matching the audit_logs and campaign_attributions pattern above.
