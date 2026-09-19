@@ -9,13 +9,13 @@ import { InstallAppBanner } from './InstallAppBanner';
 export function CustomerPortalShell() {
   return (
     <div className="customer-portal-shell flex min-h-screen w-full flex-col sm:flex-row">
+      <CustomerNav />
       <div className="flex flex-1 flex-col overflow-y-auto">
         <InstallAppBanner />
         <main className="flex-1 p-4 pb-20 sm:p-6 sm:pb-6">
           <Outlet />
         </main>
       </div>
-      <CustomerNav />
     </div>
   );
 }
