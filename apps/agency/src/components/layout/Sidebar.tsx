@@ -38,6 +38,7 @@ const NAV_SECTIONS: NavSection[] = [
       // already existed (kanban stages, lead-to-close funnel) with zero
       // frontend surface. New PipelinePage.tsx is that surface.
       { label: 'Pipeline', to: '/pipeline' },
+      { label: 'Segmentação', to: '/segments' },
       { label: 'Desejos', to: '/wishes' },
       { label: 'Pescador', to: '/pescador' },
       { label: 'Ofertas', to: '/offers' },

@@ -401,6 +401,16 @@ $$;
 
 DO $$
 BEGIN
+  IF to_regclass('public.customer_segments') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      customer_segments
+    TO travel_app_runtime_local;
+  END IF;
+END;
+$$;
+
+DO $$
+BEGIN
   IF to_regclass('public.employee_deductions') IS NOT NULL THEN
     GRANT SELECT, INSERT, UPDATE, DELETE ON
       employee_deductions
@@ -648,6 +658,13 @@ BEGIN
   END IF;
   IF to_regclass('public.trip_photos') IS NOT NULL THEN
     GRANT SELECT, INSERT, UPDATE, DELETE ON trip_photos TO travel_app_runtime_local;
+  END IF;
+  -- Import Center (migration 082): import_jobs and import_mapping_templates
+  IF to_regclass('public.import_jobs') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON import_jobs TO travel_app_runtime_local;
+  END IF;
+  IF to_regclass('public.import_mapping_templates') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON import_mapping_templates TO travel_app_runtime_local;
   END IF;
 END;
 $$;

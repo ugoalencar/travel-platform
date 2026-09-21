@@ -672,6 +672,29 @@ export interface EmployeeCommissionRule {
   updatedAt: Date;
 }
 
+// ============================================================
+// CUSTOMER SEGMENTATION -- saved filter RULES, never a frozen member
+// list. Membership is always recomputed at read time by
+// services/api/src/customer-segmentation.ts.
+// ============================================================
+
+export type CustomerSegmentScope = 'PERSONAL' | 'SHARED';
+
+export interface CustomerSegment {
+  id: string;
+  agencyId: string;
+  name: string;
+  description: string | undefined;
+  scope: CustomerSegmentScope;
+  ownerEmployeeId: string | undefined;
+  isShared: boolean;
+  filterDefinition: unknown;
+  createdByUserId: string;
+  createdAt: Date;
+  updatedAt: Date;
+  archivedAt: Date | undefined;
+}
+
 export enum EmployeeDeductionType {
   ADVANCE = 'ADVANCE',
   ABSENCE = 'ABSENCE',

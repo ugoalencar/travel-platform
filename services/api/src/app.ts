@@ -33,6 +33,7 @@ import { registerCouponsRoutes } from './routes/coupons';
 import { registerCustomerDocumentRoutes } from './routes/customer-documents';
 import { registerCustomerPortalRoutes } from './routes/customer-portal';
 import { registerCustomerRoutes } from './routes/customers';
+import { registerCustomerSegmentRoutes } from './routes/customer-segments';
 import { registerEnrollmentRoutes } from './routes/enrollment';
 import { registerEngagementsRoutes } from './routes/engagements';
 import { registerEntitlementsRoutes } from './routes/entitlements';
@@ -72,6 +73,7 @@ import { registerSupportRoutes } from './routes/support';
 import { registerTransportSuppliersRoutes } from './routes/transport-suppliers';
 import { registerTripsRoutes } from './routes/trips';
 import { registerWishesRoutes } from './routes/wishes';
+import { registerImportRoutes } from './routes/import';
 import { type VersionInfo } from './version';
 import type { OcrProviderContract } from './ocr-provider';
 import {
@@ -322,6 +324,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
   registerEnrollmentRoutes(app, { database: options.database, protectedHooks });
 
   registerWishesRoutes(app, { database: options.database, protectedHooks });
+  registerImportRoutes(app, { database: options.database, protectedHooks });
   registerTripsRoutes(app, { database: options.database, protectedHooks });
   registerOffersRoutes(app, { database: options.database, protectedHooks });
   registerTravelProductsRoutes(app, { database: options.database, protectedHooks });
@@ -355,6 +358,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
   registerOperationsStaffRoutes(app, { database: options.database, protectedHooks });
 
   registerCommercialCockpitRoutes(app, { database: options.database, protectedHooks });
+  registerCustomerSegmentRoutes(app, { database: options.database, protectedHooks });
   registerSettingsRoutes(app, { database: options.database, protectedHooks });
 
   // Settings expanded (agency profile, branding, onboarding, departments, invitations, permissions)

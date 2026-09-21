@@ -11,6 +11,7 @@ import { CustomersPage } from './pages/CustomersPage';
 import { CustomerDetailPage } from './pages/CustomerDetailPage';
 import { WishesPage } from './pages/WishesPage';
 import { PipelinePage } from './pages/PipelinePage';
+import { SegmentsPage } from './pages/SegmentsPage';
 import { InsurancePage } from './pages/InsurancePage';
 import { ExcursionsPage } from './pages/ExcursionsPage';
 import { WishDetailPage } from './pages/WishDetailPage';
@@ -80,6 +81,7 @@ export function App() {
         <Route path="customers/:id" element={<CustomerDetailPage />} />
         <Route path="wishes" element={<WishesPage />} />
         <Route path="pipeline" element={<PipelinePage />} />
+        <Route path="segments" element={<SegmentsPage />} />
         <Route path="insurance" element={<InsurancePage />} />
         <Route path="excursions" element={<ExcursionsPage />} />
         <Route path="wishes/:id" element={<WishDetailPage />} />

@@ -40,6 +40,7 @@ import {
   type TotpProvider,
 } from './mfa-provider';
 import { AuditEventType, recordAuditEvent } from './audit-log';
+import { encryptMfaSecret, decryptMfaSecret, isMfaSecretEncrypted } from './mfa-encryption';
 
 // ============================================================
 // Session tokens
@@ -264,7 +265,15 @@ async function getActiveMfaSecret(
      WHERE user_id = $1 AND verified_at IS NOT NULL AND disabled_at IS NULL`,
     [userId],
   );
-  return result.rows[0] ?? null;
+  const row = result.rows[0] ?? null;
+  if (!row) return null;
+
+  // Transparently decrypt if encrypted (AES-256-GCM), or pass through if legacy plaintext
+  const decryptedSecret = isMfaSecretEncrypted(row.secret_encrypted)
+    ? decryptMfaSecret(row.secret_encrypted)
+    : row.secret_encrypted;
+
+  return { ...row, secret_encrypted: decryptedSecret };
 }
 
 // ============================================================
@@ -689,10 +698,13 @@ export async function startMfaEnrollment(
 
     const generated = totpProvider.generateSecret(accountEmail, 'Travel Platform');
 
+    // Encrypt the TOTP secret before storing at rest (AES-256-GCM)
+    const encryptedSecret = encryptMfaSecret(generated.secret);
+
     const result = await client.query<{ id: string }>(
       `INSERT INTO mfa_totp_secrets (agency_id, user_id, secret_encrypted)
        VALUES ($1, $2, $3) RETURNING id`,
-      [getAgencyId(), getUserId(), generated.secret],
+      [getAgencyId(), getUserId(), encryptedSecret],
     );
     const secretId = result.rows[0]?.id;
     if (!secretId) throw new Error('MFA secret insert did not return an id');
@@ -731,7 +743,12 @@ export async function confirmMfaEnrollment(
     if (!row) throw new NotFoundError('Cadastro de MFA não encontrado');
     if (row.verified_at) throw new ConflictError('MFA já foi confirmado');
 
-    const verification = totpProvider.verifyCode(row.secret_encrypted, code);
+    // Decrypt if encrypted (AES-256-GCM), or pass through if legacy plaintext
+    const decryptedSecret = isMfaSecretEncrypted(row.secret_encrypted)
+      ? decryptMfaSecret(row.secret_encrypted)
+      : row.secret_encrypted;
+
+    const verification = totpProvider.verifyCode(decryptedSecret, code);
     if (!verification.valid) {
       throw new ValidationError('Código de verificação inválido');
     }

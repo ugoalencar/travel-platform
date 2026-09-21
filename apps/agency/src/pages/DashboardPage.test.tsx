@@ -114,8 +114,10 @@ describe('DashboardPage', () => {
     renderRouted('/');
     expect(await screen.findByText('Vendas (mês)')).toBeInTheDocument();
     expect(screen.getByText('Propostas aguardando resposta')).toBeInTheDocument();
-    expect(screen.getByText('Viagens futuras')).toBeInTheDocument();
-    expect(screen.getByText('11')).toBeInTheDocument();
+    const upcomingTripsLabel = screen.getByText('Viagens futuras');
+    // Scoped to the KPI chip itself (sidebar group-count badges can
+    // coincidentally render the same digits elsewhere on the page).
+    expect(upcomingTripsLabel.closest('div')?.querySelector('p:last-child')).toHaveTextContent('11');
     expect(screen.getByText('Vendas pendentes')).toBeInTheDocument();
     expect(screen.getByText('Follow-ups hoje')).toBeInTheDocument();
   });

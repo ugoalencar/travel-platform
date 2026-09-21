@@ -3686,3 +3686,128 @@ export const api = {
     }
   },
 };
+
+// ============================================================
+// SEGMENTAÇÃO AVANÇADA DE CLIENTES
+// ============================================================
+
+export type SegmentFieldType = 'STRING' | 'NUMBER' | 'MONEY' | 'DATE' | 'BOOLEAN' | 'ENUM';
+export type SegmentOperator =
+  | 'EQ' | 'NEQ' | 'CONTAINS' | 'STARTS_WITH'
+  | 'GT' | 'GTE' | 'LT' | 'LTE' | 'BETWEEN'
+  | 'BEFORE' | 'AFTER' | 'LAST_N_DAYS' | 'NEXT_N_DAYS'
+  | 'IS_TRUE' | 'IS_FALSE'
+  | 'IN' | 'NOT_IN'
+  | 'EXISTS' | 'NOT_EXISTS';
+
+export interface SegmentCondition {
+  field: string;
+  operator: SegmentOperator;
+  value?: unknown;
+}
+
+export interface SegmentGroup {
+  operator: 'AND' | 'OR';
+  conditions: Array<SegmentCondition | SegmentGroup>;
+}
+
+export type FilterDefinition = SegmentGroup;
+
+export type CustomerSegmentScope = 'PERSONAL' | 'SHARED';
+
+export interface CustomerSegment {
+  id: string;
+  agencyId: string;
+  name: string;
+  description?: string;
+  scope: CustomerSegmentScope;
+  ownerEmployeeId?: string;
+  isShared: boolean;
+  filterDefinition: FilterDefinition;
+  createdByUserId: string;
+  createdAt: string;
+  updatedAt: string;
+  archivedAt?: string;
+}
+
+export interface SegmentResultRow {
+  id: string;
+  name: string;
+  city: string | null;
+  lastContactAt: string | null;
+  nextDeparture: string | null;
+  averageTicket: number;
+}
+
+export interface SegmentRunResult {
+  total: number;
+  page: number;
+  pageSize: number;
+  customers: SegmentResultRow[];
+}
+
+export async function listCustomerSegments(includeArchived = false): Promise<CustomerSegment[]> {
+  const qs = includeArchived ? '?includeArchived=true' : '';
+  const data = await request<{ segments: CustomerSegment[] }>(`/api/customer-segments${qs}`);
+  return data.segments;
+}
+
+export async function getCustomerSegment(id: string): Promise<CustomerSegment> {
+  const data = await request<{ segment: CustomerSegment }>(`/api/customer-segments/${encodeURIComponent(id)}`);
+  return data.segment;
+}
+
+export async function getCustomerSegmentResults(
+  id: string,
+  page = 1,
+  pageSize = 25,
+): Promise<SegmentRunResult> {
+  return request<SegmentRunResult>(
+    `/api/customer-segments/${encodeURIComponent(id)}/results?page=${page}&pageSize=${pageSize}`,
+  );
+}
+
+export async function previewCustomerSegment(
+  filterDefinition: FilterDefinition,
+  page = 1,
+  pageSize = 10,
+): Promise<SegmentRunResult> {
+  return request<SegmentRunResult>(`/api/customer-segments/preview?page=${page}&pageSize=${pageSize}`, {
+    method: 'POST',
+    body: JSON.stringify({ filterDefinition }),
+  });
+}
+
+export interface CreateCustomerSegmentInput {
+  name: string;
+  description?: string;
+  scope: CustomerSegmentScope;
+  filterDefinition: FilterDefinition;
+}
+
+export async function createCustomerSegment(input: CreateCustomerSegmentInput): Promise<CustomerSegment> {
+  const data = await request<{ segment: CustomerSegment }>('/api/customer-segments', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+  return data.segment;
+}
+
+export async function updateCustomerSegment(
+  id: string,
+  input: Partial<CreateCustomerSegmentInput>,
+): Promise<CustomerSegment> {
+  const data = await request<{ segment: CustomerSegment }>(`/api/customer-segments/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(input),
+  });
+  return data.segment;
+}
+
+export async function archiveCustomerSegment(id: string): Promise<CustomerSegment> {
+  const data = await request<{ segment: CustomerSegment }>(
+    `/api/customer-segments/${encodeURIComponent(id)}/archive`,
+    { method: 'POST' },
+  );
+  return data.segment;
+}
