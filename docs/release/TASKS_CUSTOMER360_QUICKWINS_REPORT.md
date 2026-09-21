@@ -129,10 +129,25 @@ reduzida.
   Day-by-Day, Tracking de visualizações — fora de escopo por pedido
   explícito.
 
+## Commit e CI
+
+- Commit: `7887430` — `feat(tasks): ativar UI de commercial_tasks e
+  corrigir Customer 360 (Propostas/Reservas)`.
+- Push: `origin/main` (`11bb1c9..7887430`).
+- CI real (GitHub Actions): run
+  [`35646501802`](https://github.com/ugoalencar/travel-platform/actions/runs/35646501802)
+  — **✅ sucesso**, job "Quality Gates" completo em 9m39s: Lint,
+  Typecheck, Secret scan, Dependency audit, Validate migration file
+  naming, Unit tests, Security tests, Database and RLS integration
+  tests, Build — todos verdes. Apenas warnings pré-existentes não
+  relacionados (nenhum erro).
+
 ## Status
 
 **TASKS UI + CUSTOMER 360 QUICK WINS — PRONTO PARA REVISÃO**, com uma
-ressalva: a QA remota (Fase 12) não foi executada, pois esta rodada não
-incluiu deploy. Commit e push serão registrados logo após a finalização
-deste relatório; o run de CI real do GitHub Actions será acompanhado e
-seu resultado reportado nesta mesma seção assim que concluído.
+ressalva explícita: a QA remota (Fase 12) não foi executada, pois esta
+rodada não incluiu deploy para o ambiente remoto (Render/Vercel). Após
+o próximo deploy, validar manualmente: Agency → Login → Dashboard →
+"Tarefas de hoje"; Minhas Tarefas → criar → editar → concluir;
+Customer 360 → Propostas → Reservas → Tarefas — em desktop e largura
+reduzida.
