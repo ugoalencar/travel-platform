@@ -5,10 +5,10 @@
   "outputDirectory": "dist",
   "installCommand": "echo 'handled by buildCommand (workspace install)'",
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "https://travel-platform-g0t9.onrender.com/$1" },
-    { "source": "/customer-api/(.*)", "destination": "https://travel-platform-g0t9.onrender.com/customer-api/$1" },
-    { "source": "/customer-auth/(.*)", "destination": "https://travel-platform-g0t9.onrender.com/customer-auth/$1" },
-    { "source": "/invitations/(.*)", "destination": "https://travel-platform-g0t9.onrender.com/invitations/$1" },
+    { "source": "/api/(.*)", "destination": "https://api.travelplataforma.com.br/$1" },
+    { "source": "/customer-api/(.*)", "destination": "https://api.travelplataforma.com.br/customer-api/$1" },
+    { "source": "/customer-auth/(.*)", "destination": "https://api.travelplataforma.com.br/customer-auth/$1" },
+    { "source": "/invitations/(.*)", "destination": "https://api.travelplataforma.com.br/invitations/$1" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

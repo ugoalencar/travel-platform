@@ -5,8 +5,8 @@
   "outputDirectory": "dist",
   "installCommand": "echo 'handled by buildCommand (workspace install)'",
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "https://travel-platform-g0t9.onrender.com/$1" },
-    { "source": "/platform-auth/(.*)", "destination": "https://travel-platform-g0t9.onrender.com/platform-auth/$1" },
+    { "source": "/api/(.*)", "destination": "https://api.travelplataforma.com.br/$1" },
+    { "source": "/platform-auth/(.*)", "destination": "https://api.travelplataforma.com.br/platform-auth/$1" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
