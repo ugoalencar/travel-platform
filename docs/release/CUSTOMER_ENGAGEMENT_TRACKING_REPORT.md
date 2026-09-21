@@ -107,6 +107,19 @@ corretamente por data com as interações comerciais existentes.
   refatoração de Proposal, Day-by-Day, mudança no Segmentador — todos
   explicitamente fora de escopo por pedido.
 
+## Commit e CI
+
+- Commit: `dc0f0df` — `feat(engagement): rastrear engajamento digital
+  do cliente e exibir no Customer 360`.
+- Push: `origin/main` (`7a77c6d..dc0f0df`).
+- CI real (GitHub Actions): run
+  [`35667683271`](https://github.com/ugoalencar/travel-platform/actions/runs/35667683271)
+  — **✅ sucesso**, job "Quality Gates" completo em 17m34s: Lint,
+  Typecheck, Secret scan, Dependency audit, Validate migration file
+  naming, Unit tests, Security tests, Database and RLS integration
+  tests, Build — todos verdes. Apenas warnings pré-existentes não
+  relacionados (nenhum erro).
+
 ## Deploy
 
 **Não realizado nesta rodada**, conforme pedido explícito ("NÃO fazer
