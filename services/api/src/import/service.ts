@@ -22,7 +22,7 @@ import {
   ImportRowClassification,
   PREVIEW_ROW_COUNT,
 } from './types';
-import { parseCsv, parseXlsx, autoMapColumns, type ParsedRow } from './parser';
+import { parseCsv, autoMapColumns, type ParsedRow } from './parser';
 import { validateImportRows } from './validator';
 import { getAgencyId, getUserId } from '../../../../packages/domain/tenant-context';
 import { AuditEventType, recordAuditEvent } from '../audit-log';
@@ -112,11 +112,18 @@ export async function parseImportFile(
     parsed = result.rows;
     headers = result.headers;
   } else if (ext === 'xlsx' || ext === 'xls') {
-    const result = await parseXlsx(fileContent, job.entityType);
-    parsed = result.rows;
-    headers = result.headers;
+    // XLSX temporarily unsupported: the `xlsx` npm package has two
+    // unpatched HIGH-severity advisories (prototype pollution,
+    // ReDoS -- GHSA-4r6h-8v6p-xvw6, GHSA-5pgg-2g8v-p4x9) with no fixed
+    // version on the npm registry. Parsing untrusted uploaded files
+    // with it is a real attack surface, so the dependency was removed
+    // rather than allowlisted. Use CSV until a patched parser is
+    // adopted (see docs/product/CENTRO_IMPLANTACAO_DADOS.md).
+    throw new Error(
+      'Importação de arquivos XLSX está temporariamente desabilitada (vulnerabilidade de segurança não corrigida na biblioteca). Exporte a planilha como CSV e importe novamente.',
+    );
   } else {
-    throw new Error(`Formato de arquivo não suportado: .${ext}. Use CSV ou XLSX.`);
+    throw new Error(`Formato de arquivo não suportado: .${ext}. Use CSV.`);
   }
 
   // Update job with parse results

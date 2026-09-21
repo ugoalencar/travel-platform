@@ -180,88 +180,13 @@ function parseCsvLine(line: string): string[] {
 }
 
 // ============================================================
-// XLSX Parser (uses sheetjs / xlsx)
-// ============================================================
-
-/**
- * Parse an XLSX buffer into headers + rows.
- * Falls back to CSV parsing if xlsx library is not available.
- */
-export async function parseXlsx(content: Buffer, _entityType: ImportEntityType): Promise<ParseResult> {
-  try {
-    // Dynamic import to avoid hard dependency
-    /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
-    const XLSX: any = await import('xlsx');
-    const workbook = XLSX.read(content, { type: 'buffer' });
-
-    const sheetName = workbook.SheetNames[0];
-    if (!sheetName) {
-      return { headers: [], rows: [], totalRows: 0, truncated: false, warnings: ['Nenhuma planilha encontrada'] };
-    }
-
-    const sheet = workbook.Sheets[sheetName];
-    if (!sheet) {
-      return { headers: [], rows: [], totalRows: 0, truncated: false, warnings: ['Planilha vazia'] };
-    }
-
-    // Convert to JSON with headers
-    const jsonData: Record<string, any>[] = XLSX.utils.sheet_to_json(sheet, {
-      header: 1,
-      defval: '',
-      blankrows: false,
-    });
-
-    if (jsonData.length === 0) {
-      return { headers: [], rows: [], totalRows: 0, truncated: false, warnings: ['Planilha vazia'] };
-    }
-
-    // First row = headers
-    const firstRow = (jsonData[0] ?? []) as any[];
-    const headers = firstRow.map((h: any) => String(h ?? '').trim()).filter((h: string) => h.length > 0);
-
-    const rows: ParsedRow[] = [];
-    const warnings: string[] = [];
-    let truncated = false;
-
-    for (let i = 1; i < jsonData.length; i++) {
-      if (rows.length >= MAX_IMPORT_ROWS) {
-        truncated = true;
-        warnings.push(`Planilha truncada em ${MAX_IMPORT_ROWS} linhas. Total: ${jsonData.length - 1} linhas.`);
-        break;
-      }
-
-      const row = (jsonData[i] ?? []) as any[];
-      const data: Record<string, string> = {};
-
-      for (let j = 0; j < headers.length; j++) {
-        const header = headers[j] ?? '';
-        const value = row[j];
-        data[header] = String(value ?? '').trim();
-      }
-
-      rows.push({ rowNumber: i + 2, data }); // +2 because row 1 is header, and 0-indexed
-    }
-    /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
-
-    return {
-      headers,
-      rows,
-      totalRows: rows.length,
-      truncated,
-      warnings,
-    };
-  } catch (error) {
-    // If xlsx library is not available, try treating as CSV
-    const msg = error instanceof Error ? error.message : String(error);
-    if (msg.includes('Cannot find module') || msg.includes('xlsx')) {
-      throw new Error(
-        'Biblioteca XLSX não está instalada. Execute: npm install xlsx --workspace=services/api'
-      );
-    }
-    throw new Error(`Erro ao processar arquivo XLSX: ${msg}`);
-  }
-}
-
+// XLSX parsing removed: the `xlsx` npm package has two unpatched
+// HIGH-severity advisories (GHSA-4r6h-8v6p-xvw6 prototype pollution,
+// GHSA-5pgg-2g8v-p4x9 ReDoS) with no fixed version on the npm registry.
+// Parsing untrusted uploaded files with it is a real attack surface --
+// see services/api/src/import/service.ts's XLSX branch for the
+// user-facing error and docs/product/CENTRO_IMPLANTACAO_DADOS.md for
+// the gap. CSV import is unaffected.
 // ============================================================
 // Auto-mapping: match source headers to entity fields
 // ============================================================
