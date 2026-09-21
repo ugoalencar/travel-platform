@@ -21,8 +21,7 @@ import {
 import { StatusBadge, type StatusTone } from '../components/ui/status-badge';
 import { formatBRL } from '../lib/formatCurrency';
 import { formatDateBR } from '../lib/formatDateBR';
-import { ApiError, listOffers, createOffer, type CreateOfferInput } from '../lib/api';
-import type { Offer, OfferStatus } from '../types/offer';
+import { ApiError, listOffers, createOffer, type CreateOfferInput, type Offer, type OfferStatus } from '../lib/api';
 
 const OFFER_STATUS_LABELS: Record<OfferStatus, string> = {
   ACTIVE: 'Ativa',

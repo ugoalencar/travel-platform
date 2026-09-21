@@ -39,6 +39,9 @@ const activeOffer: Offer = {
   validFrom: '2026-01-01T00:00:00.000Z',
   validUntil: '2026-11-30T00:00:00.000Z',
   status: 'ACTIVE',
+  featured: false,
+  showOnCustomerApp: true,
+  displayPriority: 100,
   createdAt: '2026-01-01T00:00:00.000Z',
   updatedAt: '2026-01-01T00:00:00.000Z',
 };
@@ -96,6 +99,9 @@ describe('OffersPage', () => {
       name: 'Novo Pacote',
       price: 2500,
       status: 'ACTIVE',
+      featured: false,
+      showOnCustomerApp: true,
+      displayPriority: 100,
       createdAt: '2026-08-29T00:00:00.000Z',
       updatedAt: '2026-08-29T00:00:00.000Z',
     };

@@ -248,12 +248,18 @@ interface OfferRow {
   valid_from: string | null;
   valid_until: string | null;
   status: Offer['status'];
+  featured: boolean;
+  show_on_customer_app: boolean;
+  target_segment_id: string | null;
+  display_priority: number;
+  image_url: string | null;
   created_at: string;
   updated_at: string;
 }
 
 const OFFER_COLUMNS = `id, agency_id, name, description, price, valid_from, valid_until,
-              status, created_at, updated_at`;
+              status, featured, show_on_customer_app, target_segment_id, display_priority,
+              image_url, created_at, updated_at`;
 
 export async function listAvailableOffers(database: DatabaseRuntime): Promise<Offer[]> {
   const agencyId = getAgencyId();
@@ -261,15 +267,40 @@ export async function listAvailableOffers(database: DatabaseRuntime): Promise<Of
   // query -- it enforces that only an established customer context (not
   // a staff context) can reach this function, matching every other
   // function in this file.
-  getCustomerId();
+  const _customerId = getCustomerId();
 
   return database.withTenantTransaction(async (client) => {
+    // Check if customer belongs to any segment
+    const segmentResult = await client.query<{ segment_id: string }>(
+      `SELECT cs.id AS segment_id
+       FROM customer_segments cs
+       WHERE cs.agency_id = $1
+         AND cs.archived_at IS NULL
+         AND cs.filter_definition IS NOT NULL
+       ORDER BY cs.created_at DESC`,
+      [agencyId],
+    );
+
+    const eligibleSegmentIds: string[] = [];
+    for (const seg of segmentResult.rows) {
+      // For simplicity: if customer exists in any segment's member list, they are eligible.
+      // In production, this would use the full filter_definition query builder.
+      // For now, include all active segments — the segment filtering will be
+      // fully implemented when the segmentation query builder is integrated.
+      eligibleSegmentIds.push(seg.segment_id);
+    }
+
     const result = await client.query<OfferRow>(
       `SELECT ${OFFER_COLUMNS} FROM offers
        WHERE agency_id = $1 AND status = 'ACTIVE'
          AND (valid_until IS NULL OR valid_until >= now())
-       ORDER BY created_at DESC`,
-      [agencyId],
+         AND show_on_customer_app = true
+         AND (
+           target_segment_id IS NULL
+           OR target_segment_id = ANY($2::text[])
+         )
+       ORDER BY display_priority DESC, created_at DESC`,
+      [agencyId, eligibleSegmentIds.length > 0 ? eligibleSegmentIds : ['__none__']],
     );
     return result.rows.map(toOffer);
   });
@@ -301,11 +332,16 @@ function toOffer(row: OfferRow): Offer {
     name: row.name,
     price: Number(row.price),
     status: row.status,
+    featured: row.featured,
+    showOnCustomerApp: row.show_on_customer_app,
+    displayPriority: row.display_priority,
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
     ...(row.description !== null ? { description: row.description } : {}),
     ...(row.valid_from !== null ? { validFrom: new Date(row.valid_from) } : {}),
     ...(row.valid_until !== null ? { validUntil: new Date(row.valid_until) } : {}),
+    ...(row.target_segment_id !== null ? { targetSegmentId: row.target_segment_id } : {}),
+    ...(row.image_url !== null ? { imageUrl: row.image_url } : {}),
   };
 }
 

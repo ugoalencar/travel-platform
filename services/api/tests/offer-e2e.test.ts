@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
@@ -9,8 +9,11 @@ import type { AuthenticatedPrincipal } from '../src/auth';
 import { createDatabaseRuntime } from '../src/database';
 
 const repoRoot = resolve(import.meta.dirname, '../../..');
-const migration001 = resolve(repoRoot, 'infrastructure/migrations/001_initial_schema.sql');
-const migration002 = resolve(repoRoot, 'infrastructure/migrations/002_rls_policies.sql');
+const migrationsDir = resolve(repoRoot, 'infrastructure/migrations');
+const migrationFiles = readdirSync(migrationsDir)
+  .filter((name) => /^\d+_.+\.sql$/.test(name))
+  .sort()
+  .map((name) => resolve(migrationsDir, name));
 const prepareRolesSql = resolve(repoRoot, 'tests/integration/database/002_prepare_local_roles.sql');
 const composeFile = resolve(repoRoot, 'infrastructure/docker-compose.local-postgres.yml');
 
@@ -545,8 +548,9 @@ function assertContainerIsLocal(): void {
 
 async function resetDatabase(pool: Pool): Promise<void> {
   await pool.query('DROP SCHEMA public CASCADE; CREATE SCHEMA public;');
-  await pool.query(readSqlForPg(migration001));
-  await pool.query(readSqlForPg(migration002));
+  for (const migrationFile of migrationFiles) {
+    await pool.query(readSqlForPg(migrationFile));
+  }
   await pool.query(readSqlForPg(prepareRolesSql));
   await seedAgenciesAndUsers(pool);
 }

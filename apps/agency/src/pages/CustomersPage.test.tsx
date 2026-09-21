@@ -230,18 +230,18 @@ describe('CustomerDetailPage', () => {
     expect(await screen.findByText('Família Martins — Portugal')).toBeInTheDocument();
   });
 
-  it('shows empty state for proposals tab (out of CORE-A scope)', async () => {
+  it('shows empty state for proposals tab when the customer has none', async () => {
     renderRouted('/customers/cust-001');
     await screen.findByRole('heading', { name: 'Lucas Martins' });
     fireEvent.click(screen.getByRole('tab', { name: 'Propostas' }));
-    expect(await screen.findByText('Nenhuma proposta')).toBeInTheDocument();
+    expect(await screen.findByText('Nenhuma proposta para este cliente.')).toBeInTheDocument();
   });
 
-  it('shows empty state for bookings tab (out of CORE-A scope)', async () => {
+  it('shows empty state for bookings tab when the customer has none', async () => {
     renderRouted('/customers/cust-001');
     await screen.findByRole('heading', { name: 'Lucas Martins' });
     fireEvent.click(screen.getByRole('tab', { name: 'Reservas' }));
-    expect(await screen.findByText('Nenhuma reserva')).toBeInTheDocument();
+    expect(await screen.findByText('Nenhuma reserva registrada.')).toBeInTheDocument();
   });
 
   it('shows error state for unknown customer', async () => {

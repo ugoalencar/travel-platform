@@ -133,6 +133,16 @@ export interface Offer {
   validFrom?: Date;
   validUntil?: Date;
   status: OfferStatus;
+  /** Destacada no carrossel do Agency Dashboard */
+  featured: boolean;
+  /** Visível no Customer App */
+  showOnCustomerApp: boolean;
+  /** Segmento de clientes elegível (null = todos) */
+  targetSegmentId?: string;
+  /** Prioridade de exibição (maior = primeiro) */
+  displayPriority: number;
+  /** URL da imagem para exibição */
+  imageUrl?: string;
   createdAt: Date;
   updatedAt: Date;
 }

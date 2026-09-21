@@ -29,6 +29,7 @@ import {
   listMyTripLandServices,
   recordMyOfferInterest,
 } from '../customer-portal';
+import { listVisibleCommunications } from '../agency-communications';
 import { getTripPhotoById, listTripPhotos } from '../trip-photos';
 import { readFile as readStoredFile } from '../file-storage';
 import type { DatabaseRuntime } from '../database';
@@ -213,5 +214,17 @@ export function registerCustomerPortalRoutes(
   app.get('/customer-api/payment-schedule', { preHandler: customerHooks }, async () => {
     const items = await listMyPaymentSchedule(database);
     return { items };
+  });
+
+  // Active communications (banners/avisos) visible in the customer app.
+  app.get('/customer-api/communications', { preHandler: customerHooks }, async (request) => {
+    const url = new URL(request.url, 'http://localhost');
+    const placement = url.searchParams.get('placement');
+    const validPlacements = ['CUSTOMER_APP_HOME', 'CUSTOMER_APP_OFFERS'] as const;
+    const resolvedPlacement = validPlacements.includes(placement as typeof validPlacements[number])
+      ? (placement as typeof validPlacements[number])
+      : 'CUSTOMER_APP_HOME';
+    const communications = await listVisibleCommunications(database, resolvedPlacement);
+    return { communications };
   });
 }

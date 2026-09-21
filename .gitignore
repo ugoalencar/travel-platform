@@ -93,3 +93,4 @@ graphify-out/
 backups/
 *.sql.gz
 *.sql.bak
+.vercel

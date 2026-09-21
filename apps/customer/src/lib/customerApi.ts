@@ -5,6 +5,7 @@
 // from, or is called by api.ts.
 import type { Trip } from '../types/trip';
 import type { Offer } from '../types/offer';
+import type { CustomerCommunication } from '../types/communication';
 import type { BookingPassenger } from '../types/booking';
 import type {
   CustomerAgencyContact,
@@ -193,6 +194,18 @@ export async function listMyPaymentSchedule(): Promise<CustomerPaymentScheduleIt
     '/customer-api/payment-schedule',
   );
   return data.items;
+}
+
+export async function listVisibleCommunications(
+  placement?: 'CUSTOMER_APP_HOME' | 'CUSTOMER_APP_OFFERS',
+): Promise<CustomerCommunication[]> {
+  const params = new URLSearchParams();
+  if (placement) params.set('placement', placement);
+  const query = params.toString() ? `?${params.toString()}` : '';
+  const data = await request<{ communications: CustomerCommunication[] }>(
+    `/customer-api/communications${query}`,
+  );
+  return data.communications;
 }
 
 export { ApiError };

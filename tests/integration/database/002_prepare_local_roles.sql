@@ -666,6 +666,10 @@ BEGIN
   IF to_regclass('public.import_mapping_templates') IS NOT NULL THEN
     GRANT SELECT, INSERT, UPDATE, DELETE ON import_mapping_templates TO travel_app_runtime_local;
   END IF;
+  -- Agency Communications (migration 084): agency_communications
+  IF to_regclass('public.agency_communications') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON agency_communications TO travel_app_runtime_local;
+  END IF;
 END;
 $$;
 

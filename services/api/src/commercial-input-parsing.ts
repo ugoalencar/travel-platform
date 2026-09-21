@@ -26,6 +26,11 @@ const ALLOWED_OFFER_CREATE_FIELDS = [
   'price',
   'validFrom',
   'validUntil',
+  'featured',
+  'showOnCustomerApp',
+  'targetSegmentId',
+  'displayPriority',
+  'imageUrl',
 ] as const;
 
 const FORBIDDEN_OFFER_UPDATE_FIELDS = [
@@ -43,6 +48,11 @@ const ALLOWED_OFFER_UPDATE_FIELDS = [
   'validFrom',
   'validUntil',
   'status',
+  'featured',
+  'showOnCustomerApp',
+  'targetSegmentId',
+  'displayPriority',
+  'imageUrl',
 ] as const;
 
 const VALID_OFFER_STATUS_VALUES = ['ACTIVE', 'INACTIVE', 'EXPIRED'] as const;
@@ -113,6 +123,36 @@ export function parseCreateOfferInput(body: unknown): CreateOfferInput {
   if (record.validUntil !== undefined) {
     data.validUntil = parseOfferDate(record.validUntil, 'validUntil');
   }
+  if (record.featured !== undefined) {
+    if (typeof record.featured !== 'boolean') {
+      throw new ValidationError('Field "featured" must be a boolean');
+    }
+    data.featured = record.featured;
+  }
+  if (record.showOnCustomerApp !== undefined) {
+    if (typeof record.showOnCustomerApp !== 'boolean') {
+      throw new ValidationError('Field "showOnCustomerApp" must be a boolean');
+    }
+    data.showOnCustomerApp = record.showOnCustomerApp;
+  }
+  if (record.targetSegmentId !== undefined) {
+    if (record.targetSegmentId !== null && typeof record.targetSegmentId !== 'string') {
+      throw new ValidationError('Field "targetSegmentId" must be a string or null');
+    }
+    data.targetSegmentId = record.targetSegmentId;
+  }
+  if (record.displayPriority !== undefined) {
+    if (typeof record.displayPriority !== 'number' || !Number.isInteger(record.displayPriority)) {
+      throw new ValidationError('Field "displayPriority" must be an integer');
+    }
+    data.displayPriority = record.displayPriority;
+  }
+  if (record.imageUrl !== undefined) {
+    if (record.imageUrl !== null && typeof record.imageUrl !== 'string') {
+      throw new ValidationError('Field "imageUrl" must be a string or null');
+    }
+    data.imageUrl = record.imageUrl;
+  }
 
   return data;
 }
@@ -167,6 +207,36 @@ export function parseUpdateOfferInput(body: unknown): UpdateOfferInput {
       throw new ValidationError('Field "status" must be one of ACTIVE, INACTIVE, EXPIRED');
     }
     data.status = record.status as NonNullable<UpdateOfferInput['status']>;
+  }
+  if (record.featured !== undefined) {
+    if (typeof record.featured !== 'boolean') {
+      throw new ValidationError('Field "featured" must be a boolean');
+    }
+    data.featured = record.featured;
+  }
+  if (record.showOnCustomerApp !== undefined) {
+    if (typeof record.showOnCustomerApp !== 'boolean') {
+      throw new ValidationError('Field "showOnCustomerApp" must be a boolean');
+    }
+    data.showOnCustomerApp = record.showOnCustomerApp;
+  }
+  if (record.targetSegmentId !== undefined) {
+    if (record.targetSegmentId !== null && typeof record.targetSegmentId !== 'string') {
+      throw new ValidationError('Field "targetSegmentId" must be a string or null');
+    }
+    data.targetSegmentId = record.targetSegmentId;
+  }
+  if (record.displayPriority !== undefined) {
+    if (typeof record.displayPriority !== 'number' || !Number.isInteger(record.displayPriority)) {
+      throw new ValidationError('Field "displayPriority" must be an integer');
+    }
+    data.displayPriority = record.displayPriority;
+  }
+  if (record.imageUrl !== undefined) {
+    if (record.imageUrl !== null && typeof record.imageUrl !== 'string') {
+      throw new ValidationError('Field "imageUrl" must be a string or null');
+    }
+    data.imageUrl = record.imageUrl;
   }
 
   if (Object.keys(data).length === 0) {

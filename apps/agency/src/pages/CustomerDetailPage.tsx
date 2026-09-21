@@ -48,7 +48,16 @@ import {
   deleteTravelRequirement,
   listCustomerInteractions,
   type CustomerInteraction,
+  listProposals,
+  listBookings,
+  listTasks,
+  updateTask,
+  listEmployees,
+  type CommercialTask,
+  type Employee,
 } from '../lib/api';
+import type { Proposal } from '../types/proposal';
+import type { Booking } from '../types/booking';
 import { formatDateBR } from '../lib/formatDateBR';
 import { formatBRL } from '../lib/formatCurrency';
 import { getCustomerStatusLabel, getWishStatusLabel, getTripStatusLabel } from '../lib/statusLabels';
@@ -73,7 +82,24 @@ const TABS = [
   { value: 'trips', label: 'Viagens' },
   { value: 'proposals', label: 'Propostas' },
   { value: 'bookings', label: 'Reservas' },
+  { value: 'tasks', label: 'Tarefas' },
 ];
+
+const PROPOSAL_STATUS_LABELS: Record<string, string> = {
+  DRAFT: 'Rascunho',
+  SENT: 'Enviada',
+  ACCEPTED: 'Aceita',
+  DECLINED: 'Recusada',
+  EXPIRED: 'Expirada',
+  CANCELLED: 'Cancelada',
+};
+
+const TASK_TYPE_LABELS: Record<string, string> = {
+  FOLLOW_UP: 'Follow-up',
+  CALL: 'Ligação',
+  POST_SALE: 'Pós-venda',
+  OTHER: 'Outro',
+};
 
 const MARITAL_STATUS_LABELS: Record<string, string> = {
   SOLTEIRO: 'Solteiro(a)',
@@ -499,6 +525,10 @@ export function CustomerDetailPage() {
   const [requirements, setRequirements] = useState<TravelRequirement[]>([]);
   const [sales, setSales] = useState<Sale[]>([]);
   const [interactions, setInteractions] = useState<CustomerInteraction[]>([]);
+  const [proposals, setProposals] = useState<Proposal[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [tasks, setTasks] = useState<CommercialTask[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [notFound, setNotFound] = useState(false);
@@ -543,8 +573,12 @@ export function CustomerDetailPage() {
       listTravelRequirements(id),
       listSales(),
       listCustomerInteractions(id).catch(() => []),
+      listProposals().catch(() => []),
+      listBookings().catch(() => []),
+      listTasks({ customerId: id }).then((res) => res.tasks).catch(() => []),
+      listEmployees().catch(() => []),
     ])
-      .then(([c, w, t, a, doc, dep, req, allSales, interactionList]) => {
+      .then(([c, w, t, a, doc, dep, req, allSales, interactionList, allProposals, allBookings, customerTasks, employeeList]) => {
         setCustomer(c);
         setWishes(w);
         setTrips(t);
@@ -554,6 +588,10 @@ export function CustomerDetailPage() {
         setRequirements(req);
         setSales(allSales.filter((s) => s.customerId === id));
         setInteractions(interactionList);
+        setProposals(allProposals.filter((p) => p.customerId === id));
+        setBookings(allBookings.filter((b) => b.bookerCustomerId === id));
+        setTasks(customerTasks);
+        setEmployees(employeeList);
         setLoading(false);
       })
       .catch((err: unknown) => {
@@ -839,12 +877,6 @@ export function CustomerDetailPage() {
     );
   }
 
-  // Proposals/Bookings are out of CORE-A scope (Customers + Wishes + Trips
-  // only) -- these tabs render an honest empty state rather than fixture
-  // data that would no longer correspond to this (now real) customer id.
-  const proposals: never[] = [];
-  const bookings: never[] = [];
-
   // Dependentes tab is reserved for minors (CHILD); every other
   // relationship (spouse, parent, companion, other) is an adult and
   // lives in the Acompanhantes tab instead. Both read from the same
@@ -1078,19 +1110,161 @@ export function CustomerDetailPage() {
       )}
 
       {tab === 'proposals' && (
-        <EmptyState
-          title="Nenhuma proposta"
-          description="A integração com propostas para este cliente ainda não está disponível nesta versão."
-          icon={<FileText className="h-8 w-8" />}
-        />
+        proposals.length === 0 ? (
+          <EmptyState
+            title="Nenhuma proposta para este cliente."
+            description="Propostas comerciais enviadas a este cliente aparecerão aqui."
+            icon={<FileText className="h-8 w-8" />}
+          />
+        ) : (
+          <Card>
+            <CardContent className="p-0">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b text-left text-slate-600">
+                    <th className="px-6 py-2">Proposta</th>
+                    <th className="px-6 py-2">Status</th>
+                    <th className="px-6 py-2">Valor</th>
+                    <th className="px-6 py-2">Válida até</th>
+                    <th className="px-6 py-2">Criada em</th>
+                    <th className="px-6 py-2" />
+                  </tr>
+                </thead>
+                <tbody>
+                  {proposals.map((p) => (
+                    <tr key={p.id} className="border-b">
+                      <td className="px-6 py-2 font-medium">#{p.id.slice(0, 8)}</td>
+                      <td className="px-6 py-2">
+                        <span className="rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
+                          {PROPOSAL_STATUS_LABELS[p.status] ?? p.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-2">{formatBRL(p.total)}</td>
+                      <td className="px-6 py-2">{p.validUntil ? formatDateBR(p.validUntil) : '-'}</td>
+                      <td className="px-6 py-2">{formatDateBR(p.createdAt)}</td>
+                      <td className="px-6 py-2 text-right">
+                        <Link to={`/proposals/${p.id}`} className="text-sm font-medium text-blue-600 hover:underline">
+                          Abrir
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </CardContent>
+          </Card>
+        )
       )}
 
       {tab === 'bookings' && (
-        <EmptyState
-          title="Nenhuma reserva"
-          description="A integração com reservas para este cliente ainda não está disponível nesta versão."
-          icon={<CalendarCheck className="h-8 w-8" />}
-        />
+        bookings.length === 0 ? (
+          <EmptyState
+            title="Nenhuma reserva registrada."
+            description="Reservas de transporte associadas a este cliente aparecerão aqui."
+            icon={<CalendarCheck className="h-8 w-8" />}
+          />
+        ) : (
+          <Card>
+            <CardContent className="p-0">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b text-left text-slate-600">
+                    <th className="px-6 py-2">Reserva</th>
+                    <th className="px-6 py-2">Tipo</th>
+                    <th className="px-6 py-2">Status</th>
+                    <th className="px-6 py-2">Criada em</th>
+                    <th className="px-6 py-2" />
+                  </tr>
+                </thead>
+                <tbody>
+                  {bookings.map((b) => (
+                    <tr key={b.id} className="border-b">
+                      <td className="px-6 py-2 font-medium">#{b.id.slice(0, 8)}</td>
+                      <td className="px-6 py-2">{b.tripType === 'ROUND_TRIP' ? 'Ida e volta' : 'Somente ida'}</td>
+                      <td className="px-6 py-2">
+                        <span
+                          className={`rounded px-2 py-0.5 text-xs font-medium ${
+                            b.cancelled ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
+                          }`}
+                        >
+                          {b.cancelled ? 'Cancelada' : 'Ativa'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-2">{formatDateBR(b.createdAt)}</td>
+                      <td className="px-6 py-2 text-right">
+                        <Link to={`/bookings/${b.id}`} className="text-sm font-medium text-blue-600 hover:underline">
+                          Abrir
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </CardContent>
+          </Card>
+        )
+      )}
+
+      {tab === 'tasks' && (
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>Tarefas do cliente</CardTitle>
+            <Link to="/tasks/new">
+              <Button size="sm" variant="outline">
+                <Plus className="h-4 w-4" /> Nova tarefa
+              </Button>
+            </Link>
+          </CardHeader>
+          <CardContent className="p-0">
+            {tasks.length === 0 ? (
+              <EmptyState
+                title="Nenhuma tarefa para este cliente."
+                description="Follow-ups e ligações relacionados a este cliente aparecerão aqui."
+                icon={<Clock className="h-8 w-8" />}
+              />
+            ) : (
+              <ul className="divide-y">
+                {tasks.map((task) => {
+                  const overdue = !task.completedAt && new Date(task.dueAt).getTime() < Date.now();
+                  const assignee = employees.find((e) => e.userId === task.assignedUserId)?.name ?? task.assignedUserId;
+                  return (
+                    <li key={task.id} className="flex items-center justify-between gap-4 px-6 py-3">
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-slate-900">{task.title}</p>
+                        <p className="text-xs text-slate-500">
+                          {TASK_TYPE_LABELS[task.type] ?? task.type} · {formatDateBR(task.dueAt)} · Responsável: {assignee}
+                        </p>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-2">
+                        <span
+                          className={`rounded px-2 py-0.5 text-xs font-medium ${
+                            task.completedAt
+                              ? 'bg-green-100 text-green-700'
+                              : overdue
+                                ? 'bg-red-100 text-red-700'
+                                : 'bg-slate-100 text-slate-600'
+                          }`}
+                        >
+                          {task.completedAt ? 'Concluída' : overdue ? 'Atrasada' : 'Pendente'}
+                        </span>
+                        {!task.completedAt && (
+                          <Button
+                            size="sm"
+                            onClick={() => {
+                              updateTask(task.id, { completedAt: new Date().toISOString() }).then(load).catch(() => undefined);
+                            }}
+                          >
+                            Concluir
+                          </Button>
+                        )}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
       )}
 
       {tab === 'personal' && (

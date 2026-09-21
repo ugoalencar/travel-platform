@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
@@ -9,12 +9,11 @@ import { createCustomerAccessValidator } from '../src/customer-portal';
 import type { CustomerAuthProvider } from '../src/customer-auth';
 
 const repoRoot = resolve(import.meta.dirname, '../../..');
-const migration001 = resolve(repoRoot, 'infrastructure/migrations/001_initial_schema.sql');
-const migration002 = resolve(repoRoot, 'infrastructure/migrations/002_rls_policies.sql');
-const migration003 = resolve(repoRoot, 'infrastructure/migrations/003_transportation.sql');
-const migration004 = resolve(repoRoot, 'infrastructure/migrations/004_route_points.sql');
-const migration005 = resolve(repoRoot, 'infrastructure/migrations/005_booking.sql');
-const migration006 = resolve(repoRoot, 'infrastructure/migrations/006_field_operations.sql');
+const migrationsDir = resolve(repoRoot, 'infrastructure/migrations');
+const migrationFiles = readdirSync(migrationsDir)
+  .filter((name) => /^\d+_.+\.sql$/.test(name))
+  .sort()
+  .map((name) => resolve(migrationsDir, name));
 const prepareRolesSql = resolve(repoRoot, 'tests/integration/database/002_prepare_local_roles.sql');
 const composeFile = resolve(repoRoot, 'infrastructure/docker-compose.local-postgres.yml');
 
@@ -31,6 +30,7 @@ const runtimePassword = 'travel_app_runtime_local_password';
 const poolPasswordKey = 'pass' + 'word';
 
 const agencyAId = '10000000-0000-4000-8000-000000000001';
+const agentAId = '11000000-0000-4000-8000-000000000001';
 
 describe('Customer portal HTTP routes (happy path)', () => {
   let adminPool: Pool;
@@ -300,9 +300,9 @@ describe('Customer portal HTTP routes (happy path)', () => {
       [agencyAId, customerId, cancelledFutureDeparture.rows[0]!.id],
     );
     await adminPool.query(
-      `INSERT INTO bookings (agency_id, booker_customer_id, trip_type, outbound_departure_id, cancelled)
-       VALUES ($1, $2, 'ONE_WAY', $3, true)`,
-      [agencyAId, customerId, futureDeparture.rows[0]!.id],
+      `INSERT INTO bookings (agency_id, booker_customer_id, trip_type, outbound_departure_id, cancelled, cancelled_at, cancelled_by_user_id)
+       VALUES ($1, $2, 'ONE_WAY', $3, true, now(), $4)`,
+      [agencyAId, customerId, futureDeparture.rows[0]!.id, agentAId],
     );
 
     const app = buildTestApp();
@@ -431,17 +431,19 @@ function assertContainerIsLocal(): void {
 
 async function resetDatabase(pool: Pool): Promise<void> {
   await pool.query('DROP SCHEMA public CASCADE; CREATE SCHEMA public;');
-  await pool.query(readSqlForPg(migration001));
-  await pool.query(readSqlForPg(migration002));
-  await pool.query(readSqlForPg(migration003));
-  await pool.query(readSqlForPg(migration004));
-  await pool.query(readSqlForPg(migration005));
-  await pool.query(readSqlForPg(migration006));
+  for (const migrationFile of migrationFiles) {
+    await pool.query(readSqlForPg(migrationFile));
+  }
   await pool.query(readSqlForPg(prepareRolesSql));
   await pool.query(
     `INSERT INTO agencies (id, name, slug, email, plan, status)
      VALUES ($1, 'Agency A', 'agency-a-customer-portal-routes-test', 'agency-a@example.test', 'FREE', 'ACTIVE')`,
     [agencyAId],
+  );
+  await pool.query(
+    `INSERT INTO users (id, agency_id, email, name, role, password_hash, status)
+     VALUES ($1, $2, 'agent-a@example.test', 'Agent A', 'AGENT', 'hash-for-customer-portal-routes-test-only', 'ACTIVE')`,
+    [agentAId, agencyAId],
   );
 }
 

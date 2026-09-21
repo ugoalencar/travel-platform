@@ -40,6 +40,9 @@ const baseOffer: Offer = {
   status: 'ACTIVE',
   createdAt: '2026-01-01T00:00:00.000Z',
   updatedAt: '2026-01-01T00:00:00.000Z',
+  featured: false,
+  showOnCustomerApp: true,
+  displayPriority: 100,
 };
 
 function renderRouted(initialEntries: string[] = ['/offers/o1/edit']) {

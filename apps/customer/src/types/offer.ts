@@ -19,6 +19,11 @@ export interface Offer {
   validFrom?: string;
   validUntil?: string;
   status: OfferStatus;
+  featured: boolean;
+  showOnCustomerApp: boolean;
+  targetSegmentId?: string;
+  displayPriority: number;
+  imageUrl?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -29,6 +34,11 @@ export interface CreateOfferInput {
   description?: string;
   validFrom?: string;
   validUntil?: string;
+  featured?: boolean;
+  showOnCustomerApp?: boolean;
+  targetSegmentId?: string;
+  displayPriority?: number;
+  imageUrl?: string;
 }
 
 export interface UpdateOfferInput {
@@ -38,4 +48,9 @@ export interface UpdateOfferInput {
   validFrom?: string;
   validUntil?: string;
   status?: OfferStatus;
+  featured?: boolean;
+  showOnCustomerApp?: boolean;
+  targetSegmentId?: string;
+  displayPriority?: number;
+  imageUrl?: string;
 }

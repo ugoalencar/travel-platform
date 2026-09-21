@@ -33,6 +33,11 @@ const NAV_SECTIONS: NavSection[] = [
     items: [
       { label: 'Clientes', to: '/customers' },
       { label: 'Cadastro Remoto', to: '/enrollment-links' },
+      // commercial_tasks já existia inteiro no backend (RBAC, RLS, CRUD)
+      // mas sem nenhuma tela -- "Minhas Tarefas" no menu do AGENT
+      // apontava pro Dashboard genérico, que não lista tarefa nenhuma.
+      // TasksPage.tsx é essa tela real.
+      { label: 'Tarefas', to: '/tasks' },
       // Requested directly: "Sinto falta de um ambiente ... o pipeline
       // não estou vendo" -- commercial_opportunities/pipeline backend
       // already existed (kanban stages, lead-to-close funnel) with zero
@@ -109,6 +114,7 @@ const NAV_SECTIONS: NavSection[] = [
   {
     label: 'Marketing',
     items: [
+      { label: 'Comunicação', to: '/communications' },
       { label: 'Campanhas', to: '/campaigns' },
       { label: 'Cupons', to: '/coupons' },
     ],
@@ -138,7 +144,7 @@ const NAV_SECTIONS: NavSection[] = [
 const STAFF_OPERATIONAL_SECTIONS: NavSection[] = [
   {
     label: 'Painel',
-    items: [{ label: 'Minhas Tarefas', to: '/' }],
+    items: [{ label: 'Minhas Tarefas', to: '/tasks' }],
   },
   {
     label: 'Operação',

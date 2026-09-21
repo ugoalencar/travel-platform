@@ -10,10 +10,9 @@ import { Modal } from '../components/ui/modal';
 import { ErrorState } from '../components/ui/error-state';
 import { LoadingState } from '../components/ui/loading-state';
 import { ApiError, getOffer, updateOffer, createOffer } from '../lib/api';
+import type { Offer, OfferStatus, UpdateOfferInput, CreateOfferInput } from '../lib/api';
 import { formatBRL } from '../lib/formatCurrency';
 import { formatDateBR } from '../lib/formatDateBR';
-import type { Offer, OfferStatus } from '../types/offer';
-import type { UpdateOfferInput, CreateOfferInput } from '../lib/api';
 
 const OFFER_STATUS_LABELS: Record<OfferStatus, string> = {
   ACTIVE: 'Ativa',
@@ -33,6 +32,9 @@ const emptyEditForm: UpdateOfferInput = {
   price: 0,
   validFrom: '',
   validUntil: '',
+  featured: false,
+  showOnCustomerApp: true,
+  displayPriority: 100,
 };
 
 const emptyDuplicateForm: CreateOfferInput = {
@@ -41,6 +43,9 @@ const emptyDuplicateForm: CreateOfferInput = {
   price: 0,
   validFrom: '',
   validUntil: '',
+  featured: false,
+  showOnCustomerApp: true,
+  displayPriority: 100,
 };
 
 export function OfferDetailPage() {
@@ -97,10 +102,15 @@ export function OfferDetailPage() {
       name: offer.name,
       price: offer.price,
       status: offer.status,
+      featured: offer.featured,
+      showOnCustomerApp: offer.showOnCustomerApp,
+      displayPriority: offer.displayPriority,
     };
     if (offer.description) form.description = offer.description;
     if (offer.validFrom) form.validFrom = offer.validFrom.split('T')[0] as string;
     if (offer.validUntil) form.validUntil = offer.validUntil.split('T')[0] as string;
+    if (offer.targetSegmentId) form.targetSegmentId = offer.targetSegmentId;
+    if (offer.imageUrl) form.imageUrl = offer.imageUrl;
     setEditForm(form);
     setEditError(null);
     setShowEdit(true);
@@ -111,6 +121,9 @@ export function OfferDetailPage() {
     const form: CreateOfferInput = {
       name: `${offer.name} (Cópia)`,
       price: offer.price,
+      featured: false,
+      showOnCustomerApp: true,
+      displayPriority: 100,
     };
     if (offer.description) form.description = offer.description;
     if (offer.validFrom) form.validFrom = offer.validFrom.split('T')[0] as string;
@@ -137,14 +150,18 @@ export function OfferDetailPage() {
     setEditSaving(true);
     setEditError(null);
     try {
-      const input: UpdateOfferInput = {
-        ...(editForm.name?.trim() ? { name: editForm.name.trim() } : {}),
-        ...(editForm.description?.trim() ? { description: editForm.description.trim() } : {}),
-        ...(editForm.price !== undefined ? { price: editForm.price } : {}),
-        ...(editForm.validFrom ? { validFrom: editForm.validFrom } : {}),
-        ...(editForm.validUntil ? { validUntil: editForm.validUntil } : {}),
-        ...(editForm.status ? { status: editForm.status } : {}),
-      };
+      const input: UpdateOfferInput = {};
+      if (editForm.name?.trim()) input.name = editForm.name.trim();
+      if (editForm.description?.trim()) input.description = editForm.description.trim();
+      if (editForm.price !== undefined) input.price = editForm.price;
+      if (editForm.validFrom) input.validFrom = editForm.validFrom;
+      if (editForm.validUntil) input.validUntil = editForm.validUntil;
+      if (editForm.status) input.status = editForm.status;
+      if (editForm.featured !== undefined) input.featured = editForm.featured;
+      if (editForm.showOnCustomerApp !== undefined) input.showOnCustomerApp = editForm.showOnCustomerApp;
+      if (editForm.displayPriority !== undefined) input.displayPriority = editForm.displayPriority;
+      if (editForm.targetSegmentId) input.targetSegmentId = editForm.targetSegmentId;
+      if (editForm.imageUrl) input.imageUrl = editForm.imageUrl;
       const updated = await updateOffer(offer.id, input);
       setOffer(updated);
       setShowEdit(false);
@@ -175,6 +192,9 @@ export function OfferDetailPage() {
       const input: CreateOfferInput = {
         name: duplicateForm.name.trim(),
         price: duplicateForm.price,
+        featured: duplicateForm.featured ?? false,
+        showOnCustomerApp: duplicateForm.showOnCustomerApp ?? true,
+        displayPriority: duplicateForm.displayPriority ?? 100,
         ...(duplicateForm.description?.trim() ? { description: duplicateForm.description.trim() } : {}),
         ...(duplicateForm.validFrom ? { validFrom: duplicateForm.validFrom } : {}),
         ...(duplicateForm.validUntil ? { validUntil: duplicateForm.validUntil } : {}),
@@ -306,6 +326,43 @@ export function OfferDetailPage() {
         </CardContent>
       </Card>
 
+      {/* Divulgação */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Divulgação</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-xs font-medium text-slate-500">Destacada</label>
+              <p className="text-slate-900">{offer.featured ? '⭐ Sim' : 'Não'}</p>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-slate-500">Visível no App do Cliente</label>
+              <p className="text-slate-900">{offer.showOnCustomerApp ? 'Sim' : 'Não'}</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-xs font-medium text-slate-500">Prioridade</label>
+              <p className="text-slate-900">{offer.displayPriority}</p>
+            </div>
+            {offer.targetSegmentId && (
+              <div>
+                <label className="text-xs font-medium text-slate-500">Segmento-alvo</label>
+                <p className="text-slate-900 font-mono text-xs">{offer.targetSegmentId}</p>
+              </div>
+            )}
+          </div>
+          {offer.imageUrl && (
+            <div>
+              <label className="text-xs font-medium text-slate-500">Imagem</label>
+              <p className="text-sm text-blue-600 break-all">{offer.imageUrl}</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Edit Modal */}
       <Modal
         open={showEdit}
@@ -390,6 +447,52 @@ export function OfferDetailPage() {
               <option value="INACTIVE">Inativa</option>
               <option value="EXPIRED">Expirada</option>
             </select>
+          </div>
+
+          <div className="border-t border-slate-200 pt-4">
+            <p className="text-sm font-semibold text-slate-700 mb-3">Divulgação</p>
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  id="edit-featured"
+                  checked={editForm.featured ?? false}
+                  onChange={(e) => setEditForm({ ...editForm, featured: e.target.checked })}
+                  className="h-4 w-4 rounded border-slate-300"
+                />
+                <label htmlFor="edit-featured" className="text-sm text-slate-700">Destacada (⭐)</label>
+              </div>
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  id="edit-showCustomer"
+                  checked={editForm.showOnCustomerApp ?? true}
+                  onChange={(e) => setEditForm({ ...editForm, showOnCustomerApp: e.target.checked })}
+                  className="h-4 w-4 rounded border-slate-300"
+                />
+                <label htmlFor="edit-showCustomer" className="text-sm text-slate-700">Visível no App do Cliente</label>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Prioridade</label>
+                  <Input
+                    type="number"
+                    value={editForm.displayPriority ?? 100}
+                    onChange={(e) => setEditForm({ ...editForm, displayPriority: Number(e.target.value) })}
+                    min={0}
+                    max={9999}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Segmento ID</label>
+                  <Input
+                    value={editForm.targetSegmentId ?? ''}
+                    onChange={(e) => setEditForm({ ...editForm, targetSegmentId: e.target.value })}
+                    placeholder="Todos"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
 
           {editError && (

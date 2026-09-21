@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -22,22 +22,11 @@ import { createDatabaseRuntime, createPlatformDatabaseRuntime } from '../src/dat
 // ============================================================
 
 const repoRoot = resolve(import.meta.dirname, '../../..');
-const migrationFiles = [
-  '001_initial_schema.sql',
-  '002_rls_policies.sql',
-  '003_transportation.sql',
-  '004_route_points.sql',
-  '005_booking.sql',
-  '006_field_operations.sql',
-  '007_commission_repair.sql',
-  '008_commercial_cockpit.sql',
-  '009_configurable_pipelines.sql',
-  '010_financial_foundation.sql',
-  '011_booking_cancellation.sql',
-  '012_operational_staff_assignments.sql',
-  '013_pescador_foundation.sql',
-  '014_offer_growth_foundation.sql',
-].map((name) => resolve(repoRoot, 'infrastructure/migrations', name));
+const migrationsDir = resolve(repoRoot, 'infrastructure/migrations');
+const migrationFiles = readdirSync(migrationsDir)
+  .filter((name) => /^\d+_.+\.sql$/.test(name))
+  .sort()
+  .map((name) => resolve(migrationsDir, name));
 const prepareRolesSql = resolve(repoRoot, 'tests/integration/database/002_prepare_local_roles.sql');
 const composeFile = resolve(repoRoot, 'infrastructure/docker-compose.local-postgres.yml');
 

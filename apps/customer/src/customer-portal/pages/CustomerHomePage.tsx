@@ -9,10 +9,12 @@ import {
   listMyPaymentSchedule,
   listMyProposals,
   listMyTrips,
+  listVisibleCommunications,
 } from '../../lib/customerApi';
 import type { Trip } from '../../types/trip';
 import type { Offer } from '../../types/offer';
 import type { CustomerDocumentView, CustomerPaymentScheduleItem } from '../../types/customer-portal';
+import type { CustomerCommunication } from '../../types/communication';
 import { tripStatusLabel } from '../../lib/statusLabels';
 import { destinationEmoji, destinationGradient } from '../destinationArt';
 
@@ -24,6 +26,7 @@ interface HomeData {
   proposalsCount: number;
   pendingDocuments: CustomerDocumentView[];
   nextPayment: CustomerPaymentScheduleItem | null;
+  communications: CustomerCommunication[];
 }
 
 function currencyCompact(value: number): string {
@@ -55,8 +58,9 @@ export function CustomerHomePage() {
       listMyProposals(),
       listMyDocuments(),
       listMyPaymentSchedule(),
+      listVisibleCommunications('CUSTOMER_APP_HOME'),
     ])
-      .then(([profile, trips, offers, bookings, proposals, documents, schedule]) => {
+      .then(([profile, trips, offers, bookings, proposals, documents, schedule, communications]) => {
         if (cancelled) return;
         const nextTrip = pickNextTrip(trips);
         // Real counts only -- "active" bookings uses the same server-computed
@@ -77,6 +81,7 @@ export function CustomerHomePage() {
             proposalsCount: proposals.length,
             pendingDocuments,
             nextPayment,
+            communications,
           },
         });
       })
@@ -128,6 +133,10 @@ export function CustomerHomePage() {
 
       {state.status === 'success' && (
         <div className="flex flex-col gap-8">
+          {state.data.communications.length > 0 && (
+            <CommunicationsBanner communications={state.data.communications} />
+          )}
+
           <NextTripCard trip={state.data.nextTrip} />
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -159,6 +168,58 @@ export function CustomerHomePage() {
           {state.data.offers.length > 0 && <AgencyOffersCarousel offers={state.data.offers} />}
         </div>
       )}
+    </div>
+  );
+}
+
+function CommunicationsBanner({ communications }: { communications: CustomerCommunication[] }) {
+  const COMMUNICATION_TYPE_ICONS: Record<string, string> = {
+    OFFER: '🏷️',
+    NOTICE: '📢',
+    CAMPAIGN: '📣',
+    INFORMATION: 'ℹ️',
+  };
+
+  return (
+    <div className="flex flex-col gap-3">
+      <h2 className="text-lg font-bold text-slate-900">Comunicados da agência</h2>
+      <div className="flex gap-4 overflow-x-auto pb-2">
+        {communications.map((comm) => (
+          <div
+            key={comm.id}
+            className="block w-64 shrink-0 overflow-hidden rounded-xl border-2 border-blue-100 bg-white shadow-sm hover:shadow-md hover:border-blue-200 transition-all"
+          >
+            {comm.imageUrl && (
+              <div className="h-28 overflow-hidden bg-slate-100">
+                <img
+                  src={comm.imageUrl}
+                  alt={comm.title}
+                  className="h-full w-full object-cover"
+                />
+              </div>
+            )}
+            <div className="p-3">
+              <div className="flex items-center gap-1.5">
+                <span className="text-base">{COMMUNICATION_TYPE_ICONS[comm.type] ?? '📢'}</span>
+                <p className="line-clamp-1 text-sm font-semibold text-slate-900">{comm.title}</p>
+              </div>
+              {comm.body && (
+                <p className="mt-1 line-clamp-2 text-xs text-slate-600">{comm.body}</p>
+              )}
+              {comm.ctaLabel && comm.ctaUrl && (
+                <a
+                  href={comm.ctaUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-2 inline-block text-xs font-semibold text-[#2563eb] hover:underline"
+                >
+                  {comm.ctaLabel} →
+                </a>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

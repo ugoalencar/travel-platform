@@ -17,6 +17,9 @@ const realOffer: Offer = {
   status: 'ACTIVE',
   createdAt: '2026-08-01T00:00:00.000Z',
   updatedAt: '2026-08-01T00:00:00.000Z',
+  featured: false,
+  showOnCustomerApp: true,
+  displayPriority: 100,
 };
 
 function renderPage(path: string) {

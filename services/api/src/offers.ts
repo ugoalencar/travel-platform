@@ -12,6 +12,11 @@ interface OfferRow {
   valid_from: string | null;
   valid_until: string | null;
   status: Offer['status'];
+  featured: boolean;
+  show_on_customer_app: boolean;
+  target_segment_id: string | null;
+  display_priority: number;
+  image_url: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -24,6 +29,11 @@ export interface CreateOfferInput {
   price: number;
   validFrom?: Date;
   validUntil?: Date;
+  featured?: boolean;
+  showOnCustomerApp?: boolean;
+  targetSegmentId?: string | null;
+  displayPriority?: number;
+  imageUrl?: string | null;
 }
 
 export interface UpdateOfferInput {
@@ -33,10 +43,16 @@ export interface UpdateOfferInput {
   validFrom?: Date;
   validUntil?: Date;
   status?: Offer['status'];
+  featured?: boolean;
+  showOnCustomerApp?: boolean;
+  targetSegmentId?: string | null;
+  displayPriority?: number;
+  imageUrl?: string | null;
 }
 
 const OFFER_COLUMNS = `id, agency_id, name, description, price, valid_from, valid_until,
-              status, created_at, updated_at`;
+              status, featured, show_on_customer_app, target_segment_id, display_priority,
+              image_url, created_at, updated_at`;
 
 export async function listOffers(database: DatabaseRuntime): Promise<Offer[]> {
   const agencyId = getAgencyId();
@@ -80,8 +96,9 @@ export async function createOffer(
 
   return database.withTenantTransaction(async (client) => {
     const result = await client.query<OfferRow>(
-      `INSERT INTO offers (agency_id, name, description, price, valid_from, valid_until)
-       VALUES ($1, $2, $3, $4, $5, $6)
+      `INSERT INTO offers (agency_id, name, description, price, valid_from, valid_until,
+                          featured, show_on_customer_app, target_segment_id, display_priority, image_url)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
        RETURNING ${OFFER_COLUMNS}`,
       [
         agencyId,
@@ -90,6 +107,11 @@ export async function createOffer(
         data.price,
         data.validFrom ?? null,
         data.validUntil ?? null,
+        data.featured ?? false,
+        data.showOnCustomerApp ?? true,
+        data.targetSegmentId ?? null,
+        data.displayPriority ?? 0,
+        data.imageUrl ?? null,
       ],
     );
     const row = result.rows[0];
@@ -122,6 +144,11 @@ export async function updateOffer(
   if (data.validFrom !== undefined) { fields.push(`valid_from = $${++index}`); values.push(data.validFrom); }
   if (data.validUntil !== undefined) { fields.push(`valid_until = $${++index}`); values.push(data.validUntil); }
   if (data.status !== undefined) { fields.push(`status = $${++index}`); values.push(data.status); }
+  if (data.featured !== undefined) { fields.push(`featured = $${++index}`); values.push(data.featured); }
+  if (data.showOnCustomerApp !== undefined) { fields.push(`show_on_customer_app = $${++index}`); values.push(data.showOnCustomerApp); }
+  if (data.targetSegmentId !== undefined) { fields.push(`target_segment_id = $${++index}`); values.push(data.targetSegmentId); }
+  if (data.displayPriority !== undefined) { fields.push(`display_priority = $${++index}`); values.push(data.displayPriority); }
+  if (data.imageUrl !== undefined) { fields.push(`image_url = $${++index}`); values.push(data.imageUrl); }
 
   if (fields.length === 0) {
     return getOfferById(database, id);
@@ -171,10 +198,15 @@ function toOffer(row: OfferRow): Offer {
     name: row.name,
     price: Number(row.price),
     status: effectiveStatus,
+    featured: row.featured,
+    showOnCustomerApp: row.show_on_customer_app,
+    displayPriority: row.display_priority,
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
     ...(row.description !== null ? { description: row.description } : {}),
     ...(row.valid_from !== null ? { validFrom: new Date(row.valid_from) } : {}),
     ...(row.valid_until !== null ? { validUntil: new Date(row.valid_until) } : {}),
+    ...(row.target_segment_id !== null ? { targetSegmentId: row.target_segment_id } : {}),
+    ...(row.image_url !== null ? { imageUrl: row.image_url } : {}),
   };
 }

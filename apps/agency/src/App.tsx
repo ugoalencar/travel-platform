@@ -53,6 +53,10 @@ import { DocumentAlertsPage } from './pages/operations/DocumentAlertsPage';
 import { OccurrencesPage } from './pages/operations/OccurrencesPage';
 import { PostTripPage } from './pages/operations/PostTripPage';
 import { ReportsPage } from './pages/ReportsPage';
+import { CommunicationPage } from './pages/CommunicationPage';
+import { CommunicationFormPage } from './pages/CommunicationFormPage';
+import { TasksPage } from './pages/TasksPage';
+import { TaskFormPage } from './pages/TaskFormPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { EnrollmentLinksPage } from './pages/EnrollmentLinksPage';
 import { EmployeesPage } from './pages/EmployeesPage';
@@ -97,6 +101,11 @@ export function App() {
         <Route path="sales/:id" element={<SaleSummaryPage />} />
         <Route path="offers" element={<OffersPage />} />
         <Route path="offers/:id" element={<OfferDetailPage />} />
+        <Route path="communications" element={<CommunicationPage />} />
+        <Route path="communications/new" element={<CommunicationFormPage />} />
+        <Route path="communications/:id/edit" element={<CommunicationFormPage />} />
+        <Route path="tasks" element={<TasksPage />} />
+        <Route path="tasks/new" element={<TaskFormPage />} />
         <Route path="campaigns" element={<CampaignsPage />} />
         <Route path="coupons" element={<CouponsPage />} />
         <Route path="financial" element={<FinancialPage />} />

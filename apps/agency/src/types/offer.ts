@@ -9,6 +9,11 @@ export interface Offer {
   validFrom?: string;
   validUntil?: string;
   status: OfferStatus;
+  featured: boolean;
+  showOnCustomerApp: boolean;
+  targetSegmentId?: string;
+  displayPriority: number;
+  imageUrl?: string;
   createdAt: string;
   updatedAt: string;
 }

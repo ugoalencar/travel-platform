@@ -30,6 +30,7 @@ const localPort = process.env.DATABASE_TEST_PORT ?? (isCiMode ? '5432' : '0');
 
 const expectedAllTables = [
   'agencies',
+  'agency_communications',
   'agency_entitlements',
   'agent_area_grants',
   'air_services',
@@ -202,6 +203,7 @@ const expectedAllTables = [
 ];
 const expectedTenantTables = [
   'agencies',
+  'agency_communications',
   'agency_entitlements',
   'agent_area_grants',
   'air_services',

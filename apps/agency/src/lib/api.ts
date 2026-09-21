@@ -374,6 +374,11 @@ export interface Offer {
   validFrom?: string;
   validUntil?: string;
   status: OfferStatus;
+  featured: boolean;
+  showOnCustomerApp: boolean;
+  targetSegmentId?: string;
+  displayPriority: number;
+  imageUrl?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -394,6 +399,11 @@ export interface CreateOfferInput {
   price: number;
   validFrom?: string;
   validUntil?: string;
+  featured?: boolean;
+  showOnCustomerApp?: boolean;
+  targetSegmentId?: string;
+  displayPriority?: number;
+  imageUrl?: string;
 }
 
 export interface UpdateOfferInput {
@@ -403,6 +413,11 @@ export interface UpdateOfferInput {
   validFrom?: string;
   validUntil?: string;
   status?: OfferStatus;
+  featured?: boolean;
+  showOnCustomerApp?: boolean;
+  targetSegmentId?: string;
+  displayPriority?: number;
+  imageUrl?: string;
 }
 
 export async function createOffer(input: CreateOfferInput): Promise<Offer> {
@@ -419,6 +434,96 @@ export async function updateOffer(id: string, input: UpdateOfferInput): Promise<
     body: JSON.stringify(input),
   });
   return data.offer;
+}
+
+// ============================================================
+// AGENCY COMMUNICATIONS
+// ============================================================
+
+export interface AgencyCommunication {
+  id: string;
+  agencyId: string;
+  type: 'OFFER' | 'NOTICE' | 'CAMPAIGN' | 'INFORMATION';
+  title: string;
+  body?: string;
+  imageUrl?: string;
+  ctaLabel?: string;
+  ctaUrl?: string;
+  placement: 'CUSTOMER_APP_HOME' | 'CUSTOMER_APP_OFFERS' | 'AGENCY_DASHBOARD';
+  displayPriority: number;
+  targetSegmentId?: string;
+  visibleFrom?: string;
+  visibleUntil?: string;
+  status: 'DRAFT' | 'SCHEDULED' | 'ACTIVE' | 'EXPIRED' | 'ARCHIVED';
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export async function listCommunications(filters?: { status?: string; type?: string; placement?: string }): Promise<AgencyCommunication[]> {
+  const params = new URLSearchParams();
+  if (filters?.status) params.set('status', filters.status);
+  if (filters?.type) params.set('type', filters.type);
+  if (filters?.placement) params.set('placement', filters.placement);
+  const query = params.toString() ? `?${params.toString()}` : '';
+  const data = await request<{ communications: AgencyCommunication[] }>(`/api/agency-communications${query}`);
+  return data.communications;
+}
+
+export async function getCommunication(id: string): Promise<AgencyCommunication> {
+  const data = await request<{ communication: AgencyCommunication }>(`/api/agency-communications/${encodeURIComponent(id)}`);
+  return data.communication;
+}
+
+export interface CreateCommunicationInput {
+  type: AgencyCommunication['type'];
+  title: string;
+  body?: string;
+  imageUrl?: string;
+  ctaLabel?: string;
+  ctaUrl?: string;
+  placement?: AgencyCommunication['placement'];
+  displayPriority?: number;
+  targetSegmentId?: string;
+  visibleFrom?: string;
+  visibleUntil?: string;
+}
+
+export interface UpdateCommunicationInput {
+  type?: AgencyCommunication['type'];
+  title?: string;
+  body?: string;
+  imageUrl?: string | null;
+  ctaLabel?: string;
+  ctaUrl?: string;
+  placement?: AgencyCommunication['placement'];
+  displayPriority?: number;
+  targetSegmentId?: string | null;
+  visibleFrom?: string;
+  visibleUntil?: string;
+  status?: AgencyCommunication['status'];
+}
+
+export async function createCommunication(input: CreateCommunicationInput): Promise<AgencyCommunication> {
+  const data = await request<{ communication: AgencyCommunication }>('/api/agency-communications', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+  return data.communication;
+}
+
+export async function updateCommunication(id: string, input: UpdateCommunicationInput): Promise<AgencyCommunication> {
+  const data = await request<{ communication: AgencyCommunication }>(`/api/agency-communications/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(input),
+  });
+  return data.communication;
+}
+
+export async function deleteCommunication(id: string): Promise<void> {
+  await request(`/api/agency-communications/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  });
 }
 
 // ============================================================
@@ -3810,4 +3915,93 @@ export async function archiveCustomerSegment(id: string): Promise<CustomerSegmen
     { method: 'POST' },
   );
   return data.segment;
+}
+
+// ============================================================
+// COMMERCIAL TASKS
+// ============================================================
+
+export type CommercialTaskType = 'FOLLOW_UP' | 'CALL' | 'POST_SALE' | 'OTHER';
+
+export interface CommercialTask {
+  id: string;
+  agencyId: string;
+  customerId: string;
+  customerName?: string;
+  opportunityId?: string;
+  assignedUserId: string;
+  type: CommercialTaskType;
+  title: string;
+  dueAt: string;
+  completedAt?: string;
+  notes?: string;
+  createdBy: string;
+  createdAt: string;
+}
+
+export interface TaskFilters {
+  assignedUserId?: string;
+  customerId?: string;
+  opportunityId?: string;
+  pending?: boolean;
+  overdue?: boolean;
+  dueFrom?: string;
+  dueTo?: string;
+}
+
+export async function listTasks(
+  filters?: TaskFilters,
+  opts?: { limit?: number; offset?: number },
+): Promise<{ tasks: CommercialTask[]; total: number }> {
+  const params = new URLSearchParams();
+  if (filters?.assignedUserId) params.set('assignedUserId', filters.assignedUserId);
+  if (filters?.customerId) params.set('customerId', filters.customerId);
+  if (filters?.opportunityId) params.set('opportunityId', filters.opportunityId);
+  if (filters?.pending !== undefined) params.set('pending', String(filters.pending));
+  if (filters?.overdue !== undefined) params.set('overdue', String(filters.overdue));
+  if (filters?.dueFrom) params.set('dueFrom', filters.dueFrom);
+  if (filters?.dueTo) params.set('dueTo', filters.dueTo);
+  if (opts?.limit) params.set('limit', String(opts.limit));
+  if (opts?.offset) params.set('offset', String(opts.offset));
+  const query = params.toString() ? `?${params.toString()}` : '';
+  return request<{ tasks: CommercialTask[]; total: number }>(`/api/commercial/tasks${query}`);
+}
+
+export async function getTask(id: string): Promise<CommercialTask> {
+  const data = await request<{ task: CommercialTask }>(`/api/commercial/tasks/${encodeURIComponent(id)}`);
+  return data.task;
+}
+
+export interface CreateTaskInput {
+  customerId: string;
+  opportunityId?: string | undefined;
+  assignedUserId: string;
+  type?: CommercialTaskType | undefined;
+  title: string;
+  dueAt: string;
+  notes?: string | undefined;
+}
+
+export async function createTask(input: CreateTaskInput): Promise<CommercialTask> {
+  const data = await request<{ task: CommercialTask }>('/api/commercial/tasks', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+  return data.task;
+}
+
+export interface UpdateTaskInput {
+  assignedUserId?: string;
+  title?: string;
+  dueAt?: string;
+  completedAt?: string | null;
+  notes?: string | null;
+}
+
+export async function updateTask(id: string, input: UpdateTaskInput): Promise<CommercialTask> {
+  const data = await request<{ task: CommercialTask }>(`/api/commercial/tasks/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(input),
+  });
+  return data.task;
 }

@@ -74,6 +74,8 @@ import { registerTransportSuppliersRoutes } from './routes/transport-suppliers';
 import { registerTripsRoutes } from './routes/trips';
 import { registerWishesRoutes } from './routes/wishes';
 import { registerImportRoutes } from './routes/import';
+import { registerAgencyCommunicationsRoutes } from './routes/agency-communications';
+import { registerWhatsAppRoutes } from './routes/whatsapp';
 import { type VersionInfo } from './version';
 import type { OcrProviderContract } from './ocr-provider';
 import {
@@ -327,6 +329,8 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
   registerImportRoutes(app, { database: options.database, protectedHooks });
   registerTripsRoutes(app, { database: options.database, protectedHooks });
   registerOffersRoutes(app, { database: options.database, protectedHooks });
+  registerAgencyCommunicationsRoutes(app, { database: options.database, protectedHooks });
+  registerWhatsAppRoutes(app, { database: options.database, protectedHooks });
   registerTravelProductsRoutes(app, { database: options.database, protectedHooks });
   registerPartnersRoutes(app, { database: options.database, protectedHooks, partnerHooks });
   registerContractsRoutes(app, { database: options.database, protectedHooks });

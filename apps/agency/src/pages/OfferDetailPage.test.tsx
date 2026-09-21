@@ -38,6 +38,9 @@ const mockOffer: Offer = {
   validFrom: '2026-01-01T00:00:00.000Z',
   validUntil: '2026-11-30T00:00:00.000Z',
   status: 'ACTIVE',
+  featured: false,
+  showOnCustomerApp: true,
+  displayPriority: 100,
   createdAt: '2026-01-01T10:00:00.000Z',
   updatedAt: '2026-08-29T15:30:00.000Z',
 };
