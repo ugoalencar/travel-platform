@@ -33,6 +33,14 @@ import { listVisibleCommunications } from '../agency-communications';
 import { getTripPhotoById, listTripPhotos } from '../trip-photos';
 import { readFile as readStoredFile } from '../file-storage';
 import type { DatabaseRuntime } from '../database';
+import {
+  recordCommunicationCtaClicked,
+  recordCommunicationViewed,
+  recordCustomerHomeViewed,
+  recordOfferViewed,
+  recordProposalViewed,
+  recordTripViewed,
+} from '../customer-engagement';
 
 export interface CustomerPortalRoutesOptions {
   database: DatabaseRuntime;
@@ -227,4 +235,45 @@ export function registerCustomerPortalRoutes(
     const communications = await listVisibleCommunications(database, resolvedPlacement);
     return { communications };
   });
+
+  // ============================================================
+  // Engagement tracking (Customer Engagement Tracking round) -- digital
+  // behavior only. Each route re-validates entity ownership/tenant via
+  // the same functions the read routes above use, before recording
+  // anything. See docs/product/CUSTOMER_ENGAGEMENT_TRACKING.md.
+  // ============================================================
+
+  app.post<{ Params: { id: string } }>(
+    '/customer-api/offers/:id/viewed',
+    { preHandler: customerHooks },
+    async (request) => recordOfferViewed(database, request.params.id),
+  );
+
+  app.post<{ Params: { id: string } }>(
+    '/customer-api/proposals/:id/viewed',
+    { preHandler: customerHooks },
+    async (request) => recordProposalViewed(database, request.params.id),
+  );
+
+  app.post<{ Params: { id: string } }>(
+    '/customer-api/trips/:id/viewed',
+    { preHandler: customerHooks },
+    async (request) => recordTripViewed(database, request.params.id),
+  );
+
+  app.post<{ Params: { id: string } }>(
+    '/customer-api/communications/:id/viewed',
+    { preHandler: customerHooks },
+    async (request) => recordCommunicationViewed(database, request.params.id),
+  );
+
+  app.post<{ Params: { id: string } }>(
+    '/customer-api/communications/:id/cta-clicked',
+    { preHandler: customerHooks },
+    async (request) => recordCommunicationCtaClicked(database, request.params.id),
+  );
+
+  app.post('/customer-api/home/viewed', { preHandler: customerHooks }, async () =>
+    recordCustomerHomeViewed(database),
+  );
 }

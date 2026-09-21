@@ -53,8 +53,13 @@ import {
   listTasks,
   updateTask,
   listEmployees,
+  listCustomerEngagements,
+  listOffers,
   type CommercialTask,
   type Employee,
+  type CustomerEngagement,
+  type EngagementType,
+  type Offer,
 } from '../lib/api';
 import type { Proposal } from '../types/proposal';
 import type { Booking } from '../types/booking';
@@ -100,6 +105,35 @@ const TASK_TYPE_LABELS: Record<string, string> = {
   POST_SALE: 'Pós-venda',
   OTHER: 'Outro',
 };
+
+// pt-BR description for a digital engagement row on the "Histórico" tab.
+// Only the view/click event types this round introduced get a specific
+// sentence -- older engagement types (COMMENT, CLICK, etc., from social
+// automation) fall back to a generic label rather than guessing intent.
+function engagementDescription(engagement: CustomerEngagement, offerNameById: Map<string, string>): string {
+  const offerName = engagement.offerId ? (offerNameById.get(engagement.offerId) ?? 'oferta') : null;
+  const proposalRef = engagement.proposalId ? `Proposta #${engagement.proposalId.slice(0, 8)}` : null;
+  switch (engagement.type) {
+    case 'OFFER_VIEWED':
+      return `Visualizou a oferta ${offerName ?? ''}.`.trim();
+    case 'OFFER_REVISITED':
+      return `Revisitou a oferta ${offerName ?? ''}.`.trim();
+    case 'PROPOSAL_VIEWED':
+      return `Abriu ${proposalRef ?? 'uma proposta'}.`;
+    case 'PROPOSAL_REVISITED':
+      return `Reabriu ${proposalRef ?? 'uma proposta'}.`;
+    case 'COMMUNICATION_VIEWED':
+      return 'Visualizou um comunicado da agência.';
+    case 'COMMUNICATION_CTA_CLICKED':
+      return 'Clicou no CTA de um comunicado da agência.';
+    case 'CUSTOMER_HOME_VIEWED':
+      return 'Acessou a home do app do cliente.';
+    case 'TRIP_VIEWED':
+      return 'Visualizou uma viagem.';
+    default:
+      return 'Interação digital registrada.';
+  }
+}
 
 const MARITAL_STATUS_LABELS: Record<string, string> = {
   SOLTEIRO: 'Solteiro(a)',
@@ -529,6 +563,8 @@ export function CustomerDetailPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [tasks, setTasks] = useState<CommercialTask[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
+  const [engagements, setEngagements] = useState<CustomerEngagement[]>([]);
+  const [offers, setOffers] = useState<Offer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [notFound, setNotFound] = useState(false);
@@ -577,8 +613,10 @@ export function CustomerDetailPage() {
       listBookings().catch(() => []),
       listTasks({ customerId: id }).then((res) => res.tasks).catch(() => []),
       listEmployees().catch(() => []),
+      listCustomerEngagements(id).catch(() => []),
+      listOffers().catch(() => []),
     ])
-      .then(([c, w, t, a, doc, dep, req, allSales, interactionList, allProposals, allBookings, customerTasks, employeeList]) => {
+      .then(([c, w, t, a, doc, dep, req, allSales, interactionList, allProposals, allBookings, customerTasks, employeeList, engagementList, offerList]) => {
         setCustomer(c);
         setWishes(w);
         setTrips(t);
@@ -592,6 +630,8 @@ export function CustomerDetailPage() {
         setBookings(allBookings.filter((b) => b.bookerCustomerId === id));
         setTasks(customerTasks);
         setEmployees(employeeList);
+        setEngagements(engagementList);
+        setOffers(offerList);
         setLoading(false);
       })
       .catch((err: unknown) => {
@@ -1024,6 +1064,7 @@ export function CustomerDetailPage() {
                 </div>
               </CardContent>
             </Card>
+            <EngagementSummaryCard engagements={engagements} offers={offers} />
             <CustomerPortalAccessCard customer={customer} />
           </div>
         </div>
@@ -1391,7 +1432,8 @@ export function CustomerDetailPage() {
       {tab === 'history' && (
         <div className="space-y-3">
           {(() => {
-            type Event = { date: string; label: string; description: string };
+            type Event = { date: string; label: string; description: string; origin?: 'digital' | 'comercial' };
+            const offerNameById = new globalThis.Map(offers.map((o) => [o.id, o.name]));
             const events: Event[] = [
               { date: customer.createdAt, label: 'Cadastro', description: 'Cliente cadastrado.' },
               ...addresses.map((a) => ({ date: a.createdAt, label: 'Endereço', description: `Endereço ${ADDRESS_TYPE_LABELS[a.type] ?? a.type} adicionado.` })),
@@ -1405,6 +1447,13 @@ export function CustomerDetailPage() {
                 date: i.occurredAt,
                 label: `Interação (${INTERACTION_CHANNEL_LABELS[i.channel] ?? i.channel})`,
                 description: i.summary,
+                origin: 'comercial' as const,
+              })),
+              ...engagements.map((eng) => ({
+                date: eng.occurredAt,
+                label: 'Digital',
+                description: engagementDescription(eng, offerNameById),
+                origin: 'digital' as const,
               })),
             ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
@@ -1422,7 +1471,18 @@ export function CustomerDetailPage() {
               <div key={idx} className="flex items-start gap-3 rounded-lg border border-slate-200 bg-white p-3">
                 <Clock className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
                 <div className="flex-1">
-                  <p className="text-sm font-semibold text-slate-900">{e.label}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-semibold text-slate-900">{e.label}</p>
+                    {e.origin && (
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
+                          e.origin === 'digital' ? 'bg-cyan-50 text-cyan-700' : 'bg-amber-50 text-amber-700'
+                        }`}
+                      >
+                        {e.origin === 'digital' ? 'Digital' : 'Comercial'}
+                      </span>
+                    )}
+                  </div>
                   <p className="text-xs text-slate-500">{e.description}</p>
                 </div>
                 <p className="whitespace-nowrap text-xs text-slate-400">{formatDateBR(e.date)}</p>
@@ -2011,6 +2071,71 @@ export function CustomerDetailPage() {
         </form>
       </Modal>
     </div>
+  );
+}
+
+// "ENGAJAMENTO RECENTE" (Customer Engagement Tracking round). Aggregates
+// raw engagement rows into per-entity view counts client-side -- no
+// score, no recommendation, just real counts and the last-viewed
+// timestamp, per docs/product/CUSTOMER_ENGAGEMENT_TRACKING.md.
+const VIEW_TYPES = new Set<EngagementType>(['OFFER_VIEWED', 'OFFER_REVISITED', 'PROPOSAL_VIEWED', 'PROPOSAL_REVISITED']);
+
+interface EngagementSummaryRow {
+  key: string;
+  label: string;
+  count: number;
+  lastViewedAt: string;
+}
+
+function summarizeEngagements(engagements: CustomerEngagement[], offers: Offer[]): EngagementSummaryRow[] {
+  const offerNameById = new globalThis.Map(offers.map((o) => [o.id, o.name]));
+  const rows = new globalThis.Map<string, EngagementSummaryRow>();
+
+  for (const e of engagements) {
+    if (!VIEW_TYPES.has(e.type)) continue;
+    const key = e.offerId ? `offer:${e.offerId}` : e.proposalId ? `proposal:${e.proposalId}` : null;
+    if (!key) continue;
+    const label = e.offerId
+      ? (offerNameById.get(e.offerId) ?? `Oferta #${e.offerId.slice(0, 8)}`)
+      : `Proposta #${(e.proposalId ?? '').slice(0, 8)}`;
+    const existing = rows.get(key);
+    if (existing) {
+      existing.count += 1;
+      if (new Date(e.occurredAt) > new Date(existing.lastViewedAt)) existing.lastViewedAt = e.occurredAt;
+    } else {
+      rows.set(key, { key, label, count: 1, lastViewedAt: e.occurredAt });
+    }
+  }
+
+  return Array.from(rows.values()).sort(
+    (a, b) => new Date(b.lastViewedAt).getTime() - new Date(a.lastViewedAt).getTime(),
+  );
+}
+
+function EngagementSummaryCard({ engagements, offers }: { engagements: CustomerEngagement[]; offers: Offer[] }) {
+  const rows = summarizeEngagements(engagements, offers);
+
+  return (
+    <Card>
+      <CardHeader><CardTitle>Engajamento recente</CardTitle></CardHeader>
+      <CardContent className="space-y-3">
+        {rows.length === 0 ? (
+          <p className="text-sm text-slate-500">Nenhuma visualização registrada ainda.</p>
+        ) : (
+          rows.slice(0, 6).map((row) => (
+            <div key={row.key} className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium text-slate-900">{row.label}</p>
+                <p className="text-xs text-slate-500">Última: {formatDateBR(row.lastViewedAt)}</p>
+              </div>
+              <span className="shrink-0 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">
+                {row.count} {row.count === 1 ? 'visualização' : 'visualizações'}
+              </span>
+            </div>
+          ))
+        )}
+      </CardContent>
+    </Card>
   );
 }
 

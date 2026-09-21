@@ -208,4 +208,49 @@ export async function listVisibleCommunications(
   return data.communications;
 }
 
+// ============================================================
+// Engagement tracking -- fire-and-forget. A tracking failure must never
+// block navigation or surface an error to the customer; each call
+// swallows its own rejection.
+// ============================================================
+
+export function trackOfferViewed(offerId: string): void {
+  void request(`/customer-api/offers/${encodeURIComponent(offerId)}/viewed`, {
+    method: 'POST',
+    body: '{}',
+  }).catch(() => undefined);
+}
+
+export function trackProposalViewed(proposalId: string): void {
+  void request(`/customer-api/proposals/${encodeURIComponent(proposalId)}/viewed`, {
+    method: 'POST',
+    body: '{}',
+  }).catch(() => undefined);
+}
+
+export function trackTripViewed(tripId: string): void {
+  void request(`/customer-api/trips/${encodeURIComponent(tripId)}/viewed`, {
+    method: 'POST',
+    body: '{}',
+  }).catch(() => undefined);
+}
+
+export function trackCommunicationViewed(communicationId: string): void {
+  void request(`/customer-api/communications/${encodeURIComponent(communicationId)}/viewed`, {
+    method: 'POST',
+    body: '{}',
+  }).catch(() => undefined);
+}
+
+export function trackCommunicationCtaClicked(communicationId: string): void {
+  void request(`/customer-api/communications/${encodeURIComponent(communicationId)}/cta-clicked`, {
+    method: 'POST',
+    body: '{}',
+  }).catch(() => undefined);
+}
+
+export function trackCustomerHomeViewed(): void {
+  void request('/customer-api/home/viewed', { method: 'POST', body: '{}' }).catch(() => undefined);
+}
+
 export { ApiError };

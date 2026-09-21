@@ -67,6 +67,7 @@ import {
   getTripsByStatus,
 } from '../reporting-queries';
 import { NotFoundError, ValidationError } from '../errors';
+import { listCustomerEngagements } from '../engagements';
 
 export interface CommercialCockpitRoutesOptions {
   database: DatabaseRuntime;
@@ -202,6 +203,23 @@ export function registerCommercialCockpitRoutes(
     reply.code(201);
     return { interaction };
   });
+
+  // Customer 360's engagement (digital behavior) timeline/aggregation --
+  // see docs/product/CUSTOMER_ENGAGEMENT_TRACKING.md. Distinct from
+  // /commercial/interactions above (human/commercial actions).
+  app.get<{ Querystring: { customerId?: string } }>(
+    '/commercial/engagements',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      const { customerId } = request.query;
+      if (!customerId) {
+        throw new ValidationError('Query parameter "customerId" is required');
+      }
+      const engagements = await listCustomerEngagements(database, customerId);
+      return { engagements };
+    }
+  );
 
   app.get<{ Querystring: Record<string, string> }>(
     '/commercial/customers/search',

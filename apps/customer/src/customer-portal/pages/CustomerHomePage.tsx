@@ -10,6 +10,9 @@ import {
   listMyProposals,
   listMyTrips,
   listVisibleCommunications,
+  trackCommunicationCtaClicked,
+  trackCommunicationViewed,
+  trackCustomerHomeViewed,
 } from '../../lib/customerApi';
 import type { Trip } from '../../types/trip';
 import type { Offer } from '../../types/offer';
@@ -84,6 +87,7 @@ export function CustomerHomePage() {
             communications,
           },
         });
+        trackCustomerHomeViewed();
       })
       .catch((error: unknown) => {
         if (cancelled) return;
@@ -180,6 +184,16 @@ function CommunicationsBanner({ communications }: { communications: CustomerComm
     INFORMATION: 'ℹ️',
   };
 
+  // Simplification documented in docs/product/CUSTOMER_ENGAGEMENT_TRACKING.md:
+  // tracks a view as soon as the banner renders (it sits at the top of
+  // Home, effectively always in the initial viewport) rather than using
+  // an IntersectionObserver per card -- real viewport detection was
+  // judged not worth the added complexity for this carousel's size.
+  useEffect(() => {
+    communications.forEach((comm) => trackCommunicationViewed(comm.id));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [communications.map((c) => c.id).join(',')]);
+
   return (
     <div className="flex flex-col gap-3">
       <h2 className="text-lg font-bold text-slate-900">Comunicados da agência</h2>
@@ -211,6 +225,7 @@ function CommunicationsBanner({ communications }: { communications: CustomerComm
                   href={comm.ctaUrl}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => trackCommunicationCtaClicked(comm.id)}
                   className="mt-2 inline-block text-xs font-semibold text-[#2563eb] hover:underline"
                 >
                   {comm.ctaLabel} →

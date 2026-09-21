@@ -18,6 +18,7 @@ vi.mock('../../lib/customerApi', () => {
   return {
     getAvailableOffer: vi.fn(),
     recordOfferInterest: vi.fn(),
+    trackOfferViewed: vi.fn(),
     ApiError: MockApiError,
   };
 });

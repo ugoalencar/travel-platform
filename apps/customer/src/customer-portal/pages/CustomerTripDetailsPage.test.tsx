@@ -25,6 +25,7 @@ vi.mock('../../lib/customerApi', () => {
     listMyDocuments: vi.fn(),
     listMyPaymentSchedule: vi.fn(),
     loadMyTripPhotoBlobUrl: vi.fn(),
+    trackTripViewed: vi.fn(),
     ApiError: MockApiError,
   };
 });

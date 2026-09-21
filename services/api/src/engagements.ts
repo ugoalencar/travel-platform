@@ -12,6 +12,9 @@ interface EngagementRow {
   campaign_id: string | null;
   publication_id: string | null;
   offer_id: string | null;
+  proposal_id: string | null;
+  trip_id: string | null;
+  communication_id: string | null;
   external_user_id: string | null;
   customer_id: string | null;
   opportunity_id: string | null;
@@ -27,6 +30,9 @@ export interface RecordEngagementInput {
   campaignId?: string;
   publicationId?: string;
   offerId?: string;
+  proposalId?: string;
+  tripId?: string;
+  communicationId?: string;
   externalUserId?: string;
   customerId?: string;
   content?: string;
@@ -34,8 +40,9 @@ export interface RecordEngagementInput {
   rawPayload?: unknown;
 }
 
-const COLUMNS = `id, agency_id, type, channel, campaign_id, publication_id, offer_id, external_user_id,
-  customer_id, opportunity_id, content, occurred_at, raw_payload, created_at`;
+const COLUMNS = `id, agency_id, type, channel, campaign_id, publication_id, offer_id, proposal_id,
+  trip_id, communication_id, external_user_id, customer_id, opportunity_id, content, occurred_at,
+  raw_payload, created_at`;
 
 export async function recordEngagement(
   database: DatabaseRuntime,
@@ -54,9 +61,9 @@ export async function insertEngagement(
 ): Promise<Engagement> {
   const result = await client.query<EngagementRow>(
     `INSERT INTO engagements
-       (agency_id, type, channel, campaign_id, publication_id, offer_id, external_user_id,
-        customer_id, content, occurred_at, raw_payload)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, COALESCE($10, now()), $11)
+       (agency_id, type, channel, campaign_id, publication_id, offer_id, proposal_id, trip_id,
+        communication_id, external_user_id, customer_id, content, occurred_at, raw_payload)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, COALESCE($13, now()), $14)
      RETURNING ${COLUMNS}`,
     [
       agencyId,
@@ -65,6 +72,9 @@ export async function insertEngagement(
       data.campaignId ?? null,
       data.publicationId ?? null,
       data.offerId ?? null,
+      data.proposalId ?? null,
+      data.tripId ?? null,
+      data.communicationId ?? null,
       data.externalUserId ?? null,
       data.customerId ?? null,
       data.content ?? null,
@@ -103,6 +113,27 @@ export async function listEngagements(database: DatabaseRuntime): Promise<Engage
   });
 }
 
+// Customer 360's engagement timeline/aggregation. Deliberately NOT gated
+// by requireEntitlement(SOCIAL_AUTOMATION) like GET /engagements above --
+// seeing "Cancún -- 3 visualizações" for a customer is core CRM
+// visibility, not the paid social-automation feature that route exists
+// for. Uses the engagements_agency_customer_type_idx index added in
+// 087_engagement_tracking_columns.sql.
+export async function listCustomerEngagements(
+  database: DatabaseRuntime,
+  customerId: string,
+): Promise<Engagement[]> {
+  const agencyId = getAgencyId();
+  return database.withTenantTransaction(async (client) => {
+    const result = await client.query<EngagementRow>(
+      `SELECT ${COLUMNS} FROM engagements WHERE agency_id = $1 AND customer_id = $2
+       ORDER BY occurred_at DESC LIMIT 200`,
+      [agencyId, customerId],
+    );
+    return result.rows.map(toEngagement);
+  });
+}
+
 function validateInput(data: RecordEngagementInput): void {
   if (!Object.values(EngagementType).includes(data.type)) {
     throw new ValidationError('Field "type" must be a valid EngagementType');
@@ -123,6 +154,9 @@ function toEngagement(row: EngagementRow): Engagement {
     ...(row.campaign_id !== null ? { campaignId: row.campaign_id } : {}),
     ...(row.publication_id !== null ? { publicationId: row.publication_id } : {}),
     ...(row.offer_id !== null ? { offerId: row.offer_id } : {}),
+    ...(row.proposal_id !== null ? { proposalId: row.proposal_id } : {}),
+    ...(row.trip_id !== null ? { tripId: row.trip_id } : {}),
+    ...(row.communication_id !== null ? { communicationId: row.communication_id } : {}),
     ...(row.external_user_id !== null ? { externalUserId: row.external_user_id } : {}),
     ...(row.customer_id !== null ? { customerId: row.customer_id } : {}),
     ...(row.opportunity_id !== null ? { opportunityId: row.opportunity_id } : {}),

@@ -337,6 +337,50 @@ export async function listCustomerInteractions(
 }
 
 // ============================================================
+// CUSTOMER ENGAGEMENT (digital behavior: views/clicks from the Customer
+// App -- see docs/product/CUSTOMER_ENGAGEMENT_TRACKING.md). Distinct
+// from CustomerInteraction above, which is a human/commercial action.
+// ============================================================
+
+export type EngagementType =
+  | 'COMMENT'
+  | 'MESSAGE'
+  | 'CLICK'
+  | 'FORM'
+  | 'QR'
+  | 'COUPON_REQUEST'
+  | 'INTEREST'
+  | 'OFFER_VIEWED'
+  | 'OFFER_REVISITED'
+  | 'PROPOSAL_VIEWED'
+  | 'PROPOSAL_REVISITED'
+  | 'COMMUNICATION_VIEWED'
+  | 'COMMUNICATION_CTA_CLICKED'
+  | 'CUSTOMER_HOME_VIEWED'
+  | 'TRIP_VIEWED';
+
+export interface CustomerEngagement {
+  id: string;
+  agencyId: string;
+  type: EngagementType;
+  channel: string;
+  offerId?: string;
+  proposalId?: string;
+  tripId?: string;
+  communicationId?: string;
+  customerId?: string;
+  occurredAt: string;
+  createdAt: string;
+}
+
+export async function listCustomerEngagements(customerId: string): Promise<CustomerEngagement[]> {
+  const data = await request<{ engagements: CustomerEngagement[] }>(
+    `/api/commercial/engagements?customerId=${encodeURIComponent(customerId)}`,
+  );
+  return data.engagements;
+}
+
+// ============================================================
 // SALES REPORT (services/api/src/reports.ts) -- reused by the dashboard
 // for a real monthly revenue trend instead of a fabricated chart.
 // MANAGER+ only server-side; the dashboard treats a 403 here as "no

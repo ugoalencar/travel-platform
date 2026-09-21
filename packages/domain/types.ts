@@ -1721,6 +1721,17 @@ export enum EngagementType {
   QR = 'QR',
   COUPON_REQUEST = 'COUPON_REQUEST',
   INTEREST = 'INTEREST',
+  // Digital behavior tracking (Customer Engagement Tracking round) --
+  // distinct from CustomerInteraction, which represents human/commercial
+  // actions. See docs/product/ENGAGEMENT_EVENT_TAXONOMY.md.
+  OFFER_VIEWED = 'OFFER_VIEWED',
+  OFFER_REVISITED = 'OFFER_REVISITED',
+  PROPOSAL_VIEWED = 'PROPOSAL_VIEWED',
+  PROPOSAL_REVISITED = 'PROPOSAL_REVISITED',
+  COMMUNICATION_VIEWED = 'COMMUNICATION_VIEWED',
+  COMMUNICATION_CTA_CLICKED = 'COMMUNICATION_CTA_CLICKED',
+  CUSTOMER_HOME_VIEWED = 'CUSTOMER_HOME_VIEWED',
+  TRIP_VIEWED = 'TRIP_VIEWED',
 }
 
 export interface Engagement {
@@ -1731,6 +1742,9 @@ export interface Engagement {
   campaignId?: string;
   publicationId?: string;
   offerId?: string;
+  proposalId?: string;
+  tripId?: string;
+  communicationId?: string;
   // Opaque external-id string from the channel. Never trusted as
   // internal identity.
   externalUserId?: string;

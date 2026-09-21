@@ -325,6 +325,31 @@ export async function listVisibleCommunications(
   });
 }
 
+// Same visibility rule as listVisibleCommunications, scoped to a single
+// id -- used to validate a customer-app view/click event actually
+// targets a communication that is real, belongs to this tenant, and is
+// currently visible (never trusts the frontend's claim alone).
+export async function getVisibleCommunicationById(
+  database: DatabaseRuntime,
+  id: string,
+): Promise<AgencyCommunication | null> {
+  const agencyId = getAgencyId();
+
+  return database.withTenantTransaction(async (client) => {
+    const result = await client.query<CommunicationRow>(
+      `SELECT ${COMMUNICATION_COLUMNS} FROM agency_communications
+       WHERE agency_id = $1
+         AND id = $2
+         AND status = 'ACTIVE'
+         AND (visible_from IS NULL OR visible_from <= now())
+         AND (visible_until IS NULL OR visible_until >= now())`,
+      [agencyId, id],
+    );
+    const row = result.rows[0];
+    return row ? toCommunication(row) : null;
+  });
+}
+
 // ============================================================
 // Mapping
 // ============================================================

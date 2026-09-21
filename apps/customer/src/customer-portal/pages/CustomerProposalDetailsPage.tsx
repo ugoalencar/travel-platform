@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { ApiError, getMyProposal } from '../../lib/customerApi';
+import { ApiError, getMyProposal, trackProposalViewed } from '../../lib/customerApi';
 import type { CustomerProposalView } from '../../types/customer-portal';
 import { proposalStatusLabel } from '../../lib/statusLabels';
 import { BackLink } from '../BackLink';
@@ -20,6 +20,7 @@ export function CustomerProposalDetailsPage() {
     getMyProposal(id)
       .then((proposal) => {
         if (!cancelled) setState({ status: 'success', proposal });
+        if (!cancelled) trackProposalViewed(id);
       })
       .catch((error: unknown) => {
         if (cancelled) return;

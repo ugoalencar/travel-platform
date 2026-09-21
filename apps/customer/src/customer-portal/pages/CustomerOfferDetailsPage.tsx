@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { ApiError, getAvailableOffer, recordOfferInterest } from '../../lib/customerApi';
+import { ApiError, getAvailableOffer, recordOfferInterest, trackOfferViewed } from '../../lib/customerApi';
 import type { Offer } from '../../types/offer';
 import { BackLink } from '../BackLink';
 import { OfferImagePlaceholder } from './CustomerOffersPage';
@@ -20,6 +20,7 @@ export function CustomerOfferDetailsPage() {
     getAvailableOffer(id)
       .then((offer) => {
         if (!cancelled) setState({ status: 'success', offer });
+        if (!cancelled) trackOfferViewed(id);
       })
       .catch((error: unknown) => {
         if (cancelled) return;

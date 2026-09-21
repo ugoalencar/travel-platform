@@ -31,6 +31,9 @@ vi.mock('../../lib/customerApi', () => {
     listMyDocuments: vi.fn(),
     listMyPaymentSchedule: vi.fn(),
     listVisibleCommunications: vi.fn().mockResolvedValue([]),
+    trackCustomerHomeViewed: vi.fn(),
+    trackCommunicationViewed: vi.fn(),
+    trackCommunicationCtaClicked: vi.fn(),
     ApiError: MockApiError,
   };
 });

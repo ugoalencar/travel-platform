@@ -11,6 +11,7 @@ import {
   listMyTripPhotos,
   listMyTripRequirements,
   loadMyTripPhotoBlobUrl,
+  trackTripViewed,
   type CustomerTripPhoto,
 } from '../../lib/customerApi';
 import type { Trip } from '../../types/trip';
@@ -43,6 +44,7 @@ export function CustomerTripDetailsPage() {
     getMyTrip(id)
       .then((trip) => {
         if (!cancelled) setState({ status: 'success', trip });
+        if (!cancelled) trackTripViewed(id);
       })
       .catch((error: unknown) => {
         if (cancelled) return;
