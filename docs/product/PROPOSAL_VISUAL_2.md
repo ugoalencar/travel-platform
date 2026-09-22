@@ -227,6 +227,39 @@ atualizados para descoberta dinâmica via `readdirSync`, mesmo padrão
 já usado em arquivos mais novos, garantindo que rodam contra o schema
 real (incluindo as migrations 088-091 desta rodada).
 
+## Gap arquitetural encontrado na QA local — Media Library (não implementado)
+
+**Achado durante a QA local de aprovação desta rodada.** A aba "Mídia"
+do `ProposalEditorPage` implementa upload de imagem **isolado por
+proposta** (`proposal_media`, um upload novo a cada proposta). Isso
+está estruturalmente errado: mídia para divulgação (capa, banners,
+imagens reutilizáveis) deveria vir de uma **biblioteca de mídia
+compartilhada, administrada pelo Marketing** — Proposal (e Offer,
+Communication) deveriam apenas *selecionar* uma mídia já existente
+dessa biblioteca, não fazer upload avulso cada vez.
+
+Isso não foi um erro de execução da spec desta rodada — a
+especificação original pedia explicitamente "não criar sistema DAM
+novo, reusar storage atual" (Fase 3), e a implementação seguiu isso
+literalmente reaproveitando o padrão `secure_file_key` de
+`trip_photos`. O que faltou nessa leitura foi perceber que "reusar
+storage" não é o mesmo que "centralizar administração de mídia" — a
+tabela `proposal_media` reaproveita a *infraestrutura* de arquivo
+(`file-storage.ts`), mas não resolve o problema de propriedade/
+reuso entre propostas, ofertas e comunicados.
+
+**Decisão**: não implementado nesta rodada. Fica documentado como
+**gap para uma rodada dedicada** de Media Library:
+- Marketing sobe e administra a mídia (imagens/banners) num local
+  central.
+- Proposal, Offer e Agency Communication passam a *referenciar* mídia
+  dessa biblioteca em vez de cada um ter seu próprio upload.
+- `proposal_media` (e o padrão equivalente já usado por
+  `trip_photos`) precisam ser revisitados nessa rodada futura — hoje
+  cada entidade com imagem tem seu próprio mini-sistema de upload
+  isolado (`trip_photos`, `proposal_media`, `offers.image_url`,
+  `agency_communications.image_url`), sem nenhum reuso entre eles.
+
 ## Gates
 
 Ver `docs/release/PROPOSAL_VISUAL_2_REPORT.md` para os resultados reais.

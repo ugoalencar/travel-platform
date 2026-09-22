@@ -167,6 +167,13 @@ antes do deploy.
 - Versionamento/snapshot completo de proposta pré-aceite (decisão
   mínima adotada: só bloqueia edição pós-aceite).
 - Template de proposta (documentado, não implementado).
+- **Media Library compartilhada, administrada pelo Marketing**
+  (achado real na QA local de aprovação, não estava nas fases
+  originais) — a aba "Mídia" da Proposal hoje faz upload isolado por
+  proposta (`proposal_media`), sem biblioteca central reutilizável
+  entre Proposal/Offer/Communication. Detalhado em
+  `docs/product/PROPOSAL_VISUAL_2.md`, seção "Gap arquitetural
+  encontrado na QA local". Recomendado como rodada dedicada futura.
 
 ## Commit e CI
 
