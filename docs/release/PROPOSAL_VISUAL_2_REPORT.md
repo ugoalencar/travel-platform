@@ -168,10 +168,23 @@ antes do deploy.
   mínima adotada: só bloqueia edição pós-aceite).
 - Template de proposta (documentado, não implementado).
 
+## Commit e CI
+
+- Commit: `620b092` — `feat(proposal): evoluir Proposal para proposta
+  visual estruturada (Proposal Visual 2.0)`.
+- Push: `origin/main` (`7482cf3..620b092`).
+- CI real (GitHub Actions): run
+  [`35686922825`](https://github.com/ugoalencar/travel-platform/actions/runs/35686922825)
+  — **✅ sucesso**, job "Quality Gates" completo em 11m35s: Lint,
+  Typecheck, Secret scan, Dependency audit, Validate migration file
+  naming, Unit tests, Security tests, Database and RLS integration
+  tests, Build — todos verdes. Apenas warnings pré-existentes não
+  relacionados (nenhum erro).
+
 ## Deploy
 
 **Não realizado nesta rodada**, conforme pedido explícito.
 
 ## Status
 
-Ver commit final e resultado de CI ao fim deste relatório.
+**PROPOSAL VISUAL 2.0 — PRONTO PARA REVISÃO LOCAL**
