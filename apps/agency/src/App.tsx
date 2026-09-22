@@ -56,6 +56,7 @@ import { ReportsPage } from './pages/ReportsPage';
 import { CommunicationPage } from './pages/CommunicationPage';
 import { CommunicationFormPage } from './pages/CommunicationFormPage';
 import { TasksPage } from './pages/TasksPage';
+import { ProposalEditorPage } from './pages/proposals/ProposalEditorPage';
 import { TaskFormPage } from './pages/TaskFormPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { EnrollmentLinksPage } from './pages/EnrollmentLinksPage';
@@ -95,6 +96,7 @@ export function App() {
         <Route path="proposals/:id" element={<ProposalDetailPage />} />
         <Route path="proposals/:id/edit" element={<ProposalBuilderPage />} />
         <Route path="proposals/:id/preview" element={<ProposalPreviewPage />} />
+        <Route path="proposals/:id/editor" element={<ProposalEditorPage />} />
         <Route path="bookings" element={<BookingListPage />} />
         <Route path="bookings/:id" element={<BookingDetailPage />} />
         <Route path="sales" element={<SalesListPage />} />

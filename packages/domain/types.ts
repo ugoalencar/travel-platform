@@ -161,8 +161,93 @@ export interface Proposal {
   conditions?: string;
   notes?: string;
   status: ProposalStatus;
+  // Proposal Visual 2.0 -- cover/summary fields. Cover image lives in
+  // ProposalMedia (is_cover = true), not here.
+  title?: string;
+  subtitle?: string;
+  destinationSummary?: string;
+  travelPeriod?: string;
+  travelerSummary?: string;
+  introText?: string;
+  // Set once, the first time the proposal is sent. Minimal immutability
+  // marker -- see docs/product/PROPOSAL_VISUAL_2.md.
+  publishedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export enum ProposalSectionType {
+  OVERVIEW = 'OVERVIEW',
+  DESTINATIONS = 'DESTINATIONS',
+  TRANSPORT = 'TRANSPORT',
+  ACCOMMODATION = 'ACCOMMODATION',
+  EXPERIENCES = 'EXPERIENCES',
+  ITINERARY = 'ITINERARY',
+  INCLUSIONS = 'INCLUSIONS',
+  EXCLUSIONS = 'EXCLUSIONS',
+  COMMERCIAL_TERMS = 'COMMERCIAL_TERMS',
+  PAYMENT_OPTIONS = 'PAYMENT_OPTIONS',
+  MEDIA = 'MEDIA',
+  DOCUMENTS = 'DOCUMENTS',
+  NOTES = 'NOTES',
+}
+
+export interface ProposalSection {
+  id: string;
+  agencyId: string;
+  proposalId: string;
+  type: ProposalSectionType;
+  title: string;
+  description?: string;
+  sortOrder: number;
+  isVisibleToCustomer: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export enum ProposalItemType {
+  TEXT = 'TEXT',
+  DESTINATION = 'DESTINATION',
+  TRANSPORT = 'TRANSPORT',
+  ACCOMMODATION = 'ACCOMMODATION',
+  EXPERIENCE = 'EXPERIENCE',
+  ITINERARY_DAY = 'ITINERARY_DAY',
+  INCLUSION = 'INCLUSION',
+  EXCLUSION = 'EXCLUSION',
+  CONDITION = 'CONDITION',
+  PAYMENT_OPTION = 'PAYMENT_OPTION',
+  IMAGE = 'IMAGE',
+}
+
+export interface ProposalItem {
+  id: string;
+  agencyId: string;
+  proposalSectionId: string;
+  type: ProposalItemType;
+  title?: string;
+  description?: string;
+  sortOrder: number;
+  dayNumber?: number;
+  locationName?: string;
+  price?: number;
+  referenceType?: string;
+  referenceId?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ProposalMedia {
+  id: string;
+  agencyId: string;
+  proposalId: string;
+  secureFileKey: string;
+  fileName: string;
+  fileMimeType: string;
+  fileSizeBytes: number;
+  caption?: string;
+  isCover: boolean;
+  sortOrder: number;
+  createdAt: Date;
 }
 
 export interface Sale {

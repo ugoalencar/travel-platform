@@ -31,6 +31,10 @@ yarn-error.log*
 pnpm-debug.log*
 debug.log
 
+# Local file-storage.ts backing store (dev/test uploads only -- never
+# committed; the object store in real environments is external)
+services/api/uploads/
+
 # TypeScript and build output
 dist/
 dist.bak/

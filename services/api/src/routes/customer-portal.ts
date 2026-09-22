@@ -17,6 +17,7 @@ import {
   getMyBookingById,
   getMyProfile,
   getMyProposalById,
+  getMyProposalDetailById,
   getMyTripById,
   listAvailableOffers,
   listMyBookings,
@@ -31,6 +32,7 @@ import {
 } from '../customer-portal';
 import { listVisibleCommunications } from '../agency-communications';
 import { getTripPhotoById, listTripPhotos } from '../trip-photos';
+import { getProposalMediaById } from '../proposal-content';
 import { readFile as readStoredFile } from '../file-storage';
 import type { DatabaseRuntime } from '../database';
 import {
@@ -122,11 +124,34 @@ export function registerCustomerPortalRoutes(
     '/customer-api/proposals/:id',
     { preHandler: customerHooks },
     async (request) => {
-      const proposal = await getMyProposalById(database, request.params.id);
+      const proposal = await getMyProposalDetailById(database, request.params.id);
       if (!proposal) {
         throw new NotFoundError('Proposal not found');
       }
       return { proposal };
+    }
+  );
+
+  // Proposal Visual 2.0 -- gallery/cover image, same secure_file_key
+  // streaming pattern as the trip photo download route above. Ownership
+  // is re-checked via getMyProposalById (tenant + own customerId, never
+  // a request param) before the media row is ever touched.
+  app.get<{ Params: { id: string; mediaId: string } }>(
+    '/customer-api/proposals/:id/media/:mediaId/download',
+    { preHandler: customerHooks },
+    async (request, reply) => {
+      const proposal = await getMyProposalById(database, request.params.id);
+      if (!proposal) {
+        throw new NotFoundError('Proposal not found');
+      }
+      const media = await getProposalMediaById(database, request.params.mediaId);
+      if (!media || media.proposalId !== request.params.id) {
+        throw new NotFoundError('Media not found');
+      }
+      const content = await readStoredFile(media.secureFileKey);
+      reply.header('Content-Disposition', `inline; filename="${encodeURIComponent(media.fileName)}"`);
+      reply.type(media.fileMimeType);
+      return reply.send(content);
     }
   );
 

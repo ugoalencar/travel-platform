@@ -15,6 +15,7 @@ import type {
   CustomerLandServiceView,
   CustomerPaymentScheduleItem,
   CustomerProfile,
+  CustomerProposalDetail,
   CustomerProposalView,
 } from '../types/customer-portal';
 import type { CustomerTravelRequirementView } from '../types/travelRequirement';
@@ -129,11 +130,27 @@ export async function listMyProposals(): Promise<CustomerProposalView[]> {
   return data.proposals;
 }
 
-export async function getMyProposal(id: string): Promise<CustomerProposalView> {
-  const data = await request<{ proposal: CustomerProposalView }>(
+export async function getMyProposal(id: string): Promise<CustomerProposalDetail> {
+  const data = await request<{ proposal: CustomerProposalDetail }>(
     `/customer-api/proposals/${encodeURIComponent(id)}`,
   );
   return data.proposal;
+}
+
+/** Fetches a proposal media image as a blob URL -- the download route
+ * requires the Bearer token, so a plain `<img src>` can't hit it directly
+ * (same pattern as loadMyTripPhotoBlobUrl below). */
+export async function loadProposalMediaBlobUrl(downloadUrl: string): Promise<string> {
+  const token = getSessionToken();
+  const response = await fetch(`${API_BASE_URL}${downloadUrl}`, {
+    headers: token ? { authorization: `Bearer ${token}` } : {},
+  });
+  if (response.status === 401) clearSession();
+  if (!response.ok) {
+    throw new ApiError('Não foi possível carregar a imagem.', 'UNKNOWN_ERROR', response.status);
+  }
+  const blob = await response.blob();
+  return URL.createObjectURL(blob);
 }
 
 export async function listMyBookings(): Promise<CustomerBookingView[]> {

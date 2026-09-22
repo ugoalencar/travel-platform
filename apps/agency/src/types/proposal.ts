@@ -21,6 +21,13 @@ export interface Proposal {
   conditions?: string;
   notes?: string;
   status: ProposalStatus;
+  title?: string;
+  subtitle?: string;
+  destinationSummary?: string;
+  travelPeriod?: string;
+  travelerSummary?: string;
+  introText?: string;
+  publishedAt?: string;
   createdAt: string;
   updatedAt: string;
 }

@@ -17,6 +17,13 @@ interface ProposalRow {
   conditions: string | null;
   notes: string | null;
   status: Proposal['status'];
+  title: string | null;
+  subtitle: string | null;
+  destination_summary: string | null;
+  travel_period: string | null;
+  traveler_summary: string | null;
+  intro_text: string | null;
+  published_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -29,6 +36,12 @@ export interface CreateProposalInput {
   validUntil?: Date;
   conditions?: string;
   notes?: string;
+  title?: string;
+  subtitle?: string;
+  destinationSummary?: string;
+  travelPeriod?: string;
+  travelerSummary?: string;
+  introText?: string;
 }
 
 export interface UpdateProposalInput {
@@ -37,10 +50,36 @@ export interface UpdateProposalInput {
   validUntil?: Date;
   conditions?: string;
   notes?: string;
+  title?: string;
+  subtitle?: string;
+  destinationSummary?: string;
+  travelPeriod?: string;
+  travelerSummary?: string;
+  introText?: string;
+}
+
+// Proposals leave the editable window once they stop being DRAFT/SENT --
+// see 088_proposal_visual_cover.sql's note and
+// docs/product/PROPOSAL_VISUAL_2.md's "Fase 10" section. Applies to the
+// commercial fields here AND to sections/items/media
+// (services/api/src/proposal-content.ts reuses this same guard).
+const EDITABLE_STATUSES: ReadonlySet<Proposal['status']> = new Set([
+  ProposalStatus.DRAFT,
+  ProposalStatus.SENT,
+]);
+
+export function assertProposalContentEditable(status: Proposal['status']): void {
+  if (!EDITABLE_STATUSES.has(status)) {
+    throw new ConflictError(
+      `Proposal content cannot be changed once its status is ${status}`,
+    );
+  }
 }
 
 const PROPOSAL_COLUMNS = `id, agency_id, customer_id, offer_id, wish_id, user_id, proposed_price,
-              discount, total, valid_until, conditions, notes, status, created_at, updated_at`;
+              discount, total, valid_until, conditions, notes, status, title, subtitle,
+              destination_summary, travel_period, traveler_summary, intro_text, published_at,
+              created_at, updated_at`;
 
 /**
  * Computes the 2-decimal-safe monetary total for a Proposal: total = proposedPrice - discount.
@@ -142,8 +181,9 @@ export async function createProposal(
 
     const result = await client.query<ProposalRow>(
       `INSERT INTO proposals (agency_id, customer_id, offer_id, wish_id, proposed_price,
-                               discount, total, valid_until, conditions, notes)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+                               discount, total, valid_until, conditions, notes, title, subtitle,
+                               destination_summary, travel_period, traveler_summary, intro_text)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
        RETURNING ${PROPOSAL_COLUMNS}`,
       [
         agencyId,
@@ -156,6 +196,12 @@ export async function createProposal(
         data.validUntil ?? null,
         data.conditions ?? null,
         data.notes ?? null,
+        data.title ?? null,
+        data.subtitle ?? null,
+        data.destinationSummary ?? null,
+        data.travelPeriod ?? null,
+        data.travelerSummary ?? null,
+        data.introText ?? null,
       ],
     );
 
@@ -209,6 +255,30 @@ export async function updateProposal(
     fields.push(`notes = $${++index}`);
     values.push(data.notes);
   }
+  if (data.title !== undefined) {
+    fields.push(`title = $${++index}`);
+    values.push(data.title);
+  }
+  if (data.subtitle !== undefined) {
+    fields.push(`subtitle = $${++index}`);
+    values.push(data.subtitle);
+  }
+  if (data.destinationSummary !== undefined) {
+    fields.push(`destination_summary = $${++index}`);
+    values.push(data.destinationSummary);
+  }
+  if (data.travelPeriod !== undefined) {
+    fields.push(`travel_period = $${++index}`);
+    values.push(data.travelPeriod);
+  }
+  if (data.travelerSummary !== undefined) {
+    fields.push(`traveler_summary = $${++index}`);
+    values.push(data.travelerSummary);
+  }
+  if (data.introText !== undefined) {
+    fields.push(`intro_text = $${++index}`);
+    values.push(data.introText);
+  }
 
   // Effective (new-or-current) expressions for proposedPrice/discount, mirroring the
   // COALESCE-in-WHERE technique trips.ts (date range) and offers.ts (validity range) use:
@@ -231,6 +301,14 @@ export async function updateProposal(
   }
 
   return database.withTenantTransaction(async (client) => {
+    const current = await client.query<{ status: Proposal['status'] }>(
+      `SELECT status FROM proposals WHERE agency_id = $1 AND id = $2 FOR UPDATE`,
+      [agencyId, id],
+    );
+    const currentStatus = current.rows[0]?.status;
+    if (currentStatus === undefined) return null;
+    assertProposalContentEditable(currentStatus);
+
     const result = await client.query<ProposalRow>(
       `UPDATE proposals
        SET ${fields.join(', ')}, updated_at = now()
@@ -259,7 +337,12 @@ export async function sendProposal(
   database: DatabaseRuntime,
   id: string,
 ): Promise<Proposal | null> {
-  return transitionProposal(database, id, ProposalStatus.SENT, [ProposalStatus.DRAFT]);
+  // published_at is set once, here, the first time a proposal leaves
+  // DRAFT -- see 088_proposal_visual_cover.sql's note on the minimal
+  // immutability decision (Fase 10).
+  return transitionProposal(database, id, ProposalStatus.SENT, [ProposalStatus.DRAFT], {
+    setPublishedAt: true,
+  });
 }
 
 export async function cancelProposal(
@@ -291,6 +374,7 @@ async function transitionProposal(
   id: string,
   targetStatus: ProposalStatus,
   allowedFrom: ProposalStatus[],
+  options?: { setPublishedAt?: boolean },
 ): Promise<Proposal | null> {
   const agencyId = getAgencyId();
 
@@ -315,9 +399,10 @@ async function transitionProposal(
       );
     }
 
+    const publishedAtClause = options?.setPublishedAt ? `, published_at = COALESCE(published_at, now())` : '';
     const updated = await client.query<ProposalRow>(
       `UPDATE proposals
-       SET status = $3, updated_at = now()
+       SET status = $3, updated_at = now()${publishedAtClause}
        WHERE agency_id = $1 AND id = $2
        RETURNING ${PROPOSAL_COLUMNS}`,
       [agencyId, id, targetStatus],
@@ -339,7 +424,8 @@ interface ProposalWithCustomerRow extends ProposalRow {
 
 const PROPOSAL_WITH_CUSTOMER_QUERY = `
   SELECT p.id, p.agency_id, p.customer_id, p.offer_id, p.wish_id, p.user_id, p.proposed_price,
-         p.discount, p.total, p.valid_until, p.conditions, p.notes, p.status,
+         p.discount, p.total, p.valid_until, p.conditions, p.notes, p.status, p.title, p.subtitle,
+         p.destination_summary, p.travel_period, p.traveler_summary, p.intro_text, p.published_at,
          p.created_at, p.updated_at,
          c.name AS customer_name
   FROM proposals p
@@ -408,5 +494,12 @@ function toProposal(row: ProposalRow): Proposal {
     ...(row.valid_until !== null ? { validUntil: new Date(row.valid_until) } : {}),
     ...(row.conditions !== null ? { conditions: row.conditions } : {}),
     ...(row.notes !== null ? { notes: row.notes } : {}),
+    ...(row.title !== null ? { title: row.title } : {}),
+    ...(row.subtitle !== null ? { subtitle: row.subtitle } : {}),
+    ...(row.destination_summary !== null ? { destinationSummary: row.destination_summary } : {}),
+    ...(row.travel_period !== null ? { travelPeriod: row.travel_period } : {}),
+    ...(row.traveler_summary !== null ? { travelerSummary: row.traveler_summary } : {}),
+    ...(row.intro_text !== null ? { introText: row.intro_text } : {}),
+    ...(row.published_at !== null ? { publishedAt: new Date(row.published_at) } : {}),
   };
 }

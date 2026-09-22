@@ -266,6 +266,12 @@ const ALLOWED_PROPOSAL_CREATE_FIELDS = [
   'validUntil',
   'conditions',
   'notes',
+  'title',
+  'subtitle',
+  'destinationSummary',
+  'travelPeriod',
+  'travelerSummary',
+  'introText',
 ] as const;
 
 const FORBIDDEN_PROPOSAL_UPDATE_FIELDS = [
@@ -288,6 +294,21 @@ const ALLOWED_PROPOSAL_UPDATE_FIELDS = [
   'validUntil',
   'conditions',
   'notes',
+  'title',
+  'subtitle',
+  'destinationSummary',
+  'travelPeriod',
+  'travelerSummary',
+  'introText',
+] as const;
+
+const PROPOSAL_COVER_STRING_FIELDS = [
+  'title',
+  'subtitle',
+  'destinationSummary',
+  'travelPeriod',
+  'travelerSummary',
+  'introText',
 ] as const;
 
 export function parseProposalDate(value: unknown, field: string): Date {
@@ -376,6 +397,14 @@ export function parseCreateProposalInput(body: unknown): {
     }
     data.notes = record.notes;
   }
+  for (const field of PROPOSAL_COVER_STRING_FIELDS) {
+    if (record[field] !== undefined) {
+      if (typeof record[field] !== 'string') {
+        throw new ValidationError(`Field "${field}" must be a string`);
+      }
+      data[field] = record[field];
+    }
+  }
 
   if (data.discount !== undefined && data.discount > data.proposedPrice) {
     throw new ValidationError('Field "discount" must not exceed "proposedPrice"');
@@ -425,6 +454,14 @@ export function parseUpdateProposalInput(body: unknown): UpdateProposalInput {
       throw new ValidationError('Field "notes" must be a string');
     }
     data.notes = record.notes;
+  }
+  for (const field of PROPOSAL_COVER_STRING_FIELDS) {
+    if (record[field] !== undefined) {
+      if (typeof record[field] !== 'string') {
+        throw new ValidationError(`Field "${field}" must be a string`);
+      }
+      data[field] = record[field];
+    }
   }
 
   if (

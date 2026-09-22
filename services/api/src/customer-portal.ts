@@ -456,6 +456,12 @@ export interface CustomerProposalView {
   validUntil: Date | null;
   conditions: string | null;
   status: Proposal['status'];
+  title: string | null;
+  subtitle: string | null;
+  destinationSummary: string | null;
+  travelPeriod: string | null;
+  travelerSummary: string | null;
+  introText: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -472,12 +478,19 @@ interface ProposalRow {
   valid_until: string | null;
   conditions: string | null;
   status: Proposal['status'];
+  title: string | null;
+  subtitle: string | null;
+  destination_summary: string | null;
+  travel_period: string | null;
+  traveler_summary: string | null;
+  intro_text: string | null;
   created_at: string;
   updated_at: string;
 }
 
 const CUSTOMER_PROPOSAL_COLUMNS = `id, agency_id, customer_id, offer_id, wish_id, proposed_price,
-              discount, total, valid_until, conditions, status, created_at, updated_at`;
+              discount, total, valid_until, conditions, status, title, subtitle,
+              destination_summary, travel_period, traveler_summary, intro_text, created_at, updated_at`;
 
 export async function listMyProposals(database: DatabaseRuntime): Promise<CustomerProposalView[]> {
   const agencyId = getAgencyId();
@@ -525,9 +538,156 @@ function toCustomerProposal(row: ProposalRow): CustomerProposalView {
     validUntil: row.valid_until ? new Date(row.valid_until) : null,
     conditions: row.conditions,
     status: row.status,
+    title: row.title,
+    subtitle: row.subtitle,
+    destinationSummary: row.destination_summary,
+    travelPeriod: row.travel_period,
+    travelerSummary: row.traveler_summary,
+    introText: row.intro_text,
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
   };
+}
+
+// ============================================================
+// Proposal Visual 2.0 -- Customer Proposal Viewer's detail payload.
+// One aggregated call (Fase 18: no N+1, no fetch-per-section) --
+// proposal + visible sections + their items + media, all in a single
+// transaction. Draft-only sections (is_visible_to_customer = false)
+// and internal fields (notes, reference_type/reference_id) never reach
+// this shape. Media exposes a download URL, never the raw
+// secure_file_key.
+// ============================================================
+
+export interface CustomerProposalSectionView {
+  id: string;
+  type: string;
+  title: string;
+  description: string | null;
+  sortOrder: number;
+  items: CustomerProposalItemView[];
+}
+
+export interface CustomerProposalItemView {
+  id: string;
+  type: string;
+  title: string | null;
+  description: string | null;
+  sortOrder: number;
+  dayNumber: number | null;
+  locationName: string | null;
+  price: number | null;
+}
+
+export interface CustomerProposalMediaView {
+  id: string;
+  caption: string | null;
+  isCover: boolean;
+  sortOrder: number;
+  downloadUrl: string;
+}
+
+export interface CustomerProposalDetail extends CustomerProposalView {
+  sections: CustomerProposalSectionView[];
+  media: CustomerProposalMediaView[];
+}
+
+export async function getMyProposalDetailById(
+  database: DatabaseRuntime,
+  id: string,
+): Promise<CustomerProposalDetail | null> {
+  const agencyId = getAgencyId();
+  const customerId = getCustomerId();
+
+  return database.withTenantTransaction(async (client) => {
+    const proposalResult = await client.query<ProposalRow>(
+      `SELECT ${CUSTOMER_PROPOSAL_COLUMNS} FROM proposals
+       WHERE agency_id = $1 AND customer_id = $2 AND id = $3`,
+      [agencyId, customerId, id],
+    );
+    const proposalRow = proposalResult.rows[0];
+    if (!proposalRow) return null;
+
+    const sectionsResult = await client.query<{
+      id: string;
+      type: string;
+      title: string;
+      description: string | null;
+      sort_order: number;
+    }>(
+      `SELECT id, type, title, description, sort_order FROM proposal_sections
+       WHERE agency_id = $1 AND proposal_id = $2 AND is_visible_to_customer = true
+       ORDER BY sort_order ASC, created_at ASC`,
+      [agencyId, id],
+    );
+
+    const itemsResult = await client.query<{
+      id: string;
+      proposal_section_id: string;
+      type: string;
+      title: string | null;
+      description: string | null;
+      sort_order: number;
+      day_number: number | null;
+      location_name: string | null;
+      price: string | null;
+    }>(
+      `SELECT pi.id, pi.proposal_section_id, pi.type, pi.title, pi.description, pi.sort_order,
+              pi.day_number, pi.location_name, pi.price
+       FROM proposal_items pi
+       JOIN proposal_sections ps ON ps.agency_id = pi.agency_id AND ps.id = pi.proposal_section_id
+       WHERE pi.agency_id = $1 AND ps.proposal_id = $2 AND ps.is_visible_to_customer = true
+       ORDER BY pi.sort_order ASC, pi.created_at ASC`,
+      [agencyId, id],
+    );
+
+    const mediaResult = await client.query<{
+      id: string;
+      caption: string | null;
+      is_cover: boolean;
+      sort_order: number;
+    }>(
+      `SELECT id, caption, is_cover, sort_order FROM proposal_media
+       WHERE agency_id = $1 AND proposal_id = $2 AND deleted_at IS NULL
+       ORDER BY is_cover DESC, sort_order ASC, created_at ASC`,
+      [agencyId, id],
+    );
+
+    const itemsBySection = new Map<string, CustomerProposalItemView[]>();
+    for (const item of itemsResult.rows) {
+      const list = itemsBySection.get(item.proposal_section_id) ?? [];
+      list.push({
+        id: item.id,
+        type: item.type,
+        title: item.title,
+        description: item.description,
+        sortOrder: item.sort_order,
+        dayNumber: item.day_number,
+        locationName: item.location_name,
+        price: item.price !== null ? Number(item.price) : null,
+      });
+      itemsBySection.set(item.proposal_section_id, list);
+    }
+
+    return {
+      ...toCustomerProposal(proposalRow),
+      sections: sectionsResult.rows.map((section) => ({
+        id: section.id,
+        type: section.type,
+        title: section.title,
+        description: section.description,
+        sortOrder: section.sort_order,
+        items: itemsBySection.get(section.id) ?? [],
+      })),
+      media: mediaResult.rows.map((media) => ({
+        id: media.id,
+        caption: media.caption,
+        isCover: media.is_cover,
+        sortOrder: media.sort_order,
+        downloadUrl: `/customer-api/proposals/${id}/media/${media.id}/download`,
+      })),
+    };
+  });
 }
 
 // ============================================================

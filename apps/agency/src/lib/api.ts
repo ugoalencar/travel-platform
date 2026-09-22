@@ -1495,6 +1495,12 @@ export interface CreateProposalInput {
   validUntil?: string;
   conditions?: string;
   notes?: string;
+  title?: string;
+  subtitle?: string;
+  destinationSummary?: string;
+  travelPeriod?: string;
+  travelerSummary?: string;
+  introText?: string;
 }
 
 export async function createProposal(input: CreateProposalInput): Promise<Proposal> {
@@ -1511,6 +1517,12 @@ export interface UpdateProposalInput {
   validUntil?: string;
   conditions?: string;
   notes?: string;
+  title?: string;
+  subtitle?: string;
+  destinationSummary?: string;
+  travelPeriod?: string;
+  travelerSummary?: string;
+  introText?: string;
 }
 
 export async function updateProposal(id: string, input: UpdateProposalInput): Promise<Proposal> {
@@ -1526,6 +1538,244 @@ export async function sendProposal(id: string): Promise<Proposal> {
     method: 'POST',
   });
   return data.proposal;
+}
+
+export async function duplicateProposal(id: string): Promise<Proposal> {
+  const data = await request<{ proposal: Proposal }>(`/api/proposals/${encodeURIComponent(id)}/duplicate`, {
+    method: 'POST',
+  });
+  return data.proposal;
+}
+
+// ============================================================
+// PROPOSAL VISUAL 2.0 -- content (sections/items) + media (cover/galeria)
+// ============================================================
+
+export type ProposalSectionType =
+  | 'OVERVIEW'
+  | 'DESTINATIONS'
+  | 'TRANSPORT'
+  | 'ACCOMMODATION'
+  | 'EXPERIENCES'
+  | 'ITINERARY'
+  | 'INCLUSIONS'
+  | 'EXCLUSIONS'
+  | 'COMMERCIAL_TERMS'
+  | 'PAYMENT_OPTIONS'
+  | 'MEDIA'
+  | 'DOCUMENTS'
+  | 'NOTES';
+
+export interface ProposalSection {
+  id: string;
+  agencyId: string;
+  proposalId: string;
+  type: ProposalSectionType;
+  title: string;
+  description?: string;
+  sortOrder: number;
+  isVisibleToCustomer: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type ProposalItemType =
+  | 'TEXT'
+  | 'DESTINATION'
+  | 'TRANSPORT'
+  | 'ACCOMMODATION'
+  | 'EXPERIENCE'
+  | 'ITINERARY_DAY'
+  | 'INCLUSION'
+  | 'EXCLUSION'
+  | 'CONDITION'
+  | 'PAYMENT_OPTION'
+  | 'IMAGE';
+
+export interface ProposalItem {
+  id: string;
+  agencyId: string;
+  proposalSectionId: string;
+  type: ProposalItemType;
+  title?: string;
+  description?: string;
+  sortOrder: number;
+  dayNumber?: number;
+  locationName?: string;
+  price?: number;
+  referenceType?: string;
+  referenceId?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProposalMedia {
+  id: string;
+  agencyId: string;
+  proposalId: string;
+  fileName: string;
+  fileMimeType: string;
+  fileSizeBytes: number;
+  caption?: string;
+  isCover: boolean;
+  sortOrder: number;
+  createdAt: string;
+}
+
+export async function listProposalSections(proposalId: string): Promise<ProposalSection[]> {
+  const data = await request<{ sections: ProposalSection[] }>(
+    `/api/proposals/${encodeURIComponent(proposalId)}/sections`,
+  );
+  return data.sections;
+}
+
+export interface CreateProposalSectionInput {
+  type: ProposalSectionType;
+  title: string;
+  description?: string;
+  sortOrder?: number;
+  isVisibleToCustomer?: boolean;
+}
+
+export async function createProposalSection(
+  proposalId: string,
+  input: CreateProposalSectionInput,
+): Promise<ProposalSection> {
+  const data = await request<{ section: ProposalSection }>(
+    `/api/proposals/${encodeURIComponent(proposalId)}/sections`,
+    { method: 'POST', body: JSON.stringify(input) },
+  );
+  return data.section;
+}
+
+export interface UpdateProposalSectionInput {
+  title?: string;
+  description?: string;
+  sortOrder?: number;
+  isVisibleToCustomer?: boolean;
+}
+
+export async function updateProposalSection(
+  sectionId: string,
+  input: UpdateProposalSectionInput,
+): Promise<ProposalSection> {
+  const data = await request<{ section: ProposalSection }>(
+    `/api/proposal-sections/${encodeURIComponent(sectionId)}`,
+    { method: 'PATCH', body: JSON.stringify(input) },
+  );
+  return data.section;
+}
+
+export async function deleteProposalSection(sectionId: string): Promise<void> {
+  await request(`/api/proposal-sections/${encodeURIComponent(sectionId)}`, { method: 'DELETE' });
+}
+
+export async function listProposalItems(sectionId: string): Promise<ProposalItem[]> {
+  const data = await request<{ items: ProposalItem[] }>(
+    `/api/proposal-sections/${encodeURIComponent(sectionId)}/items`,
+  );
+  return data.items;
+}
+
+export interface CreateProposalItemInput {
+  type: ProposalItemType;
+  title?: string;
+  description?: string;
+  sortOrder?: number;
+  dayNumber?: number;
+  locationName?: string;
+  price?: number;
+  referenceType?: string;
+  referenceId?: string;
+}
+
+export async function createProposalItem(
+  sectionId: string,
+  input: CreateProposalItemInput,
+): Promise<ProposalItem> {
+  const data = await request<{ item: ProposalItem }>(
+    `/api/proposal-sections/${encodeURIComponent(sectionId)}/items`,
+    { method: 'POST', body: JSON.stringify(input) },
+  );
+  return data.item;
+}
+
+export interface UpdateProposalItemInput {
+  title?: string;
+  description?: string;
+  sortOrder?: number;
+  dayNumber?: number;
+  locationName?: string;
+  price?: number;
+}
+
+export async function updateProposalItem(itemId: string, input: UpdateProposalItemInput): Promise<ProposalItem> {
+  const data = await request<{ item: ProposalItem }>(`/api/proposal-items/${encodeURIComponent(itemId)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(input),
+  });
+  return data.item;
+}
+
+export async function deleteProposalItem(itemId: string): Promise<void> {
+  await request(`/api/proposal-items/${encodeURIComponent(itemId)}`, { method: 'DELETE' });
+}
+
+export async function listProposalMedia(proposalId: string): Promise<ProposalMedia[]> {
+  const data = await request<{ media: ProposalMedia[] }>(
+    `/api/proposals/${encodeURIComponent(proposalId)}/media`,
+  );
+  return data.media;
+}
+
+export async function uploadProposalMedia(
+  proposalId: string,
+  file: File,
+  options?: { caption?: string; isCover?: boolean },
+): Promise<ProposalMedia> {
+  const form = new FormData();
+  if (options?.caption) form.append('caption', options.caption);
+  if (options?.isCover !== undefined) form.append('isCover', String(options.isCover));
+  form.append('file', file, file.name);
+
+  const token = getSessionToken();
+  const response = await fetch(`${API_BASE_URL}/api/proposals/${encodeURIComponent(proposalId)}/media`, {
+    method: 'POST',
+    headers: token ? { authorization: `Bearer ${token}` } : {},
+    body: form,
+  });
+  if (response.status === 401) clearSession();
+  if (!response.ok) {
+    const body = (await safeJson(response)) as Partial<ApiErrorBody> | null;
+    throw new ApiError(
+      translateApiErrorMessage(body?.error ?? 'Request failed.'),
+      body?.code ?? 'UNKNOWN_ERROR',
+      response.status,
+    );
+  }
+  const data = (await response.json()) as { media: ProposalMedia };
+  return data.media;
+}
+
+export async function deleteProposalMedia(mediaId: string): Promise<void> {
+  await request(`/api/proposal-media/${encodeURIComponent(mediaId)}`, { method: 'DELETE' });
+}
+
+export function proposalMediaDownloadUrl(mediaId: string): string {
+  return `${API_BASE_URL}/api/proposal-media/${encodeURIComponent(mediaId)}/download`;
+}
+
+export async function loadProposalMediaBlobUrl(mediaId: string): Promise<string> {
+  const token = getSessionToken();
+  const response = await fetch(proposalMediaDownloadUrl(mediaId), {
+    headers: token ? { authorization: `Bearer ${token}` } : {},
+  });
+  if (response.status === 401) clearSession();
+  if (!response.ok) {
+    throw new ApiError('Não foi possível carregar a imagem.', 'UNKNOWN_ERROR', response.status);
+  }
+  const blob = await response.blob();
+  return URL.createObjectURL(blob);
 }
 
 // ============================================================

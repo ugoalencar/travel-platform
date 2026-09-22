@@ -53,9 +53,48 @@ export interface CustomerProposalView {
   validUntil: string | null;
   conditions: string | null;
   status: string;
+  title: string | null;
+  subtitle: string | null;
+  destinationSummary: string | null;
+  travelPeriod: string | null;
+  travelerSummary: string | null;
+  introText: string | null;
   createdAt: string;
   updatedAt: string;
   includes?: string[];
+}
+
+export interface CustomerProposalItemView {
+  id: string;
+  type: string;
+  title: string | null;
+  description: string | null;
+  sortOrder: number;
+  dayNumber: number | null;
+  locationName: string | null;
+  price: number | null;
+}
+
+export interface CustomerProposalSectionView {
+  id: string;
+  type: string;
+  title: string;
+  description: string | null;
+  sortOrder: number;
+  items: CustomerProposalItemView[];
+}
+
+export interface CustomerProposalMediaView {
+  id: string;
+  caption: string | null;
+  isCover: boolean;
+  sortOrder: number;
+  downloadUrl: string;
+}
+
+export interface CustomerProposalDetail extends CustomerProposalView {
+  sections: CustomerProposalSectionView[];
+  media: CustomerProposalMediaView[];
 }
 
 export interface CustomerPassenger {

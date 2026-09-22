@@ -24,12 +24,21 @@ import {
   listSales,
   getSale,
   getSaleFinancialStory,
+  duplicateProposal,
+  sendProposal,
+  listProposalSections,
+  listProposalItems,
+  listProposalMedia,
   type Proposal,
   type Offer,
   type SaleFinancialStory,
+  type ProposalSection,
+  type ProposalItem,
+  type ProposalMedia,
 } from '../lib/api';
 import type { Booking } from '../types/booking';
 import type { Sale, SaleStatus } from '../types/sale';
+import { ProposalVisualPreview } from './proposals/ProposalVisualPreview';
 
 type LoadState<T> =
   | { status: 'loading' }
@@ -188,9 +197,13 @@ export function ProposalListPage() {
 
 export function ProposalDetailPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [state, setState] = useState<LoadState<Proposal>>({ status: 'loading' });
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [duplicating, setDuplicating] = useState(false);
+  const [sending, setSending] = useState(false);
 
-  useEffect(() => {
+  const load = useCallback(() => {
     if (!id) return;
     setState({ status: 'loading' });
     getProposal(id)
@@ -202,6 +215,10 @@ export function ProposalDetailPage() {
         setState({ status: 'error', message });
       });
   }, [id]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
 
   if (!id) {
     return <Navigate to="/proposals" replace />;
@@ -220,35 +237,66 @@ export function ProposalDetailPage() {
   }
 
   const proposal = state.data;
+  const editable = proposal.status === 'DRAFT' || proposal.status === 'SENT';
 
-   
+  async function handleDuplicate() {
+    setDuplicating(true);
+    setActionError(null);
+    try {
+      const copy = await duplicateProposal(id!);
+      void navigate(`/proposals/${copy.id}/editor`);
+    } catch (error: unknown) {
+      setActionError(error instanceof ApiError ? error.message : 'Não foi possível duplicar a proposta.');
+    } finally {
+      setDuplicating(false);
+    }
+  }
+
+  async function handleSend() {
+    setSending(true);
+    setActionError(null);
+    try {
+      await sendProposal(id!);
+      load();
+    } catch (error: unknown) {
+      setActionError(error instanceof ApiError ? error.message : 'Não foi possível enviar a proposta.');
+    } finally {
+      setSending(false);
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <PageIntro title={`Proposta ${proposal.id}`} description={proposal.notes || 'Detalhes da proposta'} />
         <div className="flex flex-wrap gap-2">
-          <Button variant="outline" disabled>
-            <Edit3 className="h-4 w-4" />
-            Editar
-          </Button>
-          <Button variant="outline" disabled>
+          <Link to={`/proposals/${id}/editor`}>
+            <Button variant="outline">
+              <Edit3 className="h-4 w-4" />
+              Editar
+            </Button>
+          </Link>
+          <Button variant="outline" onClick={() => void handleDuplicate()} disabled={duplicating}>
             <Copy className="h-4 w-4" />
-            Duplicar
+            {duplicating ? 'Duplicando…' : 'Duplicar'}
           </Button>
-          <Button variant="outline" disabled>
-            <Eye className="h-4 w-4" />
-            Prévia
-          </Button>
-          <Button variant="outline" disabled>
+          <Link to={`/proposals/${id}/preview`}>
+            <Button variant="outline">
+              <Eye className="h-4 w-4" />
+              Prévia
+            </Button>
+          </Link>
+          <Button variant="outline" onClick={() => void handleSend()} disabled={!editable || sending}>
             <Send className="h-4 w-4" />
-            Enviar
+            {sending ? 'Enviando…' : 'Enviar'}
           </Button>
-          <Button disabled>
+          <Button disabled title="Conversão para Booking ainda não implementada">
             <CheckCircle2 className="h-4 w-4" />
             Converter
           </Button>
         </div>
       </div>
+      {actionError && <p className="text-sm text-destructive">{actionError}</p>}
       <JourneyRail active="Proposal" />
       <Card>
         <CardHeader>
@@ -273,12 +321,6 @@ export function ProposalDetailPage() {
   );
 }
 
-interface ItineraryItem {
-  type: 'transport' | 'accommodation' | 'activity';
-  description: string;
-  price: number;
-}
-
 export function ProposalBuilderPage() {
   const navigate = useNavigate();
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -289,15 +331,10 @@ export function ProposalBuilderPage() {
 
   const [selectedBookingId, setSelectedBookingId] = useState('');
   const [selectedOfferId, setSelectedOfferId] = useState('');
-  const [itineraryItems, setItineraryItems] = useState<ItineraryItem[]>([]);
   const [proposedPrice, setProposedPrice] = useState<number>(0);
   const [markupPercentage, setMarkupPercentage] = useState<number>(0);
   const [conditions, setConditions] = useState('');
   const [notes, setNotes] = useState('');
-
-  const [itemType, setItemType] = useState<'transport' | 'accommodation' | 'activity'>('transport');
-  const [itemDescription, setItemDescription] = useState('');
-  const [itemPrice, setItemPrice] = useState<number>(0);
 
   useEffect(() => {
     const loadData = async () => {
@@ -327,25 +364,8 @@ export function ProposalBuilderPage() {
   };
 
   const calculateTotal = (): number => {
-    const baseTotal = proposedPrice + itineraryItems.reduce((sum, item) => sum + item.price, 0);
-    const markupAmount = baseTotal * (markupPercentage / 100);
-    return baseTotal + markupAmount;
-  };
-
-  const addItineraryItem = () => {
-    if (itemDescription && itemPrice > 0) {
-      setItineraryItems([
-        ...itineraryItems,
-        { type: itemType, description: itemDescription, price: itemPrice },
-      ]);
-      setItemDescription('');
-      setItemPrice(0);
-      setItemType('transport');
-    }
-  };
-
-  const removeItineraryItem = (index: number) => {
-    setItineraryItems(itineraryItems.filter((_, i) => i !== index));
+    const markupAmount = proposedPrice * (markupPercentage / 100);
+    return proposedPrice + markupAmount;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -488,90 +508,6 @@ export function ProposalBuilderPage() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Itinerário</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-12">
-              <div className="md:col-span-3">
-                <label className="text-sm font-medium text-slate-700">Tipo</label>
-                <Select
-                  value={itemType}
-                  onChange={(e) => setItemType(e.target.value as 'transport' | 'accommodation' | 'activity')}
-                  className="mt-1"
-                >
-                  <option value="transport">Transporte</option>
-                  <option value="accommodation">Hospedagem</option>
-                  <option value="activity">Atividade</option>
-                </Select>
-              </div>
-
-              <div className="md:col-span-5">
-                <label className="text-sm font-medium text-slate-700">Descrição</label>
-                <Input
-                  type="text"
-                  value={itemDescription}
-                  onChange={(e) => setItemDescription(e.target.value)}
-                  placeholder="Ex: Voo São Paulo - Rio de Janeiro"
-                  className="mt-1"
-                />
-              </div>
-
-              <div className="md:col-span-3">
-                <label className="text-sm font-medium text-slate-700">Preço (BRL)</label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={itemPrice}
-                  onChange={(e) => setItemPrice(parseFloat(e.target.value) || 0)}
-                  className="mt-1"
-                />
-              </div>
-
-              <div className="flex items-end md:col-span-1">
-                <Button
-                  type="button"
-                  onClick={addItineraryItem}
-                  size="sm"
-                  variant="outline"
-                  className="w-full"
-                >
-                  Adicionar
-                </Button>
-              </div>
-            </div>
-
-            {itineraryItems.length > 0 && (
-              <div className="mt-6 space-y-2 border-t border-slate-200 pt-4">
-                <h4 className="text-sm font-medium text-slate-700">Itens adicionados</h4>
-                {itineraryItems.map((item, index) => (
-                  <div key={index} className="flex items-center justify-between rounded-md border border-slate-200 p-3">
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-slate-900">
-                        {item.type === 'transport' && 'Transporte'}
-                        {item.type === 'accommodation' && 'Hospedagem'}
-                        {item.type === 'activity' && 'Atividade'}: {item.description}
-                      </p>
-                      <p className="text-sm text-slate-600">{formatBRL(item.price)}</p>
-                    </div>
-                    <Button
-                      type="button"
-                      onClick={() => removeItineraryItem(index)}
-                      size="sm"
-                      variant="outline"
-                      className="ml-4 text-red-600 hover:bg-red-50"
-                    >
-                      Remover
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
         <Card className="border-slate-300 bg-slate-50">
           <CardHeader>
             <CardTitle>Resumo do preço</CardTitle>
@@ -581,17 +517,11 @@ export function ProposalBuilderPage() {
               <span className="text-slate-600">Preço proposto:</span>
               <span className="font-medium text-slate-950">{formatBRL(proposedPrice)}</span>
             </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-slate-600">Itinerário:</span>
-              <span className="font-medium text-slate-950">
-                {formatBRL(itineraryItems.reduce((sum, item) => sum + item.price, 0))}
-              </span>
-            </div>
             {markupPercentage !== 0 && (
               <div className="flex justify-between text-sm">
                 <span className="text-slate-600">Markup/Desconto:</span>
                 <span className={`font-medium ${markupPercentage > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {markupPercentage > 0 ? '+' : ''}{formatBRL((proposedPrice + itineraryItems.reduce((sum, item) => sum + item.price, 0)) * (markupPercentage / 100))}
+                  {markupPercentage > 0 ? '+' : ''}{formatBRL(proposedPrice * (markupPercentage / 100))}
                 </span>
               </div>
             )}
@@ -653,18 +583,49 @@ export function ProposalBuilderPage() {
   );
 }
 
+interface ProposalPreviewData {
+  proposal: Proposal;
+  sections: ProposalSection[];
+  itemsBySection: Record<string, ProposalItem[]>;
+  media: ProposalMedia[];
+}
+
 export function ProposalPreviewPage() {
+  const { id } = useParams();
+  const [state, setState] = useState<LoadState<ProposalPreviewData>>({ status: 'loading' });
+
+  useEffect(() => {
+    if (!id) return;
+    setState({ status: 'loading' });
+    Promise.all([getProposal(id), listProposalSections(id), listProposalMedia(id)])
+      .then(async ([proposal, sections, media]) => {
+        const itemLists = await Promise.all(sections.map((s) => listProposalItems(s.id)));
+        const itemsBySection: Record<string, ProposalItem[]> = {};
+        sections.forEach((s, idx) => {
+          itemsBySection[s.id] = itemLists[idx] ?? [];
+        });
+        setState({ status: 'success', data: { proposal, sections, itemsBySection, media } });
+      })
+      .catch((error: unknown) => {
+        const message = error instanceof ApiError ? error.message : 'Não foi possível carregar a prévia.';
+        setState({ status: 'error', message });
+      });
+  }, [id]);
+
   return (
     <div className="space-y-6">
       <PageIntro
         title="Prévia de proposta"
-        description="Visualização da proposta como será apresentada ao cliente."
+        description="Exatamente o que o cliente verá — desktop e mobile."
       />
       <JourneyRail active="Proposal" />
-      <EmptyState
-        title="Prévia de proposta"
-        description="Esta funcionalidade ainda não está implementada. Aguarde a integração com o backend."
-      />
+      {state.status === 'loading' && <LoadingState label="Carregando prévia…" />}
+      {state.status === 'error' && <ErrorState description={state.message} onRetry={() => {}} />}
+      {state.status === 'success' && state.data && (
+        <div className="flex justify-center">
+          <ProposalVisualPreview data={state.data} />
+        </div>
+      )}
     </div>
   );
 }

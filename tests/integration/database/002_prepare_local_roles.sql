@@ -38,6 +38,22 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON
   trips
 TO travel_app_runtime_local;
 
+-- Proposal Visual 2.0 (089/090/091_proposal_*.sql) only exist once those
+-- migrations have been applied -- same "IF present" guard as the other
+-- conditional blocks below, since this script is shared by every
+-- domain's test suite and most only apply migrations 001+002.
+DO $$
+BEGIN
+  IF to_regclass('public.proposal_sections') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      proposal_sections,
+      proposal_items,
+      proposal_media
+    TO travel_app_runtime_local;
+  END IF;
+END;
+$$;
+
 -- Transportation tables (routes/suppliers/transport_products/scheduled_departures)
 -- only exist once migration 003_transportation.sql has been applied. This script
 -- is shared by every domain's test suite, and most of them only apply migrations
