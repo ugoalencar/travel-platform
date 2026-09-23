@@ -1,5 +1,6 @@
 import { OfferStatus, type Offer } from '../../../packages/domain/types';
 import { getAgencyId } from '../../../packages/domain/tenant-context';
+import { assertMediaAssetOwnedByTenantOnClient } from './media-library';
 import type { DatabaseRuntime } from './database';
 import { ValidationError } from './errors';
 
@@ -98,6 +99,9 @@ export async function createOffer(
   }
 
   return database.withTenantTransaction(async (client) => {
+    if (data.coverMediaAssetId !== undefined && data.coverMediaAssetId !== null) {
+      await assertMediaAssetOwnedByTenantOnClient(client, agencyId, data.coverMediaAssetId);
+    }
     const result = await client.query<OfferRow>(
       `INSERT INTO offers (agency_id, name, description, price, valid_from, valid_until,
                           featured, show_on_customer_app, target_segment_id, display_priority, image_url,
@@ -161,6 +165,9 @@ export async function updateOffer(
   }
 
   return database.withTenantTransaction(async (client) => {
+    if (data.coverMediaAssetId !== undefined && data.coverMediaAssetId !== null) {
+      await assertMediaAssetOwnedByTenantOnClient(client, agencyId, data.coverMediaAssetId);
+    }
     // date-range CHECK constraint validated at app layer even for partial updates,
     // comparing against COALESCE(new, current) in the same UPDATE (atomic, tenant-scoped)
     const validFromExpr =

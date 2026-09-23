@@ -16,6 +16,7 @@ import type {
   MediaAssetType,
 } from '../../../packages/domain/types';
 import { getAgencyId, getUserId } from '../../../packages/domain/tenant-context';
+import { AuditEventType, recordAuditEvent } from './audit-log';
 import type { DatabaseRuntime, TenantTransactionClient } from './database';
 import { ConflictError, NotFoundError, ValidationError } from './errors';
 import {
@@ -126,6 +127,12 @@ export async function createMediaAsset(
     );
     const row = result.rows[0];
     if (!row) throw new Error('MediaAsset insert did not return a row');
+    await recordAuditEvent(client, {
+      eventType: AuditEventType.MEDIA_ASSET_CREATED,
+      entityType: 'media_asset',
+      entityId: row.id,
+      metadata: { title: data.title.trim(), fileName: data.fileName, mimeType: data.fileMimeType },
+    });
     return toAsset(row);
   });
 }
@@ -199,22 +206,27 @@ export async function updateMediaAsset(
   const fields: string[] = [];
   const values: unknown[] = [];
   let index = 1;
+  const fieldsChanged: string[] = [];
   if (data.title !== undefined) {
     if (data.title.trim().length === 0) throw new ValidationError('Field "title" must not be blank');
     fields.push(`title = $${++index}`);
     values.push(data.title);
+    fieldsChanged.push('title');
   }
   if (data.description !== undefined) {
     fields.push(`description = $${++index}`);
     values.push(data.description);
+    fieldsChanged.push('description');
   }
   if (data.altText !== undefined) {
     fields.push(`alt_text = $${++index}`);
     values.push(data.altText);
+    fieldsChanged.push('altText');
   }
   if (data.tags !== undefined) {
     fields.push(`tags = $${++index}`);
     values.push(data.tags);
+    fieldsChanged.push('tags');
   }
   if (fields.length === 0) {
     return getMediaAssetById(database, id);
@@ -228,6 +240,14 @@ export async function updateMediaAsset(
       [agencyId, ...values, id],
     );
     const row = result.rows[0];
+    if (row) {
+      await recordAuditEvent(client, {
+        eventType: AuditEventType.MEDIA_ASSET_UPDATED,
+        entityType: 'media_asset',
+        entityId: id,
+        metadata: { fieldsChanged },
+      });
+    }
     return row ? toAsset(row) : null;
   });
 }
@@ -242,28 +262,57 @@ export async function archiveMediaAsset(database: DatabaseRuntime, id: string): 
       [agencyId, id],
     );
     const row = result.rows[0];
+    if (row) {
+      await recordAuditEvent(client, {
+        eventType: AuditEventType.MEDIA_ASSET_ARCHIVED,
+        entityType: 'media_asset',
+        entityId: id,
+      });
+    }
     return row ? toAsset(row) : null;
   });
 }
 
-// Delete is only allowed when the asset has no links -- an asset in
-// use must be archived instead (Fase 12). Returns false if the asset
+// Delete is only allowed when the asset has no usage -- an asset in use
+// must be archived instead (Fase 12). Returns false if the asset
 // doesn't exist, throws ConflictError if it's in use.
+//
+// "In use" covers BOTH link rows (media_asset_links, used by Proposal
+// gallery/cover and by the generic link API) AND direct cover references
+// (offers.cover_media_asset_id / agency_communications.cover_media_asset_id,
+// used by Offer/Communication covers -- see docs/product/MEDIA_ASSET_USAGE.md).
+// Counting only media_asset_links would let a cover-only asset be deleted,
+// silently nulling out the covers via the ON DELETE SET NULL FKs.
 export async function deleteMediaAsset(database: DatabaseRuntime, id: string): Promise<boolean> {
   const agencyId = getAgencyId();
   return database.withTenantTransaction(async (client) => {
+    const existing = await client.query<{ title: string }>(
+      `SELECT title FROM media_assets WHERE agency_id = $1 AND id = $2`,
+      [agencyId, id],
+    );
+    const row = existing.rows[0];
+    if (!row) return false;
+
     const usage = await client.query<{ count: string }>(
-      `SELECT count(*)::text AS count FROM media_asset_links WHERE agency_id = $1 AND media_asset_id = $2`,
+      `SELECT (
+         (SELECT count(*) FROM media_asset_links WHERE agency_id = $1 AND media_asset_id = $2)
+         + (SELECT count(*) FROM offers WHERE agency_id = $1 AND cover_media_asset_id = $2)
+         + (SELECT count(*) FROM agency_communications WHERE agency_id = $1 AND cover_media_asset_id = $2)
+       )::text AS count`,
       [agencyId, id],
     );
     if (Number(usage.rows[0]?.count ?? '0') > 0) {
       throw new ConflictError('Media asset is in use and cannot be deleted -- archive it instead');
     }
-    const result = await client.query(`DELETE FROM media_assets WHERE agency_id = $1 AND id = $2`, [
-      agencyId,
-      id,
-    ]);
-    return (result.rowCount ?? 0) > 0;
+
+    await client.query(`DELETE FROM media_assets WHERE agency_id = $1 AND id = $2`, [agencyId, id]);
+    await recordAuditEvent(client, {
+      eventType: AuditEventType.MEDIA_ASSET_DELETED,
+      entityType: 'media_asset',
+      entityId: id,
+      metadata: { title: row.title },
+    });
+    return true;
   });
 }
 
@@ -281,10 +330,23 @@ export async function getMediaAssetUsage(
     const result = await client.query<{ entity_type: MediaAssetUsageContext; count: string }>(
       `SELECT entity_type, count(*)::text AS count FROM media_asset_links
        WHERE agency_id = $1 AND media_asset_id = $2
-       GROUP BY entity_type`,
+       GROUP BY entity_type
+       UNION ALL
+       SELECT 'OFFER'::"MediaAssetUsageContext" AS entity_type, count(*)::text AS count
+       FROM offers
+       WHERE agency_id = $1 AND cover_media_asset_id = $2
+       UNION ALL
+       SELECT 'COMMUNICATION'::"MediaAssetUsageContext" AS entity_type, count(*)::text AS count
+       FROM agency_communications
+       WHERE agency_id = $1 AND cover_media_asset_id = $2`,
       [agencyId, mediaAssetId],
     );
-    return result.rows.map((row) => ({ entityType: row.entity_type, count: Number(row.count) }));
+    const merged = new Map<MediaAssetUsageContext, number>();
+    for (const row of result.rows) {
+      const total = (merged.get(row.entity_type) ?? 0) + Number(row.count);
+      if (total > 0) merged.set(row.entity_type, total);
+    }
+    return [...merged.entries()].map(([entityType, count]) => ({ entityType, count }));
   });
 }
 
@@ -359,6 +421,26 @@ interface MediaAssetLinkRow {
 
 const LINK_COLUMNS = `id, agency_id, media_asset_id, entity_type, entity_id, usage, sort_order, created_at`;
 
+// Used by Offer/Communication cover handling (offers.ts,
+// agency-communications.ts): a cover may only reference an asset that
+// actually exists in THIS tenant. RLS/embedded FK already make a
+// cross-tenant cover fail at the DB layer; this turns that raw FK
+// rejection into a clean 404 before any write is attempted, and keeps
+// cover references consistent with media_asset_links usage accounting.
+export async function assertMediaAssetOwnedByTenantOnClient(
+  client: TenantTransactionClient,
+  agencyId: string,
+  mediaAssetId: string,
+): Promise<void> {
+  const asset = await client.query(`SELECT 1 FROM media_assets WHERE agency_id = $1 AND id = $2`, [
+    agencyId,
+    mediaAssetId,
+  ]);
+  if (asset.rowCount === 0) {
+    throw new NotFoundError('Media asset not found');
+  }
+}
+
 export interface LinkMediaAssetInput {
   mediaAssetId: string;
   entityType: MediaAssetUsageContext;
@@ -388,11 +470,24 @@ export async function linkMediaAsset(database: DatabaseRuntime, data: LinkMediaA
     }
 
     if (usage === MediaAssetUsageKind.COVER) {
+      const replaced = await client.query<{ id: string; media_asset_id: string }>(
+        `SELECT id, media_asset_id FROM media_asset_links
+         WHERE agency_id = $1 AND entity_type = $2 AND entity_id = $3 AND usage = 'COVER'`,
+        [agencyId, data.entityType, data.entityId],
+      );
       await client.query(
         `DELETE FROM media_asset_links
          WHERE agency_id = $1 AND entity_type = $2 AND entity_id = $3 AND usage = 'COVER'`,
         [agencyId, data.entityType, data.entityId],
       );
+      for (const link of replaced.rows) {
+        await recordAuditEvent(client, {
+          eventType: AuditEventType.MEDIA_ASSET_UNLINKED,
+          entityType: data.entityType.toLowerCase(),
+          entityId: data.entityId,
+          metadata: { linkId: link.id, mediaAssetId: link.media_asset_id },
+        });
+      }
     }
 
     let sortOrder = data.sortOrder;
@@ -415,6 +510,17 @@ export async function linkMediaAsset(database: DatabaseRuntime, data: LinkMediaA
     );
     const row = result.rows[0];
     if (!row) throw new Error('MediaAssetLink insert did not return a row');
+    await recordAuditEvent(client, {
+      eventType: AuditEventType.MEDIA_ASSET_LINKED,
+      entityType: data.entityType.toLowerCase(),
+      entityId: data.entityId,
+      metadata: {
+        linkId: row.id,
+        mediaAssetId: data.mediaAssetId,
+        usage,
+        sortOrder: row.sort_order,
+      },
+    });
     return toLink(row);
   });
 }
@@ -422,19 +528,29 @@ export async function linkMediaAsset(database: DatabaseRuntime, data: LinkMediaA
 export async function unlinkMediaAsset(database: DatabaseRuntime, linkId: string): Promise<boolean> {
   const agencyId = getAgencyId();
   return database.withTenantTransaction(async (client) => {
-    const existing = await client.query<{ entity_type: MediaAssetUsageContext; entity_id: string }>(
-      `SELECT entity_type, entity_id FROM media_asset_links WHERE agency_id = $1 AND id = $2`,
+    const existing = await client.query<{
+      entity_type: MediaAssetUsageContext;
+      entity_id: string;
+      media_asset_id: string;
+    }>(
+      `SELECT entity_type, entity_id, media_asset_id FROM media_asset_links WHERE agency_id = $1 AND id = $2`,
       [agencyId, linkId],
     );
     const row = existing.rows[0];
     if (!row) return false;
     await assertEntityOwnedByTenant(client, agencyId, row.entity_type, row.entity_id);
 
-    const result = await client.query(`DELETE FROM media_asset_links WHERE agency_id = $1 AND id = $2`, [
+    await client.query(`DELETE FROM media_asset_links WHERE agency_id = $1 AND id = $2`, [
       agencyId,
       linkId,
     ]);
-    return (result.rowCount ?? 0) > 0;
+    await recordAuditEvent(client, {
+      eventType: AuditEventType.MEDIA_ASSET_UNLINKED,
+      entityType: row.entity_type.toLowerCase(),
+      entityId: row.entity_id,
+      metadata: { linkId, mediaAssetId: row.media_asset_id },
+    });
+    return true;
   });
 }
 

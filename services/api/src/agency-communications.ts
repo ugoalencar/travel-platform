@@ -7,6 +7,7 @@
  */
 
 import { getAgencyId } from '../../../packages/domain/tenant-context';
+import { assertMediaAssetOwnedByTenantOnClient } from './media-library';
 import type { DatabaseRuntime } from './database';
 import { ValidationError, NotFoundError } from './errors';
 
@@ -128,6 +129,9 @@ export async function createCommunication(
   }
 
   return database.withTenantTransaction(async (client) => {
+    if (input.coverMediaAssetId !== undefined && input.coverMediaAssetId !== null) {
+      await assertMediaAssetOwnedByTenantOnClient(client, agencyId, input.coverMediaAssetId);
+    }
     const result = await client.query<CommunicationRow>(
       `INSERT INTO agency_communications
         (agency_id, type, title, body, image_url, cover_media_asset_id, cta_label, cta_url,
@@ -198,6 +202,9 @@ export async function updateCommunication(
   }
 
   return database.withTenantTransaction(async (client) => {
+    if (input.coverMediaAssetId !== undefined && input.coverMediaAssetId !== null) {
+      await assertMediaAssetOwnedByTenantOnClient(client, agencyId, input.coverMediaAssetId);
+    }
     const result = await client.query<CommunicationRow>(
       `UPDATE agency_communications SET ${fields.join(', ')}, updated_at = now()
        WHERE agency_id = $1 AND id = $${index + 1}

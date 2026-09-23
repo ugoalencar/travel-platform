@@ -143,6 +143,17 @@ export const AuditEventType = {
   AGENCY_COMMUNICATION_PUBLISHED: 'AGENCY_COMMUNICATION_PUBLISHED',
   AGENCY_COMMUNICATION_ARCHIVED: 'AGENCY_COMMUNICATION_ARCHIVED',
   OFFER_VISIBILITY_CHANGED: 'OFFER_VISIBILITY_CHANGED',
+  // Media Library (docs/product/MEDIA_LIBRARY.md). Lifecycle of the
+  // central agency asset library: created/updated/archived/deleted track
+  // the asset itself (entityType MEDIA_ASSET); linked/unlinked track the
+  // polymorphic media_asset_links rows, logged against the ENTITY type
+  // (OFFER/PROPOSAL/COMMUNICATION) that gained or lost the reference.
+  MEDIA_ASSET_CREATED: 'MEDIA_ASSET_CREATED',
+  MEDIA_ASSET_UPDATED: 'MEDIA_ASSET_UPDATED',
+  MEDIA_ASSET_ARCHIVED: 'MEDIA_ASSET_ARCHIVED',
+  MEDIA_ASSET_DELETED: 'MEDIA_ASSET_DELETED',
+  MEDIA_ASSET_LINKED: 'MEDIA_ASSET_LINKED',
+  MEDIA_ASSET_UNLINKED: 'MEDIA_ASSET_UNLINKED',
 } as const;
 
 export type AuditEventType = (typeof AuditEventType)[keyof typeof AuditEventType];
@@ -199,6 +210,15 @@ const allowedMetadataKeys = new Set([
   'reasonCode',
   'requestId',
   'result',
+  // Media Library metadata (see MEDIA_ASSET_* events above).
+  'entityType',
+  'mediaAssetId',
+  'usage',
+  'sortOrder',
+  'linkId',
+  'title',
+  'fileName',
+  'mimeType',
 ]);
 
 const maxMetadataStringLength = 128;
