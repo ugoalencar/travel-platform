@@ -564,7 +564,7 @@ describe('Platform Admin Comercial & Parcerias (data-access layer)', () => {
         headers: { 'x-test-platform-role': PlatformUserRole.SUPPORT_ADMIN },
         payload: { name: 'x', slug: 'x-http-1', category: 'OTHER' },
       });
-      expect(response.statusCode).toBe(401);
+      expect(response.statusCode).toBe(403);
       await app.close();
     });
 
