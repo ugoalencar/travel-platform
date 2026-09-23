@@ -21,6 +21,10 @@ import { getAgencyId, getCustomerId } from '../../../packages/domain/tenant-cont
 import type { ValidateCustomerAgencyAccess } from '../../../packages/domain/tenant-context';
 import type { DatabaseRuntime } from './database';
 import { insertEngagement } from './engagements';
+import {
+  computeEligibleSegmentIds,
+  isCustomerInSegment,
+} from './customer-segmentation';
 import { NotFoundError } from './errors';
 
 // ============================================================
@@ -267,28 +271,13 @@ export async function listAvailableOffers(database: DatabaseRuntime): Promise<Of
   // query -- it enforces that only an established customer context (not
   // a staff context) can reach this function, matching every other
   // function in this file.
-  const _customerId = getCustomerId();
+  const customerId = getCustomerId();
 
   return database.withTenantTransaction(async (client) => {
-    // Check if customer belongs to any segment
-    const segmentResult = await client.query<{ segment_id: string }>(
-      `SELECT cs.id AS segment_id
-       FROM customer_segments cs
-       WHERE cs.agency_id = $1
-         AND cs.archived_at IS NULL
-         AND cs.filter_definition IS NOT NULL
-       ORDER BY cs.created_at DESC`,
-      [agencyId],
-    );
-
-    const eligibleSegmentIds: string[] = [];
-    for (const seg of segmentResult.rows) {
-      // For simplicity: if customer exists in any segment's member list, they are eligible.
-      // In production, this would use the full filter_definition query builder.
-      // For now, include all active segments — the segment filtering will be
-      // fully implemented when the segmentation query builder is integrated.
-      eligibleSegmentIds.push(seg.segment_id);
-    }
+    // F-04: evaluate this customer's real segment membership live via the
+    // shared segmentation engine (fail closed -- non-members get no
+    // segment-targeted offers). Never "include all active segments".
+    const eligibleSegmentIds = await computeEligibleSegmentIds(client, customerId);
 
     const result = await client.query<OfferRow>(
       `SELECT ${OFFER_COLUMNS} FROM offers
@@ -300,9 +289,17 @@ export async function listAvailableOffers(database: DatabaseRuntime): Promise<Of
            OR target_segment_id = ANY($2::text[])
          )
        ORDER BY display_priority DESC, created_at DESC`,
-      [agencyId, eligibleSegmentIds.length > 0 ? eligibleSegmentIds : ['__none__']],
+       [agencyId, eligibleSegmentIds.length > 0 ? eligibleSegmentIds : ['__none__']],
     );
-    return result.rows.map(toOffer);
+    // Belt and braces: never surface hidden or non-member-targeted rows
+    // even if the SQL predicate were ever bypassed.
+    return result.rows
+      .filter(
+        (row) =>
+          row.show_on_customer_app &&
+          (row.target_segment_id === null || eligibleSegmentIds.includes(row.target_segment_id)),
+      )
+      .map(toOffer);
   });
 }
 
@@ -311,17 +308,32 @@ export async function getAvailableOfferById(
   id: string,
 ): Promise<Offer | null> {
   const agencyId = getAgencyId();
-  getCustomerId();
+  const customerId = getCustomerId();
 
   return database.withTenantTransaction(async (client) => {
     const result = await client.query<OfferRow>(
       `SELECT ${OFFER_COLUMNS} FROM offers
        WHERE agency_id = $1 AND id = $2 AND status = 'ACTIVE'
-         AND (valid_until IS NULL OR valid_until >= now())`,
+         AND (valid_until IS NULL OR valid_until >= now())
+         AND show_on_customer_app = true`,
       [agencyId, id],
     );
     const row = result.rows[0];
-    return row ? toOffer(row) : null;
+    if (!row) return null;
+
+    // Defense in depth: the SQL already requires show_on_customer_app,
+    // but never return a hidden offer if the predicate were bypassed.
+    if (!row.show_on_customer_app) return null;
+
+    // F-04: a segment-targeted offer is only available to members of
+    // that segment (fail closed -- unknown/archived/invalid segment or
+    // non-member => not found).
+    if (row.target_segment_id !== null) {
+      const isMember = await isCustomerInSegment(client, row.target_segment_id, customerId);
+      if (!isMember) return null;
+    }
+
+    return toOffer(row);
   });
 }
 

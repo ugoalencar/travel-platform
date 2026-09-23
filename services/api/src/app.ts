@@ -106,7 +106,7 @@ import {
 import type { PlatformDatabaseRuntime } from './database';
 import { InternalMockConnector } from './connectors/mock-connector';
 import { createPlatformAuthenticateHook, type PlatformAuthProvider } from './platform-auth';
-import { PlatformDevAuthProvider } from './platform-dev-auth';
+import { createProductionPlatformAuthProvider } from './platform-dev-auth';
 import { registerPlatformRoutes, registerPublicPlatformRoutes } from './platform-routes';
 import { registerObservability, resolveDeploymentId } from './observability';
 
@@ -261,7 +261,10 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
   const protectedHooks = [authenticate, establishTenant, rateLimits.onTrustedTenant];
   app.addHook('onRequest', rateLimits.onRequest);
 
-  const platformAuthProvider = options.platformAuthProvider ?? new PlatformDevAuthProvider();
+  // Fail-closed default: never fall back to header-based dev auth. Callers
+  // that want the dev provider (server.ts outside production, tests) must
+  // inject it explicitly via options.platformAuthProvider.
+  const platformAuthProvider = options.platformAuthProvider ?? createProductionPlatformAuthProvider();
   const platformAuthenticate = createPlatformAuthenticateHook(
     options.platformDatabase
       ? composePlatformAuthProviders(platformAuthProvider, createPlatformSessionAuthProvider(options.platformDatabase))

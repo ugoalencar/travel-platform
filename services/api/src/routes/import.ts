@@ -25,7 +25,21 @@ import {
   listImportJobs,
   getImportJobById,
 } from '../import/service';
+import { assertMappingInUnion } from '../import/allowlist';
 import { MAX_IMPORT_FILE_SIZE } from '../import/types';
+import { ValidationError } from '../errors';
+
+/**
+ * Map known error classes to HTTP status. ValidationError (including
+ * allowlist rejections, F-03) must surface as 400, never 500.
+ */
+function sendKnownError(error: unknown, reply: FastifyReply, fallbackMessage: string): FastifyReply {
+  if (error instanceof ValidationError) {
+    return reply.status(400).send({ error: error.message, code: error.code });
+  }
+  const message = error instanceof Error ? error.message : fallbackMessage;
+  return reply.status(500).send({ error: message });
+}
 
 /**
  * Register import routes.
@@ -163,25 +177,32 @@ export function registerImportRoutes(
   // POST /:jobId/validate — Apply mapping + validate + dry run
   // ============================================================
   app.post(`${prefix}/:jobId/validate`, async (request: FastifyRequest, reply: FastifyReply) => {
+    const { jobId } = request.params as { jobId: string };
+    const body = request.body as {
+      mapping?: Record<string, string>;
+      parsedRows?: { rowNumber: number; data: Record<string, string> }[];
+    };
+
+    if (!body.mapping || !body.parsedRows) {
+      return reply.status(400).send({
+        error: 'Corpo da requisição deve conter mapping (object) e parsedRows (array)',
+      });
+    }
+
+    // F-03: reject non-allowlisted target fields against the union of
+    // all entity allowlists BEFORE any tenant/DB code runs (no
+    // transaction is opened for a poisoned mapping).
     try {
-      const { jobId } = request.params as { jobId: string };
-      const body = request.body as {
-        mapping?: Record<string, string>;
-        parsedRows?: { rowNumber: number; data: Record<string, string> }[];
-      };
+      assertMappingInUnion(body.mapping);
+    } catch (error) {
+      return sendKnownError(error, reply, 'Erro na validação');
+    }
 
-      if (!body.mapping || !body.parsedRows) {
-        return reply.status(400).send({
-          error: 'Corpo da requisição deve conter mapping (object) e parsedRows (array)',
-        });
-      }
-
+    try {
       const result = await dryRunImport(database, jobId, body.mapping, body.parsedRows);
-
       return reply.send(result);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Erro na validação';
-      return reply.status(500).send({ error: message });
+      return sendKnownError(error, reply, 'Erro na validação');
     }
   });
 
@@ -203,8 +224,7 @@ export function registerImportRoutes(
 
       return reply.send(result);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Erro ao executar importação';
-      return reply.status(500).send({ error: message });
+      return sendKnownError(error, reply, 'Erro ao executar importação');
     }
   });
 

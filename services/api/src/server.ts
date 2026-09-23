@@ -10,6 +10,7 @@ import {
   createStaffAccessValidator,
 } from './dev-auth';
 import { assertSafeDatabaseRole, validateProductionEnvironment } from './env';
+import { createServerPlatformAuthProvider } from './platform-dev-auth';
 import { createRedisRateLimitStore, resolveRateLimitRuntimeConfig, type RedisClientInstance } from './rate-limit';
 
 // Fail-closed production startup gate: throws synchronously if required
@@ -48,6 +49,11 @@ function baseAppOptions() {
     validateUserAgencyAccess: composeUserAgencyValidators(createServerAccessValidator(), createStaffAccessValidator(pool)),
     database: createDatabaseRuntime(pool),
     platformDatabase: createPlatformDatabaseRuntime(pool),
+    // Explicit platform auth provider (F-01): production always gets the
+    // deny-all provider; outside production the dual-gated dev provider.
+    // buildApp()'s default is also deny-all, but the real server never
+    // relies on that default.
+    platformAuthProvider: createServerPlatformAuthProvider(),
     // Customer portal: identity comes only from createServerCustomerAuthProvider()
     // (dev-only, dual-gated -- see dev-auth.ts). validateCustomerAgencyAccess is
     // NOT dev-only -- it is a real DB query (customers table) run regardless of

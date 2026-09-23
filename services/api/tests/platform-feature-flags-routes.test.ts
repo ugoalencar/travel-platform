@@ -151,7 +151,8 @@ describe('platform feature-flag routes', () => {
       payload: { enabled: true },
     });
 
-    expect(response.statusCode).toBe(401);
+    // Authenticated but insufficient role => 403 Forbidden (F-02), not 401.
+    expect(response.statusCode).toBe(403);
     await app.close();
   });
 

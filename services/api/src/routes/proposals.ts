@@ -48,7 +48,7 @@ import {
   unlinkMediaAsset,
 } from '../media-library';
 import { MediaAssetUsageContext, MediaAssetUsageKind } from '../../../../packages/domain/types';
-import { saveFile } from '../file-storage';
+import { saveFile } from '../storage';
 import { validateFileSize, isBlockedFileName, MAX_ATTACHMENT_BYTES } from '../document-attachments';
 
 export interface ProposalsRoutesOptions {

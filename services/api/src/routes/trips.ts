@@ -56,7 +56,7 @@ import {
   listTripPhotos,
 } from '../trip-photos';
 import { isBlockedFileName, MAX_ATTACHMENT_BYTES, validateFileSize } from '../document-attachments';
-import { readFile as readStoredFile, saveFile } from '../file-storage';
+import { readFile as readStoredFile, saveFile } from '../storage';
 
 export interface TripsRoutesOptions {
   database: DatabaseRuntime;

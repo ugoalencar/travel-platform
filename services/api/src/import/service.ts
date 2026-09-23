@@ -24,6 +24,8 @@ import {
 } from './types';
 import { parseCsv, autoMapColumns, type ParsedRow } from './parser';
 import { validateImportRows } from './validator';
+import { assertMappingAllowed, isAllowedImportField } from './allowlist';
+import { ValidationError } from '../errors';
 import { getAgencyId, getUserId } from '../../../../packages/domain/tenant-context';
 import { AuditEventType, recordAuditEvent } from '../audit-log';
 
@@ -181,6 +183,10 @@ export async function dryRunImport(
   parsedRows: ParsedRow[],
 ): Promise<DryRunResult> {
   const job = await getImportJob(database, jobId);
+
+  // F-03: per-entity allowlist after the job (and its entityType) is
+  // known, before any row is validated or previewed.
+  assertMappingAllowed(job.entityType, mapping);
 
   // Validate all rows
   const validation = await validateImportRows(
@@ -348,6 +354,16 @@ export async function cancelImport(database: DatabaseRuntime, jobId: string): Pr
 // Helpers
 // ============================================================
 
+/** Columns insertEntity always supplies itself; never taken from mapping. */
+const SYSTEM_INSERT_SKIP: ReadonlySet<string> = new Set([
+  'id',
+  'agency_id',
+  'created_by',
+  'created_at',
+  'updated_at',
+  'deleted_at',
+]);
+
 async function getImportJob(database: DatabaseRuntime, jobId: string): Promise<ImportJob> {
   return database.withTenantTransaction(async (client) => {
     const result = await client.query<ImportJob>(
@@ -373,7 +389,10 @@ async function insertEntity(
   const agencyId = getAgencyId();
   const userId = getUserId();
 
-  // Build INSERT from mapping
+  // Build INSERT from mapping. F-03: only allowlisted columns may be
+  // interpolated into SQL; system columns are skipped; anything else
+  // with a value throws ValidationError so the tenant transaction
+  // rolls back (fail closed, never silently write an unknown column).
   const columns: string[] = ['agency_id', 'created_by'];
   const values: unknown[] = [agencyId, userId];
 
@@ -381,8 +400,13 @@ async function insertEntity(
     const value = data[sourceCol];
     if (value === undefined || value === '') continue;
 
-    // Skip non-INSERTable fields
-    if (['id', 'created_at', 'updated_at', 'deleted_at'].includes(targetField)) continue;
+    if (SYSTEM_INSERT_SKIP.has(targetField)) continue;
+
+    if (!isAllowedImportField(entityType, targetField)) {
+      throw new ValidationError(
+        `Campo não permitido na importação de ${entityType}: ${targetField}`,
+      );
+    }
 
     columns.push(targetField);
     values.push(value);

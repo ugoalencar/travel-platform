@@ -51,8 +51,8 @@ cliente sem essa validação).
 ## Storage
 
 Reaproveita a mesma infraestrutura de arquivo já existente
-(`file-storage.ts` / `secure_file_key`, com adaptador Supabase já
-presente em `supabase-storage.ts`). Nenhum sistema de storage novo foi
+(`storage.ts` seleciona `file-storage.ts` ou `supabase-storage.ts` via
+`STORAGE_PROVIDER`, com `secure_file_key`). Nenhum sistema de storage novo foi
 criado. Upload valida tipo MIME/extensão contra o allowlist de imagem
 já usado por outras features de upload do produto.
 

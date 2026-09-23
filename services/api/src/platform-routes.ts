@@ -172,6 +172,16 @@ export function registerPlatformRoutes(
   database: PrismaClient,
   platformAuthHooks: any[]
 ): void {
+  // Default write gate (F-02): every mutating /platform/* route must call
+  // this (or requireCommercialWriteAccess, which includes it) before any
+  // write. Reads stay available to any authenticated platform principal.
+  // Deny-by-default: a new write route that forgets the gate fails the
+  // READ_ONLY_AUDITOR matrix test rather than shipping open.
+  const requirePlatformAdminWrite = requirePlatformRole(
+    PlatformUserRole.PLATFORM_OWNER,
+    PlatformUserRole.PLATFORM_ADMIN,
+  );
+
   // ==================== PLANS ====================
 
   // GET /platform/plans - List all plans
@@ -185,6 +195,7 @@ export function registerPlatformRoutes(
     '/platform/plans',
     { preHandler: platformAuthHooks },
     async (request) => {
+      requirePlatformAdminWrite(request);
       const plan = await createPlan(database, request.body);
       return { plan };
     }
@@ -208,6 +219,7 @@ export function registerPlatformRoutes(
     '/platform/plans/:id',
     { preHandler: platformAuthHooks },
     async (request) => {
+      requirePlatformAdminWrite(request);
       const plan = await updatePlan(database, request.params.id, request.body as any);
       return { plan };
     }
@@ -218,6 +230,7 @@ export function registerPlatformRoutes(
     '/platform/plans/:id',
     { preHandler: platformAuthHooks },
     async (request) => {
+      requirePlatformAdminWrite(request);
       const plan = await deletePlan(database, request.params.id);
       return { plan };
     }
@@ -236,6 +249,7 @@ export function registerPlatformRoutes(
     '/platform/subscriptions',
     { preHandler: platformAuthHooks },
     async (request) => {
+      requirePlatformAdminWrite(request);
       const subscription = await createSubscription(database, request.body);
       return { subscription };
     }
@@ -259,6 +273,7 @@ export function registerPlatformRoutes(
     '/platform/subscriptions/:id/status',
     { preHandler: platformAuthHooks },
     async (request) => {
+      requirePlatformAdminWrite(request);
       const subscription = await updateSubscriptionStatus(
         database,
         request.params.id,
@@ -281,6 +296,7 @@ export function registerPlatformRoutes(
     '/platform/leads',
     { preHandler: platformAuthHooks },
     async (request) => {
+      requirePlatformAdminWrite(request);
       const lead = await createLead(database, request.body);
       return { lead };
     }
@@ -304,6 +320,7 @@ export function registerPlatformRoutes(
     '/platform/leads/:id/status',
     { preHandler: platformAuthHooks },
     async (request) => {
+      requirePlatformAdminWrite(request);
       const lead = await updateLeadStatus(database, request.params.id, request.body.status);
       return { lead };
     }
@@ -322,6 +339,7 @@ export function registerPlatformRoutes(
     '/platform/subscribers',
     { preHandler: platformAuthHooks },
     async (request) => {
+      requirePlatformAdminWrite(request);
       const subscriber = await createSubscriberTenant(database, request.body as any);
       return { subscriber };
     }
@@ -409,6 +427,7 @@ export function registerPlatformRoutes(
     '/platform/settings',
     { preHandler: platformAuthHooks },
     async (request) => {
+      requirePlatformAdminWrite(request);
       const settings = await updateSettings(database, request.body as any);
       return { settings };
     }
@@ -419,6 +438,7 @@ export function registerPlatformRoutes(
     '/platform/settings',
     { preHandler: platformAuthHooks },
     async (request) => {
+      requirePlatformAdminWrite(request);
       const settings = await updateSettings(database, request.body as any);
       return { settings };
     }
@@ -437,6 +457,7 @@ export function registerPlatformRoutes(
     '/platform/support',
     { preHandler: platformAuthHooks },
     async (request) => {
+      requirePlatformAdminWrite(request);
       const supportCase = await createSupportCase(database, request.body as any);
       return { supportCase };
     }
@@ -460,6 +481,7 @@ export function registerPlatformRoutes(
     '/platform/support/:id',
     { preHandler: platformAuthHooks },
     async (request) => {
+      requirePlatformAdminWrite(request);
       const supportCase = await updateSupportCase(database, request.params.id, request.body as any);
       return { supportCase };
     }
@@ -483,7 +505,7 @@ export function registerPlatformRoutes(
     '/platform/feature-flags/:name/toggle',
     { preHandler: platformAuthHooks },
     async (request) => {
-      requirePlatformRole(PlatformUserRole.PLATFORM_OWNER, PlatformUserRole.PLATFORM_ADMIN)(request);
+      requirePlatformAdminWrite(request);
 
       if (typeof request.body?.enabled !== 'boolean') {
         throw new ValidationError('Body must include a boolean "enabled" field');
@@ -520,6 +542,7 @@ export function registerPlatformRoutes(
   app.post<{
     Body: { tenantId: string; reason: string; durationMinutes?: number; readOnly?: boolean };
   }>('/platform/support-sessions', { preHandler: platformAuthHooks }, async (request, reply) => {
+    requirePlatformAdminWrite(request);
     const supportUserId = (request as any).platformAuth?.sub;
     if (!supportUserId) {
       reply.code(401);
@@ -544,6 +567,7 @@ export function registerPlatformRoutes(
     '/platform/support-sessions/:id/end',
     { preHandler: platformAuthHooks },
     async (request, reply) => {
+      requirePlatformAdminWrite(request);
       try {
         const session = await endSupportSession(database, request.params.id);
         return { session };
@@ -565,7 +589,7 @@ export function registerPlatformRoutes(
   // (spec section 11). Every mutating action also writes one row to
   // platform_audit_logs via recordCommercialAudit (spec section 10).
   function requireCommercialWriteAccess(request: any): { actorId: string; actorEmail?: string; actorRole?: string } {
-    requirePlatformRole(PlatformUserRole.PLATFORM_OWNER, PlatformUserRole.PLATFORM_ADMIN)(request);
+    requirePlatformAdminWrite(request);
     const auth = request.platformAuth;
     if (!auth?.sub) throw new UnauthorizedError('Missing platform principal');
     return { actorId: auth.sub, actorEmail: auth.email, actorRole: auth.role };

@@ -77,7 +77,7 @@ import {
   validateFileType,
   isBlockedFileName,
 } from '../document-attachments';
-import { readFile as readStoredFile, saveFile } from '../file-storage';
+import { readFile as readStoredFile, saveFile } from '../storage';
 import {
   getExtraction,
   listExtractionsForDocument,

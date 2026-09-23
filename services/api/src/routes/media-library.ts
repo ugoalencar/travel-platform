@@ -21,7 +21,7 @@ import {
   listMediaAssets,
   updateMediaAsset,
 } from '../media-library';
-import { saveFile, readFile as readStoredFile } from '../file-storage';
+import { saveFile, readFile as readStoredFile } from '../storage';
 import { validateFileSize, isBlockedFileName, MAX_ATTACHMENT_BYTES } from '../document-attachments';
 import { NotFoundError, ValidationError } from '../errors';
 

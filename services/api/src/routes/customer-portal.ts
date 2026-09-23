@@ -34,7 +34,7 @@ import { listVisibleCommunications } from '../agency-communications';
 import { getTripPhotoById, listTripPhotos } from '../trip-photos';
 import { getMediaAssetById, isMediaAssetLinkedToEntity } from '../media-library';
 import { MediaAssetUsageContext } from '../../../../packages/domain/types';
-import { readFile as readStoredFile } from '../file-storage';
+import { readFile as readStoredFile } from '../storage';
 import type { DatabaseRuntime } from '../database';
 import {
   recordCommunicationCtaClicked,

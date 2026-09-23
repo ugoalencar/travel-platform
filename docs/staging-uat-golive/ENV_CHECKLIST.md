@@ -87,8 +87,10 @@
 
 | Variável | Descrição | Valor Staging | Status |
 |----------|-----------|---------------|--------|
-| `STORAGE_PROVIDER` | Storage provider | `LOCAL` ou `S3` | ⏳ |
-| `STORAGE_BUCKET` | S3 bucket name | *(se S3)* | ⏳ |
+| `STORAGE_PROVIDER` | Storage provider (`local` ou `supabase`) | `local` (com volume) ou `supabase` | ⏳ |
+| `UPLOADS_DIR` | Caminho do volume persistente (obrigatório se `local`) | *(se local)* | ⏳ |
+| `SUPABASE_URL` | URL do projeto Supabase (se `supabase`) | *(se supabase)* | ⏳ |
+| `SUPABASE_SERVICE_ROLE_KEY` | Chave service role Supabase (segredo backend) | *(se supabase)* | ⏳ |
 
 ### Rate Limiting
 

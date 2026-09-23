@@ -1,6 +1,6 @@
 import type { FastifyReply, FastifyRequest, HookHandlerDoneFunction } from 'fastify';
 import type { IncomingHttpHeaders } from 'node:http';
-import { UnauthorizedError } from '../../../packages/domain/tenant-context';
+import { ForbiddenError, UnauthorizedError } from '../../../packages/domain/tenant-context';
 import type { PlatformUserRole } from '../../../packages/domain/types';
 
 export interface PlatformAuthenticatedPrincipal {
@@ -53,10 +53,21 @@ export function createPlatformAuthenticateHook(authProvider: PlatformAuthProvide
   };
 }
 
+/**
+ * Authorization gate for platform routes. 401 (UnauthorizedError) only
+ * when no platform principal is attached at all; 403 (ForbiddenError)
+ * when the principal is authenticated but lacks one of the required
+ * roles -- matching HTTP semantics and the F-02 audit requirement that a
+ * READ_ONLY_AUDITOR (or any other low-privilege role) gets 403, not 401,
+ * on a write it is not allowed to perform.
+ */
 export function requirePlatformRole(...roles: PlatformUserRole[]) {
   return (request: FastifyRequest) => {
-    if (!request.platformAuth || !roles.includes(request.platformAuth.role)) {
-      throw new UnauthorizedError('Insufficient platform role');
+    if (!request.platformAuth) {
+      throw new UnauthorizedError('Platform authentication required');
+    }
+    if (!roles.includes(request.platformAuth.role)) {
+      throw new ForbiddenError('Insufficient platform role');
     }
   };
 }

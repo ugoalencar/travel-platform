@@ -258,7 +258,6 @@ function isAliasFor(normalizedHeader: string, field: string): boolean {
     notes: ['observacoes', 'observação', 'obs', 'comments', 'notas', 'anotacoes'],
     trade_name: ['nomed fantasia', 'fantasia', 'trading name', 'tradingname'],
     category: ['categoria', 'type', 'tipo', 'classification'],
-    role: ['funcao', 'função', 'cargo', 'position', 'job title'],
   };
 
   const fieldAliases = aliases[field] ?? [];

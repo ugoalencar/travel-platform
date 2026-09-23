@@ -23,17 +23,20 @@ describe('validateProductionEnvironment', () => {
     ).toThrow(/DATABASE_URL is required/);
   });
 
+  const validProductionBase = {
+    NODE_ENV: 'production',
+    DATABASE_URL:
+      'postgresql://app_runtime:example-not-a-real-password@db.internal:5432/travel_platform',
+    PORT: '3000',
+    RATE_LIMIT_STORE: 'external',
+    REDIS_URL: 'redis://redis.internal:6379',
+    STORAGE_PROVIDER: 'supabase',
+    SUPABASE_URL: 'https://example.supabase.co',
+    SUPABASE_SERVICE_ROLE_KEY: 'example-service-role-key-not-a-real-secret',
+  };
+
   it('accepts a well-formed production environment', () => {
-    expect(() =>
-      validateProductionEnvironment({
-        NODE_ENV: 'production',
-        DATABASE_URL:
-          'postgresql://app_runtime:example-not-a-real-password@db.internal:5432/travel_platform',
-        PORT: '3000',
-        RATE_LIMIT_STORE: 'external',
-        REDIS_URL: 'redis://redis.internal:6379',
-      })
-    ).not.toThrow();
+    expect(() => validateProductionEnvironment(validProductionBase)).not.toThrow();
   });
 
   it('refuses the process-local rate-limit store in production', () => {
@@ -110,12 +113,8 @@ describe('validateProductionEnvironment', () => {
   it('allows ALLOW_DEV_AUTH=false in production (only the literal "true" flag is prohibited)', () => {
     expect(() =>
       validateProductionEnvironment({
-        NODE_ENV: 'production',
-        DATABASE_URL:
-          'postgresql://app_runtime:example-not-a-real-password@db.internal:5432/travel_platform',
+        ...validProductionBase,
         ALLOW_DEV_AUTH: 'false',
-        RATE_LIMIT_STORE: 'external',
-        REDIS_URL: 'redis://redis.internal:6379',
       })
     ).not.toThrow();
   });
@@ -133,7 +132,73 @@ describe('validateProductionEnvironment', () => {
       expect(message).toMatch(/DATABASE_URL is required/);
       expect(message).toMatch(/PORT must be a valid/);
       expect(message).toMatch(/ALLOW_DEV_AUTH must not be "true"/);
+      expect(message).toMatch(/STORAGE_PROVIDER is required/);
     }
+  });
+
+  // F-05: production must never boot with an implicit/unconfigured object
+  // store -- customer documents would silently land on the container's
+  // ephemeral disk and vanish on redeploy.
+  it('refuses production boot when STORAGE_PROVIDER is missing', () => {
+    expect(() =>
+      validateProductionEnvironment({
+        NODE_ENV: 'production',
+        DATABASE_URL:
+          'postgresql://app_runtime:example-not-a-real-password@db.internal:5432/travel_platform',
+        RATE_LIMIT_STORE: 'external',
+        REDIS_URL: 'redis://redis.internal:6379',
+      })
+    ).toThrow(/STORAGE_PROVIDER is required/);
+  });
+
+  it('refuses an unknown STORAGE_PROVIDER value in production', () => {
+    expect(() =>
+      validateProductionEnvironment({
+        ...validProductionBase,
+        STORAGE_PROVIDER: 's3',
+      })
+    ).toThrow(/STORAGE_PROVIDER must be "local" or "supabase"/);
+  });
+
+  it('requires UPLOADS_DIR when STORAGE_PROVIDER is local in production (explicit volume path)', () => {
+    expect(() =>
+      validateProductionEnvironment({
+        ...validProductionBase,
+        STORAGE_PROVIDER: 'local',
+        UPLOADS_DIR: undefined,
+      })
+    ).toThrow(/UPLOADS_DIR is required in production when STORAGE_PROVIDER is "local"/);
+
+    expect(() =>
+      validateProductionEnvironment({
+        ...validProductionBase,
+        STORAGE_PROVIDER: 'local',
+        UPLOADS_DIR: '/var/data/uploads',
+      })
+    ).not.toThrow();
+  });
+
+  it('requires Supabase credentials when STORAGE_PROVIDER is supabase in production', () => {
+    expect(() =>
+      validateProductionEnvironment({
+        ...validProductionBase,
+        SUPABASE_URL: undefined,
+      })
+    ).toThrow(/SUPABASE_URL is required/);
+
+    expect(() =>
+      validateProductionEnvironment({
+        ...validProductionBase,
+        SUPABASE_SERVICE_ROLE_KEY: undefined,
+      })
+    ).toThrow(/SUPABASE_SERVICE_ROLE_KEY is required/);
+  });
+
+  it('does not require STORAGE_PROVIDER outside production', () => {
+    expect(() => validateProductionEnvironment({ NODE_ENV: 'development' })).not.toThrow();
+    expect(() =>
+      validateProductionEnvironment({ NODE_ENV: 'test', DATABASE_URL: 'postgresql://x' })
+    ).not.toThrow();
   });
 });
 

@@ -621,3 +621,94 @@ export async function previewSegment(
 ): Promise<SegmentRunResult> {
   return database.withTenantTransaction((client) => runFilterDefinition(client, filterDefinition, pagination));
 }
+
+// ============================================================
+// CUSTOMER MEMBERSHIP (F-04) -- fail-closed segment eligibility for
+// the customer portal (offers / communications). Reuses the same
+// buildGroupSql engine as runFilterDefinition; never builds ad-hoc SQL
+// and never duplicates the DSL. Errors DENY membership (fail closed).
+// ============================================================
+
+/**
+ * Evaluate whether the given customer matches a single filter_definition
+ * against the live customers table. Any validation or SQL error returns
+ * false -- a broken segment must never leak content to a non-member.
+ */
+async function customerMatchesFilter(
+  client: TenantTransactionClient,
+  filterDefinition: unknown,
+  customerId: string,
+): Promise<boolean> {
+  try {
+    const validated = validateFilterDefinition(filterDefinition);
+    const agencyId = getAgencyId();
+    const ctx: SqlBuildContext = { values: [agencyId] };
+    const whereSql = buildGroupSql(validated, ctx);
+    const result = await client.query<{ match: boolean }>(
+      `SELECT EXISTS (
+         SELECT 1 FROM customers c
+         WHERE c.agency_id = $1 AND c.deleted_at IS NULL
+           AND c.id = $2
+           AND (${whereSql})
+       ) AS match`,
+      [...ctx.values.slice(0, 1), customerId, ...ctx.values.slice(1)],
+    );
+    return result.rows[0]?.match === true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * F-04: ids of every non-archived, non-archived segment this customer
+ * actually belongs to (evaluated live). Used to filter segment-targeted
+ * offers/communications. Fail closed: unreadable/invalid segments are
+ * simply not returned, so targeted content for them stays hidden.
+ */
+export async function computeEligibleSegmentIds(
+  client: TenantTransactionClient,
+  customerId: string,
+): Promise<string[]> {
+  const agencyId = getAgencyId();
+  const segments = await client.query<{ id: string; filter_definition: unknown }>(
+    `SELECT id, filter_definition
+     FROM customer_segments
+     WHERE agency_id = $1
+       AND archived_at IS NULL
+       AND filter_definition IS NOT NULL`,
+    [agencyId],
+  );
+
+  const eligible: string[] = [];
+  for (const segment of segments.rows) {
+    if (await customerMatchesFilter(client, segment.filter_definition, customerId)) {
+      eligible.push(segment.id);
+    }
+  }
+  return eligible;
+}
+
+/**
+ * F-04: true only if the segment exists, is active, has a valid
+ * filter_definition, AND this customer matches it live. Fail closed on
+ * every error path (unknown id, archived segment, invalid definition,
+ * SQL failure).
+ */
+export async function isCustomerInSegment(
+  client: TenantTransactionClient,
+  segmentId: string,
+  customerId: string,
+): Promise<boolean> {
+  const agencyId = getAgencyId();
+  const segment = await client.query<{ filter_definition: unknown }>(
+    `SELECT filter_definition
+     FROM customer_segments
+     WHERE agency_id = $1 AND id = $2
+       AND archived_at IS NULL
+       AND filter_definition IS NOT NULL`,
+    [agencyId, segmentId],
+  );
+  const row = segment.rows[0];
+  if (!row) return false;
+  return customerMatchesFilter(client, row.filter_definition, customerId);
+}

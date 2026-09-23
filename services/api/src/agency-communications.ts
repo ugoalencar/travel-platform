@@ -6,8 +6,9 @@
  * Tenant-scoped: todas as operações usam getAgencyId().
  */
 
-import { getAgencyId } from '../../../packages/domain/tenant-context';
+import { getAgencyId, getCustomerId } from '../../../packages/domain/tenant-context';
 import { assertMediaAssetOwnedByTenantOnClient } from './media-library';
+import { computeEligibleSegmentIds, isCustomerInSegment } from './customer-segmentation';
 import type { DatabaseRuntime } from './database';
 import { ValidationError, NotFoundError } from './errors';
 
@@ -321,6 +322,7 @@ export async function listVisibleCommunications(
   placement: CommunicationPlacement,
 ): Promise<AgencyCommunication[]> {
   const agencyId = getAgencyId();
+  const customerId = getCustomerId();
 
   return database.withTenantTransaction(async (client) => {
     const result = await client.query<CommunicationRow>(
@@ -330,11 +332,19 @@ export async function listVisibleCommunications(
          AND status = 'ACTIVE'
          AND (visible_from IS NULL OR visible_from <= now())
          AND (visible_until IS NULL OR visible_until >= now())
-         AND (target_segment_id IS NULL)
        ORDER BY display_priority DESC, created_at DESC`,
       [agencyId, placement],
     );
-    return result.rows.map(toCommunication);
+
+    // F-04: NULL target = visible to all; otherwise only to members of
+    // that segment (evaluated live, fail closed).
+    const eligibleSegmentIds = new Set(await computeEligibleSegmentIds(client, customerId));
+    return result.rows
+      .filter(
+        (row) =>
+          row.target_segment_id === null || eligibleSegmentIds.has(row.target_segment_id),
+      )
+      .map(toCommunication);
   });
 }
 
@@ -347,6 +357,7 @@ export async function getVisibleCommunicationById(
   id: string,
 ): Promise<AgencyCommunication | null> {
   const agencyId = getAgencyId();
+  const customerId = getCustomerId();
 
   return database.withTenantTransaction(async (client) => {
     const result = await client.query<CommunicationRow>(
@@ -359,7 +370,16 @@ export async function getVisibleCommunicationById(
       [agencyId, id],
     );
     const row = result.rows[0];
-    return row ? toCommunication(row) : null;
+    if (!row) return null;
+
+    // F-04: a segment-targeted communication is only visible to members
+    // of that segment (fail closed).
+    if (row.target_segment_id !== null) {
+      const isMember = await isCustomerInSegment(client, row.target_segment_id, customerId);
+      if (!isMember) return null;
+    }
+
+    return toCommunication(row);
   });
 }
 

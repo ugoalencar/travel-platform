@@ -160,11 +160,12 @@ export const SUPPLIER_FIELDS: EntityFieldSchema[] = [
 /**
  * Employee fields — derived from the real users table.
  * See 061_local_password_auth.sql and users table.
+ * SECURITY (F-03): `role` is intentionally NOT importable — an import
+ * must never grant or escalate privileges.
  */
 export const EMPLOYEE_FIELDS: EntityFieldSchema[] = [
   { field: 'name', label: 'Nome', type: 'string', required: true, maxLength: 255 },
   { field: 'email', label: 'E-mail', type: 'email', required: true, unique: true },
-  { field: 'role', label: 'Função', type: 'string', required: false },
 ];
 
 /**

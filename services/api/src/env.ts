@@ -61,12 +61,14 @@ export function validateProductionEnvironment(environment: ServerEnvironment = p
   }
 
   // PROHIBITED PRODUCTION FLAG: ALLOW_DEV_AUTH must never be active in
-  // production. dev-auth.ts's isDevAuthEnabled() already refuses to honor
-  // it when NODE_ENV === 'production' (a second, independent gate), but a
-  // production deploy that has the flag set at all is itself a
-  // misconfiguration worth failing loudly on rather than silently ignoring
-  // -- it signals the deploy environment was copied from a dev/staging
-  // template without being cleaned up.
+  // production. Staff (dev-auth.ts isDevAuthEnabled), customer, and
+  // platform (platform-dev-auth.ts isPlatformDevAuthEnabled) dev auth all
+  // refuse to honor it when NODE_ENV === 'production' (a second,
+  // independent gate), but a production deploy that has the flag set at
+  // all is itself a misconfiguration worth failing loudly on rather than
+  // silently ignoring -- it signals the deploy environment was copied from
+  // a dev/staging template without being cleaned up. Fail closed if the
+  // flag could enable any dev-auth path in this process.
   if (environment.ALLOW_DEV_AUTH === 'true') {
     issues.push(
       'ALLOW_DEV_AUTH must not be "true" in production (dev auth is a development/test-only bypass).'
@@ -82,6 +84,39 @@ export function validateProductionEnvironment(environment: ServerEnvironment = p
   // When external store is configured, Redis connection must be available
   if (environment.RATE_LIMIT_STORE === 'external' && !isNonEmptyString(environment.REDIS_URL)) {
     issues.push('REDIS_URL is required in production when RATE_LIMIT_STORE is "external".');
+  }
+
+  // F-05: object storage must be configured explicitly in production.
+  // Silent defaulting to local disk inside an ephemeral container loses
+  // customer documents on every redeploy, so this fails closed instead.
+  const storageProvider = environment.STORAGE_PROVIDER?.trim().toLowerCase();
+  if (storageProvider === undefined || storageProvider === '') {
+    issues.push(
+      'STORAGE_PROVIDER is required in production and must be "local" or "supabase".'
+    );
+  } else if (storageProvider === 'local') {
+    // Local disk is only safe behind a declared volume mount. Require an
+    // explicit UPLOADS_DIR so operators cannot silently fall through to
+    // ./uploads on the container's ephemeral filesystem.
+    if (!isNonEmptyString(environment.UPLOADS_DIR)) {
+      issues.push(
+        'UPLOADS_DIR is required in production when STORAGE_PROVIDER is "local" ' +
+          '(declare the persistent volume mount path; the default ./uploads is ephemeral).'
+      );
+    }
+  } else if (storageProvider === 'supabase') {
+    if (!isNonEmptyString(environment.SUPABASE_URL)) {
+      issues.push('SUPABASE_URL is required in production when STORAGE_PROVIDER is "supabase".');
+    }
+    if (!isNonEmptyString(environment.SUPABASE_SERVICE_ROLE_KEY)) {
+      issues.push(
+        'SUPABASE_SERVICE_ROLE_KEY is required in production when STORAGE_PROVIDER is "supabase".'
+      );
+    }
+  } else {
+    issues.push(
+      `STORAGE_PROVIDER must be "local" or "supabase" in production; got "${environment.STORAGE_PROVIDER}".`
+    );
   }
 
   if (issues.length > 0) {
