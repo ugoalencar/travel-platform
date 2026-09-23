@@ -25,6 +25,7 @@ export interface AgencyCommunication {
   title: string;
   body?: string;
   imageUrl?: string;
+  coverMediaAssetId?: string;
   ctaLabel?: string;
   ctaUrl?: string;
   placement: CommunicationPlacement;
@@ -45,6 +46,7 @@ interface CommunicationRow {
   title: string;
   body: string | null;
   image_url: string | null;
+  cover_media_asset_id: string | null;
   cta_label: string | null;
   cta_url: string | null;
   placement: CommunicationPlacement;
@@ -58,8 +60,8 @@ interface CommunicationRow {
   updated_at: string;
 }
 
-const COMMUNICATION_COLUMNS = `id, agency_id, type, title, body, image_url, cta_label, cta_url,
-  placement, display_priority, target_segment_id, visible_from, visible_until,
+const COMMUNICATION_COLUMNS = `id, agency_id, type, title, body, image_url, cover_media_asset_id,
+  cta_label, cta_url, placement, display_priority, target_segment_id, visible_from, visible_until,
   status, created_by, created_at, updated_at`;
 
 const VALID_COMMUNICATION_TYPES = ['OFFER', 'NOTICE', 'CAMPAIGN', 'INFORMATION'] as const;
@@ -75,6 +77,7 @@ export interface CreateCommunicationInput {
   title: string;
   body?: string;
   imageUrl?: string | null;
+  coverMediaAssetId?: string | null;
   ctaLabel?: string;
   ctaUrl?: string;
   placement?: CommunicationPlacement;
@@ -89,6 +92,7 @@ export interface UpdateCommunicationInput {
   title?: string;
   body?: string;
   imageUrl?: string | null;
+  coverMediaAssetId?: string | null;
   ctaLabel?: string;
   ctaUrl?: string;
   placement?: CommunicationPlacement;
@@ -126,10 +130,10 @@ export async function createCommunication(
   return database.withTenantTransaction(async (client) => {
     const result = await client.query<CommunicationRow>(
       `INSERT INTO agency_communications
-        (agency_id, type, title, body, image_url, cta_label, cta_url,
+        (agency_id, type, title, body, image_url, cover_media_asset_id, cta_label, cta_url,
          placement, display_priority, target_segment_id, visible_from, visible_until,
          status, created_by)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'DRAFT', $13)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, 'DRAFT', $14)
        RETURNING ${COMMUNICATION_COLUMNS}`,
       [
         agencyId,
@@ -137,6 +141,7 @@ export async function createCommunication(
         input.title.trim(),
         input.body ?? null,
         input.imageUrl ?? null,
+        input.coverMediaAssetId ?? null,
         input.ctaLabel ?? null,
         input.ctaUrl ?? null,
         input.placement ?? 'CUSTOMER_APP_HOME',
@@ -178,6 +183,7 @@ export async function updateCommunication(
   if (input.title !== undefined) { fields.push(`title = $${++index}`); values.push(input.title.trim()); }
   if (input.body !== undefined) { fields.push(`body = $${++index}`); values.push(input.body); }
   if (input.imageUrl !== undefined) { fields.push(`image_url = $${++index}`); values.push(input.imageUrl); }
+  if (input.coverMediaAssetId !== undefined) { fields.push(`cover_media_asset_id = $${++index}`); values.push(input.coverMediaAssetId); }
   if (input.ctaLabel !== undefined) { fields.push(`cta_label = $${++index}`); values.push(input.ctaLabel); }
   if (input.ctaUrl !== undefined) { fields.push(`cta_url = $${++index}`); values.push(input.ctaUrl); }
   if (input.placement !== undefined) { fields.push(`placement = $${++index}`); values.push(input.placement); }
@@ -368,6 +374,7 @@ function toCommunication(row: CommunicationRow): AgencyCommunication {
     updatedAt: new Date(row.updated_at),
     ...(row.body !== null ? { body: row.body } : {}),
     ...(row.image_url !== null ? { imageUrl: row.image_url } : {}),
+    ...(row.cover_media_asset_id !== null ? { coverMediaAssetId: row.cover_media_asset_id } : {}),
     ...(row.cta_label !== null ? { ctaLabel: row.cta_label } : {}),
     ...(row.cta_url !== null ? { ctaUrl: row.cta_url } : {}),
     ...(row.target_segment_id !== null ? { targetSegmentId: row.target_segment_id } : {}),

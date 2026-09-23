@@ -15,7 +15,8 @@ import {
   type CreateCommunicationInput,
   type UpdateCommunicationInput,
 } from '../lib/api';
-import type { AgencyCommunication } from '../lib/api';
+import type { AgencyCommunication, MediaAsset } from '../lib/api';
+import { MediaAssetPicker } from '../components/media/MediaAssetPicker';
 
 const TYPE_OPTIONS: { value: AgencyCommunication['type']; label: string }[] = [
   { value: 'OFFER', label: 'Oferta' },
@@ -37,6 +38,7 @@ type FormData = {
   title: string;
   body: string;
   imageUrl: string;
+  coverMediaAssetId: string;
   ctaLabel: string;
   ctaUrl: string;
   placement: AgencyCommunication['placement'];
@@ -52,6 +54,7 @@ const emptyForm: FormData = {
   title: '',
   body: '',
   imageUrl: '',
+  coverMediaAssetId: '',
   ctaLabel: '',
   ctaUrl: '',
   placement: 'CUSTOMER_APP_HOME',
@@ -70,6 +73,7 @@ export function CommunicationFormPage() {
   const [loading, setLoading] = useState(isEdit);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [coverPickerOpen, setCoverPickerOpen] = useState(false);
 
   useEffect(() => {
     if (!isEdit || !id) return;
@@ -82,6 +86,7 @@ export function CommunicationFormPage() {
           title: comm.title,
           body: comm.body ?? '',
           imageUrl: comm.imageUrl ?? '',
+          coverMediaAssetId: comm.coverMediaAssetId ?? '',
           ctaLabel: comm.ctaLabel ?? '',
           ctaUrl: comm.ctaUrl ?? '',
           placement: comm.placement,
@@ -117,6 +122,7 @@ export function CommunicationFormPage() {
     try {
       const trimmedBody = form.body.trim();
       const trimmedImage = form.imageUrl.trim();
+      const trimmedCoverAsset = form.coverMediaAssetId.trim();
       const trimmedCtaLabel = form.ctaLabel.trim();
       const trimmedCtaUrl = form.ctaUrl.trim();
       const trimmedSegment = form.targetSegmentId.trim();
@@ -130,6 +136,7 @@ export function CommunicationFormPage() {
           status: form.status,
           ...(trimmedBody ? { body: trimmedBody } : {}),
           ...(trimmedImage ? { imageUrl: trimmedImage } : {}),
+          ...(trimmedCoverAsset ? { coverMediaAssetId: trimmedCoverAsset } : {}),
           ...(trimmedCtaLabel ? { ctaLabel: trimmedCtaLabel } : {}),
           ...(trimmedCtaUrl ? { ctaUrl: trimmedCtaUrl } : {}),
           ...(trimmedSegment ? { targetSegmentId: trimmedSegment } : {}),
@@ -146,6 +153,7 @@ export function CommunicationFormPage() {
           displayPriority: form.displayPriority,
           ...(trimmedBody ? { body: trimmedBody } : {}),
           ...(trimmedImage ? { imageUrl: trimmedImage } : {}),
+          ...(trimmedCoverAsset ? { coverMediaAssetId: trimmedCoverAsset } : {}),
           ...(trimmedCtaLabel ? { ctaLabel: trimmedCtaLabel } : {}),
           ...(trimmedCtaUrl ? { ctaUrl: trimmedCtaUrl } : {}),
           ...(trimmedSegment ? { targetSegmentId: trimmedSegment } : {}),
@@ -239,7 +247,20 @@ export function CommunicationFormPage() {
             </label>
 
             <label className="flex flex-col gap-1.5">
-              <span className="text-sm font-medium text-slate-700">URL da Imagem</span>
+              <span className="text-sm font-medium text-slate-700">Imagem de capa</span>
+              <span className="text-xs text-slate-500">
+                Selecione uma imagem da Biblioteca de Mídia (administrada pelo Marketing).
+              </span>
+              <Button type="button" variant="outline" className="w-fit" onClick={() => setCoverPickerOpen(true)}>
+                {form.coverMediaAssetId ? 'Trocar imagem selecionada' : 'Selecionar da biblioteca'}
+              </Button>
+              {form.coverMediaAssetId && (
+                <span className="text-xs text-green-700">Imagem selecionada da biblioteca.</span>
+              )}
+            </label>
+
+            <label className="flex flex-col gap-1.5">
+              <span className="text-sm font-medium text-slate-700">URL da Imagem (alternativa manual)</span>
               <Input
                 value={form.imageUrl}
                 onChange={(e) => update('imageUrl', e.target.value)}
@@ -342,6 +363,14 @@ export function CommunicationFormPage() {
           </Button>
         </div>
       </form>
+
+      <MediaAssetPicker
+        open={coverPickerOpen}
+        onClose={() => setCoverPickerOpen(false)}
+        onSelect={(asset: MediaAsset) => {
+          update('coverMediaAssetId', asset.id);
+        }}
+      />
     </div>
   );
 }

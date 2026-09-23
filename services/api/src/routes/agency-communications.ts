@@ -107,6 +107,7 @@ export function registerAgencyCommunicationsRoutes(
       title: body.title,
       ...(bodyRecord.body !== undefined ? { body: bodyRecord.body } : {}),
       ...(bodyRecord.imageUrl !== undefined ? { imageUrl: bodyRecord.imageUrl } : {}),
+      ...(bodyRecord.coverMediaAssetId !== undefined ? { coverMediaAssetId: bodyRecord.coverMediaAssetId } : {}),
       ...(bodyRecord.ctaLabel !== undefined ? { ctaLabel: bodyRecord.ctaLabel } : {}),
       ...(bodyRecord.ctaUrl !== undefined ? { ctaUrl: bodyRecord.ctaUrl } : {}),
       ...(bodyRecord.placement !== undefined ? { placement: bodyRecord.placement as CommunicationPlacement } : {}),
@@ -140,6 +141,7 @@ export function registerAgencyCommunicationsRoutes(
       if (body.title !== undefined) input.title = body.title;
       if (body.body !== undefined) input.body = body.body;
       if (body.imageUrl !== undefined) input.imageUrl = body.imageUrl;
+      if (body.coverMediaAssetId !== undefined) input.coverMediaAssetId = body.coverMediaAssetId;
       if (body.ctaLabel !== undefined) input.ctaLabel = body.ctaLabel;
       if (body.ctaUrl !== undefined) input.ctaUrl = body.ctaUrl;
       if (body.placement !== undefined) input.placement = body.placement;

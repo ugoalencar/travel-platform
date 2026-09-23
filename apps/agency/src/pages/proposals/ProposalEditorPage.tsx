@@ -13,25 +13,27 @@ import {
   createProposalItem,
   createProposalSection,
   deleteProposalItem,
-  deleteProposalMedia,
   deleteProposalSection,
   getProposal,
+  linkMediaAssetToProposal,
   listProposalItems,
   listProposalMedia,
   listProposalSections,
-  loadProposalMediaBlobUrl,
+  loadMediaAssetBlobUrl,
+  unlinkProposalMedia,
   updateProposal,
   updateProposalItem,
   updateProposalSection,
-  uploadProposalMedia,
+  type EntityMediaItem,
+  type MediaAsset,
   type Proposal,
   type ProposalItem,
   type ProposalItemType,
-  type ProposalMedia,
   type ProposalSection,
   type ProposalSectionType,
 } from '../../lib/api';
 import { ProposalVisualPreview } from './ProposalVisualPreview';
+import { MediaAssetPicker } from '../../components/media/MediaAssetPicker';
 
 const SECTION_TYPE_LABELS: Record<ProposalSectionType, string> = {
   OVERVIEW: 'Resumo',
@@ -71,7 +73,7 @@ export function ProposalEditorPage() {
   const [proposal, setProposal] = useState<Proposal | null>(null);
   const [sections, setSections] = useState<ProposalSection[]>([]);
   const [itemsBySection, setItemsBySection] = useState<Record<string, ProposalItem[]>>({});
-  const [media, setMedia] = useState<ProposalMedia[]>([]);
+  const [media, setMedia] = useState<EntityMediaItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -599,26 +601,20 @@ function MediaTab({
 }: {
   proposalId: string;
   editable: boolean;
-  media: ProposalMedia[];
+  media: EntityMediaItem[];
   onReload: () => Promise<void>;
 }) {
-  const [uploading, setUploading] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploading(true);
+  async function handleSelectFromLibrary(asset: MediaAsset) {
     setError(null);
     try {
-      const isCover = media.length === 0;
-      await uploadProposalMedia(proposalId, file, { isCover });
+      const usage = media.length === 0 ? 'COVER' : 'GALLERY';
+      await linkMediaAssetToProposal(proposalId, asset.id, usage);
       await onReload();
     } catch (err: unknown) {
-      setError(err instanceof ApiError ? err.message : 'Não foi possível enviar a imagem.');
-    } finally {
-      setUploading(false);
-      e.target.value = '';
+      setError(err instanceof ApiError ? err.message : 'Não foi possível vincular a imagem.');
     }
   }
 
@@ -628,21 +624,26 @@ function MediaTab({
         <CardTitle>Capa e galeria</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        <p className="text-sm text-slate-500">
+          As imagens da proposta vêm da Biblioteca de Mídia, administrada pelo Marketing. Selecione uma
+          imagem já existente ou envie uma nova -- ela entrará na biblioteca e ficará disponível para
+          reuso em outras propostas, ofertas e comunicações.
+        </p>
         {error && <p className="text-sm text-destructive">{error}</p>}
         {editable && (
-          <label className="flex w-fit cursor-pointer items-center gap-2 rounded-md border border-dashed border-slate-300 px-4 py-3 text-sm text-slate-600 hover:bg-slate-50">
+          <Button type="button" variant="outline" onClick={() => setPickerOpen(true)} className="gap-2">
             <ImagePlus className="h-4 w-4" />
-            {uploading ? 'Enviando…' : 'Adicionar imagem'}
-            <input type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={(e) => void handleFileChange(e)} disabled={uploading} />
-          </label>
+            Selecionar da biblioteca
+          </Button>
         )}
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {media.map((item) => (
-            <MediaThumb key={item.id} media={item} editable={editable} onReload={onReload} />
+            <MediaThumb key={item.linkId} media={item} editable={editable} onReload={onReload} />
           ))}
         </div>
-        {media.length === 0 && <p className="text-sm text-slate-500">Nenhuma imagem adicionada ainda.</p>}
+        {media.length === 0 && <p className="text-sm text-slate-500">Nenhuma imagem selecionada ainda.</p>}
       </CardContent>
+      <MediaAssetPicker open={pickerOpen} onClose={() => setPickerOpen(false)} onSelect={handleSelectFromLibrary} />
     </Card>
   );
 }
@@ -652,7 +653,7 @@ function MediaThumb({
   editable,
   onReload,
 }: {
-  media: ProposalMedia;
+  media: EntityMediaItem;
   editable: boolean;
   onReload: () => Promise<void>;
 }) {
@@ -660,31 +661,31 @@ function MediaThumb({
 
   useEffect(() => {
     let cancelled = false;
-    loadProposalMediaBlobUrl(media.id)
-      .then((url) => {
+    loadMediaAssetBlobUrl(media.mediaAssetId)
+      .then((url: string) => {
         if (!cancelled) setBlobUrl(url);
       })
       .catch(() => undefined);
     return () => {
       cancelled = true;
     };
-  }, [media.id]);
+  }, [media.mediaAssetId]);
 
   return (
     <div className="relative overflow-hidden rounded-lg border border-slate-200">
       {blobUrl ? (
-        <img src={blobUrl} alt={media.caption ?? ''} className="h-24 w-full object-cover" />
+        <img src={blobUrl} alt={media.altText ?? ''} className="h-24 w-full object-cover" />
       ) : (
         <div className="h-24 w-full animate-pulse bg-slate-100" />
       )}
-      {media.isCover && (
+      {media.usage === 'COVER' && (
         <span className="absolute left-1 top-1 rounded bg-blue-600 px-1.5 py-0.5 text-[10px] font-semibold text-white">Capa</span>
       )}
       {editable && (
         <button
           type="button"
           onClick={() => {
-            void deleteProposalMedia(media.id).then(onReload);
+            void unlinkProposalMedia(media.linkId).then(onReload);
           }}
           className="absolute right-1 top-1 rounded bg-white/90 p-1 text-red-600 shadow hover:bg-white"
         >

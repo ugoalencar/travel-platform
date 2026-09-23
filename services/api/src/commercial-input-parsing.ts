@@ -31,6 +31,7 @@ const ALLOWED_OFFER_CREATE_FIELDS = [
   'targetSegmentId',
   'displayPriority',
   'imageUrl',
+  'coverMediaAssetId',
 ] as const;
 
 const FORBIDDEN_OFFER_UPDATE_FIELDS = [
@@ -53,6 +54,7 @@ const ALLOWED_OFFER_UPDATE_FIELDS = [
   'targetSegmentId',
   'displayPriority',
   'imageUrl',
+  'coverMediaAssetId',
 ] as const;
 
 const VALID_OFFER_STATUS_VALUES = ['ACTIVE', 'INACTIVE', 'EXPIRED'] as const;
@@ -153,6 +155,12 @@ export function parseCreateOfferInput(body: unknown): CreateOfferInput {
     }
     data.imageUrl = record.imageUrl;
   }
+  if (record.coverMediaAssetId !== undefined) {
+    if (record.coverMediaAssetId !== null && typeof record.coverMediaAssetId !== 'string') {
+      throw new ValidationError('Field "coverMediaAssetId" must be a string or null');
+    }
+    data.coverMediaAssetId = record.coverMediaAssetId;
+  }
 
   return data;
 }
@@ -237,6 +245,12 @@ export function parseUpdateOfferInput(body: unknown): UpdateOfferInput {
       throw new ValidationError('Field "imageUrl" must be a string or null');
     }
     data.imageUrl = record.imageUrl;
+  }
+  if (record.coverMediaAssetId !== undefined) {
+    if (record.coverMediaAssetId !== null && typeof record.coverMediaAssetId !== 'string') {
+      throw new ValidationError('Field "coverMediaAssetId" must be a string or null');
+    }
+    data.coverMediaAssetId = record.coverMediaAssetId;
   }
 
   if (Object.keys(data).length === 0) {

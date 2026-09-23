@@ -141,8 +141,10 @@ export interface Offer {
   targetSegmentId?: string;
   /** Prioridade de exibição (maior = primeiro) */
   displayPriority: number;
-  /** URL da imagem para exibição */
+  /** URL da imagem para exibição (fallback manual -- ver coverMediaAssetId) */
   imageUrl?: string;
+  /** Asset da Media Library selecionado como capa; tem precedência sobre imageUrl quando presente */
+  coverMediaAssetId?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -236,16 +238,64 @@ export interface ProposalItem {
   updatedAt: Date;
 }
 
-export interface ProposalMedia {
+// ============================================================
+// Media Library -- central, agency-owned asset library. Supersedes
+// Proposal Visual 2.0's ProposalMedia (which was per-proposal-only).
+// See docs/product/MEDIA_LIBRARY.md.
+// ============================================================
+
+export enum MediaAssetType {
+  IMAGE = 'IMAGE',
+}
+
+export enum MediaAssetStatus {
+  ACTIVE = 'ACTIVE',
+  ARCHIVED = 'ARCHIVED',
+}
+
+export enum MediaAssetSource {
+  UPLOAD = 'UPLOAD',
+}
+
+export enum MediaAssetUsageContext {
+  OFFER = 'OFFER',
+  PROPOSAL = 'PROPOSAL',
+  COMMUNICATION = 'COMMUNICATION',
+}
+
+export enum MediaAssetUsageKind {
+  COVER = 'COVER',
+  GALLERY = 'GALLERY',
+}
+
+export interface MediaAsset {
   id: string;
   agencyId: string;
-  proposalId: string;
-  secureFileKey: string;
-  fileName: string;
-  fileMimeType: string;
+  title: string;
+  description?: string;
+  assetType: MediaAssetType;
+  mimeType: string;
   fileSizeBytes: number;
-  caption?: string;
-  isCover: boolean;
+  secureFileKey: string;
+  width?: number;
+  height?: number;
+  altText?: string;
+  tags: string[];
+  status: MediaAssetStatus;
+  source: MediaAssetSource;
+  createdBy?: string;
+  createdAt: Date;
+  updatedAt: Date;
+  archivedAt?: Date;
+}
+
+export interface MediaAssetLink {
+  id: string;
+  agencyId: string;
+  mediaAssetId: string;
+  entityType: MediaAssetUsageContext;
+  entityId: string;
+  usage: MediaAssetUsageKind;
   sortOrder: number;
   createdAt: Date;
 }

@@ -642,14 +642,16 @@ export async function getMyProposalDetailById(
     );
 
     const mediaResult = await client.query<{
-      id: string;
+      media_asset_id: string;
       caption: string | null;
       is_cover: boolean;
       sort_order: number;
     }>(
-      `SELECT id, caption, is_cover, sort_order FROM proposal_media
-       WHERE agency_id = $1 AND proposal_id = $2 AND deleted_at IS NULL
-       ORDER BY is_cover DESC, sort_order ASC, created_at ASC`,
+      `SELECT l.media_asset_id, a.alt_text AS caption, (l.usage = 'COVER') AS is_cover, l.sort_order
+       FROM media_asset_links l
+       JOIN media_assets a ON a.agency_id = l.agency_id AND a.id = l.media_asset_id
+       WHERE l.agency_id = $1 AND l.entity_type = 'PROPOSAL' AND l.entity_id = $2
+       ORDER BY is_cover DESC, l.sort_order ASC, l.created_at ASC`,
       [agencyId, id],
     );
 
@@ -680,11 +682,11 @@ export async function getMyProposalDetailById(
         items: itemsBySection.get(section.id) ?? [],
       })),
       media: mediaResult.rows.map((media) => ({
-        id: media.id,
+        id: media.media_asset_id,
         caption: media.caption,
         isCover: media.is_cover,
         sortOrder: media.sort_order,
-        downloadUrl: `/customer-api/proposals/${id}/media/${media.id}/download`,
+        downloadUrl: `/customer-api/proposals/${id}/media/${media.media_asset_id}/download`,
       })),
     };
   });

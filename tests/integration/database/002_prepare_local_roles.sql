@@ -38,17 +38,33 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON
   trips
 TO travel_app_runtime_local;
 
--- Proposal Visual 2.0 (089/090/091_proposal_*.sql) only exist once those
+-- Proposal Visual 2.0 (089/090_proposal_*.sql) only exist once those
 -- migrations have been applied -- same "IF present" guard as the other
 -- conditional blocks below, since this script is shared by every
 -- domain's test suite and most only apply migrations 001+002.
+-- proposal_media (091) is intentionally NOT granted here -- it is
+-- dropped by 094_migrate_proposal_media_to_library.sql once the Media
+-- Library migrations are applied; a test suite that applies 089-090
+-- but not 091-094 never sees it as an issue since to_regclass guards
+-- each block independently.
 DO $$
 BEGIN
   IF to_regclass('public.proposal_sections') IS NOT NULL THEN
     GRANT SELECT, INSERT, UPDATE, DELETE ON
       proposal_sections,
-      proposal_items,
-      proposal_media
+      proposal_items
+    TO travel_app_runtime_local;
+  END IF;
+END;
+$$;
+
+-- Media Library (092_media_library.sql).
+DO $$
+BEGIN
+  IF to_regclass('public.media_assets') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      media_assets,
+      media_asset_links
     TO travel_app_runtime_local;
   END IF;
 END;

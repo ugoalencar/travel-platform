@@ -32,7 +32,8 @@ import {
 } from '../customer-portal';
 import { listVisibleCommunications } from '../agency-communications';
 import { getTripPhotoById, listTripPhotos } from '../trip-photos';
-import { getProposalMediaById } from '../proposal-content';
+import { getMediaAssetById, isMediaAssetLinkedToEntity } from '../media-library';
+import { MediaAssetUsageContext } from '../../../../packages/domain/types';
 import { readFile as readStoredFile } from '../file-storage';
 import type { DatabaseRuntime } from '../database';
 import {
@@ -132,10 +133,13 @@ export function registerCustomerPortalRoutes(
     }
   );
 
-  // Proposal Visual 2.0 -- gallery/cover image, same secure_file_key
-  // streaming pattern as the trip photo download route above. Ownership
-  // is re-checked via getMyProposalById (tenant + own customerId, never
-  // a request param) before the media row is ever touched.
+  // Media Library asset, streamed for the Proposal Viewer -- same
+  // secure_file_key pattern as the trip photo download route above.
+  // Ownership is re-checked via getMyProposalById (tenant + own
+  // customerId, never a request param) AND via
+  // isMediaAssetLinkedToEntity (the asset must actually be linked to
+  // *this* proposal, not just exist somewhere in the tenant) before
+  // anything is streamed.
   app.get<{ Params: { id: string; mediaId: string } }>(
     '/customer-api/proposals/:id/media/:mediaId/download',
     { preHandler: customerHooks },
@@ -144,13 +148,22 @@ export function registerCustomerPortalRoutes(
       if (!proposal) {
         throw new NotFoundError('Proposal not found');
       }
-      const media = await getProposalMediaById(database, request.params.mediaId);
-      if (!media || media.proposalId !== request.params.id) {
+      const linked = await isMediaAssetLinkedToEntity(
+        database,
+        request.params.mediaId,
+        MediaAssetUsageContext.PROPOSAL,
+        request.params.id,
+      );
+      if (!linked) {
         throw new NotFoundError('Media not found');
       }
-      const content = await readStoredFile(media.secureFileKey);
-      reply.header('Content-Disposition', `inline; filename="${encodeURIComponent(media.fileName)}"`);
-      reply.type(media.fileMimeType);
+      const asset = await getMediaAssetById(database, request.params.mediaId);
+      if (!asset) {
+        throw new NotFoundError('Media not found');
+      }
+      const content = await readStoredFile(asset.secureFileKey);
+      reply.header('Content-Disposition', `inline; filename="${encodeURIComponent(asset.title)}"`);
+      reply.type(asset.mimeType);
       return reply.send(content);
     }
   );

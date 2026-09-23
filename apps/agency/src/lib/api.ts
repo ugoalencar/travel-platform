@@ -423,6 +423,7 @@ export interface Offer {
   targetSegmentId?: string;
   displayPriority: number;
   imageUrl?: string;
+  coverMediaAssetId?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -448,6 +449,7 @@ export interface CreateOfferInput {
   targetSegmentId?: string;
   displayPriority?: number;
   imageUrl?: string;
+  coverMediaAssetId?: string;
 }
 
 export interface UpdateOfferInput {
@@ -462,6 +464,7 @@ export interface UpdateOfferInput {
   targetSegmentId?: string;
   displayPriority?: number;
   imageUrl?: string;
+  coverMediaAssetId?: string;
 }
 
 export async function createOffer(input: CreateOfferInput): Promise<Offer> {
@@ -491,6 +494,7 @@ export interface AgencyCommunication {
   title: string;
   body?: string;
   imageUrl?: string;
+  coverMediaAssetId?: string;
   ctaLabel?: string;
   ctaUrl?: string;
   placement: 'CUSTOMER_APP_HOME' | 'CUSTOMER_APP_OFFERS' | 'AGENCY_DASHBOARD';
@@ -524,6 +528,7 @@ export interface CreateCommunicationInput {
   title: string;
   body?: string;
   imageUrl?: string;
+  coverMediaAssetId?: string;
   ctaLabel?: string;
   ctaUrl?: string;
   placement?: AgencyCommunication['placement'];
@@ -538,6 +543,7 @@ export interface UpdateCommunicationInput {
   title?: string;
   body?: string;
   imageUrl?: string | null;
+  coverMediaAssetId?: string | null;
   ctaLabel?: string;
   ctaUrl?: string;
   placement?: AgencyCommunication['placement'];
@@ -1609,19 +1615,6 @@ export interface ProposalItem {
   updatedAt: string;
 }
 
-export interface ProposalMedia {
-  id: string;
-  agencyId: string;
-  proposalId: string;
-  fileName: string;
-  fileMimeType: string;
-  fileSizeBytes: number;
-  caption?: string;
-  isCover: boolean;
-  sortOrder: number;
-  createdAt: string;
-}
-
 export async function listProposalSections(proposalId: string): Promise<ProposalSection[]> {
   const data = await request<{ sections: ProposalSection[] }>(
     `/api/proposals/${encodeURIComponent(proposalId)}/sections`,
@@ -1721,20 +1714,162 @@ export async function deleteProposalItem(itemId: string): Promise<void> {
   await request(`/api/proposal-items/${encodeURIComponent(itemId)}`, { method: 'DELETE' });
 }
 
-export async function listProposalMedia(proposalId: string): Promise<ProposalMedia[]> {
-  const data = await request<{ media: ProposalMedia[] }>(
+// ============================================================
+// MEDIA LIBRARY -- central, agency-owned asset library. Corrects
+// Proposal Visual 2.0's proposal_media (per-proposal-only upload):
+// media now belongs to the agency, referenced by Offer/Proposal/
+// Communication, never duplicated. See docs/product/MEDIA_LIBRARY.md.
+// ============================================================
+
+export type MediaAssetStatus = 'ACTIVE' | 'ARCHIVED';
+export type MediaAssetUsageContext = 'OFFER' | 'PROPOSAL' | 'COMMUNICATION';
+export type MediaAssetUsageKind = 'COVER' | 'GALLERY';
+
+export interface MediaAsset {
+  id: string;
+  agencyId: string;
+  title: string;
+  description?: string;
+  mimeType: string;
+  fileSizeBytes: number;
+  altText?: string;
+  tags: string[];
+  status: MediaAssetStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MediaAssetUsageSummary {
+  entityType: MediaAssetUsageContext;
+  count: number;
+}
+
+export interface EntityMediaItem {
+  linkId: string;
+  mediaAssetId: string;
+  title: string;
+  altText?: string;
+  usage: MediaAssetUsageKind;
+  sortOrder: number;
+  mimeType: string;
+  fileSizeBytes: number;
+}
+
+export async function listMediaAssets(filters?: { search?: string; tag?: string; status?: MediaAssetStatus }): Promise<MediaAsset[]> {
+  const params = new URLSearchParams();
+  if (filters?.search) params.set('search', filters.search);
+  if (filters?.tag) params.set('tag', filters.tag);
+  if (filters?.status) params.set('status', filters.status);
+  const query = params.toString() ? `?${params.toString()}` : '';
+  const data = await request<{ assets: MediaAsset[] }>(`/api/media-assets${query}`);
+  return data.assets;
+}
+
+export async function getMediaAsset(id: string): Promise<MediaAsset> {
+  const data = await request<{ asset: MediaAsset }>(`/api/media-assets/${encodeURIComponent(id)}`);
+  return data.asset;
+}
+
+export interface UploadMediaAssetOptions {
+  title?: string;
+  description?: string;
+  altText?: string;
+  tags?: string[];
+}
+
+export async function uploadMediaAsset(file: File, options?: UploadMediaAssetOptions): Promise<MediaAsset> {
+  const form = new FormData();
+  if (options?.title) form.append('title', options.title);
+  if (options?.description) form.append('description', options.description);
+  if (options?.altText) form.append('altText', options.altText);
+  if (options?.tags?.length) form.append('tags', options.tags.join(','));
+  form.append('file', file, file.name);
+
+  const token = getSessionToken();
+  const response = await fetch(`${API_BASE_URL}/api/media-assets`, {
+    method: 'POST',
+    headers: token ? { authorization: `Bearer ${token}` } : {},
+    body: form,
+  });
+  if (response.status === 401) clearSession();
+  if (!response.ok) {
+    const body = (await safeJson(response)) as Partial<ApiErrorBody> | null;
+    throw new ApiError(
+      translateApiErrorMessage(body?.error ?? 'Request failed.'),
+      body?.code ?? 'UNKNOWN_ERROR',
+      response.status,
+    );
+  }
+  const data = (await response.json()) as { asset: MediaAsset };
+  return data.asset;
+}
+
+export async function updateMediaAsset(
+  id: string,
+  input: { title?: string; description?: string; altText?: string; tags?: string[] },
+): Promise<MediaAsset> {
+  const data = await request<{ asset: MediaAsset }>(`/api/media-assets/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(input),
+  });
+  return data.asset;
+}
+
+export async function archiveMediaAsset(id: string): Promise<MediaAsset> {
+  const data = await request<{ asset: MediaAsset }>(`/api/media-assets/${encodeURIComponent(id)}/archive`, {
+    method: 'POST',
+  });
+  return data.asset;
+}
+
+export async function deleteMediaAsset(id: string): Promise<void> {
+  await request(`/api/media-assets/${encodeURIComponent(id)}`, { method: 'DELETE' });
+}
+
+export async function getMediaAssetUsage(id: string): Promise<MediaAssetUsageSummary[]> {
+  const data = await request<{ usage: MediaAssetUsageSummary[] }>(
+    `/api/media-assets/${encodeURIComponent(id)}/usage`,
+  );
+  return data.usage;
+}
+
+export function mediaAssetDownloadUrl(id: string): string {
+  return `${API_BASE_URL}/api/media-assets/${encodeURIComponent(id)}/download`;
+}
+
+export async function loadMediaAssetBlobUrl(id: string): Promise<string> {
+  const token = getSessionToken();
+  const response = await fetch(mediaAssetDownloadUrl(id), {
+    headers: token ? { authorization: `Bearer ${token}` } : {},
+  });
+  if (response.status === 401) clearSession();
+  if (!response.ok) {
+    throw new ApiError('Não foi possível carregar a imagem.', 'UNKNOWN_ERROR', response.status);
+  }
+  const blob = await response.blob();
+  return URL.createObjectURL(blob);
+}
+
+// ---- Proposal-specific media links ----
+
+export async function listProposalMedia(proposalId: string): Promise<EntityMediaItem[]> {
+  const data = await request<{ media: EntityMediaItem[] }>(
     `/api/proposals/${encodeURIComponent(proposalId)}/media`,
   );
   return data.media;
 }
 
+// Convenience: uploads straight into the library and links it to this
+// proposal in one step ("Enviar nova imagem"). Prefer
+// linkMediaAssetToProposal when the image already exists in the
+// library ("Selecionar da biblioteca").
 export async function uploadProposalMedia(
   proposalId: string,
   file: File,
-  options?: { caption?: string; isCover?: boolean },
-): Promise<ProposalMedia> {
+  options?: { title?: string; isCover?: boolean },
+): Promise<EntityMediaItem> {
   const form = new FormData();
-  if (options?.caption) form.append('caption', options.caption);
+  if (options?.title) form.append('title', options.title);
   if (options?.isCover !== undefined) form.append('isCover', String(options.isCover));
   form.append('file', file, file.name);
 
@@ -1753,29 +1888,23 @@ export async function uploadProposalMedia(
       response.status,
     );
   }
-  const data = (await response.json()) as { media: ProposalMedia };
+  const data = (await response.json()) as { media: EntityMediaItem };
   return data.media;
 }
 
-export async function deleteProposalMedia(mediaId: string): Promise<void> {
-  await request(`/api/proposal-media/${encodeURIComponent(mediaId)}`, { method: 'DELETE' });
-}
-
-export function proposalMediaDownloadUrl(mediaId: string): string {
-  return `${API_BASE_URL}/api/proposal-media/${encodeURIComponent(mediaId)}/download`;
-}
-
-export async function loadProposalMediaBlobUrl(mediaId: string): Promise<string> {
-  const token = getSessionToken();
-  const response = await fetch(proposalMediaDownloadUrl(mediaId), {
-    headers: token ? { authorization: `Bearer ${token}` } : {},
+export async function linkMediaAssetToProposal(
+  proposalId: string,
+  mediaAssetId: string,
+  usage: MediaAssetUsageKind = 'GALLERY',
+): Promise<void> {
+  await request(`/api/proposals/${encodeURIComponent(proposalId)}/media/link`, {
+    method: 'POST',
+    body: JSON.stringify({ mediaAssetId, usage }),
   });
-  if (response.status === 401) clearSession();
-  if (!response.ok) {
-    throw new ApiError('Não foi possível carregar a imagem.', 'UNKNOWN_ERROR', response.status);
-  }
-  const blob = await response.blob();
-  return URL.createObjectURL(blob);
+}
+
+export async function unlinkProposalMedia(linkId: string): Promise<void> {
+  await request(`/api/proposal-media-links/${encodeURIComponent(linkId)}`, { method: 'DELETE' });
 }
 
 // ============================================================

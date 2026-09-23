@@ -10,9 +10,10 @@ import { Modal } from '../components/ui/modal';
 import { ErrorState } from '../components/ui/error-state';
 import { LoadingState } from '../components/ui/loading-state';
 import { ApiError, getOffer, updateOffer, createOffer } from '../lib/api';
-import type { Offer, OfferStatus, UpdateOfferInput, CreateOfferInput } from '../lib/api';
+import type { Offer, OfferStatus, UpdateOfferInput, CreateOfferInput, MediaAsset } from '../lib/api';
 import { formatBRL } from '../lib/formatCurrency';
 import { formatDateBR } from '../lib/formatDateBR';
+import { MediaAssetPicker } from '../components/media/MediaAssetPicker';
 
 const OFFER_STATUS_LABELS: Record<OfferStatus, string> = {
   ACTIVE: 'Ativa',
@@ -68,6 +69,8 @@ export function OfferDetailPage() {
   const [showArchive, setShowArchive] = useState(false);
   const [archiveSaving, setArchiveSaving] = useState(false);
 
+  const [coverPickerOpen, setCoverPickerOpen] = useState(false);
+
   const load = useCallback(() => {
     if (!id) {
       setLoading(false);
@@ -111,6 +114,7 @@ export function OfferDetailPage() {
     if (offer.validUntil) form.validUntil = offer.validUntil.split('T')[0] as string;
     if (offer.targetSegmentId) form.targetSegmentId = offer.targetSegmentId;
     if (offer.imageUrl) form.imageUrl = offer.imageUrl;
+    if (offer.coverMediaAssetId) form.coverMediaAssetId = offer.coverMediaAssetId;
     setEditForm(form);
     setEditError(null);
     setShowEdit(true);
@@ -162,6 +166,7 @@ export function OfferDetailPage() {
       if (editForm.displayPriority !== undefined) input.displayPriority = editForm.displayPriority;
       if (editForm.targetSegmentId) input.targetSegmentId = editForm.targetSegmentId;
       if (editForm.imageUrl) input.imageUrl = editForm.imageUrl;
+      if (editForm.coverMediaAssetId) input.coverMediaAssetId = editForm.coverMediaAssetId;
       const updated = await updateOffer(offer.id, input);
       setOffer(updated);
       setShowEdit(false);
@@ -449,6 +454,21 @@ export function OfferDetailPage() {
             </select>
           </div>
 
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">
+              Imagem de capa
+            </label>
+            <p className="text-xs text-slate-500 mb-2">
+              Selecione uma imagem da Biblioteca de Mídia (administrada pelo Marketing).
+            </p>
+            <Button type="button" variant="outline" onClick={() => setCoverPickerOpen(true)}>
+              {editForm.coverMediaAssetId ? 'Trocar imagem selecionada' : 'Selecionar da biblioteca'}
+            </Button>
+            {editForm.coverMediaAssetId && (
+              <p className="mt-1 text-xs text-green-700">Imagem selecionada da biblioteca.</p>
+            )}
+          </div>
+
           <div className="border-t border-slate-200 pt-4">
             <p className="text-sm font-semibold text-slate-700 mb-3">Divulgação</p>
             <div className="space-y-3">
@@ -520,6 +540,14 @@ export function OfferDetailPage() {
           </Button>
         </div>
       </Modal>
+
+      <MediaAssetPicker
+        open={coverPickerOpen}
+        onClose={() => setCoverPickerOpen(false)}
+        onSelect={(asset: MediaAsset) => {
+          setEditForm({ ...editForm, coverMediaAssetId: asset.id });
+        }}
+      />
 
       {/* Duplicate Modal */}
       <Modal

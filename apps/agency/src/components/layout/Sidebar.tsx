@@ -114,6 +114,7 @@ const NAV_SECTIONS: NavSection[] = [
   {
     label: 'Marketing',
     items: [
+      { label: 'Biblioteca de Mídia', to: '/media-library' },
       { label: 'Comunicação', to: '/communications' },
       { label: 'Campanhas', to: '/campaigns' },
       { label: 'Cupons', to: '/coupons' },

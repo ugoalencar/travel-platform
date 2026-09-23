@@ -7,7 +7,7 @@
 
 import type { FastifyInstance } from 'fastify';
 import type { preHandlerHookHandler } from 'fastify';
-import { requireRole } from '../../../../packages/domain/tenant-context';
+import { getAgencyId, requireRole } from '../../../../packages/domain/tenant-context';
 import { UserRole } from '../../../../packages/domain/types';
 import type { DatabaseRuntime } from '../database';
 import {
@@ -27,16 +27,11 @@ import {
 import { NotFoundError, ValidationError } from '../errors';
 import {
   createProposalItem,
-  createProposalMedia,
   createProposalSection,
   deleteProposalItem,
-  deleteProposalMedia,
   deleteProposalSection,
   duplicateProposal,
-  generateProposalMediaSecureFileKey,
-  getProposalMediaById,
   listProposalItems,
-  listProposalMedia,
   listProposalSections,
   parseCreateProposalItemInput,
   parseCreateProposalSectionInput,
@@ -45,7 +40,15 @@ import {
   updateProposalItem,
   updateProposalSection,
 } from '../proposal-content';
-import { saveFile, readFile as readStoredFile } from '../file-storage';
+import {
+  createMediaAsset,
+  generateMediaAssetSecureFileKey,
+  linkMediaAsset,
+  listEntityMedia,
+  unlinkMediaAsset,
+} from '../media-library';
+import { MediaAssetUsageContext, MediaAssetUsageKind } from '../../../../packages/domain/types';
+import { saveFile } from '../file-storage';
 import { validateFileSize, isBlockedFileName, MAX_ATTACHMENT_BYTES } from '../document-attachments';
 
 export interface ProposalsRoutesOptions {
@@ -259,8 +262,14 @@ export function registerProposalsRoutes(
   );
 
   // ============================================================
-  // Proposal Visual 2.0 -- media (cover + gallery), same
-  // multipart-upload/secure_file_key pattern as trips.ts's photo route.
+  // Media Library links -- Proposal no longer owns its media (see
+  // docs/product/MEDIA_LIBRARY.md). Images live in the central
+  // media_assets table; these routes only manage which assets are
+  // linked to this proposal. "Enviar nova imagem" below is a
+  // convenience that uploads straight into the library and links it
+  // in one step; "Selecionar da biblioteca" (POST .../media/link)
+  // links an asset that already exists, uploaded once, reused by any
+  // Offer/Proposal/Communication.
   // ============================================================
 
   app.get<{ Params: { id: string } }>(
@@ -268,7 +277,7 @@ export function registerProposalsRoutes(
     { preHandler: protectedHooks },
     async (request) => {
       requireRole(UserRole.VIEWER);
-      const media = await listProposalMedia(database, request.params.id);
+      const media = await listEntityMedia(database, MediaAssetUsageContext.PROPOSAL, request.params.id);
       return { media };
     }
   );
@@ -283,16 +292,16 @@ export function registerProposalsRoutes(
       if (!file) {
         throw new ValidationError('A file is required');
       }
-      const captionField = file.fields.caption;
-      const caption =
-        captionField && !Array.isArray(captionField) && captionField.type === 'field'
-          ? String(captionField.value)
-          : undefined;
+      const titleField = file.fields.title;
+      const title =
+        titleField && !Array.isArray(titleField) && titleField.type === 'field'
+          ? String(titleField.value)
+          : file.filename;
       const isCoverField = file.fields.isCover;
       const isCover =
         isCoverField && !Array.isArray(isCoverField) && isCoverField.type === 'field'
           ? String(isCoverField.value) === 'true'
-          : undefined;
+          : false;
 
       let buffer: Buffer;
       try {
@@ -310,46 +319,58 @@ export function registerProposalsRoutes(
         throw new ValidationError(`File size must be between 1 byte and ${MAX_ATTACHMENT_BYTES} bytes`);
       }
 
-      const secureFileKey = generateProposalMediaSecureFileKey(request.params.id, file.filename);
+      const secureFileKey = generateMediaAssetSecureFileKey(getAgencyId(), file.filename);
       await saveFile(secureFileKey, buffer);
 
-      const media = await createProposalMedia(database, request.params.id, {
+      const asset = await createMediaAsset(database, {
+        title,
         fileName: file.filename,
         fileMimeType: file.mimetype,
         fileSizeBytes: buffer.length,
         secureFileKey,
-        ...(caption ? { caption } : {}),
-        ...(isCover !== undefined ? { isCover } : {}),
+      });
+      const link = await linkMediaAsset(database, {
+        mediaAssetId: asset.id,
+        entityType: MediaAssetUsageContext.PROPOSAL,
+        entityId: request.params.id,
+        usage: isCover ? MediaAssetUsageKind.COVER : MediaAssetUsageKind.GALLERY,
       });
 
       reply.code(201);
-      return { media };
+      return { media: { ...link, title: asset.title, mimeType: asset.mimeType, fileSizeBytes: asset.fileSizeBytes } };
     }
   );
 
-  app.delete<{ Params: { mediaId: string } }>(
-    '/proposal-media/:mediaId',
+  app.post<{ Params: { id: string } }>(
+    '/proposals/:id/media/link',
     { preHandler: protectedHooks },
     async (request, reply) => {
-      requireRole(UserRole.MANAGER);
-      const deleted = await deleteProposalMedia(database, request.params.mediaId);
-      if (!deleted) throw new NotFoundError('Proposal media not found');
+      requireRole(UserRole.AGENT);
+      const body = request.body as { mediaAssetId?: string; usage?: string } | undefined;
+      if (!body?.mediaAssetId || typeof body.mediaAssetId !== 'string') {
+        throw new ValidationError('Field "mediaAssetId" is required');
+      }
+      const usage = body.usage === 'COVER' ? MediaAssetUsageKind.COVER : MediaAssetUsageKind.GALLERY;
+      const link = await linkMediaAsset(database, {
+        mediaAssetId: body.mediaAssetId,
+        entityType: MediaAssetUsageContext.PROPOSAL,
+        entityId: request.params.id,
+        usage,
+      });
+      reply.code(201);
+      return { link };
+    }
+  );
+
+  app.delete<{ Params: { linkId: string } }>(
+    '/proposal-media-links/:linkId',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      requireRole(UserRole.AGENT);
+      const deleted = await unlinkMediaAsset(database, request.params.linkId);
+      if (!deleted) throw new NotFoundError('Media link not found');
       reply.code(204);
       return null;
-    }
-  );
-
-  app.get<{ Params: { mediaId: string } }>(
-    '/proposal-media/:mediaId/download',
-    { preHandler: protectedHooks },
-    async (request, reply) => {
-      requireRole(UserRole.VIEWER);
-      const media = await getProposalMediaById(database, request.params.mediaId);
-      if (!media) throw new NotFoundError('Proposal media not found');
-      const content = await readStoredFile(media.secureFileKey);
-      reply.header('Content-Disposition', `inline; filename="${encodeURIComponent(media.fileName)}"`);
-      reply.type(media.fileMimeType);
-      return reply.send(content);
     }
   );
 }

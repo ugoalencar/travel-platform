@@ -34,7 +34,7 @@ import {
   type SaleFinancialStory,
   type ProposalSection,
   type ProposalItem,
-  type ProposalMedia,
+  type EntityMediaItem,
 } from '../lib/api';
 import type { Booking } from '../types/booking';
 import type { Sale, SaleStatus } from '../types/sale';
@@ -587,7 +587,7 @@ interface ProposalPreviewData {
   proposal: Proposal;
   sections: ProposalSection[];
   itemsBySection: Record<string, ProposalItem[]>;
-  media: ProposalMedia[];
+  media: EntityMediaItem[];
 }
 
 export function ProposalPreviewPage() {

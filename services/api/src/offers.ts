@@ -17,6 +17,7 @@ interface OfferRow {
   target_segment_id: string | null;
   display_priority: number;
   image_url: string | null;
+  cover_media_asset_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -34,6 +35,7 @@ export interface CreateOfferInput {
   targetSegmentId?: string | null;
   displayPriority?: number;
   imageUrl?: string | null;
+  coverMediaAssetId?: string | null;
 }
 
 export interface UpdateOfferInput {
@@ -48,11 +50,12 @@ export interface UpdateOfferInput {
   targetSegmentId?: string | null;
   displayPriority?: number;
   imageUrl?: string | null;
+  coverMediaAssetId?: string | null;
 }
 
 const OFFER_COLUMNS = `id, agency_id, name, description, price, valid_from, valid_until,
               status, featured, show_on_customer_app, target_segment_id, display_priority,
-              image_url, created_at, updated_at`;
+              image_url, cover_media_asset_id, created_at, updated_at`;
 
 export async function listOffers(database: DatabaseRuntime): Promise<Offer[]> {
   const agencyId = getAgencyId();
@@ -97,8 +100,9 @@ export async function createOffer(
   return database.withTenantTransaction(async (client) => {
     const result = await client.query<OfferRow>(
       `INSERT INTO offers (agency_id, name, description, price, valid_from, valid_until,
-                          featured, show_on_customer_app, target_segment_id, display_priority, image_url)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+                          featured, show_on_customer_app, target_segment_id, display_priority, image_url,
+                          cover_media_asset_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
        RETURNING ${OFFER_COLUMNS}`,
       [
         agencyId,
@@ -112,6 +116,7 @@ export async function createOffer(
         data.targetSegmentId ?? null,
         data.displayPriority ?? 0,
         data.imageUrl ?? null,
+        data.coverMediaAssetId ?? null,
       ],
     );
     const row = result.rows[0];
@@ -149,6 +154,7 @@ export async function updateOffer(
   if (data.targetSegmentId !== undefined) { fields.push(`target_segment_id = $${++index}`); values.push(data.targetSegmentId); }
   if (data.displayPriority !== undefined) { fields.push(`display_priority = $${++index}`); values.push(data.displayPriority); }
   if (data.imageUrl !== undefined) { fields.push(`image_url = $${++index}`); values.push(data.imageUrl); }
+  if (data.coverMediaAssetId !== undefined) { fields.push(`cover_media_asset_id = $${++index}`); values.push(data.coverMediaAssetId); }
 
   if (fields.length === 0) {
     return getOfferById(database, id);
@@ -208,5 +214,6 @@ function toOffer(row: OfferRow): Offer {
     ...(row.valid_until !== null ? { validUntil: new Date(row.valid_until) } : {}),
     ...(row.target_segment_id !== null ? { targetSegmentId: row.target_segment_id } : {}),
     ...(row.image_url !== null ? { imageUrl: row.image_url } : {}),
+    ...(row.cover_media_asset_id !== null ? { coverMediaAssetId: row.cover_media_asset_id } : {}),
   };
 }

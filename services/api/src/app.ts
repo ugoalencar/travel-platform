@@ -63,6 +63,7 @@ import { registerOperationsStaffRoutes } from './routes/operations-staff';
 import { registerPescadorRoutes } from './routes/pescador';
 import { registerPublicationsRoutes } from './routes/publications';
 import { registerProposalsRoutes } from './routes/proposals';
+import { registerMediaLibraryRoutes } from './routes/media-library';
 import { registerReportsRoutes } from './routes/reports';
 import { registerSalesRoutes } from './routes/sales';
 import { registerSaleItemsRoutes } from './routes/sale-items';
@@ -354,6 +355,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
   });
   registerPartnerCampaignsRoutes(app, { database: options.database, protectedHooks });
   registerProposalsRoutes(app, { database: options.database, protectedHooks });
+  registerMediaLibraryRoutes(app, { database: options.database, protectedHooks });
 
   // Transport suppliers (routes, suppliers, products, departures, agenda)
   registerTransportSuppliersRoutes(app, { database: options.database, protectedHooks });

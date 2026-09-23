@@ -1,23 +1,19 @@
 // Proposal Visual 2.0 -- rich content: Proposal -> ProposalSection ->
-// ProposalItem, plus ProposalMedia (cover/gallery). See
-// docs/product/PROPOSAL_CONTENT_MODEL.md for the model decisions.
+// ProposalItem. See docs/product/PROPOSAL_CONTENT_MODEL.md for the
+// model decisions. Cover/gallery media used to live here
+// (proposal_media) but now comes from the Media Library
+// (services/api/src/media-library.ts, media_asset_links with
+// entity_type = 'PROPOSAL') -- see docs/product/MEDIA_LIBRARY.md.
 //
 // Every mutation here re-checks the parent Proposal's status via
 // assertProposalContentEditable (proposals.ts) -- once a proposal
 // leaves DRAFT/SENT, its content is immutable (Fase 10).
-import { randomUUID } from 'node:crypto';
 import { ProposalItemType, ProposalSectionType } from '../../../packages/domain/types';
-import type { Proposal, ProposalItem, ProposalMedia, ProposalSection } from '../../../packages/domain/types';
+import type { Proposal, ProposalItem, ProposalSection } from '../../../packages/domain/types';
 import { getAgencyId } from '../../../packages/domain/tenant-context';
 import type { DatabaseRuntime, TenantTransactionClient } from './database';
 import { NotFoundError, ValidationError } from './errors';
 import { assertProposalContentEditable } from './proposals';
-import {
-  MAX_ATTACHMENT_BYTES,
-  isBlockedFileName,
-  validateFileSize,
-  validateFileType,
-} from './document-attachments';
 
 // ============================================================
 // Shared: fetch + guard the parent Proposal's editable status
@@ -477,175 +473,6 @@ function toItem(row: ProposalItemRow): ProposalItem {
 }
 
 // ============================================================
-// ProposalMedia -- same secure_file_key pattern as trip_photos.ts
-// ============================================================
-
-interface ProposalMediaRow {
-  id: string;
-  agency_id: string;
-  proposal_id: string;
-  secure_file_key: string;
-  file_name: string;
-  file_mime_type: string;
-  file_size_bytes: string;
-  caption: string | null;
-  is_cover: boolean;
-  sort_order: number;
-  created_at: string;
-}
-
-const MEDIA_COLUMNS = `id, agency_id, proposal_id, secure_file_key, file_name, file_mime_type,
-  file_size_bytes, caption, is_cover, sort_order, created_at`;
-
-const ALLOWED_MEDIA_MIME_TYPES: readonly string[] = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
-
-export function validateProposalMediaFileType(mimeType: string | null | undefined): boolean {
-  if (typeof mimeType !== 'string') return false;
-  const normalized = mimeType.split(';')[0]?.trim().toLowerCase() ?? '';
-  return ALLOWED_MEDIA_MIME_TYPES.includes(normalized);
-}
-
-export function generateProposalMediaSecureFileKey(proposalId: string, fileName: string): string {
-  const safeProposalId = proposalId.replace(/[^A-Za-z0-9-]/g, '');
-  const extension = fileName.split('.').pop()?.trim().toLowerCase() ?? '';
-  const safeExtension = /^[a-z0-9]{1,8}$/.test(extension) ? `.${extension}` : '';
-  return `proposal-media/${safeProposalId}/${randomUUID()}${safeExtension}`;
-}
-
-export interface CreateProposalMediaInput {
-  fileName: string;
-  fileMimeType: string;
-  fileSizeBytes: number;
-  secureFileKey: string;
-  caption?: string;
-  isCover?: boolean;
-}
-
-export async function createProposalMedia(
-  database: DatabaseRuntime,
-  proposalId: string,
-  data: CreateProposalMediaInput,
-): Promise<ProposalMedia> {
-  const agencyId = getAgencyId();
-
-  if (isBlockedFileName(data.fileName)) {
-    throw new ValidationError('File type is not permitted');
-  }
-  if (!validateProposalMediaFileType(data.fileMimeType) || !validateFileType(data.fileMimeType)) {
-    throw new ValidationError(`Unsupported file type. Allowed types: ${ALLOWED_MEDIA_MIME_TYPES.join(', ')}`);
-  }
-  if (!validateFileSize(data.fileSizeBytes)) {
-    throw new ValidationError(`File size must be between 1 byte and ${MAX_ATTACHMENT_BYTES} bytes`);
-  }
-
-  return database.withTenantTransaction(async (client) => {
-    await requireEditableProposal(client, agencyId, proposalId);
-
-    if (data.isCover) {
-      await client.query(
-        `UPDATE proposal_media SET is_cover = false WHERE agency_id = $1 AND proposal_id = $2 AND deleted_at IS NULL`,
-        [agencyId, proposalId],
-      );
-    }
-
-    const next = await client.query<{ next: number }>(
-      `SELECT COALESCE(MAX(sort_order), -1) + 1 AS next FROM proposal_media
-       WHERE agency_id = $1 AND proposal_id = $2 AND deleted_at IS NULL`,
-      [agencyId, proposalId],
-    );
-    const sortOrder = next.rows[0]?.next ?? 0;
-
-    const result = await client.query<ProposalMediaRow>(
-      `INSERT INTO proposal_media
-         (agency_id, proposal_id, secure_file_key, file_name, file_mime_type, file_size_bytes,
-          caption, is_cover, sort_order)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-       RETURNING ${MEDIA_COLUMNS}`,
-      [
-        agencyId,
-        proposalId,
-        data.secureFileKey,
-        data.fileName,
-        data.fileMimeType,
-        data.fileSizeBytes,
-        data.caption ?? null,
-        data.isCover ?? false,
-        sortOrder,
-      ],
-    );
-    const row = result.rows[0];
-    if (!row) throw new Error('ProposalMedia insert did not return a row');
-    return toMedia(row);
-  });
-}
-
-export async function listProposalMedia(
-  database: DatabaseRuntime,
-  proposalId: string,
-): Promise<ProposalMedia[]> {
-  const agencyId = getAgencyId();
-  return database.withTenantTransaction(async (client) => {
-    const result = await client.query<ProposalMediaRow>(
-      `SELECT ${MEDIA_COLUMNS} FROM proposal_media
-       WHERE agency_id = $1 AND proposal_id = $2 AND deleted_at IS NULL
-       ORDER BY is_cover DESC, sort_order ASC, created_at ASC`,
-      [agencyId, proposalId],
-    );
-    return result.rows.map(toMedia);
-  });
-}
-
-export async function getProposalMediaById(
-  database: DatabaseRuntime,
-  id: string,
-): Promise<ProposalMedia | null> {
-  const agencyId = getAgencyId();
-  return database.withTenantTransaction(async (client) => {
-    const result = await client.query<ProposalMediaRow>(
-      `SELECT ${MEDIA_COLUMNS} FROM proposal_media WHERE agency_id = $1 AND id = $2 AND deleted_at IS NULL`,
-      [agencyId, id],
-    );
-    const row = result.rows[0];
-    return row ? toMedia(row) : null;
-  });
-}
-
-export async function deleteProposalMedia(database: DatabaseRuntime, id: string): Promise<boolean> {
-  const agencyId = getAgencyId();
-  return database.withTenantTransaction(async (client) => {
-    const owner = await client.query<{ proposal_id: string }>(
-      `SELECT proposal_id FROM proposal_media WHERE agency_id = $1 AND id = $2 AND deleted_at IS NULL`,
-      [agencyId, id],
-    );
-    const proposalId = owner.rows[0]?.proposal_id;
-    if (proposalId === undefined) return false;
-    await requireEditableProposal(client, agencyId, proposalId);
-
-    const result = await client.query(
-      `UPDATE proposal_media SET deleted_at = now() WHERE agency_id = $1 AND id = $2 AND deleted_at IS NULL`,
-      [agencyId, id],
-    );
-    return (result.rowCount ?? 0) > 0;
-  });
-}
-
-function toMedia(row: ProposalMediaRow): ProposalMedia {
-  return {
-    id: row.id,
-    agencyId: row.agency_id,
-    proposalId: row.proposal_id,
-    secureFileKey: row.secure_file_key,
-    fileName: row.file_name,
-    fileMimeType: row.file_mime_type,
-    fileSizeBytes: Number(row.file_size_bytes),
-    isCover: row.is_cover,
-    sortOrder: row.sort_order,
-    createdAt: new Date(row.created_at),
-    ...(row.caption !== null ? { caption: row.caption } : {}),
-  };
-}
-
-// ============================================================
 // Duplicate Proposal (Fase 13) -- clones the base proposal plus its
 // sections/items/media, with new ids, tenant preserved, always starting
 // as DRAFT (never copies status/publishedAt), and never copies
@@ -767,36 +594,20 @@ export async function duplicateProposal(database: DatabaseRuntime, id: string): 
       }
     }
 
-    const media = await client.query<{
-      secure_file_key: string;
-      file_name: string;
-      file_mime_type: string;
-      file_size_bytes: string;
-      caption: string | null;
-      is_cover: boolean;
-      sort_order: number;
-    }>(
-      `SELECT secure_file_key, file_name, file_mime_type, file_size_bytes, caption, is_cover, sort_order
-       FROM proposal_media WHERE agency_id = $1 AND proposal_id = $2 AND deleted_at IS NULL`,
+    // Media Library links (not files) are duplicated -- the underlying
+    // media_assets row is shared, never re-uploaded. Both proposals
+    // reference the exact same asset; deleting one link never touches
+    // the asset or the other proposal's link.
+    const mediaLinks = await client.query<{ media_asset_id: string; usage: string; sort_order: number }>(
+      `SELECT media_asset_id, usage, sort_order FROM media_asset_links
+       WHERE agency_id = $1 AND entity_type = 'PROPOSAL' AND entity_id = $2`,
       [agencyId, id],
     );
-    for (const item of media.rows) {
+    for (const link of mediaLinks.rows) {
       await client.query(
-        `INSERT INTO proposal_media
-           (agency_id, proposal_id, secure_file_key, file_name, file_mime_type, file_size_bytes,
-            caption, is_cover, sort_order)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-        [
-          agencyId,
-          newProposalId,
-          item.secure_file_key,
-          item.file_name,
-          item.file_mime_type,
-          item.file_size_bytes,
-          item.caption,
-          item.is_cover,
-          item.sort_order,
-        ],
+        `INSERT INTO media_asset_links (agency_id, media_asset_id, entity_type, entity_id, usage, sort_order)
+         VALUES ($1, $2, 'PROPOSAL', $3, $4, $5)`,
+        [agencyId, link.media_asset_id, newProposalId, link.usage, link.sort_order],
       );
     }
 

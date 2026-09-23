@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { formatBRL } from '../../lib/formatCurrency';
 import { formatDateBR } from '../../lib/formatDateBR';
-import { loadProposalMediaBlobUrl, type Proposal, type ProposalItem, type ProposalMedia, type ProposalSection } from '../../lib/api';
+import { loadMediaAssetBlobUrl, type EntityMediaItem, type Proposal, type ProposalItem, type ProposalSection } from '../../lib/api';
 
 // Shared rendering used by both the Agency's real preview
 // (ProposalPreviewPage) and the editor's embedded "Prévia" tab -- so the
@@ -28,12 +28,12 @@ export interface ProposalContentData {
   proposal: Proposal;
   sections: ProposalSection[];
   itemsBySection: Record<string, ProposalItem[]>;
-  media: ProposalMedia[];
+  media: EntityMediaItem[];
 }
 
 export function ProposalVisualPreview({ data }: { data: ProposalContentData }) {
   const { proposal, sections, itemsBySection, media } = data;
-  const cover = media.find((m) => m.isCover) ?? media[0];
+  const cover = media.find((m) => m.usage === 'COVER') ?? media[0];
   const visibleSections = sections
     .filter((s) => s.isVisibleToCustomer)
     .slice()
@@ -99,14 +99,14 @@ export function ProposalVisualPreview({ data }: { data: ProposalContentData }) {
   );
 }
 
-function ProposalCover({ proposal, coverMedia }: { proposal: Proposal; coverMedia?: ProposalMedia | undefined }) {
+function ProposalCover({ proposal, coverMedia }: { proposal: Proposal; coverMedia?: EntityMediaItem | undefined }) {
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (!coverMedia) return;
     let cancelled = false;
-    loadProposalMediaBlobUrl(coverMedia.id)
-      .then((url) => {
+    loadMediaAssetBlobUrl(coverMedia.mediaAssetId)
+      .then((url: string) => {
         if (!cancelled) setBlobUrl(url);
       })
       .catch(() => undefined);

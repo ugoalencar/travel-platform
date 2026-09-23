@@ -76,7 +76,7 @@ describe('Proposal Visual 2.0 -- HTTP', () => {
 
   beforeEach(async () => {
     await adminPool.query(
-      'TRUNCATE TABLE proposal_items, proposal_sections, proposal_media, engagements, proposals, customers RESTART IDENTITY CASCADE',
+      'TRUNCATE TABLE proposal_items, proposal_sections, media_asset_links, media_assets, engagements, proposals, customers RESTART IDENTITY CASCADE',
     );
     customerAId = await seedCustomer(agencyAId, 'Cliente A');
     customerA2Id = await seedCustomer(agencyAId, 'Outro Cliente A');
@@ -538,13 +538,13 @@ describe('Proposal Visual 2.0 -- HTTP', () => {
     const proposalId = await createDraftProposal(app);
     const upload = await uploadMedia(app, proposalId);
     expect(upload.statusCode).toBe(201);
-    const { media }: { media: { id: string } } = upload.json();
+    const { media }: { media: { mediaAssetId: string } } = upload.json();
     await app.close();
 
     const wrongTenantCustomerApp = buildCustomerApp(customerBId, agencyBId);
     const attempt = await wrongTenantCustomerApp.inject({
       method: 'GET',
-      url: `/customer-api/proposals/${proposalId}/media/${media.id}/download`,
+      url: `/customer-api/proposals/${proposalId}/media/${media.mediaAssetId}/download`,
       headers: { 'x-test-customer': 'ok' },
     });
     expect(attempt.statusCode).toBe(404);
@@ -553,7 +553,7 @@ describe('Proposal Visual 2.0 -- HTTP', () => {
     const ownerCustomerApp = buildCustomerApp(customerAId);
     const ok = await ownerCustomerApp.inject({
       method: 'GET',
-      url: `/customer-api/proposals/${proposalId}/media/${media.id}/download`,
+      url: `/customer-api/proposals/${proposalId}/media/${media.mediaAssetId}/download`,
       headers: { 'x-test-customer': 'ok' },
     });
     expect(ok.statusCode).toBe(200);

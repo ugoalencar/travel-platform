@@ -55,6 +55,7 @@ import { PostTripPage } from './pages/operations/PostTripPage';
 import { ReportsPage } from './pages/ReportsPage';
 import { CommunicationPage } from './pages/CommunicationPage';
 import { CommunicationFormPage } from './pages/CommunicationFormPage';
+import { MediaLibraryPage } from './pages/MediaLibraryPage';
 import { TasksPage } from './pages/TasksPage';
 import { ProposalEditorPage } from './pages/proposals/ProposalEditorPage';
 import { TaskFormPage } from './pages/TaskFormPage';
@@ -106,6 +107,7 @@ export function App() {
         <Route path="communications" element={<CommunicationPage />} />
         <Route path="communications/new" element={<CommunicationFormPage />} />
         <Route path="communications/:id/edit" element={<CommunicationFormPage />} />
+        <Route path="media-library" element={<MediaLibraryPage />} />
         <Route path="tasks" element={<TasksPage />} />
         <Route path="tasks/new" element={<TaskFormPage />} />
         <Route path="campaigns" element={<CampaignsPage />} />
