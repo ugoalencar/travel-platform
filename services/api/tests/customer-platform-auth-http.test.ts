@@ -1,7 +1,7 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { createHmac } from 'node:crypto';
+import { createHash, createHmac } from 'node:crypto';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { Pool } from 'pg';
 import { buildApp } from '../src/app';
@@ -270,6 +270,29 @@ describe('Customer Portal + Platform Admin local auth HTTP routes', () => {
     const mfaLoginBody: { state: string; mfaChallengeToken: string } = mfaLogin.json();
     expect(mfaLoginBody.state).toBe('MFA_REQUIRED');
 
+    const invalidVerifyResponse = await app.inject({
+      method: 'POST',
+      url: '/platform-auth/mfa/verify',
+      payload: { sessionToken: mfaLoginBody.mfaChallengeToken, code: generateInvalidTotpCode(secretFromUri!) },
+    });
+    expect(invalidVerifyResponse.statusCode).toBe(401);
+    expect(invalidVerifyResponse.json()).toMatchObject({ error: 'Código de MFA inválido' });
+
+    const challengeTokenHash = createHash('sha256').update(mfaLoginBody.mfaChallengeToken).digest('hex');
+    const pendingSession = await adminPool.query<{ state: string }>(
+      `SELECT state FROM platform_sessions WHERE session_token_hash = $1`,
+      [challengeTokenHash],
+    );
+    expect(pendingSession.rows[0]?.state).toBe('MFA_PENDING');
+
+    const failedAudit = await adminPool.query<{ action: string; details: Record<string, unknown> }>(
+      `SELECT action, details FROM platform_user_audit WHERE action = 'MFA_CHALLENGE_FAILED'`,
+    );
+    expect(failedAudit.rows).toEqual([{ action: 'MFA_CHALLENGE_FAILED', details: {} }]);
+    const serializedAudit = JSON.stringify(failedAudit.rows);
+    expect(serializedAudit).not.toContain(secretFromUri!);
+    expect(serializedAudit).not.toMatch(/recovery/i);
+
     const verifyResponse = await app.inject({
       method: 'POST',
       url: '/platform-auth/mfa/verify',
@@ -316,6 +339,14 @@ describe('Customer Portal + Platform Admin local auth HTTP routes', () => {
       ((digest[offset + 2]! & 0xff) << 8) |
       (digest[offset + 3]! & 0xff);
     return (code % 1_000_000).toString().padStart(6, '0');
+  }
+
+  function generateInvalidTotpCode(secretBase32: string): string {
+    for (let candidate = 0; candidate < 1_000_000; candidate++) {
+      const code = candidate.toString().padStart(6, '0');
+      if (!totpProvider.verifyCode(secretBase32, code).valid) return code;
+    }
+    throw new Error('Unable to generate an invalid TOTP code');
   }
 
   function buildTestApp() {

@@ -9,7 +9,7 @@ import {
   createServerCustomerAuthProvider,
   createStaffAccessValidator,
 } from './dev-auth';
-import { assertSafeDatabaseRole, validateProductionEnvironment } from './env';
+import { assertSafeDatabasePools, validateProductionEnvironment } from './env';
 import { createServerPlatformAuthProvider } from './platform-dev-auth';
 import { createRedisRateLimitStore, resolveRateLimitRuntimeConfig, type RedisClientInstance } from './rate-limit';
 
@@ -164,11 +164,10 @@ async function main(): Promise<void> {
       throw new Error('Internal error: app was not initialized before startup.');
     }
 
-    // DB runtime role guard (production only): refuses to start if the
-    // connected role is superuser or BYPASSRLS, since either would silently
-    // defeat RLS tenant isolation. Does not modify role/RLS architecture --
-    // it only reads the already-configured role's existing privileges.
-    await assertSafeDatabaseRole(pool);
+    // DB runtime role guards (production only): both pools must use distinct
+    // non-superuser, non-BYPASSRLS roles. This only reads the configured
+    // roles' existing privileges; grants and RLS policies remain unchanged.
+    await assertSafeDatabasePools(pool, platformPool);
     await app.listen({ port, host });
     app.log.info({ host, port, service: 'api' }, 'service started');
   } catch (error: unknown) {

@@ -193,7 +193,7 @@ export async function verifyPlatformMfaAndCompleteLogin(
     throw new UnauthorizedError('Desafio de MFA inválido ou expirado');
   }
 
-  return platformDatabase.withPublicLookupTransaction(
+  const outcome = await platformDatabase.withPublicLookupTransaction(
     'app.platform_session_lookup_hash',
     tokenHash,
     async (client) => {
@@ -208,8 +208,7 @@ export async function verifyPlatformMfaAndCompleteLogin(
 
       const verification = totpProvider.verifyCode(resolvePlatformMfaSecret(user.mfa_secret), input.code);
       if (!verification.valid) {
-        await recordPlatformAudit(client, user.id, 'MFA_CHALLENGE_FAILED');
-        throw new UnauthorizedError('Código de MFA inválido');
+        return { state: 'INVALID' as const, platformUserId: user.id };
       }
 
       // F-07: re-encrypt a legacy plaintext secret on the first successful
@@ -231,14 +230,31 @@ export async function verifyPlatformMfaAndCompleteLogin(
       await recordPlatformAudit(client, user.id, 'LOGIN_SUCCEEDED');
 
       return {
-        sessionToken: input.sessionToken,
-        expiresAt,
-        platformUserId: user.id,
-        email: user.email,
-        role: user.role,
+        state: 'AUTHENTICATED' as const,
+        result: {
+          sessionToken: input.sessionToken,
+          expiresAt,
+          platformUserId: user.id,
+          email: user.email,
+          role: user.role,
+        },
       };
     },
   );
+
+  if (outcome.state === 'INVALID') {
+    // Persist the failed challenge outside the verification transaction.
+    // Throwing inside that transaction rolled this audit row back together
+    // with the authentication attempt.
+    await platformDatabase.withPublicLookupTransaction(
+      'app.platform_session_lookup_hash',
+      tokenHash,
+      (client) => recordPlatformAudit(client, outcome.platformUserId, 'MFA_CHALLENGE_FAILED'),
+    );
+    throw new UnauthorizedError('Código de MFA inválido');
+  }
+
+  return outcome.result;
 }
 
 // ============================================================

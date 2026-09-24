@@ -172,6 +172,7 @@ export function validateProductionEnvironment(environment: ServerEnvironment = p
 // privileges of whatever role the pool is already configured to connect as
 // and refuses to start if that role would defeat RLS in production.
 interface RoleRow {
+  rolname: string;
   rolsuper: boolean;
   rolbypassrls: boolean;
 }
@@ -195,21 +196,53 @@ export async function assertSafeDatabaseRole(
     return;
   }
 
+  await readSafeDatabaseRole(pool, 'database');
+}
+
+/**
+ * Verifies both production pools use safe, distinct roles. The platform
+ * role still traverses tenant RLS-backed paths for explicit agency/public
+ * lookups, so SUPERUSER/BYPASSRLS would defeat those boundaries too.
+ */
+export async function assertSafeDatabasePools(
+  tenantPool: RoleCheckQueryable,
+  platformPool: RoleCheckQueryable,
+  environment: ServerEnvironment = process.env
+): Promise<void> {
+  if (environment.NODE_ENV !== 'production') {
+    return;
+  }
+
+  const tenantRole = await readSafeDatabaseRole(tenantPool, 'tenant');
+  const platformRole = await readSafeDatabaseRole(platformPool, 'platform');
+
+  if (tenantRole === platformRole) {
+    throw new Error(
+      `Refusing to start: tenant and platform database pools use the same role "${tenantRole}". ` +
+        'Configure distinct runtime roles to preserve platform/tenant isolation.'
+    );
+  }
+}
+
+async function readSafeDatabaseRole(
+  pool: RoleCheckQueryable,
+  poolLabel: 'database' | 'tenant' | 'platform'
+): Promise<string> {
   const result = await pool.query(
-    'SELECT rolsuper, rolbypassrls FROM pg_roles WHERE rolname = current_user'
+    'SELECT rolname, rolsuper, rolbypassrls FROM pg_roles WHERE rolname = current_user'
   );
   const role = result.rows[0];
 
   if (!role) {
     throw new Error(
       "Refusing to start: could not read the connected database role's privileges from pg_roles " +
-        '(current_user did not match any row). Unable to verify RLS will be enforced.'
+        `(current_user did not match any row for the ${poolLabel} pool). Unable to verify RLS will be enforced.`
     );
   }
 
   if (role.rolsuper) {
     throw new Error(
-      'Refusing to start: the database connection uses a SUPERUSER role. Superuser connections ' +
+      `Refusing to start: the ${poolLabel} database connection uses a SUPERUSER role. Superuser connections ` +
         'bypass Row-Level Security entirely, silently defeating tenant isolation. Configure a ' +
         'non-superuser application role for production.'
     );
@@ -217,8 +250,10 @@ export async function assertSafeDatabaseRole(
 
   if (role.rolbypassrls) {
     throw new Error(
-      'Refusing to start: the database connection role has BYPASSRLS. This silently defeats Row-Level ' +
+      `Refusing to start: the ${poolLabel} database connection role has BYPASSRLS. This silently defeats Row-Level ` +
         'Security tenant isolation. Configure the production application role without BYPASSRLS.'
     );
   }
+
+  return role.rolname;
 }

@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { assertSafeDatabaseRole, validateProductionEnvironment } from '../src/env';
+import {
+  assertSafeDatabasePools,
+  assertSafeDatabaseRole,
+  validateProductionEnvironment,
+} from '../src/env';
 
 describe('validateProductionEnvironment', () => {
   it('is a no-op outside production (dev/test must never require prod config)', () => {
@@ -246,7 +250,7 @@ describe('validateProductionEnvironment', () => {
 });
 
 describe('assertSafeDatabaseRole', () => {
-  function fakePool(rows: Array<{ rolsuper: boolean; rolbypassrls: boolean }>) {
+  function fakePool(rows: Array<{ rolname: string; rolsuper: boolean; rolbypassrls: boolean }>) {
     return {
       query: () => Promise.resolve({ rows }),
     };
@@ -261,19 +265,19 @@ describe('assertSafeDatabaseRole', () => {
   });
 
   it('passes in production for a non-superuser, non-BYPASSRLS role', async () => {
-    const pool = fakePool([{ rolsuper: false, rolbypassrls: false }]);
+    const pool = fakePool([{ rolname: 'travel_app_runtime', rolsuper: false, rolbypassrls: false }]);
     await expect(assertSafeDatabaseRole(pool, { NODE_ENV: 'production' })).resolves.toBeUndefined();
   });
 
   it('refuses to start in production for a superuser role', async () => {
-    const pool = fakePool([{ rolsuper: true, rolbypassrls: false }]);
+    const pool = fakePool([{ rolname: 'postgres', rolsuper: true, rolbypassrls: false }]);
     await expect(assertSafeDatabaseRole(pool, { NODE_ENV: 'production' })).rejects.toThrow(
       /SUPERUSER/
     );
   });
 
   it('refuses to start in production for a BYPASSRLS role', async () => {
-    const pool = fakePool([{ rolsuper: false, rolbypassrls: true }]);
+    const pool = fakePool([{ rolname: 'unsafe_runtime', rolsuper: false, rolbypassrls: true }]);
     await expect(assertSafeDatabaseRole(pool, { NODE_ENV: 'production' })).rejects.toThrow(
       /BYPASSRLS/
     );
@@ -284,5 +288,62 @@ describe('assertSafeDatabaseRole', () => {
     await expect(assertSafeDatabaseRole(pool, { NODE_ENV: 'production' })).rejects.toThrow(
       /could not read the connected database role/
     );
+  });
+});
+
+describe('assertSafeDatabasePools', () => {
+  function fakePool(rolname: string, rolsuper = false, rolbypassrls = false) {
+    return {
+      query: () => Promise.resolve({ rows: [{ rolname, rolsuper, rolbypassrls }] }),
+    };
+  }
+
+  it('is a no-op outside production', async () => {
+    const inaccessiblePool = {
+      query: () => Promise.reject(new Error('database must not be queried outside production')),
+    };
+    await expect(
+      assertSafeDatabasePools(inaccessiblePool, inaccessiblePool, { NODE_ENV: 'development' }),
+    ).resolves.toBeUndefined();
+  });
+
+  it('accepts distinct safe tenant and platform roles in production', async () => {
+    await expect(
+      assertSafeDatabasePools(
+        fakePool('travel_app_runtime'),
+        fakePool('travel_app_platform'),
+        { NODE_ENV: 'production' },
+      ),
+    ).resolves.toBeUndefined();
+  });
+
+  it('refuses a SUPERUSER platform role in production', async () => {
+    await expect(
+      assertSafeDatabasePools(
+        fakePool('travel_app_runtime'),
+        fakePool('postgres', true),
+        { NODE_ENV: 'production' },
+      ),
+    ).rejects.toThrow(/platform.*SUPERUSER/i);
+  });
+
+  it('refuses a BYPASSRLS platform role in production', async () => {
+    await expect(
+      assertSafeDatabasePools(
+        fakePool('travel_app_runtime'),
+        fakePool('unsafe_platform', false, true),
+        { NODE_ENV: 'production' },
+      ),
+    ).rejects.toThrow(/platform.*BYPASSRLS/i);
+  });
+
+  it('refuses production boot when tenant and platform pools use the same database role', async () => {
+    await expect(
+      assertSafeDatabasePools(
+        fakePool('travel_app_runtime'),
+        fakePool('travel_app_runtime'),
+        { NODE_ENV: 'production' },
+      ),
+    ).rejects.toThrow(/tenant and platform database pools use the same role/i);
   });
 });
