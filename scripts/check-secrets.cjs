@@ -283,6 +283,10 @@ const KNOWN_PLACEHOLDER_VALUES = new Set([
   // Never valid outside a throwaway local/CI database.
   'travel_test_password',
   'travel_app_runtime_local_password',
+  // Same category: F-06 platform-role password, created only by
+  // tests/integration/database/002_prepare_local_roles.sql against a
+  // throwaway local/CI database. Never valid anywhere else.
+  'travel_app_platform_local_password',
   // Same category: docker-compose.staging.yml and infrastructure/docker-
   // compose.local-staging.yml are both purely local Docker Compose
   // simulations of a staging environment (no remote staging has been

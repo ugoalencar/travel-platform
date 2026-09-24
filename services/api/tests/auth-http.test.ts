@@ -26,6 +26,8 @@ const adminUser = process.env.DATABASE_TEST_USER ?? 'travel_test';
 const adminPassword = process.env.DATABASE_TEST_PASSWORD ?? 'travel_test_password';
 const runtimeUser = 'travel_app_runtime_local';
 const runtimePassword = 'travel_app_runtime_local_password';
+const platformUser = 'travel_app_platform_local';
+const platformPassword = 'travel_app_platform_local_password';
 const poolPasswordKey = 'pass' + 'word';
 
 const agencyAId = '10000000-0000-4000-8000-000000000008';
@@ -37,6 +39,7 @@ const ownerAPassword = 'correct-horse-battery-staple';
 describe('Local auth HTTP routes', () => {
   let adminPool: Pool;
   let runtimePool: Pool;
+  let platformPool: Pool;
 
   beforeAll(async () => {
     assertSafeTestDatabase();
@@ -58,6 +61,15 @@ describe('Local auth HTTP routes', () => {
       user: runtimeUser,
       [poolPasswordKey]: runtimePassword,
     });
+    // F-06: platform-table paths run on the platform-role pool (mirrors
+    // server.ts / PLATFORM_DATABASE_URL); tenant paths stay on runtime.
+    platformPool = new Pool({
+      host: databaseHost,
+      port: databasePort,
+      database: databaseName,
+      user: platformUser,
+      [poolPasswordKey]: platformPassword,
+    });
 
     await resetDatabase(adminPool);
   });
@@ -73,12 +85,13 @@ describe('Local auth HTTP routes', () => {
   });
 
   afterAll(async () => {
+    await platformPool?.end();
     await runtimePool?.end();
     await adminPool?.end();
   });
 
   it('POST /auth/login with correct credentials returns a usable session token', async () => {
-    const app = buildTestApp(runtimePool);
+    const app = buildTestApp();
 
     const response = await app.inject({
       method: 'POST',
@@ -101,7 +114,7 @@ describe('Local auth HTTP routes', () => {
   });
 
   it('POST /auth/login with wrong password returns 401 with a generic message', async () => {
-    const app = buildTestApp(runtimePool);
+    const app = buildTestApp();
     const response = await app.inject({
       method: 'POST',
       url: '/auth/login',
@@ -112,7 +125,7 @@ describe('Local auth HTTP routes', () => {
   });
 
   it('a session token authenticates ordinary protected routes (not just /auth/*)', async () => {
-    const app = buildTestApp(runtimePool);
+    const app = buildTestApp();
     const loginResponse = await app.inject({
       method: 'POST',
       url: '/auth/login',
@@ -130,7 +143,7 @@ describe('Local auth HTTP routes', () => {
   });
 
   it('POST /auth/logout revokes the session; it can no longer authenticate', async () => {
-    const app = buildTestApp(runtimePool);
+    const app = buildTestApp();
     const loginResponse = await app.inject({
       method: 'POST',
       url: '/auth/login',
@@ -155,7 +168,7 @@ describe('Local auth HTTP routes', () => {
   });
 
   it('POST /auth/forgot-password always returns 200 with a generic message (no enumeration)', async () => {
-    const app = buildTestApp(runtimePool);
+    const app = buildTestApp();
     const known = await app.inject({
       method: 'POST',
       url: '/auth/forgot-password',
@@ -171,7 +184,7 @@ describe('Local auth HTTP routes', () => {
     expect(known.json()).toEqual(unknown.json());
   });
 
-  function buildTestApp(pool: Pool) {
+  function buildTestApp() {
     return buildApp({
       authProvider: { authenticate: () => Promise.resolve(null) },
       // resolveSessionByToken() (used by createSessionAuthProvider, which
@@ -183,8 +196,10 @@ describe('Local auth HTTP routes', () => {
       // below, which never resolves a principal in these tests.
       validateUserAgencyAccess: (userId, agencyId) =>
         Promise.resolve(userId === ownerAId && agencyId === agencyAId),
-      database: createDatabaseRuntime(pool),
-      platformDatabase: createPlatformDatabaseRuntime(pool),
+      // F-06: tenant paths on the runtime pool, platform paths on the
+      // platform-role pool -- mirrors server.ts.
+      database: createDatabaseRuntime(runtimePool, platformPool),
+      platformDatabase: createPlatformDatabaseRuntime(platformPool),
     });
   }
 

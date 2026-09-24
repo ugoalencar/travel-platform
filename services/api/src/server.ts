@@ -25,19 +25,35 @@ const host = process.env.HOST ?? '127.0.0.1';
 // Production pool configuration: limits concurrent connections, enforces
 // statement timeouts, and validates connections before use. These settings
 // protect against resource exhaustion and long-running queries.
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  // Max concurrent connections (default 10). In production, scale this to
-  // match your expected concurrency. E.g., 20-50 for typical apps, higher
-  // for high-throughput services. Adjust based on actual load testing.
-  max: Number(process.env.DB_POOL_MAX ?? 20),
-  // Idle connection timeout: close connections idle > 30s to free resources.
-  // Queries in progress are not affected; only connections awaiting work.
-  idleTimeoutMillis: Number(process.env.DB_POOL_IDLE_TIMEOUT ?? 30000),
-  // Connection acquisition timeout: fail fast (5s) if no connection is
-  // available, rather than queueing requests indefinitely.
-  connectionTimeoutMillis: Number(process.env.DB_POOL_CONNECTION_TIMEOUT ?? 5000),
-});
+function createPool(connectionString: string | undefined): Pool {
+  return new Pool({
+    connectionString,
+    // Max concurrent connections (default 10). In production, scale this to
+    // match your expected concurrency. E.g., 20-50 for typical apps, higher
+    // for high-throughput services. Adjust based on actual load testing.
+    max: Number(process.env.DB_POOL_MAX ?? 20),
+    // Idle connection timeout: close connections idle > 30s to free resources.
+    // Queries in progress are not affected; only connections awaiting work.
+    idleTimeoutMillis: Number(process.env.DB_POOL_IDLE_TIMEOUT ?? 30000),
+    // Connection acquisition timeout: fail fast (5s) if no connection is
+    // available, rather than queueing requests indefinitely.
+    connectionTimeoutMillis: Number(process.env.DB_POOL_CONNECTION_TIMEOUT ?? 5000),
+  });
+}
+
+// F-06: dual pools. Tenant requests run on DATABASE_URL (runtime role,
+// no platform-table grants). Platform operations (withPlatformTransaction
+// + PlatformDatabaseRuntime) run on PLATFORM_DATABASE_URL (platform role,
+// superset). Required in production by validateProductionEnvironment();
+// outside production falls back to DATABASE_URL so local dev and tests
+// that only exercise tenant paths keep working on a single role.
+const pool = createPool(process.env.DATABASE_URL);
+const platformConnectionString =
+  process.env.PLATFORM_DATABASE_URL && process.env.PLATFORM_DATABASE_URL !== process.env.DATABASE_URL
+    ? process.env.PLATFORM_DATABASE_URL
+    : process.env.DATABASE_URL;
+const platformPool =
+  platformConnectionString === process.env.DATABASE_URL ? pool : createPool(platformConnectionString);
 
 // Shared between both buildApp() call sites below (baseAppOptions +
 // rateLimit.store when external). Kept as a function, not a call-once
@@ -47,8 +63,8 @@ function baseAppOptions() {
   return {
     authProvider: createServerAuthProvider(),
     validateUserAgencyAccess: composeUserAgencyValidators(createServerAccessValidator(), createStaffAccessValidator(pool)),
-    database: createDatabaseRuntime(pool),
-    platformDatabase: createPlatformDatabaseRuntime(pool),
+    database: createDatabaseRuntime(pool, platformPool),
+    platformDatabase: createPlatformDatabaseRuntime(platformPool),
     // Explicit platform auth provider (F-01): production always gets the
     // deny-all provider; outside production the dual-gated dev provider.
     // buildApp()'s default is also deny-all, but the real server never
@@ -63,6 +79,9 @@ function baseAppOptions() {
     validateCustomerAgencyAccess: createCustomerAccessValidator(pool),
     readinessCheck: async () => {
       await pool.query('SELECT 1');
+      if (platformPool !== pool) {
+        await platformPool.query('SELECT 1');
+      }
     },
     dbPoolStats: () => ({
       total: pool.totalCount,
@@ -114,6 +133,9 @@ async function gracefulShutdown(signal: string): Promise<void> {
     // to complete, then closes all idle connections. Does not kill
     // active queries; the timeout here is for cleanup only.
     await pool.end();
+    if (platformPool !== pool) {
+      await platformPool.end();
+    }
     app.log.info({}, 'database pool drained');
 
     process.exitCode = 0;

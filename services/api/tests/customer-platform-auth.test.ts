@@ -16,12 +16,15 @@ import {
   resolveCustomerSessionByToken,
 } from '../src/customer-local-auth';
 import {
+  confirmPlatformMfaEnrollment,
   platformLogin,
   platformLogout,
   resolvePlatformSessionByToken,
   setPlatformUserStatus,
+  startPlatformMfaEnrollment,
   verifyPlatformMfaAndCompleteLogin,
 } from '../src/platform-local-auth';
+import { decryptMfaSecret, isMfaSecretEncrypted } from '../src/mfa-encryption';
 
 const repoRoot = resolve(import.meta.dirname, '../../..');
 const migrationsDir = resolve(repoRoot, 'infrastructure/migrations');
@@ -42,6 +45,8 @@ const adminUser = process.env.DATABASE_TEST_USER ?? 'travel_test';
 const adminPassword = process.env.DATABASE_TEST_PASSWORD ?? 'travel_test_password';
 const runtimeUser = 'travel_app_runtime_local';
 const runtimePassword = 'travel_app_runtime_local_password';
+const platformUser = 'travel_app_platform_local';
+const platformPassword = 'travel_app_platform_local_password';
 const poolPasswordKey = 'pass' + 'word';
 
 const agencyAId = '10000000-0000-4000-8000-00000000000a';
@@ -55,6 +60,7 @@ const platformUserPassword = 'platform-strong-password-1';
 describe('Customer Portal + Platform Admin local auth (Frontend Auth & Session track)', () => {
   let adminPool: Pool;
   let runtimePool: Pool;
+  let platformPool: Pool;
   let platformDatabase: PlatformDatabaseRuntime;
   const totpProvider = createTotpProvider();
 
@@ -78,8 +84,17 @@ describe('Customer Portal + Platform Admin local auth (Frontend Auth & Session t
       user: runtimeUser,
       [poolPasswordKey]: runtimePassword,
     });
+    // F-06: platform_users/platform_sessions are revoked from the runtime
+    // role; Platform Admin auth must run on the platform-role pool.
+    platformPool = new Pool({
+      host: databaseHost,
+      port: databasePort,
+      database: databaseName,
+      user: platformUser,
+      [poolPasswordKey]: platformPassword,
+    });
 
-    platformDatabase = createPlatformDatabaseRuntime(runtimePool);
+    platformDatabase = createPlatformDatabaseRuntime(platformPool);
 
     await resetDatabase(adminPool);
   });
@@ -101,6 +116,7 @@ describe('Customer Portal + Platform Admin local auth (Frontend Auth & Session t
   });
 
   afterAll(async () => {
+    await platformPool?.end();
     await runtimePool?.end();
     await adminPool?.end();
   });
@@ -211,6 +227,8 @@ describe('Customer Portal + Platform Admin local auth (Frontend Auth & Session t
   });
 
   it('platform admin with MFA enrolled must verify before getting a usable session', async () => {
+    // Deliberately seeds a LEGACY pre-F-07 plaintext secret: the verify
+    // path must still accept it and re-encrypt it at rest on success.
     const secret = totpProvider.generateSecret(platformUserEmail, 'Travel Platform').secret;
     await adminPool.query(`UPDATE platform_users SET mfa_enabled = true, mfa_secret = $2 WHERE email = $1`, [
       platformUserEmail,
@@ -237,6 +255,121 @@ describe('Customer Portal + Platform Admin local auth (Frontend Auth & Session t
 
     const resolved = await resolvePlatformSessionByToken(platformDatabase, loginResult.sessionToken);
     expect(resolved?.email).toBe(platformUserEmail);
+
+    // F-07: legacy plaintext must be re-encrypted after the first
+    // successful verification, and the migration audited.
+    const stored = await adminPool.query<{ mfa_secret: string }>(
+      `SELECT mfa_secret FROM platform_users WHERE email = $1`,
+      [platformUserEmail],
+    );
+    expect(stored.rows[0]!.mfa_secret).not.toBe(secret);
+    expect(isMfaSecretEncrypted(stored.rows[0]!.mfa_secret)).toBe(true);
+    expect(decryptMfaSecret(stored.rows[0]!.mfa_secret)).toBe(secret);
+
+    const userRow = await adminPool.query<{ id: string }>(`SELECT id FROM platform_users WHERE email = $1`, [
+      platformUserEmail,
+    ]);
+    const reencryptAudit = await adminPool.query<{ action: string }>(
+      `SELECT action FROM platform_user_audit WHERE platform_user_id = $1 AND action = 'MFA_SECRET_REENCRYPTED'`,
+      [userRow.rows[0]!.id],
+    );
+    expect(reencryptAudit.rows).toHaveLength(1);
+  });
+
+  it('platform MFA enrollment stages an encrypted secret and enables MFA only after a valid TOTP confirm', async () => {
+    const userRow = await adminPool.query<{ id: string }>(`SELECT id FROM platform_users WHERE email = $1`, [
+      platformUserEmail,
+    ]);
+    const platformUserId = userRow.rows[0]!.id;
+
+    const enrollment = await startPlatformMfaEnrollment(platformDatabase, {
+      platformUserId,
+      email: platformUserEmail,
+    });
+    // The only field returned is the otpauth URI -- no raw secret, no
+    // recovery codes (platform_users has no recovery-code table).
+    expect(Object.keys(enrollment)).toEqual(['provisioningUri']);
+    expect(enrollment.provisioningUri).toMatch(/^otpauth:\/\//);
+    const secretFromUri = new URL(enrollment.provisioningUri).searchParams.get('secret');
+    expect(secretFromUri).toBeTruthy();
+
+    const staged = await adminPool.query<{ mfa_secret: string | null; mfa_enabled: boolean }>(
+      `SELECT mfa_secret, mfa_enabled FROM platform_users WHERE id = $1`,
+      [platformUserId],
+    );
+    expect(staged.rows[0]!.mfa_enabled).toBe(false);
+    expect(staged.rows[0]!.mfa_secret).toBeTruthy();
+    expect(isMfaSecretEncrypted(staged.rows[0]!.mfa_secret!)).toBe(true);
+    expect(staged.rows[0]!.mfa_secret).not.toBe(secretFromUri);
+    expect(decryptMfaSecret(staged.rows[0]!.mfa_secret!)).toBe(secretFromUri);
+
+    // A staged (unconfirmed) secret must not force MFA at login.
+    const preConfirmLogin = await platformLogin(platformDatabase, {
+      email: platformUserEmail,
+      password: platformUserPassword,
+      ip: '127.0.0.1',
+    });
+    expect(preConfirmLogin.state).toBe('FULLY_AUTHENTICATED');
+
+    await expect(
+      confirmPlatformMfaEnrollment(platformDatabase, { platformUserId, code: '000000' }),
+    ).rejects.toThrow('Código de verificação inválido');
+
+    await confirmPlatformMfaEnrollment(platformDatabase, {
+      platformUserId,
+      code: generateTotpCode(secretFromUri!),
+    });
+
+    const confirmed = await adminPool.query<{ mfa_secret: string | null; mfa_enabled: boolean }>(
+      `SELECT mfa_secret, mfa_enabled FROM platform_users WHERE id = $1`,
+      [platformUserId],
+    );
+    expect(confirmed.rows[0]!.mfa_enabled).toBe(true);
+    expect(isMfaSecretEncrypted(confirmed.rows[0]!.mfa_secret!)).toBe(true);
+    expect(decryptMfaSecret(confirmed.rows[0]!.mfa_secret!)).toBe(secretFromUri);
+
+    const audit = await adminPool.query<{ action: string }>(
+      `SELECT action FROM platform_user_audit WHERE platform_user_id = $1`,
+      [platformUserId],
+    );
+    const actions = audit.rows.map((row) => row.action);
+    expect(actions).toContain('MFA_ENROLL_STARTED');
+    expect(actions).toContain('MFA_ENABLED');
+
+    const loginResult = await platformLogin(platformDatabase, {
+      email: platformUserEmail,
+      password: platformUserPassword,
+      ip: '127.0.0.1',
+    });
+    expect(loginResult.state).toBe('MFA_REQUIRED');
+    if (loginResult.state !== 'MFA_REQUIRED') return;
+
+    const verified = await verifyPlatformMfaAndCompleteLogin(platformDatabase, {
+      sessionToken: loginResult.sessionToken,
+      code: generateTotpCode(secretFromUri!),
+    });
+    expect(verified.email).toBe(platformUserEmail);
+  });
+
+  it('re-enrollment is rejected while platform MFA is active', async () => {
+    const userRow = await adminPool.query<{ id: string }>(`SELECT id FROM platform_users WHERE email = $1`, [
+      platformUserEmail,
+    ]);
+    const platformUserId = userRow.rows[0]!.id;
+
+    const enrollment = await startPlatformMfaEnrollment(platformDatabase, {
+      platformUserId,
+      email: platformUserEmail,
+    });
+    const secretFromUri = new URL(enrollment.provisioningUri).searchParams.get('secret');
+    await confirmPlatformMfaEnrollment(platformDatabase, {
+      platformUserId,
+      code: generateTotpCode(secretFromUri!),
+    });
+
+    await expect(
+      startPlatformMfaEnrollment(platformDatabase, { platformUserId, email: platformUserEmail }),
+    ).rejects.toThrow('MFA já está ativo para este usuário');
   });
 
   it('platform admin logout revokes the session', async () => {

@@ -54,6 +54,40 @@ export function validateProductionEnvironment(environment: ServerEnvironment = p
     );
   }
 
+  // F-06: production must connect platform operations (withPlatformTransaction
+  // + PlatformDatabaseRuntime) on a dedicated platform-role URL. Falling back
+  // to DATABASE_URL in production would silently run platform-table access on
+  // the runtime role, which migration 095_platform_role_separation.sql has
+  // revoked -- Platform Admin paths would then fail with 42501 at runtime
+  // instead of failing closed at startup. It must also differ from
+  // DATABASE_URL: pointing both at the runtime connection defeats the
+  // separation entirely.
+  if (!isNonEmptyString(environment.PLATFORM_DATABASE_URL)) {
+    issues.push(
+      'PLATFORM_DATABASE_URL is required in production and must be a non-empty connection string ' +
+        '(platform role -- a superset of the runtime role, per F-06).'
+    );
+  } else if (environment.PLATFORM_DATABASE_URL.trim() === environment.DATABASE_URL?.trim()) {
+    issues.push(
+      'PLATFORM_DATABASE_URL must differ from DATABASE_URL in production (F-06: platform role ' +
+        'separation requires a distinct connection).'
+    );
+  }
+
+  // F-07: platform/agency MFA encrypts TOTP secrets at rest with
+  // AES-256-GCM keyed off MFA_ENCRYPTION_KEY (mfa-encryption.ts). Without
+  // it, every MFA-enabled login fails at runtime; fail closed at startup
+  // instead. Length >= 32 matches mfa-encryption.ts's own runtime check.
+  if (!isNonEmptyString(environment.MFA_ENCRYPTION_KEY)) {
+    issues.push(
+      'MFA_ENCRYPTION_KEY is required in production (encrypts TOTP secrets at rest; F-07).'
+    );
+  } else if (environment.MFA_ENCRYPTION_KEY.trim().length < 32) {
+    issues.push(
+      'MFA_ENCRYPTION_KEY must be at least 32 characters (256 bits) in production.'
+    );
+  }
+
   if (environment.PORT !== undefined && !isValidPort(environment.PORT)) {
     issues.push(
       `PORT must be a valid TCP port number (${MIN_PORT}-${MAX_PORT}) when set; got "${environment.PORT}".`

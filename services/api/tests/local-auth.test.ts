@@ -43,6 +43,8 @@ const adminUser = process.env.DATABASE_TEST_USER ?? 'travel_test';
 const adminPassword = process.env.DATABASE_TEST_PASSWORD ?? 'travel_test_password';
 const runtimeUser = 'travel_app_runtime_local';
 const runtimePassword = 'travel_app_runtime_local_password';
+const platformUser = 'travel_app_platform_local';
+const platformPassword = 'travel_app_platform_local_password';
 const poolPasswordKey = 'pass' + 'word';
 
 const agencyAId = '10000000-0000-4000-8000-000000000006';
@@ -61,6 +63,7 @@ const ownerContextA = {
 describe('Local password auth (Pilot Delivery Gap Closure -- Agent 02/Identity)', () => {
   let adminPool: Pool;
   let runtimePool: Pool;
+  let platformPool: Pool;
   let database: DatabaseRuntime;
   let platformDatabase: PlatformDatabaseRuntime;
   const totpProvider = createTotpProvider();
@@ -85,9 +88,18 @@ describe('Local password auth (Pilot Delivery Gap Closure -- Agent 02/Identity)'
       user: runtimeUser,
       [poolPasswordKey]: runtimePassword,
     });
+    // F-06: platformDatabase runs on the platform-role pool (mirrors
+    // server.ts); the tenant DatabaseRuntime keeps its runtime pool.
+    platformPool = new Pool({
+      host: databaseHost,
+      port: databasePort,
+      database: databaseName,
+      user: platformUser,
+      [poolPasswordKey]: platformPassword,
+    });
 
-    database = createDatabaseRuntime(runtimePool);
-    platformDatabase = createPlatformDatabaseRuntime(runtimePool);
+    database = createDatabaseRuntime(runtimePool, platformPool);
+    platformDatabase = createPlatformDatabaseRuntime(platformPool);
 
     await resetDatabase(adminPool);
   });
@@ -105,6 +117,7 @@ describe('Local password auth (Pilot Delivery Gap Closure -- Agent 02/Identity)'
   });
 
   afterAll(async () => {
+    await platformPool?.end();
     await runtimePool?.end();
     await adminPool?.end();
   });

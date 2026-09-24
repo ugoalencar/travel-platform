@@ -5,7 +5,7 @@
  * platform_users.email is globally unique, not tenant-scoped).
  */
 
-import type { FastifyInstance } from 'fastify';
+import type { FastifyInstance, FastifyRequest } from 'fastify';
 import type { preHandlerHookHandler } from 'fastify';
 import type { IncomingHttpHeaders } from 'node:http';
 import type { PlatformDatabaseRuntime } from '../database';
@@ -13,8 +13,10 @@ import { ValidationError } from '../errors';
 import { UnauthorizedError } from '../../../../packages/domain/tenant-context';
 import { InMemoryRateLimitStore, LoginAbuseProtector } from '../rate-limit';
 import {
+  confirmPlatformMfaEnrollment,
   platformLogin,
   platformLogout,
+  startPlatformMfaEnrollment,
   verifyPlatformMfaAndCompleteLogin,
 } from '../platform-local-auth';
 
@@ -45,6 +47,14 @@ function requireString(value: unknown, field: string): string {
     throw new ValidationError(`Field "${field}" is required`);
   }
   return value;
+}
+
+function requirePlatformPrincipal(request: FastifyRequest): { platformUserId: string; email: string } {
+  const auth = request.platformAuth;
+  if (!auth) {
+    throw new UnauthorizedError('Platform authentication required');
+  }
+  return { platformUserId: auth.sub, email: auth.email ?? auth.sub };
 }
 
 export function registerPlatformAuthRoutes(app: FastifyInstance, options: PlatformAuthRoutesOptions): void {
@@ -113,6 +123,31 @@ export function registerPlatformAuthRoutes(app: FastifyInstance, options: Platfo
       throw error;
     }
   });
+
+  // F-07: staged enrollment -- POST /platform-auth/mfa/enroll writes the
+  // secret encrypted with mfa_enabled=false and returns only the otpauth
+  // URI; POST /platform-auth/mfa/enroll/confirm flips mfa_enabled=true
+  // after one valid TOTP code. Principal comes from the session (never
+  // from the body).
+  app.post('/platform-auth/mfa/enroll', { preHandler: platformProtectedHooks }, async (request, reply) => {
+    const platformDatabase = requirePlatformDatabase(options.platformDatabase);
+    const principal = requirePlatformPrincipal(request);
+    const enrollment = await startPlatformMfaEnrollment(platformDatabase, principal);
+    reply.code(201);
+    return enrollment;
+  });
+
+  app.post<{ Body: { code?: string } }>(
+    '/platform-auth/mfa/enroll/confirm',
+    { preHandler: platformProtectedHooks },
+    async (request) => {
+      const platformDatabase = requirePlatformDatabase(options.platformDatabase);
+      const principal = requirePlatformPrincipal(request);
+      const code = requireString(request.body?.code, 'code');
+      await confirmPlatformMfaEnrollment(platformDatabase, { platformUserId: principal.platformUserId, code });
+      return { enrolled: true };
+    },
+  );
 
   app.post('/platform-auth/logout', { preHandler: platformProtectedHooks }, async (request, reply) => {
     const platformDatabase = requirePlatformDatabase(options.platformDatabase);

@@ -53,6 +53,8 @@ const adminUser = process.env.DATABASE_TEST_USER ?? 'travel_test';
 const adminPassword = process.env.DATABASE_TEST_PASSWORD ?? 'travel_test_password';
 const runtimeUser = 'travel_app_runtime_local';
 const runtimePassword = 'travel_app_runtime_local_password';
+const platformUser = 'travel_app_platform_local';
+const platformPassword = 'travel_app_platform_local_password';
 const poolPasswordKey = 'pass' + 'word';
 
 const agencyId = '30000000-0000-4000-8000-000000000010';
@@ -60,6 +62,7 @@ const agencyId = '30000000-0000-4000-8000-000000000010';
 describe('Platform Admin Comercial & Parcerias (data-access layer)', () => {
   let adminPool: Pool;
   let runtimePool: Pool;
+  let platformPool: Pool;
   let database: DatabaseRuntime;
 
   beforeAll(async () => {
@@ -82,8 +85,18 @@ describe('Platform Admin Comercial & Parcerias (data-access layer)', () => {
       user: runtimeUser,
       [poolPasswordKey]: runtimePassword,
     });
+    // F-06: every platform-commercial query runs via
+    // withPlatformTransaction, which must use the platform-role pool --
+    // the runtime role no longer holds these tables (002/095 revoke).
+    platformPool = new Pool({
+      host: databaseHost,
+      port: databasePort,
+      database: databaseName,
+      user: platformUser,
+      [poolPasswordKey]: platformPassword,
+    });
 
-    database = createDatabaseRuntime(runtimePool);
+    database = createDatabaseRuntime(runtimePool, platformPool);
 
     await resetDatabase(adminPool);
   });
@@ -105,6 +118,7 @@ describe('Platform Admin Comercial & Parcerias (data-access layer)', () => {
   });
 
   afterAll(async () => {
+    await platformPool?.end();
     await runtimePool?.end();
     await adminPool?.end();
     compose(['down', '-v']);

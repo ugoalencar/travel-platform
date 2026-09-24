@@ -27,16 +27,59 @@ describe('validateProductionEnvironment', () => {
     NODE_ENV: 'production',
     DATABASE_URL:
       'postgresql://app_runtime:example-not-a-real-password@db.internal:5432/travel_platform',
+    PLATFORM_DATABASE_URL:
+      'postgresql://app_platform:example-not-a-real-password@db.internal:5432/travel_platform',
     PORT: '3000',
     RATE_LIMIT_STORE: 'external',
     REDIS_URL: 'redis://redis.internal:6379',
     STORAGE_PROVIDER: 'supabase',
     SUPABASE_URL: 'https://example.supabase.co',
     SUPABASE_SERVICE_ROLE_KEY: 'example-service-role-key-not-a-real-secret',
+    MFA_ENCRYPTION_KEY: 'example-mfa-encryption-key-at-least-32-chars',
   };
 
   it('accepts a well-formed production environment', () => {
     expect(() => validateProductionEnvironment(validProductionBase)).not.toThrow();
+  });
+
+  // F-06: PLATFORM_DATABASE_URL must be present and distinct in production,
+  // or platform-table access runs on (or falls back to) the runtime role
+  // after migration 095 revoked those grants.
+  it('refuses production boot when PLATFORM_DATABASE_URL is missing', () => {
+    expect(() =>
+      validateProductionEnvironment({
+        ...validProductionBase,
+        PLATFORM_DATABASE_URL: undefined,
+      })
+    ).toThrow(/PLATFORM_DATABASE_URL is required/);
+  });
+
+  it('refuses production boot when PLATFORM_DATABASE_URL equals DATABASE_URL (defeats F-06 separation)', () => {
+    expect(() =>
+      validateProductionEnvironment({
+        ...validProductionBase,
+        PLATFORM_DATABASE_URL: validProductionBase.DATABASE_URL,
+      })
+    ).toThrow(/must differ from DATABASE_URL/);
+  });
+
+  // F-07: MFA secrets cannot be encrypted at rest without a production key.
+  it('refuses production boot when MFA_ENCRYPTION_KEY is missing', () => {
+    expect(() =>
+      validateProductionEnvironment({
+        ...validProductionBase,
+        MFA_ENCRYPTION_KEY: undefined,
+      })
+    ).toThrow(/MFA_ENCRYPTION_KEY is required/);
+  });
+
+  it('refuses production boot when MFA_ENCRYPTION_KEY is shorter than 32 characters', () => {
+    expect(() =>
+      validateProductionEnvironment({
+        ...validProductionBase,
+        MFA_ENCRYPTION_KEY: 'too-short-key',
+      })
+    ).toThrow(/at least 32 characters/);
   });
 
   it('refuses the process-local rate-limit store in production', () => {

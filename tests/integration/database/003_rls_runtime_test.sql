@@ -647,6 +647,40 @@ $$;
 
 \set AUTOCOMMIT on
 
+-- ============================================================
+-- F-06: platform-global tables are not readable by the runtime role
+-- ============================================================
+-- platform_users / platform_sessions hold platform credentials and
+-- sessions with NO RLS at all -- the table grant is the entire access
+-- control surface. After 002_prepare_local_roles.sql's F-06 block
+-- (mirroring infrastructure/migrations/095_platform_role_separation.sql),
+-- the runtime role must hit a real 42501 even with a valid tenant
+-- context set -- exactly what a SQL bug on the tenant path would see.
+
+DO $$
+BEGIN
+  PERFORM set_tenant_context('10000000-0000-4000-8000-000000000001', '11000000-0000-4000-8000-000000000001');
+  BEGIN
+    PERFORM COUNT(*) FROM platform_users;
+    PERFORM pg_temp.local_record_rls_result('F-06 runtime denied SELECT platform_users', 'FAIL', 'PASS', 'Unexpectedly selected');
+  EXCEPTION WHEN insufficient_privilege THEN
+    PERFORM pg_temp.local_record_rls_result('F-06 runtime denied SELECT platform_users', 'PASS', 'PASS');
+  END;
+END;
+$$;
+
+DO $$
+BEGIN
+  PERFORM set_tenant_context('10000000-0000-4000-8000-000000000001', '11000000-0000-4000-8000-000000000001');
+  BEGIN
+    PERFORM COUNT(*) FROM platform_sessions;
+    PERFORM pg_temp.local_record_rls_result('F-06 runtime denied SELECT platform_sessions', 'FAIL', 'PASS', 'Unexpectedly selected');
+  EXCEPTION WHEN insufficient_privilege THEN
+    PERFORM pg_temp.local_record_rls_result('F-06 runtime denied SELECT platform_sessions', 'PASS', 'PASS');
+  END;
+END;
+$$;
+
 SELECT test_name, expected, result, detail
 FROM local_rls_results
 ORDER BY test_name;

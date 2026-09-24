@@ -8,6 +8,7 @@ import { buildApp } from '../src/app';
 import { createDatabaseRuntime, createPlatformDatabaseRuntime } from '../src/database';
 import { hashPassword } from '../src/password-hashing';
 import { createTotpProvider } from '../src/mfa-provider';
+import { isMfaSecretEncrypted } from '../src/mfa-encryption';
 
 const repoRoot = resolve(import.meta.dirname, '../../..');
 const migrationsDir = resolve(repoRoot, 'infrastructure/migrations');
@@ -28,6 +29,8 @@ const adminUser = process.env.DATABASE_TEST_USER ?? 'travel_test';
 const adminPassword = process.env.DATABASE_TEST_PASSWORD ?? 'travel_test_password';
 const runtimeUser = 'travel_app_runtime_local';
 const runtimePassword = 'travel_app_runtime_local_password';
+const platformUser = 'travel_app_platform_local';
+const platformPassword = 'travel_app_platform_local_password';
 const poolPasswordKey = 'pass' + 'word';
 
 const agencyAId = '10000000-0000-4000-8000-00000000000b';
@@ -41,6 +44,7 @@ const platformUserPassword = 'platform-http-strong-password-1';
 describe('Customer Portal + Platform Admin local auth HTTP routes', () => {
   let adminPool: Pool;
   let runtimePool: Pool;
+  let platformPool: Pool;
   const totpProvider = createTotpProvider();
 
   beforeAll(async () => {
@@ -63,6 +67,15 @@ describe('Customer Portal + Platform Admin local auth HTTP routes', () => {
       user: runtimeUser,
       [poolPasswordKey]: runtimePassword,
     });
+    // F-06: platform_users/platform_sessions are revoked from the runtime
+    // role; /platform-auth/* must run on the platform-role pool.
+    platformPool = new Pool({
+      host: databaseHost,
+      port: databasePort,
+      database: databaseName,
+      user: platformUser,
+      [poolPasswordKey]: platformPassword,
+    });
 
     await resetDatabase(adminPool);
   });
@@ -83,12 +96,13 @@ describe('Customer Portal + Platform Admin local auth HTTP routes', () => {
   });
 
   afterAll(async () => {
+    await platformPool?.end();
     await runtimePool?.end();
     await adminPool?.end();
   });
 
   it('POST /customer-auth/login with correct credentials returns a usable session, /customer-auth/logout revokes it', async () => {
-    const app = buildTestApp(runtimePool);
+    const app = buildTestApp();
 
     const loginResponse = await app.inject({
       method: 'POST',
@@ -108,7 +122,7 @@ describe('Customer Portal + Platform Admin local auth HTTP routes', () => {
   });
 
   it('POST /customer-auth/login with wrong password returns 401 with a generic message', async () => {
-    const app = buildTestApp(runtimePool);
+    const app = buildTestApp();
     const response = await app.inject({
       method: 'POST',
       url: '/customer-auth/login',
@@ -119,7 +133,7 @@ describe('Customer Portal + Platform Admin local auth HTTP routes', () => {
   });
 
   it('POST /customer-auth/forgot-password always returns 200 (no enumeration)', async () => {
-    const app = buildTestApp(runtimePool);
+    const app = buildTestApp();
     const known = await app.inject({
       method: 'POST',
       url: '/customer-auth/forgot-password',
@@ -135,7 +149,7 @@ describe('Customer Portal + Platform Admin local auth HTTP routes', () => {
   });
 
   it('POST /platform-auth/login without MFA returns a usable session; /platform-auth/logout revokes it', async () => {
-    const app = buildTestApp(runtimePool);
+    const app = buildTestApp();
 
     const loginResponse = await app.inject({
       method: 'POST',
@@ -155,7 +169,7 @@ describe('Customer Portal + Platform Admin local auth HTTP routes', () => {
   });
 
   it('POST /platform-auth/login with MFA enrolled requires /platform-auth/mfa/verify before the token is usable', async () => {
-    const app = buildTestApp(runtimePool);
+    const app = buildTestApp();
     const secret = totpProvider.generateSecret(platformUserEmail, 'Travel Platform').secret;
     await adminPool.query(`UPDATE platform_users SET mfa_enabled = true, mfa_secret = $2 WHERE email = $1`, [
       platformUserEmail,
@@ -182,8 +196,97 @@ describe('Customer Portal + Platform Admin local auth HTTP routes', () => {
     expect(verifyBody.state).toBe('FULLY_AUTHENTICATED');
   });
 
+  it('POST /platform-auth/mfa/enroll + /enroll/confirm enable MFA without exposing the secret in responses', async () => {
+    const app = buildTestApp();
+
+    const loginResponse = await app.inject({
+      method: 'POST',
+      url: '/platform-auth/login',
+      payload: { email: platformUserEmail, password: platformUserPassword },
+    });
+    expect(loginResponse.statusCode).toBe(200);
+    const loginBody: { state: string; sessionToken: string } = loginResponse.json();
+    expect(loginBody.state).toBe('FULLY_AUTHENTICATED');
+    const authHeaders = { authorization: `Bearer ${loginBody.sessionToken}` };
+
+    const enrollResponse = await app.inject({
+      method: 'POST',
+      url: '/platform-auth/mfa/enroll',
+      headers: authHeaders,
+    });
+    expect(enrollResponse.statusCode).toBe(201);
+    const enrollBody: Record<string, unknown> = enrollResponse.json();
+    // otpauth URI is the single allowed exposure (provisioning the
+    // authenticator app); no raw-secret or recoveryCodes fields.
+    expect(Object.keys(enrollBody)).toEqual(['provisioningUri']);
+    expect(String(enrollBody.provisioningUri)).toMatch(/^otpauth:\/\//);
+    const secretFromUri = new URL(String(enrollBody.provisioningUri)).searchParams.get('secret');
+    expect(secretFromUri).toBeTruthy();
+
+    const staged = await adminPool.query<{ mfa_secret: string | null; mfa_enabled: boolean }>(
+      `SELECT mfa_secret, mfa_enabled FROM platform_users WHERE email = $1`,
+      [platformUserEmail],
+    );
+    expect(staged.rows[0]!.mfa_enabled).toBe(false);
+    expect(isMfaSecretEncrypted(staged.rows[0]!.mfa_secret!)).toBe(true);
+    expect(staged.rows[0]!.mfa_secret).not.toBe(secretFromUri);
+
+    const badConfirm = await app.inject({
+      method: 'POST',
+      url: '/platform-auth/mfa/enroll/confirm',
+      headers: authHeaders,
+      payload: { code: '000000' },
+    });
+    expect(badConfirm.statusCode).toBe(400);
+
+    const confirmResponse = await app.inject({
+      method: 'POST',
+      url: '/platform-auth/mfa/enroll/confirm',
+      headers: authHeaders,
+      payload: { code: generateTotpCode(secretFromUri!) },
+    });
+    expect(confirmResponse.statusCode).toBe(200);
+    expect(confirmResponse.json()).toEqual({ enrolled: true });
+
+    const enabled = await adminPool.query<{ mfa_enabled: boolean }>(
+      `SELECT mfa_enabled FROM platform_users WHERE email = $1`,
+      [platformUserEmail],
+    );
+    expect(enabled.rows[0]!.mfa_enabled).toBe(true);
+
+    const audit = await adminPool.query<{ action: string }>(`SELECT action FROM platform_user_audit`);
+    const actions = audit.rows.map((row) => row.action);
+    expect(actions).toContain('MFA_ENROLL_STARTED');
+    expect(actions).toContain('MFA_ENABLED');
+
+    // Subsequent login must challenge for MFA; neither the challenge nor
+    // the verify response may carry the secret.
+    const mfaLogin = await app.inject({
+      method: 'POST',
+      url: '/platform-auth/login',
+      payload: { email: platformUserEmail, password: platformUserPassword },
+    });
+    expect(mfaLogin.statusCode).toBe(200);
+    const mfaLoginBody: { state: string; mfaChallengeToken: string } = mfaLogin.json();
+    expect(mfaLoginBody.state).toBe('MFA_REQUIRED');
+
+    const verifyResponse = await app.inject({
+      method: 'POST',
+      url: '/platform-auth/mfa/verify',
+      payload: { sessionToken: mfaLoginBody.mfaChallengeToken, code: generateTotpCode(secretFromUri!) },
+    });
+    expect(verifyResponse.statusCode).toBe(200);
+    expect(verifyResponse.body).not.toContain(secretFromUri!);
+  });
+
+  it('POST /platform-auth/mfa/enroll without a platform session returns 401', async () => {
+    const app = buildTestApp();
+    const response = await app.inject({ method: 'POST', url: '/platform-auth/mfa/enroll' });
+    expect(response.statusCode).toBe(401);
+  });
+
   it('POST /platform-auth/login with wrong password returns 401 with a generic message', async () => {
-    const app = buildTestApp(runtimePool);
+    const app = buildTestApp();
     const response = await app.inject({
       method: 'POST',
       url: '/platform-auth/login',
@@ -215,7 +318,7 @@ describe('Customer Portal + Platform Admin local auth HTTP routes', () => {
     return (code % 1_000_000).toString().padStart(6, '0');
   }
 
-  function buildTestApp(pool: Pool) {
+  function buildTestApp() {
     return buildApp({
       authProvider: { authenticate: () => Promise.resolve(null) },
       validateUserAgencyAccess: () => Promise.resolve(false),
@@ -226,8 +329,10 @@ describe('Customer Portal + Platform Admin local auth HTTP routes', () => {
       // same rationale as auth-http.test.ts's validateUserAgencyAccess.
       validateCustomerAgencyAccess: (customerId, agencyId) =>
         Promise.resolve(customerId === customerAId && agencyId === agencyAId),
-      database: createDatabaseRuntime(pool),
-      platformDatabase: createPlatformDatabaseRuntime(pool),
+      // F-06: tenant paths on the runtime pool, platform paths
+      // (/platform-auth/*) on the platform-role pool -- mirrors server.ts.
+      database: createDatabaseRuntime(runtimePool, platformPool),
+      platformDatabase: createPlatformDatabaseRuntime(platformPool),
     });
   }
 

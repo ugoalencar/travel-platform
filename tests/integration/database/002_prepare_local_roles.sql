@@ -17,6 +17,23 @@ BEGIN
       NOINHERIT
       NOBYPASSRLS;
   END IF;
+
+  -- F-06: platform role is a SUPERSET of the runtime role (all tenant
+  -- grants for withAgencyTransaction/withPublicLookupTransaction, plus
+  -- the platform-global tables the runtime role must NOT hold). Created
+  -- here for local/CI only; production roles are provisioned out-of-band.
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_roles WHERE rolname = 'travel_app_platform_local'
+  ) THEN
+    CREATE ROLE travel_app_platform_local
+      LOGIN
+      PASSWORD 'travel_app_platform_local_password'
+      NOSUPERUSER
+      NOCREATEDB
+      NOCREATEROLE
+      NOINHERIT
+      NOBYPASSRLS;
+  END IF;
 END;
 $$;
 
@@ -849,6 +866,128 @@ BEGIN
   END IF;
 END $$;
 
+-- ============================================================
+-- F-06: platform role = superset of runtime, then strip platform
+-- tables from the runtime role. Must run AFTER every grant above so
+-- the clone captures the full tenant grant set.
+-- ============================================================
+GRANT USAGE ON SCHEMA public TO travel_app_platform_local;
+
+DO $$
+DECLARE g RECORD;
+BEGIN
+  FOR g IN
+    SELECT table_name, privilege_type
+    FROM information_schema.role_table_grants
+    WHERE table_schema = 'public'
+      AND grantee = 'travel_app_runtime_local'
+    ORDER BY table_name, privilege_type
+  LOOP
+    EXECUTE format('GRANT %s ON %I TO travel_app_platform_local', g.privilege_type, g.table_name);
+  END LOOP;
+
+  FOR g IN
+    SELECT object_name, privilege_type
+    FROM information_schema.role_usage_grants
+    WHERE object_schema = 'public'
+      AND object_type = 'SEQUENCE'
+      AND grantee = 'travel_app_runtime_local'
+    ORDER BY object_name, privilege_type
+  LOOP
+    EXECUTE format('GRANT %s ON SEQUENCE %I TO travel_app_platform_local', g.privilege_type, g.object_name);
+  END LOOP;
+END $$;
+
+GRANT EXECUTE ON FUNCTION current_agency_id() TO travel_app_platform_local;
+GRANT EXECUTE ON FUNCTION current_user_id() TO travel_app_platform_local;
+GRANT EXECUTE ON FUNCTION set_tenant_context(TEXT, TEXT) TO travel_app_platform_local;
+GRANT EXECUTE ON FUNCTION clear_tenant_context() TO travel_app_platform_local;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM pg_proc WHERE proname = 'platform_search_agencies'
+  ) THEN
+    GRANT EXECUTE ON FUNCTION platform_search_agencies(TEXT) TO travel_app_platform_local;
+  END IF;
+END $$;
+
+-- Platform-global tables (no RLS): full CRUD except the audit/log
+-- append-only set. Granted to the platform role, then revoked from the
+-- runtime role so tenant-path SQL can never read platform credentials.
+-- Guarded per-table via to_regclass: this script is shared by every
+-- domain's test suite and most apply only a migration subset, so the
+-- platform tables may not all exist (same "IF present" convention as the
+-- grant blocks above -- an unguarded GRANT on a missing relation would
+-- break every other domain's suite).
+DO $$
+DECLARE
+  t TEXT;
+  full_tables CONSTANT TEXT[] := ARRAY[
+    'platform_users',
+    'platform_sessions',
+    'billing_invoices',
+    'billing_payments',
+    'billing_webhook_events',
+    'courtesy_accounts',
+    'entitlements',
+    'feature_flags',
+    'landing_page_config',
+    'landing_promotions',
+    'lead_conversions',
+    'lead_interactions',
+    'leads',
+    'plans',
+    'platform_coupon_redemptions',
+    'platform_coupons',
+    'platform_settings',
+    'promotional_campaigns',
+    'sales_demos',
+    'sales_opportunities',
+    'subscriber_tenants',
+    'subscriptions',
+    'support_cases',
+    'platform_landing_page',
+    'platform_landing_sections',
+    'platform_banners',
+    'platform_partners',
+    'platform_referrals',
+    'platform_partner_benefits',
+    'platform_referral_credits',
+    'platform_partner_commissions'
+  ];
+  append_tables CONSTANT TEXT[] := ARRAY[
+    'platform_user_audit',
+    'billing_webhook_audit',
+    'campaign_audit',
+    'courtesy_account_audit',
+    'entitlement_changes',
+    'feature_flag_audit',
+    'login_audit',
+    'platform_audit_logs',
+    'sensitive_operations_log',
+    'subscriber_tenant_audit',
+    'subscription_state_changes',
+    'support_access_log',
+    'platform_landing_publications'
+  ];
+BEGIN
+  FOREACH t IN ARRAY full_tables LOOP
+    IF to_regclass('public.' || t) IS NOT NULL THEN
+      EXECUTE format('GRANT SELECT, INSERT, UPDATE, DELETE ON %I TO travel_app_platform_local', t);
+      EXECUTE format('REVOKE ALL ON %I FROM travel_app_runtime_local', t);
+    END IF;
+  END LOOP;
+
+  FOREACH t IN ARRAY append_tables LOOP
+    IF to_regclass('public.' || t) IS NOT NULL THEN
+      EXECUTE format('GRANT SELECT, INSERT ON %I TO travel_app_platform_local', t);
+      EXECUTE format('REVOKE UPDATE, DELETE ON %I FROM travel_app_platform_local', t);
+      EXECUTE format('REVOKE ALL ON %I FROM travel_app_runtime_local', t);
+    END IF;
+  END LOOP;
+END $$;
+
 SELECT rolname, rolsuper, rolbypassrls, rolcreatedb, rolcreaterole
 FROM pg_roles
-WHERE rolname = 'travel_app_runtime_local';
+WHERE rolname IN ('travel_app_runtime_local', 'travel_app_platform_local')
+ORDER BY rolname;

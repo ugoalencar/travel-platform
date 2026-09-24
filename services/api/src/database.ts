@@ -103,13 +103,21 @@ export function createPlatformDatabaseRuntime(pool: Pool): PlatformDatabaseRunti
   };
 }
 
-export function createDatabaseRuntime(pool: Pool): DatabaseRuntime {
+/**
+ * Dual-pool runtime (F-06): tenant operations run on the runtime role
+ * (RLS-backed, no platform-table grants); platform operations run on the
+ * platform role (superset). `platformPool` defaults to `tenantPool` so
+ * single-pool unit/integration tests that only exercise tenant paths keep
+ * working unchanged — production and any suite that hits platform tables
+ * must pass a real platform-role pool (see server.ts / PLATFORM_DATABASE_URL).
+ */
+export function createDatabaseRuntime(tenantPool: Pool, platformPool: Pool = tenantPool): DatabaseRuntime {
   return {
     async withTenantTransaction<T>(
       operation: (client: TenantTransactionClient) => Promise<T>,
     ): Promise<T> {
       const context = getTenantContext();
-      const client = await pool.connect();
+      const client = await tenantPool.connect();
 
       try {
         await client.query('BEGIN');
@@ -131,7 +139,7 @@ export function createDatabaseRuntime(pool: Pool): DatabaseRuntime {
     async withPlatformTransaction<T>(
       operation: (client: TenantTransactionClient) => Promise<T>,
     ): Promise<T> {
-      const client = await pool.connect();
+      const client = await platformPool.connect();
 
       try {
         await client.query('BEGIN');

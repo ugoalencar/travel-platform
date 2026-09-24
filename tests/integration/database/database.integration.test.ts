@@ -25,6 +25,8 @@ const adminPassword = process.env.DATABASE_TEST_PASSWORD ?? 'travel_test_passwor
 const databaseName = process.env.DATABASE_TEST_NAME ?? 'travel_platform_test';
 const runtimeUser = 'travel_app_runtime_local';
 const runtimePassword = 'travel_app_runtime_local_password';
+const platformUser = 'travel_app_platform_local';
+const platformPassword = 'travel_app_platform_local_password';
 const localHost = process.env.DATABASE_TEST_HOST ?? '127.0.0.1';
 const localPort = process.env.DATABASE_TEST_PORT ?? (isCiMode ? '5432' : '0');
 
@@ -339,32 +341,21 @@ const expectedTenantTables = [
   'wishes',
 ];
 // Alphabetical order -- the assertion below compares against a query
-// sorted by table_name, so this array must stay sorted too. The Platform
-// Admin entries (billing_webhook_audit, campaign_audit, ...) were added
-// by 077_platform_admin_table_grants.sql / 002_prepare_local_roles.sql --
-// append-only audit/evidence/change-log tables, same convention as
-// audit_logs.
+// sorted by table_name, so this array must stay sorted too. F-06: only
+// TENANT-scoped append-only tables remain here (audit_logs,
+// campaign_attributions, ...). The former platform-global entries
+// (billing_webhook_audit, campaign_audit, platform_user_audit, ...) are
+// revoked from the runtime role entirely by 002_prepare_local_roles.sql /
+// 095_platform_role_separation.sql, so they no longer appear in any
+// runtime grant at all.
 const readInsertOnlyTables = [
   'audit_logs',
-  'billing_webhook_audit',
   'campaign_attributions',
-  'campaign_audit',
   'captcha_verifications',
   'cash_transactions',
   'contract_signature_evidence',
-  'courtesy_account_audit',
   'document_audit_events',
-  'entitlement_changes',
-  'feature_flag_audit',
-  'login_audit',
   'mfa_totp_attempts',
-  'platform_audit_logs',
-  'platform_landing_publications',
-  'platform_user_audit',
-  'sensitive_operations_log',
-  'subscriber_tenant_audit',
-  'subscription_state_changes',
-  'support_access_log',
 ];
 // SELECT/INSERT/UPDATE but no DELETE -- session and reset-token tables:
 // a session/token is revoked or marked used via UPDATE, never physically
@@ -377,25 +368,16 @@ const noDeleteTables = [
   'customer_password_reset_tokens',
   'customer_sessions',
   'password_reset_tokens',
-  'platform_sessions',
-  'platform_users',
 ];
 const noUpdateTables = ['agent_area_grants', 'permission_restrictions'];
-// Tables the runtime role is granted on but that are not tenant-scoped
-// (no agency_id, no RLS) -- platform-admin-only tables, matching their
-// own migrations' documented model. Not part of expectedTenantTables
-// (which backs the FORCE RLS check), but still counted here so the
-// grant-count assertion below covers every granted table, not just the
-// tenant ones.
-const nonTenantGrantedTables = [
-  'platform_sessions',
-  'platform_user_audit',
-  'platform_users',
-  // Added by 077_platform_admin_table_grants.sql -- these 32 tables existed
-  // since migrations 026-036 but were never granted to the runtime role
-  // (a real bug, found via Direction A Phase 3B live verification: every
-  // Platform Admin data page failed with Postgres 42501). None has RLS
-  // (confirmed directly), so none belongs in expectedTenantTables.
+// F-06: platform-global tables (no agency_id, no RLS) that the runtime
+// role must hold ZERO grants on. Granted only to the platform role
+// (travel_app_platform_local / travel_app_platform) by
+// 002_prepare_local_roles.sql and 095_platform_role_separation.sql, and
+// actively REVOKEd from the runtime role -- a real 42501, not an
+// application-layer check. Formerly (incorrectly) listed as
+// nonTenantGrantedTables and counted as runtime-granted.
+const platformOnlyTables = [
   'billing_invoices',
   'billing_payments',
   'billing_webhook_audit',
@@ -415,9 +397,21 @@ const nonTenantGrantedTables = [
   'login_audit',
   'plans',
   'platform_audit_logs',
+  'platform_banners',
   'platform_coupon_redemptions',
   'platform_coupons',
+  'platform_landing_page',
+  'platform_landing_publications',
+  'platform_landing_sections',
+  'platform_partner_benefits',
+  'platform_partner_commissions',
+  'platform_partners',
+  'platform_referral_credits',
+  'platform_referrals',
+  'platform_sessions',
   'platform_settings',
+  'platform_user_audit',
+  'platform_users',
   'promotional_campaigns',
   'sales_demos',
   'sales_opportunities',
@@ -428,22 +422,6 @@ const nonTenantGrantedTables = [
   'subscriptions',
   'support_access_log',
   'support_cases',
-  // Added by 078_platform_commercial_partnerships.sql -- Platform Admin
-  // Comercial & Parcerias (Landing CMS, banners, platform-level
-  // Partners/Referrals/Benefits/Credits/Commissions). Platform-global,
-  // no RLS -- distinct from the tenant-scoped commercial_partners family
-  // (054/058/059). platform_referral_credits has an agency_id FK but is
-  // written exclusively by Platform Admin routes, never by tenant/agency
-  // runtime code, so it belongs here rather than in expectedTenantTables.
-  'platform_banners',
-  'platform_landing_page',
-  'platform_landing_publications',
-  'platform_landing_sections',
-  'platform_partner_benefits',
-  'platform_partner_commissions',
-  'platform_partners',
-  'platform_referral_credits',
-  'platform_referrals',
 ];
 
 interface CommandResult {
@@ -564,7 +542,9 @@ describe('database integration migrations and RLS', () => {
     expect(result.stdout).toContain(
       'SEC-01 pool reuse: third reused transaction does not inherit Agency B',
     );
-    expect(result.stdout).toContain('(42 rows)');
+    expect(result.stdout).toContain('F-06 runtime denied SELECT platform_users');
+    expect(result.stdout).toContain('F-06 runtime denied SELECT platform_sessions');
+    expect(result.stdout).toContain('(44 rows)');
     expect(result.stderr).not.toContain('ERROR');
   });
 
@@ -622,10 +602,11 @@ describe('database integration migrations and RLS', () => {
       ORDER BY routine_name;
     `);
 
-    // Every table the runtime role is actually granted on -- the tenant
-    // (RLS-backed) tables plus the handful of platform-only tables that
-    // are granted but not tenant-scoped (nonTenantGrantedTables above).
-    const allGrantedTablesCount = expectedTenantTables.length + nonTenantGrantedTables.length;
+    // F-06: every table the runtime role is actually granted on is now a
+    // tenant (RLS-backed) table -- platform-global tables are revoked from
+    // the runtime role entirely and counted only against the platform role
+    // (platformOnlyTables below).
+    const allGrantedTablesCount = expectedTenantTables.length;
     const fullCrudTablesCount =
       allGrantedTablesCount - readInsertOnlyTables.length - noDeleteTables.length - noUpdateTables.length;
 
@@ -681,6 +662,81 @@ describe('database integration migrations and RLS', () => {
       'platform_search_agencies',
       'set_tenant_context',
     ]);
+  });
+
+  // ============================================================
+  // F-06: platform-role separation
+  // ============================================================
+  it('holds zero runtime grants on any platform-global table (F-06)', () => {
+    const runtimePlatformGrants = queryAdminLines(`
+      SELECT table_name || ':' || privilege_type
+      FROM information_schema.role_table_grants
+      WHERE table_schema = 'public'
+        AND grantee = '${runtimeUser}'
+        AND table_name = ANY(ARRAY[${platformOnlyTables.map((table) => `'${table}'`).join(', ')}])
+      ORDER BY table_name, privilege_type;
+    `);
+
+    expect(runtimePlatformGrants).toEqual([]);
+  });
+
+  it('denies the runtime role SELECT on platform_users even with tenant context set (F-06)', () => {
+    // Real 42501 via REVOKE, not an application-layer check: a DO block
+    // that only succeeds when insufficient_privilege is raised. Any other
+    // outcome (select succeeding, or a different error) fails the script.
+    const result = psqlRuntime(`
+      DO $$
+      BEGIN
+        PERFORM set_tenant_context('10000000-0000-4000-8000-000000000001', '11000000-0000-4000-8000-000000000001');
+        BEGIN
+          PERFORM COUNT(*) FROM platform_users;
+          RAISE EXCEPTION 'F-06 FAIL: runtime role unexpectedly can SELECT platform_users';
+        EXCEPTION WHEN insufficient_privilege THEN
+          RAISE NOTICE 'F-06 OK: runtime role denied platform_users (42501)';
+        END;
+      END $$;
+    `);
+
+    expect(result.stderr).toContain('F-06 OK: runtime role denied platform_users (42501)');
+    expect(result.stderr).not.toContain('ERROR');
+  });
+
+  it('grants the platform role SELECT/INSERT/UPDATE/DELETE on platform_users (F-06)', () => {
+    const grants = queryAdminScalar(`
+      SELECT COUNT(*)
+      FROM information_schema.role_table_grants
+      WHERE table_schema = 'public'
+        AND grantee = '${platformUser}'
+        AND table_name = 'platform_users'
+        AND privilege_type IN ('SELECT', 'INSERT', 'UPDATE', 'DELETE');
+    `);
+    expect(grants).toBe('4');
+
+    const result = psqlPlatform('SELECT COUNT(*) FROM platform_users;');
+    expect(result.stderr).not.toContain('ERROR');
+    // Aligned psql output: header + dashes + "     0" + "(1 row)".
+    expect(result.stdout).toMatch(/^\s*\d+\s*$/m);
+  });
+
+  it('clones the full tenant grant set onto the platform role (F-06 superset)', () => {
+    const missingTenantGrants = queryAdminLines(`
+      SELECT t.table_name
+      FROM (
+        SELECT DISTINCT table_name
+        FROM information_schema.role_table_grants
+        WHERE table_schema = 'public' AND grantee = '${runtimeUser}'
+      ) t
+      WHERE NOT EXISTS (
+        SELECT 1
+        FROM information_schema.role_table_grants g
+        WHERE g.table_schema = 'public'
+          AND g.grantee = '${platformUser}'
+          AND g.table_name = t.table_name
+      )
+      ORDER BY t.table_name;
+    `);
+
+    expect(missingTenantGrants).toEqual([]);
   });
 });
 
@@ -762,6 +818,10 @@ function psqlAdmin(sql: string): CommandResult {
 
 function psqlRuntime(sql: string): CommandResult {
   return runPsql(runtimeUser, runtimePassword, sql);
+}
+
+function psqlPlatform(sql: string): CommandResult {
+  return runPsql(platformUser, platformPassword, sql);
 }
 
 function runPsql(user: string, password: string, sql: string): CommandResult {

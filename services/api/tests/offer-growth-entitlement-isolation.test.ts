@@ -40,6 +40,8 @@ const adminUser = process.env.DATABASE_TEST_USER ?? 'travel_test';
 const adminPassword = process.env.DATABASE_TEST_PASSWORD ?? 'travel_test_password';
 const runtimeUser = 'travel_app_runtime_local';
 const runtimePassword = 'travel_app_runtime_local_password';
+const platformUser = 'travel_app_platform_local';
+const platformPassword = 'travel_app_platform_local_password';
 const poolPasswordKey = 'pass' + 'word';
 
 const agencyAId = '10000000-0000-4000-8000-000000000001';
@@ -58,6 +60,7 @@ const principals: Record<string, AuthenticatedPrincipal> = {
 describe('Offer & Growth Engine: entitlement isolation (mandatory)', () => {
   let adminPool: Pool;
   let runtimePool: Pool;
+  let platformPool: Pool;
   let automationAId: string;
 
   beforeAll(async () => {
@@ -80,6 +83,15 @@ describe('Offer & Growth Engine: entitlement isolation (mandatory)', () => {
       user: runtimeUser,
       [poolPasswordKey]: runtimePassword,
     });
+    // F-06: withPlatformTransaction (platform stopgap) must use the
+    // platform-role pool -- mirrors server.ts / PLATFORM_DATABASE_URL.
+    platformPool = new Pool({
+      host: databaseHost,
+      port: databasePort,
+      database: databaseName,
+      user: platformUser,
+      [poolPasswordKey]: platformPassword,
+    });
 
     await resetDatabase(adminPool);
 
@@ -95,6 +107,7 @@ describe('Offer & Growth Engine: entitlement isolation (mandatory)', () => {
   });
 
   afterAll(async () => {
+    await platformPool?.end();
     await runtimePool?.end();
     await adminPool?.end();
     compose(['down', '-v']);
@@ -112,11 +125,11 @@ describe('Offer & Growth Engine: entitlement isolation (mandatory)', () => {
         Promise.resolve(
           (userId === userAId && agencyId === agencyAId) || (userId === userBId && agencyId === agencyBId),
         ),
-      database: createDatabaseRuntime(runtimePool),
+      database: createDatabaseRuntime(runtimePool, platformPool),
       platformStopgap: {
         enabled: true,
         sharedKey: 'test-only-platform-key',
-        database: createPlatformDatabaseRuntime(adminPool),
+        database: createPlatformDatabaseRuntime(platformPool),
       },
     });
   }
