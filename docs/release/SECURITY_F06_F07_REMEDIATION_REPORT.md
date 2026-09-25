@@ -40,21 +40,30 @@
   - `services/api/tests/customer-platform-auth.test.ts` — enrollment completo (staged cifrado ≠ plaintext, `mfa_enabled=false` não força MFA, confirm inválido 400, confirm válido ativa + audit `MFA_ENROLL_STARTED`/`MFA_ENABLED`, login passa a exigir MFA); re-enrollment recusado; teste legado estendido: segredo plaintext na verificação é aceito **e re-cifrado** + audit `MFA_SECRET_REENCRYPTED`.
   - `services/api/tests/customer-platform-auth-http.test.ts` — fluxo HTTP `enroll`→`confirm` (201/200; resposta contém só `provisioningUri`; staged cifrado no banco; 400 em código inválido; audit; challenge+verify sem segredo na resposta); `enroll` sem sessão → 401.
 
+### Fechamento final — audit de MFA e validação do platform pool
+
+- **Persistência de `MFA_CHALLENGE_FAILED`:** a verificação inválida encerra a transação de leitura sem promover a sessão e grava o evento em uma transação separada antes de retornar `401`. A sessão permanece `MFA_PENDING`; o evento usa `details = {}` e não contém segredo TOTP, chave de criptografia nem recovery code. O mesmo challenge continua aceitando um TOTP válido posterior.
+- **Validação do `platformPool`:** o boot de produção consulta o role real (`current_user`) dos pools tenant e platform. Ambos devem ser `NOSUPERUSER` e `NOBYPASSRLS`, e os nomes reais dos roles devem ser distintos. As validações existentes de `PLATFORM_DATABASE_URL` obrigatória e diferente de `DATABASE_URL` permanecem ativas.
+- **Escopo preservado:** nenhuma migration, grant, revoke, policy RLS ou regra funcional de RBAC foi alterada neste fechamento.
+- **Commit da correção:** `a122557a32d4d5afd8ba246c0cda0d86be17ef51`.
+- **CI da correção:** run `36075315453` (`Quality Gates`) — **PASS** em 8m57s: https://github.com/ugoalencar/travel-platform/actions/runs/36075315453
+
 ## Quality gates (executados nesta sessão)
 
 | Gate | Resultado |
 |------|-----------|
 | `npm run lint` | **PASS** (0 errors; 13 warnings pré-existentes em arquivos não alterados) |
 | `npm run typecheck` | **PASS** (turbo 7/7) |
-| `npm run test` (turbo completo) | **PASS** — 7/7 tasks; `services/api` **96/96 arquivos, 1649/1649 testes** |
+| `npm run test` (turbo completo) | **PASS** — 7/7 tasks; `services/api` **96/96 arquivos, 1658/1658 testes** |
 | `npm run test:security` | **PASS** — 10 arquivos, **154 testes** |
-| `npm run test:db` | **PASS** — **13/13 testes** (inclui 4 novos F-06) |
+| `npm run test:db` | **PASS** — **13/13 testes** (modo local suportado, Postgres descartável) |
 | `npm run build` | **PASS** (turbo 7/7) |
-| `npm run secrets:scan` | **PASS** (inclui 24/24 testes do próprio scanner) |
+| Testes focados (`env.test.ts` + `customer-platform-auth-http.test.ts`) | **PASS** — **37/37 testes** |
+| `npm run secrets:scan` | **PASS** (nenhum segredo óbvio encontrado) |
 | `npm run migrations:validate` | **PASS** (sequência até `095_platform_role_separation.sql`) |
 | `npm run security:check` | **PASS** (sem vulnerabilidades ≥ moderate) |
 
-**Observação de execução local:** o container fixo `travel-platform-postgres-local` × projetos compose por suíte gera conflito de nome em execuções locais non-CI quando uma suíte reuse-if-running deixa o container ativo (limitação pré-existente, já anotada no relatório F-01..F-05; não é regressão destas correções). As rodadas locais desta sessão usaram o modo desenhado para ambiente externo (`CI=true` + container compartilhado saudável), reproduzindo exatamente o serviço Postgres do workflow `ci.yml`. O CI do repositório executa os mesmos gates com service container.
+**Observação de execução local:** as suítes de API e os testes focados usaram um Postgres efêmero externo; `npm run test:db` foi executado separadamente no modo local suportado pelo harness, que cria e remove seu próprio banco descartável. O CI repetiu os gates com service container.
 
 ## Fora de escopo (conforme briefing)
 
@@ -65,8 +74,10 @@
 
 ## STOP POINT
 
-- **F-06:** RESOLVIDO — migration `095`, guards em `002`/`003`, dual pool (`database.ts`/`server.ts`/`env.ts`), testes verdes.
-- **F-07:** RESOLVIDO — enrollment staged cifrado, confirm TOTP, re-encrypt de legado, rotas com principal de sessão, testes verdes.
+- **F-06:** RESOLVIDO — migration `095`, dual pool e validação de segurança dos roles reais tenant/platform no boot, testes verdes.
+- **F-07:** RESOLVIDO — enrollment cifrado, confirmação TOTP, re-encrypt legado e persistência de `MFA_CHALLENGE_FAILED` fora da transação revertida, testes verdes.
 - **Gates:** todos acima em PASS nesta sessão.
-- **Commit:** nesta rodada (ver histórico); **CI:** aguardar conclusão do workflow `Quality Gates` no push.
+- **Commit da correção:** `a122557a32d4d5afd8ba246c0cda0d86be17ef51`; **CI:** run `36075315453`, `Quality Gates` verde.
 - **Próximo passo:** reauditoria de F-06 e F-07.
+
+**SECURITY F-06/F-07 — FECHADA E PRONTA PARA REAUDITORIA FINAL.**
