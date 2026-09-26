@@ -16,6 +16,7 @@
 
 const { spawn, spawnSync } = require('node:child_process');
 const { resolve } = require('node:path');
+require('./local-database-guard.cjs').assertLocalDatabaseTargets('demo-orchestrate.cjs');
 
 const repoRoot = resolve(__dirname, '..');
 const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';

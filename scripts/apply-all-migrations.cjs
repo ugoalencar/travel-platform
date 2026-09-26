@@ -2,6 +2,7 @@
 const { readFileSync, readdirSync } = require('node:fs');
 const { resolve } = require('node:path');
 const { Pool } = require('pg');
+require('./local-database-guard.cjs').assertLocalDatabaseTargets('apply-all-migrations.cjs');
 
 const repoRoot = resolve(__dirname, '..');
 const migrationDir = resolve(repoRoot, 'infrastructure/migrations');

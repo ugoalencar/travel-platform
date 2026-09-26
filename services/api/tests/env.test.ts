@@ -1,9 +1,151 @@
+import { createRequire } from 'node:module';
 import { describe, expect, it } from 'vitest';
 import {
   assertSafeDatabasePools,
   assertSafeDatabaseRole,
+  isLocalDatabaseHost,
+  validateNonProductionDatabaseTargets,
   validateProductionEnvironment,
 } from '../src/env';
+
+const requireCjs = createRequire(import.meta.url);
+const scriptGuard = requireCjs('../../../scripts/local-database-guard.cjs') as {
+  findRemoteDatabaseTargets: (environment: Record<string, string | undefined>) => string[];
+  isLocalDatabaseHost: (hostname: string) => boolean;
+};
+
+const PRODUCTION_POOLER_URL =
+  'postgresql://travel_app_runtime.example:example-not-a-real-password@aws-0-us-east-1.pooler.supabase.com:5432/postgres';
+const LOCAL_URL = 'postgresql://travel_test:example-local-password@127.0.0.1:55432/travel_platform_test';
+
+describe('validateNonProductionDatabaseTargets (local dev must never reach production)', () => {
+  it('blocks development startup with a production (Supabase pooler) DATABASE_URL', () => {
+    expect(() =>
+      validateNonProductionDatabaseTargets({ NODE_ENV: 'development', DATABASE_URL: PRODUCTION_POOLER_URL }),
+    ).toThrow(/DATABASE_URL points to remote host "aws-0-us-east-1.pooler.supabase.com"/);
+  });
+
+  it('blocks a remote DATABASE_ADMIN_URL or PLATFORM_DATABASE_URL even when DATABASE_URL is local', () => {
+    expect(() =>
+      validateNonProductionDatabaseTargets({
+        NODE_ENV: 'development',
+        DATABASE_URL: LOCAL_URL,
+        DATABASE_ADMIN_URL: PRODUCTION_POOLER_URL,
+      }),
+    ).toThrow(/DATABASE_ADMIN_URL points to remote host/);
+    expect(() =>
+      validateNonProductionDatabaseTargets({
+        NODE_ENV: 'staging',
+        DATABASE_URL: LOCAL_URL,
+        PLATFORM_DATABASE_URL: 'postgresql://p:example-not-a-real-password@db.exampleprojectref.supabase.co:5432/postgres',
+      }),
+    ).toThrow(/PLATFORM_DATABASE_URL points to remote host/);
+  });
+
+  it('treats an unset NODE_ENV as non-production (fail closed)', () => {
+    expect(() => validateNonProductionDatabaseTargets({ DATABASE_URL: PRODUCTION_POOLER_URL })).toThrow(
+      /NODE_ENV is "unset"/,
+    );
+  });
+
+  it('blocks dev auth against a production database (ALLOW_DEV_AUTH only works with a local DB)', () => {
+    expect(() =>
+      validateNonProductionDatabaseTargets({
+        NODE_ENV: 'development',
+        ALLOW_DEV_AUTH: 'true',
+        DATABASE_URL: PRODUCTION_POOLER_URL,
+      }),
+    ).toThrow(/Refusing to start/);
+  });
+
+  it('rejects an unparseable database URL instead of ignoring it', () => {
+    expect(() =>
+      validateNonProductionDatabaseTargets({ NODE_ENV: 'development', DATABASE_URL: 'not a url' }),
+    ).toThrow(/DATABASE_URL is not a valid connection URL/);
+  });
+
+  it('allows development with localhost / loopback / docker-compose service hosts', () => {
+    expect(() =>
+      validateNonProductionDatabaseTargets({
+        NODE_ENV: 'development',
+        ALLOW_DEV_AUTH: 'true',
+        DATABASE_URL: LOCAL_URL,
+        DATABASE_ADMIN_URL: 'postgresql://postgres:example-local-password@localhost:5433/travel_platform_dev',
+        PLATFORM_DATABASE_URL: 'postgresql://staging_user:example-local-password@db:5432/travel_staging',
+      }),
+    ).not.toThrow();
+    expect(() => validateNonProductionDatabaseTargets({ NODE_ENV: 'test' })).not.toThrow();
+  });
+
+  it('is a no-op in production (production DB allowed; production rules live in validateProductionEnvironment)', () => {
+    expect(() =>
+      validateNonProductionDatabaseTargets({ NODE_ENV: 'production', DATABASE_URL: PRODUCTION_POOLER_URL }),
+    ).not.toThrow();
+  });
+
+  it('classifies hosts the same way in the API guard and the plain-Node script guard', () => {
+    const cases: Array<[string, boolean]> = [
+      ['localhost', true],
+      ['127.0.0.1', true],
+      ['[::1]', true],
+      ['db', true],
+      ['postgres-staging', true],
+      ['host.docker.internal', true],
+      ['aws-0-us-east-1.pooler.supabase.com', false],
+      ['db.exampleprojectref.supabase.co', false],
+      ['10.0.0.5', false],
+      ['api.travelplataforma.com.br', false],
+    ];
+    for (const [host, local] of cases) {
+      expect(isLocalDatabaseHost(host), host).toBe(local);
+      expect(scriptGuard.isLocalDatabaseHost(host), `script:${host}`).toBe(local);
+    }
+  });
+
+  it('script guard reports remote targets by host only, never credentials', () => {
+    const problems = scriptGuard.findRemoteDatabaseTargets({
+      DATABASE_URL: PRODUCTION_POOLER_URL,
+      DATABASE_ADMIN_URL: LOCAL_URL,
+    });
+    expect(problems).toEqual(['DATABASE_URL: host remoto aws-0-us-east-1.pooler.supabase.com:5432']);
+    expect(problems.join(' ')).not.toContain('not-a-real-password');
+  });
+});
+
+describe('production startup with production database + dev auth', () => {
+  it('blocks production + ALLOW_DEV_AUTH=true', () => {
+    expect(() =>
+      validateProductionEnvironment({
+        NODE_ENV: 'production',
+        ALLOW_DEV_AUTH: 'true',
+        DATABASE_URL: PRODUCTION_POOLER_URL,
+        PLATFORM_DATABASE_URL: PRODUCTION_POOLER_URL.replace('travel_app_runtime', 'travel_app_platform'),
+        RATE_LIMIT_STORE: 'external',
+        REDIS_URL: 'redis://redis.internal:6379',
+        STORAGE_PROVIDER: 'supabase',
+        SUPABASE_URL: 'https://example.supabase.co',
+        SUPABASE_SERVICE_ROLE_KEY: 'example-service-role-key-not-a-real-secret',
+        MFA_ENCRYPTION_KEY: 'example-mfa-encryption-key-at-least-32-chars',
+      }),
+    ).toThrow(/ALLOW_DEV_AUTH must not be "true" in production/);
+  });
+
+  it('allows production + production database under the existing production rules', () => {
+    expect(() =>
+      validateProductionEnvironment({
+        NODE_ENV: 'production',
+        DATABASE_URL: PRODUCTION_POOLER_URL,
+        PLATFORM_DATABASE_URL: PRODUCTION_POOLER_URL.replace('travel_app_runtime', 'travel_app_platform'),
+        RATE_LIMIT_STORE: 'external',
+        REDIS_URL: 'redis://redis.internal:6379',
+        STORAGE_PROVIDER: 'supabase',
+        SUPABASE_URL: 'https://example.supabase.co',
+        SUPABASE_SERVICE_ROLE_KEY: 'example-service-role-key-not-a-real-secret',
+        MFA_ENCRYPTION_KEY: 'example-mfa-encryption-key-at-least-32-chars',
+      }),
+    ).not.toThrow();
+  });
+});
 
 describe('validateProductionEnvironment', () => {
   it('is a no-op outside production (dev/test must never require prod config)', () => {

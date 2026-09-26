@@ -36,6 +36,12 @@ const env = {
     'postgresql://travel_test:travel_test_password@127.0.0.1:55432/travel_platform_test',
 };
 
+// Fails before the (slow) build step; server.ts re-checks the same rule at boot.
+require(resolve(repoRoot, 'scripts/local-database-guard.cjs')).assertLocalDatabaseTargets(
+  'start-local-api.cjs',
+  env,
+);
+
 const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 const build = spawnSync(npmCommand, ['run', 'build'], {
   cwd: apiRoot,

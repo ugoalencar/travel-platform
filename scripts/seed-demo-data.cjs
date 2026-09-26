@@ -16,6 +16,7 @@
 // admin role), since it inserts across the two demo agencies directly.
 
 const { Pool } = require('pg');
+require('./local-database-guard.cjs').assertLocalDatabaseTargets('seed-demo-data.cjs');
 const { seedBusinessStories } = require('./demo-business-stories.cjs');
 
 const agencyAId = '10000000-0000-4000-8000-000000000001';

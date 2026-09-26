@@ -5,6 +5,7 @@
  */
 
 const { Pool } = require('pg');
+require('./local-database-guard.cjs').assertLocalDatabaseTargets('run-migrations.cjs');
 const fs = require('fs');
 const path = require('path');
 

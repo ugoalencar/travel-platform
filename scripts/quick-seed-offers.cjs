@@ -5,6 +5,7 @@
  */
 
 const { Pool } = require('pg');
+require('./local-database-guard.cjs').assertLocalDatabaseTargets('quick-seed-offers.cjs');
 const crypto = require('crypto');
 
 const databaseUrl = process.env.DATABASE_URL ||

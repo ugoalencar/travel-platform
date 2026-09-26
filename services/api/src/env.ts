@@ -161,6 +161,60 @@ export function validateProductionEnvironment(environment: ServerEnvironment = p
 }
 
 // ============================================================
+// NON-PRODUCTION DATABASE TARGET GUARD
+// ============================================================
+// Outside production, every database URL must point at this machine or a
+// docker-compose network (single-label host such as `db`). A development
+// server pointed at a remote database would run production data under
+// development-only behavior (ALLOW_DEV_AUTH, relaxed CORS, in-memory rate
+// limiting), so a remote host is refused rather than warned about.
+// scripts/local-database-guard.cjs applies the same rule to the plain-Node
+// dev/seed scripts.
+const DATABASE_URL_VARIABLES = ['DATABASE_URL', 'DATABASE_ADMIN_URL', 'PLATFORM_DATABASE_URL'] as const;
+
+export function isLocalDatabaseHost(hostname: string): boolean {
+  const host = hostname.replace(/^\[|\]$/g, '').toLowerCase();
+  if (host === 'localhost' || host === '::1' || host === 'host.docker.internal') return true;
+  if (/^127(\.\d{1,3}){3}$/.test(host)) return true;
+  return host.length > 0 && !host.includes('.') && !host.includes(':');
+}
+
+export function validateNonProductionDatabaseTargets(
+  environment: ServerEnvironment & Record<string, string | undefined> = process.env,
+): void {
+  if (environment.NODE_ENV === 'production') {
+    return;
+  }
+
+  const issues: string[] = [];
+  for (const name of DATABASE_URL_VARIABLES) {
+    const value = environment[name];
+    if (!isNonEmptyString(value)) continue;
+    let parsed: URL;
+    try {
+      parsed = new URL(value.trim());
+    } catch {
+      issues.push(`${name} is not a valid connection URL.`);
+      continue;
+    }
+    if (!isLocalDatabaseHost(parsed.hostname)) {
+      issues.push(
+        `${name} points to remote host "${parsed.hostname}" while NODE_ENV is "${environment.NODE_ENV ?? 'unset'}". ` +
+          'Only local databases are allowed outside production.',
+      );
+    }
+  }
+
+  if (issues.length > 0) {
+    throw new Error(
+      `Refusing to start: non-production process configured with a remote database.\n${issues
+        .map((issue) => `  - ${issue}`)
+        .join('\n')}`,
+    );
+  }
+}
+
+// ============================================================
 // DATABASE RUNTIME ROLE GUARD
 // ============================================================
 // RLS is the tenant-isolation backbone of this app (see database.ts /

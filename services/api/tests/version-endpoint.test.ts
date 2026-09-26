@@ -1,7 +1,27 @@
 import { describe, expect, it } from 'vitest';
 import { buildApp } from '../src/app';
 import type { DatabaseRuntime } from '../src/database';
-import type { VersionInfo } from '../src/version';
+import { resolveVersionInfo, type VersionInfo } from '../src/version';
+
+describe('resolveVersionInfo buildSha', () => {
+  it('prefers RENDER_GIT_COMMIT (injected by Render) over GIT_SHA/BUILD_SHA', () => {
+    const info = resolveVersionInfo({
+      environment: { RENDER_GIT_COMMIT: 'render-sha', GIT_SHA: 'git-sha', BUILD_SHA: 'build-sha' },
+    });
+    expect(info.buildSha).toBe('render-sha');
+  });
+
+  it('falls back to GIT_SHA, then BUILD_SHA, skipping blank values', () => {
+    expect(resolveVersionInfo({ environment: { RENDER_GIT_COMMIT: '  ', GIT_SHA: 'git-sha' } }).buildSha).toBe(
+      'git-sha',
+    );
+    expect(resolveVersionInfo({ environment: { BUILD_SHA: 'build-sha' } }).buildSha).toBe('build-sha');
+  });
+
+  it('reports unknown when no SHA variable is set', () => {
+    expect(resolveVersionInfo({ environment: {} }).buildSha).toBe('unknown');
+  });
+});
 
 function buildMinimalApp(versionInfo?: VersionInfo) {
   const database: DatabaseRuntime = {

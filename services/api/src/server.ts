@@ -9,7 +9,11 @@ import {
   createServerCustomerAuthProvider,
   createStaffAccessValidator,
 } from './dev-auth';
-import { assertSafeDatabasePools, validateProductionEnvironment } from './env';
+import {
+  assertSafeDatabasePools,
+  validateNonProductionDatabaseTargets,
+  validateProductionEnvironment,
+} from './env';
 import { createServerPlatformAuthProvider } from './platform-dev-auth';
 import { createRedisRateLimitStore, resolveRateLimitRuntimeConfig, type RedisClientInstance } from './rate-limit';
 
@@ -18,6 +22,9 @@ import { createRedisRateLimitStore, resolveRateLimitRuntimeConfig, type RedisCli
 // set in production. No-op outside NODE_ENV=production, so this never
 // affects local dev or test runs.
 validateProductionEnvironment();
+// Mirror gate for every other NODE_ENV: a dev/staging process may only use
+// local databases, so `npm run dev` can never reach production data.
+validateNonProductionDatabaseTargets();
 
 const port = Number(process.env.PORT ?? 3000);
 const host = process.env.HOST ?? '127.0.0.1';

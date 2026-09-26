@@ -101,6 +101,10 @@ function readMigrationVersion(migrationsDir: string): string {
   }
 }
 
+function firstNonEmpty(...values: Array<string | undefined>): string {
+  return values.find((value) => value !== undefined && value.trim() !== '')?.trim() ?? 'unknown';
+}
+
 export function resolveVersionInfo(options: ResolveVersionInfoOptions = {}): VersionInfo {
   const environment = options.environment ?? process.env;
   const packageDir = options.packageDir ?? DEFAULT_PACKAGE_DIR;
@@ -108,7 +112,15 @@ export function resolveVersionInfo(options: ResolveVersionInfoOptions = {}): Ver
 
   return {
     appVersion: readAppVersion(packageDir),
-    buildSha: environment.GIT_SHA ?? environment.BUILD_SHA ?? environment.VERCEL_GIT_COMMIT_SHA ?? 'unknown',
+    // RENDER_GIT_COMMIT is injected by Render for every git-backed deploy, so
+    // it is the authoritative SHA there; GIT_SHA/BUILD_SHA stay as explicit
+    // overrides for other hosts and CI images.
+    buildSha: firstNonEmpty(
+      environment.RENDER_GIT_COMMIT,
+      environment.GIT_SHA,
+      environment.BUILD_SHA,
+      environment.VERCEL_GIT_COMMIT_SHA,
+    ),
     migrationVersion: readMigrationVersion(migrationsDir),
     deploymentId: environment.DEPLOYMENT_ID ?? environment.RENDER_INSTANCE_ID ?? 'unknown',
     releasedAt: environment.RELEASED_AT ?? 'unknown',

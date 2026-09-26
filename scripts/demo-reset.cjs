@@ -32,6 +32,8 @@ if (existsSync(envLocalPath)) {
   });
 }
 
+require('./local-database-guard.cjs').assertLocalDatabaseTargets('demo-reset.cjs');
+
 const databaseUrl = process.env.DATABASE_URL ||
   'postgresql://travel_test:travel_test_password@127.0.0.1:55432/travel_platform_test';
 
@@ -54,7 +56,7 @@ async function main() {
 
     if (!isLocal || !isDev) {
       console.error('❌ ERRO: DATABASE_URL não aponta para um banco local de teste/dev.\n');
-      console.error(`   URL: ${databaseUrl}\n`);
+      console.error(`   Host/banco: ${url.hostname}${url.pathname}\n`);
       process.exit(1);
     }
   } catch {

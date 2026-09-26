@@ -21,6 +21,8 @@ const databaseUrl = process.env.DATABASE_URL ||
   'postgresql://travel_test:travel_test_password@127.0.0.1:55432/travel_platform_test';
 const localDevAgencyId = '10000000-0000-4000-8000-000000000001';
 
+require('./local-database-guard.cjs').assertLocalDatabaseTargets('seed-tenant-demo-data.cjs');
+
 // Safety guards: refuse to run against non-dev/non-local DB
 if (process.env.NODE_ENV === 'production') {
   console.error('❌ ERRO: Não é permitido executar seed no banco de produção.\n');
@@ -34,7 +36,7 @@ try {
 
   if (!isLocal || !isDev) {
     console.error('❌ ERRO: DATABASE_URL não aponta para um banco local de teste/dev.\n');
-    console.error(`   URL: ${databaseUrl}\n`);
+    console.error(`   Host/banco: ${url.hostname}${url.pathname}\n`);
     process.exit(1);
   }
 } catch {

@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 const { Pool } = require('pg');
+require('./local-database-guard.cjs').assertLocalDatabaseTargets('reset-dev-db.cjs');
 
 const databaseUrl = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5433/travel_platform_dev';
 
