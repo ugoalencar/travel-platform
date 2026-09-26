@@ -2,7 +2,7 @@
 
 > Nome do arquivo mantido (`..._084_095.md`) por ser referenciado em scripts e templates; o escopo atual é **084..096**.
 
-- **Status:** preparado, **não executado**. Nenhuma migration foi aplicada no banco remoto.
+- **Status:** janela completa **não executada**. Produção está em **083 + 096 HOTFIX** (ver seção 0.1): a 096 já foi aplicada como hotfix de segurança; **084..095 continuam PENDING**.
 - **Alvo:** produção (Supabase, pooler `aws-0-us-east-1.pooler.supabase.com`, database `postgres`).
 - **Migrations:** 001..096 (096 = [`096_supabase_data_api_hardening.sql`](../../infrastructure/migrations/096_supabase_data_api_hardening.sql)).
 - **Arquivos operacionais (não são migrations):** em [`infrastructure/ops/`](../../infrastructure/ops/)
@@ -28,6 +28,23 @@
 | Colunas novas `NOT NULL` sem default | nenhuma |
 | `NODE_ENV` da API na Render | **provavelmente `staging`** (padrão do `Dockerfile`; a API não envia HSTS, que só sai com `NODE_ENV=production`) |
 | **Exposição da Data API (P1)** | `anon`/`authenticated` com SELECT/INSERT/UPDATE/DELETE/TRUNCATE nas **170** tabelas (44 de plataforma **sem RLS**: `platform_users`, `platform_sessions`, `billing_*`, `subscriptions`, `subscriber_tenants`, `support_*`, `leads`, `feature_flags`, `platform_settings`, audit logs…), em **2** sequences e `EXECUTE` em `platform_search_agencies` (`SECURITY DEFINER` → enumeração de agências de todos os tenants via RPC). Os default privileges de `postgres` concedem o mesmo a **todo objeto novo**. |
+
+> A tabela acima é o estado **antes** do hotfix de 2026-09-26 22:14Z. O estado atual está na seção 0.1.
+
+## 0.1 PRODUCTION STATE ATUAL: 083 + 096 HOTFIX
+
+| Item | Estado |
+|---|---|
+| **PRODUCTION STATE** | **083 + 096 HOTFIX** — não é "última migration = 096" |
+| **084..095** | **PENDING** — nenhuma delas foi aplicada |
+| **096** | **ALREADY APPLIED IN PRODUCTION AS SECURITY HOTFIX** (fora da ordem numérica, por decisão explícita do responsável) |
+| Aplicação da 096 | 2026-09-26, início 22:13:59Z, fim 22:14:02Z; `psql --single-transaction`, exit 0; arquivo idêntico ao commit `099258b` (SHA-256 `6bdceec6…f47331b`) |
+| Backup prévio | snapshot da Supabase confirmado no painel pelo responsável + `backup_production.sh` completo às 22:08Z: 1.089.138 bytes, SHA-256 `56786e69…ef6c9`, restore em PG17 OK, **170/170 tabelas e contagem de linhas idêntica tabela a tabela** (dump guardado fora do repositório) |
+| Validação pós-hotfix | `anon`/`authenticated`: 0/170 tabelas, 0/2 sequences; SELECT negado em produção (teste somente leitura, 172/172 objetos); `platform_search_agencies` → permission denied; clone do schema pós-096: 1.700/1.700 DML negados; `travel_app_runtime` intacto (170/170 tabelas, 2/2 sequences, 5/5 funções); API `/health`, `/public/landing`, `/public/partners` 200 |
+
+**`verify_096_data_api.sql` esperado neste estado: 13/15.** As 2 falhas são `travel_app_platform still reads platform_users` e `travel_app_platform can EXECUTE platform_search_agencies`, porque o role de plataforma ainda não existe (T2 pendente). Qualquer outra falha é real: PARAR. O 15/15 só é exigido na T5.
+
+**Na janela completa:** aplicar 084..095 normalmente (T1..T3). Depois, **reaplicar a 096 em T3b**: é idempotente e não tem efeito sobre o que já foi revogado. Com os default privileges de `postgres` já corrigidos, as tabelas criadas por 084..094 devem nascer sem grant para `anon`/`authenticated`; a reaplicação garante isso mesmo que algo tenha mudado até a janela.
 
 ### Causas dos 500
 
@@ -85,7 +102,8 @@ psql "$DATABASE_ADMIN_URL" -At -c "
   UNION ALL SELECT 'EngagementType.OFFER_VIEWED (086)', EXISTS (SELECT 1 FROM pg_enum e JOIN pg_type t ON t.oid=e.enumtypid
            WHERE t.typname='EngagementType' AND e.enumlabel='OFFER_VIEWED')
   UNION ALL SELECT 'customer_protocol_seq (083)', to_regclass('public.customer_protocol_seq') IS NOT NULL;"
-# Esperado: f, f, f, t -> banco em 083. Outro resultado: PARAR.
+# Esperado: f, f, f, t -> banco em 083 (+ 096 HOTFIX, seção 0.1). Outro resultado: PARAR.
+# verify_096 esperado no precheck: 13/15 (só as 2 checagens de travel_app_platform falham).
 
 V=(-v ON_ERROR_STOP=1 -v runtime_role=travel_app_runtime -v platform_role=travel_app_platform)
 psql "$DATABASE_ADMIN_URL" "${V[@]}" -f infrastructure/ops/verify_084_095.sql     > precheck_verify_084_095.txt
@@ -130,7 +148,7 @@ Pré-condição: checklist da seção 8 **100% confirmado** e dry run (seção 1
 | **T2** | `psql "$DATABASE_ADMIN_URL" -v ON_ERROR_STOP=1 -v platform_password="$TRAVEL_APP_PLATFORM_PASSWORD" -f infrastructure/ops/create_platform_role.sql` + `psql "$PLATFORM_DATABASE_URL" -At -c "SELECT current_user"` | atributos exigidos; login = `travel_app_platform` | Corrigir antes da 095 |
 | T2.5 | Render: cadastrar `PLATFORM_DATABASE_URL` (usuário `travel_app_platform.<project-ref>`) com **"Save" sem restart** | variável salva; serviço ainda rodando | — |
 | **T3** | `apply .../095_platform_role_separation.sql` | `APLICADA` | Nada aplicado; Platform Admin intacto |
-| **T3b** | **Na sequência:** `apply .../096_supabase_data_api_hardening.sql` | `APLICADA` | Nada aplicado → corrigir e reexecutar (idempotente) |
+| **T3b** | **Na sequência:** `apply .../096_supabase_data_api_hardening.sql` (**reaplicação**: já está em produção como hotfix; idempotente) | `APLICADA` | Nada aplicado → corrigir e reexecutar (idempotente) |
 | **T4** | **Imediatamente:** Render → restart/deploy do **mesmo** commit, para carregar `PLATFORM_DATABASE_URL` | `/health` 200; login no Platform Admin OK | Corrigir a URL ou o role. Não devolver grants ao runtime |
 | **T5** | Validar hardening + schema: `verify_096_data_api.sql` **15/15** e `verify_084_095.sql` **47/47** | `total_failures = 0` em ambos | PARAR e analisar antes de seguir |
 | **T6** | `NODE_ENV=production` + restart | boot OK (`validateProductionEnvironment` + `assertSafeDatabasePools`) | O log lista o que falta: corrigir e reiniciar |
@@ -147,7 +165,9 @@ Pré-condição: checklist da seção 8 **100% confirmado** e dry run (seção 1
 
 ## 7. Exposição atual (antes da janela)
 
-A exposição da Data API existe **hoje** em produção e independe da janela. Hoje a única forma registrada de fechá-la é a 096 na ordem numérica (T3b). Rodar o conteúdo da 096 antes da 084..095 seria aplicar uma migration fora de ordem; ela é idempotente, então a reaplicação na janela não teria efeito, mas isso exige **decisão explícita** do responsável e registro no log operacional. Alternativa sem SQL: no painel da Supabase → **API settings**, remover `public` dos "Exposed schemas" até a janela. Não usamos a Data API, então nada da aplicação é afetado.
+> **Atualização 2026-09-26 22:14Z: FECHADA.** O responsável decidiu aplicar a 096 fora de ordem como hotfix (seção 0.1). O texto abaixo registra a análise que levou a essa decisão.
+
+A exposição da Data API existia em produção independentemente da janela. Hoje a única forma registrada de fechá-la é a 096 na ordem numérica (T3b). Rodar o conteúdo da 096 antes da 084..095 seria aplicar uma migration fora de ordem; ela é idempotente, então a reaplicação na janela não teria efeito, mas isso exige **decisão explícita** do responsável e registro no log operacional. Alternativa sem SQL: no painel da Supabase → **API settings**, remover `public` dos "Exposed schemas" até a janela. Não usamos a Data API, então nada da aplicação é afetado.
 
 ## 8. Checklist de acesso à Render (nunca imprimir valores)
 
@@ -174,6 +194,8 @@ A exposição da Data API existe **hoje** em produção e independe da janela. H
 
 | Passo | Horário (UTC) | Operador | Resultado |
 |---|---|---|---|
+| **HOTFIX** backup (snapshot Supabase + `backup_production.sh`) | 2026-09-26 22:08Z | responsável + Claude Code | VALIDATED — SHA-256 `56786e69…ef6c9`, 170/170 tabelas, linhas idênticas |
+| **HOTFIX** 096 isolada (084..095 **não** aplicadas) | 2026-09-26 22:13:59Z–22:14:02Z | Claude Code (autorizado) | APLICADA; `verify_096` 13/15 (esperado sem `travel_app_platform`); anon/authenticated SAFE |
 | T0 snapshot Supabase + `backup_production.sh` (SHA-256) | | | |
 | Dry run do dia (47/47, 15/15, 0 permitidos) | | | |
 | T1 084…094 (`migration_log.txt`) | | | |

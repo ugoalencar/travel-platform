@@ -48,9 +48,13 @@ checks AS (
     FROM api_roles
    WHERE EXISTS (SELECT 1 FROM pg_roles WHERE rolname = r)
   UNION ALL
-  SELECT 'data-api', 'default privileges of ' || current_user || ' grant nothing to ' || r,
+  -- Scope of 096 is schema public: per-schema entries for public plus global
+  -- (defaclnamespace = 0) entries, which also apply to public. Entries for
+  -- Supabase-managed schemas (storage, graphql...) are out of scope.
+  SELECT 'data-api', 'default privileges of ' || current_user || ' in public grant nothing to ' || r,
          NOT EXISTS (SELECT 1 FROM pg_default_acl d, aclexplode(d.defaclacl) a
                       WHERE d.defaclrole = (SELECT oid FROM pg_roles WHERE rolname = current_user)
+                        AND d.defaclnamespace IN (0, 'public'::regnamespace)
                         AND a.grantee = (SELECT oid FROM pg_roles WHERE rolname = r))
     FROM api_roles
    WHERE EXISTS (SELECT 1 FROM pg_roles WHERE rolname = r)
