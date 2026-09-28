@@ -1,8 +1,9 @@
-# Runbook — Migrations remotas 084..096 + role de plataforma + hardening da Data API
+# Runbook — Janela de produção: migrations 084..096 + roles da aplicação (RLS) + storage
 
 > Nome do arquivo mantido (`..._084_095.md`) por ser referenciado em scripts e templates; o escopo atual é **084..096**.
 
-- **Status:** janela completa **não executada**. Produção está em **083 + 096 HOTFIX** (ver seção 0.1): a 096 já foi aplicada como hotfix de segurança; **084..095 continuam PENDING**.
+- **Status:** janela **não executada** (PRODUCTION EXECUTION: NOT STARTED). Banco em **083 + 096 HOTFIX** (seção 0.1); **084..095 PENDING**. API na Render em `3512438`, `NODE_ENV=development`, conectada como `postgres` (seção 0.2).
+- **Escopo da janela:** migrations 084..095 + reaplicação da 096; role `travel_app_platform`; troca da conexão da API de `postgres` (BYPASSRLS) para `travel_app_runtime` (RLS efetivo); `NODE_ENV=production`; storage no Supabase; deploy manual dos commits locais.
 - **Alvo:** produção (Supabase, pooler `aws-0-us-east-1.pooler.supabase.com`, database `postgres`).
 - **Migrations:** 001..096 (096 = [`096_supabase_data_api_hardening.sql`](../../infrastructure/migrations/096_supabase_data_api_hardening.sql)).
 - **Arquivos operacionais (não são migrations):** em [`infrastructure/ops/`](../../infrastructure/ops/)
@@ -26,7 +27,7 @@
 | `travel_app_platform` | **não existe** |
 | Tabelas e funções que a 095 referencia | todas presentes |
 | Colunas novas `NOT NULL` sem default | nenhuma |
-| `NODE_ENV` da API na Render | **provavelmente `staging`** (padrão do `Dockerfile`; a API não envia HSTS, que só sai com `NODE_ENV=production`) |
+| `NODE_ENV` da API na Render | inferido na época como `staging`; **confirmado depois: `development`** (seção 0.2) |
 | **Exposição da Data API (P1)** | `anon`/`authenticated` com SELECT/INSERT/UPDATE/DELETE/TRUNCATE nas **170** tabelas (44 de plataforma **sem RLS**: `platform_users`, `platform_sessions`, `billing_*`, `subscriptions`, `subscriber_tenants`, `support_*`, `leads`, `feature_flags`, `platform_settings`, audit logs…), em **2** sequences e `EXECUTE` em `platform_search_agencies` (`SECURITY DEFINER` → enumeração de agências de todos os tenants via RPC). Os default privileges de `postgres` concedem o mesmo a **todo objeto novo**. |
 
 > A tabela acima é o estado **antes** do hotfix de 2026-09-26 22:14Z. O estado atual está na seção 0.1.
@@ -42,16 +43,43 @@
 | Backup prévio | snapshot da Supabase confirmado no painel pelo responsável + `backup_production.sh` completo às 22:08Z: 1.089.138 bytes, SHA-256 `56786e69…ef6c9`, restore em PG17 OK, **170/170 tabelas e contagem de linhas idêntica tabela a tabela** (dump guardado fora do repositório) |
 | Validação pós-hotfix | `anon`/`authenticated`: 0/170 tabelas, 0/2 sequences; SELECT negado em produção (teste somente leitura, 172/172 objetos); `platform_search_agencies` → permission denied; clone do schema pós-096: 1.700/1.700 DML negados; `travel_app_runtime` intacto (170/170 tabelas, 2/2 sequences, 5/5 funções); API `/health`, `/public/landing`, `/public/partners` 200 |
 
-**`verify_096_data_api.sql` esperado neste estado: 13/15.** As 2 falhas são `travel_app_platform still reads platform_users` e `travel_app_platform can EXECUTE platform_search_agencies`, porque o role de plataforma ainda não existe (T2 pendente). Qualquer outra falha é real: PARAR. O 15/15 só é exigido na T5.
+**`verify_096_data_api.sql` esperado neste estado: 13/15.** As 2 falhas são `travel_app_platform still reads platform_users` e `travel_app_platform can EXECUTE platform_search_agencies`, porque o role de plataforma ainda não existe (T2 pendente). Qualquer outra falha é real: PARAR. O 15/15 só é exigido na T4 da janela.
 
 **Na janela completa:** aplicar 084..095 normalmente (T1..T3). Depois, **reaplicar a 096 em T3b**: é idempotente e não tem efeito sobre o que já foi revogado. Com os default privileges de `postgres` já corrigidos, as tabelas criadas por 084..094 devem nascer sem grant para `anon`/`authenticated`; a reaplicação garante isso mesmo que algo tenha mudado até a janela.
+
+## 0.2 Estado real da Render (API somente leitura, 2026-09-28)
+
+| Item | Valor |
+|---|---|
+| Serviço | `travel-platform` — `srv-dao8bpjtqb8s73eafr9g`, web service Docker (`./Dockerfile`, sem build/start command próprio), plano free, oregon, 1 instância |
+| Branch / auto-deploy | `main` / **ON (`autoDeployTrigger: commit`)** |
+| Deploy live | `3512438ff23dc3c9dd047c1e247ac65bf9424be8`, desde 2026-09-25 00:08:51Z (`dep-daqrmplg1s2s73ag9l00`) |
+| `NODE_ENV` | **`development`** |
+| `DATABASE_URL` | usuário **`postgres`** (dono do schema, **BYPASSRLS**): hoje o RLS **não** se aplica a nenhuma consulta da API |
+| `PLATFORM_DATABASE_URL` | **ausente** |
+| `STORAGE_PROVIDER` | **ausente** → uploads no disco efêmero do container |
+| Buckets no Supabase Storage | **0** (o código grava em `documents/`, `media-assets/`, `trip-photos/`; o adaptador **não** cria bucket) |
+| Arquivos a migrar | nenhum: `document_attachments` = 0, `trip_photos` = 0 (`media_assets` só nasce na 092) |
+| `MFA_ENCRYPTION_KEY` | presente (46 caracteres) |
+| `RATE_LIMIT_STORE` / `REDIS_URL` | `external` / presente (`rediss:`) |
+| `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` | presentes (mesmo projeto do banco) |
+| `ALLOW_DEV_AUTH` | ausente |
+| `CORS_ALLOWED_ORIGINS` | 8 origens explícitas (4 `*.travelplataforma.com.br` + 4 `*.vercel.app`), sem `*` |
+| `platform_users` em produção | **0** — hoje não existe login de Platform Admin |
+
+**Consequências para a janela:**
+- `3512438` já contém `validateProductionEnvironment` e `assertSafeDatabasePools`: com `NODE_ENV=production` e `DATABASE_URL` = `postgres`, o boot **recusa** (BYPASSRLS). A troca para `travel_app_runtime` é obrigatória.
+- Os commits locais (`e092302`) recusam subir com `NODE_ENV≠production` + banco remoto. Com auto-deploy ON, qualquer push hoje dispararia um deploy que falha. Por isso **auto-deploy OFF é gate obrigatório** (G1): não basta "não fazer push".
+- Enquanto a API conecta como `postgres`, a 095 **não** derruba o Platform Admin (o dono mantém acesso). O corte só acontece no deploy da T5, que já liga o pool de plataforma.
+- As rotas públicas `/public/landing`, `/public/partners` e `/public/banners` usam `withPlatformTransaction` (pool de plataforma): seguem funcionando depois da 095 e servem de smoke do pool sem login.
+- O rollback de variáveis para `postgres`/`development` só funciona com o código `3512438`. Depois da T7 (código novo), o rollback exige **primeiro** redeploy do `3512438`.
 
 ### Causas dos 500
 
 | Rota | Causa | Status |
 |---|---|---|
 | `GET /offers`, `GET /proposals`, `GET /commercial/engagements` | colunas das migrations 084/087/088/093 inexistentes → `42703` | **CONFIRMADO** (clone real, código `3512438`) |
-| `POST /settings/onboarding/complete` | `Content-Type: application/json` sem corpo → Fastify `FST_ERR_CTP_EMPTY_JSON_BODY` (um 400), convertido em **500** pelo error handler (`services/api/src/errors.ts` só trata `BODY_TOO_LARGE`). Sem o header → 200. O frontend Agency omite o header (`apps/agency/src/lib/api.ts`), então o 500 vem de chamadas de API/scripts. | **PROVÁVEL** — confirmar no log da Render (`errorCode: FST_ERR_CTP_EMPTY_JSON_BODY`) |
+| `POST /settings/onboarding/complete` | `Content-Type: application/json` sem corpo → Fastify `FST_ERR_CTP_EMPTY_JSON_BODY` (um 400), convertido em **500** pelo error handler (`services/api/src/errors.ts` só trata `BODY_TOO_LARGE`). Sem o header → 200. O frontend Agency omite o header (`apps/agency/src/lib/api.ts`), então o 500 vem de chamadas de API/scripts. | **CONFIRMADO** no log da Render (2026-09-28 01:18:56Z, `errorName: FastifyError`, `errorCode: FST_ERR_CTP_EMPTY_JSON_BODY`). Bug funcional separado, **não bloqueia** a janela (T8A) |
 
 O mesmo bug converte em 500 os erros `FST_ERR_CTP_INVALID_JSON_BODY` (JSON inválido) e `FST_ERR_CTP_INVALID_MEDIA_TYPE` (content-type não suportado), reproduzidos no clone. Correção proposta, fora desta janela: o error handler deve responder com o `statusCode` 4xx do erro do Fastify e uma mensagem genérica.
 
@@ -79,15 +107,19 @@ Procedimento: `pg_dump 17 --schema-only --schema=public` de produção (somente 
 
 **Observação (P3):** a policy `agency_communications_select_tenant` (085) usa `current_setting('app.current_agency_id')` sem `missing_ok`, diferente das demais, que usam `current_agency_id()`. Para quem não tem contexto, isso gera erro `42704` em vez de "0 linhas". Não vaza dados, mas é inconsistente.
 
-## 2. Pré-requisitos (bloqueantes)
+## 2. Pré-requisitos e gates (bloqueantes)
 
-1. **Acesso à Render** do serviço da API (seção 8).
-2. **Postgres 17 tooling:** container `postgres:17` local (usado pelos scripts) ou cliente 17 instalado.
-3. **Janela de manutenção** curta: o Platform Admin fica indisponível entre a T3 e a T4.
-4. Variáveis **exportadas no shell do operador** (nunca gravadas em arquivo versionado):
-   - `DATABASE_ADMIN_URL` — `postgres` em **session mode, porta 5432** (não usar o transaction pooler 6543).
-   - `TRAVEL_APP_PLATFORM_PASSWORD` — senha nova e forte do role de plataforma.
-5. **Dry run da seção 1 repetido no mesmo dia** com dump de schema novo: exigir 47/47, 15/15 e 0 permitidos.
+| Gate | Condição | Como confirmar |
+|---|---|---|
+| **G1** | **Auto-deploy da Render OFF** antes de qualquer passo da janela | Settings → Auto-Deploy = **No**; conferir pela API (`GET /v1/services/srv-dao8bpjtqb8s73eafr9g` → `autoDeploy: "no"`) |
+| **G2** | Senha forte do `travel_app_platform` gerada e guardada no cofre | cofre; **nunca** em arquivo, log ou relatório |
+| **G3** | URL do `travel_app_runtime` (pooler, session mode 5432) no cofre e testada | `psql "$RUNTIME_URL" -At -c "select current_user, (select rolbypassrls from pg_roles where rolname = current_user)"` → `travel_app_runtime\|f` |
+| **G4** | Postgres 17 tooling | container `postgres:17` local (usado pelos scripts) |
+| **G5** | Contas de QA para o smoke da T5B | 2 agências de teste (A e B) criadas pelo signup na janela **ou** contas QA existentes com senha no cofre; 1 acesso de cliente; para Platform Admin, ver G6 |
+| **G6** | Decisão sobre o Platform Admin | produção tem **0** `platform_users`. Sem provisionar um `PLATFORM_OWNER` (procedimento a definir, fora desta janela), o smoke de plataforma cobre só o pool (`/public/landing`, `/public/partners` = 200) e `/platform/*` = 401 |
+| **G7** | Janela de manutenção comunicada | a T5 troca a role da API e liga o RLS: ~1–2 min de deploy + smoke |
+
+Variáveis **exportadas no shell do operador** (nunca gravadas em arquivo versionado): `DATABASE_ADMIN_URL` (`postgres`, session mode 5432), `TRAVEL_APP_PLATFORM_PASSWORD`, `PLATFORM_DATABASE_URL`, `RUNTIME_URL`, `RENDER_API_KEY` (só para conferência somente leitura).
 
 > As travas locais recusam hosts remotos só nos scripts de dev e no boot da API fora de produção. Os comandos `psql` deste runbook são manuais e explícitos por design.
 
@@ -137,31 +169,106 @@ apply() {
 }
 ```
 
-## 6. Plano de janela T0–T8
+## 6. Plano de janela T0–T10
 
-Pré-condição: checklist da seção 8 **100% confirmado** e dry run (seção 1) repetido no mesmo dia.
+Ordem obrigatória. Cada passo só começa com o critério do anterior verde. Registrar tudo na seção 9.
 
-| T | Ação | Critério para seguir | Se falhar |
-|---|---|---|---|
-| **T0** | Backup validado (seção 4) | `restore: OK`, sem `DIVERGENTE`, SHA-256 registrado | Não abrir a janela |
-| **T1** | `for n in 084 085 086 087 088 089 090 091 092 093 094; do apply infrastructure/migrations/${n}_*.sql; done` | todos `APLICADA`; `/offers` e `/proposals` sem 500 | Single-tx: nada aplicado → corrigir e reexecutar; 086: reexecutar |
-| **T2** | `psql "$DATABASE_ADMIN_URL" -v ON_ERROR_STOP=1 -v platform_password="$TRAVEL_APP_PLATFORM_PASSWORD" -f infrastructure/ops/create_platform_role.sql` + `psql "$PLATFORM_DATABASE_URL" -At -c "SELECT current_user"` | atributos exigidos; login = `travel_app_platform` | Corrigir antes da 095 |
-| T2.5 | Render: cadastrar `PLATFORM_DATABASE_URL` (usuário `travel_app_platform.<project-ref>`) com **"Save" sem restart** | variável salva; serviço ainda rodando | — |
-| **T3** | `apply .../095_platform_role_separation.sql` | `APLICADA` | Nada aplicado; Platform Admin intacto |
-| **T3b** | **Na sequência:** `apply .../096_supabase_data_api_hardening.sql` (**reaplicação**: já está em produção como hotfix; idempotente) | `APLICADA` | Nada aplicado → corrigir e reexecutar (idempotente) |
-| **T4** | **Imediatamente:** Render → restart/deploy do **mesmo** commit, para carregar `PLATFORM_DATABASE_URL` | `/health` 200; login no Platform Admin OK | Corrigir a URL ou o role. Não devolver grants ao runtime |
-| **T5** | Validar hardening + schema: `verify_096_data_api.sql` **15/15** e `verify_084_095.sql` **47/47** | `total_failures = 0` em ambos | PARAR e analisar antes de seguir |
-| **T6** | `NODE_ENV=production` + restart | boot OK (`validateProductionEnvironment` + `assertSafeDatabasePools`) | O log lista o que falta: corrigir e reiniciar |
-| **T7** | Promover os commits locais (trava + `/version`; 096 + runbook) após CI verde | deploy concluído; `/version.buildSha` = SHA promovido | Redeploy do commit anterior (compatível com o schema 096) |
-| **T8** | Smoke/QA: `/health`, `/readiness`, `/version`; `/offers`, `/proposals`, `/commercial/engagements`, onboarding pela UI; Customer App; Platform Admin | nenhum 500 inesperado | Log com `errorCode` → classificar |
+### Antes de T0 — G1: desligar o auto-deploy
+Render → Settings → Auto-Deploy → **No**. Conferir pela API (`autoDeploy: "no"`). Sem isso, **não abrir a janela**.
 
-**Por que a 096 vem em T3b, antes da T4 (ajuste da ordem proposta):**
-- A 096 não depende da configuração da Render nem afeta os roles da aplicação: ela só revoga `anon`/`authenticated` e o `EXECUTE` de `PUBLIC` na função `SECURITY DEFINER`.
-- A T1 cria 5 tabelas e as colunas novas, e as tabelas nascem com grant para `anon`/`authenticated` por causa dos default privileges. Rodar a 096 logo após a 095 **encurta a exposição** para minutos e respeita a ordem numérica. A validação formal dela continua na **T5**.
+### T0 — Backup + dry run do dia
+1. Snapshot Supabase: anotar o horário do último backup/PITR (painel → Database → Backups).
+2. `backup_production.sh` completo (seção 4): tamanho, SHA-256, `restore: OK` em PG17, contagem de linhas sem `DIVERGENTE`.
+3. Dry run novo (seção 1): dump de schema real → PG17 → 084..094 → role de plataforma → 095 → **reaplicar 096** → `verify_084_095` **47/47** e `verify_096` **15/15**; `test_096` com 0 permitidos.
 
-**Minimizar T3→T4:** a variável é pré-cadastrada na T2.5, então o intervalo é só o tempo do restart (~1–2 min), afetando apenas o Platform Admin. Com o checklist 100% verde, T4 e T6 podem ser **um único restart** (`PLATFORM_DATABASE_URL` + `NODE_ENV=production`). Isso encurta a janela, mas junta dois riscos num passo.
+**Se qualquer item falhar: PARAR.**
 
-**Auto-deploy:** enquanto estiver ON ou UNKNOWN, nenhum push na `main` antes da T7. O commit da trava local recusa subir com `NODE_ENV≠production` apontando para a Supabase.
+### T1 — 084..094
+```bash
+for n in 084 085 086 087 088 089 090 091 092 093 094; do apply infrastructure/migrations/${n}_*.sql; done   # apply() roda a 086 em autocommit
+```
+Validar o schema: o precheck da seção 3 passa a `t, t, t, t`. **Não reiniciar a Render.** A API atual (`postgres`) passa a enxergar as colunas novas: `/offers` e `/proposals` deixam de dar 500.
+
+### T2 — Role de plataforma
+```bash
+psql "$DATABASE_ADMIN_URL" -v ON_ERROR_STOP=1 -v platform_password="$TRAVEL_APP_PLATFORM_PASSWORD" -f infrastructure/ops/create_platform_role.sql
+psql "$PLATFORM_DATABASE_URL" -At -c "select current_user"      # -> travel_app_platform
+```
+O script cria o role com LOGIN NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE NOREPLICATION e **aborta** se um role existente divergir. A senha entra só pela variável; nunca em log.
+
+### T2.5 — Render com **Save only** (sem deploy/restart)
+Environment → editar → **"Save only"**:
+
+| Variável | Novo valor |
+|---|---|
+| `DATABASE_URL` | URL do `travel_app_runtime` (G3) |
+| `PLATFORM_DATABASE_URL` | URL do `travel_app_platform` (T2) |
+| `NODE_ENV` | `production` |
+| `STORAGE_PROVIDER` | `supabase` |
+
+Guardar no cofre o valor anterior de `DATABASE_URL` (`postgres`) para o rollback. Conferir que seguem presentes: `MFA_ENCRYPTION_KEY`, `RATE_LIMIT_STORE=external`, `REDIS_URL`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `CORS_ALLOWED_ORIGINS`; `ALLOW_DEV_AUTH` ausente ou ≠ `true`. **Não reiniciar.** Se o painel não oferecer "Save only", salvar pela API (atualizar variáveis pela API não dispara deploy, segundo a documentação da Render) ou adiar o salvamento para imediatamente antes da T5.
+
+### T2.6 — Buckets do Supabase Storage
+Supabase → Storage → criar buckets **privados**: `documents`, `media-assets`, `trip-photos`. Não expor publicamente; o acesso é sempre pela API, com a service role. Sem eles, todo upload com `STORAGE_PROVIDER=supabase` falha.
+
+### T3 — 095
+`apply infrastructure/migrations/095_platform_role_separation.sql`. Validar: `travel_app_runtime` **sem** acesso às 44 tabelas de plataforma; `travel_app_platform` com acesso; ambos NOSUPERUSER/NOBYPASSRLS (coberto pelo `verify_084_095`). A API atual segue como `postgres`, então nada cai ainda.
+
+### T3b — Reaplicar 096
+`apply infrastructure/migrations/096_supabase_data_api_hardening.sql` (idempotente). Validar: `verify_084_095` **47/47** e `verify_096` **15/15**.
+
+### T4 — Validação pré-restart
+- Variáveis salvas na Render, **sem mostrar valores** (API somente leitura, só o username): `DATABASE_URL` → `travel_app_runtime`; `PLATFORM_DATABASE_URL` → `travel_app_platform`; `NODE_ENV` = `production`; `STORAGE_PROVIDER` = `supabase`.
+- Login das duas URLs com `psql`: `current_user` correto e `rolbypassrls = f`.
+- Buckets da T2.6 listados.
+- Se algo divergir: corrigir antes da T5.
+
+### T5 — Restart controlado (um único)
+Render → **Manual Deploy → Deploy a specific commit → `3512438`** (o mesmo código). Um deploy garante que as variáveis salvas com "Save only" entrem. Esse único passo ativa: modo produção, tenant sem BYPASSRLS, pool de plataforma separado, storage Supabase e as checagens de boot. **Se o boot falhar: não fazer push**; capturar o erro no log e ir ao rollback da T5.
+
+### T5A — Boot smoke
+- `/health`, `/readiness`, `/version` = 200; header `Strict-Transport-Security` presente (prova de `NODE_ENV=production`).
+- Log: `service started`, sem `Refusing to start`. `validateProductionEnvironment` e `assertSafeDatabasePools` rodam antes do `listen`: boot OK = pools de tenant e de plataforma com roles seguras e distintas. Rate limit externo conectado ao Redis, sem erro. Nenhuma menção a dev auth.
+
+### T5B — RLS smoke (obrigatório)
+- Signup das agências de QA A e B; login Agency em cada uma.
+- A cria cliente e oferta; B lista e **não** vê os itens de A; `GET` do id de A com o token de B → 404.
+- Login Customer (conta de QA) → `/customer-api/offers` e `/customer-api/communications`.
+- Agency: `/offers`, `/proposals`, `/commercial/engagements`, `/commercial/tasks`, `/agency-communications`, `/media-assets` = 200.
+- Pool de plataforma: `/public/landing` e `/public/partners` = 200; `/platform/plans` sem sessão = 401. Login de Platform Admin só se o G6 tiver provisionado um usuário.
+- Sem contexto de agência: rotas protegidas sem token = 401; nenhuma rota devolve dados de outro tenant.
+
+### T5C — Storage smoke
+`POST /media-assets` (imagem de teste, agência A) → `GET /media-assets/:id/download` devolve o mesmo arquivo → confirmar o objeto no bucket `media-assets` (Supabase → Storage) → `DELETE /media-assets/:id` → apagar o objeto do bucket, se continuar lá. O arquivo **não** pode existir só no disco da Render.
+
+### Rollback da T5 (falha operacional, não de migration)
+1. Render → **Save only**: `DATABASE_URL` = valor anterior (`postgres`, do cofre); `NODE_ENV` = `development`; `STORAGE_PROVIDER` removido só se o storage for a causa.
+2. Manual Deploy do **`3512438`**.
+3. **Não** desfazer 084..096. **Não** devolver grants a `anon`/`authenticated`. **Não** devolver tabelas de plataforma ao runtime.
+4. Registrar na seção 9 (horário, sintoma, `errorCode`).
+
+### T6 — Push dos commits locais
+Só com **T5 PASS** (A, B e C). Antes: conferir pela API que o auto-deploy **continua OFF**. `git push origin main` (proteção dev/local, `/version` com `RENDER_GIT_COMMIT`, migration 096, runbook, `verify_096`). A Vercel publica os 4 frontends automaticamente, sem mudança de conteúdo (os commits não tocam `apps/`). **Nenhum deploy automático na Render.**
+
+### T7 — Deploy manual do SHA novo
+Render → Manual Deploy → commit HEAD enviado na T6. Validar `/version.buildSha` = SHA real (via `RENDER_GIT_COMMIT`) e boot em produção sem falhar nas proteções. Rollback de código: Manual Deploy do `3512438` (compatível com o schema).
+
+### T8 — API smoke
+`/offers`, `/proposals` e `/commercial/engagements` sem 500. `/settings/onboarding/complete` pela UI (sem corpo vazio) = 200.
+
+### T8A — Onboarding com JSON vazio
+`FST_ERR_CTP_EMPTY_JSON_BODY → 500` está confirmado e é um **bug funcional separado** (o error handler converte o erro 4xx do Fastify em 500). Não bloqueia a janela: o frontend não envia o header sem corpo. Correção em PR próprio.
+
+### T9 — QA remoto completo
+Tasks, Customer 360, Engagement, Proposal Visual 2.0, Media Library, Offers, Communications, Segmentation, Platform Admin (MFA, se G6), RLS cross-tenant, Storage.
+
+### T10 — Auto-deploy
+Só depois do QA verde, decidir se volta a ON. **Recomendação para o piloto: manter OFF** e usar deploy manual até o processo de release estabilizar.
+
+**Por que esta ordem:**
+- A 096 vem em T3b porque cobre as tabelas criadas na T1 e não depende da Render.
+- Todas as trocas de configuração entram num único deploy (T5) do **código que já está em produção**. Se falhar, o rollback é trocar as variáveis e redeployar o mesmo SHA.
+- O código novo (T7) só sobe depois que as variáveis já foram provadas, e com o auto-deploy desligado.
 
 ## 7. Exposição atual (antes da janela)
 
@@ -169,26 +276,24 @@ Pré-condição: checklist da seção 8 **100% confirmado** e dry run (seção 1
 
 A exposição da Data API existia em produção independentemente da janela. Hoje a única forma registrada de fechá-la é a 096 na ordem numérica (T3b). Rodar o conteúdo da 096 antes da 084..095 seria aplicar uma migration fora de ordem; ela é idempotente, então a reaplicação na janela não teria efeito, mas isso exige **decisão explícita** do responsável e registro no log operacional. Alternativa sem SQL: no painel da Supabase → **API settings**, remover `public` dos "Exposed schemas" até a janela. Não usamos a Data API, então nada da aplicação é afetado.
 
-## 8. Checklist de acesso à Render (nunca imprimir valores)
+## 8. Checklist Render (nunca imprimir valores)
 
-| Item | Como confirmar | Esperado |
+| Item | Hoje (2026-09-28) | Alvo após T5 |
 |---|---|---|
-| Serviço correto | Dashboard → serviço da API | id `srv-dao8bpjtqb8s73eafr9g` (visto no `deploymentId`) |
-| Commit deployado | **Events/Deploys** | SHA e horário do último deploy |
-| Branch | Settings | `main` |
-| Auto-deploy | Settings → Auto-Deploy | registrar ON/OFF (define quando o push é seguro) |
-| Build/start command | Settings | build via `Dockerfile`; start `node services/api/dist/services/api/src/server.js` |
-| `RENDER_GIT_COMMIT` | automática em deploy via git | presente |
-| `NODE_ENV` | Environment | `production` (hoje provavelmente ausente → `staging` do Dockerfile) |
-| `DATABASE_URL` | Environment (só host/usuário) | pooler, usuário `travel_app_runtime.<ref>` |
-| `PLATFORM_DATABASE_URL` | Environment | usuário `travel_app_platform.<ref>`, **diferente** de `DATABASE_URL` |
-| `MFA_ENCRYPTION_KEY` | Environment (só tamanho) | ≥ 32 caracteres, mesmo valor usado para cifrar os segredos existentes |
-| `STORAGE_PROVIDER` | Environment | `supabase` + `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` |
-| `RATE_LIMIT_STORE` / `REDIS_URL` | Environment | `external` + URL |
-| `CORS_ALLOWED_ORIGINS` | Environment | 4 domínios explícitos, sem `*` |
-| `ALLOW_DEV_AUTH` | Environment | ausente ou `false` |
-| Log do 500 do onboarding | Logs → `API request failed` | `errorCode` (esperado: `FST_ERR_CTP_EMPTY_JSON_BODY`) |
-| Supabase → API settings | Exposed schemas | registrar se `public` está exposto |
+| Serviço | `travel-platform` / `srv-dao8bpjtqb8s73eafr9g` | igual |
+| Branch | `main` | igual |
+| Auto-deploy | **ON** | **OFF** (G1) até a decisão da T10 |
+| Deploy live | `3512438` | T5: `3512438`; T7: HEAD dos commits locais |
+| Build/start | Dockerfile; `CMD node services/api/dist/services/api/src/server.js` | igual |
+| `NODE_ENV` | `development` | `production` |
+| `DATABASE_URL` (usuário) | `postgres` (BYPASSRLS) | `travel_app_runtime` |
+| `PLATFORM_DATABASE_URL` (usuário) | ausente | `travel_app_platform` |
+| `STORAGE_PROVIDER` | ausente | `supabase` (+ buckets da T2.6) |
+| `MFA_ENCRYPTION_KEY` | presente, ≥ 32 | igual (não trocar: cifra os segredos existentes) |
+| `RATE_LIMIT_STORE` / `REDIS_URL` | `external` / presente | igual |
+| `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` | presentes | igual |
+| `CORS_ALLOWED_ORIGINS` | 8 origens, sem `*` | igual |
+| `ALLOW_DEV_AUTH` | ausente | ausente |
 
 ## 9. Registro operacional (preencher na execução)
 
@@ -196,23 +301,29 @@ A exposição da Data API existia em produção independentemente da janela. Hoj
 |---|---|---|---|
 | **HOTFIX** backup (snapshot Supabase + `backup_production.sh`) | 2026-09-26 22:08Z | responsável + Claude Code | VALIDATED — SHA-256 `56786e69…ef6c9`, 170/170 tabelas, linhas idênticas |
 | **HOTFIX** 096 isolada (084..095 **não** aplicadas) | 2026-09-26 22:13:59Z–22:14:02Z | Claude Code (autorizado) | APLICADA; `verify_096` 13/15 (esperado sem `travel_app_platform`); anon/authenticated SAFE |
-| T0 snapshot Supabase + `backup_production.sh` (SHA-256) | | | |
-| Dry run do dia (47/47, 15/15, 0 permitidos) | | | |
+| G1 auto-deploy OFF (conferido pela API) | | | |
+| T0 snapshot + `backup_production.sh` (tamanho, SHA-256, restore, linhas) + dry run do dia (47/47, 15/15) | | | |
 | T1 084…094 (`migration_log.txt`) | | | |
-| T2 role de plataforma + login | | | |
-| T2.5 `PLATFORM_DATABASE_URL` salva | | | |
-| T3 095 / T3b 096 | | | |
-| T4 restart | | | |
-| T5 verify 15/15 + 47/47 | | | |
-| T6 `NODE_ENV=production` | | | |
-| T7 SHA promovido | | | |
-| T8 smoke/QA | | | |
+| T2 `travel_app_platform` + login | | | |
+| T2.5 Render Save only (4 variáveis; `DATABASE_URL` anterior no cofre) | | | |
+| T2.6 buckets `documents`, `media-assets`, `trip-photos` | | | |
+| T3 095 / T3b 096 (reaplicação) + 47/47 + 15/15 | | | |
+| T4 validação pré-restart | | | |
+| T5 deploy do `3512438` com as novas variáveis | | | |
+| T5A boot smoke (HSTS) / T5B RLS smoke / T5C storage smoke | | | |
+| Rollback T5 (se houver) | | | |
+| T6 push (auto-deploy ainda OFF) | | | |
+| T7 deploy manual do SHA novo (`/version.buildSha`) | | | |
+| T8 API smoke / T9 QA remoto | | | |
+| T10 decisão de auto-deploy | | | |
 
 ## 10. Se algo der errado
 
 - **Arquivo `--single-transaction` falhou:** nada dele foi aplicado. Corrija a causa (nunca o arquivo da migration) e reexecute o mesmo arquivo.
 - **086 ou 096 falharam:** reexecute. As duas são idempotentes.
-- **Platform Admin em 42501 após a 095:** confirme `PLATFORM_DATABASE_URL` e o restart. Não devolva grants de plataforma ao runtime.
+- **Platform Admin ou `/public/landing`/`/public/partners` em 42501 após a T5:** confirme o usuário de `PLATFORM_DATABASE_URL`. Não devolva grants de plataforma ao runtime.
+- **Boot recusado na T5 ou T7:** o log lista o motivo (`Refusing to start: ...`). Na T5 → rollback da T5. Na T7 → Manual Deploy do `3512438` (as variáveis de produção continuam válidas para ele).
+- **Upload falhando após a T5:** conferir os buckets da T2.6 e o `STORAGE_PROVIDER`.
 - **Algum fluxo precisar de `anon`/`authenticated`:** não conceda privilégio na janela. Registre o fluxo e trate como exceção documentada numa migration nova (allowlist explícita).
 - **Dano de dados ou schema:** restaurar do backup/PITR (seção 4).
 
