@@ -66,6 +66,9 @@
 | `ALLOW_DEV_AUTH` | ausente |
 | `CORS_ALLOWED_ORIGINS` | 8 origens explícitas (4 `*.travelplataforma.com.br` + 4 `*.vercel.app`), sem `*` |
 | `platform_users` em produção | **0** — hoje não existe login de Platform Admin |
+| TLS API → banco | **não cifrado**: `pg` do Node sem `sslmode` não usa TLS (teste com a mesma URL: `TLS=false`). A API em produção envia usuário `postgres`, senha e dados em claro até o pooler |
+
+**Achado de segurança (P1):** as URLs novas (G3) incluem `?sslmode=require&uselibpqcompat=true` (TLS 1.3 confirmado; `sslmode=require` puro falha na cadeia autoassinada da Supabase com o `pg` 8.23). Não há validação de certificado: protege contra captura passiva, não contra MITM ativo. Validação completa (`verify-full` com a CA da Supabase no container) fica para uma mudança de código separada. **Depois da janela, trocar a senha do `postgres`**, que trafegou sem TLS.
 
 **Consequências para a janela:**
 - `3512438` já contém `validateProductionEnvironment` e `assertSafeDatabasePools`: com `NODE_ENV=production` e `DATABASE_URL` = `postgres`, o boot **recusa** (BYPASSRLS). A troca para `travel_app_runtime` é obrigatória.
@@ -109,17 +112,32 @@ Procedimento: `pg_dump 17 --schema-only --schema=public` de produção (somente 
 
 ## 2. Pré-requisitos e gates (bloqueantes)
 
+**Status dos gates em 2026-09-28:** G1 **PASS** (auto-deploy `no`, trigger `off`, conferido pela API às 02:48Z; nenhum deploy disparado, live segue `3512438`) · G2 **READY** · G3 **READY** · G4 **READY** · G5 **READY** · G6 **READY** · G7 pendente (comunicação da janela).
+
+**Cofre:** Windows Credential Manager do operador (credenciais genéricas, DPAPI). Nomes das entradas (os valores nunca aparecem em arquivo, log ou relatório):
+
+| Entrada | Usuário | Uso |
+|---|---|---|
+| `travel-platform/prod/TRAVEL_APP_PLATFORM_PASSWORD` | `travel_app_platform` | T2 (40 caracteres aleatórios) |
+| `travel-platform/prod/DATABASE_URL` | `travel_app_runtime.<ref>` | T2.5 (`DATABASE_URL` futura; testada: `travel_app_runtime`, NOBYPASSRLS, TLS 1.3) |
+| `travel-platform/prod/PLATFORM_DATABASE_URL` | `travel_app_platform.<ref>` | T2.5 e T3c (contém a mesma senha da primeira entrada; login testável só após a T2) |
+| `travel-platform/prod/PLATFORM_OWNER_INITIAL_PASSWORD` | owner (email definido pelo responsável) | T3c |
+| `travel-platform/qa/AGENCY_A_OWNER`, `AGENCY_B_OWNER` | `delivered+qa-janela-{a,b}-owner@resend.dev` | T5B (signup) |
+| `travel-platform/qa/CUSTOMER_A`, `CUSTOMER_B` | `delivered+qa-janela-{a,b}-cliente@resend.dev` | T5B (ativação do portal) |
+
+Os emails de QA são endereços de teste da Resend: aceitam entrega (o `POST /customers/:id/portal-access` envia email e responde 500 se o envio falhar), não geram bounce e não contêm dado pessoal. As agências de QA já existentes em produção (`qa-customer-uat-agency-2/3`, `qa-consolidated-…`, `demo-travel-platform`) não têm senha no cofre e não são usadas.
+
 | Gate | Condição | Como confirmar |
 |---|---|---|
 | **G1** | **Auto-deploy da Render OFF** antes de qualquer passo da janela | Settings → Auto-Deploy = **No**; conferir pela API (`GET /v1/services/srv-dao8bpjtqb8s73eafr9g` → `autoDeploy: "no"`) |
 | **G2** | Senha forte do `travel_app_platform` gerada e guardada no cofre | cofre; **nunca** em arquivo, log ou relatório |
 | **G3** | URL do `travel_app_runtime` (pooler, session mode 5432) no cofre e testada | `psql "$RUNTIME_URL" -At -c "select current_user, (select rolbypassrls from pg_roles where rolname = current_user)"` → `travel_app_runtime\|f` |
 | **G4** | Postgres 17 tooling | container `postgres:17` local (usado pelos scripts) |
-| **G5** | Contas de QA para o smoke da T5B | 2 agências de teste (A e B) criadas pelo signup na janela **ou** contas QA existentes com senha no cofre; 1 acesso de cliente; para Platform Admin, ver G6 |
-| **G6** | Decisão sobre o Platform Admin | produção tem **0** `platform_users`. Sem provisionar um `PLATFORM_OWNER` (procedimento a definir, fora desta janela), o smoke de plataforma cobre só o pool (`/public/landing`, `/public/partners` = 200) e `/platform/*` = 401 |
+| **G5** | Contas de QA para o smoke da T5B | 4 entradas `travel-platform/qa/*` no cofre (acima). Na T5B: signup "QA Janela A" e "QA Janela B" com os emails de owner; em cada agência, criar 1 cliente e conceder portal (`POST /customers/:id/portal-access`) com o email de cliente; ativar pela página de reset com o token retornado e a senha do cofre |
+| **G6** | Primeiro `PLATFORM_OWNER` | `infrastructure/ops/bootstrap_platform_owner.cjs`, executado na **T3c** (após a 095, antes do QA de plataforma). Testado no clone PG17: recusas (role errado, host remoto sem `--confirm-production`, senha < 16, senha com o email, segunda execução) + criação + login real + MFA enroll/confirm/verify |
 | **G7** | Janela de manutenção comunicada | a T5 troca a role da API e liga o RLS: ~1–2 min de deploy + smoke |
 
-Variáveis **exportadas no shell do operador** (nunca gravadas em arquivo versionado): `DATABASE_ADMIN_URL` (`postgres`, session mode 5432), `TRAVEL_APP_PLATFORM_PASSWORD`, `PLATFORM_DATABASE_URL`, `RUNTIME_URL`, `RENDER_API_KEY` (só para conferência somente leitura).
+Variáveis **exportadas no shell do operador a partir do cofre** (nunca gravadas em arquivo versionado): `DATABASE_ADMIN_URL` (`postgres`, session mode 5432), `TRAVEL_APP_PLATFORM_PASSWORD`, `PLATFORM_DATABASE_URL`, `RUNTIME_URL`, `RENDER_API_KEY` (conferência somente leitura).
 
 > As travas locais recusam hosts remotos só nos scripts de dev e no boot da API fora de produção. Os comandos `psql` deste runbook são manuais e explícitos por design.
 
@@ -201,8 +219,8 @@ Environment → editar → **"Save only"**:
 
 | Variável | Novo valor |
 |---|---|
-| `DATABASE_URL` | URL do `travel_app_runtime` (G3) |
-| `PLATFORM_DATABASE_URL` | URL do `travel_app_platform` (T2) |
+| `DATABASE_URL` | cofre `travel-platform/prod/DATABASE_URL` (runtime, com `sslmode=require&uselibpqcompat=true`) |
+| `PLATFORM_DATABASE_URL` | cofre `travel-platform/prod/PLATFORM_DATABASE_URL` (plataforma, mesmos parâmetros TLS) |
 | `NODE_ENV` | `production` |
 | `STORAGE_PROVIDER` | `supabase` |
 
@@ -213,6 +231,14 @@ Supabase → Storage → criar buckets **privados**: `documents`, `media-assets`
 
 ### T3 — 095
 `apply infrastructure/migrations/095_platform_role_separation.sql`. Validar: `travel_app_runtime` **sem** acesso às 44 tabelas de plataforma; `travel_app_platform` com acesso; ambos NOSUPERUSER/NOBYPASSRLS (coberto pelo `verify_084_095`). A API atual segue como `postgres`, então nada cai ainda.
+
+### T3c — Primeiro PLATFORM_OWNER (G6)
+```bash
+npm run build -w @travel-platform/api          # usa o hashing oficial compilado
+PLATFORM_DATABASE_URL=<do cofre> PLATFORM_OWNER_EMAIL=<email do responsável> \
+  node infrastructure/ops/bootstrap_platform_owner.cjs --confirm-production --password-stdin   # senha do cofre pelo stdin
+```
+Conecta **só** como `travel_app_platform` (recusa `postgres`/runtime ou role com BYPASSRLS). Cria exatamente um `PLATFORM_OWNER` ACTIVE, `mfa_enabled=false`, sem segredo de MFA; grava `platform_user_audit` `PLATFORM_OWNER_BOOTSTRAPPED`; nunca imprime senha nem hash; recusa se já houver owner. O email é gravado em minúsculas (o login compara exato). **Depois da T5** (API com o pool de plataforma): primeiro login → `POST /platform-auth/mfa/enroll` → `POST /platform-auth/mfa/enroll/confirm` com o TOTP → login seguinte exige MFA.
 
 ### T3b — Reaplicar 096
 `apply infrastructure/migrations/096_supabase_data_api_hardening.sql` (idempotente). Validar: `verify_084_095` **47/47** e `verify_096` **15/15**.
@@ -235,7 +261,7 @@ Render → **Manual Deploy → Deploy a specific commit → `3512438`** (o mesmo
 - A cria cliente e oferta; B lista e **não** vê os itens de A; `GET` do id de A com o token de B → 404.
 - Login Customer (conta de QA) → `/customer-api/offers` e `/customer-api/communications`.
 - Agency: `/offers`, `/proposals`, `/commercial/engagements`, `/commercial/tasks`, `/agency-communications`, `/media-assets` = 200.
-- Pool de plataforma: `/public/landing` e `/public/partners` = 200; `/platform/plans` sem sessão = 401. Login de Platform Admin só se o G6 tiver provisionado um usuário.
+- Pool de plataforma: `/public/landing` e `/public/partners` = 200; `/platform/plans` sem sessão = 401. Platform Admin: login do owner da T3c + enrollment e confirmação do MFA.
 - Sem contexto de agência: rotas protegidas sem token = 401; nenhuma rota devolve dados de outro tenant.
 
 ### T5C — Storage smoke
@@ -260,7 +286,7 @@ Render → Manual Deploy → commit HEAD enviado na T6. Validar `/version.buildS
 `FST_ERR_CTP_EMPTY_JSON_BODY → 500` está confirmado e é um **bug funcional separado** (o error handler converte o erro 4xx do Fastify em 500). Não bloqueia a janela: o frontend não envia o header sem corpo. Correção em PR próprio.
 
 ### T9 — QA remoto completo
-Tasks, Customer 360, Engagement, Proposal Visual 2.0, Media Library, Offers, Communications, Segmentation, Platform Admin (MFA, se G6), RLS cross-tenant, Storage.
+Tasks, Customer 360, Engagement, Proposal Visual 2.0, Media Library, Offers, Communications, Segmentation, Platform Admin (login + MFA do owner da T3c), RLS cross-tenant, Storage.
 
 ### T10 — Auto-deploy
 Só depois do QA verde, decidir se volta a ON. **Recomendação para o piloto: manter OFF** e usar deploy manual até o processo de release estabilizar.
@@ -282,7 +308,7 @@ A exposição da Data API existia em produção independentemente da janela. Hoj
 |---|---|---|
 | Serviço | `travel-platform` / `srv-dao8bpjtqb8s73eafr9g` | igual |
 | Branch | `main` | igual |
-| Auto-deploy | **ON** | **OFF** (G1) até a decisão da T10 |
+| Auto-deploy | **OFF** desde 2026-09-28 02:48Z (G1) | OFF até a decisão da T10 |
 | Deploy live | `3512438` | T5: `3512438`; T7: HEAD dos commits locais |
 | Build/start | Dockerfile; `CMD node services/api/dist/services/api/src/server.js` | igual |
 | `NODE_ENV` | `development` | `production` |
@@ -301,13 +327,13 @@ A exposição da Data API existia em produção independentemente da janela. Hoj
 |---|---|---|---|
 | **HOTFIX** backup (snapshot Supabase + `backup_production.sh`) | 2026-09-26 22:08Z | responsável + Claude Code | VALIDATED — SHA-256 `56786e69…ef6c9`, 170/170 tabelas, linhas idênticas |
 | **HOTFIX** 096 isolada (084..095 **não** aplicadas) | 2026-09-26 22:13:59Z–22:14:02Z | Claude Code (autorizado) | APLICADA; `verify_096` 13/15 (esperado sem `travel_app_platform`); anon/authenticated SAFE |
-| G1 auto-deploy OFF (conferido pela API) | | | |
+| G1 auto-deploy OFF (conferido pela API) | 2026-09-28 02:48Z | Claude Code (autorizado) | PASS — `autoDeploy: no`, trigger `off`; nenhum deploy; live `3512438` |
 | T0 snapshot + `backup_production.sh` (tamanho, SHA-256, restore, linhas) + dry run do dia (47/47, 15/15) | | | |
 | T1 084…094 (`migration_log.txt`) | | | |
 | T2 `travel_app_platform` + login | | | |
 | T2.5 Render Save only (4 variáveis; `DATABASE_URL` anterior no cofre) | | | |
 | T2.6 buckets `documents`, `media-assets`, `trip-photos` | | | |
-| T3 095 / T3b 096 (reaplicação) + 47/47 + 15/15 | | | |
+| T3 095 / T3c bootstrap do owner / T3b 096 (reaplicação) + 47/47 + 15/15 | | | |
 | T4 validação pré-restart | | | |
 | T5 deploy do `3512438` com as novas variáveis | | | |
 | T5A boot smoke (HSTS) / T5B RLS smoke / T5C storage smoke | | | |
