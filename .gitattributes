@@ -1,0 +1,2 @@
+# Ops shell scripts must keep LF endings: bash fails on CRLF checkouts (core.autocrlf=true on Windows).
+infrastructure/ops/*.sh text eol=lf

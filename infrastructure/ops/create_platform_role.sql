@@ -9,10 +9,13 @@
 -- onto this role and adds the platform-table grants. Creating the role
 -- grants nothing beyond LOGIN (plus the default PUBLIC privileges).
 --
--- The password is never stored in this file. Supply it as a psql variable:
+-- The password is never stored in this file and never sent in plaintext:
+-- production logs DDL (log_statement = ddl), so only the SCRAM-SHA-256
+-- verifier computed locally reaches the server:
 --
+--   PLATFORM_SCRAM="$(printf '%s' "$TRAVEL_APP_PLATFORM_PASSWORD" | node infrastructure/ops/scram_verifier.cjs)"
 --   psql "$DATABASE_ADMIN_URL" -v ON_ERROR_STOP=1 \
---        -v platform_password="$TRAVEL_APP_PLATFORM_PASSWORD" \
+--        -v platform_password_scram="$PLATFORM_SCRAM" \
 --        -f infrastructure/ops/create_platform_role.sql
 --
 -- Re-running is safe: an existing role is left untouched (the script only
@@ -20,6 +23,20 @@
 -- ============================================================
 
 \set ON_ERROR_STOP on
+\set ECHO none
+
+\if :{?platform_password_scram}
+\else
+  \echo 'Refusing to run: pass -v platform_password_scram=... (see header).'
+  \quit
+\endif
+
+SELECT (:'platform_password_scram' ~ '^SCRAM-SHA-256\$[0-9]+:[A-Za-z0-9+/=]+\$[A-Za-z0-9+/=]+:[A-Za-z0-9+/=]+$') AS is_scram_verifier \gset
+\if :is_scram_verifier
+\else
+  \echo 'Refusing to run: platform_password_scram is not a SCRAM-SHA-256 verifier (plaintext is never accepted).'
+  \quit
+\endif
 
 SELECT (NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'travel_app_platform')) AS create_platform_role \gset
 
@@ -31,7 +48,7 @@ SELECT (NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'travel_app_platform'
     NOCREATEROLE
     NOREPLICATION
     NOBYPASSRLS
-    PASSWORD :'platform_password';
+    PASSWORD :'platform_password_scram';
 \else
   \echo 'travel_app_platform already exists -- not modified.'
 \endif

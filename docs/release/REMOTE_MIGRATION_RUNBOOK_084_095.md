@@ -11,10 +11,15 @@
 | Arquivo | Uso | Produção? |
 |---|---|---|
 | `create_platform_role.sql` | cria/valida `travel_app_platform` (senha via variável psql) | sim (T2) |
+| `rotate_runtime_password.sql` | troca a senha da `travel_app_runtime` (valida atributos antes) | sim (T2) |
+| `bootstrap_platform_owner.cjs` | cria o primeiro `PLATFORM_OWNER` (hashing oficial, audit) | sim (T3c) |
 | `verify_084_095.sql` | schema/RLS/grants/roles de 084..095 — somente leitura | sim |
 | `verify_096_data_api.sql` | privilégios efetivos de `anon`/`authenticated` + regressão dos roles da app — somente leitura | sim |
 | `test_096_data_api_roles.sql` | executa SELECT/INSERT/UPDATE/DELETE/TRUNCATE como `anon`/`authenticated` | **NUNCA** (só clone; exige `-v i_am_not_production=yes`) |
-| `backup_production.sh` | dump + SHA-256 + restore validado + contagem de linhas | sim (T0) |
+| `backup_production.sh` | dump + SHA-256 + restore validado + contagem de linhas (TLS; URL só por env) | sim (T0) |
+| `dump_prod_schema.sh` | dump **schema-only** de produção para o dry run (somente leitura, TLS, saída fora do repo) | sim (T0, leitura) |
+| `dryrun_prod_clone.sh` | clone PG17 **local** + emulação Supabase + T1..T3b + `verify_084_095` + `verify_096` (+ `--role-test`) | **NUNCA** (só container local com portas em loopback; recusa Docker remoto) |
+| `scram_verifier.cjs` | calcula localmente o verificador SCRAM-SHA-256 de uma senha (stdin → stdout) | sim (T2) |
 
 ## 0. Estado remoto verificado (2026-09-26, somente leitura)
 
@@ -112,18 +117,23 @@ Procedimento: `pg_dump 17 --schema-only --schema=public` de produção (somente 
 
 ## 2. Pré-requisitos e gates (bloqueantes)
 
-**Status dos gates em 2026-09-28:** G1 **PASS** (auto-deploy `no`, trigger `off`, conferido pela API às 02:48Z; nenhum deploy disparado, live segue `3512438`) · G2 **READY** · G3 **READY** · G4 **READY** · G5 **READY** · G6 **READY** · G7 pendente (comunicação da janela).
+**Status dos gates em 2026-09-29:** G1 **PASS** (auto-deploy `no`, trigger `off`, conferido pela API em 2026-09-28 02:48Z; nenhum deploy disparado, live segue `3512438`) · G2 **READY** · G3 **READY** (senha nova da runtime, aplicada na T2) · G4 **READY** (Docker Desktop ativo; `tp-pg17-dryrun` recriado em 2026-09-29, PostgreSQL 17.11; os papéis de emulação da Supabase são recriados pelo dry run da T0) · G5 **READY** · G6 **READY** · G7 pendente (comunicação da janela) · Acesso do operador **READY** (2026-09-29: `DATABASE_ADMIN_URL` validada como `postgres` com TLS 1.3, somente leitura; `RENDER_API_KEY` validada por GET).
 
-**Cofre:** Windows Credential Manager do operador (credenciais genéricas, DPAPI). Nomes das entradas (os valores nunca aparecem em arquivo, log ou relatório):
+> **Regressão em 2026-09-29:** o Windows da máquina do operador foi reinstalado em 2026-09-28 09:31 (local). Todas as entradas `travel-platform/*` do Credential Manager, o dump completo de produção de 2026-09-26 e o container `tp-pg17-dryrun` deixaram de existir; o Docker Desktop está parado. Nenhum desses segredos chegou a ser usado (a role de plataforma não foi criada e a Render não foi alterada), então **não há nada a revogar**: basta gerar de novo. Antes disso, decidir um cofre que sobreviva a reinstalação (gerenciador de senhas com sincronização); o Credential Manager local provou ser frágil. O `.env` da máquina não tem mais credenciais de produção nem `RENDER_API_KEY`.
+>
+> **Recriação em 2026-09-29:** credenciais geradas de novo e guardadas no **Bitwarden** (conta `travelplataforma@hotmail.com`, servidor `vault.bitwarden.com`, pasta `travel-platform`), com sincronização em nuvem. Senhas aleatórias (40 caracteres para roles, 32 para o owner, 24 para QA); conferidas relendo do cofre; cofre travado e sessão apagada ao final.
+
+**Cofre:** Bitwarden, pasta `travel-platform` (itens do tipo login; a URL fica no campo senha). Nomes dos itens (os valores nunca aparecem em arquivo, log ou relatório):
 
 | Entrada | Usuário | Uso |
 |---|---|---|
-| `travel-platform/prod/TRAVEL_APP_PLATFORM_PASSWORD` | `travel_app_platform` | T2 (40 caracteres aleatórios) |
-| `travel-platform/prod/DATABASE_URL` | `travel_app_runtime.<ref>` | T2.5 (`DATABASE_URL` futura; testada: `travel_app_runtime`, NOBYPASSRLS, TLS 1.3) |
-| `travel-platform/prod/PLATFORM_DATABASE_URL` | `travel_app_platform.<ref>` | T2.5 e T3c (contém a mesma senha da primeira entrada; login testável só após a T2) |
-| `travel-platform/prod/PLATFORM_OWNER_INITIAL_PASSWORD` | owner (email definido pelo responsável) | T3c |
-| `travel-platform/qa/AGENCY_A_OWNER`, `AGENCY_B_OWNER` | `delivered+qa-janela-{a,b}-owner@resend.dev` | T5B (signup) |
-| `travel-platform/qa/CUSTOMER_A`, `CUSTOMER_B` | `delivered+qa-janela-{a,b}-cliente@resend.dev` | T5B (ativação do portal) |
+| `prod/TRAVEL_APP_PLATFORM_PASSWORD` | `travel_app_platform` | T2 (40 caracteres aleatórios) |
+| `prod/TRAVEL_APP_RUNTIME_PASSWORD` | `travel_app_runtime` | T2 (senha **nova**, aplicada com `ALTER ROLE`) |
+| `prod/DATABASE_URL` | `travel_app_runtime.<ref>` | T2.5 (`DATABASE_URL` futura, com a senha nova e TLS; válida só depois da T2) |
+| `prod/PLATFORM_DATABASE_URL` | `travel_app_platform.<ref>` | T2.5 e T3c (contém a mesma senha da primeira entrada; login testável só após a T2) |
+| `prod/PLATFORM_OWNER_INITIAL_PASSWORD` | `travelplataforma@hotmail.com` | T3c e T5D |
+| `qa/AGENCY_A_OWNER`, `AGENCY_B_OWNER` | `delivered+qa-janela-{a,b}-owner@resend.dev` | T5B (signup) |
+| `qa/CUSTOMER_A`, `CUSTOMER_B` | `delivered+qa-janela-{a,b}-cliente@resend.dev` | T5B (ativação do portal) |
 
 Os emails de QA são endereços de teste da Resend: aceitam entrega (o `POST /customers/:id/portal-access` envia email e responde 500 se o envio falhar), não geram bounce e não contêm dado pessoal. As agências de QA já existentes em produção (`qa-customer-uat-agency-2/3`, `qa-consolidated-…`, `demo-travel-platform`) não têm senha no cofre e não são usadas.
 
@@ -131,7 +141,7 @@ Os emails de QA são endereços de teste da Resend: aceitam entrega (o `POST /cu
 |---|---|---|
 | **G1** | **Auto-deploy da Render OFF** antes de qualquer passo da janela | Settings → Auto-Deploy = **No**; conferir pela API (`GET /v1/services/srv-dao8bpjtqb8s73eafr9g` → `autoDeploy: "no"`) |
 | **G2** | Senha forte do `travel_app_platform` gerada e guardada no cofre | cofre; **nunca** em arquivo, log ou relatório |
-| **G3** | URL do `travel_app_runtime` (pooler, session mode 5432) no cofre e testada | `psql "$RUNTIME_URL" -At -c "select current_user, (select rolbypassrls from pg_roles where rolname = current_user)"` → `travel_app_runtime\|f` |
+| **G3** | URLs futuras no cofre (`prod/DATABASE_URL`, `prod/PLATFORM_DATABASE_URL`: pooler, session mode 5432, banco `postgres`, `sslmode=require&uselibpqcompat=true`) | Depois da T2: `psql "$RUNTIME_URL" -At -c "select current_user, (select rolbypassrls from pg_roles where rolname = current_user)"` → `travel_app_runtime\|f`; idem para a plataforma |
 | **G4** | Postgres 17 tooling | container `postgres:17` local (usado pelos scripts) |
 | **G5** | Contas de QA para o smoke da T5B | 4 entradas `travel-platform/qa/*` no cofre (acima). Na T5B: signup "QA Janela A" e "QA Janela B" com os emails de owner; em cada agência, criar 1 cliente e conceder portal (`POST /customers/:id/portal-access`) com o email de cliente; ativar pela página de reset com o token retornado e a senha do cofre |
 | **G6** | Primeiro `PLATFORM_OWNER` | `infrastructure/ops/bootstrap_platform_owner.cjs`, executado na **T3c** (após a 095, antes do QA de plataforma). Testado no clone PG17: recusas (role errado, host remoto sem `--confirm-production`, senha < 16, senha com o email, segunda execução) + criação + login real + MFA enroll/confirm/verify |
@@ -197,7 +207,12 @@ Render → Settings → Auto-Deploy → **No**. Conferir pela API (`autoDeploy: 
 ### T0 — Backup + dry run do dia
 1. Snapshot Supabase: anotar o horário do último backup/PITR (painel → Database → Backups).
 2. `backup_production.sh` completo (seção 4): tamanho, SHA-256, `restore: OK` em PG17, contagem de linhas sem `DIVERGENTE`.
-3. Dry run novo (seção 1): dump de schema real → PG17 → 084..094 → role de plataforma → 095 → **reaplicar 096** → `verify_084_095` **47/47** e `verify_096` **15/15**; `test_096` com 0 permitidos.
+3. Dry run novo, **só com arquivos versionados** (~20 s):
+   ```bash
+   bash infrastructure/ops/dump_prod_schema.sh /fora/do/repo/prod_schema_t0.sql        # DATABASE_ADMIN_URL no env
+   bash infrastructure/ops/dryrun_prod_clone.sh /fora/do/repo/prod_schema_t0.sql --role-test [--create-container]
+   ```
+   Critério: `DRY RUN: PASS` = `verify_084_095` **47/47**, `verify_096` **15/15** e 0 tentativas permitidas para `anon`/`authenticated`. Reproduzido em 2026-09-29 (Windows reinstalado, container recriado): PASS em 17 s, 1.752 tentativas negadas.
 
 **Se qualquer item falhar: PARAR.**
 
@@ -207,9 +222,22 @@ for n in 084 085 086 087 088 089 090 091 092 093 094; do apply infrastructure/mi
 ```
 Validar o schema: o precheck da seção 3 passa a `t, t, t, t`. **Não reiniciar a Render.** A API atual (`postgres`) passa a enxergar as colunas novas: `/offers` e `/proposals` deixam de dar 500.
 
-### T2 — Role de plataforma
+### T2 — Senha nova da runtime + role de plataforma
+
+**Senhas nunca vão em texto ao servidor.** Produção registra DDL (`log_statement = ddl`, confirmado em 2026-09-29): um `CREATE/ALTER ROLE ... PASSWORD '<senha>'` gravaria a senha nos logs da Supabase. Os dois scripts só aceitam o **verificador SCRAM-SHA-256** calculado localmente por `scram_verifier.cjs` e recusam qualquer outro valor; o log mostra apenas o verificador. Testado no PG17 com `log_statement = ddl`: 0 ocorrências das senhas no log, login com a senha certa OK, senha errada recusada.
+
+**Runtime:** a senha antiga da `travel_app_runtime` ficou em arquivos `.env` e foi descartada. Aplicar a nova do cofre (`prod/TRAVEL_APP_RUNTIME_PASSWORD`) antes de a Render passar a usar essa role. A API atual conecta como `postgres`, então nada cai:
 ```bash
-psql "$DATABASE_ADMIN_URL" -v ON_ERROR_STOP=1 -v platform_password="$TRAVEL_APP_PLATFORM_PASSWORD" -f infrastructure/ops/create_platform_role.sql
+RUNTIME_SCRAM="$(printf '%s' "$TRAVEL_APP_RUNTIME_PASSWORD" | node infrastructure/ops/scram_verifier.cjs)"
+psql "$DATABASE_ADMIN_URL" -v ON_ERROR_STOP=1 -v runtime_password_scram="$RUNTIME_SCRAM" -f infrastructure/ops/rotate_runtime_password.sql
+psql "$RUNTIME_URL" -At -c "select current_user"      # -> travel_app_runtime (URL do cofre, com TLS)
+```
+O script recusa rodar sem a variável ou se a role tiver atributos inseguros, e só troca a senha. Nenhuma sessão ativa usa essa role hoje (confirmado em 2026-09-26).
+
+**Plataforma:**
+```bash
+PLATFORM_SCRAM="$(printf '%s' "$TRAVEL_APP_PLATFORM_PASSWORD" | node infrastructure/ops/scram_verifier.cjs)"
+psql "$DATABASE_ADMIN_URL" -v ON_ERROR_STOP=1 -v platform_password_scram="$PLATFORM_SCRAM" -f infrastructure/ops/create_platform_role.sql
 psql "$PLATFORM_DATABASE_URL" -At -c "select current_user"      # -> travel_app_platform
 ```
 O script cria o role com LOGIN NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE NOREPLICATION e **aborta** se um role existente divergir. A senha entra só pela variável; nunca em log.
@@ -219,8 +247,8 @@ Environment → editar → **"Save only"**:
 
 | Variável | Novo valor |
 |---|---|
-| `DATABASE_URL` | cofre `travel-platform/prod/DATABASE_URL` (runtime, com `sslmode=require&uselibpqcompat=true`) |
-| `PLATFORM_DATABASE_URL` | cofre `travel-platform/prod/PLATFORM_DATABASE_URL` (plataforma, mesmos parâmetros TLS) |
+| `DATABASE_URL` | cofre `prod/DATABASE_URL` (runtime, com `sslmode=require&uselibpqcompat=true`) |
+| `PLATFORM_DATABASE_URL` | cofre `prod/PLATFORM_DATABASE_URL` (plataforma, mesmos parâmetros TLS) |
 | `NODE_ENV` | `production` |
 | `STORAGE_PROVIDER` | `supabase` |
 
@@ -233,9 +261,21 @@ Supabase → Storage → criar buckets **privados**: `documents`, `media-assets`
 `apply infrastructure/migrations/095_platform_role_separation.sql`. Validar: `travel_app_runtime` **sem** acesso às 44 tabelas de plataforma; `travel_app_platform` com acesso; ambos NOSUPERUSER/NOBYPASSRLS (coberto pelo `verify_084_095`). A API atual segue como `postgres`, então nada cai ainda.
 
 ### T3c — Primeiro PLATFORM_OWNER (G6)
+
+**Email do owner:** `travelplataforma@hotmail.com` (temporário; troca por um endereço corporativo é pendência pós-piloto). **Pré-condições, todas obrigatórias:** 084..094 aplicadas · `travel_app_platform` criada · 095 aplicada · 096 reaplicada · `verify_084_095` 47/47 · `verify_096` 15/15 · login com `PLATFORM_DATABASE_URL` = `travel_app_platform`. Qualquer uma falhando: **não executar o bootstrap**. A senha inicial vem só do cofre (`travel-platform/prod/PLATFORM_OWNER_INITIAL_PASSWORD`), pelo stdin.
+
+**Validar após o bootstrap** (somente leitura, sem exibir hash, segredo ou URL):
+```sql
+SELECT count(*) FILTER (WHERE role = 'PLATFORM_OWNER') AS owners,
+       bool_and(email = 'travelplataforma@hotmail.com') FILTER (WHERE role = 'PLATFORM_OWNER') AS email_ok,
+       bool_and(status = 'ACTIVE' AND mfa_enabled = false AND mfa_secret IS NULL
+                AND password_hash LIKE 'scrypt$%') FILTER (WHERE role = 'PLATFORM_OWNER') AS state_ok,
+       (SELECT count(*) FROM platform_user_audit WHERE action = 'PLATFORM_OWNER_BOOTSTRAPPED') AS audit_events
+  FROM platform_users;   -- esperado: 1 | t | t | 1
+```
 ```bash
 npm run build -w @travel-platform/api          # usa o hashing oficial compilado
-PLATFORM_DATABASE_URL=<do cofre> PLATFORM_OWNER_EMAIL=<email do responsável> \
+PLATFORM_DATABASE_URL=<do cofre> PLATFORM_OWNER_EMAIL=travelplataforma@hotmail.com \
   node infrastructure/ops/bootstrap_platform_owner.cjs --confirm-production --password-stdin   # senha do cofre pelo stdin
 ```
 Conecta **só** como `travel_app_platform` (recusa `postgres`/runtime ou role com BYPASSRLS). Cria exatamente um `PLATFORM_OWNER` ACTIVE, `mfa_enabled=false`, sem segredo de MFA; grava `platform_user_audit` `PLATFORM_OWNER_BOOTSTRAPPED`; nunca imprime senha nem hash; recusa se já houver owner. O email é gravado em minúsculas (o login compara exato). **Depois da T5** (API com o pool de plataforma): primeiro login → `POST /platform-auth/mfa/enroll` → `POST /platform-auth/mfa/enroll/confirm` com o TOTP → login seguinte exige MFA.
@@ -266,6 +306,16 @@ Render → **Manual Deploy → Deploy a specific commit → `3512438`** (o mesmo
 
 ### T5C — Storage smoke
 `POST /media-assets` (imagem de teste, agência A) → `GET /media-assets/:id/download` devolve o mesmo arquivo → confirmar o objeto no bucket `media-assets` (Supabase → Storage) → `DELETE /media-assets/:id` → apagar o objeto do bucket, se continuar lá. O arquivo **não** pode existir só no disco da Render.
+
+### T5D — Login do Platform Admin + MFA
+Só com a T5 saudável (T5A OK). No Platform Admin (`admin.travelplataforma.com.br`):
+1. Login com `travelplataforma@hotmail.com` e a senha inicial do cofre → sessão sem MFA.
+2. Iniciar o enrollment de MFA (`POST /platform-auth/mfa/enroll`) e cadastrar o TOTP no autenticador.
+3. Confirmar com um código válido (`POST /platform-auth/mfa/enroll/confirm`).
+4. Conferir no banco, sem exibir o segredo: `mfa_enabled = true` e `mfa_secret` cifrado (não é base32 puro).
+5. Logout → novo login com email + senha → o app pede TOTP → acesso normal ao Platform Admin.
+
+**Risco (sem recuperação self-service):** o Platform Admin **não tem** recuperação de senha, troca de senha, troca de email nem códigos de recuperação de MFA (`platform-local-auth.ts`: conta bloqueada é operação de break-glass/suporte). Por isso: cadastrar o TOTP num autenticador com backup cifrado ou em dois dispositivos; manter a senha inicial só no cofre; e confirmar antes do QA final que o responsável acessa a caixa `travelplataforma@hotmail.com` (hoje o app não envia email ao owner, mas ela é o identificador de login). Teste de recuperação: **não aplicável** (não há fluxo).
 
 ### Rollback da T5 (falha operacional, não de migration)
 1. Render → **Save only**: `DATABASE_URL` = valor anterior (`postgres`, do cofre); `NODE_ENV` = `development`; `STORAGE_PROVIDER` removido só se o storage for a causa.
@@ -336,7 +386,7 @@ A exposição da Data API existia em produção independentemente da janela. Hoj
 | T3 095 / T3c bootstrap do owner / T3b 096 (reaplicação) + 47/47 + 15/15 | | | |
 | T4 validação pré-restart | | | |
 | T5 deploy do `3512438` com as novas variáveis | | | |
-| T5A boot smoke (HSTS) / T5B RLS smoke / T5C storage smoke | | | |
+| T5A boot smoke (HSTS) / T5B RLS smoke / T5C storage smoke / T5D login + MFA do owner | | | |
 | Rollback T5 (se houver) | | | |
 | T6 push (auto-deploy ainda OFF) | | | |
 | T7 deploy manual do SHA novo (`/version.buildSha`) | | | |
@@ -352,6 +402,12 @@ A exposição da Data API existia em produção independentemente da janela. Hoj
 - **Upload falhando após a T5:** conferir os buckets da T2.6 e o `STORAGE_PROVIDER`.
 - **Algum fluxo precisar de `anon`/`authenticated`:** não conceda privilégio na janela. Registre o fluxo e trate como exceção documentada numa migration nova (allowlist explícita).
 - **Dano de dados ou schema:** restaurar do backup/PITR (seção 4).
+
+## 10.1 Pendências pós-piloto
+
+- **Email corporativo do `PLATFORM_OWNER`:** trocar `travelplataforma@hotmail.com` por um endereço do domínio (ex.: `admin@travelplataforma.com.br`). **Atualizar o usuário existente**, não criar um segundo owner. O app não tem rota de troca de email: definir um procedimento operacional (mesmo padrão do bootstrap: role de plataforma, audit event próprio, sem tocar em `mfa_enabled`/`mfa_secret`) e testar login + MFA depois da troca.
+- **Recuperação do Platform Admin:** não existe fluxo; avaliar códigos de recuperação de MFA e um procedimento de break-glass documentado.
+- **Senha do `postgres`:** trocar depois da janela (trafegou sem TLS).
 
 ## 11. `/version`
 

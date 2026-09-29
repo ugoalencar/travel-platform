@@ -40,7 +40,7 @@ log "mode=$MODE container=$C"
 docker exec "$C" pg_dump --version | tee -a "$MANIFEST"
 
 # 1. Dump (custom format). The URL travels only through the child env.
-docker exec -e PGURL="$DATABASE_ADMIN_URL" "$C" sh -c \
+PGURL="$DATABASE_ADMIN_URL" docker exec -e PGURL -e PGSSLMODE=require "$C" sh -c \
   "pg_dump \"\$PGURL\" -Fc --schema=public --no-owner $DUMP_FLAGS" > "$DUMP"
 log "dump=$(basename "$DUMP") bytes=$(wc -c < "$DUMP")"
 
@@ -62,7 +62,7 @@ log "restore: OK ($(local_psql -d "$RESTORE_DB" -At -c "select count(*) from pg_
 # 4. Row-count comparison (full mode only)
 if [ "$MODE" = "full" ]; then
   for t in $COUNT_TABLES; do
-    prod=$(docker exec -e PGURL="$DATABASE_ADMIN_URL" "$C" sh -c "psql \"\$PGURL\" -At -c 'SELECT count(*) FROM public.$t'")
+    prod=$(PGURL="$DATABASE_ADMIN_URL" docker exec -e PGURL -e PGSSLMODE=require "$C" sh -c "psql \"\$PGURL\" -At -c 'SELECT count(*) FROM public.$t'")
     rest=$(local_psql -d "$RESTORE_DB" -At -c "SELECT count(*) FROM public.$t")
     status=$([ "$prod" = "$rest" ] && echo OK || echo DIVERGENTE)
     log "rows $t prod=$prod restored=$rest $status"
