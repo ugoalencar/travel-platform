@@ -16,6 +16,7 @@ import {
 } from './env';
 import { createServerPlatformAuthProvider } from './platform-dev-auth';
 import { createRedisRateLimitStore, resolveRateLimitRuntimeConfig, type RedisClientInstance } from './rate-limit';
+import { resolveDatabaseTls } from './database-tls';
 
 // Fail-closed production startup gate: throws synchronously if required
 // config is missing/malformed, or if a prohibited flag (ALLOW_DEV_AUTH) is
@@ -34,7 +35,8 @@ const host = process.env.HOST ?? '127.0.0.1';
 // protect against resource exhaustion and long-running queries.
 function createPool(connectionString: string | undefined): Pool {
   return new Pool({
-    connectionString,
+    // TLS: verify-full when DATABASE_SSL_CA is set (database-tls.ts).
+    ...resolveDatabaseTls(connectionString),
     // Max concurrent connections (default 10). In production, scale this to
     // match your expected concurrency. E.g., 20-50 for typical apps, higher
     // for high-throughput services. Adjust based on actual load testing.

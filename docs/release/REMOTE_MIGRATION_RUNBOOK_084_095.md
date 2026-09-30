@@ -409,6 +409,15 @@ A exposição da Data API existia em produção independentemente da janela. Hoj
 - **Recuperação do Platform Admin:** não existe fluxo; avaliar códigos de recuperação de MFA e um procedimento de break-glass documentado.
 - **Senha do `postgres`:** trocar depois da janela (trafegou sem TLS).
 
+## 10.2 TLS com validação do certificado (preparado, não ativado)
+
+- **Hoje:** `sslmode=require&uselibpqcompat=true` → TLS 1.3 **sem** validar certificado.
+- **Código pronto** (`services/api/src/database-tls.ts`): com `DATABASE_SSL_CA` definido (PEM; `
+` aceito), os dois pools exigem TLS com validação da cadeia **e do hostname** (verify-full) e ignoram os `ssl*` da URL. Sem a variável, nada muda.
+- **Cadeia do pooler** (`aws-0-us-east-1.pooler.supabase.com`): `*.pooler.supabase.com` (até 2030) ← "Supabase Intermediate 2021 CA" ← **"Supabase Root 2021 CA"** (até 2031). SHA-256 da raiz servida: `80:70:25:AD:50:D4:ED:21:9D:2C:9C:7D:29:9C:00:4F:82:4E:B0:0C:F7:F6:5A:FE:F6:07:D0:7B:72:E6:CA:FA`.
+- **Teste (2026-09-30, fora da configuração de produção, SELECT 1):** raiz Supabase → conecta e `authorized=true`; CA não relacionada → recusado; sem CA → comportamento atual.
+- **Para ativar (decisão operacional):** baixar o certificado oficial no painel da Supabase (Database → Settings → SSL Configuration), conferir o SHA-256 acima, salvar em `DATABASE_SSL_CA` na Render (Save only) e fazer deploy manual; validar `/readiness` e um login. Rollback: remover a variável e redeployar.
+
 ## 11. `/version`
 
 **Já no código (commit local):** `buildSha` usa `RENDER_GIT_COMMIT` → `GIT_SHA` → `BUILD_SHA` → `VERCEL_GIT_COMMIT_SHA`, ignorando valores em branco.
