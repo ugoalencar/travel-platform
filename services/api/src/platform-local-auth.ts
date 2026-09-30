@@ -511,7 +511,7 @@ async function findUnusedRecoveryCode(
     `SELECT id, code_hash FROM platform_mfa_recovery_codes WHERE platform_user_id = $1 AND used_at IS NULL`,
     [platformUserId],
   );
-  const match = result.rows.find((row) => verifyRecoveryCode(code.trim(), row.code_hash));
+  const match = result.rows.find((row) => verifyRecoveryCode(code.trim().toUpperCase(), row.code_hash));
   return match?.id ?? null;
 }
 

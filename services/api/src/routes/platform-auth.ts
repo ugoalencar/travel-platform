@@ -178,8 +178,10 @@ export function registerPlatformAuthRoutes(app: FastifyInstance, options: Platfo
           code,
         });
       } catch (error: unknown) {
+        // 403, not 401: the session is valid, only the re-authentication
+        // failed (a 401 would make the admin UI discard the session).
         if (error instanceof UnauthorizedError) {
-          reply.code(401);
+          reply.code(403);
           return { error: error.message };
         }
         throw error;

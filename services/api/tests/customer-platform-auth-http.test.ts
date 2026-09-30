@@ -419,7 +419,8 @@ describe('Customer Portal + Platform Admin local auth HTTP routes', () => {
     expect(JSON.stringify(stored.rows)).not.toContain(recoveryCodes[0]!);
 
     const challenge = (await loginPlatform(app)).json<{ mfaChallengeToken: string }>().mfaChallengeToken;
-    const withCode = await app.inject({ method: 'POST', url: '/platform-auth/mfa/verify', payload: { sessionToken: challenge, code: recoveryCodes[0] } });
+    // Codes are accepted case-insensitively (users often type them in lowercase).
+    const withCode = await app.inject({ method: 'POST', url: '/platform-auth/mfa/verify', payload: { sessionToken: challenge, code: recoveryCodes[0]!.toLowerCase() } });
     expect(withCode.statusCode).toBe(200);
     const token = withCode.json<{ sessionToken: string }>().sessionToken;
     const status = await app.inject({ method: 'GET', url: '/platform-auth/mfa/status', headers: { authorization: `Bearer ${token}` } });
@@ -459,9 +460,9 @@ describe('Customer Portal + Platform Admin local auth HTTP routes', () => {
     const auth = { authorization: `Bearer ${current}` };
 
     const wrongPassword = await app.inject({ method: 'POST', url: '/platform-auth/mfa/reset', headers: auth, payload: { password: 'wrong-password-123', code: recoveryCodes[1] } });
-    expect(wrongPassword.statusCode).toBe(401);
+    expect(wrongPassword.statusCode).toBe(403);
     const noFactor = await app.inject({ method: 'POST', url: '/platform-auth/mfa/reset', headers: auth, payload: { password: platformUserPassword, code: '000000-not-a-code' } });
-    expect(noFactor.statusCode).toBe(401);
+    expect(noFactor.statusCode).toBe(403);
 
     const reset = await app.inject({ method: 'POST', url: '/platform-auth/mfa/reset', headers: auth, payload: { password: platformUserPassword, code: recoveryCodes[1] } });
     expect(reset.statusCode).toBe(200);
