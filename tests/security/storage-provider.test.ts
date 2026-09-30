@@ -3,26 +3,34 @@ import {
   resolveStorageProvider,
   saveFile,
   readFile,
+  deleteFile,
 } from '../../services/api/src/storage';
 
 vi.mock('../../services/api/src/file-storage', () => ({
   saveFile: vi.fn(() => Promise.resolve()),
   readFile: vi.fn(() => Promise.resolve(Buffer.from('local'))),
+  deleteFile: vi.fn(() => Promise.resolve()),
 }));
 
 vi.mock('../../services/api/src/supabase-storage', () => ({
   saveFile: vi.fn(() => Promise.resolve()),
   readFile: vi.fn(() => Promise.resolve(Buffer.from('supabase'))),
+  deleteFile: vi.fn(() => Promise.resolve()),
 }));
 
 async function loadMocks() {
   const local = await import('../../services/api/src/file-storage');
   const supabase = await import('../../services/api/src/supabase-storage');
   return {
-    local: local as unknown as { saveFile: ReturnType<typeof vi.fn>; readFile: ReturnType<typeof vi.fn> },
+    local: local as unknown as {
+      saveFile: ReturnType<typeof vi.fn>;
+      readFile: ReturnType<typeof vi.fn>;
+      deleteFile: ReturnType<typeof vi.fn>;
+    },
     supabase: supabase as unknown as {
       saveFile: ReturnType<typeof vi.fn>;
       readFile: ReturnType<typeof vi.fn>;
+      deleteFile: ReturnType<typeof vi.fn>;
     },
   };
 }
@@ -73,6 +81,10 @@ describe('F-05: STORAGE_PROVIDER resolution', () => {
     expect(local.readFile).toHaveBeenCalledWith('documents/x/y.pdf');
     expect(supabase.saveFile).not.toHaveBeenCalled();
     expect(supabase.readFile).not.toHaveBeenCalled();
+
+    await deleteFile('documents/x/y.pdf');
+    expect(local.deleteFile).toHaveBeenCalledWith('documents/x/y.pdf');
+    expect(supabase.deleteFile).not.toHaveBeenCalled();
   });
 
   it('routes saveFile/readFile to the Supabase adapter when provider is supabase', async () => {
@@ -86,6 +98,10 @@ describe('F-05: STORAGE_PROVIDER resolution', () => {
     expect(supabase.readFile).toHaveBeenCalledWith('documents/x/y.pdf');
     expect(local.saveFile).not.toHaveBeenCalled();
     expect(local.readFile).not.toHaveBeenCalled();
+
+    await deleteFile('documents/x/y.pdf');
+    expect(supabase.deleteFile).toHaveBeenCalledWith('documents/x/y.pdf');
+    expect(local.deleteFile).not.toHaveBeenCalled();
     expect(bytes?.toString()).toBe('supabase');
   });
 
