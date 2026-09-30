@@ -80,6 +80,19 @@ export function registerErrorHandler(app: FastifyInstance): void {
       });
     }
 
+    // Any other Fastify request-parsing error (empty or malformed JSON body,
+    // unsupported content type, ...) is a client error carrying its own 4xx
+    // statusCode: answer with that status and a generic message instead of
+    // the 500 below, without echoing Fastify's internal message.
+    const clientErrorStatus = getFastifyClientErrorStatus(error);
+    if (clientErrorStatus !== undefined) {
+      return reply.code(clientErrorStatus).send(
+        clientErrorStatus === 415
+          ? { error: 'Unsupported content type', code: 'UNSUPPORTED_MEDIA_TYPE' }
+          : { error: 'Invalid request body', code: 'INVALID_REQUEST_BODY' },
+      );
+    }
+
     if (
       error instanceof ValidationError ||
       error instanceof NotFoundError ||
@@ -105,6 +118,14 @@ function isFastifyErrorWithCode(error: unknown, code: string): boolean {
     'code' in error &&
     (error as { code?: unknown }).code === code
   );
+}
+
+function getFastifyClientErrorStatus(error: unknown): number | undefined {
+  if (typeof error !== 'object' || error === null) return undefined;
+  const { code, statusCode } = error as { code?: unknown; statusCode?: unknown };
+  if (typeof code !== 'string' || !code.startsWith('FST_')) return undefined;
+  if (typeof statusCode !== 'number' || statusCode < 400 || statusCode > 499) return undefined;
+  return statusCode;
 }
 
 function getErrorName(error: unknown): string {
