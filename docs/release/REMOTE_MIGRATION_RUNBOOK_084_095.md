@@ -418,6 +418,24 @@ A exposição da Data API existia em produção independentemente da janela. Hoj
 - **Teste (2026-09-30, fora da configuração de produção, SELECT 1):** raiz Supabase → conecta e `authorized=true`; CA não relacionada → recusado; sem CA → comportamento atual.
 - **Para ativar (decisão operacional):** baixar o certificado oficial no painel da Supabase (Database → Settings → SSL Configuration), conferir o SHA-256 acima, salvar em `DATABASE_SSL_CA` na Render (Save only) e fazer deploy manual; validar `/readiness` e um login. Rollback: remover a variável e redeployar.
 
+## 10.3 Rotação da senha do `postgres` (pendente, executar pelo painel)
+
+Pré-condições verificadas em 2026-09-30: Render usa só `travel_app_runtime` e `travel_app_platform`; as únicas sessões `postgres` são o worker interno `pg_net` (sem senha) e o operador. Nada operacional depende da senha atual.
+
+1. Bitwarden destravado; Supabase → Project Settings → Database → **Reset database password** (gera a senha nova no painel — não usar `ALTER ROLE` direto).
+2. Gravar a URL admin nova (usuário `postgres.<ref>`, pooler 5432, `sslmode=require&uselibpqcompat=true`) no Bitwarden como `prod/DATABASE_ADMIN_URL`; nunca em arquivo.
+3. Validar: `SELECT current_user` com a URL nova; a senha antiga deve ser recusada; API `/readiness` 200 (não usa `postgres`).
+4. Remover do `.env` local `DATABASE_ADMIN_URL` e `RENDER_API_KEY` (passam a ser lidos do cofre na hora de uso) e voltar `DATABASE_URL` para o banco local.
+
+## 10.4 Dados sintéticos de QA em produção
+
+| Tenant | Slug | Conteúdo |
+|---|---|---|
+| QA Janela A | `qa-janela-a-*` | owner `delivered+qa-janela-a-owner@resend.dev`, 1 cliente com portal, 1 oferta, tarefas, 1 proposta com seção, 1 comunicação publicada, 1 viagem |
+| QA Janela B | `qa-janela-b-*` | owner `delivered+qa-janela-b-owner@resend.dev`, 1 cliente com portal, 1 oferta |
+
+Credenciais em `qa/*` no Bitwarden. Nenhum dado pessoal real (e-mails de teste da Resend). **Decisão pendente do responsável:** manter como tenants permanentes de QA (smoke pós-deploy e testes de isolamento A↔B) ou remover antes do piloto. Não removidos automaticamente. Também existem 4 agências de QA anteriores (`qa-customer-uat-agency-2/3`, `qa-consolidated-…`, `demo-travel-platform`) sem credenciais conhecidas.
+
 ## 11. `/version`
 
 **Já no código (commit local):** `buildSha` usa `RENDER_GIT_COMMIT` → `GIT_SHA` → `BUILD_SHA` → `VERCEL_GIT_COMMIT_SHA`, ignorando valores em branco.
