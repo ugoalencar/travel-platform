@@ -436,6 +436,16 @@ Pré-condições verificadas em 2026-09-30: Render usa só `travel_app_runtime` 
 
 Credenciais em `qa/*` no Bitwarden. Nenhum dado pessoal real (e-mails de teste da Resend). **Decisão pendente do responsável:** manter como tenants permanentes de QA (smoke pós-deploy e testes de isolamento A↔B) ou remover antes do piloto. Não removidos automaticamente. Também existem 4 agências de QA anteriores (`qa-customer-uat-agency-2/3`, `qa-consolidated-…`, `demo-travel-platform`) sem credenciais conhecidas.
 
+## 10.5 Próximo deploy: estabilização pós-janela (código `82c6478`, CI verde, NÃO deployado)
+
+Ordem obrigatória (auto-deploy segue OFF):
+1. Backup (seção 4) e dry run com dump novo + 097 + 098 (esperado: `verify_084_095` 47/47, `verify_096` 15/15; validado no clone em 2026-09-30).
+2. Aplicar **097** e **098** em produção (`--single-transaction`). Antes do código: sem 098 as rotas de recuperação dariam 500; sem 097 o `/version` mostra `unknown`.
+3. Render (Save only): `PLATFORM_ADMIN_URL=https://admin.travelplataforma.com.br` (senão o link do email de reset aponta para localhost). Opcional: `DATABASE_SSL_CA` (seção 10.2).
+4. Deploy manual do SHA; conferir `/version` (`buildSha` = SHA, `migrationVersion` = `098`).
+5. **Owner:** o MFA atual foi cadastrado antes dos códigos de recuperação (0 códigos). Em "Segurança da conta": "Perdi meu autenticador" com senha + TOTP atual → configurar MFA de novo → guardar os 16 códigos no Bitwarden.
+6. Smoke: JSON vazio → 400; forgot-password → 202 e email recebido; storage delete remove o objeto; logs de 4xx em `warn`.
+
 ## 11. `/version`
 
 **Já no código (commit local):** `buildSha` usa `RENDER_GIT_COMMIT` → `GIT_SHA` → `BUILD_SHA` → `VERCEL_GIT_COMMIT_SHA`, ignorando valores em branco.
