@@ -18,8 +18,10 @@
 -- inside the same transaction, so the row exists only if the migration
 -- committed.
 --
--- Access: read-only for the application roles (the API reads it through
--- the platform pool; local single-pool setups use the runtime role).
+-- Access: read-only for the platform role only -- the API reads it through
+-- the platform pool (withPlatformTransaction). The tenant runtime role gets
+-- no grant, keeping F-06's invariant that it only holds tenant tables;
+-- single-pool local setups simply report migrationVersion "unknown".
 -- Never granted to the Supabase Data API roles (anon/authenticated).
 -- ============================================================
 
@@ -40,17 +42,14 @@ DECLARE
   app_role TEXT;
   api_role TEXT;
 BEGIN
-  FOREACH app_role IN ARRAY ARRAY[
-    'travel_app_runtime', 'travel_app_platform',
-    'travel_app_runtime_local', 'travel_app_platform_local'
-  ]
+  FOREACH app_role IN ARRAY ARRAY['travel_app_platform', 'travel_app_platform_local']
   LOOP
     IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = app_role) THEN
       EXECUTE format('GRANT SELECT ON schema_migrations TO %I', app_role);
     END IF;
   END LOOP;
 
-  FOREACH api_role IN ARRAY ARRAY['anon', 'authenticated']
+  FOREACH api_role IN ARRAY ARRAY['anon', 'authenticated', 'travel_app_runtime', 'travel_app_runtime_local']
   LOOP
     IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = api_role) THEN
       EXECUTE format('REVOKE ALL ON schema_migrations FROM %I', api_role);
