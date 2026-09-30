@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { buildApp } from '../src/app';
 import type { DatabaseRuntime } from '../src/database';
 
@@ -79,5 +79,46 @@ describe('request body parsing errors', () => {
     });
 
     expect(response.body).not.toMatch(/FST_|Unexpected|position/i);
+  });
+});
+
+describe('error log level follows the response status', () => {
+  function captureLogs(app: ReturnType<typeof buildTestApp>) {
+    const calls: Array<{ level: 'warn' | 'error'; fields: Record<string, unknown> }> = [];
+    app.addHook('onRequest', (request, _reply, done) => {
+      vi.spyOn(request.log, 'warn').mockImplementation(((fields: Record<string, unknown>) => {
+        calls.push({ level: 'warn', fields });
+      }) as never);
+      vi.spyOn(request.log, 'error').mockImplementation(((fields: Record<string, unknown>) => {
+        calls.push({ level: 'error', fields });
+      }) as never);
+      done();
+    });
+    return calls;
+  }
+
+  it('logs an expected 4xx at warn, not error', async () => {
+    const app = buildTestApp();
+    const calls = captureLogs(app);
+
+    await app.inject({ method: 'POST', url: '/customers', headers: { 'content-type': 'application/json' }, payload: '{' });
+
+    expect(calls).toHaveLength(1);
+    expect(calls[0]).toMatchObject({ level: 'warn', fields: { status: 400 } });
+  });
+
+  it('logs a 5xx at error with the error message', async () => {
+    const app = buildTestApp();
+    const calls = captureLogs(app);
+    app.get('/__boom', () => {
+      throw new Error('database exploded');
+    });
+
+    const response = await app.inject({ method: 'GET', url: '/__boom' });
+
+    expect(response.statusCode).toBe(500);
+    expect(response.json()).toEqual({ error: 'Internal server error', code: 'INTERNAL_ERROR' });
+    expect(calls).toHaveLength(1);
+    expect(calls[0]).toMatchObject({ level: 'error', fields: { status: 500, errorMessage: 'database exploded' } });
   });
 });
