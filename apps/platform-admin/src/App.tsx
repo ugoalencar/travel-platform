@@ -2,6 +2,9 @@ import { Route, Routes } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { RequirePlatformAuth } from './components/auth/RequirePlatformAuth';
 import { LoginPage } from './pages/LoginPage';
+import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
+import { ResetPasswordPage } from './pages/ResetPasswordPage';
+import { SecurityPage } from './pages/SecurityPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { SubscribersPage } from './pages/SubscribersPage';
 import { PlansPage } from './pages/PlansPage';
@@ -28,6 +31,8 @@ export function App() {
   return (
     <Routes>
       <Route path="login" element={<LoginPage />} />
+      <Route path="forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="reset-password" element={<ResetPasswordPage />} />
 
       <Route element={<RequirePlatformAuth />}>
         <Route element={<Layout />}>
@@ -40,6 +45,7 @@ export function App() {
           <Route path="marketing" element={<MarketingPage />} />
           <Route path="support" element={<SupportPage />} />
           <Route path="settings" element={<SettingsPage />} />
+          <Route path="security" element={<SecurityPage />} />
           <Route path="incidents" element={<IncidentsPage />} />
           <Route path="feature-flags" element={<FeatureFlagsPage />} />
           <Route path="health" element={<HealthPage />} />

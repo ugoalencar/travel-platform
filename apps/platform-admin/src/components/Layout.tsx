@@ -14,6 +14,7 @@ import {
   Zap,
   Megaphone,
   ShieldCheck,
+  KeyRound,
   LogOut,
   FileText,
   Image,
@@ -79,6 +80,7 @@ const NAV_SECTIONS: NavSection[] = [
     items: [
       { label: 'Relatórios', to: '/audit', icon: ClipboardList },
       { label: 'Configurações', to: '/settings', icon: Settings },
+      { label: 'Segurança da conta', to: '/security', icon: KeyRound },
     ],
   },
   {

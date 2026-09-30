@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { PlatformAuthApiError, login, verifyMfa } from '../lib/platformAuthApi';
 
 type Step = { kind: 'CREDENTIALS' } | { kind: 'MFA'; mfaChallengeToken: string };
@@ -95,10 +95,15 @@ export function LoginPage() {
             >
               {submitting ? 'Entrando…' : 'Entrar'}
             </button>
+            <Link to="/forgot-password" className="block text-center text-sm text-slate-400 hover:text-white">
+              Esqueci minha senha
+            </Link>
           </form>
         ) : (
           <form onSubmit={(e) => void handleMfaSubmit(e)} className="space-y-4">
-            <p className="text-sm text-slate-400">Informe o código do seu aplicativo autenticador.</p>
+            <p className="text-sm text-slate-400">
+              Informe o código do seu aplicativo autenticador ou um código de recuperação (XXXX-XXXX).
+            </p>
             <div>
               <label htmlFor="code" className="mb-1 block text-sm font-medium text-slate-300">
                 Código
@@ -106,7 +111,6 @@ export function LoginPage() {
               <input
                 id="code"
                 type="text"
-                inputMode="numeric"
                 required
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
