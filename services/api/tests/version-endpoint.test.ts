@@ -28,8 +28,9 @@ function buildMinimalApp(versionInfo?: VersionInfo) {
     withTenantTransaction: () => {
       throw new Error('must not be used by /version');
     },
+    // No schema_migrations reachable: /version must degrade to 'unknown'.
     withPlatformTransaction: () => {
-      throw new Error('must not be used by /version');
+      throw new Error('database unavailable');
     },
   };
 
@@ -96,6 +97,57 @@ describe('GET /version', () => {
     expect(serialized).not.toContain('/services/api/');
     expect(serialized).not.toContain('at ');
 
+    await app.close();
+  });
+});
+
+describe('GET /version migrationVersion (schema_migrations)', () => {
+  function appWithAppliedVersion(version: string | null) {
+    const queries: string[] = [];
+    const database: DatabaseRuntime = {
+      withTenantTransaction: () => Promise.reject(new Error('must not be used by /version')),
+      withPlatformTransaction: (operation) =>
+        operation({
+          query: (text: string) => {
+            queries.push(text);
+            return Promise.resolve({ rows: [{ version }], rowCount: 1, command: 'SELECT', oid: 0, fields: [] });
+          },
+        } as never),
+    };
+    const app = buildApp({
+      authProvider: { authenticate: () => Promise.resolve(null) },
+      validateUserAgencyAccess: () => Promise.resolve(false),
+      database,
+    });
+    return { app, queries };
+  }
+
+  it('reports the highest migration applied to the database', async () => {
+    const { app, queries } = appWithAppliedVersion('096');
+
+    const body: VersionInfo = (await app.inject({ method: 'GET', url: '/version' })).json();
+
+    expect(body.migrationVersion).toBe('096');
+    expect(queries).toEqual(['SELECT max(version) AS version FROM schema_migrations']);
+    await app.close();
+  });
+
+  it('reports unknown when the registry is empty', async () => {
+    const { app } = appWithAppliedVersion(null);
+
+    const body: VersionInfo = (await app.inject({ method: 'GET', url: '/version' })).json();
+
+    expect(body.migrationVersion).toBe('unknown');
+    await app.close();
+  });
+
+  it('reports unknown (and still 200) when the database is unavailable', async () => {
+    const app = buildMinimalApp();
+
+    const response = await app.inject({ method: 'GET', url: '/version' });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json<VersionInfo>().migrationVersion).toBe('unknown');
     await app.close();
   });
 });

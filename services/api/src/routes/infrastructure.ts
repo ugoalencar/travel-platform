@@ -9,7 +9,7 @@ import { getAgencyId, getTenantContext } from '../../../../packages/domain/tenan
 import type { DatabaseRuntime } from '../database';
 import { NotFoundError } from '../errors';
 import type { MetricsCollector } from '../observability';
-import { resolveVersionInfo, type VersionInfo } from '../version';
+import { readAppliedMigrationVersion, resolveVersionInfo, type VersionInfo } from '../version';
 
 export interface InfrastructureRoutesOptions {
   database: DatabaseRuntime;
@@ -36,7 +36,10 @@ export function registerInfrastructureRoutes(
     service: 'api',
   }));
 
-  app.get('/version', () => options.versionInfo ?? resolveVersionInfo());
+  app.get('/version', async () => {
+    if (options.versionInfo) return options.versionInfo;
+    return { ...resolveVersionInfo(), migrationVersion: await readAppliedMigrationVersion(options.database) };
+  });
 
   app.get('/metrics', () => {
     const snapshot = options.metrics.snapshot();

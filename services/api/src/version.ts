@@ -6,8 +6,9 @@
 // (mounted next to /health) -- none of these fields are sensitive, and a
 // release/rollback runbook needs to be able to curl it without a token.
 // Never includes a stack trace or a filesystem path in its response body.
-import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import type { DatabaseRuntime } from './database';
 
 export interface VersionInfo {
   appVersion: string;
@@ -20,8 +21,6 @@ export interface VersionInfo {
 interface ResolveVersionInfoOptions {
   /** Directory containing services/api/package.json. Defaults to this file's package root. */
   packageDir?: string;
-  /** Directory containing the numbered migration .sql files. */
-  migrationsDir?: string;
   environment?: NodeJS.ProcessEnv;
 }
 
@@ -43,14 +42,8 @@ const PACKAGE_DIR_FROM_SOURCE = resolve(__dirname, '..'); // src -> services/api
 const PACKAGE_DIR_FROM_DIST = resolve(__dirname, '../../../..'); // dist/services/api/src -> services/api (compiled)
 const PACKAGE_DIR_CANDIDATES = [PACKAGE_DIR_FROM_SOURCE, PACKAGE_DIR_FROM_DIST];
 
-const MIGRATIONS_DIR_FROM_SOURCE = resolve(__dirname, '../../../infrastructure/migrations');
-const MIGRATIONS_DIR_FROM_DIST = resolve(__dirname, '../../../../../../infrastructure/migrations');
-const MIGRATIONS_DIR_CANDIDATES = [MIGRATIONS_DIR_FROM_SOURCE, MIGRATIONS_DIR_FROM_DIST];
-
 const DEFAULT_PACKAGE_DIR =
   firstExistingDir(PACKAGE_DIR_CANDIDATES, 'package.json') ?? PACKAGE_DIR_FROM_SOURCE;
-const DEFAULT_MIGRATIONS_DIR =
-  MIGRATIONS_DIR_CANDIDATES.find((dir) => existsSync(dir)) ?? MIGRATIONS_DIR_FROM_SOURCE;
 
 interface PackageJsonWithVersion {
   version: string;
@@ -79,23 +72,17 @@ function readAppVersion(packageDir: string): string {
 }
 
 /**
- * Highest applied migration, identified by filename convention
- * (`NNN_description.sql`, numbered ascending -- see infrastructure/
- * migrations/). This reads the migrations directory shipped with THIS
- * build, not a live "what has actually been run against the DB" check --
- * it answers "what migration is this deployed code's schema expectation
- * at", which is the meaning RELEASE_UPDATE_STRATEGY.md's migrationVersion
- * field wants for release/rollback bookkeeping.
+ * Highest migration actually applied to the connected database, read from
+ * schema_migrations (097). This is the database's real state, not the set of
+ * migration files shipped with the build. Any failure (table not created
+ * yet, database unreachable) degrades to 'unknown' so /version never fails.
  */
-function readMigrationVersion(migrationsDir: string): string {
+export async function readAppliedMigrationVersion(database: DatabaseRuntime): Promise<string> {
   try {
-    const files = readdirSync(migrationsDir).filter((name) => /^\d+_.+\.sql$/.test(name));
-    if (files.length === 0) {
-      return 'unknown';
-    }
-    files.sort();
-    const latest = files[files.length - 1];
-    return latest ? latest.replace(/\.sql$/, '') : 'unknown';
+    const result = await database.withPlatformTransaction((client) =>
+      client.query<{ version: string | null }>('SELECT max(version) AS version FROM schema_migrations'),
+    );
+    return result.rows[0]?.version ?? 'unknown';
   } catch {
     return 'unknown';
   }
@@ -108,7 +95,6 @@ function firstNonEmpty(...values: Array<string | undefined>): string {
 export function resolveVersionInfo(options: ResolveVersionInfoOptions = {}): VersionInfo {
   const environment = options.environment ?? process.env;
   const packageDir = options.packageDir ?? DEFAULT_PACKAGE_DIR;
-  const migrationsDir = options.migrationsDir ?? DEFAULT_MIGRATIONS_DIR;
 
   return {
     appVersion: readAppVersion(packageDir),
@@ -121,7 +107,8 @@ export function resolveVersionInfo(options: ResolveVersionInfoOptions = {}): Ver
       environment.BUILD_SHA,
       environment.VERCEL_GIT_COMMIT_SHA,
     ),
-    migrationVersion: readMigrationVersion(migrationsDir),
+    // Filled from the database by the /version route (readAppliedMigrationVersion).
+    migrationVersion: 'unknown',
     deploymentId: environment.DEPLOYMENT_ID ?? environment.RENDER_INSTANCE_ID ?? 'unknown',
     releasedAt: environment.RELEASED_AT ?? 'unknown',
   };
