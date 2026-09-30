@@ -446,6 +446,18 @@ Ordem obrigatória (auto-deploy segue OFF):
 5. **Owner:** o MFA atual foi cadastrado antes dos códigos de recuperação (0 códigos). Em "Segurança da conta": "Perdi meu autenticador" com senha + TOTP atual → configurar MFA de novo → guardar os 16 códigos no Bitwarden.
 6. Smoke: JSON vazio → 400; forgot-password → 202 e email recebido; storage delete remove o objeto; logs de 4xx em `warn`.
 
+### 10.5.1 Execução — 2026-09-30 (UTC)
+
+| Passo | Horário | Resultado |
+|---|---|---|
+| Dry run pós-janela (dump novo 175 tabelas) | 21:3xZ | antes 47/47 + 15/15; 097+098 idempotentes; depois 47/47 + 15/15; `max(version)`=098 |
+| Backup completo | 21:44:25Z | 1.133.335 bytes, SHA-256 `db8b613f…2f74`, restore 175 tabelas, linhas iguais; cifrado em `D:	ravel-platform-backupsprod_full_20260930T214425Z.tar.enc` (SHA-256 `0a9918f2…eb62`), senha em `prod/BACKUP_ENC_20260930T214425Z` |
+| 097 / 098 | 21:46:56Z–21:47:01Z | aplicadas; verify 47/47 + 15/15; tabelas novas sem acesso de runtime/anon/authenticated |
+| Render | 21:47Z | `PLATFORM_ADMIN_URL=https://admin.travelplataforma.com.br` |
+| Deploy manual `82c6478` (CI verde) | 21:47:53Z–21:48:45Z | `dep-dauo6vh7lnhs739ac4t0`; `/version` `buildSha=82c6478`, `migrationVersion=098`; HSTS |
+| Smoke | 21:49Z | JSON vazio 400; content-type 415; forgot-password 202 idêntico + token só hash + email enviado (Resend); delete de mídia remove o objeto; 2º delete 404; 4xx em warn; 0 erros 5xx; isolamento A/B 34/34 |
+| Pendente | — | recadastro do MFA do owner (gera os 16 códigos de recuperação) |
+
 ## 11. `/version`
 
 **Já no código (commit local):** `buildSha` usa `RENDER_GIT_COMMIT` → `GIT_SHA` → `BUILD_SHA` → `VERCEL_GIT_COMMIT_SHA`, ignorando valores em branco.
