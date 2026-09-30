@@ -19,7 +19,7 @@
  * traversal check below.
  */
 
-import { mkdir, readFile as fsReadFile, writeFile as fsWriteFile } from 'node:fs/promises';
+import { mkdir, readFile as fsReadFile, rm, writeFile as fsWriteFile } from 'node:fs/promises';
 import { dirname, join, normalize, resolve } from 'node:path';
 
 // Read lazily (not at module load) so tests can point this at a temp
@@ -46,4 +46,9 @@ export async function saveFile(secureFileKey: string, content: Buffer): Promise<
 
 export async function readFile(secureFileKey: string): Promise<Buffer> {
   return fsReadFile(resolveSafePath(secureFileKey));
+}
+
+/** Idempotent: removing a file that no longer exists is not an error. */
+export async function deleteFile(secureFileKey: string): Promise<void> {
+  await rm(resolveSafePath(secureFileKey), { force: true });
 }

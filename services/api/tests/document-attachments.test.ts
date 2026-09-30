@@ -365,6 +365,17 @@ describe('document attachments -- audit trail', () => {
     expect(audit.values).toContain('att-1');
   });
 
+  it('scopes the delete to the document in the URL when one is given', async () => {
+    const database = createFakeDatabase(() => []);
+
+    const result = await runWithTenantContext(CONTEXT_A, () => deleteAttachment(database, 'att-1', 'doc-other'));
+
+    expect(result).toBeNull();
+    const update = database.findOne('update document_attachments');
+    expect(update.text).toContain('document_id = $3');
+    expect(update.values).toEqual([AGENCY_A, 'att-1', 'doc-other']);
+  });
+
   it('records nothing when the delete found no row', async () => {
     const database = createFakeDatabase(() => []);
 

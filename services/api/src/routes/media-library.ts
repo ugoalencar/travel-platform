@@ -21,7 +21,7 @@ import {
   listMediaAssets,
   updateMediaAsset,
 } from '../media-library';
-import { saveFile, readFile as readStoredFile } from '../storage';
+import { deleteStoredFileAfterCommit, saveFile, readFile as readStoredFile } from '../storage';
 import { validateFileSize, isBlockedFileName, MAX_ATTACHMENT_BYTES } from '../document-attachments';
 import { NotFoundError, ValidationError } from '../errors';
 
@@ -144,8 +144,9 @@ export function registerMediaLibraryRoutes(app: FastifyInstance, options: MediaL
     { preHandler: protectedHooks },
     async (request, reply) => {
       requireRole(UserRole.MANAGER);
-      const deleted = await deleteMediaAsset(database, request.params.id);
-      if (!deleted) throw new NotFoundError('Media asset not found');
+      const secureFileKey = await deleteMediaAsset(database, request.params.id);
+      if (!secureFileKey) throw new NotFoundError('Media asset not found');
+      await deleteStoredFileAfterCommit(secureFileKey, request.log, { type: 'media_asset', id: request.params.id });
       reply.code(204);
       return null;
     }

@@ -283,15 +283,19 @@ export async function archiveMediaAsset(database: DatabaseRuntime, id: string): 
 // used by Offer/Communication covers -- see docs/product/MEDIA_ASSET_USAGE.md).
 // Counting only media_asset_links would let a cover-only asset be deleted,
 // silently nulling out the covers via the ON DELETE SET NULL FKs.
-export async function deleteMediaAsset(database: DatabaseRuntime, id: string): Promise<boolean> {
+/**
+ * Deletes an unused asset row and returns its secureFileKey (null when not
+ * found) so the caller can remove the stored object after the commit.
+ */
+export async function deleteMediaAsset(database: DatabaseRuntime, id: string): Promise<string | null> {
   const agencyId = getAgencyId();
   return database.withTenantTransaction(async (client) => {
-    const existing = await client.query<{ title: string }>(
-      `SELECT title FROM media_assets WHERE agency_id = $1 AND id = $2`,
+    const existing = await client.query<{ title: string; secure_file_key: string }>(
+      `SELECT title, secure_file_key FROM media_assets WHERE agency_id = $1 AND id = $2`,
       [agencyId, id],
     );
     const row = existing.rows[0];
-    if (!row) return false;
+    if (!row) return null;
 
     const usage = await client.query<{ count: string }>(
       `SELECT (
@@ -312,7 +316,7 @@ export async function deleteMediaAsset(database: DatabaseRuntime, id: string): P
       entityId: id,
       metadata: { title: row.title },
     });
-    return true;
+    return row.secure_file_key;
   });
 }
 

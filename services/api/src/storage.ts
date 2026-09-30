@@ -14,10 +14,12 @@
  * silent default to ./uploads inside an ephemeral container.
  */
 import {
+  deleteFile as deleteLocalFile,
   readFile as readLocalFile,
   saveFile as saveLocalFile,
 } from './file-storage';
 import {
+  deleteFile as deleteSupabaseFile,
   readFile as readSupabaseFile,
   saveFile as saveSupabaseFile,
 } from './supabase-storage';
@@ -49,8 +51,8 @@ export function resolveStorageProvider(
 
 function adapter() {
   return resolveStorageProvider() === 'supabase'
-    ? { saveFile: saveSupabaseFile, readFile: readSupabaseFile }
-    : { saveFile: saveLocalFile, readFile: readLocalFile };
+    ? { saveFile: saveSupabaseFile, readFile: readSupabaseFile, deleteFile: deleteSupabaseFile }
+    : { saveFile: saveLocalFile, readFile: readLocalFile, deleteFile: deleteLocalFile };
 }
 
 export async function saveFile(secureFileKey: string, content: Buffer): Promise<void> {
@@ -59,4 +61,42 @@ export async function saveFile(secureFileKey: string, content: Buffer): Promise<
 
 export async function readFile(secureFileKey: string): Promise<Buffer> {
   return adapter().readFile(secureFileKey);
+}
+
+export async function deleteFile(secureFileKey: string): Promise<void> {
+  return adapter().deleteFile(secureFileKey);
+}
+
+interface WarnLogger {
+  warn(fields: Record<string, unknown>, message: string): void;
+}
+
+/**
+ * Removes the stored object of a row that was already deleted and committed.
+ * Callers invoke it only AFTER the database transaction succeeds, so a row
+ * can never point at an object that is gone; the worst case of a storage
+ * failure is an orphaned object, which is logged (bucket + entity only, no
+ * key) instead of failing a delete the user already saw succeed. Deleting an
+ * object that no longer exists is not an error in either provider.
+ */
+export async function deleteStoredFileAfterCommit(
+  secureFileKey: string,
+  log: WarnLogger,
+  entity: { type: string; id: string },
+): Promise<boolean> {
+  try {
+    await deleteFile(secureFileKey);
+    return true;
+  } catch (error) {
+    log.warn(
+      {
+        bucket: secureFileKey.split('/')[0],
+        entityType: entity.type,
+        entityId: entity.id,
+        error: error instanceof Error ? error.message.replace(secureFileKey, '<key>').slice(0, 200) : 'unknown',
+      },
+      'Stored object could not be deleted (orphaned)',
+    );
+    return false;
+  }
 }

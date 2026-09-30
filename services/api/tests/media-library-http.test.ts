@@ -600,15 +600,24 @@ describe('Media Library -- HTTP hardening suite', () => {
     const uploaded = await uploadToLibrary(app, { title: 'Descartável' });
     const assetId = uploaded.body.asset!.id;
 
+    const storedFiles = () => readdirSync(uploadsDir, { recursive: true, withFileTypes: true }).filter((e) => e.isFile()).length;
+    const filesBefore = storedFiles();
+
     const deleted = await app.inject({
       method: 'DELETE',
       url: `/media-assets/${assetId}`,
       headers: { 'x-test-role': 'MANAGER' },
     });
     expect(deleted.statusCode).toBe(204);
+    // The stored object goes with the row (no orphan left in storage).
+    expect(storedFiles()).toBe(filesBefore - 1);
 
     const select = await app.inject({ method: 'GET', url: `/media-assets/${assetId}`, headers: { 'x-test-role': 'VIEWER' } });
     expect(select.statusCode).toBe(404);
+
+    // Idempotent: a second delete is a clean 404, never a 500.
+    const again = await app.inject({ method: 'DELETE', url: `/media-assets/${assetId}`, headers: { 'x-test-role': 'MANAGER' } });
+    expect(again.statusCode).toBe(404);
     await app.close();
   });
 

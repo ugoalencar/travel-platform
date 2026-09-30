@@ -77,7 +77,7 @@ import {
   validateFileType,
   isBlockedFileName,
 } from '../document-attachments';
-import { readFile as readStoredFile, saveFile } from '../storage';
+import { deleteStoredFileAfterCommit, readFile as readStoredFile, saveFile } from '../storage';
 import {
   getExtraction,
   listExtractionsForDocument,
@@ -555,10 +555,11 @@ export function registerCustomerDocumentRoutes(
     async (request) => {
       requireRole(UserRole.AGENT);
       await assertDocumentExists(request.params.documentId);
-      const attachment = await deleteAttachment(database, request.params.attachmentId);
-      if (!attachment || attachment.documentId !== request.params.documentId) {
+      const attachment = await deleteAttachment(database, request.params.attachmentId, request.params.documentId);
+      if (!attachment) {
         throw new NotFoundError('Attachment not found');
       }
+      await deleteStoredFileAfterCommit(attachment.secureFileKey, request.log, { type: 'document_attachment', id: attachment.id });
       return { attachment };
     },
   );

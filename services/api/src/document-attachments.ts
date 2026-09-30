@@ -237,9 +237,15 @@ export async function getAttachmentById(
 }
 
 /** Soft delete. The metadata row is retained for the audit trail. */
+/**
+ * Soft-deletes an attachment. When documentId is given, only an attachment of
+ * that document is touched, so a mismatched URL never deletes another
+ * document's attachment.
+ */
 export async function deleteAttachment(
   database: DatabaseRuntime,
   id: string,
+  documentId?: string,
 ): Promise<DocumentAttachment | null> {
   const agencyId = getAgencyId();
 
@@ -248,8 +254,9 @@ export async function deleteAttachment(
       `UPDATE document_attachments
        SET deleted_at = now()
        WHERE agency_id = $1 AND id = $2 AND deleted_at IS NULL
+         AND ($3::text IS NULL OR document_id = $3)
        RETURNING ${ATTACHMENT_COLUMNS}`,
-      [agencyId, id],
+      [agencyId, id, documentId ?? null],
     );
 
     const row = result.rows[0];

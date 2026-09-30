@@ -143,14 +143,19 @@ export async function getTripPhotoById(database: DatabaseRuntime, id: string): P
   });
 }
 
-export async function deleteTripPhoto(database: DatabaseRuntime, id: string): Promise<TripPhoto | null> {
+/**
+ * Soft-deletes a trip photo. When tripId is given, only a photo of that trip
+ * is touched, so a mismatched URL never deletes another trip's photo.
+ */
+export async function deleteTripPhoto(database: DatabaseRuntime, id: string, tripId?: string): Promise<TripPhoto | null> {
   const agencyId = getAgencyId();
   return database.withTenantTransaction(async (client) => {
     const result = await client.query<TripPhotoRow>(
       `UPDATE trip_photos SET deleted_at = now()
        WHERE agency_id = $1 AND id = $2 AND deleted_at IS NULL
+         AND ($3::text IS NULL OR trip_id = $3)
        RETURNING ${TRIP_PHOTO_COLUMNS}`,
-      [agencyId, id],
+      [agencyId, id, tripId ?? null],
     );
     const row = result.rows[0];
     return row ? toTripPhoto(row) : null;

@@ -56,7 +56,7 @@ import {
   listTripPhotos,
 } from '../trip-photos';
 import { isBlockedFileName, MAX_ATTACHMENT_BYTES, validateFileSize } from '../document-attachments';
-import { readFile as readStoredFile, saveFile } from '../storage';
+import { deleteStoredFileAfterCommit, readFile as readStoredFile, saveFile } from '../storage';
 
 export interface TripsRoutesOptions {
   database: DatabaseRuntime;
@@ -227,10 +227,11 @@ export function registerTripsRoutes(
     async (request) => {
       requireRole(UserRole.AGENT);
       await assertTripExists(request.params.tripId);
-      const photo = await deleteTripPhoto(database, request.params.photoId);
-      if (!photo || photo.tripId !== request.params.tripId) {
+      const photo = await deleteTripPhoto(database, request.params.photoId, request.params.tripId);
+      if (!photo) {
         throw new NotFoundError('Photo not found');
       }
+      await deleteStoredFileAfterCommit(photo.secureFileKey, request.log, { type: 'trip_photo', id: photo.id });
       return { photo };
     }
   );
