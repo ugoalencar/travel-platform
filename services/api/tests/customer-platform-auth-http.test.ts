@@ -85,6 +85,8 @@ describe('Customer Portal + Platform Admin local auth HTTP routes', () => {
     await adminPool.query('TRUNCATE TABLE customer_password_reset_tokens RESTART IDENTITY CASCADE');
     await adminPool.query('TRUNCATE TABLE platform_sessions RESTART IDENTITY CASCADE');
     await adminPool.query('TRUNCATE TABLE platform_user_audit RESTART IDENTITY CASCADE');
+    await adminPool.query('TRUNCATE TABLE platform_password_reset_tokens RESTART IDENTITY CASCADE');
+    await adminPool.query('TRUNCATE TABLE platform_mfa_recovery_codes RESTART IDENTITY CASCADE');
     await adminPool.query(
       `UPDATE customer_accounts SET status = 'ACTIVE', password_hash = $2 WHERE customer_id = $1`,
       [customerAId, await hashPassword(customerAccountPassword)],
@@ -216,9 +218,9 @@ describe('Customer Portal + Platform Admin local auth HTTP routes', () => {
     });
     expect(enrollResponse.statusCode).toBe(201);
     const enrollBody: Record<string, unknown> = enrollResponse.json();
-    // otpauth URI is the single allowed exposure (provisioning the
-    // authenticator app); no raw-secret or recoveryCodes fields.
-    expect(Object.keys(enrollBody)).toEqual(['provisioningUri']);
+    // The otpauth URI (provisioning the authenticator app) and the one-time
+    // recovery codes are the only exposures, shown once; no raw-secret field.
+    expect(Object.keys(enrollBody).sort()).toEqual(['provisioningUri', 'recoveryCodes']);
     expect(String(enrollBody.provisioningUri)).toMatch(/^otpauth:\/\//);
     const secretFromUri = new URL(String(enrollBody.provisioningUri)).searchParams.get('secret');
     expect(secretFromUri).toBeTruthy();
@@ -288,7 +290,7 @@ describe('Customer Portal + Platform Admin local auth HTTP routes', () => {
     const failedAudit = await adminPool.query<{ action: string; details: Record<string, unknown> }>(
       `SELECT action, details FROM platform_user_audit WHERE action = 'MFA_CHALLENGE_FAILED'`,
     );
-    expect(failedAudit.rows).toEqual([{ action: 'MFA_CHALLENGE_FAILED', details: {} }]);
+    expect(failedAudit.rows).toEqual([{ action: 'MFA_CHALLENGE_FAILED', details: { attempts: 1 } }]);
     const serializedAudit = JSON.stringify(failedAudit.rows);
     expect(serializedAudit).not.toContain(secretFromUri!);
     expect(serializedAudit).not.toMatch(/recovery/i);
@@ -317,6 +319,169 @@ describe('Customer Portal + Platform Admin local auth HTTP routes', () => {
     });
     expect(response.statusCode).toBe(401);
     expect(response.json()).toMatchObject({ error: 'Email ou senha inválidos' });
+  });
+
+  // ============================================================
+  // Platform Admin recovery (098)
+  // ============================================================
+
+  async function loginPlatform(app: ReturnType<typeof buildTestApp>, password = platformUserPassword) {
+    return app.inject({ method: 'POST', url: '/platform-auth/login', payload: { email: platformUserEmail, password } });
+  }
+
+  async function enrollAndConfirmMfa(app: ReturnType<typeof buildTestApp>): Promise<{ secret: string; recoveryCodes: string[]; sessionToken: string }> {
+    const login = await loginPlatform(app);
+    const sessionToken = login.json<{ sessionToken: string }>().sessionToken;
+    const enroll = await app.inject({ method: 'POST', url: '/platform-auth/mfa/enroll', headers: { authorization: `Bearer ${sessionToken}` } });
+    const { provisioningUri, recoveryCodes } = enroll.json<{ provisioningUri: string; recoveryCodes: string[] }>();
+    const secret = new URL(provisioningUri).searchParams.get('secret')!;
+    const confirm = await app.inject({
+      method: 'POST',
+      url: '/platform-auth/mfa/enroll/confirm',
+      headers: { authorization: `Bearer ${sessionToken}` },
+      payload: { code: generateTotpCode(secret) },
+    });
+    expect(confirm.statusCode).toBe(200);
+    return { secret, recoveryCodes, sessionToken };
+  }
+
+  async function issueResetToken(expiresInMs: number): Promise<string> {
+    const raw = `reset-token-${Math.random().toString(36).slice(2)}`;
+    const user = await adminPool.query<{ id: string }>('SELECT id FROM platform_users WHERE email = $1', [platformUserEmail]);
+    await adminPool.query(
+      'INSERT INTO platform_password_reset_tokens (platform_user_id, token_hash, expires_at) VALUES ($1, $2, $3)',
+      [user.rows[0]!.id, createHash('sha256').update(raw).digest('hex'), new Date(Date.now() + expiresInMs)],
+    );
+    return raw;
+  }
+
+  it('POST /platform-auth/forgot-password answers the same 202 for known and unknown e-mails and stores only a hash', async () => {
+    const app = buildTestApp();
+
+    const known = await app.inject({ method: 'POST', url: '/platform-auth/forgot-password', payload: { email: platformUserEmail.toUpperCase() } });
+    const unknown = await app.inject({ method: 'POST', url: '/platform-auth/forgot-password', payload: { email: 'nobody@example.test' } });
+
+    expect(known.statusCode).toBe(202);
+    expect(unknown.statusCode).toBe(202);
+    expect(known.body).toBe(unknown.body);
+    const tokens = await adminPool.query<{ token_hash: string; used_at: string | null }>('SELECT token_hash, used_at FROM platform_password_reset_tokens');
+    expect(tokens.rows).toHaveLength(1);
+    expect(tokens.rows[0]!.token_hash).toMatch(/^[0-9a-f]{64}$/);
+    const audit = await adminPool.query<{ action: string }>('SELECT action FROM platform_user_audit');
+    expect(audit.rows.map((r) => r.action)).toEqual(['PASSWORD_RESET_REQUESTED']);
+  });
+
+  it('POST /platform-auth/reset-password sets the new password once, revokes sessions and keeps MFA required', async () => {
+    const app = buildTestApp();
+    const { secret, sessionToken } = await enrollAndConfirmMfa(app);
+    const token = await issueResetToken(30 * 60 * 1000);
+    const newPassword = 'platform-new-strong-password-2';
+
+    const reset = await app.inject({ method: 'POST', url: '/platform-auth/reset-password', payload: { token, newPassword } });
+    expect(reset.statusCode).toBe(200);
+
+    const reuse = await app.inject({ method: 'POST', url: '/platform-auth/reset-password', payload: { token, newPassword: 'another-strong-password-3' } });
+    expect(reuse.statusCode).toBe(404);
+
+    const oldSession = await app.inject({ method: 'GET', url: '/platform-auth/mfa/status', headers: { authorization: `Bearer ${sessionToken}` } });
+    expect(oldSession.statusCode).toBe(401);
+
+    expect((await loginPlatform(app)).statusCode).toBe(401);
+    const newLogin = await loginPlatform(app, newPassword);
+    expect(newLogin.json()).toMatchObject({ state: 'MFA_REQUIRED' });
+    const verify = await app.inject({
+      method: 'POST',
+      url: '/platform-auth/mfa/verify',
+      payload: { sessionToken: newLogin.json<{ mfaChallengeToken: string }>().mfaChallengeToken, code: generateTotpCode(secret) },
+    });
+    expect(verify.statusCode).toBe(200);
+  });
+
+  it('POST /platform-auth/reset-password rejects expired tokens and short passwords', async () => {
+    const app = buildTestApp();
+    const expired = await issueResetToken(-1000);
+    const valid = await issueResetToken(30 * 60 * 1000);
+
+    const expiredResponse = await app.inject({ method: 'POST', url: '/platform-auth/reset-password', payload: { token: expired, newPassword: 'platform-new-strong-password-2' } });
+    expect(expiredResponse.statusCode).toBe(404);
+
+    const shortResponse = await app.inject({ method: 'POST', url: '/platform-auth/reset-password', payload: { token: valid, newPassword: 'short' } });
+    expect(shortResponse.statusCode).toBe(400);
+    expect((await loginPlatform(app)).statusCode).toBe(200);
+  });
+
+  it('MFA enrollment issues 16 one-time recovery codes, stored hashed, accepted once in place of TOTP', async () => {
+    const app = buildTestApp();
+    const { recoveryCodes } = await enrollAndConfirmMfa(app);
+    expect(recoveryCodes).toHaveLength(16);
+    const stored = await adminPool.query<{ code_hash: string }>('SELECT code_hash FROM platform_mfa_recovery_codes');
+    expect(stored.rows).toHaveLength(16);
+    expect(JSON.stringify(stored.rows)).not.toContain(recoveryCodes[0]!);
+
+    const challenge = (await loginPlatform(app)).json<{ mfaChallengeToken: string }>().mfaChallengeToken;
+    const withCode = await app.inject({ method: 'POST', url: '/platform-auth/mfa/verify', payload: { sessionToken: challenge, code: recoveryCodes[0] } });
+    expect(withCode.statusCode).toBe(200);
+    const token = withCode.json<{ sessionToken: string }>().sessionToken;
+    const status = await app.inject({ method: 'GET', url: '/platform-auth/mfa/status', headers: { authorization: `Bearer ${token}` } });
+    expect(status.json()).toEqual({ mfaEnabled: true, recoveryCodesRemaining: 15 });
+
+    const challenge2 = (await loginPlatform(app)).json<{ mfaChallengeToken: string }>().mfaChallengeToken;
+    const reused = await app.inject({ method: 'POST', url: '/platform-auth/mfa/verify', payload: { sessionToken: challenge2, code: recoveryCodes[0] } });
+    expect(reused.statusCode).toBe(401);
+    const audit = await adminPool.query<{ action: string }>("SELECT action FROM platform_user_audit WHERE action = 'MFA_RECOVERY_CODE_USED'");
+    expect(audit.rows).toHaveLength(1);
+  });
+
+  it('a pending MFA challenge is invalidated after 5 wrong codes', async () => {
+    const app = buildTestApp();
+    const { secret } = await enrollAndConfirmMfa(app);
+    const challenge = (await loginPlatform(app)).json<{ mfaChallengeToken: string }>().mfaChallengeToken;
+    const wrong = generateInvalidTotpCode(secret);
+
+    for (let attempt = 1; attempt <= 5; attempt++) {
+      const response = await app.inject({ method: 'POST', url: '/platform-auth/mfa/verify', payload: { sessionToken: challenge, code: wrong } });
+      expect(response.statusCode).toBe(401);
+    }
+    const afterLimit = await app.inject({ method: 'POST', url: '/platform-auth/mfa/verify', payload: { sessionToken: challenge, code: generateTotpCode(secret) } });
+    expect(afterLimit.statusCode).toBe(401);
+  });
+
+  it('POST /platform-auth/mfa/reset needs password + second factor, then clears MFA and revokes other sessions', async () => {
+    const app = buildTestApp();
+    const { secret, recoveryCodes } = await enrollAndConfirmMfa(app);
+    const loginAndVerify = async () => {
+      const challenge = (await loginPlatform(app)).json<{ mfaChallengeToken: string }>().mfaChallengeToken;
+      const verified = await app.inject({ method: 'POST', url: '/platform-auth/mfa/verify', payload: { sessionToken: challenge, code: generateTotpCode(secret) } });
+      return verified.json<{ sessionToken: string }>().sessionToken;
+    };
+    const other = await loginAndVerify();
+    const current = await loginAndVerify();
+    const auth = { authorization: `Bearer ${current}` };
+
+    const wrongPassword = await app.inject({ method: 'POST', url: '/platform-auth/mfa/reset', headers: auth, payload: { password: 'wrong-password-123', code: recoveryCodes[1] } });
+    expect(wrongPassword.statusCode).toBe(401);
+    const noFactor = await app.inject({ method: 'POST', url: '/platform-auth/mfa/reset', headers: auth, payload: { password: platformUserPassword, code: '000000-not-a-code' } });
+    expect(noFactor.statusCode).toBe(401);
+
+    const reset = await app.inject({ method: 'POST', url: '/platform-auth/mfa/reset', headers: auth, payload: { password: platformUserPassword, code: recoveryCodes[1] } });
+    expect(reset.statusCode).toBe(200);
+
+    const status = await app.inject({ method: 'GET', url: '/platform-auth/mfa/status', headers: auth });
+    expect(status.json()).toEqual({ mfaEnabled: false, recoveryCodesRemaining: 0 });
+    const otherSession = await app.inject({ method: 'GET', url: '/platform-auth/mfa/status', headers: { authorization: `Bearer ${other}` } });
+    expect(otherSession.statusCode).toBe(401);
+    const row = await adminPool.query<{ mfa_secret: string | null; codes: string }>(
+      "SELECT mfa_secret, (SELECT count(*)::text FROM platform_mfa_recovery_codes) AS codes FROM platform_users WHERE email = $1",
+      [platformUserEmail],
+    );
+    expect(row.rows[0]).toEqual({ mfa_secret: null, codes: '0' });
+    const audit = await adminPool.query<{ action: string }>("SELECT action FROM platform_user_audit WHERE action LIKE 'MFA_RESET%' ORDER BY created_at");
+    expect(audit.rows.map((r) => r.action)).toEqual(['MFA_RESET_FAILED', 'MFA_RESET_FAILED', 'MFA_RESET']);
+  });
+
+  it('the runtime role can never read the platform recovery tables', async () => {
+    await expect(runtimePool.query('SELECT count(*) FROM platform_password_reset_tokens')).rejects.toThrow(/permission denied/);
+    await expect(runtimePool.query('SELECT count(*) FROM platform_mfa_recovery_codes')).rejects.toThrow(/permission denied/);
   });
 
   function generateTotpCode(secretBase32: string): string {

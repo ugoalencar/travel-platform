@@ -14,8 +14,12 @@ import { UnauthorizedError } from '../../../../packages/domain/tenant-context';
 import { InMemoryRateLimitStore, LoginAbuseProtector } from '../rate-limit';
 import {
   confirmPlatformMfaEnrollment,
+  getPlatformMfaStatus,
+  platformForgotPassword,
   platformLogin,
   platformLogout,
+  platformResetPassword,
+  resetPlatformMfa,
   startPlatformMfaEnrollment,
   verifyPlatformMfaAndCompleteLogin,
 } from '../platform-local-auth';
@@ -148,6 +152,59 @@ export function registerPlatformAuthRoutes(app: FastifyInstance, options: Platfo
       return { enrolled: true };
     },
   );
+
+  app.get('/platform-auth/mfa/status', { preHandler: platformProtectedHooks }, async (request) => {
+    const platformDatabase = requirePlatformDatabase(options.platformDatabase);
+    const principal = requirePlatformPrincipal(request);
+    return getPlatformMfaStatus(platformDatabase, principal.platformUserId);
+  });
+
+  // Lost-authenticator recovery: session + current password + TOTP or an
+  // unused recovery code. Rate-limited as AUTH_RECOVERY (rate-limit.ts).
+  app.post<{ Body: { password?: string; code?: string } }>(
+    '/platform-auth/mfa/reset',
+    { preHandler: platformProtectedHooks },
+    async (request, reply) => {
+      const platformDatabase = requirePlatformDatabase(options.platformDatabase);
+      const principal = requirePlatformPrincipal(request);
+      const password = requireString(request.body?.password, 'password');
+      const code = requireString(request.body?.code, 'code');
+      const currentSessionToken = extractBearerToken(request.headers) ?? '';
+      try {
+        await resetPlatformMfa(platformDatabase, {
+          platformUserId: principal.platformUserId,
+          currentSessionToken,
+          password,
+          code,
+        });
+      } catch (error: unknown) {
+        if (error instanceof UnauthorizedError) {
+          reply.code(401);
+          return { error: error.message };
+        }
+        throw error;
+      }
+      return { mfaReset: true };
+    },
+  );
+
+  // Public and anti-enumeration: the same 202 whether or not the e-mail
+  // belongs to a platform user. Rate-limited as AUTH_RECOVERY.
+  app.post<{ Body: { email?: string } }>('/platform-auth/forgot-password', async (request, reply) => {
+    const platformDatabase = requirePlatformDatabase(options.platformDatabase);
+    const email = requireString(request.body?.email, 'email');
+    await platformForgotPassword(platformDatabase, email, request.ip);
+    reply.code(202);
+    return { requested: true };
+  });
+
+  app.post<{ Body: { token?: string; newPassword?: string } }>('/platform-auth/reset-password', async (request) => {
+    const platformDatabase = requirePlatformDatabase(options.platformDatabase);
+    const token = requireString(request.body?.token, 'token');
+    const newPassword = requireString(request.body?.newPassword, 'newPassword');
+    await platformResetPassword(platformDatabase, token, newPassword);
+    return { reset: true };
+  });
 
   app.post('/platform-auth/logout', { preHandler: platformProtectedHooks }, async (request, reply) => {
     const platformDatabase = requirePlatformDatabase(options.platformDatabase);

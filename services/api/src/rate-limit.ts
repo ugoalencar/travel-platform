@@ -408,7 +408,7 @@ export function classifyRateLimitRequest(method: string, url: string): RateLimit
   ) {
     return RateLimitClass.AUTH_LOGIN;
   }
-  if (/^\/(auth|customer-auth|platform-auth)\/(forgot|recover|reset)/.test(path)) {
+  if (/^\/(auth|customer-auth|platform-auth)\/(forgot|recover|reset)/.test(path) || path === '/platform-auth/mfa/reset') {
     return RateLimitClass.AUTH_RECOVERY;
   }
   if (/^\/webhooks?\//.test(path)) {

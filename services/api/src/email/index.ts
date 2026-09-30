@@ -39,6 +39,10 @@ function agencyAppUrl(env: NodeJS.ProcessEnv): string {
   return (env.APP_URL ?? 'http://localhost:5173').replace(/\/$/, '');
 }
 
+function platformAdminUrl(env: NodeJS.ProcessEnv): string {
+  return (env.PLATFORM_ADMIN_URL ?? 'http://localhost:5174').replace(/\/$/, '');
+}
+
 function customerPortalUrl(env: NodeJS.ProcessEnv): string {
   return (env.CUSTOMER_PORTAL_URL ?? 'http://localhost:5174').replace(/\/$/, '');
 }
@@ -70,6 +74,15 @@ export async function sendStaffPasswordResetEmail(
     ...(input.agencyName ? { agencyName: input.agencyName } : {}),
   });
   return sendAndLog('staff_password_reset', input.to, subject, html, text, env);
+}
+
+export async function sendPlatformPasswordResetEmail(
+  input: { to: string; token: string },
+  env: NodeJS.ProcessEnv = process.env,
+): Promise<SendEmailResult> {
+  const link = `${platformAdminUrl(env)}/reset-password?token=${input.token}`;
+  const { subject, html, text } = passwordResetEmail({ link, agencyName: 'Travel Platform Admin' });
+  return sendAndLog('platform_password_reset', input.to, subject, html, text, env);
 }
 
 export async function sendCustomerPasswordResetEmail(

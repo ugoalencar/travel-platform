@@ -286,9 +286,9 @@ describe('Customer Portal + Platform Admin local auth (Frontend Auth & Session t
       platformUserId,
       email: platformUserEmail,
     });
-    // The only field returned is the otpauth URI -- no raw secret, no
-    // recovery codes (platform_users has no recovery-code table).
-    expect(Object.keys(enrollment)).toEqual(['provisioningUri']);
+    // Only the otpauth URI and the one-time recovery codes (098) are
+    // returned -- never a raw-secret field.
+    expect(Object.keys(enrollment).sort()).toEqual(['provisioningUri', 'recoveryCodes']);
     expect(enrollment.provisioningUri).toMatch(/^otpauth:\/\//);
     const secretFromUri = new URL(enrollment.provisioningUri).searchParams.get('secret');
     expect(secretFromUri).toBeTruthy();
