@@ -2,7 +2,7 @@
 
 > Nome do arquivo mantido (`..._084_095.md`) por ser referenciado em scripts e templates; o escopo atual é **084..096**.
 
-- **Status:** janela **não executada** (PRODUCTION EXECUTION: NOT STARTED). Banco em **083 + 096 HOTFIX** (seção 0.1); **084..095 PENDING**. API na Render em `3512438`, `NODE_ENV=development`, conectada como `postgres` (seção 0.2).
+- **Status:** **JANELA EXECUTADA em 2026-09-30** (seção 12). Produção: migrations 001..096 completas, API `dcb1645` em `NODE_ENV=production`, roles `travel_app_runtime`/`travel_app_platform`, storage Supabase, owner com MFA. Auto-deploy da Render **OFF**.
 - **Escopo da janela:** migrations 084..095 + reaplicação da 096; role `travel_app_platform`; troca da conexão da API de `postgres` (BYPASSRLS) para `travel_app_runtime` (RLS efetivo); `NODE_ENV=production`; storage no Supabase; deploy manual dos commits locais.
 - **Alvo:** produção (Supabase, pooler `aws-0-us-east-1.pooler.supabase.com`, database `postgres`).
 - **Migrations:** 001..096 (096 = [`096_supabase_data_api_hardening.sql`](../../infrastructure/migrations/096_supabase_data_api_hardening.sql)).
@@ -414,3 +414,34 @@ A exposição da Data API existia em produção independentemente da janela. Hoj
 **Já no código (commit local):** `buildSha` usa `RENDER_GIT_COMMIT` → `GIT_SHA` → `BUILD_SHA` → `VERCEL_GIT_COMMIT_SHA`, ignorando valores em branco.
 
 **Proposto (não implementado): versão real do banco.** Nova migration **097** `schema_migrations(version TEXT PRIMARY KEY, applied_at TIMESTAMPTZ NOT NULL DEFAULT now())`, com backfill de `001..097` (válido após 47/47 + 15/15 provarem 084..096), `GRANT SELECT` só ao runtime e `/version` lendo `max(version)`. A partir da 098, cada migration registra a própria linha na mesma transação.
+
+## 12. Execução da janela — 2026-09-30 (UTC)
+
+| Passo | Horário | Resultado |
+|---|---|---|
+| T0 backup | 2026-09-29 23:02Z | `backup_production.sh` completo, 1.068.237 bytes, SHA-256 `d9136bab…40002c`; restore PG17 OK; 170/170 tabelas com contagem idêntica; cifrado (AES-256, PBKDF2 600k) em `D:\travel-platform-backups\prod_full_20260929T230219Z.tar.enc` (SHA-256 `d20f5a36…b7bd`), senha no Bitwarden `prod/BACKUP_ENC_20260929T230219Z`; dry run 47/47, 15/15, 1.752/1.752 negadas |
+| T1 084..094 | 03:37:40Z–03:38:16Z | 11 migrations sem erro (086 autocommit); 170 tabelas com linhas idênticas; 0 grants alterados; 096 intermediária 13/15 (esperado) |
+| T2 | 04:02Z | senha da `travel_app_runtime` rotacionada (só verificador SCRAM; senha antiga recusada); `travel_app_platform` criada; login TLS das duas |
+| T2.5 | 04:23Z | Render Save only: `DATABASE_URL`→runtime, `PLATFORM_DATABASE_URL`→platform, `NODE_ENV=production`, `STORAGE_PROVIDER=supabase`; rollback `prod/RENDER_DATABASE_URL_BEFORE_T25` no Bitwarden; nenhum deploy |
+| T2.6 | ~14:5xZ | buckets privados `documents`, `media-assets`, `trip-photos`; 0 policies em `storage` |
+| T3 / T3b | 15:28:01Z–15:28:05Z | 095 aplicada; 096 reaplicada; `verify_084_095` 47/47; `verify_096` 15/15 |
+| T3c | ~15:3xZ | 1 `PLATFORM_OWNER` `travelplataforma@hotmail.com` (scrypt, sem MFA inicial, audit `PLATFORM_OWNER_BOOTSTRAPPED`) |
+| T5 | 15:38:04Z–15:38:45Z | deploy manual `3512438` com as novas variáveis (`dep-dauipn6gekts73ekk1i0`) |
+| T5A–T5D | 15:38Z–16:5xZ | HSTS, `/readiness` 200, pools seguros; RLS 44/44; storage 3 buckets (upload/download/delete, isolamento); MFA do owner cadastrado no autenticador do responsável, login exige TOTP |
+| T6 | ~17:0xZ | push `3512438..8ca015d`; CI reprovou só no Dependency audit (advisories novos) → `npm audit fix` (lockfile) em `dcb1645`, push, **CI verde** (lint, typecheck, secret scan, audit, unit, security, DB/RLS, build) |
+| T7 / T7A | 17:39:07Z–17:40:41Z | deploy manual `dcb1645` (`dep-daukies1nsns73elf2q0`); `/version.buildSha` = `dcb1645…` |
+| Correção | 17:52Z | 500 intermitente (XX000) por pools da API (20) acima do limite de 15 conexões por role do pooler Supabase (session mode), agravado pelos dois pools por requisição → `DB_POOL_MAX=10` na Render + redeploy `dcb1645` (`dep-daukonjtqb8s73bop5og`); 100 requisições até 40 paralelas → 0 erros |
+| T8 / T9 | 17:4xZ–18:xxZ | API autenticada e fluxos (Tasks, Customer 360, Engagement, Proposal Visual 2.0, Communications, Segmentation, Offers) com isolamento A/B; UI no Edge: Agency (13 telas), Customer App, Platform Admin exige TOTP; persistência após reload; frontends + CORS |
+| T10 | — | auto-deploy OFF; estado final abaixo |
+
+**Estado final:** Render `dcb1645` live, `NODE_ENV=production`, `DATABASE_URL`=`travel_app_runtime`, `PLATFORM_DATABASE_URL`=`travel_app_platform`, `STORAGE_PROVIDER=supabase`, `DB_POOL_MAX=10`, `ALLOW_DEV_AUTH` ausente, auto-deploy OFF. Banco: 175 tabelas, `anon`/`authenticated` sem acesso, 1 owner com MFA. Dados sintéticos de QA mantidos para auditoria: agências "QA Janela A/B" com clientes, ofertas, tarefas, proposta, comunicação e viagem.
+
+**Bugs / pendências registrados:**
+- `FST_ERR_CTP_EMPTY_JSON_BODY` (e `INVALID_JSON_BODY`/`INVALID_MEDIA_TYPE`) → 500 em vez de 4xx no error handler (P2; frontend não afetado).
+- Platform Admin sem tela de enrollment de MFA (só pela API) e sem recuperação de senha/MFA (break-glass manual).
+- Delete de mídia/anexo/foto remove o registro mas mantém o objeto no bucket (4 objetos órfãos de QA).
+- Erros 4xx esperados (404, 400, CORS) são logados com `level: 50`.
+- `/version.migrationVersion` = `unknown` (proposta 097 `schema_migrations`).
+- TLS API→banco sem validação de certificado (`sslmode=require`, sem `verify-full`); trocar a senha do `postgres`, que trafegou sem TLS antes da janela.
+- Email do owner é provisório (`travelplataforma@hotmail.com`) → trocar por endereço corporativo; `.env` local ainda tem a senha antiga da runtime (inválida).
+- Testes locais com banco (`docker compose`) conflitam em nome de container nesta máquina; o CI é a referência.
