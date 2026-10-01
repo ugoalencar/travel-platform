@@ -71,6 +71,12 @@ h2 {
   margin: 0;
 }
 
+.lite-success {
+  color: var(--lite-success);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
 .lite-shell {
   display: flex;
   min-height: 100vh;
@@ -145,8 +151,11 @@ h2 {
   padding: 0.1rem 0.55rem;
 }
 
-.lite-topbar .btn {
+.lite-topbar-actions {
   margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .lite-content {
@@ -288,6 +297,47 @@ tr:last-child td {
   color: var(--lite-muted);
   padding: 1.25rem;
   text-align: center;
+}
+
+.lite-empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.lite-denied {
+  max-width: 34rem;
+}
+
+.lite-checklist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.lite-checklist li {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.95rem;
+}
+
+.lite-check-done {
+  color: var(--lite-success);
+}
+
+.lite-help section {
+  margin-bottom: 1.25rem;
+}
+
+.lite-help ul {
+  margin: 0.25rem 0 0;
+  padding-left: 1.2rem;
 }
 
 .badge {

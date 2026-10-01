@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react';
+
 const STATUS_LABELS: Record<string, string> = {
   ACTIVE: 'Ativo',
   INACTIVE: 'Inativo',
@@ -39,6 +41,24 @@ export function StatusBadge({ status }: { status: string }) {
 export function ErrorNote({ error }: { error: string | null }) {
   if (!error) return null;
   return <p className="lite-error">{error}</p>;
+}
+
+export function SuccessNote({ success }: { success: string | null }) {
+  if (!success) return null;
+  return (
+    <p className="lite-success" role="status">
+      {success}
+    </p>
+  );
+}
+
+export function EmptyState({ message, children }: { message: string; children?: ReactNode }) {
+  return (
+    <div className="lite-empty-state">
+      <p className="lite-empty">{message}</p>
+      {children}
+    </div>
+  );
 }
 
 export function Pager({

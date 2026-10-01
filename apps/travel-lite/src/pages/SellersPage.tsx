@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { api } from '../api';
 import { useCan } from '../auth';
 import { sellerReportQuery, sellerSalesLink, type SellerReport } from '../sellerReport';
-import { ErrorNote, Pager, StatusBadge, formatBRL } from '../ui';
+import { EmptyState, ErrorNote, Pager, StatusBadge, SuccessNote, formatBRL } from '../ui';
 
 interface Seller {
   id: string;
@@ -55,6 +55,7 @@ export function SellersPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [summarySeller, setSummarySeller] = useState<Seller | null>(null);
 
   const load = useCallback(async () => {
@@ -78,6 +79,7 @@ export function SellersPage() {
   function startCreate() {
     setEditingId(null);
     setForm(EMPTY_FORM);
+    setNotice(null);
     setFormOpen(true);
   }
 
@@ -93,6 +95,7 @@ export function SellersPage() {
       fixedAmount:
         seller.commission_fixed_amount !== null ? String(seller.commission_fixed_amount) : '',
     });
+    setNotice(null);
     setFormOpen(true);
   }
 
@@ -119,20 +122,26 @@ export function SellersPage() {
       }
       setFormOpen(false);
       setEditingId(null);
+      setNotice('Vendedor salvo.');
       await load();
     } catch (err) {
+      setNotice(null);
       setError(err instanceof Error ? err.message : 'Falha ao salvar');
     }
   }
 
   async function toggleStatus(seller: Seller) {
+    const deactivating = seller.status === 'ACTIVE';
+    if (deactivating && !window.confirm(`Desativar o vendedor "${seller.name}"?`)) return;
     try {
       await api(`/sellers/${seller.id}`, {
         method: 'PATCH',
         body: { status: seller.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE' },
       });
+      setNotice(deactivating ? 'Vendedor desativado.' : 'Vendedor ativado.');
       await load();
     } catch (err) {
+      setNotice(null);
       setError(err instanceof Error ? err.message : 'Falha ao atualizar');
     }
   }
@@ -181,6 +190,7 @@ export function SellersPage() {
         ) : null}
       </div>
       <ErrorNote error={error} />
+      <SuccessNote success={notice} />
       {formOpen ? (
         <form className="lite-form" onSubmit={(event) => void onSubmit(event)}>
           <label className="field">
@@ -316,7 +326,15 @@ export function SellersPage() {
             ))}
           </tbody>
         </table>
-        {items.length === 0 ? <p className="lite-empty">Nenhum vendedor encontrado.</p> : null}
+        {items.length === 0 ? (
+          <EmptyState message="Nenhum vendedor encontrado.">
+            {canManage ? (
+              <button type="button" className="btn btn-small btn-primary" onClick={startCreate}>
+                Novo vendedor
+              </button>
+            ) : null}
+          </EmptyState>
+        ) : null}
       </div>
       <Pager page={page} pageSize={20} total={total} onPage={setPage} />
     </>

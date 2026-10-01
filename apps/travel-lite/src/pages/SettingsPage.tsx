@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { api } from '../api';
 import { useCan } from '../auth';
-import { ErrorNote, StatusBadge } from '../ui';
+import { ErrorNote, StatusBadge, SuccessNote } from '../ui';
 
 /**
  * Settings > Users and permissions. The API enforces every rule (no
@@ -150,6 +150,7 @@ export function SettingsPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [permissionsFor, setPermissionsFor] = useState<User | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -178,6 +179,7 @@ export function SettingsPage() {
   function startCreate() {
     setEditingId(null);
     setForm({ ...EMPTY_FORM, role: assignableRoles.some((r) => r.key === 'SELLER') ? 'SELLER' : (assignableRoles[0]?.key ?? '') });
+    setNotice(null);
     setFormOpen(true);
   }
 
@@ -191,6 +193,7 @@ export function SettingsPage() {
       seller_id: user.seller_id ?? '',
       status: user.status,
     });
+    setNotice(null);
     setFormOpen(true);
   }
 
@@ -212,20 +215,31 @@ export function SettingsPage() {
       }
       setFormOpen(false);
       setEditingId(null);
+      setNotice('Usuário salvo.');
       await load();
     } catch (err) {
+      setNotice(null);
       setError(err instanceof Error ? err.message : 'Falha ao salvar');
     }
   }
 
   async function toggleStatus(user: User) {
+    const deactivating = user.status === 'ACTIVE';
+    if (
+      deactivating &&
+      !window.confirm(`Desativar o usuário "${user.name}"? O acesso dele é encerrado na próxima requisição.`)
+    ) {
+      return;
+    }
     try {
       await api(`/users/${user.id}`, {
         method: 'PATCH',
         body: { status: user.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE' },
       });
+      setNotice(deactivating ? 'Usuário desativado.' : 'Usuário ativado.');
       await load();
     } catch (err) {
+      setNotice(null);
       setError(err instanceof Error ? err.message : 'Falha ao atualizar');
     }
   }
@@ -249,6 +263,7 @@ export function SettingsPage() {
         ) : null}
       </div>
       <ErrorNote error={error} />
+      <SuccessNote success={notice} />
       {formOpen ? (
         <form className="lite-form" onSubmit={(event) => void onSubmit(event)}>
           <label className="field">
@@ -327,6 +342,7 @@ export function SettingsPage() {
           onClose={() => setPermissionsFor(null)}
           onSaved={() => {
             setPermissionsFor(null);
+            setNotice('Permissões salvas.');
             void load();
           }}
         />
@@ -367,7 +383,14 @@ export function SettingsPage() {
                       </button>
                     ) : null}
                     {canManagePermissions || canManageUsers ? (
-                      <button type="button" className="btn btn-small" onClick={() => setPermissionsFor(user)}>
+                      <button
+                        type="button"
+                        className="btn btn-small"
+                        onClick={() => {
+                          setNotice(null);
+                          setPermissionsFor(user);
+                        }}
+                      >
                         Permissões
                       </button>
                     ) : null}

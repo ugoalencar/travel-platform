@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { api } from '../api';
-import { ErrorNote, StatusBadge } from '../ui';
+import { EmptyState, ErrorNote, StatusBadge, SuccessNote } from '../ui';
 
 interface CatalogItem {
   id: string;
@@ -37,6 +37,7 @@ function CatalogSection({ path, title, extra }: SectionProps) {
   const [notes, setNotes] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -62,6 +63,7 @@ function CatalogSection({ path, title, extra }: SectionProps) {
     setPhone('');
     setEmail('');
     setNotes('');
+    setNotice(null);
   }
 
   function startEdit(item: CatalogItem): void {
@@ -74,6 +76,7 @@ function CatalogSection({ path, title, extra }: SectionProps) {
     setPhone(item.phone ?? '');
     setEmail(item.email ?? '');
     setNotes(item.notes ?? '');
+    setNotice(null);
   }
 
   async function onSubmit(event: FormEvent): Promise<void> {
@@ -96,13 +99,17 @@ function CatalogSection({ path, title, extra }: SectionProps) {
         await api(path, { method: 'POST', body: payload });
       }
       startCreate();
+      setNotice('Cadastro salvo.');
       await load();
     } catch (err) {
+      setNotice(null);
       setError(err instanceof Error ? err.message : 'Falha ao salvar');
     }
   }
 
   async function toggleActive(item: CatalogItem): Promise<void> {
+    const deactivating = extra === 'party' ? isActive(item) : item.active;
+    if (deactivating && !window.confirm(`Desativar "${item.name}"?`)) return;
     try {
       await api(`${path}/${item.id}`, {
         method: 'PATCH',
@@ -110,8 +117,10 @@ function CatalogSection({ path, title, extra }: SectionProps) {
           ? { status: isActive(item) ? 'INACTIVE' : 'ACTIVE' }
           : { active: !item.active },
       });
+      setNotice(deactivating ? 'Item desativado.' : 'Item ativado.');
       await load();
     } catch (err) {
+      setNotice(null);
       setError(err instanceof Error ? err.message : 'Falha ao atualizar');
     }
   }
@@ -120,6 +129,7 @@ function CatalogSection({ path, title, extra }: SectionProps) {
     <section>
       <h2>{title}</h2>
       <ErrorNote error={error} />
+      <SuccessNote success={notice} />
       <form className="lite-form" onSubmit={(event) => void onSubmit(event)}>
         <label className="field">
           <span>Nome *</span>
@@ -253,7 +263,7 @@ function CatalogSection({ path, title, extra }: SectionProps) {
             ))}
           </tbody>
         </table>
-        {items.length === 0 ? <p className="lite-empty">Nenhum registro.</p> : null}
+        {items.length === 0 ? <EmptyState message="Nenhum registro." /> : null}
       </div>
     </section>
   );

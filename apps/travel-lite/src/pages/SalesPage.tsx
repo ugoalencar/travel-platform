@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { api } from '../api';
 import { useCan } from '../auth';
-import { ErrorNote, Pager, StatusBadge, formatBRL } from '../ui';
+import { EmptyState, ErrorNote, Pager, StatusBadge, SuccessNote, formatBRL } from '../ui';
 
 interface SaleListItem {
   id: string;
@@ -113,6 +113,7 @@ export function SalesPage() {
   const [expenseCategories, setExpenseCategories] = useState<NamedItem[]>([]);
   const [costForm, setCostForm] = useState(EMPTY_COST_FORM);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     const params = new URLSearchParams({ page: String(page), pageSize: '20' });
@@ -158,6 +159,7 @@ export function SalesPage() {
 
   async function openCreate(): Promise<void> {
     setForm(EMPTY_FORM);
+    setNotice(null);
     setFormOpen(true);
     await loadFormOptions();
   }
@@ -180,9 +182,11 @@ export function SalesPage() {
         body: payload,
       });
       setFormOpen(false);
+      setNotice('Venda criada como rascunho.');
       await load();
       await openDetail(created.sale.id);
     } catch (err) {
+      setNotice(null);
       setError(err instanceof Error ? err.message : 'Falha ao criar venda');
     }
   }
@@ -194,6 +198,7 @@ export function SalesPage() {
       setCostForm(EMPTY_COST_FORM);
       setError(null);
     } catch (err) {
+      setNotice(null);
       setError(err instanceof Error ? err.message : 'Falha ao abrir a venda');
     }
   }
@@ -201,17 +206,23 @@ export function SalesPage() {
   async function confirmSale(saleId: string): Promise<void> {
     try {
       await api(`/sales/${saleId}/confirm`, { method: 'POST' });
+      setNotice('Venda confirmada.');
       await Promise.all([load(), openDetail(saleId)]);
     } catch (err) {
+      setNotice(null);
       setError(err instanceof Error ? err.message : 'Falha ao confirmar');
     }
   }
 
   async function cancelSale(saleId: string): Promise<void> {
+    const saleNumber = detail?.sale.sale_number ?? saleId;
+    if (!window.confirm(`Cancelar a venda ${saleNumber}? Esta ação não pode ser desfeita.`)) return;
     try {
       await api(`/sales/${saleId}/cancel`, { method: 'POST' });
+      setNotice('Venda cancelada.');
       await Promise.all([load(), openDetail(saleId)]);
     } catch (err) {
+      setNotice(null);
       setError(err instanceof Error ? err.message : 'Falha ao cancelar');
     }
   }
@@ -230,8 +241,10 @@ export function SalesPage() {
       if (costForm.due_date) payload.due_date = costForm.due_date;
       if (costForm.category_id) payload.category_id = costForm.category_id;
       await api(`/sales/${detail.sale.id}/costs`, { method: 'POST', body: payload });
+      setNotice('Custo adicionado.');
       await Promise.all([load(), openDetail(detail.sale.id)]);
     } catch (err) {
+      setNotice(null);
       setError(err instanceof Error ? err.message : 'Falha ao adicionar custo');
     }
   }
@@ -274,6 +287,7 @@ export function SalesPage() {
         ) : null}
       </div>
       <ErrorNote error={error} />
+      <SuccessNote success={notice} />
       {formOpen ? (
         <form className="lite-form" onSubmit={(event) => void onSubmit(event)}>
           <label className="field">
@@ -600,7 +614,19 @@ export function SalesPage() {
             ))}
           </tbody>
         </table>
-        {items.length === 0 ? <p className="lite-empty">Nenhuma venda encontrada.</p> : null}
+        {items.length === 0 ? (
+          <EmptyState message="Nenhuma venda encontrada.">
+            {canCreate ? (
+              <button
+                type="button"
+                className="btn btn-small btn-primary"
+                onClick={() => void openCreate()}
+              >
+                Nova venda
+              </button>
+            ) : null}
+          </EmptyState>
+        ) : null}
       </div>
       <Pager page={page} pageSize={20} total={total} onPage={setPage} />
     </>

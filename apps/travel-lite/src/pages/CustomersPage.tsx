@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { api } from '../api';
 import { useCan } from '../auth';
-import { ErrorNote, Pager, StatusBadge } from '../ui';
+import { EmptyState, ErrorNote, Pager, StatusBadge, SuccessNote } from '../ui';
 
 const OPTIONAL_FIELDS = [
   'email',
@@ -54,6 +54,7 @@ export function CustomersPage() {
   // Choosing/reassigning the portfolio owner needs customers.update_all;
   // everyone else creates customers in their own portfolio.
   const canReassign = useCan('customers.update_all');
+  const canCreate = useCan('customers.create');
   const [sellers, setSellers] = useState<Array<{ id: string; name: string }>>([]);
   const [originalResponsible, setOriginalResponsible] = useState('');
   const [items, setItems] = useState<Customer[]>([]);
@@ -65,6 +66,7 @@ export function CustomersPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     const params = new URLSearchParams({ page: String(page), pageSize: '20' });
@@ -95,6 +97,7 @@ export function CustomersPage() {
     setEditingId(null);
     setForm(EMPTY_FORM);
     setOriginalResponsible('');
+    setNotice(null);
     setFormOpen(true);
   }
 
@@ -107,6 +110,7 @@ export function CustomersPage() {
       ...Object.fromEntries(OPTIONAL_FIELDS.map((field) => [field, customer[field] ?? ''])),
     } as FormState);
     setOriginalResponsible(customer.responsible_seller_id ?? '');
+    setNotice(null);
     setFormOpen(true);
   }
 
@@ -133,20 +137,31 @@ export function CustomersPage() {
       }
       setFormOpen(false);
       setEditingId(null);
+      setNotice('Cliente salvo.');
       await load();
     } catch (err) {
+      setNotice(null);
       setError(err instanceof Error ? err.message : 'Falha ao salvar');
     }
   }
 
   async function toggleStatus(customer: Customer) {
+    const deactivating = customer.status === 'ACTIVE';
+    if (
+      deactivating &&
+      !window.confirm(`Desativar o cliente "${customer.name}"? Ele não entrará em novas vendas.`)
+    ) {
+      return;
+    }
     try {
       await api(`/customers/${customer.id}`, {
         method: 'PATCH',
         body: { status: customer.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE' },
       });
+      setNotice(deactivating ? 'Cliente desativado.' : 'Cliente ativado.');
       await load();
     } catch (err) {
+      setNotice(null);
       setError(err instanceof Error ? err.message : 'Falha ao atualizar');
     }
   }
@@ -180,6 +195,7 @@ export function CustomersPage() {
         </button>
       </div>
       <ErrorNote error={error} />
+      <SuccessNote success={notice} />
       {formOpen ? (
         <form className="lite-form" onSubmit={(event) => void onSubmit(event)}>
           <label className="field">
@@ -389,7 +405,15 @@ export function CustomersPage() {
             ))}
           </tbody>
         </table>
-        {items.length === 0 ? <p className="lite-empty">Nenhum cliente encontrado.</p> : null}
+        {items.length === 0 ? (
+          <EmptyState message="Nenhum cliente encontrado.">
+            {canCreate ? (
+              <button type="button" className="btn btn-small btn-primary" onClick={startCreate}>
+                Novo cliente
+              </button>
+            ) : null}
+          </EmptyState>
+        ) : null}
       </div>
       <Pager page={page} pageSize={20} total={total} onPage={setPage} />
     </>

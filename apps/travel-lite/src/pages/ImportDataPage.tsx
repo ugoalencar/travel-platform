@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from 'react';
 import { api } from '../api';
-import { ErrorNote, StatusBadge } from '../ui';
+import { ErrorNote, StatusBadge, SuccessNote } from '../ui';
 
 type ImportType = 'CUSTOMERS' | 'SALES';
 
@@ -137,6 +137,7 @@ export function ImportDataPage() {
   const [categoryId, setCategoryId] = useState('');
   const [linkCustomerId, setLinkCustomerId] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   const fieldList = useMemo(() => (type === 'CUSTOMERS' ? CUSTOMER_FIELDS : SALE_FIELDS), [type]);
@@ -158,6 +159,7 @@ export function ImportDataPage() {
     setMapping({});
     setRecords([]);
     setError(null);
+    setNotice(null);
   }
 
   function onFileChange(event: ChangeEvent<HTMLInputElement>) {
@@ -194,6 +196,7 @@ export function ImportDataPage() {
       setMapping(defaultMapping(type, response.headers));
       setRecords([]);
     } catch (err) {
+      setNotice(null);
       setError(err instanceof Error ? err.message : 'Falha ao enviar arquivo');
     } finally {
       setBusy(false);
@@ -215,7 +218,9 @@ export function ImportDataPage() {
       setBatch(response.batch);
       const recordResponse = await api<{ items: ImportRecord[] }>(`/imports/${batch.id}/records`);
       setRecords(recordResponse.items);
+      setNotice('Dry-run concluído: confira as pendências abaixo.');
     } catch (err) {
+      setNotice(null);
       setError(err instanceof Error ? err.message : 'Falha no dry-run');
     } finally {
       setBusy(false);
@@ -236,12 +241,14 @@ export function ImportDataPage() {
       const response = await api<{ items: ImportRecord[] }>(`/imports/${batch.id}/records`);
       setRecords(response.items);
     } catch (err) {
+      setNotice(null);
       setError(err instanceof Error ? err.message : 'Falha ao reconciliar');
     }
   }
 
   async function confirm(): Promise<void> {
     if (!batch) return;
+    if (!window.confirm(`Confirmar a importação? ${batch.valid_rows} linha(s) serão gravadas.`)) return;
     setBusy(true);
     setError(null);
     try {
@@ -252,7 +259,9 @@ export function ImportDataPage() {
       setBatch(response.batch);
       const recordResponse = await api<{ items: ImportRecord[] }>(`/imports/${batch.id}/records`);
       setRecords(recordResponse.items);
+      setNotice('Importação confirmada.');
     } catch (err) {
+      setNotice(null);
       setError(err instanceof Error ? err.message : 'Falha ao confirmar');
     } finally {
       setBusy(false);
@@ -271,6 +280,7 @@ export function ImportDataPage() {
         </button>
       </div>
       <ErrorNote error={error} />
+      <SuccessNote success={notice} />
       <form className="lite-form" onSubmit={(event) => void upload(event)}>
         <label className="field">
           <span>Arquivo CSV ou XLSX</span>

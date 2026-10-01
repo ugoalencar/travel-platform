@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Link, Navigate, Route, Routes } from 'react-router-dom';
 import { AuthProvider, ProtectedRoute, useCan } from './auth';
 import { menuPermissions } from './menu';
 import { Layout } from './Layout';
@@ -8,6 +8,7 @@ import { CommissionsPage } from './pages/CommissionsPage';
 import { CustomersPage } from './pages/CustomersPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { FinancePage } from './pages/FinancePage';
+import { HelpPage } from './pages/HelpPage';
 import { ImportDataPage } from './pages/ImportDataPage';
 import { LoginPage } from './pages/LoginPage';
 import { ReportsPage } from './pages/ReportsPage';
@@ -15,11 +16,27 @@ import { SalesPage } from './pages/SalesPage';
 import { SellersPage } from './pages/SellersPage';
 import { SettingsPage } from './pages/SettingsPage';
 
-/** Hides a page the user cannot use (direct URL -> dashboard). */
+/** Shown in place when the URL needs a permission the user does not hold. */
+function AccessDenied() {
+  return (
+    <section className="lite-card lite-denied">
+      <h1>Acesso restrito</h1>
+      <p>Você não tem acesso a esta área.</p>
+      <p className="lite-muted">Se precisar desta permissão, fale com um administrador da agência.</p>
+      <div className="form-actions">
+        <Link className="btn btn-primary" to="/">
+          Voltar ao dashboard
+        </Link>
+      </div>
+    </section>
+  );
+}
+
+/** Hides a page the user cannot use (direct URL -> access denied panel). */
 function Allowed({ path, children }: { path: string; children: ReactNode }) {
   const anyOf = menuPermissions(path);
   const allowed = useCan(...anyOf);
-  return anyOf.length === 0 || allowed ? <>{children}</> : <Navigate to="/" replace />;
+  return anyOf.length === 0 || allowed ? <>{children}</> : <AccessDenied />;
 }
 
 export function App() {
@@ -45,6 +62,7 @@ export function App() {
             <Route path="/relatorios" element={<Allowed path="/relatorios"><ReportsPage /></Allowed>} />
             <Route path="/cadastros" element={<Allowed path="/cadastros"><CatalogPage /></Allowed>} />
             <Route path="/configuracoes" element={<Allowed path="/configuracoes"><SettingsPage /></Allowed>} />
+            <Route path="/ajuda" element={<HelpPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

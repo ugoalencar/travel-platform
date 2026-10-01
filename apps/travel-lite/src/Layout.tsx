@@ -1,4 +1,4 @@
-import { NavLink, Outlet } from 'react-router-dom';
+import { Link, NavLink, Outlet } from 'react-router-dom';
 import { useAuth } from './auth';
 import { MENU } from './menu';
 
@@ -30,9 +30,14 @@ export function Layout() {
         <header className="lite-topbar">
           <span className="lite-user">{user?.name}</span>
           <span className="lite-role">{user?.role}</span>
-          <button type="button" className="btn btn-ghost" onClick={() => void logout()}>
-            Sair
-          </button>
+          <div className="lite-topbar-actions">
+            <Link className="btn btn-ghost" to="/ajuda">
+              Ajuda
+            </Link>
+            <button type="button" className="btn btn-ghost" onClick={() => void logout()}>
+              Sair
+            </button>
+          </div>
         </header>
         <main className="lite-content">
           <Outlet />

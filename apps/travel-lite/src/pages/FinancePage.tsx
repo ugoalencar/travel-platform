@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { Link } from 'react-router-dom';
 import { api } from '../api';
 import { useCan } from '../auth';
-import { ErrorNote, Pager, StatusBadge, formatBRL } from '../ui';
+import { EmptyState, ErrorNote, Pager, StatusBadge, SuccessNote, formatBRL } from '../ui';
 
 interface NamedItem {
   id: string;
@@ -76,9 +77,11 @@ export function FinancePage() {
   const [tab, setTab] = useState<Tab>('receivables');
   const canManageFinance = useCan('finance.manage');
   const canPayCommissions = useCan('commissions.pay');
+  const canViewSales = useCan('sales.read_all', 'sales.read_own');
   const [reversing, setReversing] = useState<Payment | null>(null);
   const [reversalReason, setReversalReason] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
   const [receivables, setReceivables] = useState<Receivable[]>([]);
   const [receivablePage, setReceivablePage] = useState(1);
@@ -179,8 +182,10 @@ export function FinancePage() {
       await api(`/receivables/${receivingId}/receive`, { method: 'POST', body });
       setReceivingId(null);
       setReceiveAmount('');
+      setNotice('Recebimento registrado.');
       await loadReceivables();
     } catch (err) {
+      setNotice(null);
       setError(err instanceof Error ? err.message : 'Falha ao receber');
     }
   }
@@ -198,8 +203,10 @@ export function FinancePage() {
       await api('/payables', { method: 'POST', body });
       setPayableForm(EMPTY_PAYABLE);
       setPayableFormOpen(false);
+      setNotice('Despesa criada.');
       await loadPayables();
     } catch (err) {
+      setNotice(null);
       setError(err instanceof Error ? err.message : 'Falha ao criar');
     }
   }
@@ -210,8 +217,10 @@ export function FinancePage() {
     try {
       await api(`/payables/${payingId}/pay`, { method: 'POST', body: { account_id: accountId } });
       setPayingId(null);
+      setNotice('Pagamento registrado.');
       await loadPayables();
     } catch (err) {
+      setNotice(null);
       setError(err instanceof Error ? err.message : 'Falha ao pagar');
     }
   }
@@ -226,8 +235,10 @@ export function FinancePage() {
       });
       setReversing(null);
       setReversalReason('');
+      setNotice('Estorno registrado.');
       await Promise.all([loadPayments(), loadReceivables(), loadPayables()]);
     } catch (err) {
+      setNotice(null);
       setError(err instanceof Error ? err.message : 'Falha ao estornar');
     }
   }
@@ -259,6 +270,7 @@ export function FinancePage() {
         </button>
       </div>
       <ErrorNote error={error} />
+      <SuccessNote success={notice} />
       {accounts.length === 0 ? (
         <p className="lite-error">
           Cadastre uma conta financeira em Cadastros para registrar pagamentos.
@@ -345,7 +357,10 @@ export function FinancePage() {
                         <button
                           type="button"
                           className="btn btn-small btn-primary"
-                          onClick={() => setReceivingId(receivable.id)}
+                          onClick={() => {
+                            setNotice(null);
+                            setReceivingId(receivable.id);
+                          }}
                         >
                           Receber
                         </button>
@@ -358,7 +373,13 @@ export function FinancePage() {
               </tbody>
             </table>
             {receivables.length === 0 ? (
-              <p className="lite-empty">Nenhum recebível. Confirme uma venda para gerar parcelas.</p>
+              <EmptyState message="Nenhum recebível. Confirme uma venda para gerar parcelas.">
+                {canViewSales ? (
+                  <Link className="btn btn-small" to="/vendas">
+                    Ir para Vendas
+                  </Link>
+                ) : null}
+              </EmptyState>
             ) : null}
           </div>
           <Pager
@@ -390,7 +411,10 @@ export function FinancePage() {
               <button
                 type="button"
                 className="btn btn-primary"
-                onClick={() => setPayableFormOpen((open) => !open)}
+                onClick={() => {
+                  setNotice(null);
+                  setPayableFormOpen((open) => !open);
+                }}
               >
                 Nova despesa
               </button>
@@ -518,7 +542,10 @@ export function FinancePage() {
                         <button
                           type="button"
                           className="btn btn-small btn-primary"
-                          onClick={() => setPayingId(payable.id)}
+                          onClick={() => {
+                            setNotice(null);
+                            setPayingId(payable.id);
+                          }}
                         >
                           Pagar
                         </button>
@@ -530,7 +557,22 @@ export function FinancePage() {
                 ))}
               </tbody>
             </table>
-            {payables.length === 0 ? <p className="lite-empty">Nenhum payable em aberto.</p> : null}
+            {payables.length === 0 ? (
+              <EmptyState message="Nenhuma despesa em aberto.">
+                {canManageFinance ? (
+                  <button
+                    type="button"
+                    className="btn btn-small btn-primary"
+                    onClick={() => {
+                      setNotice(null);
+                      setPayableFormOpen(true);
+                    }}
+                  >
+                    Nova despesa
+                  </button>
+                ) : null}
+              </EmptyState>
+            ) : null}
           </div>
           <Pager page={payablePage} pageSize={20} total={payableTotal} onPage={setPayablePage} />
         </>
@@ -629,7 +671,9 @@ export function FinancePage() {
                 ))}
               </tbody>
             </table>
-            {payments.length === 0 ? <p className="lite-empty">Nenhum pagamento registrado.</p> : null}
+            {payments.length === 0 ? (
+              <EmptyState message="Nenhum pagamento registrado." />
+            ) : null}
           </div>
           <Pager page={paymentPage} pageSize={20} total={paymentTotal} onPage={setPaymentPage} />
         </>

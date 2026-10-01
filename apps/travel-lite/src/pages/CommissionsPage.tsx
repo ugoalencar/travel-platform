@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { api } from '../api';
 import { useCan } from '../auth';
-import { ErrorNote, Pager, StatusBadge, formatBRL } from '../ui';
+import { EmptyState, ErrorNote, Pager, StatusBadge, SuccessNote, formatBRL } from '../ui';
 
 interface Commission {
   id: string;
@@ -40,6 +40,7 @@ export function CommissionsPage() {
   const [overrideAmount, setOverrideAmount] = useState('');
   const [overrideNotes, setOverrideNotes] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     const params = new URLSearchParams({ page: String(page), pageSize: '20' });
@@ -68,8 +69,10 @@ export function CommissionsPage() {
   async function approve(commission: Commission): Promise<void> {
     try {
       await api(`/commissions/${commission.id}/approve`, { method: 'POST', body: {} });
+      setNotice('Comissão aprovada.');
       await load();
     } catch (err) {
+      setNotice(null);
       setError(err instanceof Error ? err.message : 'Falha ao aprovar');
     }
   }
@@ -84,8 +87,10 @@ export function CommissionsPage() {
       setOverrideId(null);
       setOverrideAmount('');
       setOverrideNotes('');
+      setNotice('Comissão ajustada.');
       await load();
     } catch (err) {
+      setNotice(null);
       setError(err instanceof Error ? err.message : 'Falha ao ajustar');
     }
   }
@@ -94,6 +99,7 @@ export function CommissionsPage() {
     setOverrideId(commission.id);
     setOverrideAmount(commission.commission_amount !== null ? String(commission.commission_amount) : '');
     setOverrideNotes('');
+    setNotice(null);
   }
 
   return (
@@ -130,6 +136,7 @@ export function CommissionsPage() {
         </select>
       </div>
       <ErrorNote error={error} />
+      <SuccessNote success={notice} />
       {overrideId ? (
         <form className="lite-form" onSubmit={(event) => void submitOverride(event)}>
           <label className="field">
@@ -221,7 +228,9 @@ export function CommissionsPage() {
             ))}
           </tbody>
         </table>
-        {items.length === 0 ? <p className="lite-empty">Nenhuma comissão encontrada.</p> : null}
+        {items.length === 0 ? (
+          <EmptyState message="Nenhuma comissão no filtro. Comissões são geradas ao confirmar vendas." />
+        ) : null}
       </div>
       <Pager page={page} pageSize={20} total={total} onPage={setPage} />
     </>
