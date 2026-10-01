@@ -456,7 +456,10 @@ Ordem obrigatória (auto-deploy segue OFF):
 | Render | 21:47Z | `PLATFORM_ADMIN_URL=https://admin.travelplataforma.com.br` |
 | Deploy manual `82c6478` (CI verde) | 21:47:53Z–21:48:45Z | `dep-dauo6vh7lnhs739ac4t0`; `/version` `buildSha=82c6478`, `migrationVersion=098`; HSTS |
 | Smoke | 21:49Z | JSON vazio 400; content-type 415; forgot-password 202 idêntico + token só hash + email enviado (Resend); delete de mídia remove o objeto; 2º delete 404; 4xx em warn; 0 erros 5xx; isolamento A/B 34/34 |
-| Pendente | — | recadastro do MFA do owner (gera os 16 códigos de recuperação) |
+| Break-glass MFA do owner | 23:48:56Z | autorizado pelo owner: o autenticador foi apagado com um cadastro novo ainda não confirmado; MFA limpo pelo admin em transação auditada (`MFA_RESET` + `AUDIT_NOTE` com o estado real) |
+| Recadastro do MFA do owner | ~00:0xZ | `MFA_ENABLED` no Microsoft Authenticator; segredo cifrado; 16 códigos de recuperação disponíveis (guardados pelo owner) |
+
+**Lição para o runbook:** no reset de MFA, só remover a conta antiga do autenticador **depois** de confirmar a nova; cada clique em "Configurar MFA" gera uma chave nova e invalida a anterior.
 
 ## 11. `/version`
 
