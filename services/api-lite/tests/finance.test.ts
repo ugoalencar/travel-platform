@@ -35,7 +35,8 @@ interface AccountJson {
 
 describe('Travel Lite financial catalog and cash flow', () => {
   let lite: LiteFixture;
-  let operatorToken: string;
+  let staffToken: string;
+  let sellerToken: string;
   let viewerToken: string;
   let foreignToken: string;
   let managerToken: string;
@@ -48,16 +49,17 @@ describe('Travel Lite financial catalog and cash flow', () => {
 
   beforeAll(async () => {
     lite = await createLiteFixture();
-    operatorToken = await lite.login('tenant-a', 'operator@a.test');
+    staffToken = await lite.login('tenant-a', 'staff@a.test');
+    sellerToken = await lite.login('tenant-a', 'seller1@a.test');
     viewerToken = await lite.login('tenant-a', 'viewer@a.test');
-    foreignToken = await lite.login('tenant-b', 'operator@b.test');
+    foreignToken = await lite.login('tenant-b', 'staff@b.test');
     managerToken = await lite.login('tenant-a', 'admin@a.test');
     foreignManagerToken = await lite.login('tenant-b', 'admin@b.test');
 
     const account = await lite.app.inject({
       method: 'POST',
       url: '/financial-accounts',
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
       payload: { name: 'Conta Banco A', type: 'BANK', initial_balance: 100 },
     });
     expect(account.statusCode).toBe(201);
@@ -66,7 +68,7 @@ describe('Travel Lite financial catalog and cash flow', () => {
     const inbound = await lite.app.inject({
       method: 'POST',
       url: '/financial-categories',
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
       payload: { name: 'Recebimento de Venda', direction: 'IN' },
     });
     inboundCategoryId = inbound.json<{ category: { id: string } }>().category.id;
@@ -74,7 +76,7 @@ describe('Travel Lite financial catalog and cash flow', () => {
     const outbound = await lite.app.inject({
       method: 'POST',
       url: '/financial-categories',
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
       payload: { name: 'Despesa Operacional', direction: 'OUT' },
     });
     outboundCategoryId = outbound.json<{ category: { id: string } }>().category.id;
@@ -82,7 +84,7 @@ describe('Travel Lite financial catalog and cash flow', () => {
     const seller = await lite.app.inject({
       method: 'POST',
       url: '/sellers',
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
       payload: {
         name: 'Vendedor Financeiro',
         commission_rule_type: 'PERCENTAGE_ON_GROSS',
@@ -94,7 +96,7 @@ describe('Travel Lite financial catalog and cash flow', () => {
     const category = await lite.app.inject({
       method: 'POST',
       url: '/categories',
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
       payload: { name: 'PACOTE' },
     });
     categoryId = category.json<{ category: { id: string } }>().category.id;
@@ -108,7 +110,7 @@ describe('Travel Lite financial catalog and cash flow', () => {
     const response = await lite.app.inject({
       method: 'POST',
       url: '/customers',
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
       payload: { name, email: `${name.replace(/\s+/g, '.').toLowerCase()}@fin.test` },
     });
     expect(response.statusCode).toBe(201);
@@ -122,7 +124,7 @@ describe('Travel Lite financial catalog and cash flow', () => {
     const created = await lite.app.inject({
       method: 'POST',
       url: '/sales',
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
       payload: {
         customer_id: customerId,
         seller_id: sellerId,
@@ -139,14 +141,14 @@ describe('Travel Lite financial catalog and cash flow', () => {
     const confirm = await lite.app.inject({
       method: 'POST',
       url: `/sales/${saleId}/confirm`,
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
     });
     expect(confirm.statusCode).toBe(200);
 
     const detail = await lite.app.inject({
       method: 'GET',
       url: `/sales/${saleId}`,
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
     });
     expect(detail.statusCode).toBe(200);
     return detail.json<SaleDetailJson>();
@@ -156,7 +158,7 @@ describe('Travel Lite financial catalog and cash flow', () => {
     const duplicate = await lite.app.inject({
       method: 'POST',
       url: '/financial-accounts',
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
       payload: { name: 'Conta Banco A', type: 'BANK' },
     });
     expect(duplicate.statusCode).toBe(409);
@@ -164,7 +166,7 @@ describe('Travel Lite financial catalog and cash flow', () => {
     const badType = await lite.app.inject({
       method: 'POST',
       url: '/financial-accounts',
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
       payload: { name: 'Conta Invalida', type: 'CRYPTO' },
     });
     expect(badType.statusCode).toBe(400);
@@ -172,7 +174,7 @@ describe('Travel Lite financial catalog and cash flow', () => {
     const renamed = await lite.app.inject({
       method: 'PATCH',
       url: `/financial-accounts/${accountId}`,
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
       payload: { name: 'Conta Banco A (renomeada)' },
     });
     expect(renamed.statusCode).toBe(200);
@@ -183,7 +185,7 @@ describe('Travel Lite financial catalog and cash flow', () => {
     const accounts = await lite.app.inject({
       method: 'GET',
       url: '/financial-accounts',
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
     });
     const accountItems = accounts.json<{ items: AccountJson[] }>().items;
     expect(accountItems.some((a) => a.id === accountId)).toBe(true);
@@ -192,7 +194,7 @@ describe('Travel Lite financial catalog and cash flow', () => {
     const badDirection = await lite.app.inject({
       method: 'POST',
       url: '/financial-categories',
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
       payload: { name: 'Categoria Invalida', direction: 'SIDEWAYS' },
     });
     expect(badDirection.statusCode).toBe(400);
@@ -200,7 +202,7 @@ describe('Travel Lite financial catalog and cash flow', () => {
     const missingDirection = await lite.app.inject({
       method: 'POST',
       url: '/financial-categories',
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
       payload: { name: 'Sem Direcao' },
     });
     expect(missingDirection.statusCode).toBe(400);
@@ -208,7 +210,7 @@ describe('Travel Lite financial catalog and cash flow', () => {
     const method = await lite.app.inject({
       method: 'POST',
       url: '/payment-methods',
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
       payload: { name: 'PIX', sort_order: 1 },
     });
     expect(method.statusCode).toBe(201);
@@ -216,7 +218,7 @@ describe('Travel Lite financial catalog and cash flow', () => {
     const badSort = await lite.app.inject({
       method: 'POST',
       url: '/payment-methods',
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
       payload: { name: 'Ordem Invalida', sort_order: -1 },
     });
     expect(badSort.statusCode).toBe(400);
@@ -262,7 +264,7 @@ describe('Travel Lite financial catalog and cash flow', () => {
     const list = await lite.app.inject({
       method: 'GET',
       url: `/receivables?customer_id=${customerId}`,
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
     });
     expect(list.statusCode).toBe(200);
     const page = list.json<PageJson<ReceivableJson>>();
@@ -275,7 +277,7 @@ describe('Travel Lite financial catalog and cash flow', () => {
     const partial = await lite.app.inject({
       method: 'POST',
       url: `/receivables/${first.id}/receive`,
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
       payload: { account_id: accountId, category_id: inboundCategoryId, amount: 100 },
     });
     expect(partial.statusCode).toBe(200);
@@ -283,7 +285,7 @@ describe('Travel Lite financial catalog and cash flow', () => {
     const afterPartial = await lite.app.inject({
       method: 'GET',
       url: `/receivables?customer_id=${customerId}`,
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
     });
     const partialItem = afterPartial
       .json<PageJson<ReceivableJson>>()
@@ -295,14 +297,14 @@ describe('Travel Lite financial catalog and cash flow', () => {
     const saleAfterPartial = await lite.app.inject({
       method: 'GET',
       url: `/sales/${detail.sale.id}`,
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
     });
     expect(saleAfterPartial.json<SaleDetailJson>().sale.status).toBe('PARTIALLY_PAID');
 
     const tooMuch = await lite.app.inject({
       method: 'POST',
       url: `/receivables/${first.id}/receive`,
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
       payload: { account_id: accountId, amount: 99999 },
     });
     expect(tooMuch.statusCode).toBe(400);
@@ -310,7 +312,7 @@ describe('Travel Lite financial catalog and cash flow', () => {
     const settle = await lite.app.inject({
       method: 'POST',
       url: `/receivables/${first.id}/receive`,
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
       payload: { account_id: accountId },
     });
     expect(settle.statusCode).toBe(200);
@@ -318,7 +320,7 @@ describe('Travel Lite financial catalog and cash flow', () => {
     const doublePay = await lite.app.inject({
       method: 'POST',
       url: `/receivables/${first.id}/receive`,
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
       payload: { account_id: accountId },
     });
     expect(doublePay.statusCode).toBe(409);
@@ -326,7 +328,7 @@ describe('Travel Lite financial catalog and cash flow', () => {
     const settleSecond = await lite.app.inject({
       method: 'POST',
       url: `/receivables/${second.id}/receive`,
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
       payload: { account_id: accountId },
     });
     expect(settleSecond.statusCode).toBe(200);
@@ -334,7 +336,7 @@ describe('Travel Lite financial catalog and cash flow', () => {
     const finalDetail = await lite.app.inject({
       method: 'GET',
       url: `/sales/${detail.sale.id}`,
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
     });
     const finalJson = finalDetail.json<SaleDetailJson>();
     expect(finalJson.sale.status).toBe('PAID');
@@ -343,7 +345,7 @@ describe('Travel Lite financial catalog and cash flow', () => {
     const payments = await lite.app.inject({
       method: 'GET',
       url: '/payments?direction=IN',
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
     });
     const paymentItems = payments.json<
       PageJson<{ direction: string; amount: number; account_name: string | null }>
@@ -355,7 +357,7 @@ describe('Travel Lite financial catalog and cash flow', () => {
     const ledger = await lite.app.inject({
       method: 'GET',
       url: `/financial-transactions?type=IN&account_id=${accountId}`,
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
     });
     const ledgerItems = ledger.json<
       PageJson<{ type: string; amount: number; payment_id: string | null }>
@@ -381,7 +383,7 @@ describe('Travel Lite financial catalog and cash flow', () => {
     const window = await lite.app.inject({
       method: 'GET',
       url: `/receivables?customer_id=${customerId}&from=2026-10-01&to=2026-10-31`,
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
     });
     const windowItems = window.json<PageJson<ReceivableJson>>().items;
     expect(windowItems).toHaveLength(1);
@@ -390,7 +392,7 @@ describe('Travel Lite financial catalog and cash flow', () => {
     const emptyWindow = await lite.app.inject({
       method: 'GET',
       url: `/receivables?customer_id=${customerId}&from=2027-01-01`,
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
     });
     expect(emptyWindow.json<PageJson<ReceivableJson>>().total).toBe(0);
 
@@ -412,7 +414,7 @@ describe('Travel Lite financial catalog and cash flow', () => {
     const badFilter = await lite.app.inject({
       method: 'GET',
       url: '/receivables?status=NOT_A_STATUS',
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
     });
     expect(badFilter.statusCode).toBe(400);
   });
@@ -421,7 +423,7 @@ describe('Travel Lite financial catalog and cash flow', () => {
     const created = await lite.app.inject({
       method: 'POST',
       url: '/payables',
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
       payload: {
         description: 'Hospedagem Fornecedor',
         amount: 250,
@@ -437,7 +439,7 @@ describe('Travel Lite financial catalog and cash flow', () => {
     const badCategory = await lite.app.inject({
       method: 'POST',
       url: '/payables',
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
       payload: {
         description: 'Categoria Invalida',
         amount: 10,
@@ -450,7 +452,7 @@ describe('Travel Lite financial catalog and cash flow', () => {
     const list = await lite.app.inject({
       method: 'GET',
       url: '/payables?status=OPEN',
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
     });
     const openItem = list
       .json<PageJson<{ id: string; description: string; category_name: string | null }>>()
@@ -461,7 +463,7 @@ describe('Travel Lite financial catalog and cash flow', () => {
     const operatorPay = await lite.app.inject({
       method: 'POST',
       url: `/payables/${payableId}/pay`,
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(sellerToken),
       payload: { account_id: accountId },
     });
     expect(operatorPay.statusCode).toBe(403);
@@ -485,7 +487,7 @@ describe('Travel Lite financial catalog and cash flow', () => {
     const afterPay = await lite.app.inject({
       method: 'GET',
       url: '/payables?status=PAID',
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
     });
     const paidItem = afterPay
       .json<PageJson<{ id: string; amount: number; paid_amount: number; status: string }>>()
@@ -504,7 +506,7 @@ describe('Travel Lite financial catalog and cash flow', () => {
     const outLedger = await lite.app.inject({
       method: 'GET',
       url: `/financial-transactions?type=OUT&account_id=${accountId}`,
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
     });
     const outItems = outLedger.json<PageJson<{ amount: number }>>().items;
     expect(outItems).toHaveLength(1);
@@ -513,7 +515,7 @@ describe('Travel Lite financial catalog and cash flow', () => {
     const outPayments = await lite.app.inject({
       method: 'GET',
       url: '/payments?direction=OUT',
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
     });
     expect(outPayments.json<PageJson<unknown>>().total).toBe(1);
 

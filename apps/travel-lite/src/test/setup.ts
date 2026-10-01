@@ -5,3 +5,11 @@ import { afterEach } from 'vitest';
 afterEach(() => {
   cleanup();
 });
+
+// recharts' ResponsiveContainer needs ResizeObserver, which jsdom lacks.
+class ResizeObserverStub {
+  observe(): void {}
+  unobserve(): void {}
+  disconnect(): void {}
+}
+globalThis.ResizeObserver ??= ResizeObserverStub as unknown as typeof ResizeObserver;

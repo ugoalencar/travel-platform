@@ -2,7 +2,7 @@ import { createHash, randomBytes } from 'node:crypto';
 import type { FastifyRequest } from 'fastify';
 import type { LiteDatabase, TenantClient } from './database';
 import { UnauthorizedError } from './errors';
-import { isLiteRole } from './roles';
+import { loadAccess } from './access';
 import type { TenantPrincipal } from './tenant-context';
 
 declare module 'fastify' {
@@ -65,8 +65,9 @@ async function loadSession(
   if (row.revoked_at !== null) return null;
   if (new Date(row.expires_at).getTime() <= Date.now()) return null;
   if (row.status !== 'ACTIVE') return null;
-  if (!isLiteRole(row.role)) return null;
-  return { tenantId, userId, sessionId: row.session_id, role: row.role, email: row.email };
+  const access = await loadAccess(client, tenantId, userId, row.role);
+  if (!access) return null;
+  return { tenantId, userId, sessionId: row.session_id, email: row.email, ...access };
 }
 
 /**

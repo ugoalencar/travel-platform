@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { api } from '../api';
+import { useCan } from '../auth';
 import { ErrorNote, Pager, StatusBadge, formatBRL } from '../ui';
 
 interface Commission {
@@ -28,6 +29,7 @@ interface Seller {
 }
 
 export function CommissionsPage() {
+  const canApprove = useCan('commissions.approve');
   const [items, setItems] = useState<Commission[]>([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
@@ -195,7 +197,7 @@ export function CommissionsPage() {
                 </td>
                 <td>
                   <div className="row-actions">
-                    {commission.status === 'PENDING' ? (
+                    {canApprove && commission.status === 'PENDING' ? (
                       <button
                         type="button"
                         className="btn btn-small btn-primary"
@@ -204,7 +206,7 @@ export function CommissionsPage() {
                         Aprovar
                       </button>
                     ) : null}
-                    {commission.status !== 'PAID' && commission.status !== 'CANCELLED' ? (
+                    {canApprove && commission.status !== 'PAID' && commission.status !== 'CANCELLED' ? (
                       <button
                         type="button"
                         className="btn btn-small"

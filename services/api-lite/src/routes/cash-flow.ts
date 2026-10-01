@@ -1,10 +1,10 @@
 import type { FastifyInstance, preHandlerHookHandler } from 'fastify';
+import { requirePermission } from '../access';
 import { AUDIT_EVENTS, recordAuditEvent } from '../audit-log';
 import type { LiteDatabase, TenantClient } from '../database';
 import { ConflictError, NotFoundError, ValidationError } from '../errors';
 import { recordPayment, refreshSaleStatus, reversePayment } from '../finance';
 import { enqueueOutboxEvent } from '../outbox';
-import { requireRole } from '../roles';
 import { getTenantContext } from '../tenant-context';
 import {
   optionalDate,
@@ -137,6 +137,7 @@ export function registerCashFlowRoutes(
   // ---------------------------------------------------------- receivables
   app.get('/receivables', { preHandler: protectedHooks }, async (request) => {
     const context = getTenantContext();
+    requirePermission(context, 'finance.read');
     const query = (request.query ?? {}) as Record<string, string | undefined>;
 
     const page = Math.max(1, Number(query.page) || 1);
@@ -202,7 +203,7 @@ export function registerCashFlowRoutes(
 
   app.post('/receivables/:id/receive', { preHandler: protectedHooks }, async (request) => {
     const context = getTenantContext();
-    requireRole(context, 'OPERATOR');
+    requirePermission(context, 'finance.manage');
     const { id } = request.params as { id: string };
     const body = parseObjectBody(request.body);
     const payment = parsePaymentBody(body);
@@ -270,6 +271,7 @@ export function registerCashFlowRoutes(
   // ---------------------------------------------------------- payables
   app.get('/payables', { preHandler: protectedHooks }, async (request) => {
     const context = getTenantContext();
+    requirePermission(context, 'finance.read');
     const query = (request.query ?? {}) as Record<string, string | undefined>;
 
     const page = Math.max(1, Number(query.page) || 1);
@@ -328,7 +330,7 @@ export function registerCashFlowRoutes(
 
   app.post('/payables', { preHandler: protectedHooks }, async (request, reply) => {
     const context = getTenantContext();
-    requireRole(context, 'OPERATOR');
+    requirePermission(context, 'finance.manage');
     const body = parseObjectBody(request.body);
 
     const description = requiredString(body, 'description', { max: 500 });
@@ -393,11 +395,11 @@ export function registerCashFlowRoutes(
     return { payable: { id: payable.id, status: 'OPEN', amount } };
   });
 
-  // Paying money out (expenses and commissions) is restricted to
-  // MANAGER/ADMIN; operators may still register payables.
+  // Paying money out needs finance.manage; a commission payable also needs
+  // commissions.pay (checked once the payable is loaded).
   app.post('/payables/:id/pay', { preHandler: protectedHooks }, async (request) => {
     const context = getTenantContext();
-    requireRole(context, 'MANAGER');
+    requirePermission(context, 'finance.manage');
     const { id } = request.params as { id: string };
     const body = parseObjectBody(request.body);
     const payment = parsePaymentBody(body);
@@ -417,6 +419,7 @@ export function registerCashFlowRoutes(
       );
       const payable = result.rows[0];
       if (!payable) throw new NotFoundError('Payable not found');
+      if (payable.commission_id) requirePermission(context, 'commissions.pay');
       if (payable.status === 'CANCELLED') {
         throw new ConflictError('A cancelled payable cannot be paid');
       }
@@ -494,7 +497,7 @@ export function registerCashFlowRoutes(
   // ---------------------------------------------------------- reversal
   app.post('/payments/:id/reverse', { preHandler: protectedHooks }, async (request, reply) => {
     const context = getTenantContext();
-    requireRole(context, 'MANAGER');
+    requirePermission(context, 'finance.manage');
     const id = requiredUuid({ id: (request.params as { id: string }).id }, 'id');
     const body = parseObjectBody(request.body);
     const reason = requiredString(body, 'reason', { max: 500 });
@@ -549,6 +552,7 @@ export function registerCashFlowRoutes(
   // ---------------------------------------------------------- history
   app.get('/payments', { preHandler: protectedHooks }, async (request) => {
     const context = getTenantContext();
+    requirePermission(context, 'finance.read');
     const query = (request.query ?? {}) as Record<string, string | undefined>;
 
     const page = Math.max(1, Number(query.page) || 1);
@@ -607,6 +611,7 @@ export function registerCashFlowRoutes(
 
   app.get('/financial-transactions', { preHandler: protectedHooks }, async (request) => {
     const context = getTenantContext();
+    requirePermission(context, 'finance.read');
     const query = (request.query ?? {}) as Record<string, string | undefined>;
 
     const page = Math.max(1, Number(query.page) || 1);

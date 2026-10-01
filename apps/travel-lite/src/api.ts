@@ -7,6 +7,10 @@ export interface SessionUser {
   name: string;
   email: string;
   role: string;
+  /** Seller linked to this login (null for administrative users). */
+  sellerId: string | null;
+  /** Effective permissions resolved by the API (UI hints only). */
+  permissions: string[];
 }
 
 export interface StoredSession {
@@ -57,7 +61,7 @@ function authHeaders(token: string | null): Record<string, string> {
 }
 
 export interface ApiOptions {
-  method?: 'GET' | 'POST' | 'PATCH' | 'DELETE';
+  method?: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
   body?: unknown;
   token?: string | null;
 }

@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { api, apiCsv, downloadBlob } from '../api';
+import { useCan } from '../auth';
+import { ChartCard, SeriesBarChart, SeriesLineChart, monthLabel } from '../charts';
 import {
   SALE_STATUS_OPTIONS,
   sellerReportQuery,
@@ -23,6 +25,8 @@ const COMMISSION_LABELS: Record<string, string> = {
 };
 
 export function SellerReportPanel({ initial }: { initial: Partial<SellerReportFilters> }) {
+  // Without reports.sellers_all the API returns only the user's own seller.
+  const canCompare = useCan('reports.sellers_all');
   const [initialFilters] = useState<SellerReportFilters>(() => ({
     from: initial.from ?? '',
     to: initial.to ?? '',
@@ -118,6 +122,7 @@ export function SellerReportPanel({ initial }: { initial: Partial<SellerReportFi
             onChange={(event) => setFilters({ ...filters, to: event.target.value })}
           />
         </label>
+        {canCompare ? (
         <label className="field">
           <span>Vendedor</span>
           <select
@@ -132,6 +137,7 @@ export function SellerReportPanel({ initial }: { initial: Partial<SellerReportFi
             ))}
           </select>
         </label>
+        ) : null}
         <label className="field">
           <span>Categoria</span>
           <select
@@ -167,6 +173,7 @@ export function SellerReportPanel({ initial }: { initial: Partial<SellerReportFi
         </button>
       </form>
       <ErrorNote error={error} />
+      {report ? <SellerCharts report={report} canCompare={canCompare} /> : null}
       {report ? (
         <div className="lite-table-wrap">
           <table>
@@ -291,5 +298,71 @@ export function SellerReportPanel({ initial }: { initial: Partial<SellerReportFi
         </>
       ) : null}
     </>
+  );
+}
+
+function SellerCharts({ report, canCompare }: { report: SellerReport; canCompare: boolean }) {
+  const months = report.charts.by_month.map((point) => ({ ...point, label: monthLabel(point.month) }));
+  const comparison = report.items
+    .filter((item) => item.sales_count > 0)
+    .map((item) => ({ ...item, label: item.seller_name }));
+  return (
+    <div className="chart-grid">
+      <ChartCard title="Vendas por período">
+        <SeriesBarChart data={months} xKey="label" series={[{ key: 'gross_amount', label: 'Vendido' }]} />
+      </ChartCard>
+      <ChartCard title="Margem por período">
+        <SeriesLineChart data={months} xKey="label" series={[{ key: 'margin_amount', label: 'Margem' }]} />
+      </ChartCard>
+      <ChartCard title="Vendas por categoria">
+        <SeriesBarChart
+          data={report.charts.by_category.map((point) => ({ ...point }))}
+          xKey="category_name"
+          series={[{ key: 'gross_amount', label: 'Vendido' }]}
+        />
+      </ChartCard>
+      <ChartCard title="Recebido x a receber">
+        <SeriesBarChart
+          data={months}
+          xKey="label"
+          series={[
+            { key: 'received_amount', label: 'Recebido' },
+            { key: 'pending_amount', label: 'A receber' },
+          ]}
+        />
+      </ChartCard>
+      <ChartCard title="Comissão gerada x paga">
+        <SeriesBarChart
+          data={months}
+          xKey="label"
+          series={[
+            { key: 'commission_amount', label: 'Gerada' },
+            { key: 'commission_paid_amount', label: 'Paga' },
+          ]}
+        />
+      </ChartCard>
+      {canCompare && comparison.length > 1 ? (
+        <>
+          <ChartCard title="Comparativo de vendedores">
+            <SeriesBarChart
+              data={comparison}
+              xKey="label"
+              series={[
+                { key: 'gross_amount', label: 'Vendido' },
+                { key: 'margin_amount', label: 'Margem' },
+                { key: 'commission_amount', label: 'Comissão' },
+              ]}
+            />
+          </ChartCard>
+          <ChartCard title="Quantidade de vendas por vendedor">
+            <SeriesBarChart
+              data={comparison}
+              xKey="label"
+              series={[{ key: 'sales_count', label: 'Vendas', format: 'count' }]}
+            />
+          </ChartCard>
+        </>
+      ) : null}
+    </div>
   );
 }

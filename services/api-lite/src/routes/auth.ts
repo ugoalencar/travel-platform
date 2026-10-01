@@ -1,4 +1,5 @@
 import type { FastifyInstance, preHandlerHookHandler } from 'fastify';
+import { loadAccess } from '../access';
 import { AUDIT_EVENTS, recordAuditEvent } from '../audit-log';
 import { createSession, revokeSession } from '../auth';
 import type { LiteDatabase } from '../database';
@@ -67,12 +68,13 @@ export function registerAuthRoutes(app: FastifyInstance, database: LiteDatabase,
     }
 
     const session = await createSession(database, tenant.id, user.id);
-    await database.runAsTenant(tenant.id, user.id, async (client) => {
+    const access = await database.runAsTenant(tenant.id, user.id, async (client) => {
       await recordAuditEvent(client, {
         eventType: AUDIT_EVENTS.LOGIN_SUCCESS,
         entityType: 'user',
         entityId: user.id,
       });
+      return loadAccess(client, tenant.id, user.id, user.role);
     });
 
     reply.code(200);
@@ -85,6 +87,8 @@ export function registerAuthRoutes(app: FastifyInstance, database: LiteDatabase,
         name: user.name,
         email: user.email,
         role: user.role,
+        sellerId: access?.sellerId ?? null,
+        permissions: [...(access?.permissions ?? [])].sort(),
       },
     };
   });
@@ -116,7 +120,15 @@ export function registerAuthRoutes(app: FastifyInstance, database: LiteDatabase,
     const user = result.rows[0];
     if (!user) throw new UnauthorizedError();
     return {
-      user: { id: user.id, tenantId: context.tenantId, name: user.name, email: user.email, role: user.role },
+      user: {
+        id: user.id,
+        tenantId: context.tenantId,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        sellerId: context.sellerId,
+        permissions: [...context.permissions].sort(),
+      },
     };
   });
 }

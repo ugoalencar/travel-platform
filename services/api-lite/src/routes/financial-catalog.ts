@@ -1,9 +1,9 @@
 import type { FastifyInstance, preHandlerHookHandler } from 'fastify';
+import { requirePermission, type Permission } from '../access';
 import { AUDIT_EVENTS, recordAuditEvent } from '../audit-log';
 import type { LiteDatabase } from '../database';
 import { ConflictError, NotFoundError, ValidationError } from '../errors';
 import { enqueueOutboxEvent, type OutboxEventType } from '../outbox';
-import { requireRole } from '../roles';
 import { getTenantContext } from '../tenant-context';
 import { optionalInteger, parseObjectBody, requiredAmount, requiredString } from '../validation';
 
@@ -16,6 +16,8 @@ interface CatalogOptions {
   auditUpdate: string;
   outboxCreate: OutboxEventType;
   outboxUpdate: OutboxEventType;
+  /** Any of these may list; empty = every authenticated user (sale forms need it). */
+  readPermissions: Permission[];
 }
 
 /**
@@ -35,6 +37,7 @@ function registerCatalogRoutes(
 
   app.get(path, { preHandler: protectedHooks }, async () => {
     const context = getTenantContext();
+    if (options.readPermissions.length > 0) requirePermission(context, ...options.readPermissions);
     const result = await database.withTenantTransaction((client) =>
       client.query<Record<string, unknown>>(
         `SELECT ${select} FROM ${table} WHERE tenant_id = $1
@@ -47,7 +50,7 @@ function registerCatalogRoutes(
 
   app.post(path, { preHandler: protectedHooks }, async (request, reply) => {
     const context = getTenantContext();
-    requireRole(context, 'OPERATOR');
+    requirePermission(context, 'settings.manage');
     const body = parseObjectBody(request.body);
 
     const columns = ['tenant_id', 'name'];
@@ -109,7 +112,7 @@ function registerCatalogRoutes(
 
   app.patch(`${path}/:id`, { preHandler: protectedHooks }, async (request) => {
     const context = getTenantContext();
-    requireRole(context, 'OPERATOR');
+    requirePermission(context, 'settings.manage');
     const { id } = request.params as { id: string };
     const body = parseObjectBody(request.body);
 
@@ -165,8 +168,7 @@ function registerCatalogRoutes(
 
 function serializeCatalogRow(table: string, row: Record<string, unknown>): Record<string, unknown> {
   if (table !== 'financial_accounts') return row;
-  const balance = row.initial_balance;
-  return typeof balance === 'string' ? { ...row, initial_balance: Number(balance) } : row;
+  return { ...row, initial_balance: Number(row.initial_balance), balance: Number(row.balance) };
 }
 
 export function registerFinancialCatalogRoutes(
@@ -176,9 +178,15 @@ export function registerFinancialCatalogRoutes(
 ) {
   registerCatalogRoutes(app, database, protectedHooks, {
     path: '/financial-accounts',
+    readPermissions: ['finance.read', 'settings.manage'],
     table: 'financial_accounts',
     entityType: 'account',
-    select: 'id, name, type, initial_balance, active',
+    // Current balance = opening balance + immutable ledger (IN - OUT).
+    select: `id, name, type, initial_balance, active,
+      initial_balance + coalesce((SELECT sum(CASE WHEN t.type = 'IN' THEN t.amount ELSE -t.amount END)
+                                    FROM financial_transactions t
+                                   WHERE t.tenant_id = financial_accounts.tenant_id
+                                     AND t.account_id = financial_accounts.id), 0) AS balance`,
     auditCreate: AUDIT_EVENTS.ACCOUNT_CREATED,
     auditUpdate: AUDIT_EVENTS.ACCOUNT_UPDATED,
     outboxCreate: 'ACCOUNT_CREATED',
@@ -187,6 +195,7 @@ export function registerFinancialCatalogRoutes(
 
   registerCatalogRoutes(app, database, protectedHooks, {
     path: '/financial-categories',
+    readPermissions: ['finance.read', 'settings.manage'],
     table: 'financial_categories',
     entityType: 'category',
     select: 'id, name, direction, active',
@@ -198,6 +207,7 @@ export function registerFinancialCatalogRoutes(
 
   registerCatalogRoutes(app, database, protectedHooks, {
     path: '/payment-methods',
+    readPermissions: [],
     table: 'payment_methods',
     entityType: 'paymentMethod',
     select: 'id, name, active, sort_order',

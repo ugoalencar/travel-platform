@@ -119,7 +119,7 @@ export async function createUserFixture(
     name: string;
     email: string;
     passwordHash: string;
-    role: 'ADMIN' | 'MANAGER' | 'OPERATOR' | 'VIEWER';
+    role: 'MASTER' | 'ADMIN' | 'MANAGER' | 'SELLER' | 'VIEWER';
   },
 ): Promise<string> {
   const result = await adminPool.query<{ id: string }>(

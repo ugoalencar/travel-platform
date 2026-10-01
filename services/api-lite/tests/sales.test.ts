@@ -32,7 +32,7 @@ interface DetailJson {
 
 describe('Travel Lite sales lifecycle', () => {
   let lite: LiteFixture;
-  let operatorToken: string;
+  let staffToken: string;
   let managerToken: string;
   let viewerToken: string;
   let customerId: string;
@@ -43,7 +43,7 @@ describe('Travel Lite sales lifecycle', () => {
 
   beforeAll(async () => {
     lite = await createLiteFixture();
-    operatorToken = await lite.login('tenant-a', 'operator@a.test');
+    staffToken = await lite.login('tenant-a', 'staff@a.test');
     viewerToken = await lite.login('tenant-a', 'viewer@a.test');
     const adminToken = await lite.login('tenant-a', 'admin@a.test');
     managerToken = adminToken;
@@ -51,7 +51,7 @@ describe('Travel Lite sales lifecycle', () => {
     const customer = await lite.app.inject({
       method: 'POST',
       url: '/customers',
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
       payload: { name: 'Cliente Venda', email: 'cliente@venda.test' },
     });
     customerId = customer.json<{ customer: { id: string } }>().customer.id;
@@ -59,7 +59,7 @@ describe('Travel Lite sales lifecycle', () => {
     const seller = await lite.app.inject({
       method: 'POST',
       url: '/sellers',
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
       payload: {
         name: 'Vendedor 10%',
         commission_rule_type: 'PERCENTAGE_ON_GROSS',
@@ -71,7 +71,7 @@ describe('Travel Lite sales lifecycle', () => {
     const noRule = await lite.app.inject({
       method: 'POST',
       url: '/sellers',
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
       payload: { name: 'Vendedor Sem Regra' },
     });
     undefinedSellerId = noRule.json<{ seller: { id: string } }>().seller.id;
@@ -79,7 +79,7 @@ describe('Travel Lite sales lifecycle', () => {
     const marginSeller = await lite.app.inject({
       method: 'POST',
       url: '/sellers',
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
       payload: {
         name: 'Vendedor Margem',
         commission_rule_type: 'PERCENTAGE_ON_MARGIN',
@@ -91,7 +91,7 @@ describe('Travel Lite sales lifecycle', () => {
     const category = await lite.app.inject({
       method: 'POST',
       url: '/categories',
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
       payload: { name: 'AÉREO' },
     });
     categoryId = category.json<{ category: { id: string } }>().category.id;
@@ -105,7 +105,7 @@ describe('Travel Lite sales lifecycle', () => {
     return lite.app.inject({
       method: 'POST',
       url: '/sales',
-      headers: lite.headers(token ?? operatorToken),
+      headers: lite.headers(token ?? staffToken),
       payload: {
         customer_id: customerId,
         seller_id: sellerId,
@@ -122,7 +122,7 @@ describe('Travel Lite sales lifecycle', () => {
     const response = await lite.app.inject({
       method: 'GET',
       url: `/sales/${saleId}`,
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
     });
     expect(response.statusCode).toBe(200);
     return response.json<DetailJson>();
@@ -163,7 +163,7 @@ describe('Travel Lite sales lifecycle', () => {
     const confirm = await lite.app.inject({
       method: 'POST',
       url: `/sales/${sale.id}/confirm`,
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
     });
     expect(confirm.statusCode).toBe(200);
     expect(confirm.json<{ sale: SaleJson }>().sale.status).toBe('CONFIRMED');
@@ -193,7 +193,7 @@ describe('Travel Lite sales lifecycle', () => {
     await lite.app.inject({
       method: 'POST',
       url: `/sales/${sale.id}/confirm`,
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
     });
 
     const detail = await getDetail(sale.id);
@@ -209,7 +209,7 @@ describe('Travel Lite sales lifecycle', () => {
     await lite.app.inject({
       method: 'POST',
       url: `/sales/${sale.id}/confirm`,
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
     });
 
     const detail = await getDetail(sale.id);
@@ -225,14 +225,14 @@ describe('Travel Lite sales lifecycle', () => {
     const first = await lite.app.inject({
       method: 'POST',
       url: `/sales/${sale.id}/confirm`,
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
     });
     expect(first.statusCode).toBe(200);
 
     const second = await lite.app.inject({
       method: 'POST',
       url: `/sales/${sale.id}/confirm`,
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
     });
     expect(second.statusCode).toBe(409);
   });
@@ -244,7 +244,7 @@ describe('Travel Lite sales lifecycle', () => {
     const statusEdit = await lite.app.inject({
       method: 'PATCH',
       url: `/sales/${sale.id}`,
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
       payload: { status: 'CONFIRMED' },
     });
     expect(statusEdit.statusCode).toBe(400);
@@ -252,7 +252,7 @@ describe('Travel Lite sales lifecycle', () => {
     const edit = await lite.app.inject({
       method: 'PATCH',
       url: `/sales/${sale.id}`,
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
       payload: { gross_amount: 1500, cost_amount: 1000, description: 'editada' },
     });
     expect(edit.statusCode).toBe(200);
@@ -261,13 +261,13 @@ describe('Travel Lite sales lifecycle', () => {
     await lite.app.inject({
       method: 'POST',
       url: `/sales/${sale.id}/confirm`,
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
     });
 
     const afterConfirm = await lite.app.inject({
       method: 'PATCH',
       url: `/sales/${sale.id}`,
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
       payload: { description: 'nope' },
     });
     expect(afterConfirm.statusCode).toBe(409);
@@ -279,7 +279,7 @@ describe('Travel Lite sales lifecycle', () => {
     await lite.app.inject({
       method: 'POST',
       url: `/sales/${sale.id}/confirm`,
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
     });
 
     const cancel = await lite.app.inject({
@@ -308,7 +308,7 @@ describe('Travel Lite sales lifecycle', () => {
     await lite.app.inject({
       method: 'POST',
       url: `/sales/${sale.id}/confirm`,
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
     });
 
     await lite.adminPool.query(`UPDATE receivables SET paid_amount = amount, status = 'PAID' WHERE sale_id = $1`, [
@@ -327,7 +327,7 @@ describe('Travel Lite sales lifecycle', () => {
     const list = await lite.app.inject({
       method: 'GET',
       url: '/sales?status=CONFIRMED',
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
     });
     expect(list.statusCode).toBe(200);
     const body = list.json<{ items: Array<SaleJson & { customer: { name: string } }>; total: number }>();
@@ -336,7 +336,7 @@ describe('Travel Lite sales lifecycle', () => {
     expect(body.items[0]?.customer.name).toBe('Cliente Venda');
 
     const anySale = (await createSale({})).json<{ sale: SaleJson }>().sale;
-    const tokenB = await lite.login('tenant-b', 'operator@b.test');
+    const tokenB = await lite.login('tenant-b', 'staff@b.test');
     const foreign = await lite.app.inject({
       method: 'GET',
       url: `/sales/${anySale.id}`,
@@ -347,7 +347,7 @@ describe('Travel Lite sales lifecycle', () => {
     const search = await lite.app.inject({
       method: 'GET',
       url: '/sales?search=VENDA-000001',
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
     });
     expect(search.json<{ items: SaleJson[] }>().items).toHaveLength(1);
   });

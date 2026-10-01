@@ -73,7 +73,7 @@ describe('Travel Lite authentication', () => {
   });
 
   it('supports /api prefix (production same-origin path)', async () => {
-    const token = await lite.login('tenant-b', 'operator@b.test');
+    const token = await lite.login('tenant-b', 'staff@b.test');
 
     const me = await lite.app.inject({
       method: 'GET',
@@ -81,7 +81,7 @@ describe('Travel Lite authentication', () => {
       headers: lite.headers(token),
     });
     expect(me.statusCode).toBe(200);
-    expect(me.json<{ user: { id: string } }>().user.id).toBe(lite.operatorB);
+    expect(me.json<{ user: { id: string } }>().user.id).toBe(lite.staffB);
   });
 
   it('logout revokes the session', async () => {
@@ -103,7 +103,7 @@ describe('Travel Lite authentication', () => {
   });
 
   it('keeps sessions tenant-scoped: tenant B login never sees tenant A users', async () => {
-    const token = await lite.login('tenant-b', 'operator@b.test');
+    const token = await lite.login('tenant-b', 'staff@b.test');
 
     const me = await lite.app.inject({
       method: 'GET',
@@ -111,7 +111,7 @@ describe('Travel Lite authentication', () => {
       headers: lite.headers(token),
     });
     expect(me.statusCode).toBe(200);
-    expect(me.json<{ user: { email: string } }>().user.email).toBe('operator@b.test');
+    expect(me.json<{ user: { email: string } }>().user.email).toBe('staff@b.test');
 
     const wrongTenant = await login('tenant-b', 'admin@a.test', 'correct-horse-battery-staple');
     expect(wrongTenant.statusCode).toBe(401);

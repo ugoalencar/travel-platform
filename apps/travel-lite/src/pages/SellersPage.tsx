@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api';
+import { useCan } from '../auth';
 import { sellerReportQuery, sellerSalesLink, type SellerReport } from '../sellerReport';
 import { ErrorNote, Pager, StatusBadge, formatBRL } from '../ui';
 
@@ -44,6 +45,7 @@ const EMPTY_FORM: FormState = {
 };
 
 export function SellersPage() {
+  const canManage = useCan('sellers.manage');
   const [items, setItems] = useState<Seller[]>([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
@@ -172,9 +174,11 @@ export function SellersPage() {
           <option value="INACTIVE">Inativos</option>
         </select>
         <span className="spacer" />
-        <button type="button" className="btn btn-primary" onClick={startCreate}>
-          Novo vendedor
-        </button>
+        {canManage ? (
+          <button type="button" className="btn btn-primary" onClick={startCreate}>
+            Novo vendedor
+          </button>
+        ) : null}
       </div>
       <ErrorNote error={error} />
       {formOpen ? (
@@ -292,16 +296,20 @@ export function SellersPage() {
                     <button type="button" className="btn btn-small" onClick={() => setSummarySeller(seller)}>
                       Resumo
                     </button>
-                    <button type="button" className="btn btn-small" onClick={() => startEdit(seller)}>
-                      Editar
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-small"
-                      onClick={() => void toggleStatus(seller)}
-                    >
-                      {seller.status === 'ACTIVE' ? 'Desativar' : 'Ativar'}
-                    </button>
+                    {canManage ? (
+                      <>
+                        <button type="button" className="btn btn-small" onClick={() => startEdit(seller)}>
+                          Editar
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-small"
+                          onClick={() => void toggleStatus(seller)}
+                        >
+                          {seller.status === 'ACTIVE' ? 'Desativar' : 'Ativar'}
+                        </button>
+                      </>
+                    ) : null}
                   </div>
                 </td>
               </tr>

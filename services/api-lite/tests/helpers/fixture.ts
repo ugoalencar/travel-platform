@@ -28,10 +28,13 @@ export interface LiteFixture {
   tenantA: string;
   tenantB: string;
   adminA: string;
-  operatorA: string;
+  staffA: string;
   viewerA: string;
-  operatorB: string;
+  staffB: string;
   adminB: string;
+  masterA: string;
+  sellerUserA1: string;
+  sellerUserA2: string;
   login(slug: string, email: string): Promise<string>;
   headers(token: string): Record<string, string>;
   close(): Promise<void>;
@@ -52,12 +55,12 @@ export async function createLiteFixture(): Promise<LiteFixture> {
     passwordHash,
     role: 'ADMIN',
   });
-  const operatorA = await createUserFixture(pools.adminPool, {
+  const staffA = await createUserFixture(pools.adminPool, {
     tenantId: tenantA,
-    name: 'Operator A',
-    email: 'operator@a.test',
+    name: 'Staff A',
+    email: 'staff@a.test',
     passwordHash,
-    role: 'OPERATOR',
+    role: 'MANAGER',
   });
   const viewerA = await createUserFixture(pools.adminPool, {
     tenantId: tenantA,
@@ -66,12 +69,34 @@ export async function createLiteFixture(): Promise<LiteFixture> {
     passwordHash,
     role: 'VIEWER',
   });
-  const operatorB = await createUserFixture(pools.adminPool, {
+  const staffB = await createUserFixture(pools.adminPool, {
     tenantId: tenantB,
-    name: 'Operator B',
-    email: 'operator@b.test',
+    name: 'Staff B',
+    email: 'staff@b.test',
     passwordHash,
-    role: 'OPERATOR',
+    role: 'MANAGER',
+  });
+  const masterA = await createUserFixture(pools.adminPool, {
+    tenantId: tenantA,
+    name: 'Master A',
+    email: 'master@a.test',
+    passwordHash,
+    role: 'MASTER',
+  });
+  // SELLER logins; tests that need them link them to sellers explicitly.
+  const sellerUserA1 = await createUserFixture(pools.adminPool, {
+    tenantId: tenantA,
+    name: 'Seller One',
+    email: 'seller1@a.test',
+    passwordHash,
+    role: 'SELLER',
+  });
+  const sellerUserA2 = await createUserFixture(pools.adminPool, {
+    tenantId: tenantA,
+    name: 'Seller Two',
+    email: 'seller2@a.test',
+    passwordHash,
+    role: 'SELLER',
   });
   const adminB = await createUserFixture(pools.adminPool, {
     tenantId: tenantB,
@@ -104,10 +129,13 @@ export async function createLiteFixture(): Promise<LiteFixture> {
     tenantA,
     tenantB,
     adminA,
-    operatorA,
+    staffA,
     viewerA,
-    operatorB,
+    staffB,
     adminB,
+    masterA,
+    sellerUserA1,
+    sellerUserA2,
     login,
     headers: (token: string) => ({ authorization: `Bearer ${token}` }),
     async close() {

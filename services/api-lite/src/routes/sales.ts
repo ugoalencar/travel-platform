@@ -1,9 +1,18 @@
 import type { FastifyInstance, preHandlerHookHandler } from 'fastify';
+import {
+  can,
+  effectiveSellerFilter,
+  inScope,
+  requirePermission,
+  scopeCondition,
+  scopeFor,
+  type AccessContext,
+  type Scope,
+} from '../access';
 import { AUDIT_EVENTS, recordAuditEvent } from '../audit-log';
 import type { LiteDatabase, TenantClient } from '../database';
-import { ConflictError, NotFoundError, ValidationError } from '../errors';
+import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from '../errors';
 import { enqueueOutboxEvent } from '../outbox';
-import { requireRole } from '../roles';
 import { getTenantContext } from '../tenant-context';
 import {
   optionalDate,
@@ -131,12 +140,31 @@ interface SaleRelations {
   payment_method_id: string | null;
 }
 
+/**
+ * Own-scoped users (no sales.update_all) may only sell as their own seller
+ * and only to customers they can see; a customer outside their portfolio
+ * is reported exactly like a missing one.
+ */
 async function validateSaleRelations(
   client: TenantClient,
   tenantId: string,
   relations: SaleRelations,
+  context: AccessContext,
 ): Promise<void> {
-  await assertReferenceExists(client, tenantId, 'customers', relations.customer_id, 'customer_id');
+  if (!can(context, 'sales.update_all') && relations.seller_id !== context.sellerId) {
+    throw new ForbiddenError('Sales can only be registered for your own seller');
+  }
+  const customerScope: Scope = can(context, 'customers.read_all')
+    ? { all: true }
+    : { all: false, sellerId: can(context, 'customers.read_own') ? context.sellerId : null };
+  const customer = await client.query<{ responsible_seller_id: string | null }>(
+    'SELECT responsible_seller_id FROM customers WHERE tenant_id = $1 AND id = $2',
+    [tenantId, relations.customer_id],
+  );
+  const row = customer.rows[0];
+  if (!row || !inScope(customerScope, row.responsible_seller_id)) {
+    throw new ValidationError('Field customer_id must reference an existing record of this tenant');
+  }
   await assertReferenceExists(client, tenantId, 'sellers', relations.seller_id, 'seller_id');
   await assertReferenceExists(client, tenantId, 'sale_categories', relations.category_id, 'category_id');
   if (relations.payment_method_id) {
@@ -150,17 +178,27 @@ async function validateSaleRelations(
   }
 }
 
+function readScope(): Scope {
+  return scopeFor(getTenantContext(), 'sales.read_all', 'sales.read_own');
+}
+
+function updateScope(): Scope {
+  return scopeFor(getTenantContext(), 'sales.update_all', 'sales.update_own');
+}
+
+/** Out-of-scope sales are indistinguishable from missing ones (404). */
 async function loadSaleForUpdate(
   client: TenantClient,
   tenantId: string,
   saleId: string,
+  scope: Scope,
 ): Promise<SaleRow> {
   const result = await client.query<SaleRow>(
     `SELECT ${SELECT_SALE} FROM sales WHERE tenant_id = $1 AND id = $2 FOR UPDATE`,
     [tenantId, saleId],
   );
   const sale = result.rows[0];
-  if (!sale) throw new NotFoundError('Sale not found');
+  if (!sale || !inScope(scope, sale.seller_id)) throw new NotFoundError('Sale not found');
   return sale;
 }
 
@@ -196,9 +234,13 @@ export function registerSaleRoutes(
     if (query.status) {
       addCondition('s.status', '=', optionalEnum({ status: query.status }, 'status', SALE_STATUSES));
     }
-    if (query.seller_id) {
-      addCondition('s.seller_id', '=', optionalUuid({ seller_id: query.seller_id }, 'seller_id'));
-    }
+    const sellerFilter = effectiveSellerFilter(
+      readScope(),
+      optionalUuid({ seller_id: query.seller_id ?? null }, 'seller_id'),
+    );
+    const scoped = scopeCondition(readScope(), 's.seller_id', params);
+    if (scoped) conditions.push(scoped);
+    else if (sellerFilter) addCondition('s.seller_id', '=', sellerFilter);
     if (query.customer_id) {
       addCondition('s.customer_id', '=', optionalUuid({ customer_id: query.customer_id }, 'customer_id'));
     }
@@ -255,7 +297,7 @@ export function registerSaleRoutes(
         [context.tenantId, id],
       );
       const sale = saleResult.rows[0];
-      if (!sale) throw new NotFoundError('Sale not found');
+      if (!sale || !inScope(readScope(), sale.seller_id)) throw new NotFoundError('Sale not found');
 
       const receivablesResult = await client.query<{
         id: string;
@@ -321,7 +363,7 @@ export function registerSaleRoutes(
 
   app.post('/sales', { preHandler: protectedHooks }, async (request, reply) => {
     const context = getTenantContext();
-    requireRole(context, 'OPERATOR');
+    requirePermission(context, 'sales.create');
     const body = parseObjectBody(request.body);
 
     const relations: SaleRelations = {
@@ -338,7 +380,7 @@ export function registerSaleRoutes(
     const installmentCount = parseInstallmentCount(body);
 
     const sale = await database.withTenantTransaction(async (client) => {
-      await validateSaleRelations(client, context.tenantId, relations);
+      await validateSaleRelations(client, context.tenantId, relations, context);
       const saleNumber = await nextSaleNumber(client, context.tenantId);
       const result = await client.query<SaleRow>(
         `INSERT INTO sales (tenant_id, customer_id, seller_id, category_id, sale_number,
@@ -385,7 +427,7 @@ export function registerSaleRoutes(
 
   app.patch('/sales/:id', { preHandler: protectedHooks }, async (request) => {
     const context = getTenantContext();
-    requireRole(context, 'OPERATOR');
+    const scope = updateScope();
     const { id } = request.params as { id: string };
     const body = parseObjectBody(request.body);
 
@@ -426,7 +468,7 @@ export function registerSaleRoutes(
     }
 
     const sale = await database.withTenantTransaction(async (client) => {
-      const current = await loadSaleForUpdate(client, context.tenantId, id);
+      const current = await loadSaleForUpdate(client, context.tenantId, id, scope);
       if (current.status !== 'DRAFT') {
         throw new ConflictError('Only DRAFT sales can be edited');
       }
@@ -445,7 +487,7 @@ export function registerSaleRoutes(
         category_id: 'category_id' in body ? requiredString(body, 'category_id', { max: 36 }) : current.category_id,
         payment_method_id:
           'payment_method_id' in body ? optionalUuid(body, 'payment_method_id') : current.payment_method_id,
-      });
+      }, context);
 
       updates.push('updated_at = now()');
       const result = await client.query<SaleRow>(
@@ -474,11 +516,11 @@ export function registerSaleRoutes(
 
   app.post('/sales/:id/confirm', { preHandler: protectedHooks }, async (request) => {
     const context = getTenantContext();
-    requireRole(context, 'OPERATOR');
+    const scope = updateScope();
     const { id } = request.params as { id: string };
 
     const sale = await database.withTenantTransaction(async (client) => {
-      const current = await loadSaleForUpdate(client, context.tenantId, id);
+      const current = await loadSaleForUpdate(client, context.tenantId, id, scope);
       if (current.status !== 'DRAFT') {
         throw new ConflictError(`Only DRAFT sales can be confirmed (current: ${current.status})`);
       }
@@ -608,11 +650,11 @@ export function registerSaleRoutes(
 
   app.post('/sales/:id/cancel', { preHandler: protectedHooks }, async (request) => {
     const context = getTenantContext();
-    requireRole(context, 'MANAGER');
+    requirePermission(context, 'sales.update_all');
     const { id } = request.params as { id: string };
 
     await database.withTenantTransaction(async (client) => {
-      const current = await loadSaleForUpdate(client, context.tenantId, id);
+      const current = await loadSaleForUpdate(client, context.tenantId, id, { all: true });
       if (current.status === 'CANCELLED') {
         throw new ConflictError('Sale is already cancelled');
       }

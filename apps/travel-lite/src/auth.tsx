@@ -34,6 +34,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener('travel-lite:unauthorized', onUnauthorized);
   }, []);
 
+  // Permissions can change while a session is open (MASTER edits them):
+  // refresh the cached user once per page load.
+  useEffect(() => {
+    const session = loadSession();
+    if (!session) return;
+    api<{ user: SessionUser }>('/auth/me')
+      .then((response) => {
+        saveSession({ token: session.token, user: response.user });
+        setUser(response.user);
+      })
+      .catch(() => undefined);
+  }, []);
+
   const login = useCallback(async (slug: string, email: string, password: string) => {
     const response = await api<LoginResponse>('/auth/login', {
       method: 'POST',
@@ -65,15 +78,14 @@ export function useAuth(): AuthContextValue {
   return context;
 }
 
-const ROLE_RANK: Record<string, number> = { VIEWER: 0, OPERATOR: 1, MANAGER: 2, ADMIN: 3 };
-
 /**
- * UI-only convenience mirroring services/api-lite/src/roles.ts: hides
- * actions the API would refuse. The API remains the authority (403).
+ * UI-only hint mirroring the API's effective permissions: hides actions the
+ * API would refuse. The API remains the authority (403).
  */
-export function useHasRole(minimum: 'OPERATOR' | 'MANAGER' | 'ADMIN'): boolean {
+export function useCan(...anyOf: string[]): boolean {
   const { user } = useAuth();
-  return (ROLE_RANK[user?.role ?? ''] ?? -1) >= ROLE_RANK[minimum]!;
+  const granted = user?.permissions ?? [];
+  return anyOf.some((permission) => granted.includes(permission));
 }
 
 export function ProtectedRoute({ children }: { children: ReactNode }) {

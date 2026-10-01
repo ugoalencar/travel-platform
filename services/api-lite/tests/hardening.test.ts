@@ -48,7 +48,8 @@ const EFFECTIVE = 'CONFIRMED,PARTIALLY_PAID,PAID';
 
 describe('Travel Lite pre-homologation hardening', () => {
   let lite: LiteFixture;
-  let operatorToken: string;
+  let staffToken: string;
+  let sellerToken: string;
   let managerToken: string;
   let foreignManagerToken: string;
   let accountId: string;
@@ -71,7 +72,7 @@ describe('Travel Lite pre-homologation hardening', () => {
   }
 
   async function createConfirmedSale(sellerId: string, gross: number, cost: number, installments: number) {
-    const created = await post(operatorToken, '/sales', {
+    const created = await post(staffToken, '/sales', {
       customer_id: customerId,
       seller_id: sellerId,
       category_id: categoryId,
@@ -83,7 +84,7 @@ describe('Travel Lite pre-homologation hardening', () => {
     });
     expect(created.statusCode).toBe(201);
     const id = created.json<{ sale: { id: string } }>().sale.id;
-    expect((await post(operatorToken, `/sales/${id}/confirm`)).statusCode).toBe(200);
+    expect((await post(staffToken, `/sales/${id}/confirm`)).statusCode).toBe(200);
     return id;
   }
 
@@ -92,43 +93,44 @@ describe('Travel Lite pre-homologation hardening', () => {
       sale: { status: string };
       receivables: Array<{ id: string; paid_amount: number; status: string }>;
       commission: { id: string; status: string; commission_amount: number | null } | null;
-    }>(operatorToken, `/sales/${id}`);
+    }>(staffToken, `/sales/${id}`);
   }
 
   async function accountBalance(): Promise<number> {
-    const dashboard = await get<{ accounts: Array<{ id: string; balance: number }> }>(
-      operatorToken,
-      '/dashboard',
+    const accounts = await get<{ items: Array<{ id: string; balance: number }> }>(
+      staffToken,
+      '/financial-accounts',
     );
-    return dashboard.accounts.find((a) => a.id === accountId)!.balance;
+    return accounts.items.find((a) => a.id === accountId)!.balance;
   }
 
   beforeAll(async () => {
     lite = await createLiteFixture();
-    operatorToken = await lite.login('tenant-a', 'operator@a.test');
+    staffToken = await lite.login('tenant-a', 'staff@a.test');
+    sellerToken = await lite.login('tenant-a', 'seller1@a.test');
     managerToken = await lite.login('tenant-a', 'admin@a.test');
     foreignManagerToken = await lite.login('tenant-b', 'admin@b.test');
 
-    const account = await post(operatorToken, '/financial-accounts', {
+    const account = await post(staffToken, '/financial-accounts', {
       name: 'Banco Hardening',
       type: 'BANK',
       initial_balance: 1000,
     });
     accountId = account.json<{ account: { id: string } }>().account.id;
 
-    const category = await post(operatorToken, '/categories', { name: 'AÉREO' });
+    const category = await post(staffToken, '/categories', { name: 'AÉREO' });
     categoryId = category.json<{ category: { id: string } }>().category.id;
 
-    const customer = await post(operatorToken, '/customers', { name: 'Cliente Hardening' });
+    const customer = await post(staffToken, '/customers', { name: 'Cliente Hardening' });
     customerId = customer.json<{ customer: { id: string } }>().customer.id;
 
-    const sellerOne = await post(operatorToken, '/sellers', {
+    const sellerOne = await post(staffToken, '/sellers', {
       name: 'Vendedora Um',
       commission_rule_type: 'PERCENTAGE_ON_GROSS',
       commission_rate: 10,
     });
     sellerOneId = sellerOne.json<{ seller: { id: string } }>().seller.id;
-    const sellerTwo = await post(operatorToken, '/sellers', {
+    const sellerTwo = await post(staffToken, '/sellers', {
       name: 'Vendedora Dois',
       commission_rule_type: 'FIXED',
       commission_fixed_amount: 50,
@@ -142,7 +144,7 @@ describe('Travel Lite pre-homologation hardening', () => {
     await createConfirmedSale(sellerTwoId, 800, 500, 1);
 
     // A draft never counts as sold.
-    await post(operatorToken, '/sales', {
+    await post(staffToken, '/sales', {
       customer_id: customerId,
       seller_id: sellerOneId,
       category_id: categoryId,
@@ -152,7 +154,7 @@ describe('Travel Lite pre-homologation hardening', () => {
     });
 
     const firstInstallment = (await saleDetail(saleOneId)).receivables[0]!;
-    const receive = await post(operatorToken, `/receivables/${firstInstallment.id}/receive`, {
+    const receive = await post(staffToken, `/receivables/${firstInstallment.id}/receive`, {
       account_id: accountId,
       amount: 500,
     });
@@ -164,7 +166,7 @@ describe('Travel Lite pre-homologation hardening', () => {
     });
     expect(approve.statusCode).toBe(200);
     const payables = await get<PageJson<{ id: string; commission_id: string | null }>>(
-      operatorToken,
+      staffToken,
       '/payables?status=OPEN',
     );
     commissionPayableId = payables.items.find((p) => p.commission_id === commissionId)!.id;
@@ -191,17 +193,17 @@ describe('Travel Lite pre-homologation hardening', () => {
       state: 'SC',
       notes: 'Prefere contato pelo WhatsApp.',
     };
-    const created = await post(operatorToken, '/customers', full);
+    const created = await post(staffToken, '/customers', full);
     expect(created.statusCode).toBe(201);
     const id = created.json<{ customer: { id: string } }>().customer.id;
 
-    const stored = await get<{ customer: Record<string, unknown> }>(operatorToken, `/customers/${id}`);
+    const stored = await get<{ customer: Record<string, unknown> }>(staffToken, `/customers/${id}`);
     expect(stored.customer).toMatchObject({ ...full, cpf: '52998224725', status: 'ACTIVE' });
 
     const cleared = await lite.app.inject({
       method: 'PATCH',
       url: `/customers/${id}`,
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
       payload: { complement: null, notes: null, birth_date: null, status: 'INACTIVE' },
     });
     expect(cleared.statusCode).toBe(200);
@@ -214,13 +216,13 @@ describe('Travel Lite pre-homologation hardening', () => {
     });
   });
 
-  it('blocks OPERATOR from paying a commission payable and lets ADMIN pay it', async () => {
-    const operatorPay = await post(operatorToken, `/payables/${commissionPayableId}/pay`, {
+  it('blocks SELLER from paying a commission payable and lets ADMIN pay it', async () => {
+    const operatorPay = await post(sellerToken, `/payables/${commissionPayableId}/pay`, {
       account_id: accountId,
     });
     expect(operatorPay.statusCode).toBe(403);
     const stillApproved = await get<PageJson<{ id: string; status: string }>>(
-      operatorToken,
+      staffToken,
       '/commissions?status=APPROVED',
     );
     expect(stillApproved.items.some((c) => c.id === commissionId)).toBe(true);
@@ -229,25 +231,25 @@ describe('Travel Lite pre-homologation hardening', () => {
       account_id: accountId,
     });
     expect(managerPay.statusCode).toBe(200);
-    const paid = await get<PageJson<{ id: string }>>(operatorToken, '/commissions?status=PAID');
+    const paid = await get<PageJson<{ id: string }>>(staffToken, '/commissions?status=PAID');
     expect(paid.items.some((c) => c.id === commissionId)).toBe(true);
   });
 
-  it('blocks OPERATOR from paying an ordinary payable', async () => {
-    const created = await post(operatorToken, '/payables', {
+  it('blocks SELLER from paying an ordinary payable', async () => {
+    const created = await post(staffToken, '/payables', {
       description: 'Aluguel',
       amount: 120,
       due_at: '2026-10-05',
     });
     expect(created.statusCode).toBe(201);
     const id = created.json<{ payable: { id: string } }>().payable.id;
-    const pay = await post(operatorToken, `/payables/${id}/pay`, { account_id: accountId });
+    const pay = await post(sellerToken, `/payables/${id}/pay`, { account_id: accountId });
     expect(pay.statusCode).toBe(403);
   });
 
   it('totals the seller report per seller and the drill-down matches each total', async () => {
     const report = await get<{ items: SellerReportItem[]; totals: SalesReportJson['totals'] & { sales_count: number } }>(
-      operatorToken,
+      staffToken,
       '/reports/sellers?from=2026-09-01&to=2026-09-30',
     );
     const one = report.items.find((i) => i.seller_id === sellerOneId)!;
@@ -279,7 +281,7 @@ describe('Travel Lite pre-homologation hardening', () => {
 
     for (const item of [one, two]) {
       const drill = await get<SalesReportJson>(
-        operatorToken,
+        staffToken,
         `/reports/sales?from=2026-09-01&to=2026-09-30&seller_id=${item.seller_id}&status=${EFFECTIVE}`,
       );
       expect(drill.items.every((row) => row.seller_id === item.seller_id)).toBe(true);
@@ -297,7 +299,7 @@ describe('Travel Lite pre-homologation hardening', () => {
     }
 
     const filtered = await get<{ items: SellerReportItem[] }>(
-      operatorToken,
+      staffToken,
       `/reports/sellers?seller_id=${sellerTwoId}&category_id=${categoryId}&status=PAID`,
     );
     expect(filtered.items).toHaveLength(1);
@@ -306,17 +308,17 @@ describe('Travel Lite pre-homologation hardening', () => {
     const badStatus = await lite.app.inject({
       method: 'GET',
       url: '/reports/sellers?status=CONFIRMED,BOGUS',
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
     });
     expect(badStatus.statusCode).toBe(400);
   });
 
   it('reverses a receipt: inverse movement, receivable and sale reopen, balance restored', async () => {
     const balanceBefore = await accountBalance();
-    const payments = await get<PageJson<PaymentItem>>(operatorToken, '/payments?direction=IN');
+    const payments = await get<PageJson<PaymentItem>>(staffToken, '/payments?direction=IN');
     const receipt = payments.items.find((p) => p.amount === 500 && !p.reversal_of_payment_id)!;
 
-    const operatorReverse = await post(operatorToken, `/payments/${receipt.id}/reverse`, {
+    const operatorReverse = await post(sellerToken, `/payments/${receipt.id}/reverse`, {
       reason: 'Recebimento lançado em duplicidade',
     });
     expect(operatorReverse.statusCode).toBe(403);
@@ -335,7 +337,7 @@ describe('Travel Lite pre-homologation hardening', () => {
     expect(detail.sale.status).toBe('CONFIRMED');
     expect(await accountBalance()).toBe(balanceBefore - 500);
 
-    const after = await get<PageJson<PaymentItem>>(operatorToken, '/payments');
+    const after = await get<PageJson<PaymentItem>>(staffToken, '/payments');
     const original = after.items.find((p) => p.id === receipt.id)!;
     const mirror = after.items.find((p) => p.id === reversalId)!;
     expect(original.amount).toBe(500);
@@ -388,7 +390,7 @@ describe('Travel Lite pre-homologation hardening', () => {
     expect(reverseTheReversal.statusCode).toBe(409);
 
     // The installment can be received again after the reversal.
-    const receiveAgain = await post(operatorToken, `/receivables/${detail.receivables[0]!.id}/receive`, {
+    const receiveAgain = await post(staffToken, `/receivables/${detail.receivables[0]!.id}/receive`, {
       account_id: accountId,
       amount: 500,
     });
@@ -397,7 +399,7 @@ describe('Travel Lite pre-homologation hardening', () => {
 
   it('reverses a commission payment: payable reopens and the commission returns to APPROVED', async () => {
     const balanceBefore = await accountBalance();
-    const payments = await get<PageJson<PaymentItem>>(operatorToken, '/payments?direction=OUT');
+    const payments = await get<PageJson<PaymentItem>>(staffToken, '/payments?direction=OUT');
     const commissionPayment = payments.items.find((p) => p.amount === 30 && !p.reversal_of_payment_id)!;
 
     const reverse = await post(managerToken, `/payments/${commissionPayment.id}/reverse`, {
@@ -407,7 +409,7 @@ describe('Travel Lite pre-homologation hardening', () => {
     expect(reverse.statusCode).toBe(201);
 
     const payable = await get<PageJson<{ id: string; paid_amount: number; status: string }>>(
-      operatorToken,
+      staffToken,
       '/payables?status=OPEN',
     );
     expect(payable.items.find((p) => p.id === commissionPayableId)).toMatchObject({
@@ -415,7 +417,7 @@ describe('Travel Lite pre-homologation hardening', () => {
       status: 'OPEN',
     });
     const approved = await get<PageJson<{ id: string; paid_at: string | null }>>(
-      operatorToken,
+      staffToken,
       '/commissions?status=APPROVED',
     );
     expect(approved.items.find((c) => c.id === commissionId)?.paid_at).toBeNull();
@@ -431,14 +433,14 @@ describe('Travel Lite pre-homologation hardening', () => {
   });
 
   it('keeps reversals and the seller report tenant-isolated', async () => {
-    const payments = await get<PageJson<PaymentItem>>(operatorToken, '/payments?direction=IN');
+    const payments = await get<PageJson<PaymentItem>>(staffToken, '/payments?direction=IN');
     const target = payments.items.find((p) => !p.reversal_of_payment_id && !p.reversed_by_payment_id)!;
 
     const foreignReverse = await post(foreignManagerToken, `/payments/${target.id}/reverse`, {
       reason: 'Tentativa de outro tenant',
     });
     expect(foreignReverse.statusCode).toBe(404);
-    const untouched = await get<PageJson<PaymentItem>>(operatorToken, '/payments?direction=IN');
+    const untouched = await get<PageJson<PaymentItem>>(staffToken, '/payments?direction=IN');
     expect(untouched.items.find((p) => p.id === target.id)?.reversed_by_payment_id).toBeNull();
 
     const foreignReport = await get<{ items: SellerReportItem[] }>(foreignManagerToken, '/reports/sellers');

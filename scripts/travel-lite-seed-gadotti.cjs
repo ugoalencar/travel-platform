@@ -9,6 +9,12 @@
  *   - vendedores (Patricia + equipe)
  *   - usuários/login SÓ quando TRAVEL_LITE_SEED_PASSWORD estiver definido
  *     (nenhuma senha é hardcoded neste repositório)
+ *   - Patricia como MASTER, apenas enquanto o tenant não tiver nenhum
+ *     MASTER (o seed nunca desfaz uma troca de perfil feita depois)
+ *
+ * Usuários existentes nunca têm senha, perfil ou status sobrescritos —
+ * exceto a promoção única a MASTER descrita acima. O perfil antigo
+ * OPERATOR é migrado para SELLER pela migration 004.
  *
  * Uso:
  *   $env:TRAVEL_LITE_SEED_PASSWORD = '<senha-gerada-localmente>'
@@ -91,19 +97,20 @@ const FINANCIAL_CATEGORIES = [
 ];
 
 // Nomes e e-mails conforme docs/GadottiPati/Dados.txt.
-// userRole: papel do LOGIN (usuário); o vendedor é a entidade comercial
-// vinculada em sellers.user_id (Patricia = ADMIN + SELLER; demais =
-// OPERATOR + SELLER).
+// userRole: perfil do LOGIN (usuário); o vendedor é a entidade comercial
+// vinculada em sellers.user_id (Patricia = MASTER + vendedora; demais =
+// SELLER + vendedora).
+const MASTER_EMAIL = 'patricia.voltolini@gadottijoinville.com.br';
 const PEOPLE = [
-  { name: 'Patricia Voltolini', email: 'patricia.voltolini@gadottijoinville.com.br', userRole: 'ADMIN' },
+  { name: 'Patricia Voltolini', email: MASTER_EMAIL, userRole: 'MASTER' },
   {
     name: 'Nykaya Korine Koch Agostinho de Farias',
     email: 'turismo@gadottijoinville.com.br',
-    userRole: 'OPERATOR',
+    userRole: 'SELLER',
   },
-  { name: 'Rafaela Teixeira Martins', email: 'joinville@gadotti.com.br', userRole: 'OPERATOR' },
-  { name: 'Letícia Cristtine Santana', email: 'gadottijoinville2@gmail.com', userRole: 'OPERATOR' },
-  { name: 'Andrielle Rodrigues Dell Agnolo', email: 'vendas@gadottijoinville.com.br', userRole: 'OPERATOR' },
+  { name: 'Rafaela Teixeira Martins', email: 'joinville@gadotti.com.br', userRole: 'SELLER' },
+  { name: 'Letícia Cristtine Santana', email: 'gadottijoinville2@gmail.com', userRole: 'SELLER' },
+  { name: 'Andrielle Rodrigues Dell Agnolo', email: 'vendas@gadottijoinville.com.br', userRole: 'SELLER' },
 ];
 
 async function ensureTenant(client) {
@@ -199,6 +206,21 @@ async function ensureUsers(client, tenantId, password) {
   return { created, linked };
 }
 
+/** First MASTER of the tenant: only while the tenant has none. */
+async function ensureMaster(client, tenantId) {
+  const existing = await client.query(
+    "SELECT 1 FROM users WHERE tenant_id = $1 AND role = 'MASTER'",
+    [tenantId],
+  );
+  if (existing.rows.length > 0) return false;
+  const promoted = await client.query(
+    `UPDATE users SET role = 'MASTER', updated_at = now()
+      WHERE tenant_id = $1 AND email = $2`,
+    [tenantId, MASTER_EMAIL],
+  );
+  return promoted.rowCount > 0;
+}
+
 async function run() {
   assertLocalTargets();
 
@@ -226,6 +248,7 @@ async function run() {
     if (seedPassword) {
       users = await ensureUsers(client, tenant.id, seedPassword);
     }
+    const masterPromoted = await ensureMaster(client, tenant.id);
 
     await client.query('COMMIT');
 
@@ -238,6 +261,7 @@ async function run() {
     console.log(`  sellers:           +${sellers}`);
     if (seedPassword) {
       console.log(`  users:             +${users.created} (seller links: +${users.linked})`);
+      console.log(`  master:            ${masterPromoted ? 'Patricia promovida a MASTER' : 'já existe (sem alteração)'}`);
     } else {
       console.log('  users:             skipped — set TRAVEL_LITE_SEED_PASSWORD to create logins');
       console.log('  (no password is hardcoded; seller rows exist and can be linked later)');

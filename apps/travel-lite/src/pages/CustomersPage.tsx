@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { api } from '../api';
+import { useCan } from '../auth';
 import { ErrorNote, Pager, StatusBadge } from '../ui';
 
 const OPTIONAL_FIELDS = [
@@ -20,7 +21,13 @@ const OPTIONAL_FIELDS = [
 
 type OptionalField = (typeof OPTIONAL_FIELDS)[number];
 
-type Customer = { id: string; name: string; status: string } & Record<OptionalField, string | null>;
+type Customer = {
+  id: string;
+  name: string;
+  status: string;
+  responsible_seller_id: string | null;
+  responsible_seller_name: string | null;
+} & Record<OptionalField, string | null>;
 
 interface ListJson {
   items: Customer[];
@@ -29,11 +36,12 @@ interface ListJson {
   total: number;
 }
 
-type FormState = { name: string; status: string } & Record<OptionalField, string>;
+type FormState = { name: string; status: string; responsible_seller_id: string } & Record<OptionalField, string>;
 
 const EMPTY_FORM = {
   name: '',
   status: 'ACTIVE',
+  responsible_seller_id: '',
   ...Object.fromEntries(OPTIONAL_FIELDS.map((field) => [field, ''])),
 } as FormState;
 
@@ -43,6 +51,11 @@ const UF_OPTIONS = [
 ];
 
 export function CustomersPage() {
+  // Choosing/reassigning the portfolio owner needs customers.update_all;
+  // everyone else creates customers in their own portfolio.
+  const canReassign = useCan('customers.update_all');
+  const [sellers, setSellers] = useState<Array<{ id: string; name: string }>>([]);
+  const [originalResponsible, setOriginalResponsible] = useState('');
   const [items, setItems] = useState<Customer[]>([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
@@ -71,9 +84,17 @@ export function CustomersPage() {
     void load();
   }, [load]);
 
+  useEffect(() => {
+    if (!canReassign) return;
+    api<{ items: Array<{ id: string; name: string }> }>('/sellers?pageSize=100&status=ACTIVE')
+      .then((response) => setSellers(response.items))
+      .catch(() => setSellers([]));
+  }, [canReassign]);
+
   function startCreate() {
     setEditingId(null);
     setForm(EMPTY_FORM);
+    setOriginalResponsible('');
     setFormOpen(true);
   }
 
@@ -82,8 +103,10 @@ export function CustomersPage() {
     setForm({
       name: customer.name,
       status: customer.status,
+      responsible_seller_id: customer.responsible_seller_id ?? '',
       ...Object.fromEntries(OPTIONAL_FIELDS.map((field) => [field, customer[field] ?? ''])),
     } as FormState);
+    setOriginalResponsible(customer.responsible_seller_id ?? '');
     setFormOpen(true);
   }
 
@@ -98,6 +121,10 @@ export function CustomersPage() {
       else if (editingId) payload[field] = null;
     }
     if (editingId) payload.status = form.status;
+    // Only send the owner when it changes (reassignment is audited).
+    if (canReassign && form.responsible_seller_id !== originalResponsible) {
+      payload.responsible_seller_id = form.responsible_seller_id || null;
+    }
     try {
       if (editingId) {
         await api(`/customers/${editingId}`, { method: 'PATCH', body: payload });
@@ -265,6 +292,22 @@ export function CustomersPage() {
               ))}
             </select>
           </label>
+          {canReassign ? (
+            <label className="field">
+              <span>Responsável (carteira)</span>
+              <select
+                value={form.responsible_seller_id}
+                onChange={(event) => setForm({ ...form, responsible_seller_id: event.target.value })}
+              >
+                <option value="">{editingId ? 'Sem responsável' : 'Eu mesmo / sem responsável'}</option>
+                {sellers.map((seller) => (
+                  <option key={seller.id} value={seller.id}>
+                    {seller.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
           {editingId ? (
             <label className="field">
               <span>Status</span>
@@ -308,6 +351,7 @@ export function CustomersPage() {
               <th>E-mail</th>
               <th>CPF</th>
               <th>Telefone</th>
+              <th>Responsável</th>
               <th>Status</th>
               <th>Ações</th>
             </tr>
@@ -319,6 +363,7 @@ export function CustomersPage() {
                 <td>{customer.email ?? '—'}</td>
                 <td>{customer.cpf ?? '—'}</td>
                 <td>{customer.phone ?? '—'}</td>
+                <td>{customer.responsible_seller_name ?? '—'}</td>
                 <td>
                   <StatusBadge status={customer.status} />
                 </td>

@@ -37,7 +37,8 @@ interface SaleDetailJson {
 
 describe('Travel Lite commissions', () => {
   let lite: LiteFixture;
-  let operatorToken: string;
+  let staffToken: string;
+  let sellerToken: string;
   let managerToken: string;
   let viewerToken: string;
   let foreignToken: string;
@@ -53,15 +54,16 @@ describe('Travel Lite commissions', () => {
 
   beforeAll(async () => {
     lite = await createLiteFixture();
-    operatorToken = await lite.login('tenant-a', 'operator@a.test');
+    staffToken = await lite.login('tenant-a', 'staff@a.test');
+    sellerToken = await lite.login('tenant-a', 'seller1@a.test');
     viewerToken = await lite.login('tenant-a', 'viewer@a.test');
     managerToken = await lite.login('tenant-a', 'admin@a.test');
-    foreignToken = await lite.login('tenant-b', 'operator@b.test');
+    foreignToken = await lite.login('tenant-b', 'staff@b.test');
 
     const customer = await lite.app.inject({
       method: 'POST',
       url: '/customers',
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
       payload: { name: 'Cliente Comissao', email: 'cliente@comissao.test' },
     });
     customerId = customer.json<{ customer: { id: string } }>().customer.id;
@@ -69,7 +71,7 @@ describe('Travel Lite commissions', () => {
     const percentageSeller = await lite.app.inject({
       method: 'POST',
       url: '/sellers',
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
       payload: {
         name: 'Comissao 10%',
         commission_rule_type: 'PERCENTAGE_ON_GROSS',
@@ -81,7 +83,7 @@ describe('Travel Lite commissions', () => {
     const noRuleSeller = await lite.app.inject({
       method: 'POST',
       url: '/sellers',
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
       payload: { name: 'Sem Regra Inicial' },
     });
     noRuleSellerId = noRuleSeller.json<{ seller: { id: string } }>().seller.id;
@@ -89,7 +91,7 @@ describe('Travel Lite commissions', () => {
     const account = await lite.app.inject({
       method: 'POST',
       url: '/financial-accounts',
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
       payload: { name: 'Caixa Comissoes', type: 'CASH' },
     });
     accountId = account.json<{ account: { id: string } }>().account.id;
@@ -97,7 +99,7 @@ describe('Travel Lite commissions', () => {
     const category = await lite.app.inject({
       method: 'POST',
       url: '/categories',
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
       payload: { name: 'TRANSF' },
     });
     categoryId = category.json<{ category: { id: string } }>().category.id;
@@ -105,7 +107,7 @@ describe('Travel Lite commissions', () => {
     const created = await lite.app.inject({
       method: 'POST',
       url: '/sales',
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
       payload: {
         customer_id: customerId,
         seller_id: percentageSellerId,
@@ -120,13 +122,13 @@ describe('Travel Lite commissions', () => {
     await lite.app.inject({
       method: 'POST',
       url: `/sales/${approvedSaleId}/confirm`,
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
     });
 
     const createdRuleless = await lite.app.inject({
       method: 'POST',
       url: '/sales',
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
       payload: {
         customer_id: customerId,
         seller_id: noRuleSellerId,
@@ -141,7 +143,7 @@ describe('Travel Lite commissions', () => {
     await lite.app.inject({
       method: 'POST',
       url: `/sales/${rulelessSaleId}/confirm`,
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
     });
 
     approvedCommissionId = await getCommissionId(approvedSaleId);
@@ -156,7 +158,7 @@ describe('Travel Lite commissions', () => {
     const detail = await lite.app.inject({
       method: 'GET',
       url: `/sales/${saleId}`,
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
     });
     const json = detail.json<SaleDetailJson>();
     expect(json.commission).not.toBeNull();
@@ -167,7 +169,7 @@ describe('Travel Lite commissions', () => {
     const detail = await lite.app.inject({
       method: 'GET',
       url: `/sales/${saleId}`,
-      headers: lite.headers(token ?? operatorToken),
+      headers: lite.headers(token ?? staffToken),
     });
     expect(detail.statusCode).toBe(200);
     return detail.json<SaleDetailJson>().commission;
@@ -177,7 +179,7 @@ describe('Travel Lite commissions', () => {
     const list = await lite.app.inject({
       method: 'GET',
       url: '/commissions',
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
     });
     expect(list.statusCode).toBe(200);
     const page = list.json<PageJson<CommissionJson>>();
@@ -193,7 +195,7 @@ describe('Travel Lite commissions', () => {
     const bySeller = await lite.app.inject({
       method: 'GET',
       url: `/commissions?seller_id=${noRuleSellerId}`,
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
     });
     const sellerItems = bySeller.json<PageJson<CommissionJson>>().items;
     expect(sellerItems).toHaveLength(1);
@@ -203,14 +205,14 @@ describe('Travel Lite commissions', () => {
     const byStatus = await lite.app.inject({
       method: 'GET',
       url: '/commissions?status=PENDING_RULE',
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
     });
     expect(byStatus.json<PageJson<CommissionJson>>().total).toBe(1);
 
     const badStatus = await lite.app.inject({
       method: 'GET',
       url: '/commissions?status=MAGIC',
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
     });
     expect(badStatus.statusCode).toBe(400);
   });
@@ -224,13 +226,13 @@ describe('Travel Lite commissions', () => {
     });
     expect(viewerApprove.statusCode).toBe(403);
 
-    const operatorApprove = await lite.app.inject({
+    const staffApprove = await lite.app.inject({
       method: 'POST',
       url: `/commissions/${approvedCommissionId}/approve`,
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(sellerToken),
       payload: {},
     });
-    expect(operatorApprove.statusCode).toBe(403);
+    expect(staffApprove.statusCode).toBe(403);
 
     const approve = await lite.app.inject({
       method: 'POST',
@@ -243,7 +245,7 @@ describe('Travel Lite commissions', () => {
     const list = await lite.app.inject({
       method: 'GET',
       url: `/commissions?seller_id=${percentageSellerId}`,
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
     });
     const item = list.json<PageJson<CommissionJson>>().items[0];
     expect(item?.status).toBe('APPROVED');
@@ -253,7 +255,7 @@ describe('Travel Lite commissions', () => {
     const payables = await lite.app.inject({
       method: 'GET',
       url: '/payables?status=OPEN',
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
     });
     const payable = payables
       .json<PageJson<{ id: string; commission_id: string | null; amount: number; due_at: string }>>()
@@ -290,7 +292,7 @@ describe('Travel Lite commissions', () => {
     const operatorOverride = await lite.app.inject({
       method: 'PATCH',
       url: `/commissions/${rulelessCommissionId}`,
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(sellerToken),
       payload: { commission_amount: 55 },
     });
     expect(operatorOverride.statusCode).toBe(403);
@@ -331,7 +333,7 @@ describe('Travel Lite commissions', () => {
     const payables = await lite.app.inject({
       method: 'GET',
       url: '/payables?status=OPEN',
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
     });
     const payable = payables
       .json<PageJson<{ id: string; commission_id: string | null }>>()
@@ -349,7 +351,7 @@ describe('Travel Lite commissions', () => {
     const list = await lite.app.inject({
       method: 'GET',
       url: `/commissions?seller_id=${percentageSellerId}`,
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
     });
     const paid = list.json<PageJson<CommissionJson>>().items[0];
     expect(paid?.status).toBe('PAID');
@@ -374,7 +376,7 @@ describe('Travel Lite commissions', () => {
     const sale = await lite.app.inject({
       method: 'POST',
       url: '/sales',
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
       payload: {
         customer_id: customerId,
         seller_id: noRuleSellerId,
@@ -390,7 +392,7 @@ describe('Travel Lite commissions', () => {
     await lite.app.inject({
       method: 'POST',
       url: `/sales/${saleId}/confirm`,
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
     });
 
     const before = await getSaleCommission(saleId);
@@ -400,7 +402,7 @@ describe('Travel Lite commissions', () => {
     const patchSeller = await lite.app.inject({
       method: 'PATCH',
       url: `/sellers/${noRuleSellerId}`,
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
       payload: { commission_rule_type: 'PERCENTAGE_ON_GROSS', commission_rate: 10 },
     });
     expect(patchSeller.statusCode).toBe(200);
@@ -434,7 +436,8 @@ describe('Travel Lite commissions', () => {
       headers: lite.headers(foreignToken),
       payload: {},
     });
-    expect(foreignApprove.statusCode).toBe(403);
+    // Tenant B's manager may approve commissions, but not tenant A's: 404.
+    expect(foreignApprove.statusCode).toBe(404);
 
     const foreignOverride = await lite.app.inject({
       method: 'PATCH',
@@ -442,7 +445,7 @@ describe('Travel Lite commissions', () => {
       headers: lite.headers(foreignToken),
       payload: { commission_amount: 999 },
     });
-    expect(foreignOverride.statusCode).toBe(403);
+    expect(foreignOverride.statusCode).toBe(404);
 
     const anonymous = await lite.app.inject({ method: 'GET', url: '/commissions' });
     expect(anonymous.statusCode).toBe(401);

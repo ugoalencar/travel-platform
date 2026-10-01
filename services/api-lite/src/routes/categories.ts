@@ -1,9 +1,9 @@
 import type { FastifyInstance, preHandlerHookHandler } from 'fastify';
+import { requirePermission } from '../access';
 import { AUDIT_EVENTS, recordAuditEvent } from '../audit-log';
 import type { LiteDatabase } from '../database';
 import { ConflictError, NotFoundError, ValidationError } from '../errors';
 import { enqueueOutboxEvent } from '../outbox';
-import { requireRole } from '../roles';
 import { getTenantContext } from '../tenant-context';
 import { optionalInteger, parseObjectBody, requiredString } from '../validation';
 
@@ -36,7 +36,7 @@ export function registerCategoryRoutes(
 
   app.post('/categories', { preHandler: protectedHooks }, async (request, reply) => {
     const context = getTenantContext();
-    requireRole(context, 'OPERATOR');
+    requirePermission(context, 'settings.manage');
     const body = parseObjectBody(request.body);
 
     const name = requiredString(body, 'name', { max: 100 });
@@ -77,7 +77,7 @@ export function registerCategoryRoutes(
 
   app.patch('/categories/:id', { preHandler: protectedHooks }, async (request) => {
     const context = getTenantContext();
-    requireRole(context, 'OPERATOR');
+    requirePermission(context, 'settings.manage');
     const { id } = request.params as { id: string };
     const body = parseObjectBody(request.body);
 
@@ -135,7 +135,7 @@ export function registerCategoryRoutes(
 
   app.delete('/categories/:id', { preHandler: protectedHooks }, async (request) => {
     const context = getTenantContext();
-    requireRole(context, 'OPERATOR');
+    requirePermission(context, 'settings.manage');
     const { id } = request.params as { id: string };
 
     await database.withTenantTransaction(async (client) => {

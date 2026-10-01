@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { api } from '../api';
+import { useCan } from '../auth';
 import { ErrorNote, Pager, StatusBadge, formatBRL } from '../ui';
 
 interface SaleListItem {
@@ -74,6 +75,8 @@ const EMPTY_FORM: FormState = {
 };
 
 export function SalesPage() {
+  const canCancel = useCan('sales.update_all');
+  const canCreate = useCan('sales.create');
   const [items, setItems] = useState<SaleListItem[]>([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
@@ -116,6 +119,9 @@ export function SalesPage() {
       ]);
       setCustomers(customerList.items);
       setSellers(sellerList.items);
+      // An own-scoped seller only gets their own seller back: preselect it.
+      const onlySeller = sellerList.items.length === 1 ? sellerList.items[0] : undefined;
+      if (onlySeller) setForm((current) => (current.seller_id ? current : { ...current, seller_id: onlySeller.id }));
       setCategories(categoryList.items);
       setPaymentMethods(methodList.items);
     } catch (err) {
@@ -210,13 +216,15 @@ export function SalesPage() {
           <option value="CANCELLED">Cancelada</option>
         </select>
         <span className="spacer" />
-        <button
-          type="button"
-          className="btn btn-primary"
-          onClick={() => void openCreate()}
-        >
-          Nova venda
-        </button>
+        {canCreate ? (
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={() => void openCreate()}
+          >
+            Nova venda
+          </button>
+        ) : null}
       </div>
       <ErrorNote error={error} />
       {formOpen ? (
@@ -355,7 +363,7 @@ export function SalesPage() {
                 Confirmar
               </button>
             ) : null}
-            {detail.sale.status !== 'CANCELLED' && detail.sale.status !== 'DRAFT' ? (
+            {canCancel && detail.sale.status !== 'CANCELLED' && detail.sale.status !== 'DRAFT' ? (
               <button
                 type="button"
                 className="btn btn-danger btn-small"

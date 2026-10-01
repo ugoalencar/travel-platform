@@ -9,13 +9,13 @@ const INVALID_CPF = '111.111.111-11';
 describe('Travel Lite customers CRUD', () => {
   let lite: LiteFixture;
   let adminToken: string;
-  let operatorToken: string;
+  let staffToken: string;
   let viewerToken: string;
 
   beforeAll(async () => {
     lite = await createLiteFixture();
     adminToken = await lite.login('tenant-a', 'admin@a.test');
-    operatorToken = await lite.login('tenant-a', 'operator@a.test');
+    staffToken = await lite.login('tenant-a', 'staff@a.test');
     viewerToken = await lite.login('tenant-a', 'viewer@a.test');
   });
 
@@ -28,7 +28,7 @@ describe('Travel Lite customers CRUD', () => {
   }
 
   it('creates a customer and audits it', async () => {
-    const response = await post(operatorToken, { name: 'Maria Silva', cpf: VALID_CPF_1, email: 'maria@teste.com' });
+    const response = await post(staffToken, { name: 'Maria Silva', cpf: VALID_CPF_1, email: 'maria@teste.com' });
 
     expect(response.statusCode).toBe(201);
     const { customer } = response.json<{ customer: { id: string; name: string; cpf: string; status: string } }>();
@@ -50,28 +50,28 @@ describe('Travel Lite customers CRUD', () => {
   });
 
   it('rejects an invalid CPF with 400', async () => {
-    const response = await post(operatorToken, { name: 'Invalid CPF', cpf: INVALID_CPF });
+    const response = await post(staffToken, { name: 'Invalid CPF', cpf: INVALID_CPF });
 
     expect(response.statusCode).toBe(400);
     expect(response.json<{ error: string }>().error).toMatch(/valid CPF/);
   });
 
   it('rejects a duplicate CPF inside the same tenant with 409', async () => {
-    const response = await post(operatorToken, { name: 'Duplicate', cpf: VALID_CPF_1 });
+    const response = await post(staffToken, { name: 'Duplicate', cpf: VALID_CPF_1 });
 
     expect(response.statusCode).toBe(409);
   });
 
   it('allows the same CPF in another tenant', async () => {
-    const token = await lite.login('tenant-b', 'operator@b.test');
+    const token = await lite.login('tenant-b', 'staff@b.test');
     const response = await post(token, { name: 'Other Tenant', cpf: VALID_CPF_1 });
 
     expect(response.statusCode).toBe(201);
   });
 
   it('lists customers with search and pagination', async () => {
-    await post(operatorToken, { name: 'Ana Souza', cpf: VALID_CPF_2, email: 'ana@teste.com' });
-    await post(operatorToken, { name: 'Bruno Costa', email: 'bruno@teste.com' });
+    await post(staffToken, { name: 'Ana Souza', cpf: VALID_CPF_2, email: 'ana@teste.com' });
+    await post(staffToken, { name: 'Bruno Costa', email: 'bruno@teste.com' });
 
     const all = await lite.app.inject({
       method: 'GET',
@@ -96,7 +96,7 @@ describe('Travel Lite customers CRUD', () => {
   });
 
   it('fetches a customer by id and hides it from another tenant', async () => {
-    const created = await post(operatorToken, { name: 'Visible' });
+    const created = await post(staffToken, { name: 'Visible' });
     const { customer } = created.json<{ customer: { id: string } }>();
 
     const own = await lite.app.inject({
@@ -106,7 +106,7 @@ describe('Travel Lite customers CRUD', () => {
     });
     expect(own.statusCode).toBe(200);
 
-    const tokenB = await lite.login('tenant-b', 'operator@b.test');
+    const tokenB = await lite.login('tenant-b', 'staff@b.test');
     const foreign = await lite.app.inject({
       method: 'GET',
       url: `/customers/${customer.id}`,
@@ -116,13 +116,13 @@ describe('Travel Lite customers CRUD', () => {
   });
 
   it('updates fields and rejects bad input', async () => {
-    const created = await post(operatorToken, { name: 'To Update', cpf: VALID_CPF_3 });
+    const created = await post(staffToken, { name: 'To Update', cpf: VALID_CPF_3 });
     const { customer } = created.json<{ customer: { id: string } }>();
 
     const updated = await lite.app.inject({
       method: 'PATCH',
       url: `/customers/${customer.id}`,
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
       payload: { name: 'Updated Name', city: 'Curitiba' },
     });
     expect(updated.statusCode).toBe(200);
@@ -133,7 +133,7 @@ describe('Travel Lite customers CRUD', () => {
     const badCpf = await lite.app.inject({
       method: 'PATCH',
       url: `/customers/${customer.id}`,
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
       payload: { cpf: INVALID_CPF },
     });
     expect(badCpf.statusCode).toBe(400);
@@ -141,20 +141,20 @@ describe('Travel Lite customers CRUD', () => {
     const empty = await lite.app.inject({
       method: 'PATCH',
       url: `/customers/${customer.id}`,
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
       payload: {},
     });
     expect(empty.statusCode).toBe(400);
   });
 
   it('deactivates a customer on delete (soft delete)', async () => {
-    const created = await post(operatorToken, { name: 'To Deactivate' });
+    const created = await post(staffToken, { name: 'To Deactivate' });
     const { customer } = created.json<{ customer: { id: string } }>();
 
     const removed = await lite.app.inject({
       method: 'DELETE',
       url: `/customers/${customer.id}`,
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
     });
     expect(removed.statusCode).toBe(200);
 
@@ -169,7 +169,7 @@ describe('Travel Lite customers CRUD', () => {
     const again = await lite.app.inject({
       method: 'DELETE',
       url: `/customers/${customer.id}`,
-      headers: lite.headers(operatorToken),
+      headers: lite.headers(staffToken),
     });
     expect(again.statusCode).toBe(404);
   });

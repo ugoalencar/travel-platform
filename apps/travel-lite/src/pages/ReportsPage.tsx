@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { api, apiCsv, downloadBlob } from '../api';
+import { useCan } from '../auth';
 import { ErrorNote, formatBRL } from '../ui';
 import { SellerReportPanel } from './SellerReportPanel';
 
@@ -41,7 +42,25 @@ type Tab = 'sales' | 'sellers' | 'commissions' | 'cashFlow';
 export function ReportsPage() {
   // ?aba=vendedores&vendedor=<id>&de=&ate= comes from the Sellers page.
   const [searchParams] = useSearchParams();
-  const [tab, setTab] = useState<Tab>(searchParams.get('aba') === 'vendedores' ? 'sellers' : 'sales');
+  const canCompare = useCan('reports.sellers_all');
+  const available: Record<Tab, boolean> = {
+    sales: useCan('reports.sales_all', 'reports.sales_own'),
+    sellers: useCan('reports.sellers_all', 'reports.sales_own'),
+    commissions: useCan('commissions.read_all', 'commissions.read_own'),
+    cashFlow: useCan('reports.finance'),
+  };
+  const tabs: Array<{ key: Tab; label: string }> = (
+    [
+      { key: 'sales', label: 'Vendas' },
+      { key: 'sellers', label: canCompare ? 'Vendedores' : 'Meus indicadores' },
+      { key: 'commissions', label: 'Comissões' },
+      { key: 'cashFlow', label: 'Fluxo de caixa' },
+    ] as const
+  ).filter((item) => available[item.key]);
+  const requested: Tab | null = searchParams.get('aba') === 'vendedores' ? 'sellers' : null;
+  const [tab, setTab] = useState<Tab>(
+    requested && available[requested] ? requested : (tabs[0]?.key ?? 'sales'),
+  );
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
   const [sales, setSales] = useState<SalesReport | null>(null);
@@ -97,34 +116,16 @@ export function ReportsPage() {
     <>
       <h1>Relatórios</h1>
       <div className="lite-tabs">
-        <button
-          type="button"
-          className={tab === 'sales' ? 'lite-tab active' : 'lite-tab'}
-          onClick={() => setTab('sales')}
-        >
-          Vendas
-        </button>
-        <button
-          type="button"
-          className={tab === 'sellers' ? 'lite-tab active' : 'lite-tab'}
-          onClick={() => setTab('sellers')}
-        >
-          Vendedores
-        </button>
-        <button
-          type="button"
-          className={tab === 'commissions' ? 'lite-tab active' : 'lite-tab'}
-          onClick={() => setTab('commissions')}
-        >
-          Comissões
-        </button>
-        <button
-          type="button"
-          className={tab === 'cashFlow' ? 'lite-tab active' : 'lite-tab'}
-          onClick={() => setTab('cashFlow')}
-        >
-          Fluxo de caixa
-        </button>
+        {tabs.map((item) => (
+          <button
+            key={item.key}
+            type="button"
+            className={tab === item.key ? 'lite-tab active' : 'lite-tab'}
+            onClick={() => setTab(item.key)}
+          >
+            {item.label}
+          </button>
+        ))}
       </div>
       {tab === 'sellers' ? (
         <SellerReportPanel

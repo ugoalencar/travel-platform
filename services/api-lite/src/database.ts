@@ -81,7 +81,18 @@ export function createDatabase(connectionString: string, poolConfig: { max?: num
       operation: (client: TenantClient) => Promise<T>,
     ): Promise<T> {
       return runWithTenantContext(
-        { tenantId, userId: userId ?? '', sessionId: '', role: 'VIEWER', email: '' },
+        // System context (login, session lookup): no permissions at all.
+        {
+          tenantId,
+          userId: userId ?? '',
+          sessionId: '',
+          email: '',
+          role: '',
+          roleRank: 0,
+          grantsAll: false,
+          permissions: new Set<string>(),
+          sellerId: null,
+        },
         () =>
           withClient(async (client) => {
             await client.query('BEGIN');

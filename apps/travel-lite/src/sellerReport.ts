@@ -42,9 +42,23 @@ export interface SellerReportItem extends SellerTotals {
   commission_pending_rule_count: number;
 }
 
+export interface MonthPoint extends Omit<SellerTotals, 'commission_pending_amount'> {
+  month: string;
+  sales_count: number;
+}
+
+export interface CategoryPoint {
+  category_name: string;
+  sales_count: number;
+  gross_amount: number;
+  margin_amount: number;
+}
+
 export interface SellerReport {
   items: SellerReportItem[];
   totals: SellerTotals & { sales_count: number };
+  /** Grouped from the same rows as `totals` (sums always match). */
+  charts: { by_month: MonthPoint[]; by_category: CategoryPoint[] };
 }
 
 export interface SellerSaleRow {

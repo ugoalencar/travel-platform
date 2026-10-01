@@ -1,13 +1,12 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
 import type { FastifyReply, FastifyRequest, HookHandlerDoneFunction } from 'fastify';
-import type { LiteRole } from './roles';
+import type { AccessContext } from './access';
 import { HttpError } from './errors';
 
-export interface TenantContext {
+export interface TenantContext extends AccessContext {
   tenantId: string;
   userId: string;
   sessionId: string;
-  role: LiteRole;
   email: string;
 }
 
@@ -38,17 +37,7 @@ export function getUserId(): string {
   return getTenantContext().userId;
 }
 
-export function getRole(): LiteRole {
-  return getTenantContext().role;
-}
-
-export interface TenantPrincipal {
-  tenantId: string;
-  userId: string;
-  sessionId: string;
-  role: LiteRole;
-  email: string;
-}
+export type TenantPrincipal = TenantContext;
 
 /**
  * Establishes the tenant context for the rest of the request lifecycle.
@@ -67,13 +56,6 @@ export function createTenantContextHook() {
       done(new HttpError(401, 'UNAUTHORIZED', 'Authentication required'));
       return;
     }
-    const context: TenantContext = {
-      tenantId: principal.tenantId,
-      userId: principal.userId,
-      sessionId: principal.sessionId,
-      role: principal.role,
-      email: principal.email,
-    };
-    tenantStorage.run(context, done);
+    tenantStorage.run({ ...principal }, done);
   };
 }

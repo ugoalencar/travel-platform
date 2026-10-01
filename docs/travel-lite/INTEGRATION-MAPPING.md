@@ -92,7 +92,7 @@ Both lists must stay identical; tests cover the main emit paths.
 | Lite entity | Notes for the remote/platform side |
 | --- | --- |
 | `tenants` | One Lite tenant = one agency/company. Slug is the login key. |
-| `users` | Lite roles (`ADMIN`/`MANAGER`/`OPERATOR`/`VIEWER`) are local; no platform user sync. |
+| `users` | Lite roles (`MASTER`/`ADMIN`/`MANAGER`/`SELLER`/`VIEWER`) and permission overrides are local (see ACCESS-CONTROL.md); no platform user sync. |
 | `customers` | Soft delete only (`INACTIVE`); CPF normalized to digits, validated. |
 | `sellers` | `user_id` links an optional Lite user; commission rule is denormalized on the row. |
 | `sales` | Sequential per-tenant `sale_number` (`VENDA-000001`); status flow `DRAFT → CONFIRMED → PARTIALLY_PAID → PAID` or `CANCELLED`. |

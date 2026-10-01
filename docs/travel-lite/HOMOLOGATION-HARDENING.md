@@ -52,6 +52,13 @@ editar, um campo apagado é enviado como `null` e é de fato limpo.
 A tela esconde "Pagar" e "Estornar" de quem não é gerente ou administrador.
 Quem garante a regra é a API, que responde 403.
 
+> **Substituído pela migration 004.** Os perfis fixos viraram permissões
+> configuráveis: pagar exige `finance.manage` (comissão: também
+> `commissions.pay`), estornar exige `finance.manage` e registrar
+> recebimento passou a exigir `finance.manage`. O perfil OPERATOR virou
+> SELLER, que por padrão não tem essas permissões. Detalhes em
+> [ACCESS-CONTROL.md](ACCESS-CONTROL.md).
+
 ### Estorno controlado
 
 `POST /payments/:id/reverse` com `{ reason, reversed_at? }` (migration
@@ -96,6 +103,6 @@ de virar regra.
 | 12 | Localizador | Registrar localizador/PNR na venda? |
 | 13 | Passageiros | Registrar passageiros por venda? |
 | 14 | Data da viagem | Registrar a data da viagem (diferente da data da venda)? |
-| 15 | Quem registra recebimento | Operadoras podem dar baixa em recebimento de cliente ou só a gestão? |
-| 16 | Perfil de gestor | Além da Patricia, alguém mais deve ter perfil de gerente (pagar, estornar, aprovar comissão)? |
+| 15 | Quem registra recebimento | Vendedoras podem dar baixa em recebimento de cliente ou só a gestão? (Hoje: só quem tem `finance.manage`; o MASTER pode conceder por usuária.) |
+| 16 | Perfil de gestor | Além da Patricia (MASTER), alguém mais deve ter perfil de gerente (pagar, estornar, aprovar comissão)? (Configurável em Configurações › Usuários e permissões.) |
 | 17 | Data do estorno | O estorno pode ter data retroativa ou deve sempre usar a data do dia? |

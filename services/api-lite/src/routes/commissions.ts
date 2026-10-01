@@ -1,9 +1,9 @@
 import type { FastifyInstance, preHandlerHookHandler } from 'fastify';
+import { effectiveSellerFilter, requirePermission, scopeCondition, scopeFor } from '../access';
 import { AUDIT_EVENTS, recordAuditEvent } from '../audit-log';
 import type { LiteDatabase, TenantClient } from '../database';
 import { ConflictError, NotFoundError, ValidationError } from '../errors';
 import { enqueueOutboxEvent } from '../outbox';
-import { requireRole } from '../roles';
 import { getTenantContext } from '../tenant-context';
 import { optionalDate, optionalEnum, optionalString, optionalUuid, parseObjectBody, requiredPositiveAmount } from '../validation';
 
@@ -88,9 +88,14 @@ export function registerCommissionRoutes(
     if (query.status) {
       addCondition('sc.status', '=', optionalEnum({ status: query.status }, 'status', COMMISSION_STATUSES));
     }
-    if (query.seller_id) {
-      addCondition('sc.seller_id', '=', optionalUuid({ seller_id: query.seller_id }, 'seller_id'));
-    }
+    const scope = scopeFor(context, 'commissions.read_all', 'commissions.read_own');
+    const sellerFilter = effectiveSellerFilter(
+      scope,
+      optionalUuid({ seller_id: query.seller_id ?? null }, 'seller_id'),
+    );
+    const scoped = scopeCondition(scope, 'sc.seller_id', params);
+    if (scoped) conditions.push(scoped);
+    else if (sellerFilter) addCondition('sc.seller_id', '=', sellerFilter);
     const where = conditions.join(' AND ');
 
     const result = await database.withTenantTransaction(async (client) => {
@@ -131,7 +136,7 @@ export function registerCommissionRoutes(
    */
   app.post('/commissions/:id/approve', { preHandler: protectedHooks }, async (request) => {
     const context = getTenantContext();
-    requireRole(context, 'MANAGER');
+    requirePermission(context, 'commissions.approve');
     const { id } = request.params as { id: string };
     const body = parseObjectBody(request.body ?? {});
     let dueAt = new Date().toISOString().slice(0, 10);
@@ -206,7 +211,7 @@ export function registerCommissionRoutes(
    */
   app.patch('/commissions/:id', { preHandler: protectedHooks }, async (request) => {
     const context = getTenantContext();
-    requireRole(context, 'MANAGER');
+    requirePermission(context, 'commissions.approve');
     const { id } = request.params as { id: string };
     const body = parseObjectBody(request.body);
 

@@ -1,9 +1,9 @@
 import type { FastifyInstance, preHandlerHookHandler } from 'fastify';
+import { can, requirePermission } from '../access';
 import { AUDIT_EVENTS, recordAuditEvent } from '../audit-log';
 import type { LiteDatabase, TenantClient } from '../database';
 import { ConflictError, NotFoundError, ValidationError } from '../errors';
 import { enqueueOutboxEvent } from '../outbox';
-import { requireRole } from '../roles';
 import { getTenantContext } from '../tenant-context';
 import {
   optionalEnum,
@@ -96,10 +96,12 @@ async function assertSellerCpfAvailable(
   }
 }
 
-async function assertUserInTenant(
+/** A login may represent at most one seller (uq_sellers_tenant_user). */
+async function assertUserLinkable(
   client: TenantClient,
   tenantId: string,
   userId: string,
+  sellerId?: string,
 ): Promise<void> {
   const result = await client.query(`SELECT 1 FROM users WHERE tenant_id = $1 AND id = $2`, [
     tenantId,
@@ -108,6 +110,18 @@ async function assertUserInTenant(
   if ((result.rowCount ?? 0) === 0) {
     throw new ValidationError('Field user_id must reference a user of this tenant');
   }
+  const linked = await client.query(
+    `SELECT 1 FROM sellers WHERE tenant_id = $1 AND user_id = $2 AND ($3::uuid IS NULL OR id <> $3)`,
+    [tenantId, userId, sellerId ?? null],
+  );
+  if ((linked.rowCount ?? 0) > 0) {
+    throw new ConflictError('This user is already linked to another seller');
+  }
+}
+
+/** Linking a login to a seller changes that login's data scope. */
+function requireLinkPermission(body: Record<string, unknown>): void {
+  if ('user_id' in body) requirePermission(getTenantContext(), 'users.manage');
 }
 
 /**
@@ -194,6 +208,11 @@ export function registerSellerRoutes(
 
     const conditions: string[] = ['tenant_id = $1'];
     const params: unknown[] = [context.tenantId];
+    // Without sellers.read a user only sees the seller linked to their login.
+    if (!can(context, 'sellers.read')) {
+      params.push(context.sellerId);
+      conditions.push(`id = $${params.length}`);
+    }
     if (search) {
       params.push(`%${search}%`);
       const p = params.length;
@@ -235,14 +254,17 @@ export function registerSellerRoutes(
       ),
     );
     const seller = result.rows[0];
-    if (!seller) throw new NotFoundError('Seller not found');
+    if (!seller || (!can(context, 'sellers.read') && seller.id !== context.sellerId)) {
+      throw new NotFoundError('Seller not found');
+    }
     return { seller };
   });
 
   app.post('/sellers', { preHandler: protectedHooks }, async (request, reply) => {
     const context = getTenantContext();
-    requireRole(context, 'OPERATOR');
+    requirePermission(context, 'sellers.manage');
     const body = parseObjectBody(request.body);
+    requireLinkPermission(body);
 
     const name = requiredString(body, 'name', { max: 200 });
     const cpf = parseOptionalCpf(body);
@@ -251,7 +273,7 @@ export function registerSellerRoutes(
 
     const seller = await database.withTenantTransaction(async (client) => {
       if (cpf) await assertSellerCpfAvailable(client, context.tenantId, cpf);
-      if (userId) await assertUserInTenant(client, context.tenantId, userId);
+      if (userId) await assertUserLinkable(client, context.tenantId, userId);
       const result = await client.query<SellerRow>(
         `INSERT INTO sellers (tenant_id, user_id, name, cpf, phone, email,
                               commission_rule_type, commission_rate, commission_fixed_amount)
@@ -290,9 +312,10 @@ export function registerSellerRoutes(
 
   app.patch('/sellers/:id', { preHandler: protectedHooks }, async (request) => {
     const context = getTenantContext();
-    requireRole(context, 'OPERATOR');
+    requirePermission(context, 'sellers.manage');
     const { id } = request.params as { id: string };
     const body = parseObjectBody(request.body);
+    requireLinkPermission(body);
 
     const updates: string[] = [];
     const params: unknown[] = [context.tenantId, id];
@@ -339,7 +362,7 @@ export function registerSellerRoutes(
       if (cpfProvided && cpfValue) await assertSellerCpfAvailable(client, context.tenantId, cpfValue, id);
       if ('user_id' in body) {
         const userId = optionalUuid(body, 'user_id');
-        if (userId) await assertUserInTenant(client, context.tenantId, userId);
+        if (userId) await assertUserLinkable(client, context.tenantId, userId, id);
       }
       updates.push('updated_at = now()');
       const result = await client.query<SellerRow>(
@@ -371,7 +394,7 @@ export function registerSellerRoutes(
 
   app.delete('/sellers/:id', { preHandler: protectedHooks }, async (request) => {
     const context = getTenantContext();
-    requireRole(context, 'OPERATOR');
+    requirePermission(context, 'sellers.manage');
     const { id } = request.params as { id: string };
 
     await database.withTenantTransaction(async (client) => {

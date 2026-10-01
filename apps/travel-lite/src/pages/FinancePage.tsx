@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { api } from '../api';
-import { useHasRole } from '../auth';
+import { useCan } from '../auth';
 import { ErrorNote, Pager, StatusBadge, formatBRL } from '../ui';
 
 interface NamedItem {
@@ -74,7 +74,8 @@ type Tab = 'receivables' | 'payables' | 'history';
 
 export function FinancePage() {
   const [tab, setTab] = useState<Tab>('receivables');
-  const canManageFinance = useHasRole('MANAGER');
+  const canManageFinance = useCan('finance.manage');
+  const canPayCommissions = useCan('commissions.pay');
   const [reversing, setReversing] = useState<Payment | null>(null);
   const [reversalReason, setReversalReason] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -339,7 +340,8 @@ export function FinancePage() {
                       <StatusBadge status={receivable.status} />
                     </td>
                     <td>
-                      {receivable.status === 'OPEN' || receivable.status === 'PARTIALLY_PAID' ? (
+                      {canManageFinance &&
+                      (receivable.status === 'OPEN' || receivable.status === 'PARTIALLY_PAID') ? (
                         <button
                           type="button"
                           className="btn btn-small btn-primary"
@@ -384,13 +386,15 @@ export function FinancePage() {
               <option value="CANCELLED">Cancelada</option>
             </select>
             <span className="spacer" />
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={() => setPayableFormOpen((open) => !open)}
-            >
-              Nova despesa
-            </button>
+            {canManageFinance ? (
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={() => setPayableFormOpen((open) => !open)}
+              >
+                Nova despesa
+              </button>
+            ) : null}
           </div>
           {payableFormOpen ? (
             <form className="lite-form" onSubmit={(event) => void submitPayable(event)}>
@@ -509,6 +513,7 @@ export function FinancePage() {
                     </td>
                     <td>
                       {canManageFinance &&
+                      (!payable.commission_id || canPayCommissions) &&
                       (payable.status === 'OPEN' || payable.status === 'PARTIALLY_PAID') ? (
                         <button
                           type="button"

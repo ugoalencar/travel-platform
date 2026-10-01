@@ -1,30 +1,24 @@
 import { NavLink, Outlet } from 'react-router-dom';
 import { useAuth } from './auth';
-
-const MENU = [
-  { to: '/', label: 'Dashboard', end: true },
-  { to: '/clientes', label: 'Clientes' },
-  { to: '/vendedores', label: 'Vendedores' },
-  { to: '/vendas', label: 'Vendas' },
-  { to: '/comissoes', label: 'Comissões' },
-  { to: '/financeiro', label: 'Financeiro' },
-  { to: '/relatorios', label: 'Relatórios' },
-  { to: '/cadastros', label: 'Cadastros' },
-];
+import { MENU } from './menu';
 
 export function Layout() {
   const { user, logout } = useAuth();
+  const granted = user?.permissions ?? [];
+  const items = MENU.filter(
+    (item) => item.anyOf.length === 0 || item.anyOf.some((permission) => granted.includes(permission)),
+  );
 
   return (
     <div className="lite-shell">
       <aside className="lite-sidebar">
         <div className="lite-brand">Travel Lite</div>
         <nav className="lite-menu">
-          {MENU.map((item) => (
+          {items.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
-              end={item.end === true}
+              end={item.to === '/'}
               className={({ isActive }) => (isActive ? 'lite-menu-link active' : 'lite-menu-link')}
             >
               {item.label}
