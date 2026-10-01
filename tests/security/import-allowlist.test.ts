@@ -16,6 +16,8 @@ import {
 import { runWithTenantContext } from '../../packages/domain/tenant-context';
 import { UserRole } from '../../packages/domain/types';
 
+const JOB_ID = '3f2c1a9e-8b7d-4c6e-9a10-5d4e3f2a1b0c';
+
 const job = {
   id: 'job-1',
   agencyId: 'agency-1',
@@ -54,8 +56,18 @@ function buildTestApp() {
   } as unknown as DatabaseRuntime;
 
   const app = buildApp({
-    authProvider: { authenticate: () => Promise.resolve(null) },
-    validateUserAgencyAccess: () => Promise.resolve(false),
+    // Import routes sit behind protectedHooks + requireRole(ADMIN): the
+    // F-03 route tests must authenticate to reach the allowlist check.
+    authProvider: {
+      authenticate: () =>
+        Promise.resolve({
+          userId: 'user-1',
+          agencyId: 'agency-1',
+          role: UserRole.ADMIN,
+          email: 'admin@example.test',
+        }),
+    },
+    validateUserAgencyAccess: () => Promise.resolve(true),
     database,
     rateLimit: {
       classLimits: { SYSTEM_INTERNAL: { windowMs: 60_000, max: 50 } },
@@ -156,7 +168,7 @@ describe('F-03: import column allowlist', () => {
 
     const response = await app.inject({
       method: 'POST',
-      url: '/api/import/job-1/validate',
+      url: `/api/import/${JOB_ID}/validate`,
       payload: {
         mapping: { Funcao: 'role' },
         parsedRows: [{ rowNumber: 2, data: { Funcao: 'ADMIN' } }],
@@ -174,7 +186,7 @@ describe('F-03: import column allowlist', () => {
 
     const response = await app.inject({
       method: 'POST',
-      url: '/api/import/job-1/validate',
+      url: `/api/import/${JOB_ID}/validate`,
       payload: {
         mapping: { col: 'name); DROP TABLE customers; --' },
         parsedRows: [{ rowNumber: 2, data: { col: 'x' } }],

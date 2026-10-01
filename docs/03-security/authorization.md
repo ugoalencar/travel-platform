@@ -67,11 +67,16 @@ VIEWER (20)
 | Listar | ✅ | ✅ | ✅ | ❌ | ❌ |
 | Criar | ✅ | ✅ | ❌ | ❌ | ❌ |
 | Editar | ✅ | ✅ | ❌ | ❌ | ❌ |
+| **Import Center** (`/api/import/*`) | | | | | |
+| Listar e ver jobs | ✅ | ✅ | ✅ | ❌ | ❌ |
+| Upload, parse, validate, confirm, cancelar | ✅ | ✅ | ❌ | ❌ | ❌ |
 | **Reports** | | | | | |
 | Dashboard | ✅ | ✅ | ✅ | ✅* | ✅ |
 | Relatórios | ✅ | ✅ | ✅ | ❌ | ❌ |
 
 \* Apenas seus próprios registros
+
+**Import Center:** todas as rotas exigem sessão (`protectedHooks`) e perfil mínimo (`requireRole`): leituras exigem MANAGER+ e escritas exigem ADMIN+, pois o `confirm` grava em massa clientes, fornecedores, funcionários e tags. Perfil mínimo menor para escritas (por exemplo MANAGER, exceto `EMPLOYEE`) e grant por usuário dependem de decisão de produto e de migration, e ficam como follow-up. Entradas são validadas antes do serviço (UUID, tipo de entidade, CSV/TSV, teto de 10.000 linhas) e erros internos nunca devolvem a mensagem crua ao cliente.
 
 ## Implementação
 

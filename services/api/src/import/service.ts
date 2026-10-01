@@ -25,7 +25,7 @@ import {
 import { parseCsv, autoMapColumns, type ParsedRow } from './parser';
 import { validateImportRows } from './validator';
 import { assertMappingAllowed, isAllowedImportField } from './allowlist';
-import { ValidationError } from '../errors';
+import { ConflictError, NotFoundError, ValidationError } from '../errors';
 import { getAgencyId, getUserId } from '../../../../packages/domain/tenant-context';
 import { AuditEventType, recordAuditEvent } from '../audit-log';
 
@@ -121,11 +121,11 @@ export async function parseImportFile(
     // with it is a real attack surface, so the dependency was removed
     // rather than allowlisted. Use CSV until a patched parser is
     // adopted (see docs/product/CENTRO_IMPLANTACAO_DADOS.md).
-    throw new Error(
+    throw new ValidationError(
       'Importação de arquivos XLSX está temporariamente desabilitada (vulnerabilidade de segurança não corrigida na biblioteca). Exporte a planilha como CSV e importe novamente.',
     );
   } else {
-    throw new Error(`Formato de arquivo não suportado: .${ext}. Use CSV.`);
+    throw new ValidationError(`Formato de arquivo não suportado: .${ext}. Use CSV.`);
   }
 
   // Update job with parse results
@@ -272,7 +272,7 @@ export async function executeImport(
   const job = await getImportJob(database, jobId);
 
   if (job.status !== ImportJobStatus.DRY_RUN) {
-    throw new Error(`Import job must be in DRY_RUN status to confirm. Current: ${job.status}`);
+    throw new ConflictError('A importação precisa estar em simulação (dry run) para ser confirmada');
   }
 
   let createdRows = 0;
@@ -371,7 +371,7 @@ async function getImportJob(database: DatabaseRuntime, jobId: string): Promise<I
       [jobId, getAgencyId()],
     );
     const job = result.rows[0];
-    if (!job) throw new Error(`Import job not found: ${jobId}`);
+    if (!job) throw new NotFoundError('Importação não encontrada');
     return job;
   });
 }
@@ -444,7 +444,7 @@ function getTableName(entityType: ImportEntityType): string {
     case ImportEntityType.TAG:
       return 'tags';
     default:
-      throw new Error(`Entity type ${entityType} not yet supported for import`);
+      throw new ValidationError(`Tipo de entidade não suportado para importação: ${entityType}`);
   }
 }
 
