@@ -1,0 +1,22 @@
+# syntax=docker/dockerfile:1
+# Travel Lite — imagem única da API (Fastify) servindo o frontend já buildado.
+# Build: docker build -f Dockerfile.travel-lite -t travel-lite .
+# Nunca aponte este serviço para o banco da plataforma principal.
+
+FROM node:24-alpine AS build
+WORKDIR /app
+COPY . .
+RUN npm ci
+RUN npx turbo run build --filter=@travel-platform/api-lite --filter=@travel-platform/travel-lite
+RUN npm prune --omit=dev
+
+FROM node:24-alpine AS runtime
+ENV NODE_ENV=production \
+    HOST=0.0.0.0 \
+    PORT=4010 \
+    FRONTEND_DIST_DIR=/app/apps/travel-lite/dist
+WORKDIR /app
+COPY --from=build --chown=node:node /app /app
+USER node
+EXPOSE 4010
+CMD ["node", "services/api-lite/dist/services/api-lite/src/server.js"]

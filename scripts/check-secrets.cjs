@@ -294,6 +294,23 @@ const KNOWN_PLACEHOLDER_VALUES = new Set([
   // the developer's own machine.
   'staging_password',
   'travel_staging_admin_password',
+  // Travel Lite: dedicated local-only disposable PostgreSQL credentials
+  // (docker-compose.travel-lite.yml, docker-compose.travel-lite-test.yml,
+  // services/api-lite defaults, scripts/travel-lite-*.cjs). The admin and
+  // runtime roles are created by infrastructure/migrations-travel-lite/
+  // against a throwaway local database only. Never valid anywhere else.
+  'travel_lite_admin_password',
+  'travel_lite_runtime_password',
+  // Same Travel Lite defaults as captured by the scanner's bare-value group
+  // when they appear inside a compose `${VAR:-default}` expression (the
+  // capture starts at the `:-`, keeping the leading hyphen).
+  '-travel_lite_admin_password',
+  '-travel_lite_runtime_password',
+  // Travel Lite synthetic test fixtures: the login password used by the
+  // api-lite test suites and the fake session token asserted in
+  // apps/travel-lite/src/App.test.tsx. Not credentials for any system.
+  'correct-horse-battery-staple',
+  'v1.tenant.user.deadbeef',
 ]);
 
 const PLACEHOLDER_PATTERNS = [

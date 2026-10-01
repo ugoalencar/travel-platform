@@ -52,6 +52,28 @@ Resets only the approved disposable local PostgreSQL environment.
 
 Do not use this against production, staging, shared databases, or real data.
 
+### Travel Lite scripts
+
+Local stack for the Travel Lite edition (its own PostgreSQL + API serving the
+built frontend at `http://127.0.0.1:4010`). Optional configuration lives in
+`.env.travel-lite` (gitignored; see `.env.travel-lite.example`).
+
+```powershell
+.\scripts\travel-lite-start.ps1              # postgres + migrations + api
+.\scripts\travel-lite-start.ps1 -Seed        # also runs the Gadotti seed
+.\scripts\travel-lite-stop.ps1               # stop containers
+.\scripts\travel-lite-stop.ps1 -Purge        # stop and delete local DB volume
+.\scripts\travel-lite-backup.ps1             # pg_dump to backups/ (gitignored)
+.\scripts\travel-lite-restore.ps1 -Archive backups\travel-lite-<ts>.sql.gz
+```
+
+- Migrations run only through `scripts/travel-lite-migrate.cjs` (never at API
+  boot) against `infrastructure/migrations-travel-lite/`.
+- The seed requires `TRAVEL_LITE_SEED_PASSWORD` in `.env.travel-lite`; no
+  password is committed to the repository.
+- `travel-lite-restore.ps1` is destructive (drops the local `public` schema)
+  and requires an explicit confirmation prompt.
+
 ## Node Helper Scripts
 
 - `scripts/check-secrets.cjs` - scans for obvious hardcoded secrets.

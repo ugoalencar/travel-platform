@@ -1,0 +1,26 @@
+{
+  "name": "@travel-platform/api-lite",
+  "version": "0.1.0",
+  "private": true,
+  "type": "commonjs",
+  "description": "Travel Lite Fastify API — simplified edition for pilot agencies.",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "node scripts/start-local-api-lite.cjs",
+    "start": "node dist/services/api-lite/src/server.js",
+    "lint": "eslint src/**/*.ts tests/**/*.test.ts scripts/**/*.cjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run --config vitest.config.ts",
+    "test:coverage": "vitest run --config vitest.config.ts --coverage",
+    "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\""
+  },
+  "dependencies": {
+    "@fastify/cors": "^11.3.0",
+    "@fastify/helmet": "^13.1.1",
+    "fastify": "^5.5.0",
+    "pg": "^8.13.0"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.11.0"
+  }
+}

@@ -1,0 +1,19 @@
+# Travel Lite — disposable PostgreSQL for the api-lite test suite.
+# Separate container name and port from the Travel Platform test database
+# (travel-platform-postgres-local on 55432) so both can coexist.
+services:
+  postgres-lite-test:
+    image: postgres:17
+    container_name: travel-lite-postgres-test
+    restart: "no"
+    ports:
+      - "127.0.0.1:55437:5432"
+    environment:
+      POSTGRES_DB: travel_lite_test
+      POSTGRES_USER: travel_lite_admin
+      POSTGRES_PASSWORD: travel_lite_admin_password
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U travel_lite_admin -d travel_lite_test"]
+      interval: 5s
+      timeout: 3s
+      retries: 30

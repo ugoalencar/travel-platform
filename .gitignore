@@ -8,6 +8,10 @@ node_modules/
 .env.*
 !.env.example
 !.env.staging.example
+!.env.travel-lite.example
+
+# Travel Lite local backups (may contain real pilot data)
+backups/
 *.pem
 *.key
 *.p12
