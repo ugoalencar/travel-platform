@@ -19,6 +19,7 @@ const ignoredDirs = new Set([
   'reporting-phase',
   'security-mfa-phase',
   'uat-phase',
+  'release',
 ]);
 
 // Files whose entire purpose is to contain example/placeholder secret-like

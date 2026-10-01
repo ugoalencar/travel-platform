@@ -8,6 +8,7 @@ import { CommissionsPage } from './pages/CommissionsPage';
 import { CustomersPage } from './pages/CustomersPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { FinancePage } from './pages/FinancePage';
+import { ImportDataPage } from './pages/ImportDataPage';
 import { LoginPage } from './pages/LoginPage';
 import { ReportsPage } from './pages/ReportsPage';
 import { SalesPage } from './pages/SalesPage';
@@ -40,6 +41,7 @@ export function App() {
             <Route path="/vendas" element={<Allowed path="/vendas"><SalesPage /></Allowed>} />
             <Route path="/comissoes" element={<Allowed path="/comissoes"><CommissionsPage /></Allowed>} />
             <Route path="/financeiro" element={<Allowed path="/financeiro"><FinancePage /></Allowed>} />
+            <Route path="/importacoes" element={<Allowed path="/importacoes"><ImportDataPage /></Allowed>} />
             <Route path="/relatorios" element={<Allowed path="/relatorios"><ReportsPage /></Allowed>} />
             <Route path="/cadastros" element={<Allowed path="/cadastros"><CatalogPage /></Allowed>} />
             <Route path="/configuracoes" element={<Allowed path="/configuracoes"><SettingsPage /></Allowed>} />

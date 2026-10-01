@@ -108,6 +108,11 @@ describe('Sale item HTTP routes', () => {
   afterAll(async () => {
     await runtimePool?.end();
     await adminPool?.end();
+    // Files run one at a time (fileParallelism: false): release the fixed
+    // container name for the next suite. Only this project's container goes.
+    if (process.env.CI !== 'true') {
+      compose(['down']);
+    }
   });
 
   describe('POST /sales/:saleId/items', () => {

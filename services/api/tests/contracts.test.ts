@@ -118,9 +118,12 @@ describe('Contracts / E-signature (Agent 03)', () => {
   afterAll(async () => {
     await runtimePool?.end();
     await adminPool?.end();
-    // Deliberately does NOT `down -v` the shared container: it may still
-    // be in use by another concurrently-running test suite (see
-    // resetDisposableDatabase() above).
+    // No `-v`: the volume is kept. Files run one at a time
+    // (fileParallelism: false), so releasing the fixed container name here
+    // cannot affect a concurrent suite; only this project's container goes.
+    if (process.env.CI !== 'true') {
+      compose(['down']);
+    }
   });
 
   // ------------------------------------------------------------

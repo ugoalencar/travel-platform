@@ -34,8 +34,20 @@ interface Receivable {
   status: string;
 }
 
+interface SaleCost {
+  id: string;
+  financial_party_id: string | null;
+  financial_party_name: string | null;
+  cost_type: string;
+  description: string;
+  amount: number;
+  due_date: string | null;
+  payable_id: string | null;
+}
+
 interface DetailJson {
   sale: SaleListItem & { description: string | null };
+  saleCosts: SaleCost[];
   receivables: Receivable[];
   commission: {
     id: string;
@@ -56,7 +68,6 @@ interface FormState {
   category_id: string;
   payment_method_id: string;
   gross_amount: string;
-  cost_amount: string;
   due_date: string;
   installment_count: string;
   description: string;
@@ -68,15 +79,24 @@ const EMPTY_FORM: FormState = {
   category_id: '',
   payment_method_id: '',
   gross_amount: '',
-  cost_amount: '0',
   due_date: '',
   installment_count: '1',
   description: '',
 };
 
+const EMPTY_COST_FORM = {
+  description: '',
+  amount: '',
+  financial_party_id: '',
+  due_date: '',
+  create_payable: false,
+  category_id: '',
+};
+
 export function SalesPage() {
   const canCancel = useCan('sales.update_all');
   const canCreate = useCan('sales.create');
+  const canCreateCost = useCan('sale_costs.create');
   const [items, setItems] = useState<SaleListItem[]>([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
@@ -89,6 +109,9 @@ export function SalesPage() {
   const [sellers, setSellers] = useState<NamedItem[]>([]);
   const [categories, setCategories] = useState<NamedItem[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<NamedItem[]>([]);
+  const [financialParties, setFinancialParties] = useState<NamedItem[]>([]);
+  const [expenseCategories, setExpenseCategories] = useState<NamedItem[]>([]);
+  const [costForm, setCostForm] = useState(EMPTY_COST_FORM);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -111,11 +134,13 @@ export function SalesPage() {
 
   async function loadFormOptions(): Promise<void> {
     try {
-      const [customerList, sellerList, categoryList, methodList] = await Promise.all([
+      const [customerList, sellerList, categoryList, methodList, partyList, expenseCategoryList] = await Promise.all([
         api<{ items: NamedItem[] }>('/customers?pageSize=100'),
         api<{ items: NamedItem[] }>('/sellers?pageSize=100'),
         api<{ items: NamedItem[] }>('/categories'),
         api<{ items: NamedItem[] }>('/payment-methods'),
+        api<{ items: NamedItem[] }>('/financial-parties?pageSize=100').catch(() => ({ items: [] })),
+        api<{ items: Array<NamedItem & { direction: string }> }>('/financial-categories').catch(() => ({ items: [] })),
       ]);
       setCustomers(customerList.items);
       setSellers(sellerList.items);
@@ -124,6 +149,8 @@ export function SalesPage() {
       if (onlySeller) setForm((current) => (current.seller_id ? current : { ...current, seller_id: onlySeller.id }));
       setCategories(categoryList.items);
       setPaymentMethods(methodList.items);
+      setFinancialParties(partyList.items);
+      setExpenseCategories(expenseCategoryList.items.filter((item) => item.direction === 'OUT'));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Falha ao carregar cadastros');
     }
@@ -143,7 +170,6 @@ export function SalesPage() {
         seller_id: form.seller_id,
         category_id: form.category_id,
         gross_amount: Number(form.gross_amount),
-        cost_amount: Number(form.cost_amount),
         due_date: form.due_date,
         installment_count: Number(form.installment_count),
       };
@@ -165,6 +191,7 @@ export function SalesPage() {
     try {
       const response = await api<DetailJson>(`/sales/${saleId}`);
       setDetail(response);
+      setCostForm(EMPTY_COST_FORM);
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Falha ao abrir a venda');
@@ -186,6 +213,26 @@ export function SalesPage() {
       await Promise.all([load(), openDetail(saleId)]);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Falha ao cancelar');
+    }
+  }
+
+  async function addCost(event: FormEvent): Promise<void> {
+    event.preventDefault();
+    if (!detail) return;
+    try {
+      const payload: Record<string, unknown> = {
+        cost_type: 'OTHER',
+        description: costForm.description.trim(),
+        amount: Number(costForm.amount),
+        create_payable: costForm.create_payable,
+      };
+      if (costForm.financial_party_id) payload.financial_party_id = costForm.financial_party_id;
+      if (costForm.due_date) payload.due_date = costForm.due_date;
+      if (costForm.category_id) payload.category_id = costForm.category_id;
+      await api(`/sales/${detail.sale.id}/costs`, { method: 'POST', body: payload });
+      await Promise.all([load(), openDetail(detail.sale.id)]);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Falha ao adicionar custo');
     }
   }
 
@@ -300,16 +347,6 @@ export function SalesPage() {
             />
           </label>
           <label className="field">
-            <span>Custo (R$)</span>
-            <input
-              type="number"
-              step="0.01"
-              min="0"
-              value={form.cost_amount}
-              onChange={(event) => setForm({ ...form, cost_amount: event.target.value })}
-            />
-          </label>
-          <label className="field">
             <span>Vencimento da 1ª parcela *</span>
             <input
               type="date"
@@ -379,8 +416,110 @@ export function SalesPage() {
           <p className="lite-muted">
             {detail.sale.customer.name} · {detail.sale.seller.name} ·{' '}
             {detail.sale.category.name} · vencimento {detail.sale.due_date} ·{' '}
-            {formatBRL(detail.sale.gross_amount)} (margem {formatBRL(detail.sale.margin_amount)})
+            {formatBRL(detail.sale.gross_amount)} · custos {formatBRL(detail.sale.cost_amount)} · margem{' '}
+            {formatBRL(detail.sale.margin_amount)}
           </p>
+          {canCreateCost && detail.sale.status === 'DRAFT' ? (
+            <form className="lite-form" onSubmit={(event) => void addCost(event)}>
+              <label className="field">
+                <span>Descrição do custo *</span>
+                <input
+                  value={costForm.description}
+                  onChange={(event) => setCostForm({ ...costForm, description: event.target.value })}
+                  required
+                />
+              </label>
+              <label className="field">
+                <span>Favorecido</span>
+                <select
+                  value={costForm.financial_party_id}
+                  onChange={(event) => setCostForm({ ...costForm, financial_party_id: event.target.value })}
+                >
+                  <option value="">—</option>
+                  {financialParties.map((party) => (
+                    <option key={party.id} value={party.id}>
+                      {party.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="field">
+                <span>Valor *</span>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  value={costForm.amount}
+                  onChange={(event) => setCostForm({ ...costForm, amount: event.target.value })}
+                  required
+                />
+              </label>
+              <label className="field">
+                <span>Vencimento</span>
+                <input
+                  type="date"
+                  value={costForm.due_date}
+                  onChange={(event) => setCostForm({ ...costForm, due_date: event.target.value })}
+                />
+              </label>
+              <label className="field">
+                <span>Conta a pagar</span>
+                <select
+                  value={costForm.create_payable ? 'yes' : 'no'}
+                  onChange={(event) => setCostForm({ ...costForm, create_payable: event.target.value === 'yes' })}
+                >
+                  <option value="no">Não gerar agora</option>
+                  <option value="yes">Gerar conta a pagar</option>
+                </select>
+              </label>
+              {costForm.create_payable ? (
+                <label className="field">
+                  <span>Categoria financeira</span>
+                  <select
+                    value={costForm.category_id}
+                    onChange={(event) => setCostForm({ ...costForm, category_id: event.target.value })}
+                  >
+                    <option value="">Sem categoria</option>
+                    {expenseCategories.map((category) => (
+                      <option key={category.id} value={category.id}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ) : null}
+              <div className="form-actions">
+                <button type="submit" className="btn btn-primary">
+                  Adicionar custo
+                </button>
+              </div>
+            </form>
+          ) : null}
+          <div className="lite-table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Custo</th>
+                  <th>Favorecido</th>
+                  <th>Vencimento</th>
+                  <th className="num">Valor</th>
+                  <th>Conta a pagar</th>
+                </tr>
+              </thead>
+              <tbody>
+                {detail.saleCosts.map((cost) => (
+                  <tr key={cost.id}>
+                    <td>{cost.description}</td>
+                    <td>{cost.financial_party_name ?? '—'}</td>
+                    <td>{cost.due_date ?? '—'}</td>
+                    <td className="num">{formatBRL(cost.amount)}</td>
+                    <td>{cost.payable_id ? 'Gerada' : '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {detail.saleCosts.length === 0 ? <p className="lite-empty">Nenhum custo lançado.</p> : null}
+          </div>
           <div className="lite-table-wrap">
             <table>
               <thead>

@@ -22,6 +22,10 @@ export interface CreatePaymentInput {
   notes: string | null;
   description: string;
   target: PaymentTarget;
+  financialPartyId?: string | null;
+  saleId?: string | null;
+  saleCostItemId?: string | null;
+  paidByUserId?: string | null;
 }
 
 async function assertExists(
@@ -62,8 +66,9 @@ export async function recordPayment(
 
   const payment = await client.query<{ id: string }>(
     `INSERT INTO payments (tenant_id, direction, account_id, category_id, amount, method,
-                           reference, paid_at, notes, created_by)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+                           reference, paid_at, notes, created_by, financial_party_id,
+                           sale_id, sale_cost_item_id, paid_by_user_id)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
      RETURNING id`,
     [
       tenantId,
@@ -76,6 +81,10 @@ export async function recordPayment(
       input.paidAt,
       input.notes,
       userId,
+      input.financialPartyId ?? null,
+      input.saleId ?? null,
+      input.saleCostItemId ?? null,
+      input.paidByUserId ?? null,
     ],
   );
   const paymentId = payment.rows[0]!.id;
@@ -88,8 +97,9 @@ export async function recordPayment(
 
   await client.query(
     `INSERT INTO financial_transactions (tenant_id, account_id, category_id, payment_id,
-                                         type, amount, occurred_at, description)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+                                         type, amount, occurred_at, description,
+                                         financial_party_id, sale_id, sale_cost_item_id)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
     [
       tenantId,
       input.accountId,
@@ -99,6 +109,9 @@ export async function recordPayment(
       input.amount,
       input.paidAt,
       input.description,
+      input.financialPartyId ?? null,
+      input.saleId ?? null,
+      input.saleCostItemId ?? null,
     ],
   );
 

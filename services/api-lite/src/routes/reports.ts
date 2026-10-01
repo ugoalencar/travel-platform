@@ -388,4 +388,86 @@ export function registerReportRoutes(
 
     return { items, totals, period: { from, to } };
   });
+
+  app.get('/reports/sale-costs', { preHandler: protectedHooks }, async (request) => {
+    const context = getTenantContext();
+    requirePermission(context, 'reports.finance');
+    const query = (request.query ?? {}) as Record<string, string | undefined>;
+    const from = optionalDate({ from: query.from ?? null }, 'from');
+    const to = optionalDate({ to: query.to ?? null }, 'to');
+    const sellerId = optionalUuid({ seller_id: query.seller_id ?? null }, 'seller_id');
+    const categoryId = optionalUuid({ category_id: query.category_id ?? null }, 'category_id');
+
+    const conditions = [`s.tenant_id = $1`, `s.status <> 'CANCELLED'`];
+    const params: unknown[] = [context.tenantId];
+    if (from) {
+      params.push(from);
+      conditions.push(`s.sale_date >= $${params.length}`);
+    }
+    if (to) {
+      params.push(to);
+      conditions.push(`s.sale_date <= $${params.length}`);
+    }
+    if (sellerId) {
+      params.push(sellerId);
+      conditions.push(`s.seller_id = $${params.length}`);
+    }
+    if (categoryId) {
+      params.push(categoryId);
+      conditions.push(`s.category_id = $${params.length}`);
+    }
+    const where = conditions.join(' AND ');
+
+    const result = await database.withTenantTransaction(async (client) => {
+      const totals = await client.query<{
+        revenue: string;
+        direct_costs: string;
+        gross_margin: string;
+      }>(
+        `SELECT COALESCE(sum(s.gross_amount), 0)::text AS revenue,
+                COALESCE(sum(s.cost_amount), 0)::text AS direct_costs,
+                COALESCE(sum(s.margin_amount), 0)::text AS gross_margin
+           FROM sales s
+          WHERE ${where}`,
+        params,
+      );
+      const supplierRows = await client.query<{
+        financial_party_id: string | null;
+        financial_party_name: string | null;
+        direct_costs: string;
+      }>(
+        `SELECT c.financial_party_id, COALESCE(fp.name, 'Sem favorecido') AS financial_party_name,
+                COALESCE(sum(c.amount), 0)::text AS direct_costs
+           FROM sale_cost_items c
+           JOIN sales s ON s.tenant_id = c.tenant_id AND s.id = c.sale_id
+           LEFT JOIN financial_parties fp ON fp.tenant_id = c.tenant_id AND fp.id = c.financial_party_id
+          WHERE ${where}
+          GROUP BY c.financial_party_id, fp.name
+          ORDER BY COALESCE(sum(c.amount), 0) DESC, COALESCE(fp.name, 'Sem favorecido')`,
+        params,
+      );
+      return { totals: totals.rows[0]!, bySupplier: supplierRows.rows };
+    });
+
+    const revenue = Number(result.totals.revenue);
+    const directCosts = Number(result.totals.direct_costs);
+    const grossMargin = Number(result.totals.gross_margin);
+    const bySupplier = result.bySupplier.map((row) => ({
+      financial_party_id: row.financial_party_id,
+      financial_party_name: row.financial_party_name,
+      direct_costs: Number(row.direct_costs),
+    }));
+
+    return {
+      totals: {
+        revenue,
+        direct_costs: directCosts,
+        gross_margin: grossMargin,
+        margin_percentage: revenue > 0 ? Math.round((grossMargin / revenue) * 10000) / 100 : 0,
+      },
+      by_supplier: bySupplier,
+      charts: { by_supplier: bySupplier },
+      period: { from, to },
+    };
+  });
 }

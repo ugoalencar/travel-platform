@@ -8,7 +8,7 @@ const ALL_PERMISSIONS = [
   'sales.update_all', 'sales.update_own', 'sellers.read', 'sellers.manage', 'commissions.read_all',
   'commissions.read_own', 'commissions.approve', 'commissions.pay', 'finance.read', 'finance.manage',
   'reports.sales_all', 'reports.sales_own', 'reports.sellers_all', 'reports.finance',
-  'dashboard.configure', 'settings.manage',
+  'imports.manage', 'dashboard.configure', 'settings.manage',
 ];
 
 const SESSION = {
@@ -121,6 +121,7 @@ describe('App shell', () => {
       'Dashboard',
       'Vendas',
       'Financeiro',
+      'Importações',
       'Clientes',
       'Vendedores',
       'Comissões',
@@ -162,5 +163,22 @@ describe('App shell', () => {
 
     expect(await screen.findByText('Vendas do mês')).toBeInTheDocument();
     expect(window.location.pathname).toBe('/');
+  });
+
+  it('shows the import center to users with imports.manage', async () => {
+    window.localStorage.setItem('travel_lite_token', SESSION.token);
+    window.localStorage.setItem('travel_lite_token_user', JSON.stringify(SESSION.user));
+    window.history.pushState({}, '', '/importacoes');
+    vi.stubGlobal('fetch', mockFetch({
+      '/auth/me': { user: SESSION.user },
+      '/sellers': { items: [] },
+      '/categories': { items: [] },
+      '/customers': { items: [] },
+    }));
+
+    render(<App />);
+
+    expect(await screen.findByRole('heading', { name: 'Importações' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Arquivo CSV ou XLSX')).toBeInTheDocument();
   });
 });

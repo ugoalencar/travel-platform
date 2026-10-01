@@ -13,6 +13,7 @@ export const MENU: MenuItem[] = [
   { to: '/', label: 'Dashboard', anyOf: [] },
   { to: '/vendas', label: 'Vendas', anyOf: ['sales.read_all', 'sales.read_own'] },
   { to: '/financeiro', label: 'Financeiro', anyOf: ['finance.read'] },
+  { to: '/importacoes', label: 'Importações', anyOf: ['imports.manage'] },
   { to: '/clientes', label: 'Clientes', anyOf: ['customers.read_all', 'customers.read_own'] },
   { to: '/vendedores', label: 'Vendedores', anyOf: ['sellers.read'] },
   { to: '/comissoes', label: 'Comissões', anyOf: ['commissions.read_all', 'commissions.read_own'] },

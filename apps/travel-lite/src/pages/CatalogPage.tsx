@@ -10,9 +10,14 @@ interface CatalogItem {
   direction?: string;
   sort_order?: number;
   initial_balance?: number;
+  document?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  notes?: string | null;
+  status?: string;
 }
 
-type ExtraKind = 'account' | 'category' | 'method' | 'none';
+type ExtraKind = 'account' | 'category' | 'method' | 'party' | 'none';
 
 interface SectionProps {
   path: string;
@@ -23,9 +28,13 @@ interface SectionProps {
 function CatalogSection({ path, title, extra }: SectionProps) {
   const [items, setItems] = useState<CatalogItem[]>([]);
   const [name, setName] = useState('');
-  const [type, setType] = useState('CASH');
+  const [type, setType] = useState(() => defaultType(extra));
   const [direction, setDirection] = useState('IN');
   const [sortOrder, setSortOrder] = useState('0');
+  const [document, setDocument] = useState('');
+  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
+  const [notes, setNotes] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -46,17 +55,25 @@ function CatalogSection({ path, title, extra }: SectionProps) {
   function startCreate(): void {
     setEditingId(null);
     setName('');
-    setType('CASH');
+    setType(defaultType(extra));
     setDirection('IN');
     setSortOrder('0');
+    setDocument('');
+    setPhone('');
+    setEmail('');
+    setNotes('');
   }
 
   function startEdit(item: CatalogItem): void {
     setEditingId(item.id);
     setName(item.name);
-    setType(item.type ?? 'CASH');
+    setType(item.type ?? defaultType(extra));
     setDirection(item.direction ?? 'IN');
     setSortOrder(String(item.sort_order ?? 0));
+    setDocument(item.document ?? '');
+    setPhone(item.phone ?? '');
+    setEmail(item.email ?? '');
+    setNotes(item.notes ?? '');
   }
 
   async function onSubmit(event: FormEvent): Promise<void> {
@@ -65,6 +82,13 @@ function CatalogSection({ path, title, extra }: SectionProps) {
     if (extra === 'account') payload.type = type;
     if (extra === 'category') payload.direction = direction;
     if (extra === 'method') payload.sort_order = Number(sortOrder);
+    if (extra === 'party') {
+      payload.type = type;
+      payload.document = document.trim();
+      payload.phone = phone.trim();
+      payload.email = email.trim();
+      payload.notes = notes.trim();
+    }
     try {
       if (editingId) {
         await api(`${path}/${editingId}`, { method: 'PATCH', body: payload });
@@ -82,7 +106,9 @@ function CatalogSection({ path, title, extra }: SectionProps) {
     try {
       await api(`${path}/${item.id}`, {
         method: 'PATCH',
-        body: { active: !item.active },
+        body: extra === 'party'
+          ? { status: isActive(item) ? 'INACTIVE' : 'ACTIVE' }
+          : { active: !item.active },
       });
       await load();
     } catch (err) {
@@ -108,6 +134,34 @@ function CatalogSection({ path, title, extra }: SectionProps) {
               <option value="WALLET">Carteira</option>
             </select>
           </label>
+        ) : null}
+        {extra === 'party' ? (
+          <>
+            <label className="field">
+              <span>Tipo</span>
+              <select value={type} onChange={(event) => setType(event.target.value)}>
+                <option value="SUPPLIER">Fornecedor</option>
+                <option value="SERVICE_PROVIDER">Prestador</option>
+                <option value="OTHER">Outro favorecido</option>
+              </select>
+            </label>
+            <label className="field">
+              <span>Documento</span>
+              <input value={document} onChange={(event) => setDocument(event.target.value)} />
+            </label>
+            <label className="field">
+              <span>Telefone</span>
+              <input value={phone} onChange={(event) => setPhone(event.target.value)} />
+            </label>
+            <label className="field">
+              <span>E-mail</span>
+              <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} />
+            </label>
+            <label className="field field-wide">
+              <span>Observações</span>
+              <textarea value={notes} onChange={(event) => setNotes(event.target.value)} rows={2} />
+            </label>
+          </>
         ) : null}
         {extra === 'category' ? (
           <label className="field">
@@ -149,6 +203,9 @@ function CatalogSection({ path, title, extra }: SectionProps) {
               {extra === 'account' ? <th className="num">Saldo inicial</th> : null}
               {extra === 'category' ? <th>Direção</th> : null}
               {extra === 'method' ? <th className="num">Ordem</th> : null}
+              {extra === 'party' ? <th>Tipo</th> : null}
+              {extra === 'party' ? <th>Documento</th> : null}
+              {extra === 'party' ? <th>Contato</th> : null}
               <th>Status</th>
               <th>Ações</th>
             </tr>
@@ -168,8 +225,15 @@ function CatalogSection({ path, title, extra }: SectionProps) {
                 ) : null}
                 {extra === 'category' ? <td>{item.direction}</td> : null}
                 {extra === 'method' ? <td className="num">{item.sort_order}</td> : null}
+                {extra === 'party' ? <td>{partyTypeLabel(item.type)}</td> : null}
+                {extra === 'party' ? <td>{item.document || '—'}</td> : null}
+                {extra === 'party' ? (
+                  <td>
+                    {[item.phone, item.email].filter(Boolean).join(' · ') || '—'}
+                  </td>
+                ) : null}
                 <td>
-                  <StatusBadge status={item.active ? 'ACTIVE' : 'INACTIVE'} />
+                  <StatusBadge status={item.status ?? (item.active ? 'ACTIVE' : 'INACTIVE')} />
                 </td>
                 <td>
                   <div className="row-actions">
@@ -181,7 +245,7 @@ function CatalogSection({ path, title, extra }: SectionProps) {
                       className="btn btn-small"
                       onClick={() => void toggleActive(item)}
                     >
-                      {item.active ? 'Desativar' : 'Ativar'}
+                      {isActive(item) ? 'Desativar' : 'Ativar'}
                     </button>
                   </div>
                 </td>
@@ -195,8 +259,28 @@ function CatalogSection({ path, title, extra }: SectionProps) {
   );
 }
 
+function isActive(item: CatalogItem): boolean {
+  return item.status ? item.status === 'ACTIVE' : item.active;
+}
+
+function defaultType(extra: ExtraKind): string {
+  return extra === 'party' ? 'SUPPLIER' : 'CASH';
+}
+
+function partyTypeLabel(type?: string): string {
+  if (type === 'SERVICE_PROVIDER') return 'Prestador';
+  if (type === 'OTHER') return 'Outro';
+  return 'Fornecedor';
+}
+
 const SECTIONS: Array<SectionProps & { id: string }> = [
   { id: 'sale-categories', path: '/categories', title: 'Categorias de venda', extra: 'none' },
+  {
+    id: 'financial-parties',
+    path: '/financial-parties',
+    title: 'Favorecidos financeiros',
+    extra: 'party',
+  },
   {
     id: 'accounts',
     path: '/financial-accounts',

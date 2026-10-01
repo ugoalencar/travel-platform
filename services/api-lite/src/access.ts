@@ -32,12 +32,18 @@ export const PERMISSIONS = [
   'commissions.pay',
   'finance.read',
   'finance.manage',
+  'imports.manage',
   'reports.sales_all',
   'reports.sales_own',
   'reports.sellers_all',
   'reports.finance',
+  'sale_costs.read_own',
+  'sale_costs.read_all',
+  'sale_costs.create',
+  'sale_costs.update',
   'dashboard.configure',
   'settings.manage',
+  'suppliers.manage',
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];

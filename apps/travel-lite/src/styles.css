@@ -453,3 +453,15 @@ tr.row-selected td {
   align-items: flex-start;
   font-size: 0.9rem;
 }
+
+.mapping-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 0.75rem;
+}
+
+.lite-card > .form-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.75rem;
+}

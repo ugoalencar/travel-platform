@@ -12,4 +12,6 @@ coverage
 !.env.travel-lite.example
 **/test-results
 backups
+release
+**/release
 *.log

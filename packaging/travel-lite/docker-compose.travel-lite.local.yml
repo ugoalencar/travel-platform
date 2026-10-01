@@ -1,0 +1,46 @@
+# Travel Lite local release stack.
+# This compose file is copied into the Windows install directory and expects
+# Docker images to be loaded from packaging/images/*.tar by install-travel-lite.ps1.
+
+services:
+  postgres:
+    image: postgres:17
+    container_name: travel-lite-postgres
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${TRAVEL_LITE_DB_PORT:-55436}:5432"
+    environment:
+      POSTGRES_DB: travel_lite
+      POSTGRES_USER: travel_lite_admin
+      POSTGRES_PASSWORD: ${TRAVEL_LITE_DB_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U travel_lite_admin -d travel_lite"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    volumes:
+      - travel_lite_postgres_data:/var/lib/postgresql/data
+
+  api:
+    image: ${TRAVEL_LITE_IMAGE:-travel-lite-local:latest}
+    container_name: travel-lite-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${TRAVEL_LITE_APP_PORT:-4010}:4010"
+    environment:
+      NODE_ENV: local
+      HOST: 0.0.0.0
+      PORT: "4010"
+      DATABASE_URL: postgresql://travel_lite_runtime:${TRAVEL_LITE_RUNTIME_DB_PASSWORD}@postgres:5432/travel_lite
+      FRONTEND_DIST_DIR: /app/apps/travel-lite/dist
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:4010/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+volumes:
+  travel_lite_postgres_data:

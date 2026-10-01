@@ -140,6 +140,16 @@ interface SaleRelations {
   payment_method_id: string | null;
 }
 
+export interface CreateSaleDraftInput extends SaleRelations {
+  gross_amount: number;
+  cost_amount?: number;
+  sale_date?: string | null;
+  due_date: string;
+  installment_count?: number;
+  description?: string | null;
+  notes?: string | null;
+}
+
 /**
  * Own-scoped users (no sales.update_all) may only sell as their own seller
  * and only to customers they can see; a customer outside their portfolio
@@ -200,6 +210,185 @@ async function loadSaleForUpdate(
   const sale = result.rows[0];
   if (!sale || !inScope(scope, sale.seller_id)) throw new NotFoundError('Sale not found');
   return sale;
+}
+
+export async function createSaleDraft(
+  client: TenantClient,
+  tenantId: string,
+  context: AccessContext,
+  input: CreateSaleDraftInput,
+): Promise<SaleRow> {
+  const cost = input.cost_amount ?? 0;
+  const margin = computeMargin(input.gross_amount, cost);
+  await validateSaleRelations(client, tenantId, input, context);
+  const saleNumber = await nextSaleNumber(client, tenantId);
+  const result = await client.query<SaleRow>(
+    `INSERT INTO sales (tenant_id, customer_id, seller_id, category_id, sale_number,
+                        description, gross_amount, cost_amount, margin_amount,
+                        sale_date, due_date, installment_count, payment_method_id, notes)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+     RETURNING ${SELECT_SALE}`,
+    [
+      tenantId,
+      input.customer_id,
+      input.seller_id,
+      input.category_id,
+      saleNumber,
+      input.description ?? null,
+      input.gross_amount,
+      cost,
+      margin,
+      input.sale_date ?? new Date().toISOString().slice(0, 10),
+      input.due_date,
+      input.installment_count ?? 1,
+      input.payment_method_id,
+      input.notes ?? null,
+    ],
+  );
+  const created = result.rows[0]!;
+  await recordAuditEvent(client, {
+    eventType: AUDIT_EVENTS.SALE_CREATED,
+    entityType: 'sale',
+    entityId: created.id,
+    metadata: { sale_number: created.sale_number },
+  });
+  await enqueueOutboxEvent(client, {
+    eventType: 'SALE_CREATED',
+    entityType: 'sale',
+    entityId: created.id,
+    payload: { sale_number: created.sale_number },
+  });
+  return created;
+}
+
+export async function confirmSaleDraft(
+  client: TenantClient,
+  tenantId: string,
+  saleId: string,
+  scope: Scope,
+): Promise<SaleRow> {
+  const current = await loadSaleForUpdate(client, tenantId, saleId, scope);
+  if (current.status !== 'DRAFT') {
+    throw new ConflictError(`Only DRAFT sales can be confirmed (current: ${current.status})`);
+  }
+
+  await client.query(
+    `UPDATE sales SET status = 'CONFIRMED', updated_at = now() WHERE tenant_id = $1 AND id = $2`,
+    [tenantId, saleId],
+  );
+
+  const gross = Number(current.gross_amount);
+  const count = Number(current.installment_count);
+  const base = Math.floor((gross / count) * 100) / 100;
+  for (let i = 1; i <= count; i += 1) {
+    const amount = i === count ? Math.round((gross - base * (count - 1)) * 100) / 100 : base;
+    const receivable = await client.query<{ id: string }>(
+      `INSERT INTO receivables (tenant_id, sale_id, installment_number, installment_count,
+                                customer_id, description, amount, due_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, ($8::date + make_interval(months => $9::int))::date)
+       RETURNING id`,
+      [
+        tenantId,
+        saleId,
+        i,
+        count,
+        current.customer_id,
+        `${current.sale_number} - parcela ${i}/${count}`,
+        amount,
+        current.due_date,
+        i - 1,
+      ],
+    );
+    await enqueueOutboxEvent(client, {
+      eventType: 'RECEIVABLE_CREATED',
+      entityType: 'receivable',
+      entityId: receivable.rows[0]!.id,
+      payload: { sale_number: current.sale_number, installment_number: i },
+    });
+  }
+
+  const sellerResult = await client.query<{
+    commission_rule_type: string;
+    commission_rate: string | null;
+    commission_fixed_amount: string | null;
+  }>(
+    `SELECT commission_rule_type, commission_rate, commission_fixed_amount
+       FROM sellers WHERE tenant_id = $1 AND id = $2`,
+    [tenantId, current.seller_id],
+  );
+  const seller = sellerResult.rows[0]!;
+
+  if (seller.commission_rule_type === 'UNDEFINED') {
+    const pending = await client.query<{ id: string }>(
+      `INSERT INTO seller_commissions (tenant_id, sale_id, seller_id, status, rule_snapshot)
+       VALUES ($1, $2, $3, 'PENDING_RULE', $4::jsonb)
+       RETURNING id`,
+      [tenantId, saleId, current.seller_id, JSON.stringify({ rule_type: 'UNDEFINED' })],
+    );
+    await enqueueOutboxEvent(client, {
+      eventType: 'COMMISSION_CREATED',
+      entityType: 'seller_commission',
+      entityId: pending.rows[0]!.id,
+      payload: { sale_number: current.sale_number, pending_rule: true },
+    });
+  } else {
+    const percentage = seller.commission_rate !== null ? Number(seller.commission_rate) : null;
+    const fixedAmount = seller.commission_fixed_amount !== null ? Number(seller.commission_fixed_amount) : null;
+    let baseAmount: number | null = null;
+    let amount: number;
+    if (seller.commission_rule_type === 'FIXED') {
+      amount = fixedAmount ?? 0;
+    } else {
+      baseAmount =
+        seller.commission_rule_type === 'PERCENTAGE_ON_MARGIN'
+          ? Number(current.margin_amount)
+          : Number(current.gross_amount);
+      amount = Math.round(baseAmount * (percentage ?? 0)) / 100;
+    }
+    const computed = await client.query<{ id: string }>(
+      `INSERT INTO seller_commissions (tenant_id, sale_id, seller_id, calculation_type,
+                                       calculation_base, percentage, fixed_amount,
+                                       commission_amount, status, rule_snapshot)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'PENDING', $9::jsonb)
+       RETURNING id`,
+      [
+        tenantId,
+        saleId,
+        current.seller_id,
+        seller.commission_rule_type,
+        baseAmount,
+        percentage,
+        fixedAmount,
+        amount,
+        JSON.stringify({
+          rule_type: seller.commission_rule_type,
+          rate: percentage,
+          fixed_amount: fixedAmount,
+        }),
+      ],
+    );
+    await enqueueOutboxEvent(client, {
+      eventType: 'COMMISSION_CREATED',
+      entityType: 'seller_commission',
+      entityId: computed.rows[0]!.id,
+      payload: { sale_number: current.sale_number, amount },
+    });
+  }
+
+  await recordAuditEvent(client, {
+    eventType: AUDIT_EVENTS.SALE_CONFIRMED,
+    entityType: 'sale',
+    entityId: saleId,
+    metadata: { sale_number: current.sale_number, installments: count },
+  });
+  await enqueueOutboxEvent(client, {
+    eventType: 'SALE_CONFIRMED',
+    entityType: 'sale',
+    entityId: saleId,
+    payload: { sale_number: current.sale_number },
+  });
+
+  return { ...current, status: 'CONFIRMED' };
 }
 
 export function registerSaleRoutes(
@@ -337,8 +526,29 @@ export function registerSaleRoutes(
       );
 
       const commission = commissionResult.rows[0];
+      const costResult = await client.query<{
+        id: string;
+        sale_id: string;
+        financial_party_id: string | null;
+        financial_party_name: string | null;
+        cost_type: string;
+        description: string;
+        amount: string;
+        due_date: string | null;
+        payable_id: string | null;
+        created_at: string;
+      }>(
+        `SELECT c.id, c.sale_id, c.financial_party_id, fp.name AS financial_party_name,
+                c.cost_type, c.description, c.amount, c.due_date, c.payable_id, c.created_at
+           FROM sale_cost_items c
+           LEFT JOIN financial_parties fp ON fp.tenant_id = c.tenant_id AND fp.id = c.financial_party_id
+          WHERE c.tenant_id = $1 AND c.sale_id = $2
+          ORDER BY c.created_at, c.id`,
+        [context.tenantId, id],
+      );
       return {
         sale: serializeSale(sale),
+        saleCosts: costResult.rows.map((row) => ({ ...row, amount: Number(row.amount) })),
         receivables: receivablesResult.rows.map((r) => ({
           ...r,
           amount: Number(r.amount),
@@ -374,52 +584,22 @@ export function registerSaleRoutes(
     };
     const gross = requiredAmount(body, 'gross_amount');
     const cost = 'cost_amount' in body ? requiredAmount(body, 'cost_amount') : 0;
-    const margin = computeMargin(gross, cost);
     const saleDate = optionalDate(body, 'sale_date') ?? new Date().toISOString().slice(0, 10);
     const dueDate = requiredDate(body, 'due_date');
     const installmentCount = parseInstallmentCount(body);
 
-    const sale = await database.withTenantTransaction(async (client) => {
-      await validateSaleRelations(client, context.tenantId, relations, context);
-      const saleNumber = await nextSaleNumber(client, context.tenantId);
-      const result = await client.query<SaleRow>(
-        `INSERT INTO sales (tenant_id, customer_id, seller_id, category_id, sale_number,
-                            description, gross_amount, cost_amount, margin_amount,
-                            sale_date, due_date, installment_count, payment_method_id, notes)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
-         RETURNING ${SELECT_SALE}`,
-        [
-          context.tenantId,
-          relations.customer_id,
-          relations.seller_id,
-          relations.category_id,
-          saleNumber,
-          optionalString(body, 'description', { max: 2000 }),
-          gross,
-          cost,
-          margin,
-          saleDate,
-          dueDate,
-          installmentCount,
-          relations.payment_method_id,
-          optionalString(body, 'notes', { max: 2000 }),
-        ],
-      );
-      const created = result.rows[0]!;
-      await recordAuditEvent(client, {
-        eventType: AUDIT_EVENTS.SALE_CREATED,
-        entityType: 'sale',
-        entityId: created.id,
-        metadata: { sale_number: created.sale_number },
-      });
-      await enqueueOutboxEvent(client, {
-        eventType: 'SALE_CREATED',
-        entityType: 'sale',
-        entityId: created.id,
-        payload: { sale_number: created.sale_number },
-      });
-      return created;
-    });
+    const sale = await database.withTenantTransaction((client) =>
+      createSaleDraft(client, context.tenantId, context, {
+        ...relations,
+        gross_amount: gross,
+        cost_amount: cost,
+        sale_date: saleDate,
+        due_date: dueDate,
+        installment_count: installmentCount,
+        description: optionalString(body, 'description', { max: 2000 }),
+        notes: optionalString(body, 'notes', { max: 2000 }),
+      }),
+    );
 
     reply.code(201);
     return { sale: serializeSale(sale) };
@@ -519,131 +699,9 @@ export function registerSaleRoutes(
     const scope = updateScope();
     const { id } = request.params as { id: string };
 
-    const sale = await database.withTenantTransaction(async (client) => {
-      const current = await loadSaleForUpdate(client, context.tenantId, id, scope);
-      if (current.status !== 'DRAFT') {
-        throw new ConflictError(`Only DRAFT sales can be confirmed (current: ${current.status})`);
-      }
-
-      await client.query(
-        `UPDATE sales SET status = 'CONFIRMED', updated_at = now() WHERE tenant_id = $1 AND id = $2`,
-        [context.tenantId, id],
-      );
-
-      const gross = Number(current.gross_amount);
-      const count = Number(current.installment_count);
-      const base = Math.floor((gross / count) * 100) / 100;
-      for (let i = 1; i <= count; i += 1) {
-        const amount = i === count ? Math.round((gross - base * (count - 1)) * 100) / 100 : base;
-        const receivable = await client.query<{ id: string }>(
-          `INSERT INTO receivables (tenant_id, sale_id, installment_number, installment_count,
-                                    customer_id, description, amount, due_at)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, ($8::date + make_interval(months => $9::int))::date)
-           RETURNING id`,
-          [
-            context.tenantId,
-            id,
-            i,
-            count,
-            current.customer_id,
-            `${current.sale_number} - parcela ${i}/${count}`,
-            amount,
-            current.due_date,
-            i - 1,
-          ],
-        );
-        await enqueueOutboxEvent(client, {
-          eventType: 'RECEIVABLE_CREATED',
-          entityType: 'receivable',
-          entityId: receivable.rows[0]!.id,
-          payload: { sale_number: current.sale_number, installment_number: i },
-        });
-      }
-
-      const sellerResult = await client.query<{
-        commission_rule_type: string;
-        commission_rate: string | null;
-        commission_fixed_amount: string | null;
-      }>(
-        `SELECT commission_rule_type, commission_rate, commission_fixed_amount
-           FROM sellers WHERE tenant_id = $1 AND id = $2`,
-        [context.tenantId, current.seller_id],
-      );
-      const seller = sellerResult.rows[0]!;
-
-      if (seller.commission_rule_type === 'UNDEFINED') {
-        const pending = await client.query<{ id: string }>(
-          `INSERT INTO seller_commissions (tenant_id, sale_id, seller_id, status, rule_snapshot)
-           VALUES ($1, $2, $3, 'PENDING_RULE', $4::jsonb)
-           RETURNING id`,
-          [context.tenantId, id, current.seller_id, JSON.stringify({ rule_type: 'UNDEFINED' })],
-        );
-        await enqueueOutboxEvent(client, {
-          eventType: 'COMMISSION_CREATED',
-          entityType: 'seller_commission',
-          entityId: pending.rows[0]!.id,
-          payload: { sale_number: current.sale_number, pending_rule: true },
-        });
-      } else {
-        const percentage = seller.commission_rate !== null ? Number(seller.commission_rate) : null;
-        const fixedAmount =
-          seller.commission_fixed_amount !== null ? Number(seller.commission_fixed_amount) : null;
-        let baseAmount: number | null = null;
-        let amount: number;
-        if (seller.commission_rule_type === 'FIXED') {
-          amount = fixedAmount ?? 0;
-        } else {
-          baseAmount =
-            seller.commission_rule_type === 'PERCENTAGE_ON_MARGIN'
-              ? Number(current.margin_amount)
-              : Number(current.gross_amount);
-          amount = Math.round(baseAmount * (percentage ?? 0)) / 100;
-        }
-        const computed = await client.query<{ id: string }>(
-          `INSERT INTO seller_commissions (tenant_id, sale_id, seller_id, calculation_type,
-                                           calculation_base, percentage, fixed_amount,
-                                           commission_amount, status, rule_snapshot)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'PENDING', $9::jsonb)
-           RETURNING id`,
-          [
-            context.tenantId,
-            id,
-            current.seller_id,
-            seller.commission_rule_type,
-            baseAmount,
-            percentage,
-            fixedAmount,
-            amount,
-            JSON.stringify({
-              rule_type: seller.commission_rule_type,
-              rate: percentage,
-              fixed_amount: fixedAmount,
-            }),
-          ],
-        );
-        await enqueueOutboxEvent(client, {
-          eventType: 'COMMISSION_CREATED',
-          entityType: 'seller_commission',
-          entityId: computed.rows[0]!.id,
-          payload: { sale_number: current.sale_number, amount },
-        });
-      }
-
-      await recordAuditEvent(client, {
-        eventType: AUDIT_EVENTS.SALE_CONFIRMED,
-        entityType: 'sale',
-        entityId: id,
-        metadata: { sale_number: current.sale_number, installments: count },
-      });
-      await enqueueOutboxEvent(client, {
-        eventType: 'SALE_CONFIRMED',
-        entityType: 'sale',
-        entityId: id,
-        payload: { sale_number: current.sale_number },
-      });
-
-      return { ...current, status: 'CONFIRMED' };
-    });
+    const sale = await database.withTenantTransaction((client) =>
+      confirmSaleDraft(client, context.tenantId, id, scope),
+    );
 
     return { sale: serializeSale(sale) };
   });

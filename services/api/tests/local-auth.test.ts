@@ -120,6 +120,9 @@ describe('Local password auth (Pilot Delivery Gap Closure -- Agent 02/Identity)'
     await platformPool?.end();
     await runtimePool?.end();
     await adminPool?.end();
+    if (process.env.CI !== 'true') {
+      compose(['down']);
+    }
   });
 
   // ------------------------------------------------------------

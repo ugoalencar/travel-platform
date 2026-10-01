@@ -10,10 +10,12 @@ import { registerCategoryRoutes } from './routes/categories';
 import { registerCommissionRoutes } from './routes/commissions';
 import { registerCustomerRoutes } from './routes/customers';
 import { registerFinancialCatalogRoutes } from './routes/financial-catalog';
+import { registerImportRoutes } from './routes/imports';
 import { registerDashboardRoutes } from './routes/dashboard';
 import { registerReportRoutes } from './routes/reports';
 import { registerUserRoutes } from './routes/users';
 import { registerSaleRoutes } from './routes/sales';
+import { registerSaleCostRoutes } from './routes/sale-costs';
 import { registerSellerRoutes } from './routes/sellers';
 import { createTenantContextHook } from './tenant-context';
 import { createStaticHandler } from './static';
@@ -78,7 +80,9 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
       (scope) => registerSellerRoutes(scope, database, protectedHooks),
       (scope) => registerCategoryRoutes(scope, database, protectedHooks),
       (scope) => registerSaleRoutes(scope, database, protectedHooks),
+      (scope) => registerSaleCostRoutes(scope, database, protectedHooks),
       (scope) => registerFinancialCatalogRoutes(scope, database, protectedHooks),
+      (scope) => registerImportRoutes(scope, database, protectedHooks),
       (scope) => registerCashFlowRoutes(scope, database, protectedHooks),
       (scope) => registerCommissionRoutes(scope, database, protectedHooks),
       (scope) => registerReportRoutes(scope, database, protectedHooks),

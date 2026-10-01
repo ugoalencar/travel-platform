@@ -41,6 +41,9 @@ interface PayableListItem {
   category_id: string | null;
   seller_id: string | null;
   commission_id: string | null;
+  financial_party_id: string | null;
+  sale_id: string | null;
+  sale_cost_item_id: string | null;
   supplier_name: string | null;
   description: string;
   amount: string;
@@ -49,6 +52,8 @@ interface PayableListItem {
   status: string;
   category_name: string | null;
   seller_name: string | null;
+  financial_party_name: string | null;
+  sale_number: string | null;
 }
 
 interface PaymentHistoryItem {
@@ -62,6 +67,11 @@ interface PaymentHistoryItem {
   paid_at: string;
   notes: string | null;
   account_name: string | null;
+  financial_party_id: string | null;
+  financial_party_name: string | null;
+  sale_id: string | null;
+  sale_number: string | null;
+  sale_cost_item_id: string | null;
   reversal_of_payment_id: string | null;
   reversal_reason: string | null;
   reversed_by_payment_id: string | null;
@@ -78,6 +88,11 @@ interface TransactionItem {
   description: string;
   created_at: string;
   account_name: string | null;
+  financial_party_id: string | null;
+  financial_party_name: string | null;
+  sale_id: string | null;
+  sale_number: string | null;
+  sale_cost_item_id: string | null;
 }
 
 interface PaymentBodyFields {
@@ -302,12 +317,16 @@ export function registerCashFlowRoutes(
         params,
       );
       const pageResult = await client.query<PayableListItem>(
-        `SELECT p.id, p.category_id, p.seller_id, p.commission_id, p.supplier_name,
+        `SELECT p.id, p.category_id, p.seller_id, p.commission_id, p.financial_party_id,
+                p.sale_id, p.sale_cost_item_id, p.supplier_name,
                 p.description, p.amount, p.paid_amount, p.due_at, p.status,
-                fc.name AS category_name, se.name AS seller_name
+                fc.name AS category_name, se.name AS seller_name,
+                fp.name AS financial_party_name, s.sale_number
            FROM payables p
            LEFT JOIN financial_categories fc ON fc.tenant_id = p.tenant_id AND fc.id = p.category_id
            LEFT JOIN sellers se ON se.tenant_id = p.tenant_id AND se.id = p.seller_id
+           LEFT JOIN financial_parties fp ON fp.tenant_id = p.tenant_id AND fp.id = p.financial_party_id
+           LEFT JOIN sales s ON s.tenant_id = p.tenant_id AND s.id = p.sale_id
           WHERE ${where}
           ORDER BY p.due_at
           LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
@@ -408,12 +427,16 @@ export function registerCashFlowRoutes(
       const result = await client.query<{
         id: string;
         commission_id: string | null;
+        financial_party_id: string | null;
+        sale_id: string | null;
+        sale_cost_item_id: string | null;
         description: string;
         amount: string;
         paid_amount: string;
         status: string;
       }>(
-        `SELECT id, commission_id, description, amount, paid_amount, status
+        `SELECT id, commission_id, financial_party_id, sale_id, sale_cost_item_id,
+                description, amount, paid_amount, status
            FROM payables WHERE tenant_id = $1 AND id = $2 FOR UPDATE`,
         [context.tenantId, id],
       );
@@ -455,6 +478,10 @@ export function registerCashFlowRoutes(
         notes: payment.notes,
         description: payable.description,
         target: { payableId: id },
+        financialPartyId: payable.financial_party_id,
+        saleId: payable.sale_id,
+        saleCostItemId: payable.sale_cost_item_id,
+        paidByUserId: context.userId,
       });
 
       if (payable.commission_id) {
@@ -585,11 +612,15 @@ export function registerCashFlowRoutes(
       const pageResult = await client.query<PaymentHistoryItem>(
         `SELECT p.id, p.direction, p.account_id, p.category_id, p.amount, p.method,
                 p.reference, p.paid_at, p.notes, a.name AS account_name,
+                p.financial_party_id, fp.name AS financial_party_name,
+                p.sale_id, s.sale_number, p.sale_cost_item_id,
                 p.reversal_of_payment_id, p.reversal_reason,
                 (SELECT r.id FROM payments r
                   WHERE r.tenant_id = p.tenant_id AND r.reversal_of_payment_id = p.id) AS reversed_by_payment_id
            FROM payments p
            LEFT JOIN financial_accounts a ON a.tenant_id = p.tenant_id AND a.id = p.account_id
+           LEFT JOIN financial_parties fp ON fp.tenant_id = p.tenant_id AND fp.id = p.financial_party_id
+           LEFT JOIN sales s ON s.tenant_id = p.tenant_id AND s.id = p.sale_id
           WHERE ${where}
           ORDER BY p.paid_at DESC, p.created_at DESC
           LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
@@ -646,9 +677,13 @@ export function registerCashFlowRoutes(
       );
       const pageResult = await client.query<TransactionItem>(
         `SELECT t.id, t.account_id, t.category_id, t.payment_id, t.type, t.amount,
-                t.occurred_at, t.description, t.created_at, a.name AS account_name
+                t.occurred_at, t.description, t.created_at, a.name AS account_name,
+                t.financial_party_id, fp.name AS financial_party_name,
+                t.sale_id, s.sale_number, t.sale_cost_item_id
            FROM financial_transactions t
            LEFT JOIN financial_accounts a ON a.tenant_id = t.tenant_id AND a.id = t.account_id
+           LEFT JOIN financial_parties fp ON fp.tenant_id = t.tenant_id AND fp.id = t.financial_party_id
+           LEFT JOIN sales s ON s.tenant_id = t.tenant_id AND s.id = t.sale_id
           WHERE ${where}
           ORDER BY t.occurred_at DESC, t.created_at DESC
           LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,

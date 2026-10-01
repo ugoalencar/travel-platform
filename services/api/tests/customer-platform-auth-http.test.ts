@@ -101,6 +101,11 @@ describe('Customer Portal + Platform Admin local auth HTTP routes', () => {
     await platformPool?.end();
     await runtimePool?.end();
     await adminPool?.end();
+    // Files run one at a time (fileParallelism: false): release the fixed
+    // container name for the next suite. Only this project's container goes.
+    if (process.env.CI !== 'true') {
+      compose(['down']);
+    }
   });
 
   it('POST /customer-auth/login with correct credentials returns a usable session, /customer-auth/logout revokes it', async () => {

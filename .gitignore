@@ -90,6 +90,7 @@ Thumbs.db
 desktop.ini
 
 # Local artifacts
+release/
 tmp/
 temp/
 .tmp/

@@ -115,6 +115,11 @@ describe('Partner Campaigns data-access layer (Agent 10)', () => {
   afterAll(async () => {
     await runtimePool?.end();
     await adminPool?.end();
+    // Files run one at a time (fileParallelism: false): release the fixed
+    // container name for the next suite. Only this project's container goes.
+    if (process.env.CI !== 'true') {
+      compose(['down']);
+    }
   });
 
   it('fails closed with no tenant context established', async () => {
