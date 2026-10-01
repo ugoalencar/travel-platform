@@ -409,7 +409,10 @@ A exposição da Data API existia em produção independentemente da janela. Hoj
 - **Recuperação do Platform Admin:** não existe fluxo; avaliar códigos de recuperação de MFA e um procedimento de break-glass documentado.
 - **Senha do `postgres`:** trocar depois da janela (trafegou sem TLS).
 
-## 10.2 TLS com validação do certificado (preparado, não ativado)
+## 10.2 TLS com validação do certificado — ATIVO desde 2026-10-01 01:17Z
+
+> **Ativado:** certificado oficial baixado do painel (`prod-ca-2021.crt`, guardado em `D:	ravel-platform-backups`) com o mesmo SHA-256 da raiz servida; `openssl` valida a cadeia; pools runtime e plataforma testados com `authorized=true`; `DATABASE_SSL_CA` salvo na Render e deploy `dep-daur943ncjis73812p60` (`82c6478`): `/readiness` e `/public/landing` 200, isolamento 34/34, 0 erros de certificado nos logs. Rollback: remover `DATABASE_SSL_CA` e redeploy.
+
 
 - **Hoje:** `sslmode=require&uselibpqcompat=true` → TLS 1.3 **sem** validar certificado.
 - **Código pronto** (`services/api/src/database-tls.ts`): com `DATABASE_SSL_CA` definido (PEM; `
@@ -418,7 +421,10 @@ A exposição da Data API existia em produção independentemente da janela. Hoj
 - **Teste (2026-09-30, fora da configuração de produção, SELECT 1):** raiz Supabase → conecta e `authorized=true`; CA não relacionada → recusado; sem CA → comportamento atual.
 - **Para ativar (decisão operacional):** baixar o certificado oficial no painel da Supabase (Database → Settings → SSL Configuration), conferir o SHA-256 acima, salvar em `DATABASE_SSL_CA` na Render (Save only) e fazer deploy manual; validar `/readiness` e um login. Rollback: remover a variável e redeployar.
 
-## 10.3 Rotação da senha do `postgres` (pendente, executar pelo painel)
+## 10.3 Rotação da senha do `postgres` — FEITA em 2026-10-01
+
+> **Feita:** reset pelo painel da Supabase; nova URL em `prod/DATABASE_ADMIN_URL` (TLS) validada a partir do cofre; senha antiga recusada; API não afetada (`/readiness` 200). `prod/RENDER_DATABASE_URL_BEFORE_T25` e o item temporário da senha foram apagados. `DATABASE_ADMIN_URL` e `RENDER_API_KEY` saíram do `.env` (só no Bitwarden). `DATABASE_URL` do `.env` voltou para o Postgres local.
+
 
 Pré-condições verificadas em 2026-09-30: Render usa só `travel_app_runtime` e `travel_app_platform`; as únicas sessões `postgres` são o worker interno `pg_net` (sem senha) e o operador. Nada operacional depende da senha atual.
 
@@ -434,7 +440,7 @@ Pré-condições verificadas em 2026-09-30: Render usa só `travel_app_runtime` 
 | QA Janela A | `qa-janela-a-*` | owner `delivered+qa-janela-a-owner@resend.dev`, 1 cliente com portal, 1 oferta, tarefas, 1 proposta com seção, 1 comunicação publicada, 1 viagem |
 | QA Janela B | `qa-janela-b-*` | owner `delivered+qa-janela-b-owner@resend.dev`, 1 cliente com portal, 1 oferta |
 
-Credenciais em `qa/*` no Bitwarden. Nenhum dado pessoal real (e-mails de teste da Resend). **Decisão pendente do responsável:** manter como tenants permanentes de QA (smoke pós-deploy e testes de isolamento A↔B) ou remover antes do piloto. Não removidos automaticamente. Também existem 4 agências de QA anteriores (`qa-customer-uat-agency-2/3`, `qa-consolidated-…`, `demo-travel-platform`) sem credenciais conhecidas.
+Credenciais em `qa/*` no Bitwarden. Nenhum dado pessoal real (e-mails de teste da Resend). **Decisão (2026-10-01): mantidos como tenants permanentes de QA** — usados no smoke pós-deploy e no teste de isolamento A↔B (`t5b`). Não são clientes reais; não devem receber dados reais nem ser usados em demonstrações. Também existem 4 agências de QA anteriores (`qa-customer-uat-agency-2/3`, `qa-consolidated-…`, `demo-travel-platform`) sem credenciais conhecidas.
 
 ## 10.5 Próximo deploy: estabilização pós-janela (código `82c6478`, CI verde, NÃO deployado)
 
@@ -460,6 +466,10 @@ Ordem obrigatória (auto-deploy segue OFF):
 | Recadastro do MFA do owner | ~00:0xZ | `MFA_ENABLED` no Microsoft Authenticator; segredo cifrado; 16 códigos de recuperação disponíveis (guardados pelo owner) |
 
 **Lição para o runbook:** no reset de MFA, só remover a conta antiga do autenticador **depois** de confirmar a nova; cada clique em "Configurar MFA" gera uma chave nova e invalida a anterior.
+
+## 10.6 Riscos aceitos
+
+- `.env` local mantém `SUPABASE_SERVICE_ROLE_KEY` de produção (e chaves Resend/JWT/MFA): decisão do responsável em 2026-10-01 manter. Mitigação: `.env` fora do git (secret scan limpo), máquina pessoal; reavaliar se a máquina for compartilhada ou se a chave vazar (rotacionar no painel).
 
 ## 11. `/version`
 
