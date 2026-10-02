@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { Link } from 'react-router-dom';
 import { api } from '../api';
 import { useCan } from '../auth';
 import { EmptyState, ErrorNote, Pager, StatusBadge, SuccessNote, formatBRL } from '../ui';
@@ -625,6 +626,9 @@ export function SalesPage() {
                 Nova venda
               </button>
             ) : null}
+            <Link className="btn btn-small btn-ghost" to="/ajuda#vendas">
+              Ver na ajuda
+            </Link>
           </EmptyState>
         ) : null}
       </div>

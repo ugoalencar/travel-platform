@@ -333,6 +333,9 @@ export function SellersPage() {
                 Novo vendedor
               </button>
             ) : null}
+            <Link className="btn btn-small btn-ghost" to="/ajuda#vendedores">
+              Ver na ajuda
+            </Link>
           </EmptyState>
         ) : null}
       </div>

@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api';
-import { useCan } from '../auth';
 import { ChartCard, SeriesBarChart, SeriesLineChart, monthLabel } from '../charts';
 import { ErrorNote, SuccessNote, formatBRL } from '../ui';
+import { FirstRunChecklist } from '../FirstRunChecklist';
 
 /**
  * Widgets come from GET /dashboard already computed inside the viewer's
@@ -26,119 +26,6 @@ interface LayoutItem {
   key: string;
   title: string;
   enabled: boolean;
-}
-
-interface CheckLine {
-  key: string;
-  ok: boolean;
-  pending: string;
-  done: string;
-  to: string;
-  cta: string;
-  canCta: boolean;
-}
-
-/**
- * First-run checklist: frontend-only signals from the four existing list
- * endpoints. A failing endpoint hides just that row (allSettled); the card
- * disappears once every visible step is done.
- */
-function FirstRunChecklist() {
-  const canCatalog = useCan('settings.manage');
-  const canSellersRead = useCan('sellers.read');
-  const canSellersManage = useCan('sellers.manage');
-  const canCustomerCreate = useCan('customers.create');
-  const [lines, setLines] = useState<CheckLine[] | null>(null);
-
-  useEffect(() => {
-    let active = true;
-    const checks: Array<Promise<CheckLine>> = [];
-    if (canCatalog) {
-      checks.push(
-        api<{ items: unknown[] }>('/financial-accounts').then((response) => ({
-          key: 'account',
-          ok: response.items.length > 0,
-          pending: 'Cadastre uma conta financeira para receber e pagar.',
-          done: 'Conta financeira cadastrada',
-          to: '/cadastros',
-          cta: 'Ir para Cadastros',
-          canCta: true,
-        })),
-        api<{ items: unknown[] }>('/categories').then((response) => ({
-          key: 'category',
-          ok: response.items.length > 0,
-          pending: 'Cadastre ao menos uma categoria de venda.',
-          done: 'Categorias de venda cadastradas',
-          to: '/cadastros',
-          cta: 'Ir para Cadastros',
-          canCta: true,
-        })),
-      );
-    }
-    if (canSellersRead) {
-      checks.push(
-        api<{ total: number }>('/sellers?pageSize=1').then((response) => ({
-          key: 'seller',
-          ok: response.total > 0,
-          pending: 'Cadastre quem vende e a regra de comissão.',
-          done: 'Vendedores cadastrados',
-          to: '/vendedores',
-          cta: 'Ir para Vendedores',
-          canCta: canSellersManage,
-        })),
-      );
-    }
-    if (canCustomerCreate) {
-      checks.push(
-        api<{ total: number }>('/customers?pageSize=1').then((response) => ({
-          key: 'customer',
-          ok: response.total > 0,
-          pending: 'Cadastre o primeiro cliente da carteira.',
-          done: 'Cliente cadastrado',
-          to: '/clientes',
-          cta: 'Ir para Clientes',
-          canCta: true,
-        })),
-      );
-    }
-    if (checks.length === 0) {
-      setLines([]);
-      return;
-    }
-    void Promise.allSettled(checks).then((results) => {
-      if (!active) return;
-      setLines(results.filter((result) => result.status === 'fulfilled').map((result) => result.value));
-    });
-    return () => {
-      active = false;
-    };
-  }, [canCatalog, canSellersRead, canSellersManage, canCustomerCreate]);
-
-  if (lines === null || lines.length === 0 || lines.every((line) => line.ok)) return null;
-  return (
-    <section className="lite-card">
-      <h2>Prepare sua agência</h2>
-      <p className="lite-muted">Leve a base ao dia zero para registrar a primeira venda.</p>
-      <ul className="lite-checklist">
-        {lines.map((line) => (
-          <li key={line.key}>
-            {line.ok ? (
-              <span className="lite-check-done">✓ {line.done}</span>
-            ) : (
-              <>
-                <span>{line.pending}</span>
-                {line.canCta ? (
-                  <Link className="btn btn-small" to={line.to}>
-                    {line.cta}
-                  </Link>
-                ) : null}
-              </>
-            )}
-          </li>
-        ))}
-      </ul>
-    </section>
-  );
 }
 
 type Series = Array<Record<string, string | number>>;
@@ -388,7 +275,12 @@ export function DashboardPage() {
           )}
         </div>
       ) : null}
-      {dash.widgets.length === 0 ? <p className="lite-empty">Nenhum indicador disponível para o seu perfil.</p> : null}
+      {dash.widgets.length === 0 ? (
+        <p className="lite-empty">
+          Nenhum indicador disponível para o seu perfil.{' '}
+          <Link to="/ajuda#configuracoes">Ver permissões na ajuda</Link>
+        </p>
+      ) : null}
     </>
   );
 }

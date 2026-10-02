@@ -340,6 +340,121 @@ tr:last-child td {
   padding-left: 1.2rem;
 }
 
+.lite-help .lite-checklist {
+  padding: 0;
+}
+
+.lite-help-tools {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+  margin-bottom: 0.9rem;
+}
+
+.lite-help-tools .field {
+  flex: 1;
+  max-width: 28rem;
+}
+
+.lite-help-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-bottom: 1rem;
+}
+
+.lite-help-nav a {
+  border: 1px solid var(--lite-border);
+  background: var(--lite-surface);
+  border-radius: 999px;
+  padding: 0.2rem 0.7rem;
+  font-size: 0.85rem;
+  color: var(--lite-fg);
+  text-decoration: none;
+}
+
+.lite-help-nav a:hover {
+  border-color: var(--lite-primary);
+  color: var(--lite-primary);
+}
+
+.help-block {
+  margin-top: 0.7rem;
+}
+
+.help-block h3 {
+  font-size: 0.95rem;
+  margin: 0 0 0.15rem;
+}
+
+.help-block ol {
+  margin: 0.25rem 0 0;
+  padding-left: 1.2rem;
+}
+
+.lite-help-tier {
+  display: block;
+  margin-top: 0.8rem;
+  border-left: 3px solid var(--lite-primary);
+  background: var(--lite-surface);
+  padding: 0.45rem 0.65rem;
+  border-radius: var(--lite-radius);
+  font-size: 0.85rem;
+  color: var(--lite-muted);
+}
+
+section:target {
+  outline: 2px solid var(--lite-primary);
+  outline-offset: 2px;
+}
+
+.lite-checklist-progress {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0.5rem 0 0.8rem;
+  font-size: 0.9rem;
+  color: var(--lite-muted);
+}
+
+.lite-progress {
+  flex: 1;
+  height: 0.5rem;
+  background: var(--lite-border);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.lite-progress > span {
+  display: block;
+  height: 100%;
+  background: var(--lite-primary);
+}
+
+.lite-check-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.lite-check-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.lite-check-example {
+  font-size: 0.85rem;
+}
+
+.lite-check-actions {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
 .badge {
   display: inline-block;
   border-radius: 999px;

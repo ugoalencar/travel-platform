@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { Link } from 'react-router-dom';
 import { api } from '../api';
 import { EmptyState, ErrorNote, StatusBadge, SuccessNote } from '../ui';
 
@@ -263,7 +264,13 @@ function CatalogSection({ path, title, extra }: SectionProps) {
             ))}
           </tbody>
         </table>
-        {items.length === 0 ? <EmptyState message="Nenhum registro." /> : null}
+        {items.length === 0 ? (
+          <EmptyState message="Nenhum registro.">
+            <Link className="btn btn-small btn-ghost" to="/ajuda#primeiros-passos">
+              Ver primeiros passos na ajuda
+            </Link>
+          </EmptyState>
+        ) : null}
       </div>
     </section>
   );

@@ -8,6 +8,8 @@
 - Cost totals and margin are visible in sales, dashboard, and reports.
 - Financial parties are manageable before sale costing.
 - CSV and XLSX imports support dry-run, reconciliation, and confirm.
+- In-app help center (`/ajuda`) offers per-area articles, simple search, and FAQ.
+- Onboarding checklist detects first-run steps from real data, shows progress, and links to help.
 - Backup and restore scripts are available for local operation.
 
 ## Security

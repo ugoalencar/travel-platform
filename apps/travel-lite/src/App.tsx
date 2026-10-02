@@ -27,6 +27,9 @@ function AccessDenied() {
         <Link className="btn btn-primary" to="/">
           Voltar ao dashboard
         </Link>
+        <Link className="btn btn-ghost" to="/ajuda#configuracoes">
+          Ver permissões na ajuda
+        </Link>
       </div>
     </section>
   );

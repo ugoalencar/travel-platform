@@ -1,108 +1,154 @@
-/**
- * Static in-app help. Content only — no API calls, permission-free for any
- * authenticated user (opened from the topbar "Ajuda" link).
- */
+import { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
+import { FirstRunChecklist, HELP_SEEN_KEY } from '../FirstRunChecklist';
+import { HELP_ARTICLES, HELP_FAQ, helpMatch } from '../helpContent';
+
 export function HelpPage() {
+  const [query, setQuery] = useState('');
+  const { hash } = useLocation();
+  const term = query.trim();
+
+  useEffect(() => {
+    window.localStorage.setItem(HELP_SEEN_KEY, '1');
+  }, []);
+
+  useEffect(() => {
+    const id = hash.replace(/^#/, '');
+    if (id) document.getElementById(id)?.scrollIntoView();
+  }, [hash]);
+
+  const articles = term ? HELP_ARTICLES.filter((article) => helpMatch(article, term)) : HELP_ARTICLES;
+  const faq = term ? HELP_FAQ.filter((item) => helpMatch(item, term)) : HELP_FAQ;
+  const noResults = term.length > 0 && articles.length === 0 && faq.length === 0;
+
   return (
     <div className="lite-help">
       <h1>Ajuda</h1>
-      <p className="lite-muted">Dúvidas rápidas sobre vendas, comissões, financeiro e permissões.</p>
+      <p className="lite-muted">
+        Dúvidas rápidas sobre vendas, comissões, financeiro e permissões, com exemplos prontos e os
+        erros mais comuns de cada tela.
+      </p>
 
-      <section className="lite-card">
-        <h2>Status das vendas</h2>
-        <ul>
-          <li>
-            <strong>Rascunho</strong> — venda ainda editável; é aqui que você lança os custos diretos.
-          </li>
-          <li>
-            <strong>Confirmada</strong> — gera as parcelas a receber e a comissão do vendedor.
-          </li>
-          <li>
-            <strong>Parcial</strong> — alguma parcela já foi recebida, mas ainda falta valor.
-          </li>
-          <li>
-            <strong>Pago</strong> — todas as parcelas foram recebidas.
-          </li>
-          <li>
-            <strong>Cancelada</strong> — não pode ser desfeita; exige permissão para editar todas as vendas (administrador ou gerente).
-          </li>
-        </ul>
-      </section>
+      <div className="lite-help-tools">
+        <label className="field">
+          <span>Buscar na ajuda</span>
+          <input
+            type="search"
+            value={query}
+            placeholder="Ex.: comissão, cancelar venda, permissão"
+            onChange={(event) => setQuery(event.target.value)}
+          />
+        </label>
+        {term.length > 0 ? (
+          <span className="lite-muted">{articles.length + faq.length} resultado(s) para “{term}”.</span>
+        ) : null}
+      </div>
 
-      <section className="lite-card">
-        <h2>Status das comissões</h2>
-        <ul>
-          <li>
-            <strong>Sem regra</strong> — a venda foi confirmada sem regra de comissão no vendedor. Um
-            administrador define a regra em Vendedores e o valor é recalculado.
-          </li>
-          <li>
-            <strong>Pendente</strong> — valor calculado, aguardando aprovação.
-          </li>
-          <li>
-            <strong>Aprovada</strong> — virou conta a pagar; o pagamento depende da permissão
-            financeira.
-          </li>
-          <li>
-            <strong>Pago</strong> — conta quitada.
-          </li>
-        </ul>
-      </section>
+      {term.length === 0 ? (
+        <nav className="lite-help-nav" aria-label="Índice da ajuda">
+          {HELP_ARTICLES.map((article) => (
+            <a key={article.id} href={`#${article.id}`}>
+              {article.title}
+            </a>
+          ))}
+          <a href="#faq">Dúvidas frequentes</a>
+        </nav>
+      ) : null}
 
-      <section className="lite-card">
-        <h2>Perfis e permissões</h2>
-        <ul>
-          <li>
-            Perfis: <strong>MASTER</strong>, <strong>ADMIN</strong>, <strong>MANAGER</strong>,{' '}
-            <strong>SELLER</strong> e <strong>VIEWER</strong>. Cada perfil tem permissões padrão, que
-            um MASTER pode ajustar por usuário em Configurações.
-          </li>
-          <li>
-            Se um menu não aparece, seu perfil não tem a permissão correspondente — fale com um
-            administrador da agência.
-          </li>
-          <li>Você não tem acesso a uma área por link direto? O sistema explica e mantém o endereço.</li>
-        </ul>
-      </section>
+      <FirstRunChecklist />
 
-      <section className="lite-card">
-        <h2>Importação de planilhas</h2>
-        <ul>
-          <li>1. Envie o arquivo CSV ou XLSX.</li>
-          <li>2. Associe as colunas aos campos.</li>
-          <li>3. Valide com o dry-run — nada é gravado ainda.</li>
-          <li>4. Resolva as pendências linha a linha (vincular cliente ou ignorar).</li>
-          <li>5. Confirme para gravar.</li>
-        </ul>
-      </section>
+      {noResults ? (
+        <p className="lite-empty">
+          Nenhum resultado para “{term}”. Tente: vendas, comissões, permissão, importação.
+        </p>
+      ) : null}
 
-      <section className="lite-card">
-        <h2>Financeiro</h2>
-        <ul>
-          <li>
-            <strong>Receber</strong> — dê baixa nas parcelas em Financeiro › A receber (exige
-            permissão financeira).
-          </li>
-          <li>
-            <strong>Pagar</strong> — despesas e comissões aprovadas aparecem em A pagar.
-          </li>
-          <li>
-            <strong>Estornar</strong> — o lançamento original é mantido e um movimento inverso é
-            registrado com motivo obrigatório.
-          </li>
-        </ul>
-      </section>
+      {articles.map((article) => (
+        <section className="lite-card" id={article.id} key={article.id}>
+          <h2>{article.title}</h2>
+          <div className="help-block">
+            <h3>O que esta tela resolve</h3>
+            <p>{article.purpose}</p>
+          </div>
+          <div className="help-block">
+            <h3>Quando usar</h3>
+            <p>{article.when}</p>
+          </div>
+          {article.requiredFields.length > 0 ? (
+            <div className="help-block">
+              <h3>Campos obrigatórios</h3>
+              <ul>
+                {article.requiredFields.map((field) => (
+                  <li key={field}>{field}</li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+          {article.example.length > 0 ? (
+            <div className="help-block">
+              <h3>Exemplo preenchido</h3>
+              <ul>
+                {article.example.map((line) => (
+                  <li key={line}>{line}</li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+          <div className="help-block">
+            <h3>Passo a passo</h3>
+            <ol>
+              {article.steps.map((step) => (
+                <li key={step}>{step}</li>
+              ))}
+            </ol>
+          </div>
+          <div className="help-block">
+            <h3>Erros comuns</h3>
+            <ul>
+              {article.commonErrors.map((error) => (
+                <li key={error}>{error}</li>
+              ))}
+            </ul>
+          </div>
+          {(article.sections ?? []).map((section) => (
+            <div className="help-block" key={section.title}>
+              <h3>{section.title}</h3>
+              <ul>
+                {section.items.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
+          <div className="help-block">
+            <h3>Permissões necessárias</h3>
+            <ul>
+              {article.permissions.map((permission) => (
+                <li key={permission}>{permission}</li>
+              ))}
+            </ul>
+          </div>
+          <div className="help-block">
+            <h3>Se algo não aparecer</h3>
+            <p>{article.missing}</p>
+          </div>
+          {article.availability ? (
+            <p className="lite-help-tier">{article.availability}</p>
+          ) : null}
+        </section>
+      ))}
 
-      <section className="lite-card">
-        <h2>Primeiros passos</h2>
-        <ul>
-          <li>
-            Ao entrar com a base vazia, o Dashboard mostra o checklist <strong>Prepare sua agência</strong>{' '}
-            com o que falta cadastrar.
-          </li>
-          <li>Ordem recomendada: conta financeira → categorias → vendedores → clientes → primeira venda.</li>
-        </ul>
-      </section>
+      {faq.length > 0 ? (
+        <section className="lite-card" id="faq">
+          <h2>Dúvidas frequentes</h2>
+          {faq.map((item) => (
+            <div className="help-block" key={item.question}>
+              <h3>{item.question}</h3>
+              <p>{item.answer}</p>
+            </div>
+          ))}
+        </section>
+      ) : null}
     </div>
   );
 }

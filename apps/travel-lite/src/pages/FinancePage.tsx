@@ -379,6 +379,9 @@ export function FinancePage() {
                     Ir para Vendas
                   </Link>
                 ) : null}
+                <Link className="btn btn-small btn-ghost" to="/ajuda#financeiro">
+                  Ver na ajuda
+                </Link>
               </EmptyState>
             ) : null}
           </div>
@@ -571,6 +574,9 @@ export function FinancePage() {
                     Nova despesa
                   </button>
                 ) : null}
+                <Link className="btn btn-small btn-ghost" to="/ajuda#financeiro">
+                  Ver na ajuda
+                </Link>
               </EmptyState>
             ) : null}
           </div>
@@ -672,7 +678,11 @@ export function FinancePage() {
               </tbody>
             </table>
             {payments.length === 0 ? (
-              <EmptyState message="Nenhum pagamento registrado." />
+              <EmptyState message="Nenhum pagamento registrado.">
+                <Link className="btn btn-small btn-ghost" to="/ajuda#financeiro">
+                  Ver na ajuda
+                </Link>
+              </EmptyState>
             ) : null}
           </div>
           <Pager page={paymentPage} pageSize={20} total={paymentTotal} onPage={setPaymentPage} />

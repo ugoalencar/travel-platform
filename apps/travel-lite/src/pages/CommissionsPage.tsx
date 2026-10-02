@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { Link } from 'react-router-dom';
 import { api } from '../api';
 import { useCan } from '../auth';
 import { EmptyState, ErrorNote, Pager, StatusBadge, SuccessNote, formatBRL } from '../ui';
@@ -229,7 +230,11 @@ export function CommissionsPage() {
           </tbody>
         </table>
         {items.length === 0 ? (
-          <EmptyState message="Nenhuma comissão no filtro. Comissões são geradas ao confirmar vendas." />
+          <EmptyState message="Nenhuma comissão no filtro. Comissões são geradas ao confirmar vendas.">
+            <Link className="btn btn-small btn-ghost" to="/ajuda#comissoes">
+              Ver na ajuda
+            </Link>
+          </EmptyState>
         ) : null}
       </div>
       <Pager page={page} pageSize={20} total={total} onPage={setPage} />

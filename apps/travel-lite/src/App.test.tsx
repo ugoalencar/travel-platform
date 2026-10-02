@@ -167,6 +167,10 @@ describe('App shell', () => {
     expect(await screen.findByText('Você não tem acesso a esta área.')).toBeInTheDocument();
     expect(window.location.pathname).toBe('/configuracoes');
     expect(screen.getByRole('link', { name: 'Voltar ao dashboard' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Ver permissões na ajuda' })).toHaveAttribute(
+      'href',
+      '/ajuda#configuracoes',
+    );
     expect(screen.queryByText('Vendas do mês')).not.toBeInTheDocument();
   });
 
@@ -202,6 +206,9 @@ describe('App shell', () => {
     expect(await screen.findByRole('heading', { name: 'Ajuda' })).toBeInTheDocument();
     expect(window.location.pathname).toBe('/ajuda');
     expect(screen.getByText('Status das vendas')).toBeInTheDocument();
+    expect(screen.getByLabelText('Buscar na ajuda')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Dúvidas frequentes' })).toBeInTheDocument();
+    expect(screen.getByRole('navigation', { name: 'Índice da ajuda' })).toBeInTheDocument();
   });
 
   it('shows the first-run checklist while the agency base is empty', async () => {
@@ -216,6 +223,7 @@ describe('App shell', () => {
         '/categories': { items: [] },
         '/sellers': { items: [], total: 0 },
         '/customers': { items: [], total: 0 },
+        '/sales': { items: [], total: 0 },
       }),
     );
 
@@ -223,14 +231,26 @@ describe('App shell', () => {
 
     expect(await screen.findByText('Prepare sua agência')).toBeInTheDocument();
     expect(screen.getByText('Cadastre uma conta financeira para receber e pagar.')).toBeInTheDocument();
+    expect(screen.getByText('Ex.: Banco do Brasil — CC 1234.')).toBeInTheDocument();
+    expect(screen.getByText('Registre a primeira venda do sistema.')).toBeInTheDocument();
+    expect(screen.getByText('Abra a Ajuda para conhecer as áreas e os erros comuns.')).toBeInTheDocument();
+    expect(screen.getByText('0 de 6 etapas concluídas')).toBeInTheDocument();
+    expect(screen.getByRole('progressbar', { name: 'Progresso do onboarding' })).toHaveAttribute(
+      'aria-valuenow',
+      '0',
+    );
     expect(screen.getAllByRole('link', { name: 'Ir para Cadastros' })).toHaveLength(2);
     expect(screen.getByRole('link', { name: 'Ir para Vendedores' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Ir para Clientes' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Ir para Vendas' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Abrir a ajuda' })).toHaveAttribute('href', '/ajuda');
+    expect(screen.getAllByRole('link', { name: 'Ver na ajuda' })).toHaveLength(5);
   });
 
   it('hides the first-run checklist when the base is already populated', async () => {
     window.localStorage.setItem('travel_lite_token', SESSION.token);
     window.localStorage.setItem('travel_lite_token_user', JSON.stringify(SESSION.user));
+    window.localStorage.setItem('travel_lite_help_seen', '1');
     const fetchMock = mockFetch({
       '/auth/me': { user: SESSION.user },
       '/dashboard': dashboard(false, 0),
@@ -238,6 +258,7 @@ describe('App shell', () => {
       '/categories': { items: [{ id: 'cat-1' }] },
       '/sellers': { items: [{ id: 'sel-1' }], total: 1 },
       '/customers': { items: [{ id: 'cus-1' }], total: 1 },
+      '/sales': { items: [{ id: 'sale-1' }], total: 1 },
     });
     vi.stubGlobal('fetch', fetchMock);
 
@@ -245,12 +266,12 @@ describe('App shell', () => {
 
     expect(await screen.findByText('Vendas do mês')).toBeInTheDocument();
     // The card starts hidden, so asserting its absence right away proves
-    // nothing: wait for the four list calls, let their responses settle,
+    // nothing: wait for the five list calls, let their responses settle,
     // and only then check that it stayed hidden.
     const called = (fragment: string) =>
       fetchMock.mock.calls.some((call) => callUrl(call[0]).includes(fragment));
     await waitFor(() => {
-      for (const fragment of ['/financial-accounts', '/categories', '/sellers', '/customers']) {
+      for (const fragment of ['/financial-accounts', '/categories', '/sellers', '/customers', '/sales']) {
         expect(called(fragment)).toBe(true);
       }
     });
@@ -373,6 +394,10 @@ describe('App shell', () => {
     render(<App />);
 
     expect(await screen.findByText('Nenhum cliente encontrado.')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Ver na ajuda' })).toHaveAttribute(
+      'href',
+      '/ajuda#clientes',
+    );
     const ctas = screen.getAllByRole('button', { name: 'Novo cliente' });
     fireEvent.click(ctas[ctas.length - 1]!);
     expect(await screen.findByRole('button', { name: 'Criar' })).toBeInTheDocument();
@@ -415,6 +440,7 @@ describe('App shell', () => {
     const authenticated = render(<App />);
     expect(await screen.findByRole('heading', { name: 'Ajuda' })).toBeInTheDocument();
     expect(window.location.pathname).toBe('/ajuda');
+    expect(window.localStorage.getItem('travel_lite_help_seen')).toBe('1');
     authenticated.unmount();
 
     window.localStorage.clear();
@@ -422,6 +448,61 @@ describe('App shell', () => {
     render(<App />);
     expect(await screen.findByText('Entre com o acesso da agência')).toBeInTheDocument();
     expect(window.location.pathname).toBe('/login');
+  });
+
+  it('filters the help center with the simple search', async () => {
+    window.localStorage.setItem('travel_lite_token', SESSION.token);
+    window.localStorage.setItem('travel_lite_token_user', JSON.stringify(SELLER_USER));
+    window.history.pushState({}, '', '/ajuda');
+    vi.stubGlobal('fetch', mockFetch({ '/auth/me': { user: SELLER_USER } }));
+
+    render(<App />);
+
+    expect(await screen.findByRole('heading', { name: 'Ajuda' })).toBeInTheDocument();
+    const search = screen.getByLabelText('Buscar na ajuda');
+    fireEvent.change(search, { target: { value: 'comissão' } });
+    expect(await screen.findByRole('heading', { name: 'Comissões' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Importação de planilhas' })).toBeNull();
+    expect(screen.queryByRole('heading', { name: 'Clientes' })).toBeNull();
+    expect(
+      screen.getByRole('heading', { name: 'Quem pode aprovar e pagar comissões?' }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/resultado\(s\) para/)).toBeInTheDocument();
+
+    fireEvent.change(search, { target: { value: 'zzzzz' } });
+    expect(await screen.findByText(/Nenhum resultado para/)).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Comissões' })).toBeNull();
+  });
+
+  it('shows the onboarding checklist on the settings page', async () => {
+    window.localStorage.setItem('travel_lite_token', SESSION.token);
+    window.localStorage.setItem('travel_lite_token_user', JSON.stringify(SESSION.user));
+    window.history.pushState({}, '', '/configuracoes');
+    vi.stubGlobal(
+      'fetch',
+      mockFetch({
+        '/auth/me': { user: SESSION.user },
+        '/access/catalog': {
+          roles: [
+            { key: 'MASTER', name: 'MASTER', grants_all: true, assignable: false, permissions: [] },
+          ],
+          permissions: [],
+        },
+        '/users': { items: [] },
+        '/sellers': { items: [{ id: 'sel-1', name: 'Ana Souza', user_id: null }], total: 1 },
+        '/financial-accounts': { items: [] },
+      }),
+    );
+
+    render(<App />);
+
+    expect(
+      await screen.findByRole('heading', { name: 'Configurações · Usuários e permissões' }),
+    ).toBeInTheDocument();
+    expect(await screen.findByText('Prepare sua agência')).toBeInTheDocument();
+    expect(screen.getByText('Cadastre uma conta financeira para receber e pagar.')).toBeInTheDocument();
+    expect(screen.getByText('Abra a Ajuda para conhecer as áreas e os erros comuns.')).toBeInTheDocument();
+    expect(screen.getByText('✓ Vendedores cadastrados')).toBeInTheDocument();
   });
 
   it('shows a SELLER only the checklist step they can act on', async () => {

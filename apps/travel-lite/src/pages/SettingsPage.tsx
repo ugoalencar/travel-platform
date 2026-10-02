@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { api } from '../api';
 import { useCan } from '../auth';
+import { FirstRunChecklist } from '../FirstRunChecklist';
 import { ErrorNote, StatusBadge, SuccessNote } from '../ui';
 
 /**
@@ -264,6 +265,7 @@ export function SettingsPage() {
       </div>
       <ErrorNote error={error} />
       <SuccessNote success={notice} />
+      <FirstRunChecklist />
       {formOpen ? (
         <form className="lite-form" onSubmit={(event) => void onSubmit(event)}>
           <label className="field">
