@@ -5,6 +5,7 @@ import { createAuthenticateHook } from './auth';
 import type { LiteDatabase } from './database';
 import { HttpError } from './errors';
 import { registerAuthRoutes } from './routes/auth';
+import { registerBrandingRoutes } from './routes/branding';
 import { registerCashFlowRoutes } from './routes/cash-flow';
 import { registerCategoryRoutes } from './routes/categories';
 import { registerCommissionRoutes } from './routes/commissions';
@@ -76,6 +77,7 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
 
     const registrars: Array<(scope: FastifyInstance) => void> = [
       (scope) => registerAuthRoutes(scope, database, protectedHooks),
+      (scope) => registerBrandingRoutes(scope, database, protectedHooks),
       (scope) => registerCustomerRoutes(scope, database, protectedHooks),
       (scope) => registerSellerRoutes(scope, database, protectedHooks),
       (scope) => registerCategoryRoutes(scope, database, protectedHooks),

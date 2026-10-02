@@ -3,6 +3,7 @@ import { api } from '../api';
 import { useCan } from '../auth';
 import { FirstRunChecklist } from '../FirstRunChecklist';
 import { ErrorNote, StatusBadge, SuccessNote } from '../ui';
+import { BrandingSection } from './BrandingSection';
 
 /**
  * Settings > Users and permissions. The API enforces every rule (no
@@ -408,6 +409,7 @@ export function SettingsPage() {
           </tbody>
         </table>
       </div>
+      <BrandingSection />
     </>
   );
 }

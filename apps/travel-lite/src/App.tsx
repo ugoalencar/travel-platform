@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { BrowserRouter, Link, Navigate, Route, Routes } from 'react-router-dom';
 import { AuthProvider, ProtectedRoute, useCan } from './auth';
+import { BrandingProvider } from './BrandingProvider';
 import { menuPermissions } from './menu';
 import { Layout } from './Layout';
 import { CatalogPage } from './pages/CatalogPage';
@@ -45,31 +46,33 @@ function Allowed({ path, children }: { path: string; children: ReactNode }) {
 export function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route
-            element={
-              <ProtectedRoute>
-                <Layout />
-              </ProtectedRoute>
-            }
-          >
-            <Route path="/" element={<DashboardPage />} />
-            <Route path="/clientes" element={<Allowed path="/clientes"><CustomersPage /></Allowed>} />
-            <Route path="/vendedores" element={<Allowed path="/vendedores"><SellersPage /></Allowed>} />
-            <Route path="/vendas" element={<Allowed path="/vendas"><SalesPage /></Allowed>} />
-            <Route path="/comissoes" element={<Allowed path="/comissoes"><CommissionsPage /></Allowed>} />
-            <Route path="/financeiro" element={<Allowed path="/financeiro"><FinancePage /></Allowed>} />
-            <Route path="/importacoes" element={<Allowed path="/importacoes"><ImportDataPage /></Allowed>} />
-            <Route path="/relatorios" element={<Allowed path="/relatorios"><ReportsPage /></Allowed>} />
-            <Route path="/cadastros" element={<Allowed path="/cadastros"><CatalogPage /></Allowed>} />
-            <Route path="/configuracoes" element={<Allowed path="/configuracoes"><SettingsPage /></Allowed>} />
-            <Route path="/ajuda" element={<HelpPage />} />
-          </Route>
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </BrowserRouter>
+      <BrandingProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route
+              element={
+                <ProtectedRoute>
+                  <Layout />
+                </ProtectedRoute>
+              }
+            >
+              <Route path="/" element={<DashboardPage />} />
+              <Route path="/clientes" element={<Allowed path="/clientes"><CustomersPage /></Allowed>} />
+              <Route path="/vendedores" element={<Allowed path="/vendedores"><SellersPage /></Allowed>} />
+              <Route path="/vendas" element={<Allowed path="/vendas"><SalesPage /></Allowed>} />
+              <Route path="/comissoes" element={<Allowed path="/comissoes"><CommissionsPage /></Allowed>} />
+              <Route path="/financeiro" element={<Allowed path="/financeiro"><FinancePage /></Allowed>} />
+              <Route path="/importacoes" element={<Allowed path="/importacoes"><ImportDataPage /></Allowed>} />
+              <Route path="/relatorios" element={<Allowed path="/relatorios"><ReportsPage /></Allowed>} />
+              <Route path="/cadastros" element={<Allowed path="/cadastros"><CatalogPage /></Allowed>} />
+              <Route path="/configuracoes" element={<Allowed path="/configuracoes"><SettingsPage /></Allowed>} />
+              <Route path="/ajuda" element={<HelpPage />} />
+            </Route>
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </BrowserRouter>
+      </BrandingProvider>
     </AuthProvider>
   );
 }
