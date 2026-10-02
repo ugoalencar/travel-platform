@@ -13,6 +13,7 @@ import { registerCustomerRoutes } from './routes/customers';
 import { registerFinancialCatalogRoutes } from './routes/financial-catalog';
 import { registerImportRoutes } from './routes/imports';
 import { registerDashboardRoutes } from './routes/dashboard';
+import { registerMigrationRoutes } from './routes/migration';
 import { registerReportRoutes } from './routes/reports';
 import { registerUserRoutes } from './routes/users';
 import { registerSaleRoutes } from './routes/sales';
@@ -89,6 +90,7 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
       (scope) => registerCommissionRoutes(scope, database, protectedHooks),
       (scope) => registerReportRoutes(scope, database, protectedHooks),
       (scope) => registerDashboardRoutes(scope, database, protectedHooks),
+      (scope) => registerMigrationRoutes(scope, database, protectedHooks),
       (scope) => registerUserRoutes(scope, database, protectedHooks),
     ];
 
