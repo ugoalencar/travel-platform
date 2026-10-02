@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { api } from '../api';
 import { useCan } from '../auth';
 import { EmptyState, ErrorNote, Pager, StatusBadge, SuccessNote } from '../ui';
@@ -66,6 +66,9 @@ export function CustomersPage() {
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
+  // Mobile quick add: only name/phone/e-mail show until "Mais campos" (CSS, data-quick).
+  const [moreOpen, setMoreOpen] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
@@ -94,11 +97,26 @@ export function CustomersPage() {
       .catch(() => setSellers([]));
   }, [canReassign]);
 
+  // The mobile "+ Cliente" button links here with ?novo=1: open the quick form once.
+  useEffect(() => {
+    if (searchParams.get('novo') !== '1') return;
+    if (canCreate) {
+      setEditingId(null);
+      setForm(EMPTY_FORM);
+      setOriginalResponsible('');
+      setNotice(null);
+      setMoreOpen(false);
+      setFormOpen(true);
+    }
+    setSearchParams({}, { replace: true });
+  }, [searchParams, setSearchParams, canCreate]);
+
   function startCreate() {
     setEditingId(null);
     setForm(EMPTY_FORM);
     setOriginalResponsible('');
     setNotice(null);
+    setMoreOpen(false);
     setFormOpen(true);
   }
 
@@ -112,6 +130,7 @@ export function CustomersPage() {
     } as FormState);
     setOriginalResponsible(customer.responsible_seller_id ?? '');
     setNotice(null);
+    setMoreOpen(true);
     setFormOpen(true);
   }
 
@@ -198,7 +217,11 @@ export function CustomersPage() {
       <ErrorNote error={error} />
       <SuccessNote success={notice} />
       {formOpen ? (
-        <form className="lite-form" onSubmit={(event) => void onSubmit(event)}>
+        <form
+          className="lite-form"
+          data-quick={!editingId && !moreOpen ? 'true' : 'false'}
+          onSubmit={(event) => void onSubmit(event)}
+        >
           <label className="field">
             <span>Nome *</span>
             <input
@@ -207,7 +230,7 @@ export function CustomersPage() {
               required
             />
           </label>
-          <label className="field">
+          <label className="field lite-more">
             <span>CPF</span>
             <input
               value={form.cpf}
@@ -215,7 +238,7 @@ export function CustomersPage() {
               placeholder="000.000.000-00"
             />
           </label>
-          <label className="field">
+          <label className="field lite-more">
             <span>Data de nascimento</span>
             <input
               type="date"
@@ -230,7 +253,7 @@ export function CustomersPage() {
               onChange={(event) => setForm({ ...form, phone: event.target.value })}
             />
           </label>
-          <label className="field">
+          <label className="field lite-more">
             <span>WhatsApp</span>
             <input
               value={form.whatsapp}
@@ -245,7 +268,7 @@ export function CustomersPage() {
               onChange={(event) => setForm({ ...form, email: event.target.value })}
             />
           </label>
-          <label className="field">
+          <label className="field lite-more">
             <span>CEP</span>
             <input
               value={form.zip_code}
@@ -254,7 +277,7 @@ export function CustomersPage() {
               maxLength={12}
             />
           </label>
-          <label className="field">
+          <label className="field lite-more">
             <span>Rua</span>
             <input
               value={form.street}
@@ -262,7 +285,7 @@ export function CustomersPage() {
               maxLength={200}
             />
           </label>
-          <label className="field">
+          <label className="field lite-more">
             <span>Número</span>
             <input
               value={form.number}
@@ -270,7 +293,7 @@ export function CustomersPage() {
               maxLength={20}
             />
           </label>
-          <label className="field">
+          <label className="field lite-more">
             <span>Complemento</span>
             <input
               value={form.complement}
@@ -278,7 +301,7 @@ export function CustomersPage() {
               maxLength={100}
             />
           </label>
-          <label className="field">
+          <label className="field lite-more">
             <span>Bairro</span>
             <input
               value={form.neighborhood}
@@ -286,7 +309,7 @@ export function CustomersPage() {
               maxLength={100}
             />
           </label>
-          <label className="field">
+          <label className="field lite-more">
             <span>Cidade</span>
             <input
               value={form.city}
@@ -294,7 +317,7 @@ export function CustomersPage() {
               maxLength={100}
             />
           </label>
-          <label className="field">
+          <label className="field lite-more">
             <span>UF</span>
             <select value={form.state} onChange={(event) => setForm({ ...form, state: event.target.value })}>
               <option value="">—</option>
@@ -310,7 +333,7 @@ export function CustomersPage() {
             </select>
           </label>
           {canReassign ? (
-            <label className="field">
+            <label className="field lite-more">
               <span>Responsável (carteira)</span>
               <select
                 value={form.responsible_seller_id}
@@ -326,7 +349,7 @@ export function CustomersPage() {
             </label>
           ) : null}
           {editingId ? (
-            <label className="field">
+            <label className="field lite-more">
               <span>Status</span>
               <select value={form.status} onChange={(event) => setForm({ ...form, status: event.target.value })}>
                 <option value="ACTIVE">Ativo</option>
@@ -334,7 +357,7 @@ export function CustomersPage() {
               </select>
             </label>
           ) : null}
-          <label className="field field-wide">
+          <label className="field field-wide lite-more">
             <span>Observações</span>
             <textarea
               value={form.notes}
@@ -343,6 +366,16 @@ export function CustomersPage() {
               rows={3}
             />
           </label>
+          {!editingId ? (
+            <button
+              type="button"
+              className="btn btn-small lite-more-toggle"
+              aria-expanded={moreOpen}
+              onClick={() => setMoreOpen((open) => !open)}
+            >
+              {moreOpen ? 'Menos campos' : 'Mais campos'}
+            </button>
+          ) : null}
           <div className="form-actions">
             <button
               type="button"
@@ -361,7 +394,7 @@ export function CustomersPage() {
         </form>
       ) : null}
       <div className="lite-table-wrap">
-        <table>
+        <table className="lite-stack">
           <thead>
             <tr>
               <th>Nome</th>
@@ -376,15 +409,15 @@ export function CustomersPage() {
           <tbody>
             {items.map((customer) => (
               <tr key={customer.id}>
-                <td>{customer.name}</td>
-                <td>{customer.email ?? '—'}</td>
-                <td>{customer.cpf ?? '—'}</td>
-                <td>{customer.phone ?? '—'}</td>
-                <td>{customer.responsible_seller_name ?? '—'}</td>
-                <td>
+                <td className="lite-card-title" data-label="Nome">{customer.name}</td>
+                <td data-label="E-mail">{customer.email ?? '—'}</td>
+                <td data-label="CPF">{customer.cpf ?? '—'}</td>
+                <td data-label="Telefone">{customer.phone ?? '—'}</td>
+                <td data-label="Responsável">{customer.responsible_seller_name ?? '—'}</td>
+                <td data-label="Status">
                   <StatusBadge status={customer.status} />
                 </td>
-                <td>
+                <td className="lite-card-actions" data-label="Ações">
                   <div className="row-actions">
                     <button
                       type="button"

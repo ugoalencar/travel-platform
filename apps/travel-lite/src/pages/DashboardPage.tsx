@@ -207,6 +207,8 @@ export function DashboardPage() {
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  // Mobile summary: KPIs first; charts and rankings open on demand (CSS, data-expanded).
+  const [showDetails, setShowDetails] = useState(false);
 
   const load = useCallback(() => {
     api<DashboardJson>('/dashboard')
@@ -265,7 +267,17 @@ export function DashboardPage() {
         </div>
       ) : null}
       {panels.length > 0 ? (
-        <div className="chart-grid">
+        <button
+          type="button"
+          className="btn lite-more-toggle"
+          aria-expanded={showDetails}
+          onClick={() => setShowDetails((open) => !open)}
+        >
+          {showDetails ? 'Ocultar gráficos e rankings' : 'Ver gráficos e rankings'}
+        </button>
+      ) : null}
+      {panels.length > 0 ? (
+        <div className="chart-grid lite-dash-detail" data-expanded={showDetails ? 'true' : 'false'}>
           {panels.map((widget) =>
             widget.kind === 'table' ? (
               <RankingWidget key={widget.key} widget={widget} />

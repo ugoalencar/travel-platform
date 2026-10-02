@@ -130,6 +130,8 @@ describe('App shell', () => {
       'Cadastros',
       'Configurações',
       'Ajuda',
+      // Mobile quick-add shortcut (hidden by CSS on desktop), for users who can create customers.
+      '+ Cliente',
     ]);
   });
 
@@ -153,6 +155,8 @@ describe('App shell', () => {
       'Comissões',
       'Relatórios',
       'Ajuda',
+      // Mobile quick-add shortcut (hidden by CSS on desktop), for users who can create customers.
+      '+ Cliente',
     ]);
   });
 

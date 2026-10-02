@@ -577,7 +577,7 @@ export function SalesPage() {
         </div>
       ) : null}
       <div className="lite-table-wrap">
-        <table>
+        <table className="lite-stack">
           <thead>
             <tr>
               <th>Número</th>
@@ -593,16 +593,16 @@ export function SalesPage() {
           <tbody>
             {items.map((sale) => (
               <tr key={sale.id}>
-                <td>{sale.sale_number}</td>
-                <td>{sale.sale_date}</td>
-                <td>{sale.customer.name}</td>
-                <td>{sale.seller.name}</td>
-                <td className="num">{formatBRL(sale.gross_amount)}</td>
-                <td className="num">{formatBRL(sale.margin_amount)}</td>
-                <td>
+                <td className="lite-card-title" data-label="Número">{sale.sale_number}</td>
+                <td data-label="Data">{sale.sale_date}</td>
+                <td data-label="Cliente">{sale.customer.name}</td>
+                <td data-label="Vendedor">{sale.seller.name}</td>
+                <td className="num" data-label="Bruto">{formatBRL(sale.gross_amount)}</td>
+                <td className="num" data-label="Margem">{formatBRL(sale.margin_amount)}</td>
+                <td data-label="Status">
                   <StatusBadge status={sale.status} />
                 </td>
-                <td>
+                <td className="lite-card-actions" data-label="Ações">
                   <button
                     type="button"
                     className="btn btn-small"

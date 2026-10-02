@@ -59,6 +59,17 @@ export function BrandingProvider({ children }: { children: ReactNode }) {
     };
   }, [branding]);
 
+  // The installed app's status bar follows the agency's primary color.
+  useEffect(() => {
+    const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+    if (!meta || !branding.primaryColor) return;
+    const original = meta.content;
+    meta.content = branding.primaryColor;
+    return () => {
+      meta.content = original;
+    };
+  }, [branding.primaryColor]);
+
   const value = useMemo(() => ({ branding, status, setBranding }), [branding, status]);
   return <BrandingContext.Provider value={value}>{children}</BrandingContext.Provider>;
 }
