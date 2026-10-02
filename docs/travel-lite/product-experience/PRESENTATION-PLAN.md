@@ -1,5 +1,7 @@
 # Travel Lite — Plano de Apresentação
 
+Status: roteiro criado (2026-10-02) — ver [PRESENTATION.md](./PRESENTATION.md).
+
 ## Objetivo
 
 Preparar apresentação comercial e operacional do Travel Lite para clientes que querem algo prático, rápido e menos complexo que a plataforma Full.
