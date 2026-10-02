@@ -227,9 +227,9 @@ async function classifyCustomerRecord(
     state: mappingValue(raw, mapping, 'state'),
     notes: mappingValue(raw, mapping, 'notes'),
   };
-  if (!name) return { status: 'INVALID', reason: 'Missing customer name', normalized, customerId: null };
+  if (!name) return { status: 'INVALID', reason: 'Nome do cliente ausente', normalized, customerId: null };
   if (rawCpf) {
-    if (!isValidCpf(rawCpf)) return { status: 'INVALID', reason: 'Invalid CPF', normalized, customerId: null };
+    if (!isValidCpf(rawCpf)) return { status: 'INVALID', reason: 'CPF inválido', normalized, customerId: null };
     normalized.cpf = normalizeCpf(rawCpf);
     const existing = await client.query<{ id: string; birth_date: string | null }>(
       `SELECT id, birth_date FROM customers WHERE tenant_id = $1 AND cpf = $2 ORDER BY created_at LIMIT 1`,
@@ -240,7 +240,7 @@ async function classifyCustomerRecord(
       if (customer.birth_date && birthDate && customer.birth_date !== birthDate) {
         return {
           status: 'CONFLICT',
-          reason: 'CPF matches an existing customer with a different birth date',
+          reason: 'CPF corresponde a um cliente existente com outra data de nascimento',
           normalized,
           customerId: customer.id,
         };
@@ -286,24 +286,24 @@ async function classifySaleRecord(
     category_id: stringOrEmpty(defaults.category_id),
   };
   if (amount === null || amount <= 0 || cost < 0 || cost > amount || !dueDate) {
-    return { status: 'INVALID', reason: 'Missing sale amount or due date', normalized, customerId: null };
+    return { status: 'INVALID', reason: 'Valor da venda ou vencimento ausente', normalized, customerId: null };
   }
   if (!normalized.seller_id || !normalized.category_id) {
-    return { status: 'INVALID', reason: 'Missing seller or category defaults', normalized, customerId: null };
+    return { status: 'INVALID', reason: 'Vendedor ou categoria padrão ausente', normalized, customerId: null };
   }
   if (!rawCpf || !isValidCpf(rawCpf)) {
-    return { status: 'UNLINKED', reason: 'Customer CPF is missing or invalid', normalized, customerId: null };
+    return { status: 'UNLINKED', reason: 'CPF do cliente ausente ou inválido', normalized, customerId: null };
   }
   const customer = await client.query<{ id: string; birth_date: string | null }>(
     `SELECT id, birth_date FROM customers WHERE tenant_id = $1 AND cpf = $2 ORDER BY created_at LIMIT 1`,
     [tenantId, normalizeCpf(rawCpf)],
   );
   const row = customer.rows[0];
-  if (!row) return { status: 'UNLINKED', reason: 'Customer not found by CPF', normalized, customerId: null };
+  if (!row) return { status: 'UNLINKED', reason: 'Cliente não encontrado pelo CPF', normalized, customerId: null };
   if (row.birth_date && birthDate && row.birth_date !== birthDate) {
     return {
       status: 'CONFLICT',
-      reason: 'CPF matches an existing customer with a different birth date',
+      reason: 'CPF corresponde a um cliente existente com outra data de nascimento',
       normalized,
       customerId: row.id,
     };
@@ -526,7 +526,7 @@ export function registerImportRoutes(
 
       if (action === 'IGNORE') {
         status = 'IGNORED';
-        reason = 'Ignored by user';
+        reason = 'Ignorado pelo usuário';
       } else if (action === 'LINK_CUSTOMER') {
         customerId = optionalUuid(body, 'customer_id');
         if (!customerId) throw new ValidationError('Field customer_id is required');

@@ -33,19 +33,28 @@ export function loadSession(): StoredSession | null {
 }
 
 export function saveSession(session: StoredSession): void {
-  window.localStorage.setItem(SESSION_KEY, session.token);
-  window.localStorage.setItem(SESSION_USER_KEY, JSON.stringify(session.user));
+  try {
+    window.sessionStorage.setItem(SESSION_KEY, session.token);
+    window.sessionStorage.setItem(SESSION_USER_KEY, JSON.stringify(session.user));
+  } finally {
+    clearLegacyPersistentSession();
+  }
 }
 
 export function clearSession(): void {
-  window.localStorage.removeItem(SESSION_KEY);
-  window.localStorage.removeItem(SESSION_USER_KEY);
+  try {
+    window.sessionStorage.removeItem(SESSION_KEY);
+    window.sessionStorage.removeItem(SESSION_USER_KEY);
+  } finally {
+    clearLegacyPersistentSession();
+  }
 }
 
 function readSession(): StoredSession | null {
+  clearLegacyPersistentSession();
   try {
-    const token = window.localStorage.getItem(SESSION_KEY);
-    const rawUser = window.localStorage.getItem(SESSION_USER_KEY);
+    const token = window.sessionStorage.getItem(SESSION_KEY);
+    const rawUser = window.sessionStorage.getItem(SESSION_USER_KEY);
     if (!token || !rawUser) return null;
     const user = JSON.parse(rawUser) as SessionUser;
     return { token, user };
@@ -55,6 +64,15 @@ function readSession(): StoredSession | null {
 }
 
 export { readSession };
+
+function clearLegacyPersistentSession(): void {
+  try {
+    window.localStorage.removeItem(SESSION_KEY);
+    window.localStorage.removeItem(SESSION_USER_KEY);
+  } catch {
+    // Browser storage can be unavailable in restricted contexts.
+  }
+}
 
 function authHeaders(token: string | null): Record<string, string> {
   return token ? { authorization: `Bearer ${token}` } : {};
@@ -99,7 +117,7 @@ export async function api<T>(path: string, options: ApiOptions = {}): Promise<T>
     const message =
       payload && typeof payload === 'object' && 'error' in payload
         ? String(payload.error)
-        : `Request failed (${response.status})`;
+        : `Falha na requisição (${response.status})`;
     throw new ApiError(response.status, message);
   }
 
@@ -110,7 +128,7 @@ export async function apiCsv(path: string, token?: string | null): Promise<Blob>
   const authToken = token === undefined ? readSession()?.token ?? null : token;
   const response = await fetch(`/api${path}`, { headers: authHeaders(authToken) });
   if (!response.ok) {
-    throw new ApiError(response.status, `Export failed (${response.status})`);
+    throw new ApiError(response.status, `Falha ao exportar (${response.status})`);
   }
   return response.blob();
 }

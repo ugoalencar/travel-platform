@@ -21,6 +21,7 @@ Online deployment may start only after explicit human approval for:
 5. Start the API container with runtime-only database credentials.
 6. Run health checks:
    - `GET /health`
+   - `GET /version`
    - login flow
    - dashboard load
    - customer list
@@ -30,6 +31,9 @@ Online deployment may start only after explicit human approval for:
    - import dry-run
 7. Verify audit log entries for login/import/sale/finance actions.
 8. Confirm backups are still running after deploy.
+
+For the `0.1.0 Inicial` demonstration go-live, also follow
+`docs/travel-lite/ONLINE-DEMO-GOLIVE.md`.
 
 ## Rollback
 

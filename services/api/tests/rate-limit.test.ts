@@ -6,6 +6,12 @@ describe('SEC-B abuse-control policy', () => {
 
     expect(classifyRateLimitRequest('POST', '/auth/login')).toBe(RateLimitClass.AUTH_LOGIN);
     expect(classifyRateLimitRequest('POST', '/auth/forgot')).toBe(RateLimitClass.AUTH_RECOVERY);
+    expect(classifyRateLimitRequest('POST', '/auth/mfa/verify')).toBe(
+      RateLimitClass.AUTH_RECOVERY
+    );
+    expect(classifyRateLimitRequest('POST', '/platform-auth/mfa/verify')).toBe(
+      RateLimitClass.AUTH_RECOVERY
+    );
     expect(classifyRateLimitRequest('GET', '/customer-api/trips')).toBe(
       RateLimitClass.CUSTOMER_READ
     );

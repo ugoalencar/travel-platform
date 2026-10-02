@@ -11,6 +11,8 @@
 - In-app help center (`/ajuda`) offers per-area articles, simple search, and FAQ.
 - Onboarding checklist detects first-run steps from real data, shows progress, and links to help.
 - Backup and restore scripts are available for local operation.
+- Customer-facing backup/restore screen is not available yet; this is part of
+  the hybrid local-first scope.
 
 ## Security
 
@@ -36,4 +38,12 @@
 - DNS/TLS setup.
 - Registry push.
 - Merge to main.
+
+## Next Product Cycle
+
+- Hybrid local-first operation.
+- Customer-visible backup and restore area.
+- Online encrypted backup collection.
+- Installation check-in.
+- License/payment validation with progressive restriction.
 - Git push.

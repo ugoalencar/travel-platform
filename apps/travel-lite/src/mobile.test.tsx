@@ -96,13 +96,14 @@ function mockApi(routes: Record<string, unknown>) {
 }
 
 function signIn(user: User, path: string) {
-  window.localStorage.setItem('travel_lite_token', 'v1.token');
-  window.localStorage.setItem('travel_lite_token_user', JSON.stringify(user));
+  window.sessionStorage.setItem('travel_lite_token', 'v1.token');
+  window.sessionStorage.setItem('travel_lite_token_user', JSON.stringify(user));
   window.history.pushState({}, '', path);
 }
 
 beforeEach(() => {
   window.localStorage.clear();
+  window.sessionStorage.clear();
 });
 
 afterEach(() => {

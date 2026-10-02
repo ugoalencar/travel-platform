@@ -107,8 +107,8 @@ function mockApi(user: User, extra: Record<string, unknown> = {}) {
 }
 
 function signIn(user: User, path: string) {
-  window.localStorage.setItem('travel_lite_token', 'v1.token');
-  window.localStorage.setItem('travel_lite_token_user', JSON.stringify(user));
+  window.sessionStorage.setItem('travel_lite_token', 'v1.token');
+  window.sessionStorage.setItem('travel_lite_token_user', JSON.stringify(user));
   window.history.pushState({}, '', path);
 }
 
@@ -118,6 +118,7 @@ function stubClipboard(writeText: (text: string) => Promise<void>) {
 
 beforeEach(() => {
   window.localStorage.clear();
+  window.sessionStorage.clear();
 });
 
 afterEach(() => {
@@ -167,6 +168,7 @@ describe('Recursos do plano page', () => {
   it('shows the matrix to every signed-in profile, read-only and without admin actions', async () => {
     for (const user of [SELLER, VIEWER]) {
       window.localStorage.clear();
+      window.sessionStorage.clear();
       signIn(user, '/plano');
       mockApi(user);
       const { unmount } = render(<App />);

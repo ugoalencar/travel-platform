@@ -11,6 +11,7 @@ const SCRYPT_R = 8;
 const SCRYPT_P = 1;
 const KEY_LENGTH = 64;
 const SALT_LENGTH = 16;
+const TEMPORARY_PASSWORD_BYTES = 18;
 
 function scrypt(password: string, salt: Buffer, keyLength: number, options: ScryptOptions): Promise<Buffer> {
   return new Promise((resolve, reject) => {
@@ -23,11 +24,15 @@ function scrypt(password: string, salt: Buffer, keyLength: number, options: Scry
 
 export async function hashPassword(password: string): Promise<string> {
   if (password.length < 8) {
-    throw new Error('Password must be at least 8 characters');
+    throw new Error('A senha deve ter pelo menos 8 caracteres');
   }
   const salt = randomBytes(SALT_LENGTH);
   const derivedKey = await scrypt(password, salt, KEY_LENGTH, { N: SCRYPT_N, r: SCRYPT_R, p: SCRYPT_P });
   return `scrypt$${SCRYPT_N}$${SCRYPT_R}$${SCRYPT_P}$${salt.toString('hex')}$${derivedKey.toString('hex')}`;
+}
+
+export function generateTemporaryPassword(): string {
+  return randomBytes(TEMPORARY_PASSWORD_BYTES).toString('base64url');
 }
 
 export async function verifyPassword(password: string, storedHash: string): Promise<boolean> {

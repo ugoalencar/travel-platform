@@ -15,7 +15,7 @@ import { effectivePermissions, isPermission, requirePermission, type AccessConte
 import { AUDIT_EVENTS, recordAuditEvent } from '../audit-log';
 import type { LiteDatabase, TenantClient } from '../database';
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from '../errors';
-import { hashPassword } from '../password';
+import { generateTemporaryPassword, hashPassword } from '../password';
 import { getTenantContext } from '../tenant-context';
 import {
   optionalEnum,
@@ -237,6 +237,42 @@ export function registerUserRoutes(
     });
     reply.code(201);
     return { user };
+  });
+
+  app.post('/users/:id/reset-password', { preHandler: protectedHooks }, async (request) => {
+    const context = getTenantContext();
+    requirePermission(context, 'users.manage');
+    const id = requiredUuid({ id: (request.params as { id: string }).id }, 'id');
+    if (id === context.userId) {
+      throw new ForbiddenError('You cannot reset your own password');
+    }
+    const temporaryPassword = generateTemporaryPassword();
+
+    const user = await database.withTenantTransaction(async (client) => {
+      await lockTarget(client, context.tenantId, context, id);
+      await client.query(
+        `UPDATE users SET password_hash = $3, updated_at = now()
+          WHERE tenant_id = $1 AND id = $2`,
+        [context.tenantId, id, await hashPassword(temporaryPassword)],
+      );
+      await client.query(
+        `UPDATE auth_sessions SET revoked_at = now()
+          WHERE tenant_id = $1 AND user_id = $2 AND revoked_at IS NULL`,
+        [context.tenantId, id],
+      );
+      await recordAuditEvent(client, {
+        eventType: AUDIT_EVENTS.USER_PASSWORD_RESET,
+        entityType: 'user',
+        entityId: id,
+        metadata: { reset_by: context.userId },
+      });
+      const updated = await client.query<UserRow>(`SELECT ${SELECT_USER} WHERE u.tenant_id = $1 AND u.id = $2`, [
+        context.tenantId,
+        id,
+      ]);
+      return updated.rows[0]!;
+    });
+    return { user, temporaryPassword, passwordChangeRequired: true };
   });
 
   app.patch('/users/:id', { preHandler: protectedHooks }, async (request) => {

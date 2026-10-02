@@ -42,6 +42,7 @@ services:
       PORT: "4010"
       DATABASE_URL: postgresql://travel_lite_runtime:${TRAVEL_LITE_RUNTIME_DB_PASSWORD:-travel_lite_runtime_password}@postgres:5432/travel_lite
       FRONTEND_DIST_DIR: /app/apps/travel-lite/dist
+      TRAVEL_LITE_CORS_ORIGINS: ${TRAVEL_LITE_CORS_ORIGINS:-http://127.0.0.1:4010,http://localhost:4010}
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:4010/health"]
       interval: 10s

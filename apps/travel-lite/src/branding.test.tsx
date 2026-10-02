@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { App } from './App';
-import { brandingVars, darken, DEFAULT_BRANDING, normalizeBranding } from './branding';
+import { brandingVars, darken, DEFAULT_BRANDING, normalizeBranding, slugFromHostname, slugFromPathname } from './branding';
 
 const PNG_DATA_URL =
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGNgYGD4DwABBAEAHhV0NQAAAABJRU5ErkJggg==';
@@ -64,8 +64,8 @@ function mockApi(routes: Record<string, unknown>) {
 }
 
 function signIn(user: typeof MASTER | typeof SELLER) {
-  window.localStorage.setItem('travel_lite_token', 'v1.token');
-  window.localStorage.setItem('travel_lite_token_user', JSON.stringify(user));
+  window.sessionStorage.setItem('travel_lite_token', 'v1.token');
+  window.sessionStorage.setItem('travel_lite_token_user', JSON.stringify(user));
 }
 
 const SETTINGS_ROUTES = {
@@ -106,11 +106,32 @@ describe('branding helpers', () => {
     expect(darken('#ffffff', 0.5)).toBe('#808080');
     expect(darken('#000000')).toBe('#000000');
   });
+
+  it('derives an agency slug from customer subdomains only', () => {
+    expect(slugFromHostname('gadotti.travelplataforma.com.br')).toBe('gadotti');
+    expect(slugFromHostname('demo.travelplataforma.com.br')).toBe('demo');
+    expect(slugFromHostname('gadotti.example.com')).toBe('gadotti');
+    expect(slugFromHostname('www.travelplataforma.com.br')).toBe('');
+    expect(slugFromHostname('travelplataforma.com.br')).toBe('');
+    expect(slugFromHostname('localhost')).toBe('');
+    expect(slugFromHostname('127.0.0.1')).toBe('');
+  });
+
+  it('derives an agency slug from first-path shortcuts only', () => {
+    expect(slugFromPathname('/gadotti')).toBe('gadotti');
+    expect(slugFromPathname('/demo')).toBe('demo');
+    expect(slugFromPathname('/gadotti/clientes')).toBe('gadotti');
+    expect(slugFromPathname('/clientes')).toBe('');
+    expect(slugFromPathname('/login')).toBe('');
+    expect(slugFromPathname('/forgot-password')).toBe('');
+    expect(slugFromPathname(`/${'x'.repeat(120)}`)).toBe('');
+  });
 });
 
 describe('login branding', () => {
   beforeEach(() => {
     window.localStorage.clear();
+    window.sessionStorage.clear();
     window.history.pushState({}, '', '/login');
   });
 
@@ -132,6 +153,19 @@ describe('login branding', () => {
     expect(wrapper.style.getPropertyValue('--lite-primary')).toBe('#1f4e8c');
     expect(wrapper.style.getPropertyValue('--lite-login-bg')).toBe('#eef3fa');
     // Only the slug is sent; the public call carries no session and no tenant id.
+    expect(calls[0]).toMatchObject({ method: 'GET', path: '/branding/public?slug=gadotti' });
+  });
+
+  it('uses /gadotti and /demo as practical public login shortcuts', async () => {
+    window.history.pushState({}, '', '/gadotti');
+    const { calls } = mockApi({ 'GET /branding/public': { branding: GADOTTI } });
+
+    render(<App />);
+
+    expect(await screen.findByRole('heading', { name: 'Gadotti Viagens' })).toBeInTheDocument();
+    const agency = screen.getByLabelText('Agência');
+    expect(agency).toHaveValue('gadotti');
+    expect(agency).toBeDisabled();
     expect(calls[0]).toMatchObject({ method: 'GET', path: '/branding/public?slug=gadotti' });
   });
 
@@ -198,6 +232,7 @@ describe('login branding', () => {
 describe('authenticated shell branding', () => {
   beforeEach(() => {
     window.localStorage.clear();
+    window.sessionStorage.clear();
     window.history.pushState({}, '', '/ajuda');
   });
 
@@ -235,6 +270,7 @@ describe('authenticated shell branding', () => {
 describe('branding editor in Settings', () => {
   beforeEach(() => {
     window.localStorage.clear();
+    window.sessionStorage.clear();
     window.history.pushState({}, '', '/configuracoes');
   });
 

@@ -31,6 +31,20 @@ export interface LiteDatabase {
    * before — or without — the request tenant context.
    */
   runAsTenant<T>(tenantId: string, userId: string | null, operation: (client: TenantClient) => Promise<T>): Promise<T>;
+  /**
+   * Runs `operation` with a session-local GUC set (never the tenant GUC)
+   * for callers with no tenant context at all -- an anonymous visitor
+   * holding a raw token from an e-mail. The RLS policy for the target
+   * table must match rows by that exact GUC value (see
+   * infrastructure/migrations-travel-lite/007_password_reset_tokens.sql);
+   * no other row is ever visible or updatable through this path. Mirrors
+   * services/api/src/database.ts withPublicLookupTransaction.
+   */
+  withPublicLookupTransaction<T>(
+    gucName: string,
+    lookupValue: string,
+    operation: (client: TenantClient) => Promise<T>,
+  ): Promise<T>;
   end(): Promise<void>;
 }
 
@@ -107,6 +121,29 @@ export function createDatabase(connectionString: string, poolConfig: { max?: num
             }
           }),
       );
+    },
+
+    async withPublicLookupTransaction<T>(
+      gucName: string,
+      lookupValue: string,
+      operation: (client: TenantClient) => Promise<T>,
+    ): Promise<T> {
+      return withClient(async (client) => {
+        await client.query('BEGIN');
+        try {
+          // set_config(..., true) is session-local (dies at COMMIT/ROLLBACK),
+          // so a pooled connection never carries one caller's lookup value
+          // into the next. No tenant GUC is set here -- current_tenant_id()
+          // stays NULL, which the RLS "public_token" policy requires.
+          await client.query('SELECT set_config($1, $2, true)', [gucName, lookupValue]);
+          const result = await operation(client);
+          await client.query('COMMIT');
+          return result;
+        } catch (error) {
+          await client.query('ROLLBACK').catch(() => undefined);
+          throw error;
+        }
+      });
     },
 
     async end(): Promise<void> {

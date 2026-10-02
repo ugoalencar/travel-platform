@@ -74,6 +74,31 @@ built frontend at `http://127.0.0.1:4010`). Optional configuration lives in
 - `travel-lite-restore.ps1` is destructive (drops the local `public` schema)
   and requires an explicit confirmation prompt.
 
+#### Online migrations (Render or any other remote host)
+
+`travel-lite-migrate.cjs` above refuses `NODE_ENV=production` and any
+non-local database host on purpose — that guard never changes. Online
+deploys use a **separate** script instead, so there is no single switch that
+unlocks both local and remote runs:
+
+```powershell
+$env:MIGRATIONS_DATABASE_URL = "postgresql://...@<render-host>/travel_lite"
+$env:TRAVEL_LITE_ONLINE_MIGRATION_CONFIRM_HOST = "<render-host>"   # must match the host above, exactly
+node scripts/travel-lite-migrate-online.cjs
+```
+
+- Both variables above are required; the script exits 1 (without touching
+  the network) if either is missing, if the host looks local, or if the two
+  hosts do not match exactly. The matching requirement exists so a
+  copy-pasted/stale connection string from another project or environment
+  gets caught before it runs, not after.
+- `TRAVEL_LITE_ONLINE_MIGRATION_DRY_RUN=true` lists pending migrations and
+  exits without applying anything.
+- Uses the same idempotent `migrations` control table as the local script;
+  re-running it is always safe.
+- See `.env.travel-lite.production.example` for the full list of production
+  environment variables (Render or otherwise).
+
 ## Node Helper Scripts
 
 - `scripts/check-secrets.cjs` - scans for obvious hardcoded secrets.

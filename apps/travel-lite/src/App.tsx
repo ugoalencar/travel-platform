@@ -9,11 +9,13 @@ import { CommissionsPage } from './pages/CommissionsPage';
 import { CustomersPage } from './pages/CustomersPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { FinancePage } from './pages/FinancePage';
+import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { HelpPage } from './pages/HelpPage';
 import { PlanPage } from './pages/PlanPage';
 import { ImportDataPage } from './pages/ImportDataPage';
 import { LoginPage } from './pages/LoginPage';
 import { ReportsPage } from './pages/ReportsPage';
+import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { SalesPage } from './pages/SalesPage';
 import { SellersPage } from './pages/SellersPage';
 import { SettingsPage } from './pages/SettingsPage';
@@ -51,6 +53,9 @@ export function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/:agencySlug" element={<LoginPage />} />
             <Route
               element={
                 <ProtectedRoute>

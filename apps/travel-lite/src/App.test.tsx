@@ -84,6 +84,7 @@ function callUrl(input: RequestInfo | URL): string {
 describe('App shell', () => {
   beforeEach(() => {
     window.localStorage.clear();
+    window.sessionStorage.clear();
     window.history.pushState({}, '', '/');
   });
 
@@ -137,9 +138,66 @@ describe('App shell', () => {
     ]);
   });
 
+  it('requires a new password on first login before opening the app', async () => {
+    // /auth/login behaves differently depending on which password was sent
+    // (temporary vs. the one just created), the way the real backend does.
+    const fetchMock = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+      const url = callUrl(input);
+      const path = url.replace(/^\/api/, '').split('?')[0] ?? '';
+      const body = typeof init?.body === 'string' ? (JSON.parse(init.body) as { password?: string }) : {};
+      const json = (payload: unknown) =>
+        Promise.resolve(
+          new Response(JSON.stringify(payload), { status: 200, headers: { 'content-type': 'application/json' } }),
+        );
+      if (path === '/auth/login') {
+        return body.password === 'temporaria-123'
+          ? json({ passwordChangeRequired: true })
+          : json({ sessionToken: 'v1.tenant.user.changed', user: SESSION.user });
+      }
+      if (path === '/auth/change-required-password') return json({ ok: true });
+      if (path === '/dashboard') return json(dashboard(true, 2));
+      return Promise.resolve(new Response(JSON.stringify({ error: 'Not found' }), { status: 404 }));
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    render(<App />);
+
+    expect(await screen.findByText('Entre com o acesso da agência')).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Agência'), { target: { value: 'gadotti' } });
+    fireEvent.change(screen.getByLabelText('E-mail'), { target: { value: 'admin@teste.dev' } });
+    fireEvent.change(screen.getByLabelText('Senha'), { target: { value: 'temporaria-123' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Entrar' }));
+
+    expect(await screen.findByRole('heading', { name: 'Criar nova senha' })).toBeInTheDocument();
+    expect(screen.queryByText('Vendas do mês')).not.toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Nova senha'), { target: { value: 'senha-definitiva-123' } });
+    fireEvent.change(screen.getByLabelText('Confirmar nova senha'), { target: { value: 'outra-senha-123' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Criar senha e entrar' }));
+    expect(await screen.findByText('A confirmação não confere com a nova senha.')).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText('Confirmar nova senha'), { target: { value: 'senha-definitiva-123' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Criar senha e entrar' }));
+
+    expect(await screen.findByText('Vendas do mês')).toBeInTheDocument();
+    const changeCall = fetchMock.mock.calls.find((call) => callUrl(call[0]).includes('/auth/change-required-password'));
+    expect(changeCall?.[1]?.body).toBe(
+      JSON.stringify({
+        slug: 'gadotti',
+        email: 'admin@teste.dev',
+        currentPassword: 'temporaria-123',
+        newPassword: 'senha-definitiva-123',
+      }),
+    );
+    // Re-authenticates with the new password to obtain a real session,
+    // instead of trusting any token echoed back by the change endpoint.
+    const loginCalls = fetchMock.mock.calls.filter((call) => callUrl(call[0]).includes('/auth/login'));
+    expect(loginCalls).toHaveLength(2);
+    expect(JSON.parse(loginCalls[1]?.[1]?.body as string)).toMatchObject({ password: 'senha-definitiva-123' });
+  });
+
   it('shows a SELLER only the authorized menus and no dashboard configuration', async () => {
-    window.localStorage.setItem('travel_lite_token', SESSION.token);
-    window.localStorage.setItem('travel_lite_token_user', JSON.stringify(SELLER_USER));
+    window.sessionStorage.setItem('travel_lite_token', SESSION.token);
+    window.sessionStorage.setItem('travel_lite_token_user', JSON.stringify(SELLER_USER));
     vi.stubGlobal(
       'fetch',
       mockFetch({ '/auth/me': { user: SELLER_USER }, '/dashboard': dashboard(false, 1) }),
@@ -165,8 +223,8 @@ describe('App shell', () => {
   });
 
   it('keeps the session and explains denied URLs in place instead of redirecting', async () => {
-    window.localStorage.setItem('travel_lite_token', SESSION.token);
-    window.localStorage.setItem('travel_lite_token_user', JSON.stringify(SELLER_USER));
+    window.sessionStorage.setItem('travel_lite_token', SESSION.token);
+    window.sessionStorage.setItem('travel_lite_token_user', JSON.stringify(SELLER_USER));
     window.history.pushState({}, '', '/configuracoes');
     vi.stubGlobal('fetch', mockFetch({ '/auth/me': { user: SELLER_USER } }));
 
@@ -183,8 +241,8 @@ describe('App shell', () => {
   });
 
   it('shows the import center to users with imports.manage', async () => {
-    window.localStorage.setItem('travel_lite_token', SESSION.token);
-    window.localStorage.setItem('travel_lite_token_user', JSON.stringify(SESSION.user));
+    window.sessionStorage.setItem('travel_lite_token', SESSION.token);
+    window.sessionStorage.setItem('travel_lite_token_user', JSON.stringify(SESSION.user));
     window.history.pushState({}, '', '/importacoes');
     vi.stubGlobal('fetch', mockFetch({
       '/auth/me': { user: SESSION.user },
@@ -200,8 +258,8 @@ describe('App shell', () => {
   });
 
   it('opens the help page from the topbar link', async () => {
-    window.localStorage.setItem('travel_lite_token', SESSION.token);
-    window.localStorage.setItem('travel_lite_token_user', JSON.stringify(SESSION.user));
+    window.sessionStorage.setItem('travel_lite_token', SESSION.token);
+    window.sessionStorage.setItem('travel_lite_token_user', JSON.stringify(SESSION.user));
     vi.stubGlobal(
       'fetch',
       mockFetch({ '/auth/me': { user: SESSION.user }, '/dashboard': dashboard(true, 0) }),
@@ -220,8 +278,8 @@ describe('App shell', () => {
   });
 
   it('shows the first-run checklist while the agency base is empty', async () => {
-    window.localStorage.setItem('travel_lite_token', SESSION.token);
-    window.localStorage.setItem('travel_lite_token_user', JSON.stringify(SESSION.user));
+    window.sessionStorage.setItem('travel_lite_token', SESSION.token);
+    window.sessionStorage.setItem('travel_lite_token_user', JSON.stringify(SESSION.user));
     vi.stubGlobal(
       'fetch',
       mockFetch({
@@ -256,8 +314,8 @@ describe('App shell', () => {
   });
 
   it('hides the first-run checklist when the base is already populated', async () => {
-    window.localStorage.setItem('travel_lite_token', SESSION.token);
-    window.localStorage.setItem('travel_lite_token_user', JSON.stringify(SESSION.user));
+    window.sessionStorage.setItem('travel_lite_token', SESSION.token);
+    window.sessionStorage.setItem('travel_lite_token_user', JSON.stringify(SESSION.user));
     window.localStorage.setItem('travel_lite_help_seen', '1');
     const fetchMock = mockFetch({
       '/auth/me': { user: SESSION.user },
@@ -290,8 +348,8 @@ describe('App shell', () => {
   });
 
   it('asks before cancelling a sale and shows the success note', async () => {
-    window.localStorage.setItem('travel_lite_token', SESSION.token);
-    window.localStorage.setItem('travel_lite_token_user', JSON.stringify(SESSION.user));
+    window.sessionStorage.setItem('travel_lite_token', SESSION.token);
+    window.sessionStorage.setItem('travel_lite_token_user', JSON.stringify(SESSION.user));
     window.history.pushState({}, '', '/vendas');
     const sale = {
       id: 'sale-1',
@@ -342,8 +400,8 @@ describe('App shell', () => {
   });
 
   it('does not deactivate a customer when confirmation is declined', async () => {
-    window.localStorage.setItem('travel_lite_token', SESSION.token);
-    window.localStorage.setItem('travel_lite_token_user', JSON.stringify(SESSION.user));
+    window.sessionStorage.setItem('travel_lite_token', SESSION.token);
+    window.sessionStorage.setItem('travel_lite_token_user', JSON.stringify(SESSION.user));
     window.history.pushState({}, '', '/clientes');
     const customer = {
       id: 'cust-1',
@@ -388,8 +446,8 @@ describe('App shell', () => {
   });
 
   it('offers a CTA in the empty state that opens the form', async () => {
-    window.localStorage.setItem('travel_lite_token', SESSION.token);
-    window.localStorage.setItem('travel_lite_token_user', JSON.stringify(SESSION.user));
+    window.sessionStorage.setItem('travel_lite_token', SESSION.token);
+    window.sessionStorage.setItem('travel_lite_token_user', JSON.stringify(SESSION.user));
     window.history.pushState({}, '', '/clientes');
     vi.stubGlobal(
       'fetch',
@@ -412,8 +470,8 @@ describe('App shell', () => {
   });
 
   it('uses the pt-BR empty copy and the sales CTA in finance', async () => {
-    window.localStorage.setItem('travel_lite_token', SESSION.token);
-    window.localStorage.setItem('travel_lite_token_user', JSON.stringify(SESSION.user));
+    window.sessionStorage.setItem('travel_lite_token', SESSION.token);
+    window.sessionStorage.setItem('travel_lite_token_user', JSON.stringify(SESSION.user));
     window.history.pushState({}, '', '/financeiro');
     vi.stubGlobal(
       'fetch',
@@ -440,8 +498,8 @@ describe('App shell', () => {
   });
 
   it('serves the help page by direct URL and sends anonymous visitors to the login', async () => {
-    window.localStorage.setItem('travel_lite_token', SESSION.token);
-    window.localStorage.setItem('travel_lite_token_user', JSON.stringify(SELLER_USER));
+    window.sessionStorage.setItem('travel_lite_token', SESSION.token);
+    window.sessionStorage.setItem('travel_lite_token_user', JSON.stringify(SELLER_USER));
     window.history.pushState({}, '', '/ajuda');
     vi.stubGlobal('fetch', mockFetch({ '/auth/me': { user: SELLER_USER } }));
 
@@ -452,6 +510,7 @@ describe('App shell', () => {
     authenticated.unmount();
 
     window.localStorage.clear();
+    window.sessionStorage.clear();
     window.history.pushState({}, '', '/ajuda');
     render(<App />);
     expect(await screen.findByText('Entre com o acesso da agência')).toBeInTheDocument();
@@ -459,8 +518,8 @@ describe('App shell', () => {
   });
 
   it('filters the help center with the simple search', async () => {
-    window.localStorage.setItem('travel_lite_token', SESSION.token);
-    window.localStorage.setItem('travel_lite_token_user', JSON.stringify(SELLER_USER));
+    window.sessionStorage.setItem('travel_lite_token', SESSION.token);
+    window.sessionStorage.setItem('travel_lite_token_user', JSON.stringify(SELLER_USER));
     window.history.pushState({}, '', '/ajuda');
     vi.stubGlobal('fetch', mockFetch({ '/auth/me': { user: SELLER_USER } }));
 
@@ -483,8 +542,8 @@ describe('App shell', () => {
   });
 
   it('shows the onboarding checklist on the settings page', async () => {
-    window.localStorage.setItem('travel_lite_token', SESSION.token);
-    window.localStorage.setItem('travel_lite_token_user', JSON.stringify(SESSION.user));
+    window.sessionStorage.setItem('travel_lite_token', SESSION.token);
+    window.sessionStorage.setItem('travel_lite_token_user', JSON.stringify(SESSION.user));
     window.history.pushState({}, '', '/configuracoes');
     vi.stubGlobal(
       'fetch',
@@ -513,9 +572,68 @@ describe('App shell', () => {
     expect(screen.getByText('✓ Vendedores cadastrados')).toBeInTheDocument();
   });
 
+  it('lets an admin reset a user password and copy the temporary password once', async () => {
+    const otherUser = {
+      id: 'user-2',
+      name: 'Ana Souza',
+      email: 'ana@teste.dev',
+      role: 'SELLER',
+      status: 'ACTIVE',
+      seller_id: 'sel-1',
+      seller_name: 'Ana Souza',
+      is_self: false,
+      overrides: [],
+    };
+    window.sessionStorage.setItem('travel_lite_token', SESSION.token);
+    window.sessionStorage.setItem('travel_lite_token_user', JSON.stringify(SESSION.user));
+    window.history.pushState({}, '', '/configuracoes');
+    const fetchMock = mockFetch({
+      '/auth/me': { user: SESSION.user },
+      '/access/catalog': {
+        roles: [
+          { key: 'MASTER', name: 'MASTER', grants_all: true, assignable: false, permissions: [] },
+          { key: 'SELLER', name: 'Vendedor', grants_all: false, assignable: true, permissions: [] },
+        ],
+        permissions: [],
+      },
+      '/users': { items: [otherUser] },
+      '/users/user-2/reset-password': { temporaryPassword: 'Temp-123456' },
+      '/sellers': { items: [{ id: 'sel-1', name: 'Ana Souza', user_id: 'user-2' }], total: 1 },
+      '/financial-accounts': { items: [{ id: 'acc-1' }] },
+      '/categories': { items: [{ id: 'cat-1' }] },
+      '/customers': { items: [{ id: 'cust-1' }] },
+      '/sales': { items: [{ id: 'sale-1' }] },
+    });
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } });
+    vi.stubGlobal('fetch', fetchMock);
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+
+    render(<App />);
+
+    expect(
+      await screen.findByRole('heading', { name: 'Configurações · Usuários e permissões' }),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Redefinir senha' }));
+
+    expect(confirmSpy).toHaveBeenCalledWith(
+      'Redefinir a senha de "Ana Souza"? A senha atual deixará de funcionar e uma senha temporária será exibida uma única vez.',
+    );
+    expect(await screen.findByRole('heading', { name: 'Senha temporária gerada' })).toBeInTheDocument();
+    expect(screen.getByDisplayValue('Temp-123456')).toBeInTheDocument();
+    expect(screen.getByText(/deve alterar no primeiro acesso/i)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Copiar senha' }));
+    await waitFor(() => expect(writeText).toHaveBeenCalledWith('Temp-123456'));
+    expect(await screen.findByText('Senha temporária copiada.')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Fechar' }));
+    expect(screen.queryByDisplayValue('Temp-123456')).toBeNull();
+  });
+
   it('shows a SELLER only the checklist step they can act on', async () => {
-    window.localStorage.setItem('travel_lite_token', SESSION.token);
-    window.localStorage.setItem('travel_lite_token_user', JSON.stringify(SELLER_USER));
+    window.sessionStorage.setItem('travel_lite_token', SESSION.token);
+    window.sessionStorage.setItem('travel_lite_token_user', JSON.stringify(SELLER_USER));
     const fetchMock = mockFetch({
       '/auth/me': { user: SELLER_USER },
       '/dashboard': dashboard(false, 0),
@@ -535,8 +653,8 @@ describe('App shell', () => {
   });
 
   it('keeps the dashboard and hides only the checklist row whose request failed', async () => {
-    window.localStorage.setItem('travel_lite_token', SESSION.token);
-    window.localStorage.setItem('travel_lite_token_user', JSON.stringify(SESSION.user));
+    window.sessionStorage.setItem('travel_lite_token', SESSION.token);
+    window.sessionStorage.setItem('travel_lite_token_user', JSON.stringify(SESSION.user));
     // '/financial-accounts' is intentionally unmocked: the mock answers 404.
     vi.stubGlobal(
       'fetch',
@@ -560,8 +678,8 @@ describe('App shell', () => {
 
   it('shows the empty message without a CTA when the user cannot manage sellers', async () => {
     const viewer = { ...SELLER_USER, role: 'VIEWER', sellerId: null, permissions: ['sellers.read'] };
-    window.localStorage.setItem('travel_lite_token', SESSION.token);
-    window.localStorage.setItem('travel_lite_token_user', JSON.stringify(viewer));
+    window.sessionStorage.setItem('travel_lite_token', SESSION.token);
+    window.sessionStorage.setItem('travel_lite_token_user', JSON.stringify(viewer));
     window.history.pushState({}, '', '/vendedores');
     vi.stubGlobal(
       'fetch',
@@ -578,8 +696,8 @@ describe('App shell', () => {
   });
 
   it('drops the success note when the next action fails', async () => {
-    window.localStorage.setItem('travel_lite_token', SESSION.token);
-    window.localStorage.setItem('travel_lite_token_user', JSON.stringify(SESSION.user));
+    window.sessionStorage.setItem('travel_lite_token', SESSION.token);
+    window.sessionStorage.setItem('travel_lite_token_user', JSON.stringify(SESSION.user));
     window.history.pushState({}, '', '/clientes');
     const customer = {
       id: 'cust-1',
@@ -622,5 +740,182 @@ describe('App shell', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Desativar' }));
     expect(await screen.findByText('Falha simulada')).toBeInTheDocument();
     expect(screen.queryByText('Cliente desativado.')).toBeNull();
+  });
+});
+
+describe('forgot/reset password (public flow)', () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+    window.sessionStorage.clear();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('offers "Esqueci minha senha" from the login screen, carrying the agência along', async () => {
+    window.history.pushState({}, '', '/login?agencia=gadotti');
+    vi.stubGlobal('fetch', mockFetch({ '/branding/public': { branding: {} } }));
+
+    render(<App />);
+
+    const link = await screen.findByRole('link', { name: 'Esqueci minha senha' });
+    expect(link).toHaveAttribute('href', '/forgot-password?agencia=gadotti');
+    fireEvent.click(link);
+
+    expect(await screen.findByRole('heading', { name: 'Esqueci minha senha' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Agência')).toHaveValue('gadotti');
+  });
+
+  it('always shows the same generic message, whether or not the request "succeeds"', async () => {
+    window.history.pushState({}, '', '/forgot-password');
+    const calls: Array<Record<string, unknown>> = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+        calls.push(JSON.parse((init?.body as string | undefined) ?? '{}') as Record<string, unknown>);
+        return Promise.resolve(
+          new Response(JSON.stringify({ message: 'Se os dados estiverem corretos, enviaremos instruções para o e-mail cadastrado.' }), {
+            status: 200,
+            headers: { 'content-type': 'application/json' },
+          }),
+        );
+      }),
+    );
+
+    render(<App />);
+
+    fireEvent.change(screen.getByLabelText('Agência'), { target: { value: 'gadotti' } });
+    fireEvent.change(screen.getByLabelText('E-mail'), { target: { value: 'alguem@teste.dev' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Enviar instruções' }));
+
+    expect(
+      await screen.findByText('Se os dados estiverem corretos, enviaremos instruções para o e-mail cadastrado.'),
+    ).toBeInTheDocument();
+    expect(calls).toEqual([{ slug: 'gadotti', email: 'alguem@teste.dev' }]);
+    expect(screen.getByRole('link', { name: 'Voltar ao login' })).toHaveAttribute('href', '/login');
+  });
+
+  it('shows the generic message even when the backend answers with an error, never a different one', async () => {
+    window.history.pushState({}, '', '/forgot-password');
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => Promise.resolve(new Response(JSON.stringify({ error: 'boom' }), { status: 500 }))),
+    );
+
+    render(<App />);
+
+    fireEvent.change(screen.getByLabelText('Agência'), { target: { value: 'gadotti' } });
+    fireEvent.change(screen.getByLabelText('E-mail'), { target: { value: 'alguem@teste.dev' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Enviar instruções' }));
+
+    expect(
+      await screen.findByText('Se os dados estiverem corretos, enviaremos instruções para o e-mail cadastrado.'),
+    ).toBeInTheDocument();
+    expect(screen.queryByText('boom')).toBeNull();
+  });
+
+  it('shows a distinct message only for rate limiting, which carries no account-existence signal', async () => {
+    window.history.pushState({}, '', '/forgot-password');
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() =>
+        Promise.resolve(
+          new Response(JSON.stringify({ error: 'Muitas tentativas. Tente novamente mais tarde.', code: 'RATE_LIMITED' }), {
+            status: 429,
+          }),
+        ),
+      ),
+    );
+
+    render(<App />);
+
+    fireEvent.change(screen.getByLabelText('Agência'), { target: { value: 'gadotti' } });
+    fireEvent.change(screen.getByLabelText('E-mail'), { target: { value: 'alguem@teste.dev' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Enviar instruções' }));
+
+    expect(await screen.findByText('Muitas tentativas. Aguarde alguns minutos e tente novamente.')).toBeInTheDocument();
+    expect(
+      screen.queryByText('Se os dados estiverem corretos, enviaremos instruções para o e-mail cadastrado.'),
+    ).toBeNull();
+  });
+
+  it('asks for a new link when /reset-password is opened without a token', async () => {
+    window.history.pushState({}, '', '/reset-password');
+    vi.stubGlobal('fetch', mockFetch({}));
+
+    render(<App />);
+
+    expect(await screen.findByRole('heading', { name: 'Link inválido' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Esqueci minha senha' })).toHaveAttribute('href', '/forgot-password');
+  });
+
+  it('validates the new password client-side before calling the API', async () => {
+    window.history.pushState({}, '', '/reset-password?token=abc123');
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+
+    render(<App />);
+
+    fireEvent.change(screen.getByLabelText('Nova senha'), { target: { value: 'curta' } });
+    fireEvent.change(screen.getByLabelText('Confirmar nova senha'), { target: { value: 'curta' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Definir nova senha' }));
+    expect(await screen.findByText('A nova senha deve ter no mínimo 8 caracteres.')).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText('Nova senha'), { target: { value: 'senha-longa-123' } });
+    fireEvent.change(screen.getByLabelText('Confirmar nova senha'), { target: { value: 'outra-coisa-123' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Definir nova senha' }));
+    expect(await screen.findByText('A confirmação não confere com a nova senha.')).toBeInTheDocument();
+
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('submits the token from the URL and shows success without ever displaying it', async () => {
+    window.history.pushState({}, '', '/reset-password?token=raw-token-xyz');
+    const calls: Array<Record<string, unknown>> = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+        calls.push(JSON.parse((init?.body as string | undefined) ?? '{}') as Record<string, unknown>);
+        return Promise.resolve(
+          new Response(
+            JSON.stringify({ message: 'Senha redefinida com sucesso. Todas as sessões anteriores foram encerradas.' }),
+            { status: 200, headers: { 'content-type': 'application/json' } },
+          ),
+        );
+      }),
+    );
+
+    render(<App />);
+
+    fireEvent.change(screen.getByLabelText('Nova senha'), { target: { value: 'senha-definitiva-999' } });
+    fireEvent.change(screen.getByLabelText('Confirmar nova senha'), { target: { value: 'senha-definitiva-999' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Definir nova senha' }));
+
+    expect(await screen.findByText(/Senha redefinida com sucesso/)).toBeInTheDocument();
+    expect(calls).toEqual([{ token: 'raw-token-xyz', newPassword: 'senha-definitiva-999' }]);
+    expect(screen.queryByText('raw-token-xyz')).toBeNull();
+  });
+
+  it('shows the backend error for an invalid or expired token', async () => {
+    window.history.pushState({}, '', '/reset-password?token=expired-token');
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() =>
+        Promise.resolve(
+          new Response(JSON.stringify({ error: 'Link de redefinição inválido ou expirado', code: 'NOT_FOUND' }), {
+            status: 404,
+          }),
+        ),
+      ),
+    );
+
+    render(<App />);
+
+    fireEvent.change(screen.getByLabelText('Nova senha'), { target: { value: 'senha-definitiva-999' } });
+    fireEvent.change(screen.getByLabelText('Confirmar nova senha'), { target: { value: 'senha-definitiva-999' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Definir nova senha' }));
+
+    expect(await screen.findByText('Link de redefinição inválido ou expirado')).toBeInTheDocument();
   });
 });

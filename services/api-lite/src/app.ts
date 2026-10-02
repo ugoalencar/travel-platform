@@ -22,6 +22,9 @@ import { registerSaleCostRoutes } from './routes/sale-costs';
 import { registerSellerRoutes } from './routes/sellers';
 import { createTenantContextHook } from './tenant-context';
 import { createStaticHandler } from './static';
+import { buildVersionInfo } from './version';
+import { createLiteRequestRateLimitHook, LiteLoginAbuseProtector } from './rate-limit';
+import { isLiteOriginAllowed, resolveLiteCorsPolicy } from './security';
 
 export interface BuildAppOptions {
   logger?: boolean;
@@ -41,8 +44,30 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
     trustProxy: true,
   });
 
-  await app.register(helmet, { contentSecurityPolicy: false });
-  await app.register(cors, { origin: true, credentials: false });
+  const corsPolicy = resolveLiteCorsPolicy(process.env);
+  await app.register(helmet, {
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        baseUri: ["'self'"],
+        connectSrc: ["'self'"],
+        fontSrc: ["'self'", 'data:'],
+        formAction: ["'self'"],
+        frameAncestors: ["'none'"],
+        imgSrc: ["'self'", 'data:'],
+        objectSrc: ["'none'"],
+        scriptSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+      },
+    },
+  });
+  await app.register(cors, {
+    origin(origin, callback) {
+      callback(null, !origin || isLiteOriginAllowed(origin, corsPolicy));
+    },
+    credentials: false,
+  });
+  app.addHook('onRequest', createLiteRequestRateLimitHook());
 
   app.setErrorHandler((error: Error & { statusCode?: number; code?: string }, request, reply) => {
     if (error instanceof HttpError) {
@@ -65,20 +90,23 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
 
   app.setNotFoundHandler(async (request, reply) => {
     if (staticHandler && (await staticHandler(request, reply))) return;
-    reply.code(404).send({ error: 'Not found', code: 'NOT_FOUND' });
+    reply.code(404).send({ error: 'Recurso não encontrado', code: 'NOT_FOUND' });
   });
 
   app.get('/health', () => ({ status: 'ok', service: 'api-lite' }));
   app.get('/api/health', () => ({ status: 'ok', service: 'api-lite' }));
+  app.get('/version', () => buildVersionInfo());
+  app.get('/api/version', () => buildVersionInfo());
 
   const database = options.database;
   if (database) {
     const authenticate = createAuthenticateHook(database);
     const establishTenant = createTenantContextHook();
     const protectedHooks: preHandlerHookHandler[] = [authenticate, establishTenant];
+    const loginAbuseProtector = new LiteLoginAbuseProtector();
 
     const registrars: Array<(scope: FastifyInstance) => void> = [
-      (scope) => registerAuthRoutes(scope, database, protectedHooks),
+      (scope) => registerAuthRoutes(scope, database, protectedHooks, loginAbuseProtector),
       (scope) => registerBrandingRoutes(scope, database, protectedHooks),
       (scope) => registerCustomerRoutes(scope, database, protectedHooks),
       (scope) => registerSellerRoutes(scope, database, protectedHooks),

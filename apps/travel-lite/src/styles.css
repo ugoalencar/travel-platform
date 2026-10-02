@@ -68,6 +68,12 @@ h2 {
   text-align: center;
 }
 
+.lite-forgot-password {
+  align-self: center;
+  font-size: 0.85rem;
+  color: var(--lite-muted);
+}
+
 .lite-muted {
   color: var(--lite-muted);
   margin: 0;

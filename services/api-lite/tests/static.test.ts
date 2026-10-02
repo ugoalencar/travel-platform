@@ -54,7 +54,7 @@ describe('Travel Lite static SPA handler', () => {
       headers: { accept: 'text/html' },
     });
     expect(response.statusCode).toBe(404);
-    expect(response.json()).toEqual({ error: 'Not found', code: 'NOT_FOUND' });
+    expect(response.json()).toEqual({ error: 'Recurso não encontrado', code: 'NOT_FOUND' });
   });
 
   it('rejects path traversal attempts', async () => {

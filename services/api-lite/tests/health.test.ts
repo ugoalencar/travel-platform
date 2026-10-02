@@ -27,10 +27,50 @@ describe('api-lite foundation', () => {
     expect(response.json()).toEqual({ status: 'ok', service: 'api-lite' });
   });
 
+  it('GET /api/version returns the Travel Lite release baseline', async () => {
+    const response = await app.inject({ method: 'GET', url: '/api/version' });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toEqual({
+      service: 'api-lite',
+      product: 'Travel Lite',
+      version: '0.1.0',
+      release: 'Inicial',
+      releaseDate: '2026-10-02',
+    });
+  });
+
+  it('sends a content security policy for browser responses', async () => {
+    const response = await app.inject({ method: 'GET', url: '/api/version' });
+
+    expect(response.headers['content-security-policy']).toContain("default-src 'self'");
+    expect(response.headers['content-security-policy']).toContain("frame-ancestors 'none'");
+  });
+
+  it('does not reflect arbitrary CORS origins', async () => {
+    const response = await app.inject({
+      method: 'GET',
+      url: '/api/version',
+      headers: { origin: 'https://attacker.example' },
+    });
+
+    expect(response.headers['access-control-allow-origin']).toBeUndefined();
+  });
+
+  it('allows localhost CORS in development for Vite and local smoke tests', async () => {
+    const response = await app.inject({
+      method: 'GET',
+      url: '/api/version',
+      headers: { origin: 'http://127.0.0.1:5177' },
+    });
+
+    expect(response.headers['access-control-allow-origin']).toBe('http://127.0.0.1:5177');
+  });
+
   it('unknown route returns 404 with error code', async () => {
     const response = await app.inject({ method: 'GET', url: '/does-not-exist' });
 
     expect(response.statusCode).toBe(404);
-    expect(response.json()).toEqual({ error: 'Not found', code: 'NOT_FOUND' });
+    expect(response.json()).toEqual({ error: 'Recurso não encontrado', code: 'NOT_FOUND' });
   });
 });

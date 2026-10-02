@@ -59,6 +59,11 @@ interface FormState {
 
 const EMPTY_FORM: FormState = { name: '', email: '', password: '', role: 'SELLER', seller_id: '', status: 'ACTIVE' };
 
+interface TemporaryPasswordResult {
+  user: User;
+  temporaryPassword: string;
+}
+
 function PermissionEditor({
   user,
   catalog,
@@ -152,8 +157,10 @@ export function SettingsPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [permissionsFor, setPermissionsFor] = useState<User | null>(null);
+  const [temporaryPassword, setTemporaryPassword] = useState<TemporaryPasswordResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [copyNotice, setCopyNotice] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -244,6 +251,38 @@ export function SettingsPage() {
     } catch (err) {
       setNotice(null);
       setError(err instanceof Error ? err.message : 'Falha ao atualizar');
+    }
+  }
+
+  async function resetPassword(user: User) {
+    if (
+      !window.confirm(
+        `Redefinir a senha de "${user.name}"? A senha atual deixará de funcionar e uma senha temporária será exibida uma única vez.`,
+      )
+    ) {
+      return;
+    }
+    try {
+      const response = await api<{ temporaryPassword: string }>(`/users/${user.id}/reset-password`, {
+        method: 'POST',
+      });
+      setError(null);
+      setNotice(null);
+      setCopyNotice(null);
+      setTemporaryPassword({ user, temporaryPassword: response.temporaryPassword });
+    } catch (err) {
+      setNotice(null);
+      setError(err instanceof Error ? err.message : 'Falha ao redefinir senha');
+    }
+  }
+
+  async function copyTemporaryPassword() {
+    if (!temporaryPassword) return;
+    try {
+      await navigator.clipboard.writeText(temporaryPassword.temporaryPassword);
+      setCopyNotice('Senha temporária copiada.');
+    } catch {
+      setCopyNotice('Não foi possível copiar automaticamente. Selecione a senha e copie manualmente.');
     }
   }
 
@@ -351,6 +390,28 @@ export function SettingsPage() {
           }}
         />
       ) : null}
+      {temporaryPassword ? (
+        <section className="lite-card temporary-password-panel" role="dialog" aria-modal="true" aria-labelledby="temporary-password-title">
+          <h2 id="temporary-password-title">Senha temporária gerada</h2>
+          <p className="lite-muted">
+            Entregue esta senha para {temporaryPassword.user.name}. Ela aparece aqui uma única vez e o usuário deve
+            alterar no primeiro acesso.
+          </p>
+          <label className="field">
+            <span>Senha temporária</span>
+            <input value={temporaryPassword.temporaryPassword} readOnly onFocus={(event) => event.target.select()} />
+          </label>
+          {copyNotice ? <p className="lite-success">{copyNotice}</p> : null}
+          <div className="form-actions">
+            <button type="button" className="btn" onClick={() => setTemporaryPassword(null)}>
+              Fechar
+            </button>
+            <button type="button" className="btn btn-primary" onClick={() => void copyTemporaryPassword()}>
+              Copiar senha
+            </button>
+          </div>
+        </section>
+      ) : null}
       <div className="lite-table-wrap">
         <table>
           <thead>
@@ -396,6 +457,11 @@ export function SettingsPage() {
                         }}
                       >
                         Permissões
+                      </button>
+                    ) : null}
+                    {canManageUsers && !user.is_self ? (
+                      <button type="button" className="btn btn-small" onClick={() => void resetPassword(user)}>
+                        Redefinir senha
                       </button>
                     ) : null}
                     {canManageUsers && !user.is_self ? (

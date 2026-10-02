@@ -7,6 +7,11 @@ Status: planned only. Do not deploy online without explicit approval.
 - Runtime: one API container serving the built Travel Lite frontend.
 - Database: dedicated PostgreSQL database for Travel Lite.
 - Network: HTTPS at the edge, API exposed only through the public app origin.
+- Tenant-friendly public URLs: the initial demo can use paths such as
+  `travelplataforma.com.br/gadotti` and `travelplataforma.com.br/demo` to
+  prefill and lock the login agency slug. Customer subdomains such as
+  `gadotti.travelplataforma.com.br` may point to the same app later, when
+  DNS/TLS are ready.
 - Tenancy: the API must continue deriving tenant context server-side from the authenticated session; clients must not send trusted tenant IDs.
 - Migrations: run from a controlled migration job using `MIGRATIONS_DATABASE_URL`.
 - Seed: run only for the approved pilot tenant and only with an operator-provided initial password.
@@ -39,3 +44,8 @@ The current migration/seed scripts intentionally refuse `NODE_ENV=production` an
 - No DNS or certificate automation.
 - No production/staging deploy execution.
 - No merge, push, or release publication.
+
+## Current Release Target
+
+The current release baseline is `Travel Lite 0.1.0 Inicial`. Any online
+environment for this baseline must expose `/api/version` and return `0.1.0`.

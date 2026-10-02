@@ -32,7 +32,26 @@ export const LOGO_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
 const HEX_COLOR_RE = /^#[0-9a-fA-F]{6}$/;
 const LOGO_DATA_URL_RE = /^data:image\/(?:png|jpeg|webp);base64,[A-Za-z0-9+/]+={0,2}$/;
 const SLUG_RE = /^[a-z0-9][a-z0-9-]{0,99}$/;
+const IPV4_RE = /^\d{1,3}(?:\.\d{1,3}){3}$/;
 const LAST_SLUG_KEY = 'travel_lite_last_slug';
+const RESERVED_SUBDOMAINS = new Set(['api', 'app', 'www']);
+const RESERVED_PATH_SEGMENTS = new Set([
+  'ajuda',
+  'api',
+  'cadastros',
+  'clientes',
+  'comissoes',
+  'configuracoes',
+  'financeiro',
+  'forgot-password',
+  'importacoes',
+  'login',
+  'plano',
+  'relatorios',
+  'reset-password',
+  'vendas',
+  'vendedores',
+]);
 
 export function safeColor(value: unknown): string | null {
   return typeof value === 'string' && HEX_COLOR_RE.test(value) ? value.toLowerCase() : null;
@@ -86,6 +105,40 @@ export function brandingStyle(branding: Branding): CSSProperties {
 
 export function isValidSlug(value: string): boolean {
   return SLUG_RE.test(value.trim().toLowerCase());
+}
+
+export function slugFromHostname(hostname: string): string {
+  const normalized = hostname.trim().toLowerCase().replace(/\.$/, '');
+  if (
+    normalized === '' ||
+    normalized === 'localhost' ||
+    normalized.endsWith('.localhost') ||
+    normalized.includes(':') ||
+    IPV4_RE.test(normalized)
+  ) {
+    return '';
+  }
+
+  const labels = normalized.split('.').filter(Boolean);
+  if (normalized.endsWith('.com.br') && labels.length < 4) return '';
+  if (labels.length < 3) return '';
+  const candidate = labels[0] ?? '';
+  if (RESERVED_SUBDOMAINS.has(candidate)) return '';
+  return isValidSlug(candidate) ? candidate : '';
+}
+
+export function slugFromCurrentHostname(): string {
+  return slugFromHostname(window.location.hostname);
+}
+
+export function slugFromPathname(pathname: string): string {
+  const firstSegment = pathname.split('/').filter(Boolean)[0]?.trim().toLowerCase() ?? '';
+  if (firstSegment === '' || RESERVED_PATH_SEGMENTS.has(firstSegment)) return '';
+  return isValidSlug(firstSegment) ? firstSegment : '';
+}
+
+export function slugFromCurrentPathname(): string {
+  return slugFromPathname(window.location.pathname);
 }
 
 /** Branding for the login screen. Any failure falls back to the default theme. */

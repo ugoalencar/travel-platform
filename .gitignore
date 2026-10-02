@@ -9,6 +9,7 @@ node_modules/
 !.env.example
 !.env.staging.example
 !.env.travel-lite.example
+!.env.travel-lite.production.example
 
 # Travel Lite local backups (may contain real pilot data)
 backups/
