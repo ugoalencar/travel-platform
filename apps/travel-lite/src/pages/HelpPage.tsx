@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { FirstRunChecklist, HELP_SEEN_KEY } from '../FirstRunChecklist';
 import { HELP_ARTICLES, HELP_FAQ, helpMatch } from '../helpContent';
 
@@ -134,6 +134,11 @@ export function HelpPage() {
           </div>
           {article.availability ? (
             <p className="lite-help-tier">{article.availability}</p>
+          ) : null}
+          {article.link ? (
+            <p>
+              <Link to={article.link.to}>{article.link.label}</Link>
+            </p>
           ) : null}
         </section>
       ))}

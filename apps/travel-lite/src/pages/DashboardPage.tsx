@@ -4,6 +4,7 @@ import { api } from '../api';
 import { ChartCard, SeriesBarChart, SeriesLineChart, monthLabel } from '../charts';
 import { ErrorNote, SuccessNote, formatBRL } from '../ui';
 import { FirstRunChecklist } from '../FirstRunChecklist';
+import { PlanHint } from '../planUi';
 
 /**
  * Widgets come from GET /dashboard already computed inside the viewer's
@@ -293,6 +294,7 @@ export function DashboardPage() {
           <Link to="/ajuda#configuracoes">Ver permissões na ajuda</Link>
         </p>
       ) : null}
+      <PlanHint capabilityKey="dashboard" />
     </>
   );
 }

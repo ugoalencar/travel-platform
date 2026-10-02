@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { Link } from 'react-router-dom';
 import { api } from '../api';
 import { useCan } from '../auth';
 import { FirstRunChecklist } from '../FirstRunChecklist';
@@ -410,6 +411,13 @@ export function SettingsPage() {
         </table>
       </div>
       <BrandingSection />
+      <section className="lite-card">
+        <h2>Plano e recursos</h2>
+        <p className="lite-muted">
+          Veja o que o plano Lite cobre e o que existe nos planos Pro e Full.{' '}
+          <Link to="/plano">Ver recursos do plano</Link>
+        </p>
+      </section>
     </>
   );
 }

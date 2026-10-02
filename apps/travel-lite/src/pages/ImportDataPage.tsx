@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from 'react';
 import { api } from '../api';
+import { PlanHint } from '../planUi';
 import { ErrorNote, StatusBadge, SuccessNote } from '../ui';
 
 type ImportType = 'CUSTOMERS' | 'SALES';
@@ -280,6 +281,7 @@ export function ImportDataPage() {
         </button>
       </div>
       <ErrorNote error={error} />
+      <PlanHint capabilityKey="importacao" />
       <SuccessNote success={notice} />
       <form className="lite-form" onSubmit={(event) => void upload(event)}>
         <label className="field">

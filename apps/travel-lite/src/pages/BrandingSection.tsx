@@ -3,6 +3,7 @@ import { api } from '../api';
 import { useCan } from '../auth';
 import { useBranding } from '../BrandingProvider';
 import { LOGO_TYPES, MAX_LOGO_BYTES, normalizeBranding, safeColor } from '../branding';
+import { PlanHint } from '../planUi';
 import { ErrorNote, SuccessNote } from '../ui';
 
 type LogoAction = { kind: 'keep' } | { kind: 'remove' } | { kind: 'set'; dataUrl: string };
@@ -183,6 +184,7 @@ function BrandingEditor() {
       <p className="lite-muted">
         Nome, logo e cores da agência aparecem no login e no topo do sistema. Campos vazios usam o visual padrão.
       </p>
+      <PlanHint capabilityKey="branding" />
       <ErrorNote error={error} />
       <SuccessNote success={notice} />
       <form className="lite-form" onSubmit={(event) => void onSubmit(event)}>

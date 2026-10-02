@@ -10,6 +10,7 @@ import { CustomersPage } from './pages/CustomersPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { FinancePage } from './pages/FinancePage';
 import { HelpPage } from './pages/HelpPage';
+import { PlanPage } from './pages/PlanPage';
 import { ImportDataPage } from './pages/ImportDataPage';
 import { LoginPage } from './pages/LoginPage';
 import { ReportsPage } from './pages/ReportsPage';
@@ -68,6 +69,7 @@ export function App() {
               <Route path="/cadastros" element={<Allowed path="/cadastros"><CatalogPage /></Allowed>} />
               <Route path="/configuracoes" element={<Allowed path="/configuracoes"><SettingsPage /></Allowed>} />
               <Route path="/ajuda" element={<HelpPage />} />
+              <Route path="/plano" element={<PlanPage />} />
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

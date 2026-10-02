@@ -899,3 +899,83 @@ tr.row-selected td {
   }
 }
 
+/* ------------------------------------------------------------
+   Plan capabilities (PX5): informational only, kept quiet.
+   ------------------------------------------------------------ */
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.lite-plan-badge {
+  display: inline-block;
+  padding: 0 0.45rem;
+  border-radius: 999px;
+  border: 1px solid var(--lite-border);
+  background: #f3f4f6;
+  color: var(--lite-muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.5;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  vertical-align: middle;
+}
+
+.lite-plan-badge.plan-lite {
+  background: #e8effd;
+  border-color: #c6d7f8;
+  color: var(--lite-primary);
+}
+
+.lite-plan-hint {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--lite-muted);
+}
+
+.lite-plan-hint a {
+  white-space: nowrap;
+}
+
+.lite-cap-full {
+  color: var(--lite-success);
+}
+
+.lite-cap-partial {
+  color: var(--lite-fg);
+}
+
+.lite-cap-desc {
+  display: block;
+  font-weight: 400;
+  margin-top: 0.1rem;
+}
+
+.lite-plan-current {
+  background: #f5f8ff;
+}
+
+.lite-plan-you {
+  font-weight: 400;
+  color: var(--lite-muted);
+}
+
+.lite-plan-legend {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.lite-plan tr:target td {
+  background: #fff8e1;
+}
+
+.lite-plan section {
+  margin-top: 0.25rem;
+}
+

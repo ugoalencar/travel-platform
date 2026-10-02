@@ -130,6 +130,8 @@ describe('App shell', () => {
       'Cadastros',
       'Configurações',
       'Ajuda',
+      // Quiet plan hint at the end of the dashboard (Lite shows an essential dashboard).
+      'Ver recursos do plano',
       // Mobile quick-add shortcut (hidden by CSS on desktop), for users who can create customers.
       '+ Cliente',
     ]);
@@ -155,6 +157,8 @@ describe('App shell', () => {
       'Comissões',
       'Relatórios',
       'Ajuda',
+      // Quiet plan hint at the end of the dashboard (Lite shows an essential dashboard).
+      'Ver recursos do plano',
       // Mobile quick-add shortcut (hidden by CSS on desktop), for users who can create customers.
       '+ Cliente',
     ]);

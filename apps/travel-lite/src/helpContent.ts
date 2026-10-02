@@ -16,6 +16,8 @@ export interface HelpArticle {
   permissions: string[];
   missing: string;
   availability?: string;
+  /** Optional pointer to a screen that complements the article. */
+  link?: { to: string; label: string };
   haystack: string;
 }
 
@@ -95,7 +97,7 @@ const RAW_ARTICLES: RawArticle[] = [
       'O checklist nunca bloqueia o uso do sistema — pode ser ignorado.',
     ],
     missing: 'O checklist fica no Dashboard, em Configurações e no topo desta página. Se ele não aparece, sua base já está no dia zero ou o perfil não tem tarefas pendentes.',
-    availability: 'Identidade visual (logo e cores) é uma etapa planejada: básica no Lite, avançada no Pro e completa no Full.',
+    availability: 'Identidade visual (nome, logo e cores): básica no Lite, avançada no Pro e completa no Full.',
   },
   {
     id: 'dashboard',
@@ -392,7 +394,35 @@ const RAW_ARTICLES: RawArticle[] = [
       'Categorias, contas financeiras e catálogos básicos: MASTER, ADMIN e MANAGER.',
     ],
     missing: 'Menu “Configurações” ausente: o perfil não tem as permissões de gestão. Qualquer menu ou botão que não aparece significa permissão ausente — a própria tela de acesso negado explica e preserva o endereço.',
-    availability: 'Identidade visual (logo e cores): planejada — básica no Lite, avançada no Pro, completa no Full.',
+    availability: 'Identidade visual (nome, logo e cores), em Configurações: básica no Lite, avançada no Pro, completa no Full.',
+  },
+  {
+    id: 'planos',
+    title: 'Planos e recursos',
+    purpose: 'Entender o que o plano Lite cobre e o que existe nos planos Pro e Full, para decidir quando vale conversar sobre ampliar.',
+    when: 'Quando um recurso aparece em versão reduzida, quando surgir a dúvida “isso existe em outro plano?” ou antes de planejar a migração para o Full.',
+    requiredFields: [],
+    example: [
+      'Dashboard: essencial no Lite, avançado no Pro e completo no Full.',
+      'Importação: limitada no Lite e completa no Pro e no Full.',
+    ],
+    steps: [
+      'Abra “Recursos do plano” pelo link desta tela, por Configurações ou pelos avisos discretos no Dashboard, em Importações e na Identidade visual.',
+      'Leia a tabela: ✓ significa disponível por completo e ◐ significa versão reduzida ou intermediária.',
+      'Para saber mais, quem tem permissão de MASTER usa “Copiar resumo para o responsável” e envia o texto a quem cuida dos planos.',
+    ],
+    commonErrors: [
+      'A tela de planos só informa: ela não libera nem bloqueia recurso. O que cada pessoa pode fazer depende das permissões do perfil.',
+      'Valores, limites numéricos e condições comerciais ainda não estão definidos nesta edição; peça ao responsável comercial.',
+      'O botão de resumo não envia nada: ele apenas copia o texto.',
+    ],
+    permissions: [
+      'Ver “Recursos do plano”: qualquer usuário autenticado.',
+      'Copiar o resumo para o responsável: MASTER (gestão de usuários ou de permissões). Quem aprova um upgrade ainda será definido pelo produto.',
+    ],
+    missing: 'Não aparece o botão de copiar o resumo: ele é exclusivo de quem gerencia usuários ou permissões. Peça ao administrador da agência.',
+    availability: 'Plano Lite hoje; Pro e Full aparecem como informação, sem cobrança nem contratação nesta edição.',
+    link: { to: '/plano', label: 'Abrir Recursos do plano' },
   },
 ];
 
@@ -440,12 +470,12 @@ const RAW_FAQ: RawFaqItem[] = [
   {
     question: 'Qual a diferença entre Lite, Pro e Full?',
     answer:
-      'Lite atende clientes, vendas, financeiro básico, importação limitada e dashboard essencial. Pro e Full acrescentam dashboard avançado e completo, operação mobile ampliada, branding avançado e completo e integrações parciais e completas, com migração assistida para o Pro e nativa para o Full.',
+      'Lite atende clientes, vendas, financeiro básico, importação limitada e dashboard essencial. Pro e Full acrescentam dashboard avançado e completo, operação mobile ampliada, branding avançado e completo e integrações parciais e completas, com migração assistida para o Pro e nativa para o Full. Veja a tabela completa em Recursos do plano (Ajuda › Planos e recursos).',
   },
   {
     question: 'Posso mudar o logo e as cores da agência?',
     answer:
-      'A identidade visual está planejada como etapa seguinte: básica no Lite, avançada no Pro e completa no Full. Enquanto isso, opere com as configurações atuais de usuários e permissões.',
+      'Sim, no plano Lite a identidade visual é básica: nome fantasia, texto de boas-vindas, logo e cores aparecem no login e no topo do sistema. Quem tem permissão de MASTER ajusta em Configurações › Identidade visual. Versões avançada e completa ficam no Pro e no Full.',
   },
   {
     question: 'Esqueci a senha de um usuário. E agora?',
