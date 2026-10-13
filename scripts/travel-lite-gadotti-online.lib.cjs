@@ -86,6 +86,7 @@ function parsePasswordsJson(raw) {
 function parseCredentialsDocument(markdown) {
   const passwords = {};
   for (const line of String(markdown).split(/\r?\n/)) {
+    if (line.startsWith('## ')) break; // later sections (status notes) are not credentials
     if (!line.trim().startsWith('|')) continue;
     const cells = line.trim().replace(/^\||\|$/g, '').split('|').map((cell) => cell.trim());
     if (cells.length !== 3) continue;
