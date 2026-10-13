@@ -13,6 +13,7 @@ import { AUDIT_EVENTS, recordAuditEvent } from '../audit-log';
 import type { LiteDatabase, TenantClient } from '../database';
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from '../errors';
 import { enqueueOutboxEvent } from '../outbox';
+import { diffSaleFields, readSaleChanges } from '../sale-audit';
 import { getTenantContext } from '../tenant-context';
 import {
   optionalDate,
@@ -250,7 +251,8 @@ export async function createSaleDraft(
     eventType: AUDIT_EVENTS.SALE_CREATED,
     entityType: 'sale',
     entityId: created.id,
-    metadata: { sale_number: created.sale_number },
+    metadata: { sale_number: created.sale_number, ...diffSaleFields({}, created) },
+    required: true,
   });
   await enqueueOutboxEvent(client, {
     eventType: 'SALE_CREATED',
@@ -379,7 +381,13 @@ export async function confirmSaleDraft(
     eventType: AUDIT_EVENTS.SALE_CONFIRMED,
     entityType: 'sale',
     entityId: saleId,
-    metadata: { sale_number: current.sale_number, installments: count },
+    metadata: {
+      sale_number: current.sale_number,
+      installments: count,
+      old_status: current.status,
+      new_status: 'CONFIRMED',
+    },
+    required: true,
   });
   await enqueueOutboxEvent(client, {
     eventType: 'SALE_CONFIRMED',
@@ -474,6 +482,53 @@ export function registerSaleRoutes(
       pageSize,
       total: result.total,
     };
+  });
+
+  app.get('/sales/:id/history', { preHandler: protectedHooks }, async (request) => {
+    const context = getTenantContext();
+    const { id } = request.params as { id: string };
+
+    return database.withTenantTransaction(async (client) => {
+      const saleResult = await client.query<{ seller_id: string }>(
+        'SELECT seller_id FROM sales WHERE tenant_id = $1 AND id = $2',
+        [context.tenantId, id],
+      );
+      const sale = saleResult.rows[0];
+      if (!sale || !inScope(readScope(), sale.seller_id)) throw new NotFoundError('Sale not found');
+
+      const result = await client.query<{
+        id: string;
+        created_at: string;
+        event_type: string;
+        user_id: string | null;
+        actor_name: string | null;
+        metadata: Record<string, unknown> | null;
+      }>(
+        `SELECT a.id, a.created_at, a.event_type, a.user_id, u.name AS actor_name, a.metadata
+           FROM audit_logs a
+           LEFT JOIN users u ON u.tenant_id = a.tenant_id AND u.id = a.user_id
+          WHERE a.tenant_id = $1 AND a.entity_type = 'sale' AND a.entity_id = $2
+            AND a.event_type IN ($3, $4, $5, $6)
+          ORDER BY a.created_at, a.id`,
+        [
+          context.tenantId,
+          id,
+          AUDIT_EVENTS.SALE_CREATED,
+          AUDIT_EVENTS.SALE_UPDATED,
+          AUDIT_EVENTS.SALE_CONFIRMED,
+          AUDIT_EVENTS.SALE_CANCELLED,
+        ],
+      );
+      return {
+        history: result.rows.map((row) => ({
+          id: row.id,
+          at: row.created_at,
+          event_type: row.event_type,
+          actor: row.user_id ? { id: row.user_id, name: row.actor_name } : null,
+          changes: readSaleChanges(row.metadata),
+        })),
+      };
+    });
   });
 
   app.get('/sales/:id', { preHandler: protectedHooks }, async (request) => {
@@ -637,13 +692,11 @@ export function registerSaleRoutes(
     if ('due_date' in body) set('due_date', requiredDate(body, 'due_date'));
     if ('installment_count' in body) set('installment_count', parseInstallmentCount(body));
 
-    const needsAmounts = 'gross_amount' in body || 'cost_amount' in body;
-    if (needsAmounts) {
-      set('gross_amount', requiredAmount(body, 'gross_amount'));
-      set('cost_amount', 'cost_amount' in body ? requiredAmount(body, 'cost_amount') : 0);
-    }
+    const grossInput = 'gross_amount' in body ? requiredAmount(body, 'gross_amount') : null;
+    const costInput = 'cost_amount' in body ? requiredAmount(body, 'cost_amount') : null;
+    const needsAmounts = grossInput !== null || costInput !== null;
 
-    if (updates.length === 0) {
+    if (updates.length === 0 && !needsAmounts) {
       throw new ValidationError('At least one field is required');
     }
 
@@ -653,11 +706,12 @@ export function registerSaleRoutes(
         throw new ConflictError('Only DRAFT sales can be edited');
       }
 
-      let gross = Number(current.gross_amount);
-      let cost = Number(current.cost_amount);
       if (needsAmounts) {
-        gross = 'gross_amount' in body ? requiredAmount(body, 'gross_amount') : gross;
-        cost = 'cost_amount' in body ? requiredAmount(body, 'cost_amount') : cost;
+        // Omitted amounts keep their stored value; margin is always gross - cost.
+        const gross = grossInput ?? Number(current.gross_amount);
+        const cost = costInput ?? Number(current.cost_amount);
+        set('gross_amount', gross);
+        set('cost_amount', cost);
         set('margin_amount', computeMargin(gross, cost));
       }
 
@@ -680,7 +734,8 @@ export function registerSaleRoutes(
         eventType: AUDIT_EVENTS.SALE_UPDATED,
         entityType: 'sale',
         entityId: updated.id,
-        metadata: { sale_number: updated.sale_number },
+        metadata: { sale_number: updated.sale_number, ...diffSaleFields(current, updated) },
+        required: true,
       });
       await enqueueOutboxEvent(client, {
         eventType: 'SALE_UPDATED',
@@ -747,7 +802,8 @@ export function registerSaleRoutes(
         [context.tenantId, id],
       );
       await client.query(
-        `UPDATE seller_commissions SET status = 'CANCELLED', updated_at = now()
+        `UPDATE seller_commissions
+            SET status = 'CANCELLED', commission_amount = coalesce(commission_amount, 0), updated_at = now()
           WHERE tenant_id = $1 AND sale_id = $2 AND status NOT IN ('CANCELLED', 'PAID')`,
         [context.tenantId, id],
       );
@@ -755,7 +811,8 @@ export function registerSaleRoutes(
         eventType: AUDIT_EVENTS.SALE_CANCELLED,
         entityType: 'sale',
         entityId: id,
-        metadata: { sale_number: current.sale_number },
+        metadata: { sale_number: current.sale_number, old_status: current.status, new_status: 'CANCELLED' },
+        required: true,
       });
       await enqueueOutboxEvent(client, {
         eventType: 'SALE_CANCELLED',

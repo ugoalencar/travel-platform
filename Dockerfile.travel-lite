@@ -19,4 +19,6 @@ WORKDIR /app
 COPY --from=build --chown=node:node /app /app
 USER node
 EXPOSE 4010
-CMD ["node", "services/api-lite/dist/services/api-lite/src/server.js"]
+# O entrypoint só executa a rotina de provisionamento quando
+# TRAVEL_LITE_GADOTTI_PROVISION está definido; caso contrário apenas inicia a API.
+CMD ["node", "scripts/travel-lite-entrypoint.cjs"]

@@ -61,6 +61,12 @@ export interface AuditEventInput {
   entityType?: string;
   entityId?: string;
   metadata?: AuditMetadata;
+  /**
+   * The event is part of the business record (e.g. who changed a sale): a
+   * failed insert propagates and rolls the whole transaction back instead of
+   * being swallowed.
+   */
+  required?: boolean;
 }
 
 const METADATA_KEY_RE = /^[A-Za-z0-9_]{1,64}$/;
@@ -88,9 +94,8 @@ export async function recordAuditEvent(client: TenantClient, input: AuditEventIn
     throw new Error('recordAuditEvent requires a tenant context');
   }
 
-  try {
-    await client.query('SAVEPOINT lite_audit_insert');
-    await client.query(
+  const insert = () =>
+    client.query(
       `INSERT INTO audit_logs (tenant_id, user_id, event_type, entity_type, entity_id, metadata)
        VALUES ($1, $2, $3, $4, $5, $6::jsonb)`,
       [
@@ -102,6 +107,15 @@ export async function recordAuditEvent(client: TenantClient, input: AuditEventIn
         JSON.stringify(sanitizeMetadata(input.metadata)),
       ],
     );
+
+  if (input.required) {
+    await insert();
+    return;
+  }
+
+  try {
+    await client.query('SAVEPOINT lite_audit_insert');
+    await insert();
     await client.query('RELEASE SAVEPOINT lite_audit_insert');
   } catch {
     // Audit failure must never fail the business operation.
