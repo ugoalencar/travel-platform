@@ -46,7 +46,7 @@ export async function getSalesByPeriod(
 ): Promise<SalesByPeriod[]> {
   const agencyId = getAgencyId();
 
-  const rows = await client.query<
+  const result = await client.query<
     { period: string; count: number; total: string }
   >(
     `
@@ -65,7 +65,7 @@ export async function getSalesByPeriod(
     [agencyId, startDate, endDate],
   );
 
-  return rows.map((row) => ({
+  return result.rows.map((row) => ({
     period: row.period,
     count: row.count,
     total: row.total,
@@ -81,7 +81,7 @@ export async function getBookingsByStatus(
 ): Promise<BookingsByStatus[]> {
   const agencyId = getAgencyId();
 
-  const rows = await client.query<{ status: string; count: number }>(
+  const result = await client.query<{ status: string; count: number }>(
     `
     SELECT
       COALESCE(b.status, 'ACTIVE')::text as status,
@@ -94,7 +94,7 @@ export async function getBookingsByStatus(
     [agencyId],
   );
 
-  return rows;
+  return result.rows;
 }
 
 /**
@@ -126,7 +126,7 @@ export async function getProposalConversion(
     [agencyId],
   );
 
-  const { sent, accepted } = result[0] || { sent: 0, accepted: 0 };
+  const { sent, accepted } = result.rows[0] || { sent: 0, accepted: 0 };
   const rate = sent > 0 ? ((accepted / sent) * 100).toFixed(2) : '0.00';
 
   return {
@@ -146,7 +146,7 @@ export async function getTopDestinations(
 ): Promise<TopDestination[]> {
   const agencyId = getAgencyId();
 
-  const rows = await client.query<
+  const result = await client.query<
     { destination: string; booking_count: number; trip_count: number }
   >(
     `
@@ -166,7 +166,7 @@ export async function getTopDestinations(
     [agencyId, limit],
   );
 
-  return rows.map((row) => ({
+  return result.rows.map((row) => ({
     destination: row.destination,
     bookingCount: row.booking_count,
     tripCount: row.trip_count,
@@ -181,7 +181,7 @@ export async function getTripsByStatus(
 ): Promise<TripsByStatus[]> {
   const agencyId = getAgencyId();
 
-  const rows = await client.query<{ status: string; count: number }>(
+  const result = await client.query<{ status: string; count: number }>(
     `
     SELECT
       COALESCE(t.status, 'PLANNED')::text as status,
@@ -194,7 +194,7 @@ export async function getTripsByStatus(
     [agencyId],
   );
 
-  return rows;
+  return result.rows;
 }
 
 export type { SalesByPeriod, BookingsByStatus, ProposalConversion, TopDestination, TripsByStatus };

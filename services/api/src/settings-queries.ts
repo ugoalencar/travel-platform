@@ -1,6 +1,5 @@
 import type { TenantTransactionClient } from './database';
 import { getAgencyId, getUserId, getTenantContext } from '../../../packages/domain/tenant-context';
-import { UserRole } from '../../../packages/domain/types';
 
 // ============================================================
 // SETTINGS QUERIES
@@ -11,8 +10,8 @@ import { UserRole } from '../../../packages/domain/types';
 interface AgencyProfile {
   id: string;
   name: string;
-  email?: string;
-  phone?: string;
+  email: string | undefined;
+  phone: string | undefined;
 }
 
 interface TeamMember {
@@ -38,15 +37,14 @@ export async function getAgencyProfile(
   client: TenantTransactionClient,
 ): Promise<{ profile: AgencyProfile; userRole: string }> {
   const agencyId = getAgencyId();
-  const userId = getUserId();
   const context = getTenantContext();
 
   // Get agency info
-  const agencyRows = await client.query<{
+  const agencyResult = await client.query<{
     id: string;
     name: string;
-    email?: string;
-    phone?: string;
+    email: string | null;
+    phone: string | null;
   }>(
     `
     SELECT id, name, email, phone
@@ -56,18 +54,18 @@ export async function getAgencyProfile(
     [agencyId],
   );
 
-  if (agencyRows.length === 0) {
+  if (agencyResult.rows.length === 0) {
     throw new Error('Agency not found');
   }
 
-  const agency = agencyRows[0];
+  const agency = agencyResult.rows[0]!;
 
   return {
     profile: {
       id: agency.id,
       name: agency.name,
-      email: agency.email,
-      phone: agency.phone,
+      email: agency.email ?? undefined,
+      phone: agency.phone ?? undefined,
     },
     userRole: context.userRole || 'VIEWER',
   };
@@ -81,7 +79,7 @@ export async function getAgencyProfile(
 export async function getTeamMembers(client: TenantTransactionClient): Promise<TeamMember[]> {
   const agencyId = getAgencyId();
 
-  const rows = await client.query<
+  const result = await client.query<
     { id: string; name: string; email: string; role: string; joined_at: string }
   >(
     `
@@ -94,7 +92,7 @@ export async function getTeamMembers(client: TenantTransactionClient): Promise<T
     [agencyId],
   );
 
-  return rows.map((row) => ({
+  return result.rows.map((row) => ({
     id: row.id,
     name: row.name,
     email: row.email,
@@ -113,7 +111,7 @@ export async function getNotificationSettings(
   const userId = getUserId();
   const agencyId = getAgencyId();
 
-  const rows = await client.query<{
+  const result = await client.query<{
     email_notifications: boolean;
     proposal_updates: boolean;
     booking_updates: boolean;
@@ -130,7 +128,7 @@ export async function getNotificationSettings(
     [userId, agencyId],
   );
 
-  if (rows.length === 0) {
+  if (result.rows.length === 0) {
     // Return defaults if no preferences exist
     return {
       emailNotifications: true,
@@ -140,7 +138,7 @@ export async function getNotificationSettings(
     };
   }
 
-  const prefs = rows[0];
+  const prefs = result.rows[0]!;
   return {
     emailNotifications: prefs.email_notifications,
     proposalUpdates: prefs.proposal_updates,
@@ -172,7 +170,7 @@ export async function updateNotificationSettings(
 
   // Update only provided fields
   const updates: string[] = [];
-  const values: any[] = [userId, agencyId];
+  const values: (string | boolean)[] = [userId, agencyId];
   let paramIndex = 3;
 
   if (settings.emailNotifications !== undefined) {

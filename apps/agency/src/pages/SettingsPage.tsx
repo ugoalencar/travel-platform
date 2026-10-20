@@ -4,7 +4,7 @@ import { PageHeader } from '../components/layout/PageHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { LoadingState } from '../components/ui/loading-state';
 import { StatusBadge } from '../components/ui/status-badge';
-import { api } from '../lib/api';
+import { api, ApiError } from '../lib/api';
 
 interface AgencyProfile {
   id: string;
@@ -26,6 +26,19 @@ interface NotificationSettings {
   proposalUpdates: boolean;
   bookingUpdates: boolean;
   paymentUpdates: boolean;
+}
+
+interface AgencyResponse {
+  profile: AgencyProfile;
+  userRole: string;
+}
+
+interface TeamResponse {
+  team: TeamMember[];
+}
+
+interface NotificationsResponse {
+  settings: NotificationSettings;
 }
 
 type LoadState =
@@ -66,9 +79,9 @@ export function SettingsPage() {
         setState({ status: 'loading' });
 
         const [profileResp, teamResp, notificationsResp] = await Promise.all([
-          api.get('/settings/agency'),
-          api.get('/settings/team'),
-          api.get('/settings/notifications'),
+          api.get<AgencyResponse>('/settings/agency'),
+          api.get<TeamResponse>('/settings/team'),
+          api.get<NotificationsResponse>('/settings/notifications'),
         ]);
 
         setState({
@@ -79,28 +92,24 @@ export function SettingsPage() {
           userRole: profileResp.data.userRole,
         });
       } catch (err) {
-        if (err instanceof Error) {
-          setState({ status: 'error', message: err.message });
-        } else if (typeof err === 'object' && err !== null && 'status' in err) {
-          const httpErr = err as { status: number; data?: { message: string } };
-          if (httpErr.status === 403) {
+        if (err instanceof ApiError) {
+          if (err.status === 403) {
             setState({
               status: 'error',
               message: 'You do not have permission to access settings.',
             });
           } else {
-            setState({
-              status: 'error',
-              message: httpErr.data?.message || 'Failed to load settings',
-            });
+            setState({ status: 'error', message: err.message });
           }
+        } else if (err instanceof Error) {
+          setState({ status: 'error', message: err.message });
         } else {
           setState({ status: 'error', message: 'An unexpected error occurred' });
         }
       }
     };
 
-    fetchSettings();
+    void fetchSettings();
   }, []);
 
   if (state.status === 'loading') {

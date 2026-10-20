@@ -398,20 +398,21 @@ export type { CustomerStatus, WishStatus, TripStatus };
 // ============================================================
 
 export const api = {
-  get: async <T = any>(path: string): Promise<{ data: T }> => {
+  get: async <T>(path: string): Promise<{ data: T }> => {
     const response = await fetch(`${API_BASE_URL}${path}`);
     if (!response.ok) {
       const body = (await safeJson(response)) as Partial<ApiErrorBody> | null;
-      throw {
-        status: response.status,
-        data: body,
-      };
+      throw new ApiError(
+        body?.error ?? 'GET request failed.',
+        body?.code ?? 'UNKNOWN_ERROR',
+        response.status,
+      );
     }
     const data = (await response.json()) as T;
     return { data };
   },
 
-  post: async <T = any>(path: string, body?: any): Promise<{ data: T }> => {
+  post: async <T, B = unknown>(path: string, body?: B): Promise<{ data: T }> => {
     const response = await fetch(`${API_BASE_URL}${path}`, {
       method: 'POST',
       headers: {
@@ -421,16 +422,17 @@ export const api = {
     });
     if (!response.ok) {
       const respBody = (await safeJson(response)) as Partial<ApiErrorBody> | null;
-      throw {
-        status: response.status,
-        data: respBody,
-      };
+      throw new ApiError(
+        respBody?.error ?? 'POST request failed.',
+        respBody?.code ?? 'UNKNOWN_ERROR',
+        response.status,
+      );
     }
     const data = (await response.json()) as T;
     return { data };
   },
 
-  patch: async <T = any>(path: string, body?: any): Promise<{ data: T }> => {
+  patch: async <T, B = unknown>(path: string, body?: B): Promise<{ data: T }> => {
     const response = await fetch(`${API_BASE_URL}${path}`, {
       method: 'PATCH',
       headers: {
@@ -440,10 +442,11 @@ export const api = {
     });
     if (!response.ok) {
       const respBody = (await safeJson(response)) as Partial<ApiErrorBody> | null;
-      throw {
-        status: response.status,
-        data: respBody,
-      };
+      throw new ApiError(
+        respBody?.error ?? 'PATCH request failed.',
+        respBody?.code ?? 'UNKNOWN_ERROR',
+        response.status,
+      );
     }
     const data = (await response.json()) as T;
     return { data };

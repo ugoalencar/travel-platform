@@ -3,7 +3,7 @@ import { BarChart3, MapPin, TrendingUp, AlertCircle } from 'lucide-react';
 import { PageHeader } from '../components/layout/PageHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { StatCard } from '../components/ui/stat-card';
-import { api } from '../lib/api';
+import { api, ApiError } from '../lib/api';
 
 interface SalesByPeriod {
   period: string;
@@ -33,6 +33,26 @@ interface TripsByStatus {
   count: number;
 }
 
+interface SalesReportResponse {
+  sales: SalesByPeriod[];
+}
+
+interface BookingsReportResponse {
+  bookings: BookingsByStatus[];
+}
+
+interface ProposalsReportResponse {
+  proposals: ProposalConversion;
+}
+
+interface DestinationsReportResponse {
+  destinations: TopDestination[];
+}
+
+interface TripsReportResponse {
+  trips: TripsByStatus[];
+}
+
 export function ReportsPage() {
   const [salesData, setSalesData] = useState<SalesByPeriod[]>([]);
   const [bookingsData, setBookingsData] = useState<BookingsByStatus[]>([]);
@@ -55,32 +75,31 @@ export function ReportsPage() {
         // Fetch all reports in parallel
         const [salesResp, bookingsResp, proposalsResp, destinationsResp, tripsResp] =
           await Promise.all([
-            api.get(
+            api.get<SalesReportResponse>(
               `/commercial/reports/sales?start_date=${dateRange.startDate}&end_date=${dateRange.endDate}`,
             ),
-            api.get('/commercial/reports/bookings'),
-            api.get('/commercial/reports/proposals'),
-            api.get('/commercial/reports/destinations?limit=10'),
-            api.get('/commercial/reports/trips'),
+            api.get<BookingsReportResponse>('/commercial/reports/bookings'),
+            api.get<ProposalsReportResponse>('/commercial/reports/proposals'),
+            api.get<DestinationsReportResponse>('/commercial/reports/destinations?limit=10'),
+            api.get<TripsReportResponse>('/commercial/reports/trips'),
           ]);
 
-        setSalesData(salesResp.data.sales || []);
-        setBookingsData(bookingsResp.data.bookings || []);
+        setSalesData(salesResp.data.sales);
+        setBookingsData(bookingsResp.data.bookings);
         setProposalData(proposalsResp.data.proposals);
-        setDestinationsData(destinationsResp.data.destinations || []);
-        setTripsData(tripsResp.data.trips || []);
+        setDestinationsData(destinationsResp.data.destinations);
+        setTripsData(tripsResp.data.trips);
       } catch (err) {
-        if (err instanceof Error) {
-          setError(err.message);
-        } else if (typeof err === 'object' && err !== null && 'status' in err) {
-          const httpErr = err as { status: number; data?: { message: string } };
-          if (httpErr.status === 429) {
+        if (err instanceof ApiError) {
+          if (err.status === 429) {
             setError('Rate limit exceeded. Please try again in a moment.');
-          } else if (httpErr.status === 403) {
+          } else if (err.status === 403) {
             setError('You do not have permission to view these reports.');
           } else {
-            setError(httpErr.data?.message || 'Failed to load reports');
+            setError(err.message);
           }
+        } else if (err instanceof Error) {
+          setError(err.message);
         } else {
           setError('An unexpected error occurred');
         }
@@ -89,7 +108,7 @@ export function ReportsPage() {
       }
     };
 
-    fetchReports();
+    void fetchReports();
   }, [dateRange]);
 
   const handleDateChange = (type: 'startDate' | 'endDate', value: string) => {
