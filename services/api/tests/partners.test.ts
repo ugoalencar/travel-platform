@@ -117,7 +117,6 @@ describe.sequential('Commercial Partners (Agent 04)', () => {
   afterAll(async () => {
     await runtimePool?.end();
     await adminPool?.end();
-    compose(['down', '-v']);
   });
 
   // ============================================================
@@ -505,7 +504,15 @@ function assertSafeTestDatabase(): void {
 }
 
 function resetDisposableDatabase(): void {
-  compose(['down', '-v']);
+  const existing = run(
+    'docker',
+    ['ps', '--filter', `name=${containerName}`, '--filter', 'status=running', '--format', '{{.Names}}'],
+    false,
+  );
+  if (existing.stdout.split(/\r?\n/).map((line) => line.trim()).includes(containerName)) {
+    return;
+  }
+
   compose(['up', '-d']);
 }
 
