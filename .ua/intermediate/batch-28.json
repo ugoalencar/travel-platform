@@ -1,0 +1,17 @@
+{
+  "nodes": [
+    {
+      "id": "pipeline:.github/workflows/ci.yml",
+      "type": "pipeline",
+      "name": "ci.yml",
+      "filePath": ".github/workflows/ci.yml",
+      "summary": "Workflow do GitHub Actions que executa os quality gates em PRs e pushes para main: lint, typecheck, secret scan, auditoria de dependências, validação de migrations, testes unitários, de segurança e de banco/RLS, e build, com serviço PostgreSQL 15 como service container.",
+      "tags": ["ci-cd", "quality-gates", "testing", "security"],
+      "complexity": "moderate",
+      "languageNotes": "Usa concurrency group com cancel-in-progress e um serviço PostgreSQL com healthcheck para os testes de integração de RLS; permissões restritas a contents: read."
+    }
+  ],
+  "edges": [
+    {"source": "pipeline:.github/workflows/ci.yml", "target": "file:package.json", "type": "depends_on", "direction": "forward", "weight": 0.6}
+  ]
+}

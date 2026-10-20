@@ -1,0 +1,770 @@
+<title>Plano Travel Plataforma</title>
+<style>
+  /* Layout: sidebar de navegação fixa à esquerda no desktop (colapsa num
+     menu no topo em telas estreitas) + coluna de conteúdo única, com
+     âncoras por seção. Paleta e tipografia espelham a marca real da
+     Travel Plataforma (founder/brand.md): navy + cobalt, Fraunces + Inter. */
+  :root {
+    --bg: #ffffff;
+    --bg-soft: #f3f4f6;
+    --fg: #0f2a4a;
+    --fg-muted: #4b5a70;
+    --accent: #1554d1;
+    --accent-soft: #e8edfc;
+    --border: #d7dce5;
+    --good: #0f7a4b;
+    --good-bg: #e7f6ee;
+    --warn: #8a5a00;
+    --warn-bg: #fdf2dc;
+    --bad: #b3261e;
+    --bad-bg: #fbe9e7;
+    --card: #ffffff;
+    --font-display: 'Fraunces', Georgia, serif;
+    --font-body: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0b1420;
+      --bg-soft: #121f30;
+      --fg: #e7ecf4;
+      --fg-muted: #9fb0c6;
+      --accent: #6d9bff;
+      --accent-soft: #16233a;
+      --border: #263348;
+      --good: #4fd394;
+      --good-bg: #0f2a20;
+      --warn: #e3b35c;
+      --warn-bg: #2e2510;
+      --bad: #ff8a80;
+      --bad-bg: #2e1613;
+      --card: #101c2c;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0b1420;
+    --bg-soft: #121f30;
+    --fg: #e7ecf4;
+    --fg-muted: #9fb0c6;
+    --accent: #6d9bff;
+    --accent-soft: #16233a;
+    --border: #263348;
+    --good: #4fd394;
+    --good-bg: #0f2a20;
+    --warn: #e3b35c;
+    --warn-bg: #2e2510;
+    --bad: #ff8a80;
+    --bad-bg: #2e1613;
+    --card: #101c2c;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-body);
+    line-height: 1.55;
+    margin: 0;
+    padding-inline: 16px;
+  }
+  a { color: var(--accent); }
+  h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; line-height: 1.15; }
+  h1 { font-size: clamp(1.9rem, 4vw, 2.6rem); margin: 0 0 6px; }
+  h2 { font-size: clamp(1.4rem, 3vw, 1.8rem); margin: 0 0 4px; padding-top: 6px; border-top: 1px solid var(--border); }
+  h3 { font-size: 1.15rem; margin: 20px 0 6px; }
+  p { max-width: 68ch; }
+  .shell { display: flex; gap: 32px; max-width: 1180px; margin: 0 auto; align-items: flex-start; }
+  nav.toc {
+    position: sticky; top: 16px; flex: 0 0 220px; min-width: 0;
+    max-height: calc(100vh - 32px); overflow-y: auto;
+    padding: 14px; border-radius: 10px; background: var(--bg-soft);
+    border: 1px solid var(--border);
+  }
+  nav.toc a {
+    display: block; padding: 5px 6px; border-radius: 6px; font-size: .88rem;
+    color: var(--fg-muted); text-decoration: none;
+  }
+  nav.toc a:hover { background: var(--accent-soft); color: var(--accent); }
+  nav.toc .toc-title { font-family: var(--font-display); font-size: 1rem; color: var(--fg); margin-bottom: 6px; display: block; }
+  main { flex: 1 1 auto; min-width: 0; padding-block: 24px 64px; max-width: 760px; }
+  .cover {
+    padding: 28px 0 18px; border-bottom: 2px solid var(--border); margin-bottom: 24px;
+  }
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px; font-size: .78rem; font-weight: 600;
+    padding: 4px 10px; border-radius: 999px; letter-spacing: .02em; text-transform: uppercase;
+  }
+  .badge.good { background: var(--good-bg); color: var(--good); }
+  .badge.warn { background: var(--warn-bg); color: var(--warn); }
+  .badge.bad { background: var(--bad-bg); color: var(--bad); }
+  .badge.neutral { background: var(--accent-soft); color: var(--accent); }
+  section { padding-top: 28px; scroll-margin-top: 12px; }
+  table { width: 100%; border-collapse: collapse; margin: 10px 0 18px; font-size: .92rem; }
+  caption { text-align: left; font-size: .8rem; color: var(--fg-muted); margin-bottom: 4px; }
+  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { color: var(--fg-muted); font-weight: 600; font-size: .82rem; text-transform: uppercase; letter-spacing: .02em; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .tablewrap { overflow-x: auto; }
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 16px; margin: 14px 0;
+  }
+  .callout { border-left: 4px solid var(--accent); padding: 10px 14px; background: var(--accent-soft); border-radius: 0 8px 8px 0; margin: 14px 0; }
+  .callout.warn { border-color: var(--warn); background: var(--warn-bg); }
+  .callout.bad { border-color: var(--bad); background: var(--bad-bg); }
+  .callout.good { border-color: var(--good); background: var(--good-bg); }
+  blockquote {
+    margin: 10px 0; padding: 8px 14px; border-left: 3px solid var(--border);
+    color: var(--fg-muted); font-style: italic; font-size: .92rem;
+  }
+  blockquote cite { display: block; font-style: normal; font-size: .78rem; margin-top: 4px; }
+  .pillgrid { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+  .pill {
+    font-size: .8rem; border: 1px solid var(--border); border-radius: 999px;
+    padding: 4px 10px; color: var(--fg-muted);
+  }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 720px) { .grid2 { grid-template-columns: 1fr; } }
+  .stat {
+    background: var(--bg-soft); border-radius: 10px; padding: 12px 14px; min-width: 0;
+  }
+  .stat .n { font-family: var(--font-display); font-size: 1.6rem; display: block; }
+  .stat .l { font-size: .78rem; color: var(--fg-muted); }
+  .statrow { display: flex; flex-wrap: wrap; gap: 10px; margin: 12px 0 20px; }
+  .statrow .stat { flex: 1 1 140px; }
+  .posmap {
+    display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;
+    gap: 2px; border: 1px solid var(--border); border-radius: 10px; overflow: hidden;
+    margin: 14px 0; min-height: 260px;
+  }
+  .posmap .cell { padding: 10px; font-size: .82rem; background: var(--bg-soft); position: relative; }
+  .posmap .cell.empty { background: var(--accent-soft); border: 2px dashed var(--accent); }
+  .posmap .cell b { display: block; font-family: var(--font-display); font-size: .95rem; margin-bottom: 4px; }
+  .axislabel { font-size: .72rem; color: var(--fg-muted); text-align: center; }
+  details.src { margin: 6px 0 16px; font-size: .85rem; color: var(--fg-muted); }
+  details.src summary { cursor: pointer; }
+  .checklist { list-style: none; padding: 0; margin: 10px 0; }
+  .checklist li { padding: 4px 0 4px 26px; position: relative; }
+  .checklist li::before { content: "☐"; position: absolute; left: 0; color: var(--accent); }
+  .topnote {
+    font-size: .85rem; color: var(--fg-muted); background: var(--bg-soft);
+    border-radius: 8px; padding: 10px 14px; margin: 0 0 20px;
+  }
+  footer { border-top: 1px solid var(--border); margin-top: 40px; padding: 20px 0 40px; color: var(--fg-muted); font-size: .85rem; }
+  .mobiletoc { display: none; }
+  @media (max-width: 880px) {
+    .shell { flex-direction: column; }
+    nav.toc { display: none; }
+    .mobiletoc { display: block; position: sticky; top: 0; background: var(--bg); border-bottom: 1px solid var(--border); padding: 10px 0; z-index: 5; }
+    .mobiletoc select { width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); color: var(--fg); font-family: var(--font-body); }
+    main { padding-top: 12px; max-width: 100%; }
+  }
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<div class="mobiletoc">
+  <select onchange="location.hash=this.value">
+    <option value="">Ir para a seção…</option>
+    <option value="#resumo">Resumo</option>
+    <option value="#board">Veredito do board</option>
+    <option value="#concorrencia">Concorrência</option>
+    <option value="#painel">Painel de compradores</option>
+    <option value="#preco">Preço</option>
+    <option value="#oferta">A oferta</option>
+    <option value="#numeros">Números (CFO)</option>
+    <option value="#marketing">Marketing</option>
+    <option value="#marca">Marca</option>
+    <option value="#operacao">Operação</option>
+    <option value="#lancamento">Lançamento</option>
+    <option value="#veredito">Veredito final</option>
+  </select>
+</div>
+
+<div class="shell">
+  <nav class="toc" aria-label="Sumário">
+    <span class="toc-title">Plano Travel Plataforma</span>
+    <a href="#resumo">Resumo</a>
+    <a href="#board">Veredito do board</a>
+    <a href="#concorrencia">Concorrência</a>
+    <a href="#painel">Painel de compradores</a>
+    <a href="#preco">Preço</a>
+    <a href="#oferta">A oferta</a>
+    <a href="#numeros">Números (CFO)</a>
+    <a href="#marketing">Marketing</a>
+    <a href="#marca">Marca</a>
+    <a href="#operacao">Operação</a>
+    <a href="#lancamento">Lançamento</a>
+    <a href="#veredito">Veredito final</a>
+  </nav>
+
+  <main>
+    <div class="cover">
+      <span class="badge good">Veredito: Profitable</span>
+      <h1>Travel Plataforma</h1>
+      <p style="color:var(--fg-muted); max-width:52ch;">Plano de negócio compilado a partir de um processo de 11 etapas —
+      board, concorrência, painel de 20 compradores simulados, preço, oferta,
+      CFO, marketing, marca, operação, lançamento e veredito final. Sessão de
+      planejamento de 2026-10-08 a 2026-10-12.</p>
+    </div>
+
+    <div class="topnote">
+      Painel de compradores e projeções financeiras são <b>simulações</b> —
+      confirmar com clientes e números reais antes de comprometer dinheiro.
+      Este documento não é parecer financeiro, tributário ou jurídico.
+    </div>
+
+    <!-- ===================== RESUMO ===================== -->
+    <section id="resumo">
+      <h2>Resumo</h2>
+      <p>A Travel Plataforma é um SaaS de gestão para agências de viagem no
+      Brasil — CRM, pipeline de vendas, operação e portal do cliente, cobrado
+      por assinatura mensal (R$ 99 a R$ 299). É para o dono ou gerente de uma
+      agência pequena/solo que hoje organiza cliente e venda numa planilha e
+      num grupo de WhatsApp.</p>
+
+      <div class="statrow">
+        <div class="stat"><span class="n">R$ 81</span><span class="l">contribuição por agência-mês (82%)</span></div>
+        <div class="stat"><span class="n">62%</span><span class="l">margem de lucro na meta de regime</span></div>
+        <div class="stat"><span class="n">13</span><span class="l">agências/mês para o break-even</span></div>
+        <div class="stat"><span class="n">R$ 11.571</span><span class="l">lucro operacional, ano 1</span></div>
+      </div>
+
+      <h3>Onde o board e o painel concordaram</h3>
+      <p>A falta de prova social (nenhuma agência real usando o sistema) é o
+      maior risco — citado nas três análises do board, na pesquisa de
+      concorrentes e em 7 das 10 recusas do painel depois da oferta revisada.</p>
+
+      <h3>Onde divergiram</h3>
+      <p>O board tratou isso como risco de modelo de negócio (nenhum "segredo"
+      defensável sem a cobrança/fiscal pronta); o painel mostrou que é
+      resolvível, pelo menos parcialmente, com a oferta certa — a taxa de
+      compra mais que dobrou (20%→50%) só com garantia de migração e preço de
+      fundador, sem mudar o produto em si.</p>
+
+      <div class="callout warn">
+        <b>O maior risco financeiro:</b> o CFO roda hoje com R$ 1.000/mês de
+        custo fixo porque o fundador ainda não tira pró-labore. Num cenário de
+        R$ 9.000/mês, o break-even salta de 13 para <b>124 agências</b> — o
+        dobro da meta de regime. Não contratar nem formalizar pró-labore sem
+        rodar o CFO de novo com o número real.
+      </div>
+
+      <h3>A uma coisa para fazer esta semana</h3>
+      <p>Corrigir os dois achados de segurança que o board já identificou
+      (captcha no formulário de lead, MFA obrigatório pro super-admin) — é o
+      item do caminho crítico do lançamento, antes de qualquer divulgação
+      pública.</p>
+    </section>
+
+    <!-- ===================== BOARD ===================== -->
+    <section id="board">
+      <h2>Veredito do board</h2>
+      <p>Três conselheiros, cada um aplicando só uma lente (resumos de
+      frameworks publicados — nunca apresentados como as palavras originais
+      dos autores): a lente de Ofertas (Alex Hormozi), a lente de Monopólio
+      (Peter Thiel) e a lente de Produto (a biografia de Steve Jobs por
+      Walter Isaacson).</p>
+
+      <div class="statrow">
+        <div class="stat"><span class="n">3,3 / 10</span><span class="l">nota média do board</span></div>
+        <div class="stat"><span class="n">3</span><span class="l">votos "fund if", 0 "fund", 0 "pass"</span></div>
+      </div>
+
+      <div class="tablewrap">
+      <table>
+        <thead><tr><th>Lente</th><th class="num">Nota</th><th>Voto</th></tr></thead>
+        <tbody>
+          <tr><td>Offers (Hormozi)</td><td class="num">3/10</td><td>Fund if</td></tr>
+          <tr><td>Monopoly (Thiel)</td><td class="num">3/10</td><td>Fund if</td></tr>
+          <tr><td>Product (Isaacson/Jobs)</td><td class="num">4/10</td><td>Fund if</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <h3>Os riscos que mais de um membro levantou (do mais perigoso)</h3>
+      <ol>
+        <li><b>A landing page promete uma transação que o produto não
+        consegue completar hoje.</b> Cobrança recorrente e NFS-e existem só
+        em ADR, não em código.</li>
+        <li><b>Lacunas de segurança já conhecidas e não corrigidas</b>, na
+        boca do funil: formulário de lead sem captcha/validação, MFA
+        opcional pro super-admin, scanning de segredos no CI pendente.</li>
+        <li><b>Nenhuma prova de que alguém compra isso.</b> Zero cliente
+        pagante, zero piloto, zero dado de conversão — só um formulário de
+        demo.</li>
+      </ol>
+
+      <h3>Checklist de condições do board</h3>
+      <ul class="checklist">
+        <li>Parar de anunciar cobrança/NFS-e como capacidade ao vivo até existir de fato.</li>
+        <li>Fechar as lacunas de segurança já identificadas antes de gastar em tráfego.</li>
+        <li>Conseguir pelo menos uma agência real (piloto ou pagante) como prova concreta.</li>
+        <li>Rodar <code>/founder-competitors</code> antes de mais investimento de build.</li>
+        <li>Implementar e validar a integração Asaas + NFS-e contra uma agência real.</li>
+        <li>Redesenhar o preço em torno de um resultado garantido, não assentos/GB.</li>
+        <li>Decidir a "uma coisa" que o produto precisa fazer de forma brilhante.</li>
+        <li>Nomear explicitamente o "segredo"/vantagem real do negócio.</li>
+        <li>Rodar <code>/founder-consumer</code> e <code>/founder-cfo</code> antes de escalar investimento.</li>
+      </ul>
+
+      <div class="callout">
+        <b>A versão mais forte deste negócio, segundo o board:</b> não é a
+        plataforma de sete módulos anunciada hoje — é uma oferta mais
+        estreita, pra pequenas agências, que cobra o cliente final via
+        Pix/boleto e emite a nota fiscal sem a agência tocar em outro
+        sistema, provada em produção com pelo menos uma agência real antes
+        de qualquer expansão.
+      </div>
+    </section>
+
+    <!-- ===================== CONCORRÊNCIA ===================== -->
+    <section id="concorrencia">
+      <h2>Concorrência</h2>
+      <p>Pesquisa em fontes públicas (sites oficiais, Capterra, ReclameAqui,
+      imprensa do setor de turismo), em 2026-10-12. Nenhum concorrente,
+      preço ou avaliação foi inventado.</p>
+
+      <div class="tablewrap">
+      <table>
+        <thead><tr><th>Nome</th><th>Tipo</th><th>Preço</th><th>O que vende</th></tr></thead>
+        <tbody>
+          <tr><td>PaxGo</td><td>Direto (BR)</td><td>Não divulgado</td><td>Funil, orçamentos, agenda, vouchers</td></tr>
+          <tr><td>PaxPro</td><td>Direto (BR)</td><td>Não divulgado</td><td>Gestão + WhatsApp + IA</td></tr>
+          <tr><td>Benner Turismo</td><td>Direto (BR)</td><td>Histórico: R$30k+ (2009, desatualizado)</td><td>ERP de backoffice completo</td></tr>
+          <tr><td>PHPTravels</td><td>Direto (intl.)</td><td>US$499–9.999 (licença única, fontes divergem)</td><td>CRM + motor de reservas</td></tr>
+          <tr><td>WeTravel</td><td>Direto (intl.)</td><td>US$79/mês + 1% de taxa</td><td>Pagamentos + gestão de grupo</td></tr>
+          <tr><td>Agendor</td><td>Indireto (BR)</td><td>R$59–156/usuário/mês</td><td>CRM genérico, página p/ turismo</td></tr>
+          <tr><td>Omie</td><td>Indireto (BR)</td><td>A partir de R$309/mês</td><td>ERP fiscal genérico</td></tr>
+          <tr><td>Pipedrive</td><td>Indireto (intl.)</td><td>US$14–99/usuário/mês</td><td>CRM de pipeline genérico</td></tr>
+          <tr><td>Planilha + WhatsApp</td><td>Substituto</td><td>R$0 (custo é tempo/erro)</td><td>Como a maioria opera hoje</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <details class="src"><summary>Fontes completas</summary>Ver <code>founder/competitors.csv</code> — cada linha com URL e data de consulta.</details>
+
+      <h3>O mapa de posicionamento</h3>
+      <p>Eixos: especialização em turismo (horizontal) × cobre o dinheiro de
+      ponta a ponta (vertical).</p>
+      <div class="posmap">
+        <div class="cell"><b>Omie</b>Genérico, mas cobra/fatura forte</div>
+        <div class="cell empty"><b>Vazio</b>Especializado em turismo <i>e</i> cobra/fatura automaticamente — é exatamente a combinação que a Travel Plataforma anuncia, mas ainda não construiu</div>
+        <div class="cell"><b>Pipedrive</b>Genérico, só organiza</div>
+        <div class="cell"><b>PaxGo · PaxPro · Benner · PHPTravels · WeTravel</b>Especializado em turismo, mas não cobra o cliente final automaticamente com nota fiscal brasileira</div>
+      </div>
+
+      <h3>A lacuna</h3>
+      <p>Nenhum concorrente encontrado combina fluxo de trabalho de agência
+      brasileira com cobrança recorrente + NFS-e automática no mesmo
+      produto. É a única vantagem defensável possível — e a única parte do
+      produto que hoje só existe em ADR.</p>
+
+      <h3>A ameaça — quem copia mais rápido</h3>
+      <p><b>Omie</b> já tem o motor fiscal/financeiro brasileiro — falta construir
+      o fluxo de agência por cima. <b>PaxPro</b> já tem o fluxo de agência e está
+      investindo ativamente agora (WhatsApp + IA, outubro/2026) — falta
+      adicionar cobrança/fiscal. Qualquer um chegando lá primeiro reduz a
+      janela da Travel Plataforma.</p>
+    </section>
+
+    <!-- ===================== PAINEL ===================== -->
+    <section id="painel">
+      <h2>Painel de compradores</h2>
+      <p>20 compradores simulados, cada um uma persona de dono/gerente de
+      agência brasileira, reagindo ao mesmo texto de oferta. Mesma seed
+      (935677) usada no painel original e no reteste depois da nova oferta —
+      são literalmente as mesmas 20 pessoas simuladas, reagindo a ofertas
+      diferentes.</p>
+
+      <div class="statrow">
+        <div class="stat"><span class="n">20% → 50%</span><span class="l">taxa de compra, antes → depois da oferta</span></div>
+        <div class="stat"><span class="n">6</span><span class="l">compradores que viraram de "não" pra "sim"</span></div>
+      </div>
+
+      <div class="tablewrap">
+      <table>
+        <caption>Por comportamento de compra (reteste)</caption>
+        <thead><tr><th>Grupo</th><th class="num">Compradores</th><th class="num">Taxa de compra</th></tr></thead>
+        <tbody>
+          <tr><td>Early adopter de tecnologia</td><td class="num">2</td><td class="num">100%</td></tr>
+          <tr><td>Ainda usa planilha + WhatsApp</td><td class="num">6</td><td class="num">67%</td></tr>
+          <tr><td>Já usa concorrente, insatisfeito</td><td class="num">4</td><td class="num">50%</td></tr>
+          <tr><td>Decide pelo custo</td><td class="num">3</td><td class="num">33%</td></tr>
+          <tr><td>Caçador de desconto</td><td class="num">3</td><td class="num">33%</td></tr>
+          <tr><td>Decide em grupo/associação</td><td class="num">2</td><td class="num">0%</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <h3>Por que recusam, mesmo depois da oferta nova</h3>
+      <blockquote>"Entrar como 'Agência Pioneira' significa eu ser a cobaia
+      sem ter nenhum caso real pra olhar antes — prefiro ver outras agências
+      como a minha usando por uns meses primeiro."<cite>P003</cite></blockquote>
+      <blockquote>"...não um depoimento genérico de site... não eu entrando
+      como cobaia do programa Pioneira."<cite>P008, reteste</cite></blockquote>
+
+      <h3>Por que compram</h3>
+      <blockquote>"Como eles prometem migrar com confirmação de integridade e
+      agendar fora de dezembro-janeiro e julho, e ainda dá pra testar antes
+      de assinar, acho que vale arriscar entrando no plano Pioneira por
+      R$79."<cite>P002</cite></blockquote>
+
+      <div class="callout warn">
+        <b>Achado principal:</b> o Programa Agência Pioneira resolve preço e
+        parte do medo de migração, mas pede exatamente o que metade do
+        painel não pode dar — ser a primeira prova. Para quem "decide em
+        grupo/associação" (0% de compra nas duas rodadas), a solução não é
+        mais desconto — é recrutar 2-3 agências via conexão pessoal
+        <i>antes</i> de abrir o programa pro público (ver Lançamento).
+      </div>
+    </section>
+
+    <!-- ===================== PREÇO ===================== -->
+    <section id="preco">
+      <h2>Preço</h2>
+      <div class="tablewrap">
+      <table>
+        <thead><tr><th>Ponto</th><th class="num">Valor</th><th>O que significa</th></tr></thead>
+        <tbody>
+          <tr><td>PMC</td><td class="num">R$ 49,36</td><td>abaixo disso, parece barato demais pra ser bom</td></tr>
+          <tr><td>OPP</td><td class="num">R$ 50,45</td><td>menor resistência (tão barato quanto caro)</td></tr>
+          <tr><td>IPP</td><td class="num">R$ 98,94</td><td>tantos chamam de pechincha quanto de caro</td></tr>
+          <tr><td>PME</td><td class="num">R$ 199,07</td><td>acima disso, gente demais não compra</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <p>Faixa aceitável: <b>R$ 49,36 a R$ 199,07</b>. O plano Inicial (R$99)
+      está quase exatamente no ponto de indiferença. O plano Profissional
+      (R$299) está <b>acima</b> da faixa aceitável segundo este painel.</p>
+
+      <h3>O achado mais útil</h3>
+      <p>Nenhum dos 20 compradores recusou por preço isolado — toda objeção
+      de preço vinha junto com "mas não tem nenhuma agência de verdade
+      usando isso". O problema de pricing aqui é, na prática, um problema de
+      confiança, não de valor percebido.</p>
+
+      <h3>A oferta de abertura</h3>
+      <p><b>Programa Agência Pioneira</b>: as primeiras 10 agências pagam
+      R$79/mês (em vez de R$99) nos primeiros 12 meses, em troca de serem
+      referência pública. Vagas reais e limitadas, sem contagem regressiva
+      fabricada.</p>
+    </section>
+
+    <!-- ===================== OFERTA ===================== -->
+    <section id="oferta">
+      <h2>A oferta</h2>
+      <p>Lista de problemas levantada direto das objeções do painel e das
+      reclamações encontradas em concorrentes (20 problemas, antes/durante/
+      depois da compra). Pilha final:</p>
+
+      <div class="grid2">
+        <div class="card">
+          <h3 style="margin-top:0">O núcleo</h3>
+          <p style="margin:0">Organizar cliente, orçamento, venda e operação
+          num só lugar — descrito pelo resultado ("pare de perder venda
+          porque ninguém viu a planilha a tempo"), não pelos módulos.</p>
+        </div>
+        <div class="card">
+          <h3 style="margin-top:0">A garantia</h3>
+          <p style="margin:0"><b>Garantia de Migração Sem Risco</b>: se a
+          migração perder ou corromper dado, devolução de 100% e ajuda a
+          reverter — estreita por design, cobre só o que já funciona hoje.</p>
+        </div>
+      </div>
+
+      <h3>Os três bônus</h3>
+      <ol>
+        <li><b>Migração assistida sem risco</b> — agendada fora da alta temporada, com checagem de integridade.</li>
+        <li><b>Selo Agência Pioneira</b> — preço de fundador + referência pública.</li>
+        <li><b>Checklist de adoção de 30 dias</b> — treinamento guiado pra equipe não voltar pro WhatsApp.</li>
+      </ol>
+
+      <div class="tablewrap">
+      <table>
+        <caption>Equação de valor, antes × depois da pilha</caption>
+        <thead><tr><th>Elemento</th><th class="num">Antes</th><th class="num">Depois</th></tr></thead>
+        <tbody>
+          <tr><td>Resultado dos sonhos</td><td class="num">6</td><td class="num">6</td></tr>
+          <tr><td>Probabilidade percebida</td><td class="num">3</td><td class="num">7</td></tr>
+          <tr><td>Tempo até o resultado</td><td class="num">5</td><td class="num">7</td></tr>
+          <tr><td>Esforço e sacrifício</td><td class="num">4</td><td class="num">6</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <div class="callout bad">
+        <b>O que a oferta não tenta disfarçar:</b> cobrança automática e
+        NFS-e continuam fora do produto. Nenhum bônus cobre essa lacuna — só
+        o código real, ainda não escrito, resolve isso.
+      </div>
+    </section>
+
+    <!-- ===================== NÚMEROS / CFO ===================== -->
+    <section id="numeros">
+      <h2>Números (CFO)</h2>
+      <p style="font-size:.85rem; color:var(--fg-muted)">Valores em reais
+      (R$) — unidade: agência-mês (uma agência assinante, um mês).</p>
+
+      <div class="tablewrap">
+      <table>
+        <thead><tr><th>Linha</th><th class="num">Valor</th></tr></thead>
+        <tbody>
+          <tr><td>Preço</td><td class="num">R$ 99,00</td></tr>
+          <tr><td>Hospedagem/infra por tenant (estimativa)</td><td class="num">-R$ 8,00</td></tr>
+          <tr><td>Taxa de processamento, ~4% (estimativa)</td><td class="num">-R$ 4,00</td></tr>
+          <tr><td>Suporte alocado por conta (estimativa)</td><td class="num">-R$ 6,00</td></tr>
+          <tr><td><b>Contribuição</b></td><td class="num"><b>R$ 81,00 (82%)</b></td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <div class="statrow">
+        <div class="stat"><span class="n">13/mês</span><span class="l">break-even em agências pagantes</span></div>
+        <div class="stat"><span class="n">62%</span><span class="l">margem na meta de 50 agências</span></div>
+        <div class="stat"><span class="n">R$ 2.680</span><span class="l">caixa necessário até se pagar</span></div>
+        <div class="stat"><span class="n">mês 8</span><span class="l">retorno do investimento inicial</span></div>
+      </div>
+
+      <div class="callout warn">
+        <b>A linha a observar não está na tabela de cenários — é o
+        pró-labore que ainda não existe.</b> Hoje o custo fixo é só
+        R$1.000/mês (ferramentas, sem salário). Com um pró-labore de
+        R$9.000/mês (cenário citado pelo fundador), o break-even salta de
+        <b>13 para 124 agências</b> — mais que o dobro da meta de regime — e
+        a margem na meta viraria <b>-120%</b> (prejuízo).
+      </div>
+
+      <div class="tablewrap">
+      <table>
+        <caption>Cenários (what-if), rodados na ferramenta</caption>
+        <thead><tr><th>Cenário</th><th class="num">Margem na meta</th><th class="num">Break-even/mês</th><th class="num">Lucro ano 1</th></tr></thead>
+        <tbody>
+          <tr><td>Base</td><td class="num">62%</td><td class="num">13</td><td class="num">R$ 11.571</td></tr>
+          <tr><td>Preço -10%</td><td class="num">57%</td><td class="num">15</td><td class="num">R$ 8.690</td></tr>
+          <tr><td>Volume -20%</td><td class="num">57%</td><td class="num">13</td><td class="num">R$ 6.857</td></tr>
+          <tr><td>Custo unitário +15%</td><td class="num">59%</td><td class="num">13</td><td class="num">R$ 10.785</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <h3>O que não foi modelado (pendências explícitas)</h3>
+      <ul class="checklist">
+        <li>Pró-labore/salário real da equipe, se e quando existir.</li>
+        <li>Custo de desenvolvimento restante da integração Asaas + NFS-e.</li>
+        <li>Tabela oficial de taxas do Asaas (usada aqui uma estimativa de mercado).</li>
+        <li>Churn/cancelamento — a rampa assume só crescimento líquido.</li>
+      </ul>
+      <p style="font-size:.85rem; color:var(--fg-muted)">Não é consultoria
+      financeira, tributária ou legal — um contador deve revisar a
+      estrutura, encargos e impostos antes de qualquer decisão real.</p>
+    </section>
+
+    <!-- ===================== MARKETING ===================== -->
+    <section id="marketing">
+      <h2>Marketing</h2>
+      <div class="callout">
+        <b>Posicionamento recomendado:</b> para agências de viagem pequenas
+        que ainda organizam cliente e venda em planilha e WhatsApp, com medo
+        de perder venda porque ninguém viu a cotação a tempo, a Travel
+        Plataforma é o sistema que junta cliente, funil e operação num só
+        lugar, com migração assistida e garantia — diferente de um CRM
+        genérico cobrado por usuário.
+      </div>
+
+      <h3>Canais (nesta ordem de prioridade)</h3>
+      <div class="pillgrid">
+        <span class="pill">Grupos de WhatsApp e associações de agentes</span>
+        <span class="pill">Parceria com consolidadoras</span>
+        <span class="pill">Busca paga (Google Ads)</span>
+      </div>
+      <p style="font-size:.9rem">Não fazer agora: anúncio amplo e genérico
+      em redes sociais — o público é pequeno e a decisão depende de prova
+      social específica, não de alcance.</p>
+
+      <h3>Dez ganchos (cada um responde uma objeção real do painel)</h3>
+      <ol style="font-size:.92rem">
+        <li>"Pare de perder venda porque ninguém viu a cotação na planilha a tempo."</li>
+        <li>"Já migrou de sistema e perdeu dado? Nossa garantia devolve 100%."</li>
+        <li>"As primeiras agências pagam R$79/mês por 12 meses — Programa Agência Pioneira."</li>
+        <li>"Equipe que volta pro WhatsApp em uma semana? Checklist de adoção de 30 dias."</li>
+        <li>"Cobrança e nota fiscal: em desenvolvimento, sem enrolação. CRM e funil: funcionando hoje."</li>
+        <li>"Agende sua migração fora de dezembro-janeiro e julho."</li>
+        <li>"R$99/mês custa menos do que boa parte das agências já gasta em ferramentas espalhadas."</li>
+        <li>"Teste antes de assinar. Sem contrato longo."</li>
+        <li>"Feito pra agência de viagem brasileira — não é CRM genérico cobrado por usuário."</li>
+        <li>"Quem organiza cliente numa planilha e grupo de WhatsApp, levanta a mão."</li>
+      </ol>
+
+      <h3>Orçamento</h3>
+      <div class="statrow">
+        <div class="stat"><span class="n">R$ 243</span><span class="l">CAC máximo (suposição de planejamento)</span></div>
+      </div>
+      <p>Três números a observar toda semana: cadastros/demos por canal,
+      conversão cadastro→pago, CAC real vs. o teto. Mudar algo se o CAC
+      passar o teto por 2 semanas seguidas, ou a conversão ficar muito
+      abaixo de 10%.</p>
+    </section>
+
+    <!-- ===================== MARCA ===================== -->
+    <section id="marca">
+      <h2>Marca</h2>
+      <p>A marca já existe em produção — este processo avaliou o que já
+      está construído contra o posicionamento encontrado, em vez de propor
+      nome/visual novos.</p>
+
+      <h3>Promessa e tagline</h3>
+      <p><i>"Agência de viagem organiza cliente, orçamento e venda num lugar
+      só — e para de perder venda porque ninguém viu a cotação a tempo."</i></p>
+      <div class="pillgrid">
+        <span class="pill">"Sua agência, fora da planilha."</span>
+        <span class="pill">"O sistema que sua agência já devia ter."</span>
+        <span class="pill">"Nenhuma venda perdida na planilha."</span>
+      </div>
+
+      <h3>Cor — teste de contraste real (WCAG)</h3>
+      <div class="tablewrap">
+      <table>
+        <thead><tr><th>Cor</th><th>Hex</th><th>Função</th><th class="num">Contraste em branco</th><th>Passa AA (4,5:1)?</th></tr></thead>
+        <tbody>
+          <tr><td>Navy</td><td>#0f2a4a</td><td>Texto principal</td><td class="num">14,48:1</td><td>Sim, com folga</td></tr>
+          <tr><td>Accent/cobalt</td><td>#1554d1</td><td>Links, botões</td><td class="num">6,52:1</td><td>Sim</td></tr>
+          <tr><td>Cyan</td><td>#06b6d4</td><td>Só decorativo</td><td class="num">2,43:1</td><td><b>Não</b></td></tr>
+        </tbody>
+      </table>
+      </div>
+      <div class="callout bad">O cyan (#06b6d4) falha o contraste mínimo de
+      acessibilidade como cor de texto em fundo branco — usar só como
+      elemento decorativo, nunca como texto ou botão.</div>
+
+      <h3>Pendência real</h3>
+      <p>Não verificado nesta pesquisa: registro de "Travel Plataforma" como
+      marca no INPI. Nome descritivo pode ser difícil de registrar — pergunta
+      pra um advogado de marcas, não decidida aqui.</p>
+    </section>
+
+    <!-- ===================== OPERAÇÃO ===================== -->
+    <section id="operacao">
+      <h2>Operação</h2>
+      <p>Hoje: só o fundador, sem pró-labore. O maior risco estrutural —
+      venda, suporte, migração e desenvolvimento na mesma pessoa — já tensiona
+      na própria meta de regime do CFO (50 agências).</p>
+
+      <h3>Fornecedores já em uso (confirmados no projeto)</h3>
+      <div class="pillgrid">
+        <span class="pill">Supabase — banco de dados/armazenamento</span>
+        <span class="pill">Vercel — hospedagem</span>
+        <span class="pill">Render — API do Travel Lite</span>
+        <span class="pill">Asaas — cobrança/NFS-e (ADR, não implementado)</span>
+      </div>
+      <p style="font-size:.9rem">Ação concreta recomendada: subir o Render
+      pro tier pago — resolve o cold-start já identificado numa sessão
+      anterior, com preço público conhecido.</p>
+
+      <h3>As cinco rotinas (SOPs)</h3>
+      <ol>
+        <li>Responder um novo cadastro/demo em até 24h.</li>
+        <li>Migração assistida — testar antes de confirmar, nunca direto em produção.</li>
+        <li>Lidar com reclamação — responder no mesmo dia, nunca prometer o que não é real.</li>
+        <li>Fechamento/revisão semanal dos três números de marketing.</li>
+        <li>Revisão mensal de custo — conferir fatura real contra o CFO.</li>
+      </ol>
+
+      <h3>Registro de riscos (os cinco mais sérios)</h3>
+      <div class="tablewrap">
+      <table>
+        <thead><tr><th>Risco</th><th>Probabilidade</th><th>Impacto</th></tr></thead>
+        <tbody>
+          <tr><td>Migração perde/corrompe dado real</td><td>Média</td><td>Alto</td></tr>
+          <tr><td>Fundador solo indisponível</td><td>Média</td><td>Alto (sem equipe)</td></tr>
+          <tr><td>Vazamento/uso indevido de CPF</td><td>Baixa</td><td>Muito alto</td></tr>
+          <tr><td>Conversão real muito abaixo do painel simulado</td><td>Média-alta</td><td>Médio</td></tr>
+          <tr><td>Concorrente lança cobrança+NFS-e antes</td><td>Baixa-média</td><td>Alto, longo prazo</td></tr>
+        </tbody>
+      </table>
+      </div>
+    </section>
+
+    <!-- ===================== LANÇAMENTO ===================== -->
+    <section id="lancamento">
+      <h2>Lançamento</h2>
+      <p>Data de lançamento usada no planejamento: <b>2026-11-02</b> (3
+      semanas a partir da sessão) — a mais precoce realista dado o prazo de
+      corrigir os achados de segurança do board, <b>não confirmada pelo
+      fundador</b>.</p>
+
+      <h3>O teste em duas camadas</h3>
+      <p><b>Camada 1</b> (antes de qualquer divulgação pública): recrutar
+      2-3 agências via conexão pessoal, fora do holofote do Programa
+      Pioneira. <b>Camada 2</b>: abrir o Programa Agência Pioneira pro
+      público nos canais de marketing.</p>
+
+      <div class="statrow">
+        <div class="stat"><span class="n">2 de 2-3</span><span class="l">meta Camada 1: migração sem perda de dado</span></div>
+        <div class="stat"><span class="n">5 agências</span><span class="l">meta Camada 2: pagantes reais em 30 dias</span></div>
+      </div>
+      <p style="font-size:.9rem">A meta de 5 é deliberadamente bem abaixo dos
+      50% do painel simulado — compradores simulados tendem a ser mais
+      complacentes que gente real.</p>
+
+      <h3>Caminho crítico</h3>
+      <div class="callout bad">Corrigir captcha/validação no formulário de
+      lead e tornar MFA obrigatório pro super-admin <b>antes</b> de 19/10 —
+      é a única tarefa que, se atrasar, atrasa o início da divulgação (D-14)
+      e portanto o lançamento inteiro.</div>
+
+      <h3>Revisão nos dias 7, 14 e 30</h3>
+      <p>Dia 7: alguma agência da Camada 1 já migrou sem problema? Dia 14: a
+      meta de 5 pagantes está no caminho? Dia 30: comparar o resultado real
+      com a linha de sucesso — se ficou muito abaixo, a próxima parada é
+      voltar pra oferta/preço, não mais orçamento no mesmo canal.</p>
+    </section>
+
+    <!-- ===================== VEREDITO FINAL ===================== -->
+    <section id="veredito">
+      <h2>Veredito final</h2>
+      <div class="callout good">
+        <span class="badge good" style="margin-bottom:8px;">Profitable</span>
+        <p style="margin:6px 0 0">Veredito computado pela ferramenta a partir
+        dos quatro critérios abaixo — nunca escrito à mão.</p>
+      </div>
+
+      <div class="tablewrap">
+      <table>
+        <thead><tr><th>Critério</th><th>Resultado</th></tr></thead>
+        <tbody>
+          <tr><td>Cada agência-mês ganha dinheiro antes dos custos fixos</td><td>✓ R$81,00 de contribuição (82%)</td></tr>
+          <tr><td>O ano 1 dá lucro operacional</td><td>✓ R$11.571</td></tr>
+          <tr><td>O break-even cabe dentro da capacidade</td><td>✓ 13 contra uma capacidade de 100.000</td></tr>
+          <tr><td>Compradores simulados suficientes compram</td><td>✓ 10 de 20 (50%, a barra era 25%)</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <h3>Para quem decide em dois minutos</h3>
+      <p><b>O problema:</b> dono de agência pequena perde venda porque
+      ninguém viu a cotação na planilha a tempo. <b>A oferta:</b> sistema de
+      gestão por R$99-299/mês, com Programa Agência Pioneira a R$79/mês e
+      garantia de migração. <b>O pedido:</b> nenhum — o plano é bootstrap;
+      o caixa necessário (R$2.680) é coberto pela operação enxuta atual.</p>
+
+      <h3>O que fazer esta semana</h3>
+      <ol>
+        <li>Corrigir captcha/validação no formulário de lead e MFA obrigatório pro super-admin.</li>
+        <li>Começar a recrutar as 2-3 primeiras agências via conexão pessoal (Camada 1 do teste).</li>
+        <li>Confirmar a tabela real de taxas do Asaas antes de orçar a integração pendente.</li>
+      </ol>
+    </section>
+
+    <footer>
+      Compilado a partir do pacote founder — board, competitors, consumer,
+      pricing, offer, cfo, marketing, brand, ops, launch e plan. Arquivos-fonte
+      completos em <code>founder/*.md</code> e <code>founder/business-plan.md</code>.
+      Painel de compradores e projeções são simulações; confirme com clientes e
+      números reais antes de qualquer decisão. Não é parecer financeiro,
+      tributário ou jurídico.
+    </footer>
+  </main>
+</div>

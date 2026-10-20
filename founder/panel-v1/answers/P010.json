@@ -1,0 +1,13 @@
+{
+  "id": "P010",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Até que eu testasse de graça, tudo bem, mas pagar mensalidade agora não. Já estou insatisfeito com o sistema que uso, só que trocar de plataforma no meio da alta temporada é arriscado, e aqui não tem nenhuma agência rodando em produção pra eu olhar e pensar 'ah, esse cara resolveu o problema que eu tenho'. Sem isso eu não arrisco meu funil, que hoje é basicamente o WhatsApp, numa ferramenta sem histórico.",
+  "objection": "Não ter nenhuma agência de referência usando em produção pesa muito, e a parte de cobrança automática e nota fiscal — que seria o motivo de eu realmente sair do jeito que eu faço hoje — ainda nem existe. Fico com medo de perder histórico de cliente e orçamento no meio da operação se a migração der problema.",
+  "would_change_my_mind": "Ver pelo menos 2 ou 3 agências parecidas com a minha (porte pequeno, mesma região) usando de verdade, com alguém que eu possa ligar e perguntar como foi a migração, e um plano de migração assistido que garanta que eu não paro no meio da alta temporada.",
+  "price_too_cheap": 39,
+  "price_cheap": 79,
+  "price_expensive": 199,
+  "price_too_expensive": 349
+}

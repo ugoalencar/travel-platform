@@ -1,0 +1,790 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/travel-lite/src/helpContent.ts",
+      "type": "file",
+      "name": "helpContent.ts",
+      "filePath": "apps/travel-lite/src/helpContent.ts",
+      "summary": "Base de artigos e FAQ do centro de ajuda, com indexação e busca por texto normalizado (sem acentos e com pluralização) para o HelpPage.",
+      "tags": [
+        "content",
+        "search",
+        "help",
+        "documentation"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/travel-lite/src/main.tsx",
+      "type": "file",
+      "name": "main.tsx",
+      "filePath": "apps/travel-lite/src/main.tsx",
+      "summary": "Ponto de entrada da aplicação React que registra o service worker (PWA) e monta o App com os estilos globais.",
+      "tags": [
+        "entry-point",
+        "pwa",
+        "bootstrap",
+        "react"
+      ],
+      "complexity": "simple",
+      "languageNotes": "bootstrap PWA: o registro do service worker ocorre antes do render do React."
+    },
+    {
+      "id": "file:apps/travel-lite/src/menu.ts",
+      "type": "file",
+      "name": "menu.ts",
+      "filePath": "apps/travel-lite/src/menu.ts",
+      "summary": "Definição do menu de navegação com rotas, rótulos e permissões exigidas por item, usada pelo Layout e pelo App.",
+      "tags": [
+        "navigation",
+        "configuration",
+        "permissions",
+        "data-model"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/travel-lite/src/mobile.test.tsx",
+      "type": "file",
+      "name": "mobile.test.tsx",
+      "filePath": "apps/travel-lite/src/mobile.test.tsx",
+      "summary": "Testes de comportamento mobile do app: menu responsivo, login simulado e navegação com mocks de API.",
+      "tags": [
+        "test",
+        "mobile",
+        "responsive",
+        "react"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/travel-lite/src/pages/BrandingSection.tsx",
+      "type": "file",
+      "name": "BrandingSection.tsx",
+      "filePath": "apps/travel-lite/src/pages/BrandingSection.tsx",
+      "summary": "Seção de configuração de branding com editor de cores, upload de logo e restauração de padrões, restrita por permissão.",
+      "tags": [
+        "component",
+        "settings",
+        "branding",
+        "form"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/travel-lite/src/pages/CatalogPage.tsx",
+      "type": "file",
+      "name": "CatalogPage.tsx",
+      "filePath": "apps/travel-lite/src/pages/CatalogPage.tsx",
+      "summary": "Página de catálogo com abas para categorias, partes envolvidas, contas financeiras e documentos, incluindo criação, edição e ativação de itens.",
+      "tags": [
+        "component",
+        "catalog",
+        "crud",
+        "page"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/travel-lite/src/pages/CommissionsPage.tsx",
+      "type": "file",
+      "name": "CommissionsPage.tsx",
+      "filePath": "apps/travel-lite/src/pages/CommissionsPage.tsx",
+      "summary": "Página de comissões com listagem paginada, filtros por status/vendedor, aprovação de itens e override manual de valores.",
+      "tags": [
+        "component",
+        "commissions",
+        "crud",
+        "page"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/travel-lite/src/pages/CustomersPage.tsx",
+      "type": "file",
+      "name": "CustomersPage.tsx",
+      "filePath": "apps/travel-lite/src/pages/CustomersPage.tsx",
+      "summary": "Página de clientes com busca, paginação, formulário extenso (documentos, endereço, responsável) e ativação/inativação.",
+      "tags": [
+        "component",
+        "customers",
+        "crud",
+        "page"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/travel-lite/src/pages/DashboardPage.tsx",
+      "type": "file",
+      "name": "DashboardPage.tsx",
+      "filePath": "apps/travel-lite/src/pages/DashboardPage.tsx",
+      "summary": "Dashboard com widgets de KPI, gráficos e rankings, além de editor de layout persistido no servidor.",
+      "tags": [
+        "component",
+        "dashboard",
+        "charts",
+        "page"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/travel-lite/src/helpContent.ts:helpMatch",
+      "type": "function",
+      "name": "helpMatch",
+      "filePath": "apps/travel-lite/src/helpContent.ts",
+      "lineRange": [
+        41,
+        44
+      ],
+      "summary": "Compara a consulta com o texto indexado de um item de ajuda usando normalização sem acentos.",
+      "tags": [
+        "search",
+        "utility",
+        "help"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/travel-lite/src/helpContent.ts:indexArticle",
+      "type": "function",
+      "name": "indexArticle",
+      "filePath": "apps/travel-lite/src/helpContent.ts",
+      "lineRange": [
+        46,
+        61
+      ],
+      "summary": "Constrói o texto indexado de um artigo de ajuda concatenando título, resumo e seções normalizados.",
+      "tags": [
+        "search",
+        "indexing",
+        "help"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/travel-lite/src/menu.ts:menuPermissions",
+      "type": "function",
+      "name": "menuPermissions",
+      "filePath": "apps/travel-lite/src/menu.ts",
+      "lineRange": [
+        29,
+        31
+      ],
+      "summary": "Retorna as permissões exigidas para um item de menu identificado pela rota.",
+      "tags": [
+        "permissions",
+        "navigation",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/travel-lite/src/mobile.test.tsx:dashboard",
+      "type": "function",
+      "name": "dashboard",
+      "filePath": "apps/travel-lite/src/mobile.test.tsx",
+      "lineRange": [
+        66,
+        79
+      ],
+      "summary": "Monta a fixture de dados do dashboard usada nos testes de responsividade.",
+      "tags": [
+        "test",
+        "fixture",
+        "mock"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/travel-lite/src/mobile.test.tsx:mockApi",
+      "type": "function",
+      "name": "mockApi",
+      "filePath": "apps/travel-lite/src/mobile.test.tsx",
+      "lineRange": [
+        81,
+        96
+      ],
+      "summary": "Instala mock global de fetch que registra as URLs chamadas durante os testes mobile.",
+      "tags": [
+        "test",
+        "mock",
+        "fetch"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/travel-lite/src/pages/BrandingSection.tsx:ColorField",
+      "type": "function",
+      "name": "ColorField",
+      "filePath": "apps/travel-lite/src/pages/BrandingSection.tsx",
+      "lineRange": [
+        18,
+        45
+      ],
+      "summary": "Campo de cor com seletor nativo e texto hexadecimal validado por safeColor, com dica auxiliar.",
+      "tags": [
+        "component",
+        "form",
+        "color"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/travel-lite/src/pages/BrandingSection.tsx:BrandingSection",
+      "type": "function",
+      "name": "BrandingSection",
+      "filePath": "apps/travel-lite/src/pages/BrandingSection.tsx",
+      "lineRange": [
+        61,
+        82
+      ],
+      "summary": "Guard de permissão que exibe o editor de branding apenas para usuários autorizados, com aviso caso contrário.",
+      "tags": [
+        "component",
+        "settings",
+        "authorization"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/travel-lite/src/pages/BrandingSection.tsx:BrandingEditor",
+      "type": "function",
+      "name": "BrandingEditor",
+      "filePath": "apps/travel-lite/src/pages/BrandingSection.tsx",
+      "lineRange": [
+        85,
+        259
+      ],
+      "summary": "Formulário completo de branding: cores, texto de boas-vindas, upload de logo com validação de tipo/tamanho e restauração de padrões, com feedback de erro/sucesso.",
+      "tags": [
+        "component",
+        "form",
+        "branding",
+        "settings"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/travel-lite/src/pages/CatalogPage.tsx:CatalogSection",
+      "type": "function",
+      "name": "CatalogSection",
+      "filePath": "apps/travel-lite/src/pages/CatalogPage.tsx",
+      "lineRange": [
+        29,
+        277
+      ],
+      "summary": "Seção genérica de CRUD do catálogo com formulário, listagem, ativação/inativação e estados de erro/aviso parametrizados por tipo de item.",
+      "tags": [
+        "component",
+        "crud",
+        "catalog",
+        "form"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/travel-lite/src/pages/CatalogPage.tsx:CatalogPage",
+      "type": "function",
+      "name": "CatalogPage",
+      "filePath": "apps/travel-lite/src/pages/CatalogPage.tsx",
+      "lineRange": [
+        321,
+        349
+      ],
+      "summary": "Página com abas entre as seções do catálogo, controlando a seção ativa.",
+      "tags": [
+        "component",
+        "page",
+        "catalog"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/travel-lite/src/pages/CommissionsPage.tsx:CommissionsPage",
+      "type": "function",
+      "name": "CommissionsPage",
+      "filePath": "apps/travel-lite/src/pages/CommissionsPage.tsx",
+      "lineRange": [
+        32,
+        243
+      ],
+      "summary": "Lista comissões com filtros de status/vendedor e paginação, aprova itens e aplica override manual de valores com registro de observações.",
+      "tags": [
+        "component",
+        "page",
+        "commissions",
+        "crud"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/travel-lite/src/pages/CustomersPage.tsx:CustomersPage",
+      "type": "function",
+      "name": "CustomersPage",
+      "filePath": "apps/travel-lite/src/pages/CustomersPage.tsx",
+      "lineRange": [
+        54,
+        458
+      ],
+      "summary": "CRUD completo de clientes com busca, paginação, formulário extenso (documentos, endereço, responsável), vendedores vinculados e ativação/inativação.",
+      "tags": [
+        "component",
+        "page",
+        "customers",
+        "crud"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/travel-lite/src/pages/DashboardPage.tsx:KpiWidget",
+      "type": "function",
+      "name": "KpiWidget",
+      "filePath": "apps/travel-lite/src/pages/DashboardPage.tsx",
+      "lineRange": [
+        34,
+        47
+      ],
+      "summary": "Renderiza um widget de KPI com valor formatado em BRL ou número conforme o tipo.",
+      "tags": [
+        "component",
+        "dashboard",
+        "kpi"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/travel-lite/src/pages/DashboardPage.tsx:ChartWidget",
+      "type": "function",
+      "name": "ChartWidget",
+      "filePath": "apps/travel-lite/src/pages/DashboardPage.tsx",
+      "lineRange": [
+        49,
+        84
+      ],
+      "summary": "Renderiza o gráfico mensal ou diário de um widget do dashboard conforme seu tipo.",
+      "tags": [
+        "component",
+        "dashboard",
+        "charts"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/travel-lite/src/pages/DashboardPage.tsx:RankingWidget",
+      "type": "function",
+      "name": "RankingWidget",
+      "filePath": "apps/travel-lite/src/pages/DashboardPage.tsx",
+      "lineRange": [
+        86,
+        121
+      ],
+      "summary": "Renderiza um ranking de linhas com valores monetários formatados em BRL.",
+      "tags": [
+        "component",
+        "dashboard",
+        "ranking"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/travel-lite/src/pages/DashboardPage.tsx:DashboardEditor",
+      "type": "function",
+      "name": "DashboardEditor",
+      "filePath": "apps/travel-lite/src/pages/DashboardPage.tsx",
+      "lineRange": [
+        123,
+        204
+      ],
+      "summary": "Editor do layout do dashboard: carrega os widgets, reordena a disposição e persiste a configuração no servidor.",
+      "tags": [
+        "component",
+        "dashboard",
+        "settings"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/travel-lite/src/pages/DashboardPage.tsx:DashboardPage",
+      "type": "function",
+      "name": "DashboardPage",
+      "filePath": "apps/travel-lite/src/pages/DashboardPage.tsx",
+      "lineRange": [
+        206,
+        300
+      ],
+      "summary": "Página do dashboard que carrega KPIs e painéis, controla a exibição de detalhes, o checklist de primeira execução e o editor de layout.",
+      "tags": [
+        "component",
+        "page",
+        "dashboard"
+      ],
+      "complexity": "moderate"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/travel-lite/src/main.tsx",
+      "target": "file:apps/travel-lite/src/App.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/travel-lite/src/main.tsx",
+      "target": "file:apps/travel-lite/src/pwa.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/travel-lite/src/main.tsx",
+      "target": "file:apps/travel-lite/src/styles.css",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/travel-lite/src/mobile.test.tsx",
+      "target": "file:apps/travel-lite/src/App.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/travel-lite/src/pages/BrandingSection.tsx",
+      "target": "file:apps/travel-lite/src/BrandingProvider.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/travel-lite/src/pages/BrandingSection.tsx",
+      "target": "file:apps/travel-lite/src/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/travel-lite/src/pages/BrandingSection.tsx",
+      "target": "file:apps/travel-lite/src/auth.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/travel-lite/src/pages/BrandingSection.tsx",
+      "target": "file:apps/travel-lite/src/branding.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/travel-lite/src/pages/BrandingSection.tsx",
+      "target": "file:apps/travel-lite/src/planUi.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/travel-lite/src/pages/BrandingSection.tsx",
+      "target": "file:apps/travel-lite/src/ui.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/travel-lite/src/pages/CatalogPage.tsx",
+      "target": "file:apps/travel-lite/src/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/travel-lite/src/pages/CatalogPage.tsx",
+      "target": "file:apps/travel-lite/src/ui.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/travel-lite/src/pages/CommissionsPage.tsx",
+      "target": "file:apps/travel-lite/src/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/travel-lite/src/pages/CommissionsPage.tsx",
+      "target": "file:apps/travel-lite/src/auth.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/travel-lite/src/pages/CommissionsPage.tsx",
+      "target": "file:apps/travel-lite/src/ui.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/travel-lite/src/pages/CustomersPage.tsx",
+      "target": "file:apps/travel-lite/src/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/travel-lite/src/pages/CustomersPage.tsx",
+      "target": "file:apps/travel-lite/src/auth.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/travel-lite/src/pages/CustomersPage.tsx",
+      "target": "file:apps/travel-lite/src/ui.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/travel-lite/src/pages/DashboardPage.tsx",
+      "target": "file:apps/travel-lite/src/FirstRunChecklist.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/travel-lite/src/pages/DashboardPage.tsx",
+      "target": "file:apps/travel-lite/src/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/travel-lite/src/pages/DashboardPage.tsx",
+      "target": "file:apps/travel-lite/src/charts.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/travel-lite/src/pages/DashboardPage.tsx",
+      "target": "file:apps/travel-lite/src/planUi.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/travel-lite/src/pages/DashboardPage.tsx",
+      "target": "file:apps/travel-lite/src/ui.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/travel-lite/src/helpContent.ts",
+      "target": "function:apps/travel-lite/src/helpContent.ts:helpMatch",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/travel-lite/src/helpContent.ts",
+      "target": "function:apps/travel-lite/src/helpContent.ts:helpMatch",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/travel-lite/src/helpContent.ts",
+      "target": "function:apps/travel-lite/src/helpContent.ts:indexArticle",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/travel-lite/src/menu.ts",
+      "target": "function:apps/travel-lite/src/menu.ts:menuPermissions",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/travel-lite/src/menu.ts",
+      "target": "function:apps/travel-lite/src/menu.ts:menuPermissions",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/travel-lite/src/mobile.test.tsx",
+      "target": "function:apps/travel-lite/src/mobile.test.tsx:dashboard",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/travel-lite/src/mobile.test.tsx",
+      "target": "function:apps/travel-lite/src/mobile.test.tsx:mockApi",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/travel-lite/src/pages/BrandingSection.tsx",
+      "target": "function:apps/travel-lite/src/pages/BrandingSection.tsx:ColorField",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/travel-lite/src/pages/BrandingSection.tsx",
+      "target": "function:apps/travel-lite/src/pages/BrandingSection.tsx:BrandingSection",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/travel-lite/src/pages/BrandingSection.tsx",
+      "target": "function:apps/travel-lite/src/pages/BrandingSection.tsx:BrandingSection",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/travel-lite/src/pages/BrandingSection.tsx",
+      "target": "function:apps/travel-lite/src/pages/BrandingSection.tsx:BrandingEditor",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/travel-lite/src/pages/CatalogPage.tsx",
+      "target": "function:apps/travel-lite/src/pages/CatalogPage.tsx:CatalogSection",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/travel-lite/src/pages/CatalogPage.tsx",
+      "target": "function:apps/travel-lite/src/pages/CatalogPage.tsx:CatalogPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/travel-lite/src/pages/CatalogPage.tsx",
+      "target": "function:apps/travel-lite/src/pages/CatalogPage.tsx:CatalogPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/travel-lite/src/pages/CommissionsPage.tsx",
+      "target": "function:apps/travel-lite/src/pages/CommissionsPage.tsx:CommissionsPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/travel-lite/src/pages/CommissionsPage.tsx",
+      "target": "function:apps/travel-lite/src/pages/CommissionsPage.tsx:CommissionsPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/travel-lite/src/pages/CustomersPage.tsx",
+      "target": "function:apps/travel-lite/src/pages/CustomersPage.tsx:CustomersPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/travel-lite/src/pages/CustomersPage.tsx",
+      "target": "function:apps/travel-lite/src/pages/CustomersPage.tsx:CustomersPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/travel-lite/src/pages/DashboardPage.tsx",
+      "target": "function:apps/travel-lite/src/pages/DashboardPage.tsx:KpiWidget",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/travel-lite/src/pages/DashboardPage.tsx",
+      "target": "function:apps/travel-lite/src/pages/DashboardPage.tsx:ChartWidget",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/travel-lite/src/pages/DashboardPage.tsx",
+      "target": "function:apps/travel-lite/src/pages/DashboardPage.tsx:RankingWidget",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/travel-lite/src/pages/DashboardPage.tsx",
+      "target": "function:apps/travel-lite/src/pages/DashboardPage.tsx:DashboardEditor",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/travel-lite/src/pages/DashboardPage.tsx",
+      "target": "function:apps/travel-lite/src/pages/DashboardPage.tsx:DashboardPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/travel-lite/src/pages/DashboardPage.tsx",
+      "target": "function:apps/travel-lite/src/pages/DashboardPage.tsx:DashboardPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/travel-lite/src/pages/DashboardPage.tsx",
+      "target": "function:apps/travel-lite/src/ui.tsx:formatBRL",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/travel-lite/src/pages/DashboardPage.tsx",
+      "target": "function:apps/travel-lite/src/FirstRunChecklist.tsx:FirstRunChecklist",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/travel-lite/src/pages/CommissionsPage.tsx",
+      "target": "function:apps/travel-lite/src/ui.tsx:formatBRL",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/travel-lite/src/pages/BrandingSection.tsx:ColorField",
+      "target": "function:apps/travel-lite/src/branding.ts:safeColor",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/travel-lite/src/pages/BrandingSection.tsx:BrandingEditor",
+      "target": "function:apps/travel-lite/src/branding.ts:normalizeBranding",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

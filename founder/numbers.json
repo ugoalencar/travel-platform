@@ -1,0 +1,20 @@
+{
+  "business": "Travel Plataforma (SaaS de gestão para agências de viagem, plano Inicial)",
+  "unit": "agência-mês (uma agência assinante, um mês)",
+  "price": 99.00,
+  "variable": [
+    {"label": "Hospedagem/infraestrutura alocada por tenant (estimativa)", "cost": 8.00},
+    {"label": "Taxa de processamento da cobrança da mensalidade, ~4% (estimativa)", "cost": 4.00},
+    {"label": "Suporte ao cliente alocado por conta (estimativa)", "cost": 6.00}
+  ],
+  "fixed_monthly": [
+    {"label": "Ferramentas e infraestrutura base (hosting fixo, e-mail, monitoramento) — informado pelo fundador", "cost": 1000.00}
+  ],
+  "startup": [
+    {"label": "Domínio, certificados, taxas de abertura (estimativa)", "cost": 300.00}
+  ],
+  "days_per_month": 1,
+  "capacity_per_day": 100000,
+  "plan_per_day": 50,
+  "ramp_per_day": [1, 3, 6, 10, 15, 20, 26, 32, 38, 43, 47, 50]
+}

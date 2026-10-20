@@ -1,0 +1,13 @@
+{
+  "id": "P014",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "habit",
+  "reason": "O preço até é baixo, mas o problema não é o que eu pago hoje, é que minha equipe vende e atende pelo WhatsApp pessoal. Se o sistema não encaixa nesse jeito de trabalhar, em uma semana todo mundo volta pro WhatsApp e eu fico pagando por algo que ninguém usa.",
+  "objection": "Minha equipe não vai usar, vai voltar pro WhatsApp em uma semana. E a parte financeira que mais me interessaria, cobrança automática e nota fiscal, ainda nem está pronta, então continuo fazendo isso por fora do mesmo jeito que já faço hoje.",
+  "would_change_my_mind": "Ver outra agência do meu tamanho que migrou, treinou a equipe e continuou usando depois de 2-3 meses, não só no primeiro mês. E ter a cobrança automática e a nota fiscal funcionando, que é o que realmente pesaria no bolso.",
+  "price_too_cheap": 30,
+  "price_cheap": 60,
+  "price_expensive": 150,
+  "price_too_expensive": 250
+}

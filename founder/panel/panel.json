@@ -1,0 +1,89 @@
+{
+ "n": 20,
+ "seed": 935677,
+ "customer": {
+  "business": "Travel Plataforma (SaaS de gestão para agências de viagem no Brasil)",
+  "target": "Dono(a) ou gerente de uma agência de viagem brasileira que hoje decide sozinho(a) ou com 1-2 sócios qual sistema a agência usa",
+  "where": "Brasil, online — qualquer cidade, decisão feita remotamente a partir da landing page",
+  "note_on_income": "B2B: o comprador é o dono/gerente da agência, não um consumidor final. 'income' abaixo é o faturamento mensal aproximado da agência (BRL), usado como proxy de quanto ela pode pagar por software — não renda pessoal.",
+  "age": [
+   25,
+   60
+  ],
+  "segments": [
+   {
+    "name": "Agência solo/micro (1-3 pessoas)",
+    "share": 0.45,
+    "income": [
+     8000,
+     30000
+    ]
+   },
+   {
+    "name": "Agência pequena (4-10 pessoas)",
+    "share": 0.35,
+    "income": [
+     30000,
+     120000
+    ]
+   },
+   {
+    "name": "Agência média (11-50 pessoas)",
+    "share": 0.2,
+    "income": [
+     120000,
+     500000
+    ]
+   }
+  ],
+  "behaviours": [
+   {
+    "name": "Ainda usa planilha + WhatsApp",
+    "share": 0.3,
+    "how": "Nunca pagou por um sistema de gestão; decide pelo medo de continuar perdendo venda em planilha."
+   },
+   {
+    "name": "Já usa um concorrente e está insatisfeito",
+    "share": 0.2,
+    "how": "Testaria trocar, mas tem medo da migração de dados e de parar a operação no meio da alta temporada."
+   },
+   {
+    "name": "Caçador de desconto/promoção",
+    "share": 0.15,
+    "how": "Só assina depois de negociar desconto ou esperar uma promoção/cupom."
+   },
+   {
+    "name": "Decide pelo custo, não pelo recurso",
+    "share": 0.15,
+    "how": "Compara o preço mensal com o que já gasta hoje (contador, planilha, nada) antes de olhar funcionalidade."
+   },
+   {
+    "name": "Early adopter de tecnologia",
+    "share": 0.1,
+    "how": "Gosta de testar ferramentas novas primeiro, posta no grupo de agentes de viagem que usa."
+   },
+   {
+    "name": "Decide em grupo/associação",
+    "share": 0.1,
+    "how": "Só confia depois de ver outro dono de agência (do mesmo grupo/sindicato) recomendar."
+   }
+  ],
+  "objections": [
+   "O financeiro e a emissão de nota fiscal realmente funcionam, ou é só no papel? (achado da pesquisa de concorrentes e do board: hoje é só ADR, não está implementado)",
+   "Já testei um sistema parecido e travou/perdeu dado na migração",
+   "R$ 99 ou R$ 299 por mês é caro para o que minha agência fatura hoje",
+   "Minha equipe não vai usar, vai voltar pro WhatsApp em uma semana",
+   "Não tenho tempo de treinar ninguém na alta temporada",
+   "Não confio em colocar o CPF/cartão do meu cliente numa plataforma que nunca ouvi falar",
+   "Já uso [Agendor/Omie/planilha] e trocar dá trabalho demais",
+   "Não tem nenhuma agência conhecida usando isso — quem já usa e recomenda?"
+  ],
+  "habits": [
+   "fecha a maior parte das vendas pelo WhatsApp pessoal, não por um sistema",
+   "participa de pelo menos um grupo de WhatsApp ou associação de agentes de viagem",
+   "faz o financeiro da agência sozinho(a) ou com um contador terceirizado, no fim do mês",
+   "a alta temporada (dezembro-janeiro e julho) é quando não pode se arriscar a trocar de sistema"
+  ]
+ },
+ "pitch": "A Travel Plataforma é um sistema online para agências de viagem organizarem clientes, orçamentos e vendas em um só lugar: histórico e documentos do cliente, funil de vendas por etapas, controle de viagens/operação, controle financeiro básico (contas a pagar/receber e fluxo de caixa) e um portal onde o cliente final acompanha a viagem pelo celular.\n\nPlanos: R$ 99/mês (até 10 usuários, 100 GB) ou R$ 299/mês (até 50 usuários, 500 GB, suporte prioritário). Plano Empresarial sob consulta para equipes maiores.\n\nPrograma Agência Pioneira: as primeiras agências que assinarem pagam R$ 79/mês (em vez de R$ 99) nos primeiros 12 meses, em troca de serem referência pública (nome, depoimento, caso de uso) assim que estiverem usando o sistema. Vagas limitadas de verdade, não é promoção fake.\n\nMigração assistida sem risco: a equipe migra os dados da sua planilha ou sistema atual, confere a integridade antes de confirmar, e agenda fora da alta temporada (dezembro-janeiro e julho) se você preferir. Garantia de Migração Sem Risco: se a migração perder ou corromper dado do cliente, devolvemos 100% do valor pago até ali e ajudamos a voltar pro sistema anterior sem custo.\n\nChecklist de adoção de 30 dias com treinamento guiado pra equipe, pra não voltar pro WhatsApp depois de uma semana.\n\nCobrança automática do cliente final (Pix/boleto/cartão) e emissão automática de nota fiscal de serviço estão em desenvolvimento e ainda não estão disponíveis — hoje a agência continua emitindo e cobrando por fora.\n\nCadastro é feito direto pelo site, sem precisar de contrato longo, com teste antes de assinar."
+}

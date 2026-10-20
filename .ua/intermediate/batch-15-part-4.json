@@ -1,0 +1,1496 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/agency/src/pages/DrePage.tsx",
+      "type": "file",
+      "name": "DrePage.tsx",
+      "filePath": "apps/agency/src/pages/DrePage.tsx",
+      "summary": "Apresentação do DRE (demonstrativo do resultado do exercício) com presets de período e linhas de resultado formatadas.",
+      "tags": [
+        "componente",
+        "página",
+        "dre",
+        "financeiro"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/agency/src/pages/EmployeeDetailPage.tsx",
+      "type": "file",
+      "name": "EmployeeDetailPage.tsx",
+      "filePath": "apps/agency/src/pages/EmployeeDetailPage.tsx",
+      "summary": "Detalhe do funcionário com abas de perfil, comissões e histórico de operações.",
+      "tags": [
+        "componente",
+        "página",
+        "funcionários",
+        "comissões"
+      ],
+      "complexity": "complex",
+      "languageNotes": "As abas e campos rotulados são subcomponentes definidos no mesmo arquivo do componente principal."
+    },
+    {
+      "id": "file:apps/agency/src/pages/EmployeesPage.tsx",
+      "type": "file",
+      "name": "EmployeesPage.tsx",
+      "filePath": "apps/agency/src/pages/EmployeesPage.tsx",
+      "summary": "Listagem e cadastro de funcionários com formulário modal e conversões entre estado do formulário e payload da API.",
+      "tags": [
+        "componente",
+        "página",
+        "crud",
+        "funcionários"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/agency/src/pages/EnrollmentLinksPage.tsx",
+      "type": "file",
+      "name": "EnrollmentLinksPage.tsx",
+      "filePath": "apps/agency/src/pages/EnrollmentLinksPage.tsx",
+      "summary": "Gestão de links de matrícula: geração, revogação e acompanhamento de submissões de alunos.",
+      "tags": [
+        "componente",
+        "página",
+        "matrículas",
+        "links"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/agency/src/pages/ExcursionsPage.tsx",
+      "type": "file",
+      "name": "ExcursionsPage.tsx",
+      "filePath": "apps/agency/src/pages/ExcursionsPage.tsx",
+      "summary": "CRUD de excursões com partidas (departures), seleção de clientes participantes e cálculo de valores.",
+      "tags": [
+        "componente",
+        "página",
+        "crud",
+        "excursões"
+      ],
+      "complexity": "complex",
+      "languageNotes": "Inclui o subcomponente CustomerSearchPicker e campos rotulados locais reutilizados no formulário."
+    },
+    {
+      "id": "file:apps/agency/src/pages/ExpensesPage.tsx",
+      "type": "file",
+      "name": "ExpensesPage.tsx",
+      "filePath": "apps/agency/src/pages/ExpensesPage.tsx",
+      "summary": "CRUD de despesas com classificação por categoria, centro de custo, fornecedor e anexos.",
+      "tags": [
+        "componente",
+        "página",
+        "crud",
+        "despesas"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/agency/src/pages/FinancialPage.tsx",
+      "type": "file",
+      "name": "FinancialPage.tsx",
+      "filePath": "apps/agency/src/pages/FinancialPage.tsx",
+      "summary": "Resumo financeiro com KPIs, contas a receber e a pagar e movimentações recentes.",
+      "tags": [
+        "componente",
+        "página",
+        "financeiro",
+        "kpi"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/agency/src/pages/ForgotPasswordPage.tsx",
+      "type": "file",
+      "name": "ForgotPasswordPage.tsx",
+      "filePath": "apps/agency/src/pages/ForgotPasswordPage.tsx",
+      "summary": "Tela de recuperação de senha que solicita o envio do link de redefinição pela API de autenticação.",
+      "tags": [
+        "componente",
+        "página",
+        "autenticação",
+        "formulário"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/agency/src/pages/DrePage.tsx:presetRange",
+      "type": "function",
+      "name": "presetRange",
+      "filePath": "apps/agency/src/pages/DrePage.tsx",
+      "lineRange": [
+        16,
+        28
+      ],
+      "summary": "Calcula o intervalo de datas a partir de presets como últimos 30/90 dias ou ano corrente.",
+      "tags": [
+        "utilitário",
+        "data",
+        "período"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/agency/src/pages/DrePage.tsx:DreLine",
+      "type": "function",
+      "name": "DreLine",
+      "filePath": "apps/agency/src/pages/DrePage.tsx",
+      "lineRange": [
+        36,
+        51
+      ],
+      "summary": "Linha do DRE com rótulo, valor formatado em reais e tom de cor conforme o tipo de resultado.",
+      "tags": [
+        "componente",
+        "ui",
+        "financeiro"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/agency/src/pages/DrePage.tsx:DrePage",
+      "type": "function",
+      "name": "DrePage",
+      "filePath": "apps/agency/src/pages/DrePage.tsx",
+      "lineRange": [
+        53,
+        157
+      ],
+      "summary": "Componente da página de DRE: seleciona o período, carrega o relatório e renderiza as linhas de resultado.",
+      "tags": [
+        "componente",
+        "página",
+        "dre",
+        "estado"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/agency/src/pages/EmployeeDetailPage.tsx:EmployeeDetailPage",
+      "type": "function",
+      "name": "EmployeeDetailPage",
+      "filePath": "apps/agency/src/pages/EmployeeDetailPage.tsx",
+      "lineRange": [
+        74,
+        131
+      ],
+      "summary": "Componente principal do detalhe do funcionário: carrega o cadastro e controla a navegação entre abas.",
+      "tags": [
+        "componente",
+        "página",
+        "funcionários",
+        "estado"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/agency/src/pages/EmployeeDetailPage.tsx:PerfilTab",
+      "type": "function",
+      "name": "PerfilTab",
+      "filePath": "apps/agency/src/pages/EmployeeDetailPage.tsx",
+      "lineRange": [
+        133,
+        151
+      ],
+      "summary": "Aba de dados cadastrais e contato do funcionário em modo somente leitura.",
+      "tags": [
+        "componente",
+        "ui",
+        "funcionários"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/agency/src/pages/EmployeeDetailPage.tsx:ComissoesTab",
+      "type": "function",
+      "name": "ComissoesTab",
+      "filePath": "apps/agency/src/pages/EmployeeDetailPage.tsx",
+      "lineRange": [
+        182,
+        362
+      ],
+      "summary": "Aba de comissões do funcionário com listagem, geração, aprovação e vínculo a contas a pagar.",
+      "tags": [
+        "componente",
+        "financeiro",
+        "comissões"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/agency/src/pages/EmployeeDetailPage.tsx:HistoricoTab",
+      "type": "function",
+      "name": "HistoricoTab",
+      "filePath": "apps/agency/src/pages/EmployeeDetailPage.tsx",
+      "lineRange": [
+        364,
+        445
+      ],
+      "summary": "Aba de histórico do funcionário apresentando registros de comissões e movimentações passadas.",
+      "tags": [
+        "componente",
+        "histórico",
+        "funcionários"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/agency/src/pages/EmployeeDetailPage.tsx:LabeledInput",
+      "type": "function",
+      "name": "LabeledInput",
+      "filePath": "apps/agency/src/pages/EmployeeDetailPage.tsx",
+      "lineRange": [
+        451,
+        461
+      ],
+      "summary": "Campo de input com rótulo reutilizável nos formulários do módulo de funcionários.",
+      "tags": [
+        "componente",
+        "formulário",
+        "ui"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/agency/src/pages/EmployeeDetailPage.tsx:LabeledSelect",
+      "type": "function",
+      "name": "LabeledSelect",
+      "filePath": "apps/agency/src/pages/EmployeeDetailPage.tsx",
+      "lineRange": [
+        463,
+        476
+      ],
+      "summary": "Select com rótulo reutilizável nos formulários do módulo de funcionários.",
+      "tags": [
+        "componente",
+        "formulário",
+        "ui"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/agency/src/pages/EmployeesPage.tsx:toFormState",
+      "type": "function",
+      "name": "toFormState",
+      "filePath": "apps/agency/src/pages/EmployeesPage.tsx",
+      "lineRange": [
+        100,
+        127
+      ],
+      "summary": "Converte um Employee existente no estado do formulário de edição.",
+      "tags": [
+        "serialização",
+        "formulário",
+        "utilitário"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/agency/src/pages/EmployeesPage.tsx:formToInput",
+      "type": "function",
+      "name": "formToInput",
+      "filePath": "apps/agency/src/pages/EmployeesPage.tsx",
+      "lineRange": [
+        129,
+        156
+      ],
+      "summary": "Converte o estado do formulário no payload de criação ou atualização de funcionário.",
+      "tags": [
+        "serialização",
+        "formulário",
+        "utilitário"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/agency/src/pages/EmployeesPage.tsx:EmployeesPage",
+      "type": "function",
+      "name": "EmployeesPage",
+      "filePath": "apps/agency/src/pages/EmployeesPage.tsx",
+      "lineRange": [
+        158,
+        381
+      ],
+      "summary": "Componente da página de funcionários: lista equipe, abre o formulário modal e sincroniza alterações com a API.",
+      "tags": [
+        "componente",
+        "página",
+        "crud",
+        "estado"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/agency/src/pages/EmployeesPage.tsx:LabeledInput",
+      "type": "function",
+      "name": "LabeledInput",
+      "filePath": "apps/agency/src/pages/EmployeesPage.tsx",
+      "lineRange": [
+        383,
+        395
+      ],
+      "summary": "Campo de input com rótulo e id reutilizável no formulário de funcionário.",
+      "tags": [
+        "componente",
+        "formulário",
+        "ui"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/agency/src/pages/EmployeesPage.tsx:LabeledSelect",
+      "type": "function",
+      "name": "LabeledSelect",
+      "filePath": "apps/agency/src/pages/EmployeesPage.tsx",
+      "lineRange": [
+        397,
+        411
+      ],
+      "summary": "Select com rótulo e id reutilizável no formulário de funcionário.",
+      "tags": [
+        "componente",
+        "formulário",
+        "ui"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/agency/src/pages/EnrollmentLinksPage.tsx:EnrollmentLinksPage",
+      "type": "function",
+      "name": "EnrollmentLinksPage",
+      "filePath": "apps/agency/src/pages/EnrollmentLinksPage.tsx",
+      "lineRange": [
+        35,
+        303
+      ],
+      "summary": "Componente da página de links de matrícula: gera e revoga links, acompanha submissões e aprova alterações.",
+      "tags": [
+        "componente",
+        "página",
+        "matrículas",
+        "estado"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/agency/src/pages/ExcursionsPage.tsx:CustomerSearchPicker",
+      "type": "function",
+      "name": "CustomerSearchPicker",
+      "filePath": "apps/agency/src/pages/ExcursionsPage.tsx",
+      "lineRange": [
+        61,
+        105
+      ],
+      "summary": "Seletor de clientes com busca que adiciona ou remove participantes da excursão.",
+      "tags": [
+        "componente",
+        "formulário",
+        "clientes"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/agency/src/pages/ExcursionsPage.tsx:ExcursionsPage",
+      "type": "function",
+      "name": "ExcursionsPage",
+      "filePath": "apps/agency/src/pages/ExcursionsPage.tsx",
+      "lineRange": [
+        107,
+        603
+      ],
+      "summary": "Componente da página de excursões: gerencia excursões, partidas, participantes e cálculo de valores.",
+      "tags": [
+        "componente",
+        "página",
+        "crud",
+        "estado"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/agency/src/pages/ExcursionsPage.tsx:LabeledInput",
+      "type": "function",
+      "name": "LabeledInput",
+      "filePath": "apps/agency/src/pages/ExcursionsPage.tsx",
+      "lineRange": [
+        605,
+        616
+      ],
+      "summary": "Campo de input com rótulo e id reutilizável no formulário de excursão.",
+      "tags": [
+        "componente",
+        "formulário",
+        "ui"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/agency/src/pages/ExcursionsPage.tsx:LabeledSelect",
+      "type": "function",
+      "name": "LabeledSelect",
+      "filePath": "apps/agency/src/pages/ExcursionsPage.tsx",
+      "lineRange": [
+        618,
+        632
+      ],
+      "summary": "Select com rótulo e id reutilizável no formulário de excursão.",
+      "tags": [
+        "componente",
+        "formulário",
+        "ui"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/agency/src/pages/ExpensesPage.tsx:ExpensesPage",
+      "type": "function",
+      "name": "ExpensesPage",
+      "filePath": "apps/agency/src/pages/ExpensesPage.tsx",
+      "lineRange": [
+        70,
+        439
+      ],
+      "summary": "Componente da página de despesas: lista lançamentos, aplica filtros e conduz o CRUD com categoria, centro de custo e fornecedor.",
+      "tags": [
+        "componente",
+        "página",
+        "crud",
+        "despesas"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/agency/src/pages/FinancialPage.tsx:FinancialPage",
+      "type": "function",
+      "name": "FinancialPage",
+      "filePath": "apps/agency/src/pages/FinancialPage.tsx",
+      "lineRange": [
+        38,
+        298
+      ],
+      "summary": "Componente da página financeira: consolida KPIs, títulos a receber e a pagar e movimentações recentes.",
+      "tags": [
+        "componente",
+        "página",
+        "financeiro",
+        "estado"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/agency/src/pages/ForgotPasswordPage.tsx:ForgotPasswordPage",
+      "type": "function",
+      "name": "ForgotPasswordPage",
+      "filePath": "apps/agency/src/pages/ForgotPasswordPage.tsx",
+      "lineRange": [
+        4,
+        77
+      ],
+      "summary": "Componente da tela de recuperação de senha: valida o e-mail e solicita o link de redefinição à API.",
+      "tags": [
+        "componente",
+        "página",
+        "autenticação",
+        "formulário"
+      ],
+      "complexity": "moderate"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/agency/src/pages/DrePage.tsx",
+      "target": "function:apps/agency/src/pages/DrePage.tsx:presetRange",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/pages/DrePage.tsx",
+      "target": "function:apps/agency/src/pages/DrePage.tsx:DreLine",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/pages/DrePage.tsx",
+      "target": "function:apps/agency/src/pages/DrePage.tsx:DrePage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/pages/EmployeeDetailPage.tsx",
+      "target": "function:apps/agency/src/pages/EmployeeDetailPage.tsx:EmployeeDetailPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/pages/EmployeeDetailPage.tsx",
+      "target": "function:apps/agency/src/pages/EmployeeDetailPage.tsx:PerfilTab",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/pages/EmployeeDetailPage.tsx",
+      "target": "function:apps/agency/src/pages/EmployeeDetailPage.tsx:ComissoesTab",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/pages/EmployeeDetailPage.tsx",
+      "target": "function:apps/agency/src/pages/EmployeeDetailPage.tsx:HistoricoTab",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/pages/EmployeeDetailPage.tsx",
+      "target": "function:apps/agency/src/pages/EmployeeDetailPage.tsx:LabeledInput",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/pages/EmployeeDetailPage.tsx",
+      "target": "function:apps/agency/src/pages/EmployeeDetailPage.tsx:LabeledSelect",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/pages/EmployeesPage.tsx",
+      "target": "function:apps/agency/src/pages/EmployeesPage.tsx:toFormState",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/pages/EmployeesPage.tsx",
+      "target": "function:apps/agency/src/pages/EmployeesPage.tsx:formToInput",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/pages/EmployeesPage.tsx",
+      "target": "function:apps/agency/src/pages/EmployeesPage.tsx:EmployeesPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/pages/EmployeesPage.tsx",
+      "target": "function:apps/agency/src/pages/EmployeesPage.tsx:LabeledInput",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/pages/EmployeesPage.tsx",
+      "target": "function:apps/agency/src/pages/EmployeesPage.tsx:LabeledSelect",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/pages/EnrollmentLinksPage.tsx",
+      "target": "function:apps/agency/src/pages/EnrollmentLinksPage.tsx:EnrollmentLinksPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/pages/ExcursionsPage.tsx",
+      "target": "function:apps/agency/src/pages/ExcursionsPage.tsx:CustomerSearchPicker",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/pages/ExcursionsPage.tsx",
+      "target": "function:apps/agency/src/pages/ExcursionsPage.tsx:ExcursionsPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/pages/ExcursionsPage.tsx",
+      "target": "function:apps/agency/src/pages/ExcursionsPage.tsx:LabeledInput",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/pages/ExcursionsPage.tsx",
+      "target": "function:apps/agency/src/pages/ExcursionsPage.tsx:LabeledSelect",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/pages/ExpensesPage.tsx",
+      "target": "function:apps/agency/src/pages/ExpensesPage.tsx:ExpensesPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/pages/FinancialPage.tsx",
+      "target": "function:apps/agency/src/pages/FinancialPage.tsx:FinancialPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/pages/ForgotPasswordPage.tsx",
+      "target": "function:apps/agency/src/pages/ForgotPasswordPage.tsx:ForgotPasswordPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/pages/DrePage.tsx",
+      "target": "file:apps/agency/src/components/layout/PageHeader.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/DrePage.tsx",
+      "target": "file:apps/agency/src/components/ui/button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/DrePage.tsx",
+      "target": "file:apps/agency/src/components/ui/card.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/DrePage.tsx",
+      "target": "file:apps/agency/src/components/ui/loading-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/DrePage.tsx",
+      "target": "file:apps/agency/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/DrePage.tsx",
+      "target": "file:apps/agency/src/lib/formatCurrency.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/EmployeeDetailPage.tsx",
+      "target": "file:apps/agency/src/components/layout/PageHeader.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/EmployeeDetailPage.tsx",
+      "target": "file:apps/agency/src/components/ui/button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/EmployeeDetailPage.tsx",
+      "target": "file:apps/agency/src/components/ui/card.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/EmployeeDetailPage.tsx",
+      "target": "file:apps/agency/src/components/ui/empty-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/EmployeeDetailPage.tsx",
+      "target": "file:apps/agency/src/components/ui/error-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/EmployeeDetailPage.tsx",
+      "target": "file:apps/agency/src/components/ui/input.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/EmployeeDetailPage.tsx",
+      "target": "file:apps/agency/src/components/ui/loading-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/EmployeeDetailPage.tsx",
+      "target": "file:apps/agency/src/components/ui/tabs.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/EmployeeDetailPage.tsx",
+      "target": "file:apps/agency/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/EmployeesPage.tsx",
+      "target": "file:apps/agency/src/components/layout/PageHeader.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/EmployeesPage.tsx",
+      "target": "file:apps/agency/src/components/ui/button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/EmployeesPage.tsx",
+      "target": "file:apps/agency/src/components/ui/card.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/EmployeesPage.tsx",
+      "target": "file:apps/agency/src/components/ui/empty-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/EmployeesPage.tsx",
+      "target": "file:apps/agency/src/components/ui/error-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/EmployeesPage.tsx",
+      "target": "file:apps/agency/src/components/ui/input.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/EmployeesPage.tsx",
+      "target": "file:apps/agency/src/components/ui/loading-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/EmployeesPage.tsx",
+      "target": "file:apps/agency/src/components/ui/table.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/EmployeesPage.tsx",
+      "target": "file:apps/agency/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/EnrollmentLinksPage.tsx",
+      "target": "file:apps/agency/src/components/layout/PageHeader.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/EnrollmentLinksPage.tsx",
+      "target": "file:apps/agency/src/components/ui/button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/EnrollmentLinksPage.tsx",
+      "target": "file:apps/agency/src/components/ui/card.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/EnrollmentLinksPage.tsx",
+      "target": "file:apps/agency/src/components/ui/empty-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/EnrollmentLinksPage.tsx",
+      "target": "file:apps/agency/src/components/ui/error-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/EnrollmentLinksPage.tsx",
+      "target": "file:apps/agency/src/components/ui/input.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/EnrollmentLinksPage.tsx",
+      "target": "file:apps/agency/src/components/ui/loading-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/EnrollmentLinksPage.tsx",
+      "target": "file:apps/agency/src/components/ui/table.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/EnrollmentLinksPage.tsx",
+      "target": "file:apps/agency/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/ExcursionsPage.tsx",
+      "target": "file:apps/agency/src/components/layout/PageHeader.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/ExcursionsPage.tsx",
+      "target": "file:apps/agency/src/components/ui/button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/ExcursionsPage.tsx",
+      "target": "file:apps/agency/src/components/ui/card.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/ExcursionsPage.tsx",
+      "target": "file:apps/agency/src/components/ui/empty-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/ExcursionsPage.tsx",
+      "target": "file:apps/agency/src/components/ui/error-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/ExcursionsPage.tsx",
+      "target": "file:apps/agency/src/components/ui/input.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/ExcursionsPage.tsx",
+      "target": "file:apps/agency/src/components/ui/loading-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/ExcursionsPage.tsx",
+      "target": "file:apps/agency/src/components/ui/modal.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/ExcursionsPage.tsx",
+      "target": "file:apps/agency/src/components/ui/select.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/ExcursionsPage.tsx",
+      "target": "file:apps/agency/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/ExcursionsPage.tsx",
+      "target": "file:apps/agency/src/lib/formatCurrency.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/ExcursionsPage.tsx",
+      "target": "file:apps/agency/src/lib/formatDateBR.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/ExcursionsPage.tsx",
+      "target": "file:apps/agency/src/types/customer.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/ExpensesPage.tsx",
+      "target": "file:apps/agency/src/components/layout/PageHeader.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/ExpensesPage.tsx",
+      "target": "file:apps/agency/src/components/ui/button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/ExpensesPage.tsx",
+      "target": "file:apps/agency/src/components/ui/card.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/ExpensesPage.tsx",
+      "target": "file:apps/agency/src/components/ui/empty-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/ExpensesPage.tsx",
+      "target": "file:apps/agency/src/components/ui/error-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/ExpensesPage.tsx",
+      "target": "file:apps/agency/src/components/ui/input.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/ExpensesPage.tsx",
+      "target": "file:apps/agency/src/components/ui/loading-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/ExpensesPage.tsx",
+      "target": "file:apps/agency/src/components/ui/modal.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/ExpensesPage.tsx",
+      "target": "file:apps/agency/src/components/ui/select.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/ExpensesPage.tsx",
+      "target": "file:apps/agency/src/components/ui/status-badge.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/ExpensesPage.tsx",
+      "target": "file:apps/agency/src/components/ui/table.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/ExpensesPage.tsx",
+      "target": "file:apps/agency/src/components/ui/textarea.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/ExpensesPage.tsx",
+      "target": "file:apps/agency/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/ExpensesPage.tsx",
+      "target": "file:apps/agency/src/lib/formatCurrency.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/ExpensesPage.tsx",
+      "target": "file:apps/agency/src/lib/formatDateBR.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/FinancialPage.tsx",
+      "target": "file:apps/agency/src/components/ui/button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/FinancialPage.tsx",
+      "target": "file:apps/agency/src/components/ui/card.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/FinancialPage.tsx",
+      "target": "file:apps/agency/src/components/ui/kpi-chip.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/FinancialPage.tsx",
+      "target": "file:apps/agency/src/components/ui/loading-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/FinancialPage.tsx",
+      "target": "file:apps/agency/src/components/ui/status-badge.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/FinancialPage.tsx",
+      "target": "file:apps/agency/src/components/ui/table.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/FinancialPage.tsx",
+      "target": "file:apps/agency/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/FinancialPage.tsx",
+      "target": "file:apps/agency/src/lib/formatCurrency.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/FinancialPage.tsx",
+      "target": "file:apps/agency/src/lib/formatDateBR.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/ForgotPasswordPage.tsx",
+      "target": "file:apps/agency/src/lib/authApi.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/DrePage.tsx",
+      "target": "function:apps/agency/src/pages/DrePage.tsx:DrePage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/pages/EmployeeDetailPage.tsx",
+      "target": "function:apps/agency/src/pages/EmployeeDetailPage.tsx:EmployeeDetailPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/pages/EmployeesPage.tsx",
+      "target": "function:apps/agency/src/pages/EmployeesPage.tsx:EmployeesPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/pages/EnrollmentLinksPage.tsx",
+      "target": "function:apps/agency/src/pages/EnrollmentLinksPage.tsx:EnrollmentLinksPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/pages/ExcursionsPage.tsx",
+      "target": "function:apps/agency/src/pages/ExcursionsPage.tsx:ExcursionsPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/pages/ExpensesPage.tsx",
+      "target": "function:apps/agency/src/pages/ExpensesPage.tsx:ExpensesPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/pages/FinancialPage.tsx",
+      "target": "function:apps/agency/src/pages/FinancialPage.tsx:FinancialPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/pages/ForgotPasswordPage.tsx",
+      "target": "function:apps/agency/src/pages/ForgotPasswordPage.tsx:ForgotPasswordPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/DrePage.tsx:DreLine",
+      "target": "function:apps/agency/src/lib/formatCurrency.ts:formatBRL",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/DrePage.tsx:DrePage",
+      "target": "function:apps/agency/src/lib/api.ts:getManagementDre",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/EmployeeDetailPage.tsx:EmployeeDetailPage",
+      "target": "function:apps/agency/src/lib/api.ts:getEmployeeById",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/EmployeeDetailPage.tsx:ComissoesTab",
+      "target": "function:apps/agency/src/lib/api.ts:listEmployeeCommissionRules",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/pages/EmployeeDetailPage.tsx",
+      "target": "function:apps/agency/src/lib/api.ts:createEmployeeCommissionRule",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/pages/EmployeeDetailPage.tsx",
+      "target": "function:apps/agency/src/lib/api.ts:updateEmployeeCommissionRuleStatus",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/EmployeeDetailPage.tsx:HistoricoTab",
+      "target": "function:apps/agency/src/lib/api.ts:getEmployeeCommissionsReport",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/EmployeesPage.tsx:EmployeesPage",
+      "target": "function:apps/agency/src/lib/api.ts:listEmployees",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/EmployeesPage.tsx:EmployeesPage",
+      "target": "function:apps/agency/src/lib/api.ts:listCostCenters",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/EmployeesPage.tsx:EmployeesPage",
+      "target": "function:apps/agency/src/lib/api.ts:listCommissionPlans",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/pages/EmployeesPage.tsx",
+      "target": "function:apps/agency/src/lib/api.ts:updateEmployee",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/pages/EmployeesPage.tsx",
+      "target": "function:apps/agency/src/lib/api.ts:createEmployee",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/EnrollmentLinksPage.tsx:EnrollmentLinksPage",
+      "target": "function:apps/agency/src/lib/api.ts:listEnrollmentLinks",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/EnrollmentLinksPage.tsx:EnrollmentLinksPage",
+      "target": "function:apps/agency/src/lib/api.ts:listEnrollmentSubmissions",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/pages/EnrollmentLinksPage.tsx",
+      "target": "function:apps/agency/src/lib/api.ts:createEnrollmentLink",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/pages/EnrollmentLinksPage.tsx",
+      "target": "function:apps/agency/src/lib/api.ts:revokeEnrollmentLink",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/pages/EnrollmentLinksPage.tsx",
+      "target": "function:apps/agency/src/lib/api.ts:approveEnrollmentSubmission",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/pages/EnrollmentLinksPage.tsx",
+      "target": "function:apps/agency/src/lib/api.ts:requestEnrollmentChanges",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/pages/ExcursionsPage.tsx",
+      "target": "function:apps/agency/src/lib/formatDateBR.ts:formatDateBR",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/ExcursionsPage.tsx:ExcursionsPage",
+      "target": "function:apps/agency/src/lib/api.ts:listExcursions",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/ExcursionsPage.tsx:ExcursionsPage",
+      "target": "function:apps/agency/src/lib/api.ts:listCustomers",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/ExcursionsPage.tsx:ExcursionsPage",
+      "target": "function:apps/agency/src/lib/api.ts:getExcursion",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/ExcursionsPage.tsx:ExcursionsPage",
+      "target": "function:apps/agency/src/lib/api.ts:getExcursionDeparture",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/pages/ExcursionsPage.tsx",
+      "target": "function:apps/agency/src/lib/api.ts:createExcursion",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/pages/ExcursionsPage.tsx",
+      "target": "function:apps/agency/src/lib/api.ts:createExcursionDeparture",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/pages/ExcursionsPage.tsx",
+      "target": "function:apps/agency/src/lib/api.ts:removeDepartureCustomer",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/pages/ExcursionsPage.tsx",
+      "target": "function:apps/agency/src/lib/api.ts:addDepartureCustomers",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/ExcursionsPage.tsx:ExcursionsPage",
+      "target": "function:apps/agency/src/lib/formatCurrency.ts:formatBRL",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/ExcursionsPage.tsx:ExcursionsPage",
+      "target": "function:apps/agency/src/lib/formatDateBR.ts:formatDateBR",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/ExpensesPage.tsx:ExpensesPage",
+      "target": "function:apps/agency/src/lib/api.ts:listExpenses",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/ExpensesPage.tsx:ExpensesPage",
+      "target": "function:apps/agency/src/lib/api.ts:listSuppliers",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/ExpensesPage.tsx:ExpensesPage",
+      "target": "function:apps/agency/src/lib/api.ts:listCategories",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/pages/ExpensesPage.tsx",
+      "target": "function:apps/agency/src/lib/api.ts:createExpense",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/pages/ExpensesPage.tsx",
+      "target": "function:apps/agency/src/lib/api.ts:cancelExpense",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/ExpensesPage.tsx:ExpensesPage",
+      "target": "function:apps/agency/src/lib/formatCurrency.ts:formatBRL",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/ExpensesPage.tsx:ExpensesPage",
+      "target": "function:apps/agency/src/lib/formatDateBR.ts:formatDateBR",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/FinancialPage.tsx:FinancialPage",
+      "target": "function:apps/agency/src/lib/api.ts:getFinancialSummary",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/FinancialPage.tsx:FinancialPage",
+      "target": "function:apps/agency/src/lib/api.ts:getCashFlowReport",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/FinancialPage.tsx:FinancialPage",
+      "target": "function:apps/agency/src/lib/formatCurrency.ts:formatBRL",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/FinancialPage.tsx:FinancialPage",
+      "target": "function:apps/agency/src/lib/formatDateBR.ts:formatDateBR",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/pages/ForgotPasswordPage.tsx",
+      "target": "function:apps/agency/src/lib/authApi.ts:forgotPassword",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

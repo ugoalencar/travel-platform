@@ -1,0 +1,674 @@
+{
+ "nodes": [
+  {
+   "id": "file:services/api/tests/auth-http.test.ts",
+   "type": "file",
+   "name": "auth-http.test.ts",
+   "filePath": "services/api/tests/auth-http.test.ts",
+   "summary": "Testes HTTP do login de colaboradores com app Fastify real, Postgres, hashing e fluxos de sessão.",
+   "tags": [
+    "test",
+    "authentication",
+    "http",
+    "multi-tenant"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:services/api/tests/customer-platform-auth-http.test.ts",
+   "type": "file",
+   "name": "customer-platform-auth-http.test.ts",
+   "filePath": "services/api/tests/customer-platform-auth-http.test.ts",
+   "summary": "Testes HTTP dos portais de cliente e plataforma cobrindo login, MFA, sessões e reset de senha ponta a ponta.",
+   "tags": [
+    "test",
+    "authentication",
+    "mfa",
+    "http"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:services/api/tests/customer-platform-auth.test.ts",
+   "type": "file",
+   "name": "customer-platform-auth.test.ts",
+   "filePath": "services/api/tests/customer-platform-auth.test.ts",
+   "summary": "Testes de unidade da autenticação de clientes e plataforma sem HTTP, focando em regras de sessão, MFA e auditoria.",
+   "tags": [
+    "test",
+    "authentication",
+    "mfa",
+    "security"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:services/api/tests/email-provider.test.ts",
+   "type": "file",
+   "name": "email-provider.test.ts",
+   "filePath": "services/api/tests/email-provider.test.ts",
+   "summary": "Testes da seleção de provider de e-mail (dev-log, Resend, não configurado) e do envio transacional.",
+   "tags": [
+    "test",
+    "email",
+    "provider"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:services/api/tests/local-auth.test.ts",
+   "type": "file",
+   "name": "local-auth.test.ts",
+   "filePath": "services/api/tests/local-auth.test.ts",
+   "summary": "Testes do núcleo de autenticação local: login com MFA, sessões, recuperação de senha e códigos de recuperação.",
+   "tags": [
+    "test",
+    "authentication",
+    "mfa",
+    "session-management"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:services/api/tests/mfa-provider.test.ts",
+   "type": "file",
+   "name": "mfa-provider.test.ts",
+   "filePath": "services/api/tests/mfa-provider.test.ts",
+   "summary": "Testes unitários do provider TOTP/HOTP: geração de códigos, janela de tolerância e recovery codes.",
+   "tags": [
+    "test",
+    "mfa",
+    "totp"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/tests/auth-http.test.ts:buildTestApp",
+   "type": "function",
+   "name": "buildTestApp",
+   "filePath": "services/api/tests/auth-http.test.ts",
+   "lineRange": [
+    192,
+    209
+   ],
+   "summary": "Monta a instância Fastify do teste com rotas e contexto de tenant preparados.",
+   "tags": [
+    "test",
+    "helper",
+    "http"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/auth-http.test.ts:seedAgenciesAndUsers",
+   "type": "function",
+   "name": "seedAgenciesAndUsers",
+   "filePath": "services/api/tests/auth-http.test.ts",
+   "lineRange": [
+    291,
+    303
+   ],
+   "summary": "Popula o banco de teste com agências e usuários necessários aos cenários de autenticação.",
+   "tags": [
+    "test",
+    "helper",
+    "seed"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/customer-platform-auth-http.test.ts:enrollAndConfirmMfa",
+   "type": "function",
+   "name": "enrollAndConfirmMfa",
+   "filePath": "services/api/tests/customer-platform-auth-http.test.ts",
+   "lineRange": [
+    337,
+    351
+   ],
+   "summary": "Executa o enrollment completo de MFA e confirma com um código TOTP válido.",
+   "tags": [
+    "test",
+    "helper",
+    "mfa"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/customer-platform-auth-http.test.ts:generateTotpCode",
+   "type": "function",
+   "name": "generateTotpCode",
+   "filePath": "services/api/tests/customer-platform-auth-http.test.ts",
+   "lineRange": [
+    493,
+    513
+   ],
+   "summary": "Gera um código TOTP esperado a partir do segredo usando HMAC-SHA1 manual.",
+   "tags": [
+    "test",
+    "helper",
+    "mfa",
+    "totp"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/customer-platform-auth-http.test.ts:buildTestApp",
+   "type": "function",
+   "name": "buildTestApp",
+   "filePath": "services/api/tests/customer-platform-auth-http.test.ts",
+   "lineRange": [
+    523,
+    539
+   ],
+   "summary": "Monta a instância Fastify dos testes de portal com rotas registradas.",
+   "tags": [
+    "test",
+    "helper",
+    "http"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/customer-platform-auth-http.test.ts:seedFixtures",
+   "type": "function",
+   "name": "seedFixtures",
+   "filePath": "services/api/tests/customer-platform-auth-http.test.ts",
+   "lineRange": [
+    621,
+    643
+   ],
+   "summary": "Cria os fixtures de agência, clientes e usuários de plataforma usados nos testes.",
+   "tags": [
+    "test",
+    "helper",
+    "seed"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/customer-platform-auth.test.ts:generateTotpCode",
+   "type": "function",
+   "name": "generateTotpCode",
+   "filePath": "services/api/tests/customer-platform-auth.test.ts",
+   "lineRange": [
+    415,
+    435
+   ],
+   "summary": "Gera código TOTP esperado para validação direta nos testes de MFA.",
+   "tags": [
+    "test",
+    "helper",
+    "mfa",
+    "totp"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/customer-platform-auth.test.ts:seedFixtures",
+   "type": "function",
+   "name": "seedFixtures",
+   "filePath": "services/api/tests/customer-platform-auth.test.ts",
+   "lineRange": [
+    517,
+    539
+   ],
+   "summary": "Popula agência, clientes e usuários de plataforma para os testes sem HTTP.",
+   "tags": [
+    "test",
+    "helper",
+    "seed"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/local-auth.test.ts:enrollAndConfirmMfa",
+   "type": "function",
+   "name": "enrollAndConfirmMfa",
+   "filePath": "services/api/tests/local-auth.test.ts",
+   "lineRange": [
+    495,
+    506
+   ],
+   "summary": "Realiza o enrollment de MFA e a confirmação com código TOTP nos testes.",
+   "tags": [
+    "test",
+    "helper",
+    "mfa"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/local-auth.test.ts:generateCodeForSecret",
+   "type": "function",
+   "name": "generateCodeForSecret",
+   "filePath": "services/api/tests/local-auth.test.ts",
+   "lineRange": [
+    507,
+    519
+   ],
+   "summary": "Deriva o código HOTP esperado para um segredo e contador dados.",
+   "tags": [
+    "test",
+    "helper",
+    "mfa",
+    "hotp"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/local-auth.test.ts:HotpProviderGenerate",
+   "type": "function",
+   "name": "HotpProviderGenerate",
+   "filePath": "services/api/tests/local-auth.test.ts",
+   "lineRange": [
+    520,
+    540
+   ],
+   "summary": "Implementa a referência de geração HOTP usada para comparar com o provider real.",
+   "tags": [
+    "test",
+    "helper",
+    "mfa",
+    "hotp"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/local-auth.test.ts:seedAgenciesAndUsers",
+   "type": "function",
+   "name": "seedAgenciesAndUsers",
+   "filePath": "services/api/tests/local-auth.test.ts",
+   "lineRange": [
+    621,
+    633
+   ],
+   "summary": "Insere agências e usuários de teste para os cenários de autenticação local.",
+   "tags": [
+    "test",
+    "helper",
+    "seed"
+   ],
+   "complexity": "simple"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:services/api/tests/auth-http.test.ts",
+   "target": "function:services/api/tests/auth-http.test.ts:buildTestApp",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/auth-http.test.ts",
+   "target": "function:services/api/tests/auth-http.test.ts:seedAgenciesAndUsers",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/customer-platform-auth-http.test.ts",
+   "target": "function:services/api/tests/customer-platform-auth-http.test.ts:enrollAndConfirmMfa",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/customer-platform-auth-http.test.ts",
+   "target": "function:services/api/tests/customer-platform-auth-http.test.ts:generateTotpCode",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/customer-platform-auth-http.test.ts",
+   "target": "function:services/api/tests/customer-platform-auth-http.test.ts:buildTestApp",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/customer-platform-auth-http.test.ts",
+   "target": "function:services/api/tests/customer-platform-auth-http.test.ts:seedFixtures",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/customer-platform-auth.test.ts",
+   "target": "function:services/api/tests/customer-platform-auth.test.ts:generateTotpCode",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/customer-platform-auth.test.ts",
+   "target": "function:services/api/tests/customer-platform-auth.test.ts:seedFixtures",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/local-auth.test.ts",
+   "target": "function:services/api/tests/local-auth.test.ts:enrollAndConfirmMfa",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/local-auth.test.ts",
+   "target": "function:services/api/tests/local-auth.test.ts:generateCodeForSecret",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/local-auth.test.ts",
+   "target": "function:services/api/tests/local-auth.test.ts:HotpProviderGenerate",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/local-auth.test.ts",
+   "target": "function:services/api/tests/local-auth.test.ts:seedAgenciesAndUsers",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/auth-http.test.ts",
+   "target": "file:services/api/src/app.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/auth-http.test.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/auth-http.test.ts",
+   "target": "file:services/api/src/password-hashing.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/customer-platform-auth-http.test.ts",
+   "target": "file:services/api/src/app.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/customer-platform-auth-http.test.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/customer-platform-auth-http.test.ts",
+   "target": "file:services/api/src/mfa-encryption.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/customer-platform-auth-http.test.ts",
+   "target": "file:services/api/src/mfa-provider.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/customer-platform-auth-http.test.ts",
+   "target": "file:services/api/src/password-hashing.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/customer-platform-auth.test.ts",
+   "target": "file:services/api/src/customer-local-auth.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/customer-platform-auth.test.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/customer-platform-auth.test.ts",
+   "target": "file:services/api/src/mfa-encryption.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/customer-platform-auth.test.ts",
+   "target": "file:services/api/src/mfa-provider.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/customer-platform-auth.test.ts",
+   "target": "file:services/api/src/password-hashing.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/customer-platform-auth.test.ts",
+   "target": "file:services/api/src/platform-local-auth.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/email-provider.test.ts",
+   "target": "file:services/api/src/email/dev-log-provider.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/email-provider.test.ts",
+   "target": "file:services/api/src/email/factory.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/email-provider.test.ts",
+   "target": "file:services/api/src/email/index.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/email-provider.test.ts",
+   "target": "file:services/api/src/email/resend-provider.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/email-provider.test.ts",
+   "target": "file:services/api/src/email/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/email-provider.test.ts",
+   "target": "file:services/api/src/email/unconfigured-provider.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/local-auth.test.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/local-auth.test.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/local-auth.test.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/local-auth.test.ts",
+   "target": "file:services/api/src/local-auth.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/local-auth.test.ts",
+   "target": "file:services/api/src/mfa-provider.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/local-auth.test.ts",
+   "target": "file:services/api/src/password-hashing.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/mfa-provider.test.ts",
+   "target": "file:services/api/src/mfa-provider.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/auth-http.test.ts",
+   "target": "function:services/api/src/app.ts:buildApp",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/tests/customer-platform-auth-http.test.ts",
+   "target": "function:services/api/src/app.ts:buildApp",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/tests/local-auth.test.ts",
+   "target": "function:packages/domain/tenant-context.ts:runWithTenantContext",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/tests/auth-http.test.ts",
+   "target": "file:services/api/src/app.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/tests/customer-platform-auth-http.test.ts",
+   "target": "file:services/api/src/app.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/tests/auth-http.test.ts",
+   "target": "function:services/api/src/password-hashing.ts:hashPassword",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/tests/customer-platform-auth-http.test.ts",
+   "target": "function:services/api/src/password-hashing.ts:hashPassword",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/tests/customer-platform-auth.test.ts",
+   "target": "function:services/api/src/password-hashing.ts:hashPassword",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/tests/local-auth.test.ts",
+   "target": "function:services/api/src/local-auth.ts:startMfaEnrollment",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/tests/local-auth.test.ts",
+   "target": "function:services/api/src/local-auth.ts:confirmMfaEnrollment",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/tests/local-auth.test.ts",
+   "target": "function:services/api/src/password-hashing.ts:hashPassword",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/tests/auth-http.test.ts",
+   "target": "function:services/api/src/database.ts:createDatabaseRuntime",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/tests/auth-http.test.ts",
+   "target": "function:services/api/src/database.ts:createPlatformDatabaseRuntime",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/tests/customer-platform-auth-http.test.ts",
+   "target": "function:services/api/src/database.ts:createDatabaseRuntime",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/tests/customer-platform-auth-http.test.ts",
+   "target": "function:services/api/src/database.ts:createPlatformDatabaseRuntime",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  }
+ ]
+}

@@ -1,0 +1,1420 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/customer/src/pages/offer-growth/AssetsPage.tsx",
+      "type": "file",
+      "name": "AssetsPage.tsx",
+      "filePath": "apps/customer/src/pages/offer-growth/AssetsPage.tsx",
+      "summary": "Página do módulo offer-growth para listar e gerenciar assets criativos, aplicando avisos de entitlement e ações por tipo de asset.",
+      "tags": [
+        "component",
+        "page",
+        "offer-growth",
+        "assets"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/customer/src/pages/offer-growth/AutomationsPage.test.tsx",
+      "type": "file",
+      "name": "AutomationsPage.test.tsx",
+      "filePath": "apps/customer/src/pages/offer-growth/AutomationsPage.test.tsx",
+      "summary": "Testes de renderização da AutomationsPage cobrindo os principais estados e fluxos de automações de marketing.",
+      "tags": [
+        "test",
+        "react",
+        "offer-growth",
+        "automation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/customer/src/pages/offer-growth/AutomationsPage.tsx",
+      "type": "file",
+      "name": "AutomationsPage.tsx",
+      "filePath": "apps/customer/src/pages/offer-growth/AutomationsPage.tsx",
+      "summary": "Página de automações de marketing: cria, ativa e pausa automações com gatilhos por palavra-chave, canais e vínculo opcional de cupons.",
+      "tags": [
+        "component",
+        "page",
+        "offer-growth",
+        "automation",
+        "form"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/customer/src/pages/offer-growth/CampaignsPage.test.tsx",
+      "type": "file",
+      "name": "CampaignsPage.test.tsx",
+      "filePath": "apps/customer/src/pages/offer-growth/CampaignsPage.test.tsx",
+      "summary": "Testes da CampaignsPage validando listagem, criação e transições de status de campanhas.",
+      "tags": [
+        "test",
+        "react",
+        "offer-growth",
+        "campaign"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/customer/src/pages/offer-growth/CampaignsPage.tsx",
+      "type": "file",
+      "name": "CampaignsPage.tsx",
+      "filePath": "apps/customer/src/pages/offer-growth/CampaignsPage.tsx",
+      "summary": "Página de campanhas de marketing: cria campanhas vinculadas a ofertas, gerencia transições de status e expande detalhes da campanha.",
+      "tags": [
+        "component",
+        "page",
+        "offer-growth",
+        "campaign"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/customer/src/pages/offer-growth/CouponsPage.test.tsx",
+      "type": "file",
+      "name": "CouponsPage.test.tsx",
+      "filePath": "apps/customer/src/pages/offer-growth/CouponsPage.test.tsx",
+      "summary": "Testes da CouponsPage verificando criação e listagem de cupons com validações de formulário.",
+      "tags": [
+        "test",
+        "react",
+        "offer-growth",
+        "coupon"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/customer/src/pages/offer-growth/CouponsPage.tsx",
+      "type": "file",
+      "name": "CouponsPage.tsx",
+      "filePath": "apps/customer/src/pages/offer-growth/CouponsPage.tsx",
+      "summary": "Página de cupons de desconto: cria cupons com tipo, valor, limites de uso, validade e vínculo opcional com campanha e oferta.",
+      "tags": [
+        "component",
+        "page",
+        "offer-growth",
+        "coupon",
+        "form"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/customer/src/pages/offer-growth/CreativeStudioPage.test.tsx",
+      "type": "file",
+      "name": "CreativeStudioPage.test.tsx",
+      "filePath": "apps/customer/src/pages/offer-growth/CreativeStudioPage.test.tsx",
+      "summary": "Testes do CreativeStudioPage cobrindo persistência local de templates e renderização do editor criativo.",
+      "tags": [
+        "test",
+        "react",
+        "offer-growth",
+        "creative-studio"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/customer/src/pages/offer-growth/CreativeStudioPage.tsx",
+      "type": "file",
+      "name": "CreativeStudioPage.tsx",
+      "filePath": "apps/customer/src/pages/offer-growth/CreativeStudioPage.tsx",
+      "summary": "Estúdio criativo para montar materiais publicitários em slides a partir de templates, ofertas e assets, com persistência local de templates.",
+      "tags": [
+        "component",
+        "page",
+        "offer-growth",
+        "creative-studio",
+        "editor"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/customer/src/pages/offer-growth/DemoPage.tsx",
+      "type": "file",
+      "name": "DemoPage.tsx",
+      "filePath": "apps/customer/src/pages/offer-growth/DemoPage.tsx",
+      "summary": "Página de demonstração que executa o fluxo completo de offer-growth (campanha, cupom, publicação e automação) com dados de exemplo.",
+      "tags": [
+        "component",
+        "page",
+        "demo",
+        "offer-growth"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/customer/src/pages/offer-growth/PublicationsPage.test.tsx",
+      "type": "file",
+      "name": "PublicationsPage.test.tsx",
+      "filePath": "apps/customer/src/pages/offer-growth/PublicationsPage.test.tsx",
+      "summary": "Testes da PublicationsPage cobrindo criação e listagem de publicações agendadas.",
+      "tags": [
+        "test",
+        "react",
+        "offer-growth",
+        "publication"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/customer/src/pages/offer-growth/PublicationsPage.tsx",
+      "type": "file",
+      "name": "PublicationsPage.tsx",
+      "filePath": "apps/customer/src/pages/offer-growth/PublicationsPage.tsx",
+      "summary": "Página de publicações: agenda e acompanha publicações por canal, campanha e oferta, com transições de status e expansão de detalhes.",
+      "tags": [
+        "component",
+        "page",
+        "offer-growth",
+        "publication"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/customer/src/pages/offer-growth/TemplatesPage.test.tsx",
+      "type": "file",
+      "name": "TemplatesPage.test.tsx",
+      "filePath": "apps/customer/src/pages/offer-growth/TemplatesPage.test.tsx",
+      "summary": "Testes da TemplatesPage verificando listagem, duplicação e exclusão de templates criativos.",
+      "tags": [
+        "test",
+        "react",
+        "offer-growth",
+        "templates"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/customer/src/pages/offer-growth/TemplatesPage.tsx",
+      "type": "file",
+      "name": "TemplatesPage.tsx",
+      "filePath": "apps/customer/src/pages/offer-growth/TemplatesPage.tsx",
+      "summary": "Página de listagem de templates criativos com criação, duplicação, exclusão e navegação para o editor.",
+      "tags": [
+        "component",
+        "page",
+        "offer-growth",
+        "templates"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/customer/src/types/booking.ts",
+      "type": "file",
+      "name": "booking.ts",
+      "filePath": "apps/customer/src/types/booking.ts",
+      "summary": "Tipos de domínio de reservas (booking) compartilhados pela aplicação, incluindo status e estruturas de consulta.",
+      "tags": [
+        "type-definition",
+        "data-model",
+        "booking",
+        "domain"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/customer/src/types/commercial.ts",
+      "type": "file",
+      "name": "commercial.ts",
+      "filePath": "apps/customer/src/types/commercial.ts",
+      "summary": "Tipos e constantes do funil comercial: estágios do pipeline, rótulos, cores e classes de estilo dos estágios.",
+      "tags": [
+        "type-definition",
+        "data-model",
+        "commercial",
+        "pipeline",
+        "constants"
+      ],
+      "complexity": "complex",
+      "languageNotes": "Além de tipos, exporta constantes (rótulos e cores) usadas como fonte única de verdade do funil comercial."
+    },
+    {
+      "id": "file:apps/customer/src/types/communication.ts",
+      "type": "file",
+      "name": "communication.ts",
+      "filePath": "apps/customer/src/types/communication.ts",
+      "summary": "Definições de tipos para comunicações visíveis ao cliente no portal.",
+      "tags": [
+        "type-definition",
+        "data-model",
+        "communication"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/customer/src/types/customer-portal.ts",
+      "type": "file",
+      "name": "customer-portal.ts",
+      "filePath": "apps/customer/src/types/customer-portal.ts",
+      "summary": "Tipos do portal do cliente agrupando viagens, propostas, reservas, documentos e pagamentos exibidos ao usuário final.",
+      "tags": [
+        "type-definition",
+        "data-model",
+        "customer-portal",
+        "domain"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/customer/src/types/customer.ts",
+      "type": "file",
+      "name": "customer.ts",
+      "filePath": "apps/customer/src/types/customer.ts",
+      "summary": "Tipos básicos de cliente usados por formulários, listagens e telas de detalhe de cadastro.",
+      "tags": [
+        "type-definition",
+        "data-model",
+        "customer"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/customer/src/types/financial.ts",
+      "type": "file",
+      "name": "financial.ts",
+      "filePath": "apps/customer/src/types/financial.ts",
+      "summary": "Tipos financeiros: contas a receber e pagar, pagamentos, rateios e indicadores de margem e dashboard.",
+      "tags": [
+        "type-definition",
+        "data-model",
+        "finance"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/customer/src/types/offer.ts",
+      "type": "file",
+      "name": "offer.ts",
+      "filePath": "apps/customer/src/types/offer.ts",
+      "summary": "Tipos de ofertas comerciais (offer) usados no catálogo interno e no portal do cliente.",
+      "tags": [
+        "type-definition",
+        "data-model",
+        "offer"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/customer/src/types/offerGrowth.ts",
+      "type": "file",
+      "name": "offerGrowth.ts",
+      "filePath": "apps/customer/src/types/offerGrowth.ts",
+      "summary": "Tipos do módulo offer-growth: campanhas, publicações, automações, cupons, assets, templates criativos e entitlements.",
+      "tags": [
+        "type-definition",
+        "data-model",
+        "offer-growth",
+        "domain"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/customer/src/types/operations.ts",
+      "type": "file",
+      "name": "operations.ts",
+      "filePath": "apps/customer/src/types/operations.ts",
+      "summary": "Tipos de operações do dia a dia, como chegadas, partidas e status operacionais.",
+      "tags": [
+        "type-definition",
+        "data-model",
+        "operations"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/customer/src/types/pescador.ts",
+      "type": "file",
+      "name": "pescador.ts",
+      "filePath": "apps/customer/src/types/pescador.ts",
+      "summary": "Tipos específicos da página Pescador, mantendo o contrato de dados desse recurso isolado.",
+      "tags": [
+        "type-definition",
+        "data-model",
+        "pescador"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/customer/src/types/proposal.ts",
+      "type": "file",
+      "name": "proposal.ts",
+      "filePath": "apps/customer/src/types/proposal.ts",
+      "summary": "Tipos de propostas comerciais: status, mídia e estruturas de envio, aceite e recusa.",
+      "tags": [
+        "type-definition",
+        "data-model",
+        "proposal",
+        "domain"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/customer/src/types/sale.ts",
+      "type": "file",
+      "name": "sale.ts",
+      "filePath": "apps/customer/src/types/sale.ts",
+      "summary": "Tipos de vendas: status, confirmação de pagamento e estruturas de detalhe de venda.",
+      "tags": [
+        "type-definition",
+        "data-model",
+        "sale",
+        "domain"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/customer/src/types/transport.ts",
+      "type": "file",
+      "name": "transport.ts",
+      "filePath": "apps/customer/src/types/transport.ts",
+      "summary": "Tipos de transporte: rotas, pontos, fornecedores, produtos, partidas e agendas de transporte.",
+      "tags": [
+        "type-definition",
+        "data-model",
+        "transport",
+        "domain"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/customer/src/types/travelRequirement.ts",
+      "type": "file",
+      "name": "travelRequirement.ts",
+      "filePath": "apps/customer/src/types/travelRequirement.ts",
+      "summary": "Tipos de requisitos de viagem, como documentos e exigências exibidos nos detalhes da viagem.",
+      "tags": [
+        "type-definition",
+        "data-model",
+        "travel",
+        "requirements"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/customer/src/types/trip.ts",
+      "type": "file",
+      "name": "trip.ts",
+      "filePath": "apps/customer/src/types/trip.ts",
+      "summary": "Tipos de viagens (trip) usados em listagens, formulários e telas de detalhe.",
+      "tags": [
+        "type-definition",
+        "data-model",
+        "trip"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/customer/src/types/wish.ts",
+      "type": "file",
+      "name": "wish.ts",
+      "filePath": "apps/customer/src/types/wish.ts",
+      "summary": "Tipos de desejos (wishes) do funil comercial, desde o cadastro até a conversão em proposta.",
+      "tags": [
+        "type-definition",
+        "data-model",
+        "wish",
+        "domain"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/customer/src/pages/offer-growth/AssetsPage.tsx:AssetsPage",
+      "type": "function",
+      "name": "AssetsPage",
+      "filePath": "apps/customer/src/pages/offer-growth/AssetsPage.tsx",
+      "lineRange": [
+        14,
+        103
+      ],
+      "summary": "Componente que carrega assets e entitlements em paralelo e renderiza a lista com ações por tipo de asset.",
+      "tags": [
+        "component",
+        "page-component",
+        "offer-growth"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/customer/src/pages/offer-growth/AssetsPage.tsx:typeIcon",
+      "type": "function",
+      "name": "typeIcon",
+      "filePath": "apps/customer/src/pages/offer-growth/AssetsPage.tsx",
+      "lineRange": [
+        105,
+        120
+      ],
+      "summary": "Mapeia o tipo de asset para o ícone exibido na listagem.",
+      "tags": [
+        "utility",
+        "mapping",
+        "helper"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/customer/src/pages/offer-growth/AutomationsPage.tsx:AutomationsPage",
+      "type": "function",
+      "name": "AutomationsPage",
+      "filePath": "apps/customer/src/pages/offer-growth/AutomationsPage.tsx",
+      "lineRange": [
+        29,
+        439
+      ],
+      "summary": "Componente completo da página de automações: estado do formulário, validação, criação, ativação/pausa e renderização.",
+      "tags": [
+        "component",
+        "page-component",
+        "form",
+        "automation"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/customer/src/pages/offer-growth/CampaignsPage.tsx:CampaignsPage",
+      "type": "function",
+      "name": "CampaignsPage",
+      "filePath": "apps/customer/src/pages/offer-growth/CampaignsPage.tsx",
+      "lineRange": [
+        24,
+        234
+      ],
+      "summary": "Componente da página de campanhas com criação vinculada a ofertas, avanço de status e expansão de detalhes.",
+      "tags": [
+        "component",
+        "page-component",
+        "campaign"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/customer/src/pages/offer-growth/CouponsPage.tsx:CouponsPage",
+      "type": "function",
+      "name": "CouponsPage",
+      "filePath": "apps/customer/src/pages/offer-growth/CouponsPage.tsx",
+      "lineRange": [
+        33,
+        326
+      ],
+      "summary": "Componente da página de cupons com formulário de criação validado e listagem exibindo período de validade.",
+      "tags": [
+        "component",
+        "page-component",
+        "form",
+        "coupon"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/customer/src/pages/offer-growth/CreativeStudioPage.tsx:CreativeStudioPage",
+      "type": "function",
+      "name": "CreativeStudioPage",
+      "filePath": "apps/customer/src/pages/offer-growth/CreativeStudioPage.tsx",
+      "lineRange": [
+        29,
+        307
+      ],
+      "summary": "Componente do estúdio criativo que orquestra templates, slides, bindings e assets com persistência local.",
+      "tags": [
+        "component",
+        "page-component",
+        "editor",
+        "creative-studio"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/customer/src/pages/offer-growth/DemoPage.tsx:OfferGrowthDemoPage",
+      "type": "function",
+      "name": "OfferGrowthDemoPage",
+      "filePath": "apps/customer/src/pages/offer-growth/DemoPage.tsx",
+      "lineRange": [
+        45,
+        233
+      ],
+      "summary": "Componente da demonstração que executa o fluxo completo de offer-growth em uma única ação guiada.",
+      "tags": [
+        "component",
+        "page-component",
+        "demo"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/customer/src/pages/offer-growth/PublicationsPage.tsx:PublicationsPage",
+      "type": "function",
+      "name": "PublicationsPage",
+      "filePath": "apps/customer/src/pages/offer-growth/PublicationsPage.tsx",
+      "lineRange": [
+        22,
+        251
+      ],
+      "summary": "Componente da página de publicações com criação agendada e acompanhamento de status por canal.",
+      "tags": [
+        "component",
+        "page-component",
+        "publication"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/customer/src/pages/offer-growth/TemplatesPage.tsx:TemplatesPage",
+      "type": "function",
+      "name": "TemplatesPage",
+      "filePath": "apps/customer/src/pages/offer-growth/TemplatesPage.tsx",
+      "lineRange": [
+        12,
+        96
+      ],
+      "summary": "Componente da página de templates com criação, duplicação, exclusão e navegação para o editor.",
+      "tags": [
+        "component",
+        "page-component",
+        "templates"
+      ],
+      "complexity": "moderate"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/AssetsPage.tsx",
+      "target": "function:apps/customer/src/pages/offer-growth/AssetsPage.tsx:AssetsPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/AssetsPage.tsx",
+      "target": "function:apps/customer/src/pages/offer-growth/AssetsPage.tsx:AssetsPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/AssetsPage.tsx",
+      "target": "function:apps/customer/src/pages/offer-growth/AssetsPage.tsx:typeIcon",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/AutomationsPage.tsx",
+      "target": "function:apps/customer/src/pages/offer-growth/AutomationsPage.tsx:AutomationsPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/AutomationsPage.tsx",
+      "target": "function:apps/customer/src/pages/offer-growth/AutomationsPage.tsx:AutomationsPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/CampaignsPage.tsx",
+      "target": "function:apps/customer/src/pages/offer-growth/CampaignsPage.tsx:CampaignsPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/CampaignsPage.tsx",
+      "target": "function:apps/customer/src/pages/offer-growth/CampaignsPage.tsx:CampaignsPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/CouponsPage.tsx",
+      "target": "function:apps/customer/src/pages/offer-growth/CouponsPage.tsx:CouponsPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/CouponsPage.tsx",
+      "target": "function:apps/customer/src/pages/offer-growth/CouponsPage.tsx:CouponsPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/CreativeStudioPage.tsx",
+      "target": "function:apps/customer/src/pages/offer-growth/CreativeStudioPage.tsx:CreativeStudioPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/CreativeStudioPage.tsx",
+      "target": "function:apps/customer/src/pages/offer-growth/CreativeStudioPage.tsx:CreativeStudioPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/DemoPage.tsx",
+      "target": "function:apps/customer/src/pages/offer-growth/DemoPage.tsx:OfferGrowthDemoPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/DemoPage.tsx",
+      "target": "function:apps/customer/src/pages/offer-growth/DemoPage.tsx:OfferGrowthDemoPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/PublicationsPage.tsx",
+      "target": "function:apps/customer/src/pages/offer-growth/PublicationsPage.tsx:PublicationsPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/PublicationsPage.tsx",
+      "target": "function:apps/customer/src/pages/offer-growth/PublicationsPage.tsx:PublicationsPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/TemplatesPage.tsx",
+      "target": "function:apps/customer/src/pages/offer-growth/TemplatesPage.tsx:TemplatesPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/TemplatesPage.tsx",
+      "target": "function:apps/customer/src/pages/offer-growth/TemplatesPage.tsx:TemplatesPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/AutomationsPage.tsx",
+      "target": "file:apps/customer/src/pages/offer-growth/AutomationsPage.test.tsx",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/CampaignsPage.tsx",
+      "target": "file:apps/customer/src/pages/offer-growth/CampaignsPage.test.tsx",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/CouponsPage.tsx",
+      "target": "file:apps/customer/src/pages/offer-growth/CouponsPage.test.tsx",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/CreativeStudioPage.tsx",
+      "target": "file:apps/customer/src/pages/offer-growth/CreativeStudioPage.test.tsx",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/PublicationsPage.tsx",
+      "target": "file:apps/customer/src/pages/offer-growth/PublicationsPage.test.tsx",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/TemplatesPage.tsx",
+      "target": "file:apps/customer/src/pages/offer-growth/TemplatesPage.test.tsx",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "function:apps/customer/src/pages/offer-growth/AssetsPage.tsx:AssetsPage",
+      "target": "function:apps/customer/src/lib/offerGrowthApi.ts:listAssets",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/customer/src/pages/offer-growth/AssetsPage.tsx:AssetsPage",
+      "target": "function:apps/customer/src/lib/offerGrowthApi.ts:listEntitlements",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/customer/src/pages/offer-growth/AutomationsPage.tsx:AutomationsPage",
+      "target": "function:apps/customer/src/lib/offerGrowthApi.ts:listAutomations",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/customer/src/pages/offer-growth/AutomationsPage.tsx:AutomationsPage",
+      "target": "function:apps/customer/src/lib/offerGrowthApi.ts:createAutomation",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/customer/src/pages/offer-growth/AutomationsPage.tsx:AutomationsPage",
+      "target": "function:apps/customer/src/lib/offerGrowthApi.ts:listCoupons",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/customer/src/pages/offer-growth/CampaignsPage.tsx:CampaignsPage",
+      "target": "function:apps/customer/src/lib/offerGrowthApi.ts:listCampaigns",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/customer/src/pages/offer-growth/CampaignsPage.tsx:CampaignsPage",
+      "target": "function:apps/customer/src/lib/offerGrowthApi.ts:createCampaign",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/customer/src/pages/offer-growth/CampaignsPage.tsx:CampaignsPage",
+      "target": "function:apps/customer/src/lib/offerGrowthApi.ts:transitionCampaignStatus",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/customer/src/pages/offer-growth/CouponsPage.tsx:CouponsPage",
+      "target": "function:apps/customer/src/lib/offerGrowthApi.ts:listCoupons",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/customer/src/pages/offer-growth/CouponsPage.tsx:CouponsPage",
+      "target": "function:apps/customer/src/lib/offerGrowthApi.ts:createCoupon",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/customer/src/pages/offer-growth/CouponsPage.tsx:CouponsPage",
+      "target": "function:apps/customer/src/lib/offerGrowthApi.ts:listCampaigns",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/customer/src/pages/offer-growth/CreativeStudioPage.tsx:CreativeStudioPage",
+      "target": "function:apps/customer/src/lib/offerGrowthApi.ts:listOffers",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/customer/src/pages/offer-growth/CreativeStudioPage.tsx:CreativeStudioPage",
+      "target": "function:apps/customer/src/lib/offerGrowthApi.ts:listAssets",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/customer/src/pages/offer-growth/CreativeStudioPage.tsx:CreativeStudioPage",
+      "target": "function:apps/customer/src/lib/localTemplateStore.ts:saveTemplate",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/customer/src/pages/offer-growth/CreativeStudioPage.tsx:CreativeStudioPage",
+      "target": "function:apps/customer/src/lib/localTemplateStore.ts:buildDefaultTemplate",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/customer/src/pages/offer-growth/DemoPage.tsx:OfferGrowthDemoPage",
+      "target": "function:apps/customer/src/lib/offerGrowthApi.ts:createPublication",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/customer/src/pages/offer-growth/DemoPage.tsx:OfferGrowthDemoPage",
+      "target": "function:apps/customer/src/lib/offerGrowthApi.ts:simulateInternalComment",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/customer/src/pages/offer-growth/DemoPage.tsx:OfferGrowthDemoPage",
+      "target": "function:apps/customer/src/lib/offerGrowthApi.ts:createAutomation",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/customer/src/pages/offer-growth/PublicationsPage.tsx:PublicationsPage",
+      "target": "function:apps/customer/src/lib/offerGrowthApi.ts:listPublications",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/customer/src/pages/offer-growth/PublicationsPage.tsx:PublicationsPage",
+      "target": "function:apps/customer/src/lib/offerGrowthApi.ts:createPublication",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/customer/src/pages/offer-growth/TemplatesPage.tsx:TemplatesPage",
+      "target": "function:apps/customer/src/lib/localTemplateStore.ts:listTemplates",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/customer/src/pages/offer-growth/TemplatesPage.tsx:TemplatesPage",
+      "target": "function:apps/customer/src/lib/localTemplateStore.ts:duplicateTemplate",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/customer/src/pages/offer-growth/TemplatesPage.tsx:TemplatesPage",
+      "target": "function:apps/customer/src/lib/localTemplateStore.ts:deleteTemplate",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/AssetsPage.tsx",
+      "target": "file:apps/customer/src/components/offer-growth/EntitlementNotice.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/AssetsPage.tsx",
+      "target": "file:apps/customer/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/AssetsPage.tsx",
+      "target": "file:apps/customer/src/lib/offerGrowthApi.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/AssetsPage.tsx",
+      "target": "file:apps/customer/src/lib/offerGrowthLabels.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/AssetsPage.tsx",
+      "target": "file:apps/customer/src/types/offerGrowth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/AutomationsPage.test.tsx",
+      "target": "file:apps/customer/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/AutomationsPage.test.tsx",
+      "target": "file:apps/customer/src/lib/offerGrowthApi.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/AutomationsPage.test.tsx",
+      "target": "file:apps/customer/src/pages/offer-growth/AutomationsPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/AutomationsPage.tsx",
+      "target": "file:apps/customer/src/components/offer-growth/EntitlementNotice.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/AutomationsPage.tsx",
+      "target": "file:apps/customer/src/components/ui/button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/AutomationsPage.tsx",
+      "target": "file:apps/customer/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/AutomationsPage.tsx",
+      "target": "file:apps/customer/src/lib/offerGrowthApi.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/AutomationsPage.tsx",
+      "target": "file:apps/customer/src/lib/offerGrowthLabels.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/AutomationsPage.tsx",
+      "target": "file:apps/customer/src/types/offerGrowth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/CampaignsPage.test.tsx",
+      "target": "file:apps/customer/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/CampaignsPage.test.tsx",
+      "target": "file:apps/customer/src/lib/offerGrowthApi.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/CampaignsPage.test.tsx",
+      "target": "file:apps/customer/src/pages/offer-growth/CampaignsPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/CampaignsPage.test.tsx",
+      "target": "file:apps/customer/src/types/offerGrowth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/CampaignsPage.tsx",
+      "target": "file:apps/customer/src/components/offer-growth/EntitlementNotice.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/CampaignsPage.tsx",
+      "target": "file:apps/customer/src/components/ui/button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/CampaignsPage.tsx",
+      "target": "file:apps/customer/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/CampaignsPage.tsx",
+      "target": "file:apps/customer/src/lib/offerGrowthApi.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/CampaignsPage.tsx",
+      "target": "file:apps/customer/src/lib/offerGrowthLabels.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/CampaignsPage.tsx",
+      "target": "file:apps/customer/src/types/offer.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/CampaignsPage.tsx",
+      "target": "file:apps/customer/src/types/offerGrowth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/CouponsPage.test.tsx",
+      "target": "file:apps/customer/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/CouponsPage.test.tsx",
+      "target": "file:apps/customer/src/lib/offerGrowthApi.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/CouponsPage.test.tsx",
+      "target": "file:apps/customer/src/pages/offer-growth/CouponsPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/CouponsPage.test.tsx",
+      "target": "file:apps/customer/src/types/offerGrowth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/CouponsPage.tsx",
+      "target": "file:apps/customer/src/components/offer-growth/EntitlementNotice.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/CouponsPage.tsx",
+      "target": "file:apps/customer/src/components/ui/button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/CouponsPage.tsx",
+      "target": "file:apps/customer/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/CouponsPage.tsx",
+      "target": "file:apps/customer/src/lib/offerGrowthApi.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/CouponsPage.tsx",
+      "target": "file:apps/customer/src/lib/offerGrowthLabels.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/CouponsPage.tsx",
+      "target": "file:apps/customer/src/types/offer.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/CouponsPage.tsx",
+      "target": "file:apps/customer/src/types/offerGrowth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/CreativeStudioPage.test.tsx",
+      "target": "file:apps/customer/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/CreativeStudioPage.test.tsx",
+      "target": "file:apps/customer/src/lib/offerGrowthApi.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/CreativeStudioPage.test.tsx",
+      "target": "file:apps/customer/src/pages/offer-growth/CreativeStudioPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/CreativeStudioPage.test.tsx",
+      "target": "file:apps/customer/src/types/offer.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/CreativeStudioPage.tsx",
+      "target": "file:apps/customer/src/components/offer-growth/EntitlementNotice.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/CreativeStudioPage.tsx",
+      "target": "file:apps/customer/src/components/ui/button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/CreativeStudioPage.tsx",
+      "target": "file:apps/customer/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/CreativeStudioPage.tsx",
+      "target": "file:apps/customer/src/lib/localTemplateStore.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/CreativeStudioPage.tsx",
+      "target": "file:apps/customer/src/lib/offerGrowthApi.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/CreativeStudioPage.tsx",
+      "target": "file:apps/customer/src/lib/offerGrowthLabels.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/CreativeStudioPage.tsx",
+      "target": "file:apps/customer/src/types/offer.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/CreativeStudioPage.tsx",
+      "target": "file:apps/customer/src/types/offerGrowth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/DemoPage.tsx",
+      "target": "file:apps/customer/src/components/offer-growth/EntitlementNotice.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/DemoPage.tsx",
+      "target": "file:apps/customer/src/components/ui/button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/DemoPage.tsx",
+      "target": "file:apps/customer/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/DemoPage.tsx",
+      "target": "file:apps/customer/src/lib/offerGrowthApi.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/DemoPage.tsx",
+      "target": "file:apps/customer/src/types/offer.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/DemoPage.tsx",
+      "target": "file:apps/customer/src/types/offerGrowth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/PublicationsPage.test.tsx",
+      "target": "file:apps/customer/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/PublicationsPage.test.tsx",
+      "target": "file:apps/customer/src/lib/offerGrowthApi.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/PublicationsPage.test.tsx",
+      "target": "file:apps/customer/src/pages/offer-growth/PublicationsPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/PublicationsPage.test.tsx",
+      "target": "file:apps/customer/src/types/offerGrowth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/PublicationsPage.tsx",
+      "target": "file:apps/customer/src/components/offer-growth/EntitlementNotice.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/PublicationsPage.tsx",
+      "target": "file:apps/customer/src/components/ui/button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/PublicationsPage.tsx",
+      "target": "file:apps/customer/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/PublicationsPage.tsx",
+      "target": "file:apps/customer/src/lib/offerGrowthApi.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/PublicationsPage.tsx",
+      "target": "file:apps/customer/src/lib/offerGrowthLabels.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/PublicationsPage.tsx",
+      "target": "file:apps/customer/src/types/offer.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/PublicationsPage.tsx",
+      "target": "file:apps/customer/src/types/offerGrowth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/TemplatesPage.test.tsx",
+      "target": "file:apps/customer/src/lib/localTemplateStore.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/TemplatesPage.test.tsx",
+      "target": "file:apps/customer/src/pages/offer-growth/TemplatesPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/TemplatesPage.test.tsx",
+      "target": "file:apps/customer/src/types/offerGrowth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/TemplatesPage.tsx",
+      "target": "file:apps/customer/src/components/ui/button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/TemplatesPage.tsx",
+      "target": "file:apps/customer/src/lib/localTemplateStore.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/pages/offer-growth/TemplatesPage.tsx",
+      "target": "file:apps/customer/src/types/offerGrowth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/types/booking.ts",
+      "target": "file:apps/customer/src/types/transport.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/types/offerGrowth.ts",
+      "target": "file:apps/customer/src/types/offer.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/customer/src/types/operations.ts",
+      "target": "file:apps/customer/src/types/transport.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    }
+  ]
+}

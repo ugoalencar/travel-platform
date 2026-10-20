@@ -80,7 +80,7 @@ export function DemoRequest() {
             Solicitar Demonstração
           </h1>
           <p className="text-gray-600 mt-2">
-            Converse com nosso time sobre como o TravelPlatform pode ajudar sua agência
+            Converse com nosso time sobre como a Travel Plataforma pode ajudar sua agência
           </p>
         </div>
 

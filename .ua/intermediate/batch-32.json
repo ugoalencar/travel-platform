@@ -1,0 +1,38 @@
+{
+  "nodes": [
+    {
+      "id": "document:.ai/policies/README.md",
+      "type": "document",
+      "name": "README.md",
+      "filePath": ".ai/policies/README.md",
+      "summary": "Índice das políticas de proteção contra comandos destrutivos: quick start, comandos sempre bloqueados, níveis de ameaça, ambientes, auditoria, integração com agentes e exemplos de proteção.",
+      "tags": ["documentation", "entry-point", "security", "policies", "destructive-commands"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:.ai/policies/guardrails-implementation.md",
+      "type": "document",
+      "name": "guardrails-implementation.md",
+      "filePath": ".ai/policies/guardrails-implementation.md",
+      "summary": "Especificação técnica da implementação dos guard rails: conteúdo do guardrails.config.json, código de referência em TypeScript/JavaScript, uso e integração com a execução de comandos no terminal.",
+      "tags": ["documentation", "security", "guardrails", "typescript", "configuration"],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:.ai/policies/guardrails.md",
+      "type": "document",
+      "name": "guardrails.md",
+      "filePath": ".ai/policies/guardrails.md",
+      "summary": "Política de guard rails: comandos destrutivos bloqueados por categoria, protocolo de detecção/validação/confirmação/auditoria, padrões de detecção, whitelist, configuração por ambiente e monitoramento.",
+      "tags": ["documentation", "security", "guardrails", "policies", "destructive-commands"],
+      "complexity": "complex"
+    }
+  ],
+  "edges": [
+    {"source": "document:.ai/policies/README.md", "target": "document:.ai/policies/guardrails.md", "type": "documents", "direction": "forward", "weight": 0.5},
+    {"source": "document:.ai/policies/README.md", "target": "document:.ai/policies/guardrails-implementation.md", "type": "documents", "direction": "forward", "weight": 0.5},
+    {"source": "document:.ai/policies/README.md", "target": "document:.ai/checklists/destructive-commands.md", "type": "documents", "direction": "forward", "weight": 0.5},
+    {"source": "document:.ai/policies/guardrails-implementation.md", "target": "document:.ai/policies/guardrails.md", "type": "related", "direction": "forward", "weight": 0.5},
+    {"source": "document:.ai/policies/guardrails.md", "target": "document:.ai/checklists/destructive-commands.md", "type": "related", "direction": "forward", "weight": 0.5}
+  ]
+}

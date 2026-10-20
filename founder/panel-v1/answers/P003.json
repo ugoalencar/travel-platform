@@ -1,0 +1,13 @@
+{
+  "id": "P003",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Até testo de graça porque não tem contrato, mas pagar logo de cara não. Já peguei um sistema parecido que travou e perdeu dado na migração, e aqui nem tem uma agência rodando de verdade pra eu ver que funciona. Prefiro esperar um pouco antes de confiar meus clientes nisso.",
+  "objection": "Não ter nenhuma agência usando em produção me deixa inseguro — se der problema na migração dos meus dados da planilha, quem vai me garantir que não vou perder histórico de cliente igual da outra vez?",
+  "would_change_my_mind": "Ver pelo menos umas 2 ou 3 agências parecidas com a minha já usando sem reclamação, e alguém me mostrando que a migração da planilha entra inteira, sem perder nada",
+  "price_too_cheap": 29,
+  "price_cheap": 69,
+  "price_expensive": 150,
+  "price_too_expensive": 250
+}

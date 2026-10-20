@@ -1,0 +1,49 @@
+{
+  "nodes": [
+    {
+      "id": "document:.ai/checklists/README.md",
+      "type": "document",
+      "name": "README.md",
+      "filePath": ".ai/checklists/README.md",
+      "summary": "Índice dos checklists operacionais de agentes (pre-commit, pre-pr, destructive-commands) com a regra de não duplicar as regras globais de AGENTS.md e QUALITY-GATES.md.",
+      "tags": ["documentation", "entry-point", "checklist", "ai-guidelines"],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:.ai/checklists/destructive-commands.md",
+      "type": "document",
+      "name": "destructive-commands.md",
+      "filePath": ".ai/checklists/destructive-commands.md",
+      "summary": "Checklist de comandos destrutivos bloqueados (filesystem, database, git, Docker, Kubernetes, IaC) com processo de confirmação em 3 níveis de ameaça, auditoria, exceções permitidas e matriz de risco.",
+      "tags": ["documentation", "checklist", "security", "destructive-commands", "operations"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:.ai/checklists/pre-commit.md",
+      "type": "document",
+      "name": "pre-commit.md",
+      "filePath": ".ai/checklists/pre-commit.md",
+      "summary": "Checklist das verificações obrigatórias antes de um commit local (lint, typecheck, testes, secrets), referenciando a política QUALITY-GATES.md.",
+      "tags": ["documentation", "checklist", "pre-commit", "quality-gates"],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:.ai/checklists/pre-pr.md",
+      "type": "document",
+      "name": "pre-pr.md",
+      "filePath": ".ai/checklists/pre-pr.md",
+      "summary": "Checklist das exigências antes de abrir um Pull Request, incluindo checks obrigatórios e revisão exigida, alinhado à política QUALITY-GATES.md.",
+      "tags": ["documentation", "checklist", "pull-request", "quality-gates", "review"],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {"source": "document:.ai/checklists/README.md", "target": "document:.ai/checklists/pre-commit.md", "type": "documents", "direction": "forward", "weight": 0.5},
+    {"source": "document:.ai/checklists/README.md", "target": "document:.ai/checklists/pre-pr.md", "type": "documents", "direction": "forward", "weight": 0.5},
+    {"source": "document:.ai/checklists/README.md", "target": "document:.ai/checklists/destructive-commands.md", "type": "documents", "direction": "forward", "weight": 0.5},
+    {"source": "document:.ai/checklists/README.md", "target": "document:AGENTS.md", "type": "documents", "direction": "forward", "weight": 0.5},
+    {"source": "document:.ai/checklists/README.md", "target": "document:QUALITY-GATES.md", "type": "documents", "direction": "forward", "weight": 0.5},
+    {"source": "document:.ai/checklists/pre-commit.md", "target": "document:QUALITY-GATES.md", "type": "documents", "direction": "forward", "weight": 0.5},
+    {"source": "document:.ai/checklists/pre-pr.md", "target": "document:QUALITY-GATES.md", "type": "documents", "direction": "forward", "weight": 0.5}
+  ]
+}

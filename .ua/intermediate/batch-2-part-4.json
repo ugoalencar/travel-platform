@@ -1,0 +1,424 @@
+{
+ "nodes": [
+  {
+   "id": "file:apps/customer/src/lib/utils.ts",
+   "type": "file",
+   "name": "utils.ts",
+   "filePath": "apps/customer/src/lib/utils.ts",
+   "summary": "Utilitário cn que combina clsx com tailwind-merge para montar class names condicionais.",
+   "tags": [
+    "utility",
+    "tailwind",
+    "classnames"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:apps/customer/src/main.tsx",
+   "type": "file",
+   "name": "main.tsx",
+   "filePath": "apps/customer/src/main.tsx",
+   "summary": "Ponto de entrada da aplicação customer: monta o App em StrictMode com BrowserRouter e registra o service worker apenas em produção.",
+   "tags": [
+    "entry-point",
+    "react",
+    "bootstrap"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:apps/customer/src/pages/AcceptInvitationPage.tsx",
+   "type": "file",
+   "name": "AcceptInvitationPage.tsx",
+   "filePath": "apps/customer/src/pages/AcceptInvitationPage.tsx",
+   "summary": "Página de aceitação de convite que envia o token à API e exibe mensagens centralizadas de sucesso, erro e carregamento.",
+   "tags": [
+    "component",
+    "page",
+    "auth",
+    "invitation"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:apps/customer/src/pages/AcceptInvitationPage.tsx:AcceptInvitationPage",
+   "type": "function",
+   "name": "AcceptInvitationPage",
+   "filePath": "apps/customer/src/pages/AcceptInvitationPage.tsx",
+   "lineRange": [
+    16,
+    196
+   ],
+   "summary": "Página que lê o token de convite da URL, envia a aceitação para a API e apresenta estados de carregamento, sucesso e erro.",
+   "tags": [
+    "component",
+    "page",
+    "auth",
+    "invitation"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:apps/customer/src/pages/AcceptInvitationPage.tsx:CenteredMessage",
+   "type": "function",
+   "name": "CenteredMessage",
+   "filePath": "apps/customer/src/pages/AcceptInvitationPage.tsx",
+   "lineRange": [
+    198,
+    215
+   ],
+   "summary": "Mensagem centralizada usada nos estados de sucesso e erro da página de convite.",
+   "tags": [
+    "component",
+    "feedback",
+    "layout"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:apps/customer/src/pages/BookingDetailsPage.test.tsx",
+   "type": "file",
+   "name": "BookingDetailsPage.test.tsx",
+   "filePath": "apps/customer/src/pages/BookingDetailsPage.test.tsx",
+   "summary": "Testes do BookingDetailsPage cobrindo a renderização roteada e os estados de erro da página.",
+   "tags": [
+    "test",
+    "react",
+    "booking"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/pages/BookingDetailsPage.test.tsx:renderRouted",
+   "type": "function",
+   "name": "renderRouted",
+   "filePath": "apps/customer/src/pages/BookingDetailsPage.test.tsx",
+   "lineRange": [
+    31,
+    40
+   ],
+   "summary": "Helper de teste que renderiza o BookingDetailsPage dentro de MemoryRouter com mocks de rota.",
+   "tags": [
+    "test",
+    "helper",
+    "react-router"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:apps/customer/src/pages/BookingDetailsPage.tsx",
+   "type": "file",
+   "name": "BookingDetailsPage.tsx",
+   "filePath": "apps/customer/src/pages/BookingDetailsPage.tsx",
+   "summary": "Página de detalhes da reserva com passageiros, status, ações e mensagens de erro mapeadas para o usuário.",
+   "tags": [
+    "component",
+    "page",
+    "booking"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:apps/customer/src/pages/BookingDetailsPage.tsx:BookingDetailsPage",
+   "type": "function",
+   "name": "BookingDetailsPage",
+   "filePath": "apps/customer/src/pages/BookingDetailsPage.tsx",
+   "lineRange": [
+    27,
+    234
+   ],
+   "summary": "Página de detalhes da reserva com passageiros, status, ações e mensagens de erro mapeadas para o usuário.",
+   "tags": [
+    "component",
+    "page",
+    "booking"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:apps/customer/src/pages/BookingFormPage.test.tsx",
+   "type": "file",
+   "name": "BookingFormPage.test.tsx",
+   "filePath": "apps/customer/src/pages/BookingFormPage.test.tsx",
+   "summary": "Testes do BookingFormPage cobrindo o envio do formulário de reserva e o mapeamento de erros da API.",
+   "tags": [
+    "test",
+    "react",
+    "booking",
+    "form"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/pages/BookingFormPage.test.tsx:renderRouted",
+   "type": "function",
+   "name": "renderRouted",
+   "filePath": "apps/customer/src/pages/BookingFormPage.test.tsx",
+   "lineRange": [
+    32,
+    41
+   ],
+   "summary": "Helper de teste que renderiza o BookingFormPage dentro de MemoryRouter.",
+   "tags": [
+    "test",
+    "helper",
+    "react-router"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:apps/customer/src/pages/BookingFormPage.tsx",
+   "type": "file",
+   "name": "BookingFormPage.tsx",
+   "filePath": "apps/customer/src/pages/BookingFormPage.tsx",
+   "summary": "Formulário de criação de reserva com dados dos passageiros, seleção de transporte, validação e envio para a API.",
+   "tags": [
+    "component",
+    "page",
+    "form",
+    "booking"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:apps/customer/src/pages/BookingFormPage.tsx:mapErrorToMessage",
+   "type": "function",
+   "name": "mapErrorToMessage",
+   "filePath": "apps/customer/src/pages/BookingFormPage.tsx",
+   "lineRange": [
+    15,
+    33
+   ],
+   "summary": "Converte erros da API em mensagens amigáveis para os campos do formulário de reserva.",
+   "tags": [
+    "error-handling",
+    "form",
+    "utility"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/pages/BookingFormPage.tsx:BookingFormPage",
+   "type": "function",
+   "name": "BookingFormPage",
+   "filePath": "apps/customer/src/pages/BookingFormPage.tsx",
+   "lineRange": [
+    35,
+    328
+   ],
+   "summary": "Formulário de criação de reserva com dados dos passageiros, seleção de transporte, validação e envio para a API.",
+   "tags": [
+    "component",
+    "page",
+    "form",
+    "booking"
+   ],
+   "complexity": "complex"
+  }
+ ],
+ "edges": [
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/main.tsx",
+   "target": "file:apps/customer/src/App.tsx",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/main.tsx",
+   "target": "file:apps/customer/src/index.css",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/pages/AcceptInvitationPage.tsx",
+   "target": "function:apps/customer/src/pages/AcceptInvitationPage.tsx:AcceptInvitationPage",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/pages/AcceptInvitationPage.tsx",
+   "target": "function:apps/customer/src/pages/AcceptInvitationPage.tsx:AcceptInvitationPage",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/pages/AcceptInvitationPage.tsx",
+   "target": "function:apps/customer/src/pages/AcceptInvitationPage.tsx:CenteredMessage",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/pages/BookingDetailsPage.test.tsx",
+   "target": "function:apps/customer/src/pages/BookingDetailsPage.test.tsx:renderRouted",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/pages/BookingDetailsPage.test.tsx",
+   "target": "file:apps/customer/src/lib/api.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/pages/BookingDetailsPage.test.tsx",
+   "target": "file:apps/customer/src/pages/BookingDetailsPage.tsx",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/pages/BookingDetailsPage.tsx",
+   "target": "function:apps/customer/src/pages/BookingDetailsPage.tsx:BookingDetailsPage",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/pages/BookingDetailsPage.tsx",
+   "target": "function:apps/customer/src/pages/BookingDetailsPage.tsx:BookingDetailsPage",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/pages/BookingDetailsPage.tsx",
+   "target": "file:apps/customer/src/components/ui/button.tsx",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/pages/BookingDetailsPage.tsx",
+   "target": "file:apps/customer/src/lib/api.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/pages/BookingDetailsPage.tsx",
+   "target": "file:apps/customer/src/types/booking.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/pages/BookingDetailsPage.tsx",
+   "target": "file:apps/customer/src/types/transport.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/pages/BookingFormPage.test.tsx",
+   "target": "function:apps/customer/src/pages/BookingFormPage.test.tsx:renderRouted",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/pages/BookingFormPage.test.tsx",
+   "target": "file:apps/customer/src/lib/api.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/pages/BookingFormPage.test.tsx",
+   "target": "file:apps/customer/src/pages/BookingFormPage.tsx",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/pages/BookingFormPage.test.tsx",
+   "target": "file:apps/customer/src/types/customer.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/pages/BookingFormPage.test.tsx",
+   "target": "file:apps/customer/src/types/transport.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/pages/BookingFormPage.tsx",
+   "target": "function:apps/customer/src/pages/BookingFormPage.tsx:mapErrorToMessage",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/pages/BookingFormPage.tsx",
+   "target": "function:apps/customer/src/pages/BookingFormPage.tsx:BookingFormPage",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/pages/BookingFormPage.tsx",
+   "target": "function:apps/customer/src/pages/BookingFormPage.tsx:BookingFormPage",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/pages/BookingFormPage.tsx",
+   "target": "file:apps/customer/src/components/ui/button.tsx",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/pages/BookingFormPage.tsx",
+   "target": "file:apps/customer/src/lib/api.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/pages/BookingFormPage.tsx",
+   "target": "file:apps/customer/src/types/booking.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/pages/BookingFormPage.tsx",
+   "target": "file:apps/customer/src/types/customer.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/pages/BookingFormPage.tsx",
+   "target": "file:apps/customer/src/types/transport.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/pages/BookingDetailsPage.tsx",
+   "target": "file:apps/customer/src/pages/BookingDetailsPage.test.tsx",
+   "type": "tested_by",
+   "weight": 0.5
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/pages/BookingFormPage.tsx",
+   "target": "file:apps/customer/src/pages/BookingFormPage.test.tsx",
+   "type": "tested_by",
+   "weight": 0.5
+  }
+ ]
+}

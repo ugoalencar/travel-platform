@@ -1,0 +1,13 @@
+{
+  "id": "P012",
+  "buys": true,
+  "purchases_first_month": 1,
+  "reason_code": "need",
+  "reason": "Eu realmente canso de perder orçamento no meio da planilha e descobrir depois que ninguém respondeu o cliente, então o funil e o histórico por cliente me interessam de verdade. Como tem teste antes de assinar e garantia na migração, eu arrisco entrar no Programa Agência Pioneira a R$79 pra testar com minha equipe.",
+  "objection": "O financeiro é justamente o que mais me preocupa: cobrança automática e nota fiscal ainda estão em desenvolvimento, então na prática eu continuo emitindo e cobrando por fora como já faço hoje — o 'controle financeiro' do sistema pode virar só relatório bonito sem resolver o que mais me dá trabalho.",
+  "would_change_my_mind": "Ver uma agência parecida com a minha já usando de verdade (não só depoimento de marketing) e uma data real pra cobrança automática e nota fiscal saírem do papel.",
+  "price_too_cheap": 29,
+  "price_cheap": 79,
+  "price_expensive": 299,
+  "price_too_expensive": 450
+}

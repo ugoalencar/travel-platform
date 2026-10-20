@@ -1,13 +1,16 @@
 import { Link } from 'react-router-dom';
 import { Check } from 'lucide-react';
 import { agencySignupUrl } from '../lib/agencyAppUrl';
+import { Logo } from '../components/Logo';
 
 export function PricingPage() {
   return (
     <div className="bg-white">
       {/* Navegação */}
       <nav className="flex items-center justify-between border-b border-slate-100 px-4 py-4 sm:px-8">
-        <h1 className="text-xl font-bold text-(--color-travel-navy)">Travel Platform</h1>
+        <Link to="/" aria-label="Travel Plataforma, página inicial">
+          <Logo className="h-9" />
+        </Link>
         <Link to="/" className="text-sm font-medium text-slate-600 hover:text-(--color-travel-navy)">
           Voltar
         </Link>
@@ -57,7 +60,7 @@ export function PricingPage() {
 
       {/* Rodapé */}
       <footer className="bg-slate-900 px-8 py-8 text-center text-white">
-        <p className="text-sm text-white/70">&copy; {new Date().getFullYear()} Travel Platform. Todos os direitos reservados.</p>
+        <p className="text-sm text-white/70">&copy; {new Date().getFullYear()} Travel Plataforma. Todos os direitos reservados.</p>
       </footer>
     </div>
   );

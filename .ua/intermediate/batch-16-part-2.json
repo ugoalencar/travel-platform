@@ -1,0 +1,1034 @@
+{
+ "nodes": [
+  {
+   "id": "file:apps/agency/src/pages/OffersPage.tsx",
+   "type": "file",
+   "name": "OffersPage.tsx",
+   "filePath": "apps/agency/src/pages/OffersPage.tsx",
+   "summary": "Página Ofertas: lista ofertas com busca e modal de criação, integrando a API de ofertas.",
+   "tags": [
+    "component",
+    "page",
+    "ofertas",
+    "crud",
+    "api-integration"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:apps/agency/src/pages/OnboardingWizardPage.tsx",
+   "type": "file",
+   "name": "OnboardingWizardPage.tsx",
+   "filePath": "apps/agency/src/pages/OnboardingWizardPage.tsx",
+   "summary": "Assistente de onboarding da agência em etapas (perfil, equipe, conclusão) com progresso persistido no servidor.",
+   "tags": [
+    "component",
+    "page",
+    "onboarding",
+    "wizard",
+    "form"
+   ],
+   "complexity": "complex",
+   "languageNotes": "O progresso é persistido via PATCH /settings/onboarding-step e lido de agencies.onboarding_step."
+  },
+  {
+   "id": "file:apps/agency/src/pages/PayablesPage.test.tsx",
+   "type": "file",
+   "name": "PayablesPage.test.tsx",
+   "filePath": "apps/agency/src/pages/PayablesPage.test.tsx",
+   "summary": "Testes da página de Contas a Pagar verificando renderização e carregamento de dados.",
+   "tags": [
+    "test",
+    "component",
+    "financeiro",
+    "rendering"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:apps/agency/src/pages/PayablesPage.tsx",
+   "type": "file",
+   "name": "PayablesPage.tsx",
+   "filePath": "apps/agency/src/pages/PayablesPage.tsx",
+   "summary": "Contas a Pagar: lista obrigações com fornecedores, filtros, registro de pagamentos e alocação de pagamentos.",
+   "tags": [
+    "component",
+    "page",
+    "financeiro",
+    "crud",
+    "contas-a-pagar"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:apps/agency/src/pages/PayrollPage.tsx",
+   "type": "file",
+   "name": "PayrollPage.tsx",
+   "filePath": "apps/agency/src/pages/PayrollPage.tsx",
+   "summary": "Folha de pagamento: gera, aprova e paga entradas de payroll, gerindo comissões, deduções de funcionários e planos de comissão.",
+   "tags": [
+    "component",
+    "page",
+    "folha-de-pagamento",
+    "financeiro",
+    "crud"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:apps/agency/src/pages/PescadorPage.test.tsx",
+   "type": "file",
+   "name": "PescadorPage.test.tsx",
+   "filePath": "apps/agency/src/pages/PescadorPage.test.tsx",
+   "summary": "Testes da página Pescador validando o fluxo de busca e publicação de resultados.",
+   "tags": [
+    "test",
+    "component",
+    "captura-de-ofertas",
+    "rendering"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:apps/agency/src/pages/PescadorPage.tsx",
+   "type": "file",
+   "name": "PescadorPage.tsx",
+   "filePath": "apps/agency/src/pages/PescadorPage.tsx",
+   "summary": "Página Pescador: gerencia fontes, buscas e resultados capturados de ofertas externas, com publicação de resultados.",
+   "tags": [
+    "component",
+    "page",
+    "captura-de-ofertas",
+    "scraper",
+    "crud"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:apps/agency/src/pages/PipelinePage.tsx",
+   "type": "file",
+   "name": "PipelinePage.tsx",
+   "filePath": "apps/agency/src/pages/PipelinePage.tsx",
+   "summary": "Pipeline comercial: visualiza pipelines, estágios e oportunidades com criação e movimentação de negócios.",
+   "tags": [
+    "component",
+    "page",
+    "pipeline-comercial",
+    "crm",
+    "crud"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:apps/agency/src/pages/OffersPage.tsx:OffersPage",
+   "type": "function",
+   "name": "OffersPage",
+   "filePath": "apps/agency/src/pages/OffersPage.tsx",
+   "lineRange": [
+    51,
+    280
+   ],
+   "summary": "Componente principal da lista de ofertas: carrega ofertas, filtra por busca e cria novas ofertas via modal.",
+   "tags": [
+    "component",
+    "ofertas",
+    "crud",
+    "api-integration"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:apps/agency/src/pages/OnboardingWizardPage.tsx:OnboardingWizardPage",
+   "type": "function",
+   "name": "OnboardingWizardPage",
+   "filePath": "apps/agency/src/pages/OnboardingWizardPage.tsx",
+   "lineRange": [
+    31,
+    389
+   ],
+   "summary": "Assistente de onboarding em etapas que persiste o progresso no servidor e conclui a configuração inicial da agência.",
+   "tags": [
+    "component",
+    "onboarding",
+    "wizard",
+    "api-integration"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:apps/agency/src/pages/PayablesPage.tsx:PayablesPage",
+   "type": "function",
+   "name": "PayablesPage",
+   "filePath": "apps/agency/src/pages/PayablesPage.tsx",
+   "lineRange": [
+    74,
+    447
+   ],
+   "summary": "Componente principal de Contas a Pagar: lista obrigações com filtros, registra pagamentos e aloca valores.",
+   "tags": [
+    "component",
+    "financeiro",
+    "crud",
+    "api-integration"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:apps/agency/src/pages/PayrollPage.tsx:PayrollPage",
+   "type": "function",
+   "name": "PayrollPage",
+   "filePath": "apps/agency/src/pages/PayrollPage.tsx",
+   "lineRange": [
+    80,
+    530
+   ],
+   "summary": "Componente principal da folha de pagamento: gera, aprova e paga entradas de payroll e gerencia comissões e deduções.",
+   "tags": [
+    "component",
+    "folha-de-pagamento",
+    "financeiro",
+    "crud"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:apps/agency/src/pages/PayrollPage.tsx:LabeledInput",
+   "type": "function",
+   "name": "LabeledInput",
+   "filePath": "apps/agency/src/pages/PayrollPage.tsx",
+   "lineRange": [
+    532,
+    543
+   ],
+   "summary": "Campo de input rotulado reutilizado nos formulários de payroll.",
+   "tags": [
+    "component",
+    "form",
+    "ui"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/agency/src/pages/PayrollPage.tsx:LabeledSelect",
+   "type": "function",
+   "name": "LabeledSelect",
+   "filePath": "apps/agency/src/pages/PayrollPage.tsx",
+   "lineRange": [
+    545,
+    559
+   ],
+   "summary": "Campo de select rotulado reutilizado nos formulários de payroll.",
+   "tags": [
+    "component",
+    "form",
+    "ui",
+    "select"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/agency/src/pages/PescadorPage.tsx:PescadorPage",
+   "type": "function",
+   "name": "PescadorPage",
+   "filePath": "apps/agency/src/pages/PescadorPage.tsx",
+   "lineRange": [
+    47,
+    392
+   ],
+   "summary": "Componente principal da página Pescador: gerencia fontes de captura, executa buscas e publica resultados de ofertas.",
+   "tags": [
+    "component",
+    "captura-de-ofertas",
+    "crud",
+    "api-integration"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:apps/agency/src/pages/PescadorPage.tsx:ResultRow",
+   "type": "function",
+   "name": "ResultRow",
+   "filePath": "apps/agency/src/pages/PescadorPage.tsx",
+   "lineRange": [
+    394,
+    461
+   ],
+   "summary": "Linha de resultado de busca do Pescador com ações de publicar e excluir.",
+   "tags": [
+    "component",
+    "captura-de-ofertas",
+    "crud"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/agency/src/pages/PipelinePage.tsx:PipelinePage",
+   "type": "function",
+   "name": "PipelinePage",
+   "filePath": "apps/agency/src/pages/PipelinePage.tsx",
+   "lineRange": [
+    97,
+    615
+   ],
+   "summary": "Componente principal do pipeline comercial: exibe estágios e oportunidades com criação e atualização de negócios.",
+   "tags": [
+    "component",
+    "pipeline-comercial",
+    "crm",
+    "crud"
+   ],
+   "complexity": "complex"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:apps/agency/src/pages/OffersPage.tsx",
+   "target": "function:apps/agency/src/pages/OffersPage.tsx:OffersPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/agency/src/pages/OnboardingWizardPage.tsx",
+   "target": "function:apps/agency/src/pages/OnboardingWizardPage.tsx:OnboardingWizardPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/agency/src/pages/PayablesPage.tsx",
+   "target": "function:apps/agency/src/pages/PayablesPage.tsx:PayablesPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/agency/src/pages/PayrollPage.tsx",
+   "target": "function:apps/agency/src/pages/PayrollPage.tsx:PayrollPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/agency/src/pages/PayrollPage.tsx",
+   "target": "function:apps/agency/src/pages/PayrollPage.tsx:LabeledInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/agency/src/pages/PayrollPage.tsx",
+   "target": "function:apps/agency/src/pages/PayrollPage.tsx:LabeledSelect",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/agency/src/pages/PescadorPage.tsx",
+   "target": "function:apps/agency/src/pages/PescadorPage.tsx:PescadorPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/agency/src/pages/PescadorPage.tsx",
+   "target": "function:apps/agency/src/pages/PescadorPage.tsx:ResultRow",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/agency/src/pages/PipelinePage.tsx",
+   "target": "function:apps/agency/src/pages/PipelinePage.tsx:PipelinePage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/agency/src/pages/OffersPage.tsx",
+   "target": "function:apps/agency/src/pages/OffersPage.tsx:OffersPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/agency/src/pages/OnboardingWizardPage.tsx",
+   "target": "function:apps/agency/src/pages/OnboardingWizardPage.tsx:OnboardingWizardPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/agency/src/pages/PayablesPage.tsx",
+   "target": "function:apps/agency/src/pages/PayablesPage.tsx:PayablesPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/agency/src/pages/PayrollPage.tsx",
+   "target": "function:apps/agency/src/pages/PayrollPage.tsx:PayrollPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/agency/src/pages/PescadorPage.tsx",
+   "target": "function:apps/agency/src/pages/PescadorPage.tsx:PescadorPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/agency/src/pages/PipelinePage.tsx",
+   "target": "function:apps/agency/src/pages/PipelinePage.tsx:PipelinePage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/agency/src/pages/OffersPage.tsx",
+   "target": "file:apps/agency/src/components/layout/PageHeader.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/OffersPage.tsx",
+   "target": "file:apps/agency/src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/OffersPage.tsx",
+   "target": "file:apps/agency/src/components/ui/card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/OffersPage.tsx",
+   "target": "file:apps/agency/src/components/ui/empty-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/OffersPage.tsx",
+   "target": "file:apps/agency/src/components/ui/error-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/OffersPage.tsx",
+   "target": "file:apps/agency/src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/OffersPage.tsx",
+   "target": "file:apps/agency/src/components/ui/loading-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/OffersPage.tsx",
+   "target": "file:apps/agency/src/components/ui/modal.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/OffersPage.tsx",
+   "target": "file:apps/agency/src/components/ui/status-badge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/OffersPage.tsx",
+   "target": "file:apps/agency/src/components/ui/table.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/OffersPage.tsx",
+   "target": "file:apps/agency/src/components/ui/textarea.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/OffersPage.tsx",
+   "target": "file:apps/agency/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/OffersPage.tsx",
+   "target": "file:apps/agency/src/lib/formatCurrency.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/OffersPage.tsx",
+   "target": "file:apps/agency/src/lib/formatDateBR.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/OnboardingWizardPage.tsx",
+   "target": "file:apps/agency/src/components/ui/card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/OnboardingWizardPage.tsx",
+   "target": "file:apps/agency/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/PayablesPage.test.tsx",
+   "target": "file:apps/agency/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/PayablesPage.test.tsx",
+   "target": "file:apps/agency/src/pages/PayablesPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/PayablesPage.tsx",
+   "target": "file:apps/agency/src/components/layout/PageHeader.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/PayablesPage.tsx",
+   "target": "file:apps/agency/src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/PayablesPage.tsx",
+   "target": "file:apps/agency/src/components/ui/card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/PayablesPage.tsx",
+   "target": "file:apps/agency/src/components/ui/empty-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/PayablesPage.tsx",
+   "target": "file:apps/agency/src/components/ui/error-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/PayablesPage.tsx",
+   "target": "file:apps/agency/src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/PayablesPage.tsx",
+   "target": "file:apps/agency/src/components/ui/loading-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/PayablesPage.tsx",
+   "target": "file:apps/agency/src/components/ui/modal.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/PayablesPage.tsx",
+   "target": "file:apps/agency/src/components/ui/select.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/PayablesPage.tsx",
+   "target": "file:apps/agency/src/components/ui/status-badge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/PayablesPage.tsx",
+   "target": "file:apps/agency/src/components/ui/table.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/PayablesPage.tsx",
+   "target": "file:apps/agency/src/components/ui/textarea.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/PayablesPage.tsx",
+   "target": "file:apps/agency/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/PayablesPage.tsx",
+   "target": "file:apps/agency/src/lib/formatCurrency.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/PayablesPage.tsx",
+   "target": "file:apps/agency/src/lib/formatDateBR.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/PayrollPage.tsx",
+   "target": "file:apps/agency/src/components/layout/PageHeader.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/PayrollPage.tsx",
+   "target": "file:apps/agency/src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/PayrollPage.tsx",
+   "target": "file:apps/agency/src/components/ui/card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/PayrollPage.tsx",
+   "target": "file:apps/agency/src/components/ui/empty-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/PayrollPage.tsx",
+   "target": "file:apps/agency/src/components/ui/error-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/PayrollPage.tsx",
+   "target": "file:apps/agency/src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/PayrollPage.tsx",
+   "target": "file:apps/agency/src/components/ui/loading-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/PayrollPage.tsx",
+   "target": "file:apps/agency/src/components/ui/table.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/PayrollPage.tsx",
+   "target": "file:apps/agency/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/PescadorPage.test.tsx",
+   "target": "file:apps/agency/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/PescadorPage.test.tsx",
+   "target": "file:apps/agency/src/pages/PescadorPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/PescadorPage.tsx",
+   "target": "file:apps/agency/src/components/layout/PageHeader.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/PescadorPage.tsx",
+   "target": "file:apps/agency/src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/PescadorPage.tsx",
+   "target": "file:apps/agency/src/components/ui/card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/PescadorPage.tsx",
+   "target": "file:apps/agency/src/components/ui/empty-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/PescadorPage.tsx",
+   "target": "file:apps/agency/src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/PescadorPage.tsx",
+   "target": "file:apps/agency/src/components/ui/loading-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/PescadorPage.tsx",
+   "target": "file:apps/agency/src/components/ui/select.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/PescadorPage.tsx",
+   "target": "file:apps/agency/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/PescadorPage.tsx",
+   "target": "file:apps/agency/src/lib/formatCurrency.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/PescadorPage.tsx",
+   "target": "file:apps/agency/src/lib/formatDateBR.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/PipelinePage.tsx",
+   "target": "file:apps/agency/src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/PipelinePage.tsx",
+   "target": "file:apps/agency/src/components/ui/empty-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/PipelinePage.tsx",
+   "target": "file:apps/agency/src/components/ui/error-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/PipelinePage.tsx",
+   "target": "file:apps/agency/src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/PipelinePage.tsx",
+   "target": "file:apps/agency/src/components/ui/loading-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/PipelinePage.tsx",
+   "target": "file:apps/agency/src/components/ui/modal.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/PipelinePage.tsx",
+   "target": "file:apps/agency/src/components/ui/select.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/PipelinePage.tsx",
+   "target": "file:apps/agency/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/PipelinePage.tsx",
+   "target": "file:apps/agency/src/lib/formatCurrency.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/PipelinePage.tsx",
+   "target": "file:apps/agency/src/lib/formatDateBR.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/PipelinePage.tsx",
+   "target": "file:apps/agency/src/types/customer.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/OffersPage.tsx",
+   "target": "file:apps/agency/src/pages/OffersPage.test.tsx",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:apps/agency/src/pages/PayablesPage.tsx",
+   "target": "file:apps/agency/src/pages/PayablesPage.test.tsx",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:apps/agency/src/pages/PescadorPage.tsx",
+   "target": "file:apps/agency/src/pages/PescadorPage.test.tsx",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "function:apps/agency/src/pages/OffersPage.tsx:OffersPage",
+   "target": "function:apps/agency/src/lib/api.ts:listOffers",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/OffersPage.tsx:OffersPage",
+   "target": "function:apps/agency/src/lib/formatCurrency.ts:formatBRL",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/OffersPage.tsx:OffersPage",
+   "target": "function:apps/agency/src/lib/formatDateBR.ts:formatDateBR",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/PayablesPage.tsx:PayablesPage",
+   "target": "function:apps/agency/src/lib/api.ts:listPayables",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/PayablesPage.tsx:PayablesPage",
+   "target": "function:apps/agency/src/lib/api.ts:listSuppliers",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/PayablesPage.tsx:PayablesPage",
+   "target": "function:apps/agency/src/lib/formatCurrency.ts:formatBRL",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/PayablesPage.tsx:PayablesPage",
+   "target": "function:apps/agency/src/lib/formatDateBR.ts:formatDateBR",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/PayrollPage.tsx:PayrollPage",
+   "target": "function:apps/agency/src/lib/api.ts:listEmployees",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/PayrollPage.tsx:PayrollPage",
+   "target": "function:apps/agency/src/lib/api.ts:listCommissionPlans",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/PayrollPage.tsx:PayrollPage",
+   "target": "function:apps/agency/src/lib/api.ts:listCommissions",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/PayrollPage.tsx:PayrollPage",
+   "target": "function:apps/agency/src/lib/api.ts:listPayrollEntries",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/PayrollPage.tsx:PayrollPage",
+   "target": "function:apps/agency/src/lib/api.ts:listEmployeeDeductions",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/PayrollPage.tsx:PayrollPage",
+   "target": "function:apps/agency/src/lib/api.ts:listSales",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/PescadorPage.tsx:PescadorPage",
+   "target": "function:apps/agency/src/lib/api.ts:listPescadorSources",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/PescadorPage.tsx:PescadorPage",
+   "target": "function:apps/agency/src/lib/api.ts:listPescadorSearches",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/PescadorPage.tsx:PescadorPage",
+   "target": "function:apps/agency/src/lib/api.ts:listPescadorSearchResults",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/PescadorPage.tsx:PescadorPage",
+   "target": "function:apps/agency/src/lib/formatDateBR.ts:formatDateBR",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/PescadorPage.tsx:ResultRow",
+   "target": "function:apps/agency/src/lib/formatCurrency.ts:formatBRL",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/PipelinePage.tsx:PipelinePage",
+   "target": "function:apps/agency/src/lib/api.ts:listPipelines",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/PipelinePage.tsx:PipelinePage",
+   "target": "function:apps/agency/src/lib/api.ts:listPipelineStages",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/PipelinePage.tsx:PipelinePage",
+   "target": "function:apps/agency/src/lib/api.ts:listOpportunities",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/PipelinePage.tsx:PipelinePage",
+   "target": "function:apps/agency/src/lib/api.ts:listCustomers",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/PipelinePage.tsx:PipelinePage",
+   "target": "function:apps/agency/src/lib/formatCurrency.ts:formatBRL",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/PipelinePage.tsx:PipelinePage",
+   "target": "function:apps/agency/src/lib/formatDateBR.ts:formatDateBR",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  }
+ ]
+}

@@ -1,0 +1,84 @@
+{
+  "nodes": [
+    {
+      "id": "document:.ai/agents/architect-agent.md",
+      "type": "document",
+      "name": "architect-agent.md",
+      "filePath": ".ai/agents/architect-agent.md",
+      "summary": "Definição do agente de arquitetura: identidade, responsabilidades, módulos, fronteiras de decisão, processo de ADR e documentos oficiais de referência.",
+      "tags": ["documentation", "agent-role", "architecture", "adr", "governança"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:.ai/agents/backend-agent.md",
+      "type": "document",
+      "name": "backend-agent.md",
+      "filePath": ".ai/agents/backend-agent.md",
+      "summary": "Papel do agente de backend com padrões de endpoints Fastify, regras de negócio, RBAC e referências da camada de API.",
+      "tags": ["documentation", "agent-role", "backend", "api-handler", "rbac"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:.ai/agents/database-agent.md",
+      "type": "document",
+      "name": "database-agent.md",
+      "filePath": ".ai/agents/database-agent.md",
+      "summary": "Diretrizes do agente de banco de dados cobrindo schema, índices, constraints, migrations, queries seguras e regras de trabalho com Prisma/PostgreSQL.",
+      "tags": ["documentation", "agent-role", "database", "migrations", "schema-definition"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:.ai/agents/frontend-agent.md",
+      "type": "document",
+      "name": "frontend-agent.md",
+      "filePath": ".ai/agents/frontend-agent.md",
+      "summary": "Definição do agente de frontend abrangendo as três aplicações React (Agency, Broker, Customer) e os padrões de componentes e formulários.",
+      "tags": ["documentation", "agent-role", "frontend", "react", "components"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:.ai/agents/product-agent.md",
+      "type": "document",
+      "name": "product-agent.md",
+      "filePath": ".ai/agents/product-agent.md",
+      "summary": "Papel do agente de produto: responsabilidades, formato de história, regras de escrita e documentos de escopo de produto.",
+      "tags": ["documentation", "agent-role", "product", "user-stories"],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:.ai/agents/qa-agent.md",
+      "type": "document",
+      "name": "qa-agent.md",
+      "filePath": ".ai/agents/qa-agent.md",
+      "summary": "Guia do agente de QA com tipos de teste (unit, integration, security de tenant isolation, E2E), cobertura mínima, estrutura de testes e comandos oficiais.",
+      "tags": ["documentation", "agent-role", "testing", "qa", "tenant-isolation"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:.ai/agents/security-agent.md",
+      "type": "document",
+      "name": "security-agent.md",
+      "filePath": ".ai/agents/security-agent.md",
+      "summary": "Checklist abrangente do agente de segurança com 14 áreas: autenticação, autorização, RBAC, tenant isolation, LGPD, secrets, SQL injection, XSS, CSRF, SSRF, upload, logs, rate limiting e exposição de dados.",
+      "tags": ["documentation", "agent-role", "security", "tenant-isolation", "lgpd"],
+      "complexity": "complex"
+    }
+  ],
+  "edges": [
+    {"source": "document:.ai/agents/architect-agent.md", "target": "document:docs/01-architecture/decisions.md", "type": "documents", "direction": "forward", "weight": 0.5},
+    {"source": "document:.ai/agents/architect-agent.md", "target": "document:docs/01-architecture/architecture.md", "type": "documents", "direction": "forward", "weight": 0.5},
+    {"source": "document:.ai/agents/architect-agent.md", "target": "document:docs/01-architecture/modules.md", "type": "documents", "direction": "forward", "weight": 0.5},
+    {"source": "document:.ai/agents/backend-agent.md", "target": "document:docs/05-api/api-guidelines.md", "type": "documents", "direction": "forward", "weight": 0.5},
+    {"source": "document:.ai/agents/backend-agent.md", "target": "document:docs/05-api/authentication.md", "type": "documents", "direction": "forward", "weight": 0.5},
+    {"source": "document:.ai/agents/backend-agent.md", "target": "document:docs/05-api/error-handling.md", "type": "documents", "direction": "forward", "weight": 0.5},
+    {"source": "document:.ai/agents/database-agent.md", "target": "document:docs/04-database/schema.md", "type": "documents", "direction": "forward", "weight": 0.5},
+    {"source": "document:.ai/agents/database-agent.md", "target": "document:docs/04-database/conventions.md", "type": "documents", "direction": "forward", "weight": 0.5},
+    {"source": "document:.ai/agents/database-agent.md", "target": "document:docs/04-database/migrations.md", "type": "documents", "direction": "forward", "weight": 0.5},
+    {"source": "document:.ai/agents/frontend-agent.md", "target": "document:docs/06-frontend/design-system.md", "type": "documents", "direction": "forward", "weight": 0.5},
+    {"source": "document:.ai/agents/frontend-agent.md", "target": "document:docs/06-frontend/accessibility.md", "type": "documents", "direction": "forward", "weight": 0.5},
+    {"source": "document:.ai/agents/frontend-agent.md", "target": "document:docs/06-frontend/state-management.md", "type": "documents", "direction": "forward", "weight": 0.5},
+    {"source": "document:.ai/agents/product-agent.md", "target": "document:docs/00-product/mvp.md", "type": "documents", "direction": "forward", "weight": 0.5},
+    {"source": "document:.ai/agents/product-agent.md", "target": "document:docs/00-product/personas.md", "type": "documents", "direction": "forward", "weight": 0.5},
+    {"source": "document:.ai/agents/product-agent.md", "target": "document:docs/00-product/user-flows.md", "type": "documents", "direction": "forward", "weight": 0.5}
+  ]
+}

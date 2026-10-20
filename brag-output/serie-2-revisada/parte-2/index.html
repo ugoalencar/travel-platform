@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=1920, height=1080">
+<title>Travel Plataforma - parte 2</title>
+<script src="assets/gsap.min.js"></script><script src="assets/audio-data.js"></script>
+<style>
+@font-face{font-family:'Fraunces';src:url(assets/fonts/Fraunces-400.woff2) format('woff2');font-weight:100 900;}
+@font-face{font-family:'Inter';src:url(assets/fonts/Inter-400.woff2) format('woff2');font-weight:100 900;}
+*{box-sizing:border-box}
+body{margin:0;background:#fff;color:#0f2a4a;font-family:'Inter',sans-serif}
+#root{position:relative;width:100%;height:100%;overflow:hidden}
+.clip{position:absolute;inset:0}
+.scene{position:absolute;inset:0;overflow:hidden}
+.paper{background:#fff}.deep{background:#f3f4f6}.navy{background:#0f2a4a}
+.abs{position:absolute}
+.serif{font-family:'Fraunces',serif;font-weight:400;letter-spacing:-0.02em;margin:0}
+.eyebrow{position:absolute;margin:0;font-weight:600;font-size:30px;line-height:1;letter-spacing:.18em;text-transform:uppercase;color:#1554d1}
+.eyebrow.c{color:#06b6d4}
+.glow{position:absolute;width:1200px;height:1200px;border-radius:50%;background:radial-gradient(circle,rgba(6,182,212,.45) 0%,rgba(6,182,212,0) 65%)}
+.card{position:absolute;background:#fff;border:2px solid #e2e6ea;border-radius:4px}
+.btn{position:absolute;background:#1554d1;color:#fff;font-weight:600;border-radius:4px;display:flex;align-items:center;justify-content:center}
+.num{font-family:'Fraunces',serif;color:#1554d1;margin:0}
+.wm{position:absolute;left:100px;top:80px;height:60px}
+.tr span,.th span{position:absolute;display:flex;align-items:center}
+.tr{position:absolute;border-top:2px solid #e2e6ea}
+.th{position:absolute}
+</style></head><body>
+<div id="root" data-composition-id="main" data-start="0" data-width="1920" data-height="1080" data-duration="30">
+<section id="s1" class="clip" data-start="0" data-duration="5.0" data-track-index="1"><div id="s1-scene" class="scene navy"><div id="s1glow" data-layout-allow-overflow class="glow" style="left:1100px;top:-500px"></div><img class="abs" src="assets/logo-completa-escura.svg" style="left:100px;top:80px;height:60px" alt="Travel Plataforma"><h2 id="s1a" class="serif abs" style="left:160px;right:160px;top:420px;text-align:center;font-size:100px;color:#fff;line-height:1.12;text-wrap:balance">Tudo começa no <span style="color:#06b6d4">primeiro contato.</span></h2><div id="s1u" class="abs" style="left:760px;top:580px;width:400px;height:6px;background:#06b6d4"></div><p id="s1e" class="eyebrow c" style="left:160px;right:160px;top:330px;text-align:center">Pipeline comercial</p><h2 id="s1b" class="serif abs" style="left:160px;right:160px;top:400px;text-align:center;font-size:104px;color:#fff;line-height:1.14;text-wrap:balance">Do primeiro contato à venda.</h2></div></section>
+<section id="s2" class="clip" data-start="4.6" data-duration="17.4" data-track-index="2"><div id="s2-scene" class="scene deep"><img class="abs" src="assets/logo-completa.svg" style="left:100px;top:80px;height:60px" alt="Travel Plataforma">
+<h2 id="s2t" class="serif abs" style="left:100px;top:170px;font-size:72px;line-height:1">Pipeline</h2>
+<div id="s2sel" class="abs" style="left:100px;top:262px;font-size:30px;color:#5b6370">Pipeline de vendas</div>
+<div id="s2cap" class="serif abs" style="left:900px;right:100px;top:190px;text-align:right;font-size:44px;color:#0f2a4a;height:60px">Arraste o cartão entre as etapas.</div>
+<div id="wonbadge" class="abs" style="right:100px;top:182px;padding:12px 28px;background:#157347;color:#fff;font-size:34px;font-weight:800;border-radius:4px">Família Souza · Ganho</div>
+<div id="rail" class="abs" style="left:100px;top:300px;width:1720px;height:50px;display:flex;justify-content:space-between;align-items:center"><div id="rl0" style="display:flex;align-items:center;gap:12px;font-size:28px;font-weight:600;color:#6b7280"><span style="display:inline-block;width:16px;height:16px;background:#6b7280"></span>Prospecção</div><div id="rl1" style="display:flex;align-items:center;gap:12px;font-size:28px;font-weight:600;color:#6b7280"><span style="display:inline-block;width:16px;height:16px;background:#1554d1"></span>Interesse</div><div id="rl2" style="display:flex;align-items:center;gap:12px;font-size:28px;font-weight:600;color:#6b7280"><span style="display:inline-block;width:16px;height:16px;background:#9a6700"></span>Orçamento</div><div id="rl3" style="display:flex;align-items:center;gap:12px;font-size:28px;font-weight:600;color:#6b7280"><span style="display:inline-block;width:16px;height:16px;background:#1554d1"></span>Proposta enviada</div><div id="rl4" style="display:flex;align-items:center;gap:12px;font-size:28px;font-weight:600;color:#6b7280"><span style="display:inline-block;width:16px;height:16px;background:#9a6700"></span>Aguardando cliente</div><div id="rl5" style="display:flex;align-items:center;gap:12px;font-size:28px;font-weight:600;color:#6b7280"><span style="display:inline-block;width:16px;height:16px;background:#7c3aed"></span>Negociação</div><div id="rl6" style="display:flex;align-items:center;gap:12px;font-size:28px;font-weight:600;color:#6b7280"><span style="display:inline-block;width:16px;height:16px;background:#157347"></span>Ganho</div></div>
+<div id="vp" class="abs" style="left:100px;top:370px;width:1720px;height:590px;overflow:hidden;background:#f3f4f6">
+<div id="board" class="abs" style="left:0;top:0;width:4032px;height:590px"><div id="col0" class="abs" style="left:14px;top:0;width:548px;height:550px;background:#fff;border:2px solid #e2e6ea;border-radius:4px"><div id="colh0" class="abs" style="left:0;top:0;right:0;height:80px;border-bottom:2px solid #e2e6ea;padding:0 22px;display:flex;align-items:center;font-size:34px;font-weight:800;color:#1a1d21"><span style="display:inline-block;width:18px;height:18px;background:#6b7280;margin-right:14px"></span>Prospecção</div></div><div id="col1" class="abs" style="left:586px;top:0;width:548px;height:550px;background:#fff;border:2px solid #e2e6ea;border-radius:4px"><div id="colh1" class="abs" style="left:0;top:0;right:0;height:80px;border-bottom:2px solid #e2e6ea;padding:0 22px;display:flex;align-items:center;font-size:34px;font-weight:800;color:#1a1d21"><span style="display:inline-block;width:18px;height:18px;background:#1554d1;margin-right:14px"></span>Interesse</div></div><div id="col2" class="abs" style="left:1158px;top:0;width:548px;height:550px;background:#fff;border:2px solid #e2e6ea;border-radius:4px"><div id="colh2" class="abs" style="left:0;top:0;right:0;height:80px;border-bottom:2px solid #e2e6ea;padding:0 22px;display:flex;align-items:center;font-size:34px;font-weight:800;color:#1a1d21"><span style="display:inline-block;width:18px;height:18px;background:#9a6700;margin-right:14px"></span>Orçamento</div></div><div id="col3" class="abs" style="left:1730px;top:0;width:548px;height:550px;background:#fff;border:2px solid #e2e6ea;border-radius:4px"><div id="colh3" class="abs" style="left:0;top:0;right:0;height:80px;border-bottom:2px solid #e2e6ea;padding:0 22px;display:flex;align-items:center;font-size:34px;font-weight:800;color:#1a1d21"><span style="display:inline-block;width:18px;height:18px;background:#1554d1;margin-right:14px"></span>Proposta enviada</div></div><div id="col4" class="abs" style="left:2302px;top:0;width:548px;height:550px;background:#fff;border:2px solid #e2e6ea;border-radius:4px"><div id="colh4" class="abs" style="left:0;top:0;right:0;height:80px;border-bottom:2px solid #e2e6ea;padding:0 22px;display:flex;align-items:center;font-size:34px;font-weight:800;color:#1a1d21"><span style="display:inline-block;width:18px;height:18px;background:#9a6700;margin-right:14px"></span>Aguardando cliente</div></div><div id="col5" class="abs" style="left:2874px;top:0;width:548px;height:550px;background:#fff;border:2px solid #e2e6ea;border-radius:4px"><div id="colh5" class="abs" style="left:0;top:0;right:0;height:80px;border-bottom:2px solid #e2e6ea;padding:0 22px;display:flex;align-items:center;font-size:34px;font-weight:800;color:#1a1d21"><span style="display:inline-block;width:18px;height:18px;background:#7c3aed;margin-right:14px"></span>Negociação</div></div><div id="col6" class="abs" style="left:3446px;top:0;width:548px;height:550px;background:#fff;border:2px solid #e2e6ea;border-radius:4px"><div id="colh6" class="abs" style="left:0;top:0;right:0;height:80px;border-bottom:2px solid #e2e6ea;padding:0 22px;display:flex;align-items:center;font-size:34px;font-weight:800;color:#1a1d21"><span style="display:inline-block;width:18px;height:18px;background:#157347;margin-right:14px"></span>Ganho</div></div><div id="k0" class="abs kcard" style="left:30px;top:96px;width:516px;height:200px;background:#fff;border:2px solid #cfd6df;border-radius:4px;padding:22px 26px"><div style="font-size:38px;font-weight:800;color:#1a1d21">Carlos M.</div><div style="font-size:30px;color:#5b6370;margin-top:8px">Gramado</div><div style="font-size:34px;font-weight:700;color:#1554d1;margin-top:16px">R$ 6.800</div></div><div id="k1" class="abs kcard" style="left:30px;top:314px;width:516px;height:200px;background:#fff;border:2px solid #cfd6df;border-radius:4px;padding:22px 26px"><div style="font-size:38px;font-weight:800;color:#1a1d21">Helena R.</div><div style="font-size:30px;color:#5b6370;margin-top:8px">Lisboa</div><div style="font-size:34px;font-weight:700;color:#1554d1;margin-top:16px">R$ 14.200</div></div><div id="k2" class="abs kcard" style="left:602px;top:96px;width:516px;height:200px;background:#fff;border:2px solid #cfd6df;border-radius:4px;padding:22px 26px"><div style="font-size:38px;font-weight:800;color:#1a1d21">Grupo Lima</div><div style="font-size:30px;color:#5b6370;margin-top:8px">Maragogi</div><div style="font-size:34px;font-weight:700;color:#1554d1;margin-top:16px">R$ 38.000</div></div><div id="hero" class="abs kcard" style="left:1174px;top:96px;width:516px;height:200px;background:#fff;border:2px solid #cfd6df;border-radius:4px;padding:22px 26px"><div style="font-size:38px;font-weight:800;color:#1a1d21">Família Souza</div><div style="font-size:30px;color:#5b6370;margin-top:8px">Cancún</div><div style="font-size:34px;font-weight:700;color:#1554d1;margin-top:16px">R$ 12.600</div></div><div id="k3" class="abs kcard" style="left:1174px;top:314px;width:516px;height:200px;background:#fff;border:2px solid #cfd6df;border-radius:4px;padding:22px 26px"><div style="font-size:38px;font-weight:800;color:#1a1d21">Paulo T.</div><div style="font-size:30px;color:#5b6370;margin-top:8px">Orlando</div><div style="font-size:34px;font-weight:700;color:#1554d1;margin-top:16px">R$ 21.500</div></div><div id="k4" class="abs kcard" style="left:1746px;top:96px;width:516px;height:200px;background:#fff;border:2px solid #cfd6df;border-radius:4px;padding:22px 26px"><div style="font-size:38px;font-weight:800;color:#1a1d21">Júlia A.</div><div style="font-size:30px;color:#5b6370;margin-top:8px">Bariloche</div><div style="font-size:34px;font-weight:700;color:#1554d1;margin-top:16px">R$ 9.300</div></div><div id="k5" class="abs kcard" style="left:2890px;top:96px;width:516px;height:200px;background:#fff;border:2px solid #cfd6df;border-radius:4px;padding:22px 26px"><div style="font-size:38px;font-weight:800;color:#1a1d21">Renata C.</div><div style="font-size:30px;color:#5b6370;margin-top:8px">Salvador</div><div style="font-size:34px;font-weight:700;color:#1554d1;margin-top:16px">R$ 7.400</div></div><div id="k6" class="abs kcard" style="left:3462px;top:96px;width:516px;height:200px;background:#fff;border:2px solid #cfd6df;border-radius:4px;padding:22px 26px"><div style="font-size:38px;font-weight:800;color:#1a1d21">Marcos S.</div><div style="font-size:30px;color:#5b6370;margin-top:8px">Foz do Iguaçu</div><div style="font-size:34px;font-weight:700;color:#1554d1;margin-top:16px">R$ 5.900</div></div>
+<svg id="cur2" class="abs" style="left:1514px;top:216px;width:72px;height:72px" viewBox="0 0 24 24"><path d="M4 2 L4 19 L8.6 14.8 L11.6 21.6 L14.2 20.5 L11.2 13.8 L17.5 13.8 Z" fill="#1a1d21" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg></div></div></div></section>
+<section id="s3" class="clip" data-start="21.2" data-duration="6.0" data-track-index="3"><div id="s3-scene" class="scene paper"><img class="abs" src="assets/logo-completa.svg" style="left:100px;top:80px;height:60px" alt="Travel Plataforma"><p class="eyebrow" style="left:100px;top:290px">Pipeline</p>
+<h2 id="s3h" class="serif abs" style="left:100px;top:345px;width:760px;font-size:88px;line-height:1.1">Etapas configuráveis por agência.</h2>
+<div id="s3card" class="card" style="left:1000px;top:230px;width:820px;height:600px;box-shadow:0 30px 70px rgba(15,42,74,.16)">
+<div class="abs" style="left:40px;top:36px;font-size:28px;color:#5b6370;font-weight:600">Novo pipeline</div>
+<div class="abs" style="left:40px;top:84px;width:740px;height:84px;border:2px solid #1554d1;border-radius:4px;padding:20px 24px;font-size:38px;color:#1a1d21"><span id="typed"></span></div>
+<div class="abs" style="left:40px;top:260px;font-size:28px;color:#5b6370;font-weight:600">Etapas</div><div id="ch0" class="abs" style="left:40px;top:330px;width:230px;height:180px;border:2px solid #e2e6ea;border-radius:4px;padding:22px 24px"><div style="width:24px;height:24px;background:#1554d1"></div><div style="font-size:34px;font-weight:800;color:#1a1d21;margin-top:16px">Prospecção</div><div style="font-size:28px;color:#5b6370;margin-top:6px">Azul</div></div><div id="ch1" class="abs" style="left:290px;top:330px;width:230px;height:180px;border:2px solid #e2e6ea;border-radius:4px;padding:22px 24px"><div style="width:24px;height:24px;background:#9a6700"></div><div style="font-size:34px;font-weight:800;color:#1a1d21;margin-top:16px">Proposta</div><div style="font-size:28px;color:#5b6370;margin-top:6px">Amarelo</div></div><div id="ch2" class="abs" style="left:540px;top:330px;width:230px;height:180px;border:2px solid #e2e6ea;border-radius:4px;padding:22px 24px"><div style="width:24px;height:24px;background:#157347"></div><div style="font-size:34px;font-weight:800;color:#1a1d21;margin-top:16px">Fechado</div><div style="font-size:28px;color:#5b6370;margin-top:6px">Verde</div></div>
+<div class="abs" style="left:40px;top:540px;font-size:28px;color:#5b6370">Cada etapa tem nome e cor.</div></div></div></section>
+<section id="s4" class="clip" data-start="26.8" data-duration="3.2" data-track-index="4"><div id="s4-scene" class="scene navy"><div id="s4glow" data-layout-allow-overflow class="glow" style="left:1100px;top:-500px"></div><img class="abs" src="assets/logo-completa-escura.svg" style="left:100px;top:80px;height:60px" alt="Travel Plataforma"><h2 id="s4h" class="serif abs" style="left:160px;right:160px;top:420px;text-align:center;font-size:100px;color:#fff;line-height:1.12;text-wrap:balance">E depois que o cliente <span style="color:#06b6d4">diz sim?</span></h2><div id="s4u" class="abs" style="left:760px;top:580px;width:400px;height:6px;background:#06b6d4"></div></div></section>
+<audio id="bgm" data-start="0" data-duration="30" data-media-start="30" data-track-index="10" data-volume="0.33" src="assets/music/music.mp3" data-automation='{"version":1,"lanes":[{"target":"volume","points":[{"t":0,"v":1}]}]}'></audio>
+<audio id="sx1" data-start="1.38" data-duration="0.18" data-track-index="11" data-volume="0.6" src="assets/sfx/impactSoft_medium_001.ogg"></audio>
+<audio id="sx2" data-start="5.48" data-duration="0.11" data-track-index="12" data-volume="0.5" src="assets/sfx/drop_001.ogg"></audio>
+<audio id="sx3" data-start="7.18" data-duration="0.19" data-track-index="13" data-volume="0.4" src="assets/sfx/drop_002.ogg"></audio>
+<audio id="sx4" data-start="10.18" data-duration="0.05" data-track-index="14" data-volume="0.8" src="assets/sfx/click_002.ogg"></audio>
+<audio id="sx5" data-start="13.78" data-duration="0.05" data-track-index="15" data-volume="0.8" src="assets/sfx/click_002.ogg"></audio>
+<audio id="sx6" data-start="17.78" data-duration="0.05" data-track-index="16" data-volume="0.8" src="assets/sfx/click_002.ogg"></audio>
+<audio id="sx7" data-start="11.38" data-duration="0.69" data-track-index="17" data-volume="0.5" src="assets/sfx/card-place-1.ogg"></audio>
+<audio id="sx8" data-start="15.38" data-duration="0.69" data-track-index="18" data-volume="0.5" src="assets/sfx/card-place-1.ogg"></audio>
+<audio id="sx9" data-start="18.98" data-duration="0.29" data-track-index="19" data-volume="0.7" src="assets/sfx/chips-stack-1.ogg"></audio>
+<audio id="sx10" data-start="22.48" data-duration="0.69" data-track-index="20" data-volume="0.6" src="assets/sfx/card-place-1.ogg"></audio>
+<audio id="sx11" data-start="24.48" data-duration="0.11" data-track-index="21" data-volume="0.5" src="assets/sfx/drop_001.ogg"></audio>
+<audio id="sx12" data-start="24.98" data-duration="0.11" data-track-index="22" data-volume="0.5" src="assets/sfx/drop_001.ogg"></audio>
+<audio id="sx13" data-start="25.48" data-duration="0.11" data-track-index="23" data-volume="0.5" src="assets/sfx/drop_001.ogg"></audio>
+<audio id="sx14" data-start="27.08" data-duration="0.18" data-track-index="24" data-volume="0.7" src="assets/sfx/impactSoft_medium_001.ogg"></audio>
+</div>
+<script>
+var tl = gsap.timeline({ paused: true });
+var E = "power3.out";
+function show(sel, at, d, y) { tl.fromTo(sel, { y: y === undefined ? 40 : y, opacity: 0 }, { y: 0, opacity: 1, duration: d || 0.7, ease: E }, at); }
+function slide(sel, at, d, x) { tl.fromTo(sel, { x: x === undefined ? 50 : x, opacity: 0 }, { x: 0, opacity: 1, duration: d || 0.6, ease: E }, at); }
+/* corte por wipe horizontal: a cena nova revela da direita para a esquerda, sem dissolver (sem tela cinza) */
+function wipe(id, at, d) { tl.fromTo(id, { clipPath: "inset(0 0 0 100%)" }, { clipPath: "inset(0 0 0 0%)", duration: d || 0.8, ease: "power3.inOut" }, at); }
+
+tl.fromTo("#s1a", { scale: 1 }, { scale: 1.03, duration: 1.0, ease: "none" }, 0);
+tl.to(["#s1a", "#s1u"], { opacity: 0, y: -40, duration: 0.35, ease: "power2.in" }, 1.0);
+show("#s1e", 1.3, 0.7, 24);
+show("#s1b", 1.3599999999999999, 0.9, 40);
+
+wipe("#s2-scene", 4.6);
+show(["#s2t", "#s2sel"], 4.9, 0.6, 20);
+tl.fromTo("#rail", { opacity: 0 }, { opacity: 1, duration: 0.6 }, 5.2);
+tl.fromTo("#vp", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.7, ease: E }, 5.5);
+tl.fromTo(".kcard", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.5, stagger: 0.14, ease: E }, 7.2);
+show("#s2cap", 8.4, 0.7, 16);
+tl.set("#wonbadge", { opacity: 0 }, 0);
+function railTo(i) { tl.to("[id^=rl]", { color: "#6b7280", fontWeight: 600, duration: 0.2 }, i.t - 0.01); tl.to("#rl" + i.n, { color: "#1554d1", fontWeight: 800, duration: 0.3 }, i.t); }
+railTo({ n: 2, t: 7.9 });
+// camera 1: mostra colunas 1-3
+tl.to("#board", { x: -572, duration: 0.9, ease: "power2.inOut" }, 9.0);
+tl.fromTo("#cur2", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 9.6);
+tl.to("#hero", { scale: 1.04, borderColor: "#1554d1", duration: 0.2 }, 10.2);
+tl.to(["#hero", "#cur2"], { x: "+=572", y: "+=218", duration: 1.1, ease: "power2.inOut" }, 10.2);
+tl.to("#hero", { scale: 1, duration: 0.2 }, 11.52);
+railTo({ n: 3, t: 11.5 });
+// camera 2: colunas 3-5
+tl.to("#board", { x: -1716, duration: 1.0, ease: "power2.inOut" }, 12.6);
+tl.to("#hero", { scale: 1.04, duration: 0.2 }, 13.8);
+tl.to(["#hero", "#cur2"], { x: "+=1144", duration: 1.4, ease: "power2.inOut" }, 13.8);
+tl.to("#hero", { scale: 1, duration: 0.2 }, 15.52);
+railTo({ n: 5, t: 15.5 });
+// camera 3: colunas 4-6
+tl.to("#board", { x: -2288, duration: 1.0, ease: "power2.inOut" }, 16.6);
+tl.to("#hero", { scale: 1.04, duration: 0.2 }, 17.8);
+tl.to(["#hero", "#cur2"], { x: "+=572", duration: 1.1, ease: "power2.inOut" }, 17.8);
+tl.to("#hero", { scale: 1, borderColor: "#157347", duration: 0.3 }, 19.02);
+tl.to("#colh6", { backgroundColor: "#e5f4ec", duration: 0.5 }, 19.02);
+railTo({ n: 6, t: 19.1 });
+tl.to("#cur2", { opacity: 0, duration: 0.5 }, 19.6);
+tl.to("#s2cap", { opacity: 0, duration: 0.4 }, 19.3);
+tl.fromTo("#wonbadge", { opacity: 0, y: -16 }, { opacity: 1, y: 0, duration: 0.6, ease: E }, 19.7);
+wipe("#s3-scene", 21.2);
+show("#s3h", 21.5, 0.9);
+tl.fromTo("#s3card", { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: E }, 22.51);
+var tx = { n: 0 }, name2 = "Pacotes internacionais";
+tl.to(tx, { n: name2.length, duration: 1.5, ease: "none", onUpdate: function () { document.getElementById("typed").textContent = name2.slice(0, Math.round(tx.n)); } }, 23.52);
+tl.fromTo("#ch0", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: E }, 24.52);
+tl.fromTo("#ch1", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: E }, 25.02);
+tl.fromTo("#ch2", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: E }, 25.52);
+wipe("#s4-scene", 26.8);
+show("#s4h", 27.1, 0.9);
+tl.fromTo("#s4u", { scaleX: 0 }, { scaleX: 1, duration: 0.9, ease: E }, 28.0);
+
+for (var f = 0; f < AUDIO_DATA.totalFrames; f++) {
+  tl.call((function (fr) { return function () {
+    gsap.set(".glow", { scale: 0.94 + fr.bands[0] * 0.14, opacity: 0.55 + fr.bands[1] * 0.35 });
+  }; })(AUDIO_DATA.frames[f]), [], f / AUDIO_DATA.fps);
+}
+window.__timelines["main"] = tl;
+</script></body></html>

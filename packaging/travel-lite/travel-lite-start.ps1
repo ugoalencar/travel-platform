@@ -4,6 +4,8 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
+. (Join-Path $PSScriptRoot 'open-in-chrome.ps1')
+
 $installDir = Resolve-Path $PSScriptRoot
 $composeFile = Join-Path $installDir 'docker-compose.travel-lite.local.yml'
 $envFile = Join-Path $installDir '.env.travel-lite'
@@ -25,7 +27,7 @@ try {
   if ($health -ne 'healthy') { throw 'Travel Lite API did not become healthy in 90 seconds.' }
 
   Write-Output 'Travel Lite is running at http://127.0.0.1:4010'
-  if (-not $NoBrowser) { Start-Process 'http://127.0.0.1:4010' | Out-Null }
+  if (-not $NoBrowser) { Open-InChrome 'http://127.0.0.1:4010' }
 }
 finally {
   Pop-Location

@@ -1,0 +1,244 @@
+{
+  "nodes": [
+    {
+      "id": "config:.env.example",
+      "type": "config",
+      "name": ".env.example",
+      "filePath": ".env.example",
+      "summary": "Template das variáveis de ambiente da API principal: runtime, banco (RLS), JWT/cookies, MFA, contexto de tenant/usuário, rate limit, Redis, CORS, e-mail (Resend), storage (Supabase) e URL do frontend.",
+      "tags": ["configuration", "environment-variables", "runtime", "security", "api"],
+      "complexity": "moderate",
+      "languageNotes": "31 variáveis extraídas; cada uma é documentada com comentários de segurança fail-closed."
+    },
+    {
+      "id": "config:.env.staging.example",
+      "type": "config",
+      "name": ".env.staging.example",
+      "filePath": ".env.staging.example",
+      "summary": "Variáveis de ambiente do host de staging para services/api, exigindo NODE_ENV=production para ativar os gates fail-closed (RLS, rate limit externo, CORS) e listando pendências reais de e-mail e criptografia MFA.",
+      "tags": ["configuration", "environment-variables", "staging", "security", "deployment"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "config:.env.travel-lite.example",
+      "type": "config",
+      "name": ".env.travel-lite.example",
+      "filePath": ".env.travel-lite.example",
+      "summary": "Template local do Travel Lite com a senha do superuser PostgreSQL e a senha do seed da agência, sem nenhum valor real commitado.",
+      "tags": ["configuration", "environment-variables", "travel-lite", "local-development", "secrets"],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:.env.travel-lite.production.example",
+      "type": "config",
+      "name": ".env.travel-lite.production.example",
+      "filePath": ".env.travel-lite.production.example",
+      "summary": "Variáveis de ambiente para deploy online do Travel Lite: execução, banco dedicado, diretório do frontend, domínio/CORS e e-mail fail-closed, com avisos sobre HOST=0.0.0.0 e isolamento do banco da plataforma full.",
+      "tags": ["configuration", "environment-variables", "travel-lite", "production", "deployment"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:AGENTS.md",
+      "type": "document",
+      "name": "AGENTS.md",
+      "filePath": "AGENTS.md",
+      "summary": "Fonte global de verdade para agentes de IA: missão, baseline do projeto, hierarquia de fontes, proibições, quality gates, requisitos de segurança/tenant isolation e política de redução de código.",
+      "tags": ["documentation", "entry-point", "ai-guidelines", "governance", "quality-gates"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:AI-RULES.MD",
+      "type": "document",
+      "name": "AI-RULES.MD",
+      "filePath": "AI-RULES.MD",
+      "summary": "Arquivo de compatibilidade que aponta para AGENTS.md e .ai/ em vez de duplicar as regras globais de IA.",
+      "tags": ["documentation", "compatibility", "ai-guidelines", "entry-point"],
+      "complexity": "simple"
+    },
+    {
+      "id": "service:Dockerfile.travel-lite",
+      "type": "service",
+      "name": "Dockerfile.travel-lite",
+      "filePath": "Dockerfile.travel-lite",
+      "summary": "Build multi-stage (node:24-alpine) que compila api-lite e travel-lite via turbo, remove devDependencies e roda a API na porta 4010 como usuário não-root, servindo o frontend já buildado.",
+      "tags": ["containerization", "infrastructure", "deployment", "travel-lite", "multi-stage-build"],
+      "complexity": "simple",
+      "languageNotes": "Build stage + runtime stage; imagem única para API e frontend do Travel Lite."
+    },
+    {
+      "id": "service:Dockerfile.travel-lite:build",
+      "type": "service",
+      "name": "build",
+      "filePath": "Dockerfile.travel-lite",
+      "summary": "Estágio de build que instala dependências com npm ci, compila @travel-platform/api-lite e o app travel-lite via turbo e faz prune das dependências de desenvolvimento.",
+      "tags": ["containerization", "build-stage", "travel-lite"],
+      "complexity": "simple"
+    },
+    {
+      "id": "service:Dockerfile.travel-lite:runtime",
+      "type": "service",
+      "name": "runtime",
+      "filePath": "Dockerfile.travel-lite",
+      "summary": "Estágio de runtime que copia o artefato buildado com chown para o usuário node, define NODE_ENV/HOST/PORT/FRONTEND_DIST_DIR, expõe a porta 4010 e inicia o server.js da api-lite.",
+      "tags": ["containerization", "runtime", "travel-lite", "deployment"],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:QUALITY-GATES.md",
+      "type": "document",
+      "name": "QUALITY-GATES.md",
+      "filePath": "QUALITY-GATES.md",
+      "summary": "Política oficial de quality gates: princípios, gates locais pre-commit e pre-pr, gate de CI, gates de segurança e links de documentação relacionada.",
+      "tags": ["documentation", "quality-gates", "ci-cd", "security", "process"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:README.md",
+      "type": "document",
+      "name": "README.md",
+      "filePath": "README.md",
+      "summary": "Visão geral do repositório: status atual, stack oficial, layout, baseline de segurança, regras de desenvolvimento e pontos de entrada da documentação.",
+      "tags": ["documentation", "entry-point", "overview", "onboarding"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:SCRIPTS.md",
+      "type": "document",
+      "name": "SCRIPTS.md",
+      "filePath": "SCRIPTS.md",
+      "summary": "Catálogo dos scripts npm e PowerShell (pre-commit, pre-pr, reset de Postgres, Travel Lite, migrations online, helpers Node) com suas regras de segurança.",
+      "tags": ["documentation", "scripts", "automation", "quality-gates", "reference"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "config:package.json",
+      "type": "config",
+      "name": "package.json",
+      "filePath": "package.json",
+      "summary": "Manifest raiz do monorepo npm workspaces: scripts de lint/typecheck/test/build, dependências, devDependencies e overrides.",
+      "tags": ["configuration", "build-system", "monorepo", "npm-workspaces", "scripts"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:pre-commit.ps1",
+      "type": "file",
+      "name": "pre-commit.ps1",
+      "filePath": "pre-commit.ps1",
+      "summary": "Script PowerShell do gate pré-commit que executa lint (com opção -Fix), typecheck, testes Vitest, detecção de secrets em arquivos staged e npm audit, encerrando com exit 1 quando algum check falha.",
+      "tags": ["script", "quality-gates", "pre-commit", "security", "powershell"],
+      "complexity": "complex",
+      "languageNotes": "PowerShell sem parser tree-sitter: funções top-level extraídas manualmente da fonte."
+    },
+    {
+      "id": "function:pre-commit.ps1:Write-Status",
+      "type": "function",
+      "name": "Write-Status",
+      "filePath": "pre-commit.ps1",
+      "lineRange": [38, 54],
+      "summary": "Imprime mensagens de status coloridas com prefixo, símbolo e indentação opcional para o output do gate.",
+      "tags": ["utility", "output", "powershell"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:pre-commit.ps1:Run-Command",
+      "type": "function",
+      "name": "Run-Command",
+      "filePath": "pre-commit.ps1",
+      "lineRange": [56, 74],
+      "summary": "Executa um comando via Invoke-Expression capturando saída e erros, retornando booleano de sucesso para o fluxo de checks.",
+      "tags": ["utility", "command-execution", "powershell"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:pre-pr.ps1",
+      "type": "file",
+      "name": "pre-pr.ps1",
+      "filePath": "pre-pr.ps1",
+      "summary": "Script PowerShell do gate pré-PR que valida testes, cobertura ≥80%, auditoria de dependências, secret scan, migrations e build, emitindo resumo e ações corretivas por falha.",
+      "tags": ["script", "quality-gates", "pull-request", "security", "powershell"],
+      "complexity": "complex",
+      "languageNotes": "PowerShell sem parser tree-sitter: funções top-level extraídas manualmente da fonte."
+    },
+    {
+      "id": "function:pre-pr.ps1:Write-Status",
+      "type": "function",
+      "name": "Write-Status",
+      "filePath": "pre-pr.ps1",
+      "lineRange": [40, 57],
+      "summary": "Emite mensagens de status com emojis, cores e indentação para o relatório do gate pré-PR.",
+      "tags": ["utility", "output", "powershell"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:pre-pr.ps1:Run-Command",
+      "type": "function",
+      "name": "Run-Command",
+      "filePath": "pre-pr.ps1",
+      "lineRange": [59, 89],
+      "summary": "Executa comandos de verificação via Invoke-Expression, com modo -Verbose opcional, reportando sucesso/falha e detalhes de erro para o resumo do gate.",
+      "tags": ["utility", "command-execution", "powershell"],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:tsconfig.base.json",
+      "type": "config",
+      "name": "tsconfig.base.json",
+      "filePath": "tsconfig.base.json",
+      "summary": "Configuração base do compilador TypeScript compartilhada por todos os pacotes do monorepo.",
+      "tags": ["configuration", "typescript", "build-system", "compiler-options"],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:tsconfig.json",
+      "type": "config",
+      "name": "tsconfig.json",
+      "filePath": "tsconfig.json",
+      "summary": "Configuração TypeScript da raiz que herda de tsconfig.base.json e define include/exclude dos pacotes do monorepo.",
+      "tags": ["configuration", "typescript", "build-system", "monorepo"],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:turbo.json",
+      "type": "config",
+      "name": "turbo.json",
+      "filePath": "turbo.json",
+      "summary": "Pipeline do Turborepo com environment global e tarefas (build, lint, test, typecheck) que orquestram a execução no monorepo.",
+      "tags": ["configuration", "build-system", "turborepo", "monorepo", "ci-cd"],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {"source": "file:pre-commit.ps1", "target": "function:pre-commit.ps1:Write-Status", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:pre-commit.ps1", "target": "function:pre-commit.ps1:Run-Command", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:pre-pr.ps1", "target": "function:pre-pr.ps1:Write-Status", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:pre-pr.ps1", "target": "function:pre-pr.ps1:Run-Command", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "service:Dockerfile.travel-lite", "target": "service:Dockerfile.travel-lite:build", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "service:Dockerfile.travel-lite", "target": "service:Dockerfile.travel-lite:runtime", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "document:AGENTS.md", "target": "document:QUALITY-GATES.md", "type": "documents", "direction": "forward", "weight": 0.5},
+    {"source": "document:AGENTS.md", "target": "document:SCRIPTS.md", "type": "documents", "direction": "forward", "weight": 0.5},
+    {"source": "document:AGENTS.md", "target": "document:README.md", "type": "documents", "direction": "forward", "weight": 0.5},
+    {"source": "document:AI-RULES.MD", "target": "document:AGENTS.md", "type": "documents", "direction": "forward", "weight": 0.5},
+    {"source": "document:README.md", "target": "document:AGENTS.md", "type": "documents", "direction": "forward", "weight": 0.5},
+    {"source": "document:README.md", "target": "document:QUALITY-GATES.md", "type": "documents", "direction": "forward", "weight": 0.5},
+    {"source": "document:QUALITY-GATES.md", "target": "file:pre-commit.ps1", "type": "documents", "direction": "forward", "weight": 0.5},
+    {"source": "document:QUALITY-GATES.md", "target": "file:pre-pr.ps1", "type": "documents", "direction": "forward", "weight": 0.5},
+    {"source": "document:QUALITY-GATES.md", "target": "document:SCRIPTS.md", "type": "documents", "direction": "forward", "weight": 0.5},
+    {"source": "document:SCRIPTS.md", "target": "file:pre-commit.ps1", "type": "documents", "direction": "forward", "weight": 0.5},
+    {"source": "document:SCRIPTS.md", "target": "file:pre-pr.ps1", "type": "documents", "direction": "forward", "weight": 0.5},
+    {"source": "document:SCRIPTS.md", "target": "document:QUALITY-GATES.md", "type": "documents", "direction": "forward", "weight": 0.5},
+    {"source": "config:.env.example", "target": "file:services/api/src/env.ts", "type": "configures", "direction": "forward", "weight": 0.6},
+    {"source": "config:.env.staging.example", "target": "file:services/api/src/env.ts", "type": "configures", "direction": "forward", "weight": 0.6},
+    {"source": "config:.env.travel-lite.production.example", "target": "file:services/api-lite/src/config.ts", "type": "configures", "direction": "forward", "weight": 0.6},
+    {"source": "config:.env.travel-lite.production.example", "target": "file:services/api-lite/src/security.ts", "type": "configures", "direction": "forward", "weight": 0.6},
+    {"source": "config:.env.travel-lite.production.example", "target": "file:services/api-lite/src/email.ts", "type": "configures", "direction": "forward", "weight": 0.6},
+    {"source": "config:.env.travel-lite.example", "target": "file:scripts/travel-lite-seed-gadotti.cjs", "type": "configures", "direction": "forward", "weight": 0.6},
+    {"source": "config:tsconfig.base.json", "target": "file:services/api/src/env.ts", "type": "configures", "direction": "forward", "weight": 0.6},
+    {"source": "config:tsconfig.json", "target": "config:tsconfig.base.json", "type": "depends_on", "direction": "forward", "weight": 0.6},
+    {"source": "config:package.json", "target": "config:turbo.json", "type": "depends_on", "direction": "forward", "weight": 0.6},
+    {"source": "file:pre-commit.ps1", "target": "config:package.json", "type": "depends_on", "direction": "forward", "weight": 0.6},
+    {"source": "file:pre-pr.ps1", "target": "config:package.json", "type": "depends_on", "direction": "forward", "weight": 0.6},
+    {"source": "service:Dockerfile.travel-lite", "target": "config:package.json", "type": "depends_on", "direction": "forward", "weight": 0.6},
+    {"source": "service:Dockerfile.travel-lite", "target": "file:services/api-lite/src/server.ts", "type": "deploys", "direction": "forward", "weight": 0.7},
+    {"source": "config:.env.travel-lite.production.example", "target": "service:Dockerfile.travel-lite", "type": "related", "direction": "forward", "weight": 0.5}
+  ]
+}

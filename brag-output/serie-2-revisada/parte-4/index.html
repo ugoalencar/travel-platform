@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=1920, height=1080">
+<title>Travel Plataforma - parte 4</title>
+<script src="assets/gsap.min.js"></script><script src="assets/audio-data.js"></script>
+<style>
+@font-face{font-family:'Fraunces';src:url(assets/fonts/Fraunces-400.woff2) format('woff2');font-weight:100 900;}
+@font-face{font-family:'Inter';src:url(assets/fonts/Inter-400.woff2) format('woff2');font-weight:100 900;}
+*{box-sizing:border-box}
+body{margin:0;background:#fff;color:#0f2a4a;font-family:'Inter',sans-serif}
+#root{position:relative;width:100%;height:100%;overflow:hidden}
+.clip{position:absolute;inset:0}
+.scene{position:absolute;inset:0;overflow:hidden}
+.paper{background:#fff}.deep{background:#f3f4f6}.navy{background:#0f2a4a}
+.abs{position:absolute}
+.serif{font-family:'Fraunces',serif;font-weight:400;letter-spacing:-0.02em;margin:0}
+.eyebrow{position:absolute;margin:0;font-weight:600;font-size:30px;line-height:1;letter-spacing:.18em;text-transform:uppercase;color:#1554d1}
+.eyebrow.c{color:#06b6d4}
+.glow{position:absolute;width:1200px;height:1200px;border-radius:50%;background:radial-gradient(circle,rgba(6,182,212,.45) 0%,rgba(6,182,212,0) 65%)}
+.card{position:absolute;background:#fff;border:2px solid #e2e6ea;border-radius:4px}
+.btn{position:absolute;background:#1554d1;color:#fff;font-weight:600;border-radius:4px;display:flex;align-items:center;justify-content:center}
+.num{font-family:'Fraunces',serif;color:#1554d1;margin:0}
+.wm{position:absolute;left:100px;top:80px;height:60px}
+.tr span,.th span{position:absolute;display:flex;align-items:center}
+.tr{position:absolute;border-top:2px solid #e2e6ea}
+.th{position:absolute}
+</style></head><body>
+<div id="root" data-composition-id="main" data-start="0" data-width="1920" data-height="1080" data-duration="30">
+<section id="s1" class="clip" data-start="0" data-duration="4.6" data-track-index="1"><div id="s1-scene" class="scene navy"><div id="s1glow" data-layout-allow-overflow class="glow" style="left:1100px;top:-500px"></div><img class="abs" src="assets/logo-completa-escura.svg" style="left:100px;top:80px;height:60px" alt="Travel Plataforma"><h2 id="s1a" class="serif abs" style="left:160px;right:160px;top:420px;text-align:center;font-size:100px;color:#fff;line-height:1.12;text-wrap:balance">E quem cuida de tudo <span style="color:#06b6d4">isso?</span></h2><div id="s1u" class="abs" style="left:760px;top:580px;width:400px;height:6px;background:#06b6d4"></div><p id="s1e" class="eyebrow c" style="left:160px;right:160px;top:330px;text-align:center">Equipe e acessos</p><h2 id="s1b" class="serif abs" style="left:160px;right:160px;top:400px;text-align:center;font-size:104px;color:#fff;line-height:1.14;text-wrap:balance">Cada pessoa vê só o que precisa.</h2></div></section>
+<section id="s2" class="clip" data-start="4.2" data-duration="8.2" data-track-index="2"><div id="s2-scene" class="scene paper"><img class="abs" src="assets/logo-completa.svg" style="left:100px;top:80px;height:60px" alt="Travel Plataforma"><p class="eyebrow" style="left:100px;top:290px">Pessoal</p>
+<h2 id="s2h" class="serif abs" style="left:100px;top:345px;width:760px;font-size:88px;line-height:1.1">Funcionários, comissões e folha.</h2>
+<div id="s2card" class="card" style="left:1000px;top:210px;width:820px;height:640px;box-shadow:0 30px 70px rgba(15,42,74,.16)">
+<div class="th" style="left:36px;right:36px;top:40px;height:100px;font-size:28px;color:#5b6370;font-weight:700"><span style="left:0;height:100px">Nome</span><span style="left:320px;height:100px">Vínculo</span><span style="right:0;height:100px">Situação</span></div><div id="e0" class="tr" style="left:36px;right:36px;top:150px;height:100px;font-size:36px"><span style="left:0;height:100px;font-weight:700">Ana Souza</span><span style="left:320px;height:100px">CLT</span><span style="right:0;height:100px;color:#157347;font-weight:800">Ativo</span></div><div id="e1" class="tr" style="left:36px;right:36px;top:250px;height:100px;font-size:36px"><span style="left:0;height:100px;font-weight:700">Bruno Lima</span><span style="left:320px;height:100px">Prestador</span><span style="right:0;height:100px;color:#157347;font-weight:800">Ativo</span></div><div id="e2" class="tr" style="left:36px;right:36px;top:350px;height:100px;font-size:36px"><span style="left:0;height:100px;font-weight:700">Carla Dias</span><span style="left:320px;height:100px">Sócia</span><span style="right:0;height:100px;color:#157347;font-weight:800">Ativo</span></div><div id="e3" class="tr" style="left:36px;right:36px;top:450px;height:100px;font-size:36px"><span style="left:0;height:100px;font-weight:700">Diego Rocha</span><span style="left:320px;height:100px">Freelancer</span><span style="right:0;height:100px;color:#9a6700;font-weight:800">Afastado</span></div>
+<div id="e5" class="abs" style="left:36px;top:566px;padding:12px 26px;border:2px solid #1554d1;color:#1554d1;font-size:28px;font-weight:800;border-radius:4px">Planos de comissão</div><div id="e6" class="abs" style="left:376px;top:566px;padding:12px 26px;border:2px solid #1554d1;color:#1554d1;font-size:28px;font-weight:800;border-radius:4px">Folha de pagamento</div></div></div></section>
+<section id="s3" class="clip" data-start="11.8" data-duration="9.6" data-track-index="3"><div id="s3-scene" class="scene deep"><img class="abs" src="assets/logo-completa.svg" style="left:100px;top:80px;height:60px" alt="Travel Plataforma"><p class="eyebrow" style="left:100px;top:290px">Usuários</p>
+<h2 id="s3h" class="serif abs" style="left:100px;top:345px;width:760px;font-size:88px;line-height:1.1">Papéis e acessos por pessoa.</h2><div id="r0" class="abs" style="left:960px;top:170px;width:860px;height:104px;border-top:2px solid rgba(15,42,74,.2);display:flex;align-items:center;gap:30px"><span class="serif" style="font-size:50px;width:340px">Dono</span><span style="font-size:32px;color:#5b6370;width:470px">Controle total da agência</span></div><div id="r1" class="abs" style="left:960px;top:274px;width:860px;height:104px;border-top:2px solid rgba(15,42,74,.2);display:flex;align-items:center;gap:30px"><span class="serif" style="font-size:50px;width:340px">Administrador</span><span style="font-size:32px;color:#5b6370;width:470px">Acesso a configurações</span></div><div id="r2" class="abs" style="left:960px;top:378px;width:860px;height:104px;border-top:2px solid rgba(15,42,74,.2);display:flex;align-items:center;gap:30px"><span class="serif" style="font-size:50px;width:340px">Gerente</span><span style="font-size:32px;color:#5b6370;width:470px">Acesso a relatórios e equipe</span></div><div id="r3" class="abs" style="left:960px;top:482px;width:860px;height:104px;border-top:2px solid rgba(15,42,74,.2);display:flex;align-items:center;gap:30px"><span class="serif" style="font-size:50px;width:340px">Agente</span><span style="font-size:32px;color:#5b6370;width:470px">Acesso a operações</span></div><div id="r4" class="abs" style="left:960px;top:586px;width:860px;height:104px;border-top:2px solid rgba(15,42,74,.2);display:flex;align-items:center;gap:30px"><span class="serif" style="font-size:50px;width:340px">Visualizador</span><span style="font-size:32px;color:#5b6370;width:470px">Acesso somente leitura</span></div>
+<div id="restr" class="abs" style="left:960px;top:742px;width:860px;height:200px;background:#0f2a4a;border-radius:4px;padding:30px 36px"><div class="serif" style="font-size:46px;color:#fff;line-height:1.1">Restrições só reduzem acesso.</div><div style="margin-top:20px;font-size:30px;color:#bfe9f2">Agente · Financeiro — Visualizar · restrito</div></div></div></section>
+<section id="s4" class="clip" data-start="21.2" data-duration="5.0" data-track-index="4"><div id="s4-scene" class="scene navy"><div id="s4glow" data-layout-allow-overflow class="glow" style="left:1100px;top:-500px"></div><img class="abs" src="assets/logo-completa-escura.svg" style="left:100px;top:80px;height:60px" alt="Travel Plataforma"><p data-layout-allow-overlap class="eyebrow c" style="left:100px;top:360px">Confiança</p>
+<h2 id="s4h" class="serif abs" style="left:100px;top:420px;width:760px;font-size:100px;line-height:1.06;color:#fff">Segurança por padrão</h2><div id="q0" class="abs" style="left:960px;top:220px;width:860px;height:200px;border-top:2px solid rgba(255,255,255,.25)"><span class="num" style="position:absolute;left:0;top:38px;font-size:42px;color:#06b6d4">01</span><span class="serif" style="position:absolute;left:90px;top:30px;font-size:50px;color:#fff;width:760px">Autenticação em duas etapas</span><span style="position:absolute;left:90px;top:112px;font-size:32px;color:#bfe9f2;width:760px;line-height:1.3">Proteção adicional de login para contas da equipe.</span></div><div id="q1" class="abs" style="left:960px;top:420px;width:860px;height:200px;border-top:2px solid rgba(255,255,255,.25)"><span class="num" style="position:absolute;left:0;top:38px;font-size:42px;color:#06b6d4">02</span><span class="serif" style="position:absolute;left:90px;top:30px;font-size:50px;color:#fff;width:760px">Trilha de auditoria</span><span style="position:absolute;left:90px;top:112px;font-size:32px;color:#bfe9f2;width:760px;line-height:1.3">Ações relevantes ficam registradas para consulta.</span></div><div id="q2" class="abs" style="left:960px;top:620px;width:860px;height:200px;border-top:2px solid rgba(255,255,255,.25)"><span class="num" style="position:absolute;left:0;top:38px;font-size:42px;color:#06b6d4">03</span><span class="serif" style="position:absolute;left:90px;top:30px;font-size:50px;color:#fff;width:760px">Isolamento por agência</span><span style="position:absolute;left:90px;top:112px;font-size:32px;color:#bfe9f2;width:760px;line-height:1.3">Cada agência opera em seu próprio espaço de dados.</span></div></div></section>
+<section id="s5" class="clip" data-start="25.6" data-duration="4.4" data-track-index="5"><div id="s5-scene" class="scene paper"><p id="s5e" class="eyebrow" style="left:100px;right:100px;top:130px;text-align:center">Para agências de viagem</p>
+<img id="s5logo" class="abs" src="assets/logo-completa.svg" style="left:416px;top:200px;height:240px" alt="Travel Plataforma">
+<div id="s5cta" class="btn" style="left:620px;top:560px;width:680px;height:130px;font-size:56px">Solicitar acesso</div>
+<div id="s5lite" class="abs" style="left:360px;right:360px;top:780px;text-align:center"><div style="font-size:32px;color:#5b6370">Quer começar menor?</div><div style="margin-top:10px;font-size:38px;color:#0f2a4a;font-weight:700">O <span style="color:#1554d1">Travel Lite</span> é a edição simplificada.</div></div></div></section>
+<audio id="bgm" data-start="0" data-duration="30" data-media-start="90" data-track-index="10" data-volume="0.33" src="assets/music/music.mp3" data-automation='{"version":1,"lanes":[{"target":"volume","points":[{"t":0,"v":1},{"t":27.6,"v":1},{"t":30,"v":0}]}]}'></audio>
+<audio id="sx1" data-start="1.38" data-duration="0.18" data-track-index="11" data-volume="0.6" src="assets/sfx/impactSoft_medium_001.ogg"></audio>
+<audio id="sx2" data-start="5.48" data-duration="0.69" data-track-index="12" data-volume="0.6" src="assets/sfx/card-place-1.ogg"></audio>
+<audio id="sx3" data-start="5.98" data-duration="0.19" data-track-index="13" data-volume="0.5" src="assets/sfx/drop_002.ogg"></audio>
+<audio id="sx4" data-start="6.98" data-duration="0.19" data-track-index="14" data-volume="0.5" src="assets/sfx/drop_002.ogg"></audio>
+<audio id="sx5" data-start="7.98" data-duration="0.19" data-track-index="15" data-volume="0.5" src="assets/sfx/drop_002.ogg"></audio>
+<audio id="sx6" data-start="8.98" data-duration="0.19" data-track-index="16" data-volume="0.5" src="assets/sfx/drop_002.ogg"></audio>
+<audio id="sx7" data-start="9.98" data-duration="0.11" data-track-index="17" data-volume="0.5" src="assets/sfx/drop_001.ogg"></audio>
+<audio id="sx8" data-start="13.48" data-duration="0.11" data-track-index="18" data-volume="0.5" src="assets/sfx/drop_001.ogg"></audio>
+<audio id="sx9" data-start="14.48" data-duration="0.11" data-track-index="19" data-volume="0.5" src="assets/sfx/drop_001.ogg"></audio>
+<audio id="sx10" data-start="15.48" data-duration="0.11" data-track-index="20" data-volume="0.5" src="assets/sfx/drop_001.ogg"></audio>
+<audio id="sx11" data-start="16.48" data-duration="0.11" data-track-index="21" data-volume="0.5" src="assets/sfx/drop_001.ogg"></audio>
+<audio id="sx12" data-start="17.48" data-duration="0.11" data-track-index="22" data-volume="0.5" src="assets/sfx/drop_001.ogg"></audio>
+<audio id="sx13" data-start="18.48" data-duration="0.69" data-track-index="23" data-volume="0.6" src="assets/sfx/card-place-1.ogg"></audio>
+<audio id="sx14" data-start="22.48" data-duration="0.19" data-track-index="24" data-volume="0.5" src="assets/sfx/drop_002.ogg"></audio>
+<audio id="sx15" data-start="23.48" data-duration="0.19" data-track-index="25" data-volume="0.5" src="assets/sfx/drop_002.ogg"></audio>
+<audio id="sx16" data-start="24.48" data-duration="0.19" data-track-index="26" data-volume="0.5" src="assets/sfx/drop_002.ogg"></audio>
+<audio id="sx17" data-start="25.98" data-duration="0.18" data-track-index="27" data-volume="0.7" src="assets/sfx/impactSoft_medium_001.ogg"></audio>
+<audio id="sx18" data-start="27.28" data-duration="1.48" data-track-index="28" data-volume="0.7" src="assets/sfx/impactBell_heavy_000.ogg"></audio>
+</div>
+<script>
+var tl = gsap.timeline({ paused: true });
+var E = "power3.out";
+function show(sel, at, d, y) { tl.fromTo(sel, { y: y === undefined ? 40 : y, opacity: 0 }, { y: 0, opacity: 1, duration: d || 0.7, ease: E }, at); }
+function slide(sel, at, d, x) { tl.fromTo(sel, { x: x === undefined ? 50 : x, opacity: 0 }, { x: 0, opacity: 1, duration: d || 0.6, ease: E }, at); }
+/* corte por wipe horizontal: a cena nova revela da direita para a esquerda, sem dissolver (sem tela cinza) */
+function wipe(id, at, d) { tl.fromTo(id, { clipPath: "inset(0 0 0 100%)" }, { clipPath: "inset(0 0 0 0%)", duration: d || 0.8, ease: "power3.inOut" }, at); }
+
+tl.fromTo("#s1a", { scale: 1 }, { scale: 1.03, duration: 1.0, ease: "none" }, 0);
+tl.to(["#s1a", "#s1u"], { opacity: 0, y: -40, duration: 0.35, ease: "power2.in" }, 1.0);
+show("#s1e", 1.3, 0.7, 24);
+show("#s1b", 1.3599999999999999, 0.9, 40);
+
+wipe("#s2-scene", 4.2);
+show("#s2h", 4.5, 0.9);
+tl.set(["#e0", "#e1", "#e2", "#e3", "#e5", "#e6"], { opacity: 0 }, 0);
+tl.fromTo("#s2card", { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: E }, 5.52);
+tl.fromTo("#e0", { x: 40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.6, ease: E }, 6.01);
+tl.fromTo("#e1", { x: 40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.6, ease: E }, 7.01);
+tl.fromTo("#e2", { x: 40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.6, ease: E }, 8.01);
+tl.fromTo("#e3", { x: 40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.6, ease: E }, 9.01);
+tl.fromTo(["#e5", "#e6"], { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, stagger: 0.25, ease: E }, 10.02);
+wipe("#s3-scene", 11.8);
+show("#s3h", 12.1, 0.9);
+tl.set(["#r0", "#r1", "#r2", "#r3", "#r4", "#restr"], { opacity: 0 }, 0);
+tl.fromTo("#r0", { x: 40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.6, ease: E }, 13.51);
+tl.fromTo("#r1", { x: 40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.6, ease: E }, 14.51);
+tl.fromTo("#r2", { x: 40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.6, ease: E }, 15.51);
+tl.fromTo("#r3", { x: 40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.6, ease: E }, 16.51);
+tl.fromTo("#r4", { x: 40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.6, ease: E }, 17.52);
+tl.fromTo("#restr", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: E }, 18.52);
+wipe("#s4-scene", 21.2);
+show("#s4h", 21.5, 0.9);
+tl.set(["#q0", "#q1", "#q2"], { opacity: 0 }, 0);
+tl.fromTo("#q0", { x: 40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.6, ease: E }, 22.52);
+tl.fromTo("#q1", { x: 40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.6, ease: E }, 23.52);
+tl.fromTo("#q2", { x: 40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.6, ease: E }, 24.52);
+wipe("#s5-scene", 25.6);
+show("#s5e", 25.9, 0.7, 20);
+tl.fromTo("#s5logo", { y: 40, scale: 0.96, opacity: 0 }, { y: 0, scale: 1, opacity: 1, duration: 0.9, ease: E }, 26.02);
+tl.fromTo("#s5cta", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: E }, 27.3);
+tl.to("#s5cta", { scale: 1.04, duration: 0.5, ease: "sine.inOut", yoyo: true, repeat: 1 }, 28.4);
+show("#s5lite", 28.51, 0.8, 20);
+
+for (var f = 0; f < AUDIO_DATA.totalFrames; f++) {
+  tl.call((function (fr) { return function () {
+    gsap.set(".glow", { scale: 0.94 + fr.bands[0] * 0.14, opacity: 0.55 + fr.bands[1] * 0.35 });
+  }; })(AUDIO_DATA.frames[f]), [], f / AUDIO_DATA.fps);
+}
+window.__timelines["main"] = tl;
+</script></body></html>

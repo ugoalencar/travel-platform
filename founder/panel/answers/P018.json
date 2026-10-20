@@ -1,0 +1,13 @@
+{
+  "id": "P018",
+  "buys": true,
+  "purchases_first_month": 1,
+  "reason_code": "trust",
+  "reason": "Eu nunca paguei por sistema nenhum, sempre foi planilha e WhatsApp, mas o teste antes de assinar e essa garantia de migração sem risco me dão coragem de pelo menos experimentar um mês no preço de Agência Pioneira.",
+  "objection": "Minha equipe não vai usar, vai voltar pro WhatsApp em uma semana — não é a planilha que me preocupa, é convencer quem já tá acostumado a trabalhar do jeito dela.",
+  "would_change_my_mind": "Ver outra agência do meu tamanho, não um depoimento bonito no site, mas alguém que eu conheço do grupo de WhatsApp, usando isso de verdade depois de uns 3 meses e não tendo voltado pra planilha.",
+  "price_too_cheap": 20,
+  "price_cheap": 49,
+  "price_expensive": 129,
+  "price_too_expensive": 199
+}

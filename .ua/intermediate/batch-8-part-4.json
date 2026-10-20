@@ -1,0 +1,2072 @@
+{
+ "nodes": [
+  {
+   "id": "file:services/api/src/financial.ts",
+   "type": "file",
+   "name": "financial.ts",
+   "filePath": "services/api/src/financial.ts",
+   "summary": "Módulo financeiro completo: receitas, despesas, caixa, conciliação, DRE, contas a receber/pagar e rateios de pagamento.",
+   "tags": [
+    "finance",
+    "accounting",
+    "reporting",
+    "database"
+   ],
+   "complexity": "complex",
+   "languageNotes": "Módulo monolítico com ~70 funções exportadas; concentra relatórios gerenciais (DRE, fluxo de caixa, margens) além do CRUD transacional."
+  },
+  {
+   "id": "function:services/api/src/financial.ts:listFinancialCategories",
+   "type": "function",
+   "name": "listFinancialCategories",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    567,
+    588
+   ],
+   "summary": "Lista categorias financeiras da agência por tipo.",
+   "tags": [
+    "finance",
+    "consulta",
+    "tenant-isolation"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:createFinancialCategory",
+   "type": "function",
+   "name": "createFinancialCategory",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    590,
+    612
+   ],
+   "summary": "Cria categoria financeira validando o tipo permitido.",
+   "tags": [
+    "finance",
+    "crud",
+    "validacao"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:listCostCenters",
+   "type": "function",
+   "name": "listCostCenters",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    618,
+    630
+   ],
+   "summary": "Lista centros de custo da agência.",
+   "tags": [
+    "finance",
+    "consulta",
+    "tenant-isolation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:createCostCenter",
+   "type": "function",
+   "name": "createCostCenter",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    632,
+    651
+   ],
+   "summary": "Cria centro de custo com nome obrigatório.",
+   "tags": [
+    "finance",
+    "crud",
+    "validacao"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:updateCostCenter",
+   "type": "function",
+   "name": "updateCostCenter",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    653,
+    697
+   ],
+   "summary": "Atualiza centro de custo com regras de dependentes.",
+   "tags": [
+    "finance",
+    "crud",
+    "atualizacao"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:toCostCenter",
+   "type": "function",
+   "name": "toCostCenter",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    699,
+    710
+   ],
+   "summary": "Converte linha de banco no centro de custo tipado.",
+   "tags": [
+    "serializacao",
+    "mapper",
+    "finance"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:deleteFinancialCategory",
+   "type": "function",
+   "name": "deleteFinancialCategory",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    712,
+    724
+   ],
+   "summary": "Remove categoria financeira não utilizada.",
+   "tags": [
+    "finance",
+    "crud",
+    "exclusao"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:listRevenues",
+   "type": "function",
+   "name": "listRevenues",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    730,
+    779
+   ],
+   "summary": "Lista receitas com filtros de status, período e centro de custo.",
+   "tags": [
+    "finance",
+    "consulta",
+    "filtros"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:getRevenue",
+   "type": "function",
+   "name": "getRevenue",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    781,
+    794
+   ],
+   "summary": "Busca receita pelo id dentro do tenant.",
+   "tags": [
+    "finance",
+    "lookup",
+    "tenant-isolation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:createRevenue",
+   "type": "function",
+   "name": "createRevenue",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    796,
+    862
+   ],
+   "summary": "Cria receita com validações e evento de auditoria.",
+   "tags": [
+    "finance",
+    "crud",
+    "audit"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:updateRevenue",
+   "type": "function",
+   "name": "updateRevenue",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    864,
+    912
+   ],
+   "summary": "Atualiza receita preservando invariantes de pagamento.",
+   "tags": [
+    "finance",
+    "crud",
+    "atualizacao"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:markRevenueAsPaid",
+   "type": "function",
+   "name": "markRevenueAsPaid",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    914,
+    953
+   ],
+   "summary": "Marca receita como paga registrando data de pagamento.",
+   "tags": [
+    "finance",
+    "workflow",
+    "status"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:cancelRevenue",
+   "type": "function",
+   "name": "cancelRevenue",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    955,
+    968
+   ],
+   "summary": "Cancela receita alterando o status.",
+   "tags": [
+    "finance",
+    "workflow",
+    "cancelamento"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:listExpenses",
+   "type": "function",
+   "name": "listExpenses",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    974,
+    1023
+   ],
+   "summary": "Lista despesas com filtros de status, período e categoria.",
+   "tags": [
+    "finance",
+    "consulta",
+    "filtros"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:getExpense",
+   "type": "function",
+   "name": "getExpense",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    1025,
+    1038
+   ],
+   "summary": "Busca despesa pelo id dentro do tenant.",
+   "tags": [
+    "finance",
+    "lookup",
+    "tenant-isolation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:createExpense",
+   "type": "function",
+   "name": "createExpense",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    1040,
+    1090
+   ],
+   "summary": "Cria despesa com validações e auditoria.",
+   "tags": [
+    "finance",
+    "crud",
+    "audit"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:updateExpense",
+   "type": "function",
+   "name": "updateExpense",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    1092,
+    1142
+   ],
+   "summary": "Atualiza despesa preservando invariantes de pagamento.",
+   "tags": [
+    "finance",
+    "crud",
+    "atualizacao"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:markExpenseAsPaid",
+   "type": "function",
+   "name": "markExpenseAsPaid",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    1144,
+    1178
+   ],
+   "summary": "Marca despesa como paga.",
+   "tags": [
+    "finance",
+    "workflow",
+    "status"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:cancelExpense",
+   "type": "function",
+   "name": "cancelExpense",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    1180,
+    1193
+   ],
+   "summary": "Cancela despesa alterando o status.",
+   "tags": [
+    "finance",
+    "workflow",
+    "cancelamento"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:listCashTransactions",
+   "type": "function",
+   "name": "listCashTransactions",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    1199,
+    1236
+   ],
+   "summary": "Lista movimentações de caixa com filtros combinados.",
+   "tags": [
+    "finance",
+    "cash",
+    "consulta"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:createCashTransaction",
+   "type": "function",
+   "name": "createCashTransaction",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    1238,
+    1286
+   ],
+   "summary": "Cria movimentação de caixa de entrada ou saída.",
+   "tags": [
+    "finance",
+    "cash",
+    "crud"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:getCashBalance",
+   "type": "function",
+   "name": "getCashBalance",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    1288,
+    1305
+   ],
+   "summary": "Calcula saldo de caixa atual da agência.",
+   "tags": [
+    "finance",
+    "cash",
+    "reporting"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:listReconciliations",
+   "type": "function",
+   "name": "listReconciliations",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    1311,
+    1348
+   ],
+   "summary": "Lista conciliações bancárias com status.",
+   "tags": [
+    "finance",
+    "reconciliation",
+    "consulta"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:createReconciliation",
+   "type": "function",
+   "name": "createReconciliation",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    1350,
+    1382
+   ],
+   "summary": "Cria registro de conciliação de movimentação.",
+   "tags": [
+    "finance",
+    "reconciliation",
+    "crud"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:markReconciliationAsReconciled",
+   "type": "function",
+   "name": "markReconciliationAsReconciled",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    1384,
+    1400
+   ],
+   "summary": "Marca conciliação como conciliada.",
+   "tags": [
+    "finance",
+    "reconciliation",
+    "status"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:getDREReport",
+   "type": "function",
+   "name": "getDREReport",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    1406,
+    1481
+   ],
+   "summary": "Gera relatório DRE por período com receitas e despesas agrupadas.",
+   "tags": [
+    "finance",
+    "reporting",
+    "dre"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:getOverdueReport",
+   "type": "function",
+   "name": "getOverdueReport",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    1483,
+    1543
+   ],
+   "summary": "Gera relatório de títulos vencidos a receber e a pagar.",
+   "tags": [
+    "finance",
+    "reporting",
+    "overdue"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:getManagementDre",
+   "type": "function",
+   "name": "getManagementDre",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    1600,
+    1609
+   ],
+   "summary": "Retorna visão de DRE gerencial simplificada.",
+   "tags": [
+    "finance",
+    "reporting",
+    "dre"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:getManagementDreForClient",
+   "type": "function",
+   "name": "getManagementDreForClient",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    1611,
+    1746
+   ],
+   "summary": "Calcula DRE gerencial detalhada por cliente com agrupamentos.",
+   "tags": [
+    "finance",
+    "reporting",
+    "dre"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:getMarginReport",
+   "type": "function",
+   "name": "getMarginReport",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    1755,
+    1789
+   ],
+   "summary": "Gera relatório de margem por venda e período.",
+   "tags": [
+    "finance",
+    "reporting",
+    "margin"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:getCashFlowReport",
+   "type": "function",
+   "name": "getCashFlowReport",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    1799,
+    1851
+   ],
+   "summary": "Gera relatório de fluxo de caixa por período.",
+   "tags": [
+    "finance",
+    "reporting",
+    "cash"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:listReceivables",
+   "type": "function",
+   "name": "listReceivables",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    1857,
+    1877
+   ],
+   "summary": "Lista contas a receber com filtros de status.",
+   "tags": [
+    "finance",
+    "accounts-receivable",
+    "consulta"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:listPayables",
+   "type": "function",
+   "name": "listPayables",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    1879,
+    1891
+   ],
+   "summary": "Lista contas a pagar com filtros de status.",
+   "tags": [
+    "finance",
+    "accounts-payable",
+    "consulta"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:listPayments",
+   "type": "function",
+   "name": "listPayments",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    1893,
+    1905
+   ],
+   "summary": "Lista pagamentos registrados no sistema.",
+   "tags": [
+    "finance",
+    "payments",
+    "consulta"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:listPaymentAllocations",
+   "type": "function",
+   "name": "listPaymentAllocations",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    1907,
+    1922
+   ],
+   "summary": "Lista rateios de pagamento aplicados.",
+   "tags": [
+    "finance",
+    "payments",
+    "consulta"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:listAllocationsForTarget",
+   "type": "function",
+   "name": "listAllocationsForTarget",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    1924,
+    1944
+   ],
+   "summary": "Lista rateios aplicados a um título específico.",
+   "tags": [
+    "finance",
+    "payments",
+    "lookup"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:listOperationalCosts",
+   "type": "function",
+   "name": "listOperationalCosts",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    1946,
+    1958
+   ],
+   "summary": "Lista custos operacionais da agência.",
+   "tags": [
+    "finance",
+    "costs",
+    "consulta"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:createReceivable",
+   "type": "function",
+   "name": "createReceivable",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    1960,
+    1985
+   ],
+   "summary": "Cria conta a receber vinculada opcionalmente a uma venda.",
+   "tags": [
+    "finance",
+    "accounts-receivable",
+    "crud"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:createPayable",
+   "type": "function",
+   "name": "createPayable",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    1987,
+    2046
+   ],
+   "summary": "Cria conta a pagar com fornecedor e vencimento.",
+   "tags": [
+    "finance",
+    "accounts-payable",
+    "crud"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:recordPayment",
+   "type": "function",
+   "name": "recordPayment",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    2048,
+    2091
+   ],
+   "summary": "Registra pagamento com auditoria e atualização de status.",
+   "tags": [
+    "finance",
+    "payments",
+    "audit"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:allocatePayment",
+   "type": "function",
+   "name": "allocatePayment",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    2093,
+    2159
+   ],
+   "summary": "Rateia pagamento entre títulos validando capacidade de saldo.",
+   "tags": [
+    "finance",
+    "payments",
+    "workflow"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:createOperationalCost",
+   "type": "function",
+   "name": "createOperationalCost",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    2161,
+    2209
+   ],
+   "summary": "Cria custo operacional recorrente ou avulso.",
+   "tags": [
+    "finance",
+    "costs",
+    "crud"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:getCashFlowSummary",
+   "type": "function",
+   "name": "getCashFlowSummary",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    2211,
+    2235
+   ],
+   "summary": "Resumira entradas, saídas e saldo do período.",
+   "tags": [
+    "finance",
+    "cash",
+    "reporting"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:getSaleMargin",
+   "type": "function",
+   "name": "getSaleMargin",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    2237,
+    2269
+   ],
+   "summary": "Calcula margem de uma venda sobre custos e receitas.",
+   "tags": [
+    "finance",
+    "margin",
+    "reporting"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:getSaleFinancialStory",
+   "type": "function",
+   "name": "getSaleFinancialStory",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    2271,
+    2415
+   ],
+   "summary": "Monta a história financeira completa de uma venda.",
+   "tags": [
+    "finance",
+    "reporting",
+    "story"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:getFinancialSummary",
+   "type": "function",
+   "name": "getFinancialSummary",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    2417,
+    2558
+   ],
+   "summary": "Consolida indicadores financeiros do mês para o dashboard.",
+   "tags": [
+    "finance",
+    "reporting",
+    "dashboard"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:getFinancialDashboardMetrics",
+   "type": "function",
+   "name": "getFinancialDashboardMetrics",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    2567,
+    2695
+   ],
+   "summary": "Calcula métricas agregadas do dashboard financeiro mensal.",
+   "tags": [
+    "finance",
+    "dashboard",
+    "reporting"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:getCashBalanceForClient",
+   "type": "function",
+   "name": "getCashBalanceForClient",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    2697,
+    2709
+   ],
+   "summary": "Calcula saldo de caixa considerando um cliente.",
+   "tags": [
+    "finance",
+    "cash",
+    "cliente"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:assertOptionalRef",
+   "type": "function",
+   "name": "assertOptionalRef",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    2715,
+    2726
+   ],
+   "summary": "Valida referência opcional de venda ou categoria.",
+   "tags": [
+    "validacao",
+    "finance",
+    "helper"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:assertRef",
+   "type": "function",
+   "name": "assertRef",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    2728,
+    2742
+   ],
+   "summary": "Valida referência obrigatória de entidade financeira.",
+   "tags": [
+    "validacao",
+    "finance",
+    "helper"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:sumAllocationsForPayment",
+   "type": "function",
+   "name": "sumAllocationsForPayment",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    2744,
+    2756
+   ],
+   "summary": "Soma valores já rateados de um pagamento.",
+   "tags": [
+    "finance",
+    "payments",
+    "calculadora"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:lockReceivable",
+   "type": "function",
+   "name": "lockReceivable",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    2758,
+    2772
+   ],
+   "summary": "Seleciona conta a receber com bloqueio pessimista (FOR UPDATE).",
+   "tags": [
+    "finance",
+    "concurrency",
+    "database"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:lockPayable",
+   "type": "function",
+   "name": "lockPayable",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    2774,
+    2788
+   ],
+   "summary": "Seleciona conta a pagar com bloqueio pessimista.",
+   "tags": [
+    "finance",
+    "concurrency",
+    "database"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:assertTargetCapacity",
+   "type": "function",
+   "name": "assertTargetCapacity",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    2790,
+    2808
+   ],
+   "summary": "Garante que rateios não excedem o saldo do título.",
+   "tags": [
+    "validacao",
+    "finance",
+    "payments"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:insertAllocation",
+   "type": "function",
+   "name": "insertAllocation",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    2810,
+    2832
+   ],
+   "summary": "Insere rateio de pagamento entre título e pagamento.",
+   "tags": [
+    "finance",
+    "payments",
+    "database"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:refreshReceivableStatus",
+   "type": "function",
+   "name": "refreshReceivableStatus",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    2834,
+    2859
+   ],
+   "summary": "Recalcula status da conta a receber após rateios.",
+   "tags": [
+    "finance",
+    "workflow",
+    "status"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:refreshPayableStatus",
+   "type": "function",
+   "name": "refreshPayableStatus",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    2861,
+    2886
+   ],
+   "summary": "Recalcula status da conta a pagar após rateios.",
+   "tags": [
+    "finance",
+    "workflow",
+    "status"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:sumColumn",
+   "type": "function",
+   "name": "sumColumn",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    2888,
+    2906
+   ],
+   "summary": "Soma valores de uma coluna numérica de resultado SQL.",
+   "tags": [
+    "utility",
+    "calculadora",
+    "database"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:sumPayments",
+   "type": "function",
+   "name": "sumPayments",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    2908,
+    2924
+   ],
+   "summary": "Soma pagamentos aplicados a um título.",
+   "tags": [
+    "finance",
+    "payments",
+    "calculadora"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:sumBySale",
+   "type": "function",
+   "name": "sumBySale",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    2926,
+    2940
+   ],
+   "summary": "Agrupa soma de valores por venda.",
+   "tags": [
+    "finance",
+    "calculadora",
+    "reporting"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:toReceivable",
+   "type": "function",
+   "name": "toReceivable",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    2968,
+    2990
+   ],
+   "summary": "Converte linha de banco em conta a receber tipada.",
+   "tags": [
+    "serializacao",
+    "mapper",
+    "finance"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:toPayable",
+   "type": "function",
+   "name": "toPayable",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    2992,
+    3014
+   ],
+   "summary": "Converte linha de banco em conta a pagar tipada.",
+   "tags": [
+    "serializacao",
+    "mapper",
+    "finance"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:toPayment",
+   "type": "function",
+   "name": "toPayment",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    3016,
+    3029
+   ],
+   "summary": "Converte linha de banco em pagamento tipado.",
+   "tags": [
+    "serializacao",
+    "mapper",
+    "finance"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:toAllocation",
+   "type": "function",
+   "name": "toAllocation",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    3031,
+    3041
+   ],
+   "summary": "Converte linha de banco em rateio tipado.",
+   "tags": [
+    "serializacao",
+    "mapper",
+    "finance"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:toOperationalCost",
+   "type": "function",
+   "name": "toOperationalCost",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    3043,
+    3061
+   ],
+   "summary": "Converte linha de banco em custo operacional tipado.",
+   "tags": [
+    "serializacao",
+    "mapper",
+    "finance"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:toFinancialCategory",
+   "type": "function",
+   "name": "toFinancialCategory",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    3063,
+    3075
+   ],
+   "summary": "Converte linha de banco em categoria financeira tipada.",
+   "tags": [
+    "serializacao",
+    "mapper",
+    "finance"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:toRevenue",
+   "type": "function",
+   "name": "toRevenue",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    3077,
+    3097
+   ],
+   "summary": "Converte linha de banco em receita tipada.",
+   "tags": [
+    "serializacao",
+    "mapper",
+    "finance"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:toExpense",
+   "type": "function",
+   "name": "toExpense",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    3099,
+    3119
+   ],
+   "summary": "Converte linha de banco em despesa tipada.",
+   "tags": [
+    "serializacao",
+    "mapper",
+    "finance"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:toCashTransaction",
+   "type": "function",
+   "name": "toCashTransaction",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    3121,
+    3135
+   ],
+   "summary": "Converte linha de banco em movimentação de caixa tipada.",
+   "tags": [
+    "serializacao",
+    "mapper",
+    "finance"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/financial.ts:toReconciliation",
+   "type": "function",
+   "name": "toReconciliation",
+   "filePath": "services/api/src/financial.ts",
+   "lineRange": [
+    3137,
+    3150
+   ],
+   "summary": "Converte linha de banco em conciliação tipada.",
+   "tags": [
+    "serializacao",
+    "mapper",
+    "finance"
+   ],
+   "complexity": "simple"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:listFinancialCategories",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:listFinancialCategories",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:createFinancialCategory",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:createFinancialCategory",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:listCostCenters",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:listCostCenters",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:createCostCenter",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:createCostCenter",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:updateCostCenter",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:updateCostCenter",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:toCostCenter",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:deleteFinancialCategory",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:deleteFinancialCategory",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:listRevenues",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:listRevenues",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:getRevenue",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:getRevenue",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:createRevenue",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:createRevenue",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:updateRevenue",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:updateRevenue",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:markRevenueAsPaid",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:markRevenueAsPaid",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:cancelRevenue",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:cancelRevenue",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:listExpenses",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:listExpenses",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:getExpense",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:getExpense",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:createExpense",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:createExpense",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:updateExpense",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:updateExpense",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:markExpenseAsPaid",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:markExpenseAsPaid",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:cancelExpense",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:cancelExpense",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:listCashTransactions",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:listCashTransactions",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:createCashTransaction",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:createCashTransaction",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:getCashBalance",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:getCashBalance",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:listReconciliations",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:listReconciliations",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:createReconciliation",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:createReconciliation",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:markReconciliationAsReconciled",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:markReconciliationAsReconciled",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:getDREReport",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:getDREReport",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:getOverdueReport",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:getOverdueReport",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:getManagementDre",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:getManagementDre",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:getManagementDreForClient",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:getMarginReport",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:getMarginReport",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:getCashFlowReport",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:getCashFlowReport",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:listReceivables",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:listReceivables",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:listPayables",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:listPayables",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:listPayments",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:listPayments",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:listPaymentAllocations",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:listPaymentAllocations",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:listAllocationsForTarget",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:listAllocationsForTarget",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:listOperationalCosts",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:listOperationalCosts",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:createReceivable",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:createReceivable",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:createPayable",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:createPayable",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:recordPayment",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:recordPayment",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:allocatePayment",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:allocatePayment",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:createOperationalCost",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:createOperationalCost",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:getCashFlowSummary",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:getCashFlowSummary",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:getSaleMargin",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:getSaleMargin",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:getSaleFinancialStory",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:getSaleFinancialStory",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:getFinancialSummary",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:getFinancialSummary",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:getFinancialDashboardMetrics",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:getCashBalanceForClient",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:assertOptionalRef",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:assertRef",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:sumAllocationsForPayment",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:lockReceivable",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:lockPayable",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:assertTargetCapacity",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:insertAllocation",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:refreshReceivableStatus",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:refreshPayableStatus",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:sumColumn",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:sumPayments",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:sumBySale",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:toReceivable",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:toPayable",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:toPayment",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:toAllocation",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:toOperationalCost",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:toFinancialCategory",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:toRevenue",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:toExpense",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:toCashTransaction",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "function:services/api/src/financial.ts:toReconciliation",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "file:services/api/src/audit-log.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "function:services/api/src/financial.ts:createRevenue",
+   "target": "function:services/api/src/audit-log.ts:recordAuditEvent",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/financial.ts:createExpense",
+   "target": "function:services/api/src/audit-log.ts:recordAuditEvent",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/financial.ts:recordPayment",
+   "target": "function:services/api/src/audit-log.ts:recordAuditEvent",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "file:services/api/tests/financial.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  }
+ ]
+}

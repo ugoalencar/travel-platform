@@ -1,0 +1,13 @@
+{
+  "id": "P008",
+  "buys": true,
+  "purchases_first_month": 1,
+  "reason_code": "convenience",
+  "reason": "Eu gosto de testar ferramenta nova antes da galera do grupo, e aqui dá pra começar sem contrato longo, com teste antes de assinar e migração garantida. Pra quem fecha o financeiro sozinho no fim do mês, ter cliente, funil e caixa num lugar só já paga a mensalidade.",
+  "objection": "Não vi nenhuma agência conhecida usando e recomendando isso ainda — entrar como 'Agência Pioneira' é bom pro desconto, mas também significa que eu sou o teste, não quem copia um caso que já funcionou.",
+  "would_change_my_mind": "Ver 1 ou 2 agências de porte parecido ao meu já usando de verdade há alguns meses, com depoimento real sobre migração e suporte, não só a promessa do programa pioneiro.",
+  "price_too_cheap": 39,
+  "price_cheap": 79,
+  "price_expensive": 150,
+  "price_too_expensive": 250
+}

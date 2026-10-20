@@ -1,0 +1,704 @@
+{
+ "nodes": [
+  {
+   "id": "file:services/api/src/routes/customer-segments.ts",
+   "type": "file",
+   "name": "customer-segments.ts",
+   "filePath": "services/api/src/routes/customer-segments.ts",
+   "summary": "Rotas de segmentação de clientes: prévia com filtros, CRUD de segmentos e execução de filtro dentro de transação de tenant.",
+   "tags": [
+    "api-handler",
+    "routes",
+    "segmentation",
+    "customers"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/routes/customer-segments.ts:registerCustomerSegmentRoutes",
+   "type": "function",
+   "name": "registerCustomerSegmentRoutes",
+   "filePath": "services/api/src/routes/customer-segments.ts",
+   "lineRange": [
+    31,
+    151
+   ],
+   "summary": "Registra as rotas de segmentação de clientes no Fastify, aplicando validação de entrada e autorização por papel ou entitlement antes de delegar à camada de serviço.",
+   "tags": [
+    "api-handler",
+    "route-registration",
+    "authorization",
+    "fastify"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:services/api/src/routes/customers.ts",
+   "type": "file",
+   "name": "customers.ts",
+   "filePath": "services/api/src/routes/customers.ts",
+   "summary": "CRUD de clientes com allowlist de campos, listagem de wishes e viagens por cliente e ativação de acesso ao portal.",
+   "tags": [
+    "api-handler",
+    "routes",
+    "customers",
+    "portal-access"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/routes/customers.ts:registerCustomerRoutes",
+   "type": "function",
+   "name": "registerCustomerRoutes",
+   "filePath": "services/api/src/routes/customers.ts",
+   "lineRange": [
+    32,
+    145
+   ],
+   "summary": "Registra as rotas de gestão de clientes no Fastify, aplicando validação de entrada e autorização por papel ou entitlement antes de delegar à camada de serviço.",
+   "tags": [
+    "api-handler",
+    "route-registration",
+    "authorization",
+    "fastify"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/routes/customers.ts:parseCreateCustomerInput",
+   "type": "function",
+   "name": "parseCreateCustomerInput",
+   "filePath": "services/api/src/routes/customers.ts",
+   "lineRange": [
+    198,
+    244
+   ],
+   "summary": "Valida e normaliza o corpo da requisição para criação de Customer, verificando campos obrigatórios, tipos e valores permitidos.",
+   "tags": [
+    "validation",
+    "parsing",
+    "input-sanitization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/routes/customers.ts:parseUpdateCustomerInput",
+   "type": "function",
+   "name": "parseUpdateCustomerInput",
+   "filePath": "services/api/src/routes/customers.ts",
+   "lineRange": [
+    246,
+    292
+   ],
+   "summary": "Valida e normaliza o corpo da requisição para atualização de Customer, verificando campos obrigatórios, tipos e valores permitidos.",
+   "tags": [
+    "validation",
+    "parsing",
+    "input-sanitization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:services/api/src/routes/engagements.ts",
+   "type": "file",
+   "name": "engagements.ts",
+   "filePath": "services/api/src/routes/engagements.ts",
+   "summary": "Rota de listagem de eventos de engajamento, protegida por entitlement e papel.",
+   "tags": [
+    "api-handler",
+    "routes",
+    "engagement"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/routes/engagements.ts:registerEngagementsRoutes",
+   "type": "function",
+   "name": "registerEngagementsRoutes",
+   "filePath": "services/api/src/routes/engagements.ts",
+   "lineRange": [
+    21,
+    33
+   ],
+   "summary": "Registra as rotas de registros de engajamento no Fastify, aplicando validação de entrada e autorização por papel ou entitlement antes de delegar à camada de serviço.",
+   "tags": [
+    "api-handler",
+    "route-registration",
+    "authorization",
+    "fastify"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:services/api/src/routes/enrollment.ts",
+   "type": "file",
+   "name": "enrollment.ts",
+   "filePath": "services/api/src/routes/enrollment.ts",
+   "summary": "Rotas de enrollment: links de inscrição, submissões públicas com token, revisão (aprovar ou pedir mudanças) e fluxo de envio.",
+   "tags": [
+    "api-handler",
+    "routes",
+    "enrollment",
+    "public-links"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/routes/enrollment.ts:registerEnrollmentRoutes",
+   "type": "function",
+   "name": "registerEnrollmentRoutes",
+   "filePath": "services/api/src/routes/enrollment.ts",
+   "lineRange": [
+    28,
+    136
+   ],
+   "summary": "Registra as rotas de links de inscrição e submissões de enrollment no Fastify, aplicando validação de entrada e autorização por papel ou entitlement antes de delegar à camada de serviço.",
+   "tags": [
+    "api-handler",
+    "route-registration",
+    "authorization",
+    "fastify"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/routes/enrollment.ts:parseCreateEnrollmentLinkInput",
+   "type": "function",
+   "name": "parseCreateEnrollmentLinkInput",
+   "filePath": "services/api/src/routes/enrollment.ts",
+   "lineRange": [
+    142,
+    176
+   ],
+   "summary": "Valida e normaliza o corpo da requisição para criação de Enrollment Link, verificando campos obrigatórios, tipos e valores permitidos.",
+   "tags": [
+    "validation",
+    "parsing",
+    "input-sanitization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/routes/enrollment.ts:parseRequestChangesInput",
+   "type": "function",
+   "name": "parseRequestChangesInput",
+   "filePath": "services/api/src/routes/enrollment.ts",
+   "lineRange": [
+    178,
+    187
+   ],
+   "summary": "Valida as notas de uma solicitação de mudanças em submissão de enrollment.",
+   "tags": [
+    "validation",
+    "parsing",
+    "input-sanitization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/routes/enrollment.ts:parseOptionalReviewNotes",
+   "type": "function",
+   "name": "parseOptionalReviewNotes",
+   "filePath": "services/api/src/routes/enrollment.ts",
+   "lineRange": [
+    189,
+    204
+   ],
+   "summary": "Extrai e normaliza as notas opcionais de revisão de uma submissão de enrollment.",
+   "tags": [
+    "validation",
+    "parsing",
+    "input-sanitization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/routes/enrollment.ts:parseSubmitEnrollmentInput",
+   "type": "function",
+   "name": "parseSubmitEnrollmentInput",
+   "filePath": "services/api/src/routes/enrollment.ts",
+   "lineRange": [
+    219,
+    277
+   ],
+   "summary": "Valida o envio público de submissão de enrollment, restringindo os campos aceitos e validando os dados do requerente.",
+   "tags": [
+    "validation",
+    "parsing",
+    "input-sanitization"
+   ],
+   "complexity": "moderate"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:services/api/src/routes/customer-segments.ts",
+   "target": "function:services/api/src/routes/customer-segments.ts:registerCustomerSegmentRoutes",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/customer-segments.ts",
+   "target": "function:services/api/src/routes/customer-segments.ts:registerCustomerSegmentRoutes",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/customers.ts",
+   "target": "function:services/api/src/routes/customers.ts:registerCustomerRoutes",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/customers.ts",
+   "target": "function:services/api/src/routes/customers.ts:registerCustomerRoutes",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/customers.ts",
+   "target": "function:services/api/src/routes/customers.ts:parseCreateCustomerInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/customers.ts",
+   "target": "function:services/api/src/routes/customers.ts:parseUpdateCustomerInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/engagements.ts",
+   "target": "function:services/api/src/routes/engagements.ts:registerEngagementsRoutes",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/engagements.ts",
+   "target": "function:services/api/src/routes/engagements.ts:registerEngagementsRoutes",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/enrollment.ts",
+   "target": "function:services/api/src/routes/enrollment.ts:registerEnrollmentRoutes",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/enrollment.ts",
+   "target": "function:services/api/src/routes/enrollment.ts:registerEnrollmentRoutes",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/enrollment.ts",
+   "target": "function:services/api/src/routes/enrollment.ts:parseCreateEnrollmentLinkInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/enrollment.ts",
+   "target": "function:services/api/src/routes/enrollment.ts:parseRequestChangesInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/enrollment.ts",
+   "target": "function:services/api/src/routes/enrollment.ts:parseOptionalReviewNotes",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/enrollment.ts",
+   "target": "function:services/api/src/routes/enrollment.ts:parseSubmitEnrollmentInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/customer-segments.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/customer-segments.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/customer-segments.ts",
+   "target": "file:services/api/src/customer-segmentation.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/customer-segments.ts",
+   "target": "file:services/api/src/customer-segments.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/customer-segments.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/customer-segments.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/customers.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/customers.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/customers.ts",
+   "target": "file:services/api/src/customer-portal-access.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/customers.ts",
+   "target": "file:services/api/src/customers.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/customers.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/customers.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/customers.ts",
+   "target": "file:services/api/src/trips.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/customers.ts",
+   "target": "file:services/api/src/wishes.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/engagements.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/engagements.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/engagements.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/engagements.ts",
+   "target": "file:services/api/src/engagements.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/engagements.ts",
+   "target": "file:services/api/src/entitlements.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/enrollment.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/enrollment.ts",
+   "target": "file:services/api/src/enrollment.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/enrollment.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "function:services/api/src/routes/customer-segments.ts:registerCustomerSegmentRoutes",
+   "target": "function:packages/domain/tenant-context.ts:requireRole",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-segments.ts:registerCustomerSegmentRoutes",
+   "target": "function:services/api/src/customer-segmentation.ts:validateFilterDefinition",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-segments.ts:registerCustomerSegmentRoutes",
+   "target": "function:services/api/src/customer-segmentation.ts:parseSegmentPagination",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-segments.ts:registerCustomerSegmentRoutes",
+   "target": "function:services/api/src/customer-segmentation.ts:previewSegment",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-segments.ts:registerCustomerSegmentRoutes",
+   "target": "function:services/api/src/customer-segments.ts:listCustomerSegments",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-segments.ts:registerCustomerSegmentRoutes",
+   "target": "function:services/api/src/customer-segments.ts:getCustomerSegmentById",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-segments.ts:registerCustomerSegmentRoutes",
+   "target": "function:services/api/src/customer-segmentation.ts:runFilterDefinition",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-segments.ts:registerCustomerSegmentRoutes",
+   "target": "function:services/api/src/customer-segments.ts:createCustomerSegment",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-segments.ts:registerCustomerSegmentRoutes",
+   "target": "function:services/api/src/customer-segments.ts:updateCustomerSegment",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-segments.ts:registerCustomerSegmentRoutes",
+   "target": "function:services/api/src/customer-segments.ts:archiveCustomerSegment",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customers.ts:registerCustomerRoutes",
+   "target": "function:packages/domain/tenant-context.ts:requireRole",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customers.ts:registerCustomerRoutes",
+   "target": "function:services/api/src/customers.ts:listCustomers",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customers.ts:registerCustomerRoutes",
+   "target": "function:services/api/src/customers.ts:getCustomerById",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customers.ts:registerCustomerRoutes",
+   "target": "function:services/api/src/customers.ts:createCustomer",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customers.ts:registerCustomerRoutes",
+   "target": "function:services/api/src/customers.ts:updateCustomer",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customers.ts:registerCustomerRoutes",
+   "target": "function:services/api/src/wishes.ts:listWishesByCustomer",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customers.ts:registerCustomerRoutes",
+   "target": "function:services/api/src/trips.ts:listTripsByCustomer",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customers.ts:registerCustomerRoutes",
+   "target": "function:services/api/src/customer-portal-access.ts:grantCustomerPortalAccess",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customers.ts:registerCustomerRoutes",
+   "target": "function:services/api/src/customer-portal-access.ts:sendCustomerPortalActivationEmail",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/engagements.ts:registerEngagementsRoutes",
+   "target": "function:services/api/src/entitlements.ts:requireEntitlement",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/engagements.ts:registerEngagementsRoutes",
+   "target": "function:packages/domain/tenant-context.ts:requireRole",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/engagements.ts:registerEngagementsRoutes",
+   "target": "function:services/api/src/engagements.ts:listEngagements",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/enrollment.ts:registerEnrollmentRoutes",
+   "target": "function:services/api/src/enrollment.ts:createEnrollmentLink",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/enrollment.ts:registerEnrollmentRoutes",
+   "target": "function:services/api/src/enrollment.ts:listEnrollmentLinks",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/enrollment.ts:registerEnrollmentRoutes",
+   "target": "function:services/api/src/enrollment.ts:revokeEnrollmentLink",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/enrollment.ts:registerEnrollmentRoutes",
+   "target": "function:services/api/src/enrollment.ts:listEnrollmentSubmissions",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/enrollment.ts:registerEnrollmentRoutes",
+   "target": "function:services/api/src/enrollment.ts:getEnrollmentSubmissionById",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/enrollment.ts:registerEnrollmentRoutes",
+   "target": "function:services/api/src/enrollment.ts:requestEnrollmentChanges",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/enrollment.ts:registerEnrollmentRoutes",
+   "target": "function:services/api/src/enrollment.ts:approveEnrollmentSubmission",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/enrollment.ts:registerEnrollmentRoutes",
+   "target": "function:services/api/src/enrollment.ts:resolvePublicEnrollmentToken",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/enrollment.ts:registerEnrollmentRoutes",
+   "target": "function:services/api/src/enrollment.ts:submitEnrollment",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  }
+ ]
+}

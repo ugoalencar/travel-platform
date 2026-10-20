@@ -1,0 +1,13 @@
+{
+  "id": "P016",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "price",
+  "reason": "R$ 99 ou R$ 299 por mês é caro pra minha agência hoje, e ainda por cima não tem nenhuma agência de verdade usando isso que eu possa perguntar se funciona. Eu até testo de graça, mas assinar sem desconto e sem ver referência, não.",
+  "objection": "Não existe nenhuma agência rodando o sistema pra eu ver na prática, e a cobrança automática do cliente final e a nota fiscal, que são parte do meu dia a dia, ainda estão em desenvolvimento — ou seja, eu ia pagar por um sistema incompleto pro que eu mais preciso.",
+  "would_change_my_mind": "Ver 2 ou 3 agências do meu tamanho usando de verdade e falando bem no grupo de WhatsApp, ter um desconto de lançamento, e a cobrança/nota fiscal automática já funcionando.",
+  "price_too_cheap": 30,
+  "price_cheap": 60,
+  "price_expensive": 150,
+  "price_too_expensive": 300
+}

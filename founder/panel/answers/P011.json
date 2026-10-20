@@ -1,0 +1,13 @@
+{
+  "id": "P011",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Parece bem pensado, com teste antes de assinar e garantia na migração, mas é um sistema que eu nunca ouvi falar e que ainda não tem nenhuma agência de verdade usando pra eu checar. Eu não vou ser o primeiro a colocar o CPF e o histórico dos meus clientes numa plataforma sem referência nenhuma, ainda mais pedindo pra eu virar o case público deles.",
+  "objection": "O próprio Programa Agência Pioneira deixa claro que ainda não tem ninguém usando e que eu seria a prova de que funciona. Se a migração travar ou os dados dos meus clientes vazarem ou corromperem, quem paga o preço é a minha agência com o meu cliente, não eles.",
+  "would_change_my_mind": "Ver 2 ou 3 agências de viagem brasileiras de porte parecido com o meu já usando de verdade, com depoimento e tempo de uso, não só a promessa da garantia de migração.",
+  "price_too_cheap": 29,
+  "price_cheap": 59,
+  "price_expensive": 99,
+  "price_too_expensive": 180
+}

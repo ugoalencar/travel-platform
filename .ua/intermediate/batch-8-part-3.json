@@ -1,0 +1,1759 @@
+{
+ "nodes": [
+  {
+   "id": "file:services/api/src/enrollment.ts",
+   "type": "file",
+   "name": "enrollment.ts",
+   "filePath": "services/api/src/enrollment.ts",
+   "summary": "Fluxo completo de enrollment público com links de convite por token hasheado, submissão de cadastro e aprovação.",
+   "tags": [
+    "enrollment",
+    "public-flow",
+    "security",
+    "audit"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/enrollment.ts:generateEnrollmentToken",
+   "type": "function",
+   "name": "generateEnrollmentToken",
+   "filePath": "services/api/src/enrollment.ts",
+   "lineRange": [
+    42,
+    45
+   ],
+   "summary": "Gera token aleatório de 32 bytes para link de enrollment.",
+   "tags": [
+    "security",
+    "token",
+    "utility"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/enrollment.ts:hashEnrollmentToken",
+   "type": "function",
+   "name": "hashEnrollmentToken",
+   "filePath": "services/api/src/enrollment.ts",
+   "lineRange": [
+    47,
+    49
+   ],
+   "summary": "Calcula hash SHA-256 do token para armazenamento seguro.",
+   "tags": [
+    "hash",
+    "security",
+    "utility"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/enrollment.ts:toEnrollmentLink",
+   "type": "function",
+   "name": "toEnrollmentLink",
+   "filePath": "services/api/src/enrollment.ts",
+   "lineRange": [
+    92,
+    106
+   ],
+   "summary": "Converte linha de banco no link de enrollment tipado.",
+   "tags": [
+    "serializacao",
+    "mapper",
+    "enrollment"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/enrollment.ts:createEnrollmentLink",
+   "type": "function",
+   "name": "createEnrollmentLink",
+   "filePath": "services/api/src/enrollment.ts",
+   "lineRange": [
+    117,
+    151
+   ],
+   "summary": "Cria link público de enrollment com TTL e auditoria.",
+   "tags": [
+    "enrollment",
+    "security",
+    "audit"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/enrollment.ts:listEnrollmentLinks",
+   "type": "function",
+   "name": "listEnrollmentLinks",
+   "filePath": "services/api/src/enrollment.ts",
+   "lineRange": [
+    153,
+    164
+   ],
+   "summary": "Lista links de enrollment da agência.",
+   "tags": [
+    "enrollment",
+    "consulta",
+    "tenant-isolation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/enrollment.ts:revokeEnrollmentLink",
+   "type": "function",
+   "name": "revokeEnrollmentLink",
+   "filePath": "services/api/src/enrollment.ts",
+   "lineRange": [
+    166,
+    194
+   ],
+   "summary": "Revoga um link de enrollment e registra auditoria.",
+   "tags": [
+    "enrollment",
+    "security",
+    "audit"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/enrollment.ts:resolvePublicEnrollmentToken",
+   "type": "function",
+   "name": "resolvePublicEnrollmentToken",
+   "filePath": "services/api/src/enrollment.ts",
+   "lineRange": [
+    210,
+    241
+   ],
+   "summary": "Resolve token público de enrollment validando hash e expiração.",
+   "tags": [
+    "enrollment",
+    "security",
+    "public-flow"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/enrollment.ts:toSubmissionSummary",
+   "type": "function",
+   "name": "toSubmissionSummary",
+   "filePath": "services/api/src/enrollment.ts",
+   "lineRange": [
+    290,
+    303
+   ],
+   "summary": "Converte submissão em resumo para listagem.",
+   "tags": [
+    "serializacao",
+    "mapper",
+    "enrollment"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/enrollment.ts:submitEnrollment",
+   "type": "function",
+   "name": "submitEnrollment",
+   "filePath": "services/api/src/enrollment.ts",
+   "lineRange": [
+    311,
+    399
+   ],
+   "summary": "Recebe submissão pública de cadastro com consentimento LGPD e auditoria.",
+   "tags": [
+    "enrollment",
+    "public-flow",
+    "lgpd"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/enrollment.ts:listEnrollmentSubmissions",
+   "type": "function",
+   "name": "listEnrollmentSubmissions",
+   "filePath": "services/api/src/enrollment.ts",
+   "lineRange": [
+    404,
+    418
+   ],
+   "summary": "Lista submissões de enrollment da agência com status.",
+   "tags": [
+    "enrollment",
+    "consulta",
+    "tenant-isolation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/enrollment.ts:getEnrollmentSubmissionById",
+   "type": "function",
+   "name": "getEnrollmentSubmissionById",
+   "filePath": "services/api/src/enrollment.ts",
+   "lineRange": [
+    420,
+    436
+   ],
+   "summary": "Busca submissão de enrollment pelo id.",
+   "tags": [
+    "enrollment",
+    "lookup",
+    "tenant-isolation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/enrollment.ts:requestEnrollmentChanges",
+   "type": "function",
+   "name": "requestEnrollmentChanges",
+   "filePath": "services/api/src/enrollment.ts",
+   "lineRange": [
+    442,
+    473
+   ],
+   "summary": "Solicita ajustes em submissão devolvendo-a ao solicitante.",
+   "tags": [
+    "enrollment",
+    "workflow",
+    "audit"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/enrollment.ts:approveEnrollmentSubmission",
+   "type": "function",
+   "name": "approveEnrollmentSubmission",
+   "filePath": "services/api/src/enrollment.ts",
+   "lineRange": [
+    487,
+    580
+   ],
+   "summary": "Aprova submissão criando cliente e usuário vinculados.",
+   "tags": [
+    "enrollment",
+    "workflow",
+    "aprovacao"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/enrollment.ts:normalizeTtlDays",
+   "type": "function",
+   "name": "normalizeTtlDays",
+   "filePath": "services/api/src/enrollment.ts",
+   "lineRange": [
+    582,
+    592
+   ],
+   "summary": "Normaliza TTL em dias com valor padrão e limite máximo.",
+   "tags": [
+    "utility",
+    "validacao",
+    "security"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:services/api/src/entitlements.ts",
+   "type": "file",
+   "name": "entitlements.ts",
+   "filePath": "services/api/src/entitlements.ts",
+   "summary": "Consulta e exigência de entitlements de features por agência, com ativação stopgap via camada de plataforma.",
+   "tags": [
+    "entitlements",
+    "feature-gating",
+    "authorization",
+    "platform"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "class:services/api/src/entitlements.ts:EntitlementError",
+   "type": "class",
+   "name": "EntitlementError",
+   "filePath": "services/api/src/entitlements.ts",
+   "lineRange": [
+    46,
+    51
+   ],
+   "summary": "Erro lançado quando uma feature requerida não está habilitada.",
+   "tags": [
+    "erros",
+    "entitlements",
+    "authorization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/entitlements.ts:listEntitlements",
+   "type": "function",
+   "name": "listEntitlements",
+   "filePath": "services/api/src/entitlements.ts",
+   "lineRange": [
+    75,
+    85
+   ],
+   "summary": "Lista entitlements de features habilitadas para a agência.",
+   "tags": [
+    "entitlements",
+    "consulta",
+    "tenant-isolation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/entitlements.ts:requireEntitlement",
+   "type": "function",
+   "name": "requireEntitlement",
+   "filePath": "services/api/src/entitlements.ts",
+   "lineRange": [
+    90,
+    96
+   ],
+   "summary": "Exige que a feature esteja habilitada, lançando EntitlementError.",
+   "tags": [
+    "entitlements",
+    "authorization",
+    "validacao"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/entitlements.ts:requireEntitlementInTransaction",
+   "type": "function",
+   "name": "requireEntitlementInTransaction",
+   "filePath": "services/api/src/entitlements.ts",
+   "lineRange": [
+    98,
+    113
+   ],
+   "summary": "Exige entitlement usando um client já em transação.",
+   "tags": [
+    "entitlements",
+    "authorization",
+    "database"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/entitlements.ts:setAgencyEntitlementViaPlatformStopgap",
+   "type": "function",
+   "name": "setAgencyEntitlementViaPlatformStopgap",
+   "filePath": "services/api/src/entitlements.ts",
+   "lineRange": [
+    129,
+    159
+   ],
+   "summary": "Ativa/desativa feature da agência via runtime de plataforma com auditoria.",
+   "tags": [
+    "entitlements",
+    "platform",
+    "audit"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/entitlements.ts:validateSetEntitlementInput",
+   "type": "function",
+   "name": "validateSetEntitlementInput",
+   "filePath": "services/api/src/entitlements.ts",
+   "lineRange": [
+    161,
+    171
+   ],
+   "summary": "Valida agencyId e nome da feature contra o catálogo.",
+   "tags": [
+    "validacao",
+    "entitlements",
+    "regras"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/entitlements.ts:toView",
+   "type": "function",
+   "name": "toView",
+   "filePath": "services/api/src/entitlements.ts",
+   "lineRange": [
+    173,
+    184
+   ],
+   "summary": "Converte linha de entitlement na visão de API.",
+   "tags": [
+    "serializacao",
+    "mapper",
+    "entitlements"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:services/api/src/env.ts",
+   "type": "file",
+   "name": "env.ts",
+   "filePath": "services/api/src/env.ts",
+   "summary": "Validação rigorosa de variáveis de ambiente, com checagens de produção, papéis de database e pools seguros.",
+   "tags": [
+    "configuration",
+    "validation",
+    "security",
+    "environment"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/env.ts:validateProductionEnvironment",
+   "type": "function",
+   "name": "validateProductionEnvironment",
+   "filePath": "services/api/src/env.ts",
+   "lineRange": [
+    44,
+    161
+   ],
+   "summary": "Valida todas as variáveis críticas exigidas em produção.",
+   "tags": [
+    "configuration",
+    "validation",
+    "security"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/env.ts:isLocalDatabaseHost",
+   "type": "function",
+   "name": "isLocalDatabaseHost",
+   "filePath": "services/api/src/env.ts",
+   "lineRange": [
+    175,
+    180
+   ],
+   "summary": "Detecta hosts de database locais (loopback/localhost).",
+   "tags": [
+    "configuration",
+    "security",
+    "utility"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/env.ts:validateNonProductionDatabaseTargets",
+   "type": "function",
+   "name": "validateNonProductionDatabaseTargets",
+   "filePath": "services/api/src/env.ts",
+   "lineRange": [
+    182,
+    215
+   ],
+   "summary": "Bloqueia database em produção apontando para alvos locais.",
+   "tags": [
+    "configuration",
+    "security",
+    "validation"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/env.ts:assertSafeDatabaseRole",
+   "type": "function",
+   "name": "assertSafeDatabaseRole",
+   "filePath": "services/api/src/env.ts",
+   "lineRange": [
+    245,
+    254
+   ],
+   "summary": "Garante que o papel do database não é superusuário.",
+   "tags": [
+    "configuration",
+    "security",
+    "database"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/env.ts:assertSafeDatabasePools",
+   "type": "function",
+   "name": "assertSafeDatabasePools",
+   "filePath": "services/api/src/env.ts",
+   "lineRange": [
+    261,
+    279
+   ],
+   "summary": "Valida papéis e limites de pool de todas as conexões.",
+   "tags": [
+    "configuration",
+    "security",
+    "database"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/env.ts:readSafeDatabaseRole",
+   "type": "function",
+   "name": "readSafeDatabaseRole",
+   "filePath": "services/api/src/env.ts",
+   "lineRange": [
+    281,
+    313
+   ],
+   "summary": "Consulta o papel corrente do database conectado.",
+   "tags": [
+    "database",
+    "security",
+    "utility"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:services/api/src/errors.ts",
+   "type": "file",
+   "name": "errors.ts",
+   "filePath": "services/api/src/errors.ts",
+   "summary": "Classes de erro de domínio e handler global de erros do Fastify com mapeamento de status e códigos.",
+   "tags": [
+    "error-handling",
+    "api-handler",
+    "middleware",
+    "type-definition"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "class:services/api/src/errors.ts:ValidationError",
+   "type": "class",
+   "name": "ValidationError",
+   "filePath": "services/api/src/errors.ts",
+   "lineRange": [
+    13,
+    16
+   ],
+   "summary": "Erro de domínio para dados de entrada inválidos (HTTP 400).",
+   "tags": [
+    "erros",
+    "type-definition",
+    "api-handler"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "class:services/api/src/errors.ts:NotFoundError",
+   "type": "class",
+   "name": "NotFoundError",
+   "filePath": "services/api/src/errors.ts",
+   "lineRange": [
+    18,
+    21
+   ],
+   "summary": "Erro de domínio para recurso inexistente (HTTP 404).",
+   "tags": [
+    "erros",
+    "type-definition",
+    "api-handler"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "class:services/api/src/errors.ts:ConflictError",
+   "type": "class",
+   "name": "ConflictError",
+   "filePath": "services/api/src/errors.ts",
+   "lineRange": [
+    23,
+    26
+   ],
+   "summary": "Erro de domínio para conflito de unicidade ou estado (HTTP 409).",
+   "tags": [
+    "erros",
+    "type-definition",
+    "api-handler"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "class:services/api/src/errors.ts:CorsOriginNotAllowedError",
+   "type": "class",
+   "name": "CorsOriginNotAllowedError",
+   "filePath": "services/api/src/errors.ts",
+   "lineRange": [
+    32,
+    35
+   ],
+   "summary": "Erro para origem CORS rejeitada pelo servidor (HTTP 403).",
+   "tags": [
+    "erros",
+    "security",
+    "cors"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/errors.ts:registerErrorHandler",
+   "type": "function",
+   "name": "registerErrorHandler",
+   "filePath": "services/api/src/errors.ts",
+   "lineRange": [
+    42,
+    69
+   ],
+   "summary": "Registra o handler global de erros do Fastify com log e status.",
+   "tags": [
+    "error-handling",
+    "middleware",
+    "api-handler"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/errors.ts:resolveErrorResponse",
+   "type": "function",
+   "name": "resolveErrorResponse",
+   "filePath": "services/api/src/errors.ts",
+   "lineRange": [
+    71,
+    114
+   ],
+   "summary": "Mapeia erro lançado para status HTTP, código e mensagem de resposta.",
+   "tags": [
+    "error-handling",
+    "mapeamento",
+    "api-handler"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:services/api/src/excursions.ts",
+   "type": "file",
+   "name": "excursions.ts",
+   "filePath": "services/api/src/excursions.ts",
+   "summary": "CRUD de excursões e partidas com fan-out de clientes para viagens e serviços aéreos/terrestres.",
+   "tags": [
+    "excursions",
+    "crud",
+    "workflow",
+    "multi-tenant"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/excursions.ts:toExcursion",
+   "type": "function",
+   "name": "toExcursion",
+   "filePath": "services/api/src/excursions.ts",
+   "lineRange": [
+    138,
+    158
+   ],
+   "summary": "Converte linha de banco na excursão tipada com números.",
+   "tags": [
+    "serializacao",
+    "mapper",
+    "excursions"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/excursions.ts:toDeparture",
+   "type": "function",
+   "name": "toDeparture",
+   "filePath": "services/api/src/excursions.ts",
+   "lineRange": [
+    160,
+    169
+   ],
+   "summary": "Converte linha de banco na partida da excursão.",
+   "tags": [
+    "serializacao",
+    "mapper",
+    "excursions"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/excursions.ts:validateTransportFields",
+   "type": "function",
+   "name": "validateTransportFields",
+   "filePath": "services/api/src/excursions.ts",
+   "lineRange": [
+    171,
+    183
+   ],
+   "summary": "Valida campos de transporte quando o tipo exige fornecedor/veículo.",
+   "tags": [
+    "validacao",
+    "excursions",
+    "regras"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/excursions.ts:listExcursions",
+   "type": "function",
+   "name": "listExcursions",
+   "filePath": "services/api/src/excursions.ts",
+   "lineRange": [
+    189,
+    203
+   ],
+   "summary": "Lista excursões da agência com suas partidas.",
+   "tags": [
+    "crud",
+    "consulta",
+    "tenant-isolation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/excursions.ts:getExcursionById",
+   "type": "function",
+   "name": "getExcursionById",
+   "filePath": "services/api/src/excursions.ts",
+   "lineRange": [
+    205,
+    227
+   ],
+   "summary": "Busca excursão pelo id incluindo partidas associadas.",
+   "tags": [
+    "crud",
+    "lookup",
+    "excursions"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/excursions.ts:createExcursion",
+   "type": "function",
+   "name": "createExcursion",
+   "filePath": "services/api/src/excursions.ts",
+   "lineRange": [
+    229,
+    266
+   ],
+   "summary": "Cria excursão com validação de transporte e campos obrigatórios.",
+   "tags": [
+    "crud",
+    "validacao",
+    "excursions"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/excursions.ts:deleteExcursion",
+   "type": "function",
+   "name": "deleteExcursion",
+   "filePath": "services/api/src/excursions.ts",
+   "lineRange": [
+    268,
+    278
+   ],
+   "summary": "Remove excursão do tenant atual.",
+   "tags": [
+    "crud",
+    "exclusao",
+    "excursions"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/excursions.ts:getDepartureById",
+   "type": "function",
+   "name": "getDepartureById",
+   "filePath": "services/api/src/excursions.ts",
+   "lineRange": [
+    290,
+    347
+   ],
+   "summary": "Busca partida com excursão, clientes e serviços vinculados.",
+   "tags": [
+    "excursions",
+    "lookup",
+    "consulta"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/excursions.ts:fanOutToCustomer",
+   "type": "function",
+   "name": "fanOutToCustomer",
+   "filePath": "services/api/src/excursions.ts",
+   "lineRange": [
+    353,
+    412
+   ],
+   "summary": "Distribui cliente da partida para viagem e serviços aéreo/terrestre.",
+   "tags": [
+    "workflow",
+    "excursions",
+    "automacao"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/excursions.ts:createDeparture",
+   "type": "function",
+   "name": "createDeparture",
+   "filePath": "services/api/src/excursions.ts",
+   "lineRange": [
+    414,
+    444
+   ],
+   "summary": "Cria partida de excursão validando vínculo com a excursão.",
+   "tags": [
+    "crud",
+    "excursions",
+    "validacao"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/excursions.ts:addCustomersToDeparture",
+   "type": "function",
+   "name": "addCustomersToDeparture",
+   "filePath": "services/api/src/excursions.ts",
+   "lineRange": [
+    449,
+    465
+   ],
+   "summary": "Adiciona clientes a uma partida com vínculo de reserva.",
+   "tags": [
+    "crud",
+    "excursions",
+    "cliente"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/excursions.ts:removeCustomerFromDeparture",
+   "type": "function",
+   "name": "removeCustomerFromDeparture",
+   "filePath": "services/api/src/excursions.ts",
+   "lineRange": [
+    471,
+    484
+   ],
+   "summary": "Remove cliente de uma partida preservando histórico.",
+   "tags": [
+    "crud",
+    "excursions",
+    "cliente"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:services/api/src/feature-flags.ts",
+   "type": "file",
+   "name": "feature-flags.ts",
+   "filePath": "services/api/src/feature-flags.ts",
+   "summary": "Leitura e escrita de feature flags na base de plataforma, com avaliação de disponibilidade por feature.",
+   "tags": [
+    "feature-flags",
+    "configuration",
+    "platform",
+    "database"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/feature-flags.ts:mapRow",
+   "type": "function",
+   "name": "mapRow",
+   "filePath": "services/api/src/feature-flags.ts",
+   "lineRange": [
+    50,
+    63
+   ],
+   "summary": "Converte linha de feature flag no domínio tipado.",
+   "tags": [
+    "serializacao",
+    "mapper",
+    "feature-flags"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/feature-flags.ts:listFeatureFlags",
+   "type": "function",
+   "name": "listFeatureFlags",
+   "filePath": "services/api/src/feature-flags.ts",
+   "lineRange": [
+    72,
+    81
+   ],
+   "summary": "Lista todas as feature flags da plataforma.",
+   "tags": [
+    "feature-flags",
+    "consulta",
+    "platform"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/feature-flags.ts:getFeatureFlag",
+   "type": "function",
+   "name": "getFeatureFlag",
+   "filePath": "services/api/src/feature-flags.ts",
+   "lineRange": [
+    83,
+    97
+   ],
+   "summary": "Busca uma feature flag pelo nome.",
+   "tags": [
+    "feature-flags",
+    "lookup",
+    "platform"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/feature-flags.ts:isFeatureEnabled",
+   "type": "function",
+   "name": "isFeatureEnabled",
+   "filePath": "services/api/src/feature-flags.ts",
+   "lineRange": [
+    109,
+    130
+   ],
+   "summary": "Avalia se uma feature está habilitada com padrão seguro.",
+   "tags": [
+    "feature-flags",
+    "authorization",
+    "regras"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/feature-flags.ts:setFeatureFlagEnabled",
+   "type": "function",
+   "name": "setFeatureFlagEnabled",
+   "filePath": "services/api/src/feature-flags.ts",
+   "lineRange": [
+    144,
+    188
+   ],
+   "summary": "Ativa/desativa flag registrando auditoria de plataforma.",
+   "tags": [
+    "feature-flags",
+    "crud",
+    "audit"
+   ],
+   "complexity": "moderate"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:services/api/src/enrollment.ts",
+   "target": "function:services/api/src/enrollment.ts:generateEnrollmentToken",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/enrollment.ts",
+   "target": "function:services/api/src/enrollment.ts:generateEnrollmentToken",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/enrollment.ts",
+   "target": "function:services/api/src/enrollment.ts:hashEnrollmentToken",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/enrollment.ts",
+   "target": "function:services/api/src/enrollment.ts:hashEnrollmentToken",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/enrollment.ts",
+   "target": "function:services/api/src/enrollment.ts:toEnrollmentLink",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/enrollment.ts",
+   "target": "function:services/api/src/enrollment.ts:createEnrollmentLink",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/enrollment.ts",
+   "target": "function:services/api/src/enrollment.ts:createEnrollmentLink",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/enrollment.ts",
+   "target": "function:services/api/src/enrollment.ts:listEnrollmentLinks",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/enrollment.ts",
+   "target": "function:services/api/src/enrollment.ts:listEnrollmentLinks",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/enrollment.ts",
+   "target": "function:services/api/src/enrollment.ts:revokeEnrollmentLink",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/enrollment.ts",
+   "target": "function:services/api/src/enrollment.ts:revokeEnrollmentLink",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/enrollment.ts",
+   "target": "function:services/api/src/enrollment.ts:resolvePublicEnrollmentToken",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/enrollment.ts",
+   "target": "function:services/api/src/enrollment.ts:resolvePublicEnrollmentToken",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/enrollment.ts",
+   "target": "function:services/api/src/enrollment.ts:toSubmissionSummary",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/enrollment.ts",
+   "target": "function:services/api/src/enrollment.ts:submitEnrollment",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/enrollment.ts",
+   "target": "function:services/api/src/enrollment.ts:submitEnrollment",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/enrollment.ts",
+   "target": "function:services/api/src/enrollment.ts:listEnrollmentSubmissions",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/enrollment.ts",
+   "target": "function:services/api/src/enrollment.ts:listEnrollmentSubmissions",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/enrollment.ts",
+   "target": "function:services/api/src/enrollment.ts:getEnrollmentSubmissionById",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/enrollment.ts",
+   "target": "function:services/api/src/enrollment.ts:getEnrollmentSubmissionById",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/enrollment.ts",
+   "target": "function:services/api/src/enrollment.ts:requestEnrollmentChanges",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/enrollment.ts",
+   "target": "function:services/api/src/enrollment.ts:requestEnrollmentChanges",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/enrollment.ts",
+   "target": "function:services/api/src/enrollment.ts:approveEnrollmentSubmission",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/enrollment.ts",
+   "target": "function:services/api/src/enrollment.ts:approveEnrollmentSubmission",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/enrollment.ts",
+   "target": "function:services/api/src/enrollment.ts:normalizeTtlDays",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/entitlements.ts",
+   "target": "class:services/api/src/entitlements.ts:EntitlementError",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/entitlements.ts",
+   "target": "class:services/api/src/entitlements.ts:EntitlementError",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/entitlements.ts",
+   "target": "function:services/api/src/entitlements.ts:listEntitlements",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/entitlements.ts",
+   "target": "function:services/api/src/entitlements.ts:listEntitlements",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/entitlements.ts",
+   "target": "function:services/api/src/entitlements.ts:requireEntitlement",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/entitlements.ts",
+   "target": "function:services/api/src/entitlements.ts:requireEntitlement",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/entitlements.ts",
+   "target": "function:services/api/src/entitlements.ts:requireEntitlementInTransaction",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/entitlements.ts",
+   "target": "function:services/api/src/entitlements.ts:requireEntitlementInTransaction",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/entitlements.ts",
+   "target": "function:services/api/src/entitlements.ts:setAgencyEntitlementViaPlatformStopgap",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/entitlements.ts",
+   "target": "function:services/api/src/entitlements.ts:setAgencyEntitlementViaPlatformStopgap",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/entitlements.ts",
+   "target": "function:services/api/src/entitlements.ts:validateSetEntitlementInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/entitlements.ts",
+   "target": "function:services/api/src/entitlements.ts:toView",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/env.ts",
+   "target": "function:services/api/src/env.ts:validateProductionEnvironment",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/env.ts",
+   "target": "function:services/api/src/env.ts:validateProductionEnvironment",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/env.ts",
+   "target": "function:services/api/src/env.ts:isLocalDatabaseHost",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/env.ts",
+   "target": "function:services/api/src/env.ts:isLocalDatabaseHost",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/env.ts",
+   "target": "function:services/api/src/env.ts:validateNonProductionDatabaseTargets",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/env.ts",
+   "target": "function:services/api/src/env.ts:validateNonProductionDatabaseTargets",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/env.ts",
+   "target": "function:services/api/src/env.ts:assertSafeDatabaseRole",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/env.ts",
+   "target": "function:services/api/src/env.ts:assertSafeDatabaseRole",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/env.ts",
+   "target": "function:services/api/src/env.ts:assertSafeDatabasePools",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/env.ts",
+   "target": "function:services/api/src/env.ts:assertSafeDatabasePools",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/env.ts",
+   "target": "function:services/api/src/env.ts:readSafeDatabaseRole",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/errors.ts",
+   "target": "class:services/api/src/errors.ts:ValidationError",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/errors.ts",
+   "target": "class:services/api/src/errors.ts:ValidationError",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/errors.ts",
+   "target": "class:services/api/src/errors.ts:NotFoundError",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/errors.ts",
+   "target": "class:services/api/src/errors.ts:NotFoundError",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/errors.ts",
+   "target": "class:services/api/src/errors.ts:ConflictError",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/errors.ts",
+   "target": "class:services/api/src/errors.ts:ConflictError",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/errors.ts",
+   "target": "class:services/api/src/errors.ts:CorsOriginNotAllowedError",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/errors.ts",
+   "target": "class:services/api/src/errors.ts:CorsOriginNotAllowedError",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/errors.ts",
+   "target": "function:services/api/src/errors.ts:registerErrorHandler",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/errors.ts",
+   "target": "function:services/api/src/errors.ts:registerErrorHandler",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/errors.ts",
+   "target": "function:services/api/src/errors.ts:resolveErrorResponse",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/excursions.ts",
+   "target": "function:services/api/src/excursions.ts:toExcursion",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/excursions.ts",
+   "target": "function:services/api/src/excursions.ts:toDeparture",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/excursions.ts",
+   "target": "function:services/api/src/excursions.ts:validateTransportFields",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/excursions.ts",
+   "target": "function:services/api/src/excursions.ts:listExcursions",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/excursions.ts",
+   "target": "function:services/api/src/excursions.ts:listExcursions",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/excursions.ts",
+   "target": "function:services/api/src/excursions.ts:getExcursionById",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/excursions.ts",
+   "target": "function:services/api/src/excursions.ts:getExcursionById",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/excursions.ts",
+   "target": "function:services/api/src/excursions.ts:createExcursion",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/excursions.ts",
+   "target": "function:services/api/src/excursions.ts:createExcursion",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/excursions.ts",
+   "target": "function:services/api/src/excursions.ts:deleteExcursion",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/excursions.ts",
+   "target": "function:services/api/src/excursions.ts:deleteExcursion",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/excursions.ts",
+   "target": "function:services/api/src/excursions.ts:getDepartureById",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/excursions.ts",
+   "target": "function:services/api/src/excursions.ts:getDepartureById",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/excursions.ts",
+   "target": "function:services/api/src/excursions.ts:fanOutToCustomer",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/excursions.ts",
+   "target": "function:services/api/src/excursions.ts:createDeparture",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/excursions.ts",
+   "target": "function:services/api/src/excursions.ts:createDeparture",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/excursions.ts",
+   "target": "function:services/api/src/excursions.ts:addCustomersToDeparture",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/excursions.ts",
+   "target": "function:services/api/src/excursions.ts:addCustomersToDeparture",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/excursions.ts",
+   "target": "function:services/api/src/excursions.ts:removeCustomerFromDeparture",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/excursions.ts",
+   "target": "function:services/api/src/excursions.ts:removeCustomerFromDeparture",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/feature-flags.ts",
+   "target": "function:services/api/src/feature-flags.ts:mapRow",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/feature-flags.ts",
+   "target": "function:services/api/src/feature-flags.ts:listFeatureFlags",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/feature-flags.ts",
+   "target": "function:services/api/src/feature-flags.ts:listFeatureFlags",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/feature-flags.ts",
+   "target": "function:services/api/src/feature-flags.ts:getFeatureFlag",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/feature-flags.ts",
+   "target": "function:services/api/src/feature-flags.ts:getFeatureFlag",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/feature-flags.ts",
+   "target": "function:services/api/src/feature-flags.ts:isFeatureEnabled",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/feature-flags.ts",
+   "target": "function:services/api/src/feature-flags.ts:isFeatureEnabled",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/feature-flags.ts",
+   "target": "function:services/api/src/feature-flags.ts:setFeatureFlagEnabled",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/feature-flags.ts",
+   "target": "function:services/api/src/feature-flags.ts:setFeatureFlagEnabled",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/enrollment.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/enrollment.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/enrollment.ts",
+   "target": "file:services/api/src/audit-log.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/enrollment.ts",
+   "target": "file:services/api/src/customers.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/enrollment.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/enrollment.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/enrollment.ts",
+   "target": "file:services/api/src/wishes.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/entitlements.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/entitlements.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/entitlements.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/entitlements.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/entitlements.ts",
+   "target": "file:services/api/src/offer-growth-audit.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/env.ts",
+   "target": "file:services/api/src/dev-auth.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/errors.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/excursions.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/excursions.ts",
+   "target": "file:services/api/src/air-services.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/excursions.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/excursions.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/excursions.ts",
+   "target": "file:services/api/src/land-services.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/excursions.ts",
+   "target": "file:services/api/src/trips.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/feature-flags.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/feature-flags.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "function:services/api/src/enrollment.ts:createEnrollmentLink",
+   "target": "function:services/api/src/audit-log.ts:recordAuditEvent",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/enrollment.ts:approveEnrollmentSubmission",
+   "target": "class:services/api/src/errors.ts:ConflictError",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/excursions.ts:fanOutToCustomer",
+   "target": "function:services/api/src/trips.ts:createTrip",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/excursions.ts:fanOutToCustomer",
+   "target": "function:services/api/src/air-services.ts:createAirService",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/enrollment.ts",
+   "target": "file:services/api/tests/enrollment.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/env.ts",
+   "target": "file:services/api/tests/env.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/feature-flags.ts",
+   "target": "file:services/api/tests/feature-flags.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  }
+ ]
+}

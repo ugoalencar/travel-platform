@@ -1,0 +1,1355 @@
+{
+ "nodes": [
+  {
+   "id": "file:apps/agency/src/pages/SaleFinancialStoryPage.tsx",
+   "type": "file",
+   "name": "SaleFinancialStoryPage.tsx",
+   "filePath": "apps/agency/src/pages/SaleFinancialStoryPage.tsx",
+   "summary": "História financeira de uma venda: resume margem, comissões e valores com componentes auxiliares Metric e Row.",
+   "tags": [
+    "component",
+    "page",
+    "financeiro",
+    "vendas"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:apps/agency/src/pages/SalesJourneyPages.test.tsx",
+   "type": "file",
+   "name": "SalesJourneyPages.test.tsx",
+   "filePath": "apps/agency/src/pages/SalesJourneyPages.test.tsx",
+   "summary": "Testes de rota da jornada de vendas cobrindo propostas, reservas e vendas através do App.",
+   "tags": [
+    "test",
+    "component",
+    "vendas",
+    "routing"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:apps/agency/src/pages/SalesJourneyPages.tsx",
+   "type": "file",
+   "name": "SalesJourneyPages.tsx",
+   "filePath": "apps/agency/src/pages/SalesJourneyPages.tsx",
+   "summary": "Jornada de vendas: exporta oito páginas de propostas (lista, detalhe, builder, preview), reservas (lista, detalhe) e vendas (lista, resumo) com trilha de navegação.",
+   "tags": [
+    "component",
+    "propostas",
+    "vendas",
+    "reservas",
+    "multi-page"
+   ],
+   "complexity": "complex",
+   "languageNotes": "Módulo multi-página: um único arquivo exporta oito componentes de página roteados pelo App."
+  },
+  {
+   "id": "file:apps/agency/src/pages/SegmentsPage.test.tsx",
+   "type": "file",
+   "name": "SegmentsPage.test.tsx",
+   "filePath": "apps/agency/src/pages/SegmentsPage.test.tsx",
+   "summary": "Testes da página de Segmentos validando carregamento e criação de segmentos.",
+   "tags": [
+    "test",
+    "component",
+    "segmentos",
+    "rendering"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:apps/agency/src/pages/SegmentsPage.tsx",
+   "type": "file",
+   "name": "SegmentsPage.tsx",
+   "filePath": "apps/agency/src/pages/SegmentsPage.tsx",
+   "summary": "Segmentos de clientes: cria, edita, arquiva e visualiza resultados de segmentos com editor de condições de filtro.",
+   "tags": [
+    "component",
+    "page",
+    "segmentos",
+    "crm",
+    "crud"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:apps/agency/src/pages/SettingsPage.tsx",
+   "type": "file",
+   "name": "SettingsPage.tsx",
+   "filePath": "apps/agency/src/pages/SettingsPage.tsx",
+   "summary": "Configurações da agência em sete abas (perfil, branding, departamentos, equipe, convites, permissões, notificações) com editor de permissões por área.",
+   "tags": [
+    "component",
+    "page",
+    "configuracoes",
+    "administracao",
+    "rbac"
+   ],
+   "complexity": "complex",
+   "languageNotes": "Abas com deep-link via query param ?tab= para que funcionalidades como convites sejam acessíveis por URL."
+  },
+  {
+   "id": "file:apps/agency/src/pages/SignupPage.tsx",
+   "type": "file",
+   "name": "SignupPage.tsx",
+   "filePath": "apps/agency/src/pages/SignupPage.tsx",
+   "summary": "Tela de cadastro de nova agência com criação de conta e redirecionamento para o login.",
+   "tags": [
+    "component",
+    "page",
+    "autenticacao",
+    "cadastro"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:apps/agency/src/pages/StubPage.tsx",
+   "type": "file",
+   "name": "StubPage.tsx",
+   "filePath": "apps/agency/src/pages/StubPage.tsx",
+   "summary": "Componente de página genérica (placeholder) que renderiza cabeçalho e tabela de linhas para funcionalidades em construção.",
+   "tags": [
+    "component",
+    "placeholder",
+    "table",
+    "reutilizavel"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/agency/src/pages/SaleFinancialStoryPage.tsx:SaleFinancialStoryPage",
+   "type": "function",
+   "name": "SaleFinancialStoryPage",
+   "filePath": "apps/agency/src/pages/SaleFinancialStoryPage.tsx",
+   "lineRange": [
+    17,
+    141
+   ],
+   "summary": "Componente principal da história financeira de uma venda, exibindo margem e valores consolidados.",
+   "tags": [
+    "component",
+    "financeiro",
+    "vendas",
+    "api-integration"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/agency/src/pages/SaleFinancialStoryPage.tsx:Row",
+   "type": "function",
+   "name": "Row",
+   "filePath": "apps/agency/src/pages/SaleFinancialStoryPage.tsx",
+   "lineRange": [
+    152,
+    162
+   ],
+   "summary": "Linha tabular de apresentação de valores na história financeira da venda.",
+   "tags": [
+    "component",
+    "ui",
+    "display"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/agency/src/pages/SalesJourneyPages.tsx:JourneyRail",
+   "type": "function",
+   "name": "JourneyRail",
+   "filePath": "apps/agency/src/pages/SalesJourneyPages.tsx",
+   "lineRange": [
+    67,
+    85
+   ],
+   "summary": "Trilha visual de navegação entre as etapas da jornada de vendas.",
+   "tags": [
+    "component",
+    "navegacao",
+    "ui"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/agency/src/pages/SalesJourneyPages.tsx:ProposalListPage",
+   "type": "function",
+   "name": "ProposalListPage",
+   "filePath": "apps/agency/src/pages/SalesJourneyPages.tsx",
+   "lineRange": [
+    96,
+    196
+   ],
+   "summary": "Lista de propostas com busca, filtros e ações de criar e duplicar propostas.",
+   "tags": [
+    "component",
+    "propostas",
+    "crud"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/agency/src/pages/SalesJourneyPages.tsx:ProposalDetailPage",
+   "type": "function",
+   "name": "ProposalDetailPage",
+   "filePath": "apps/agency/src/pages/SalesJourneyPages.tsx",
+   "lineRange": [
+    198,
+    322
+   ],
+   "summary": "Detalhe da proposta com seções, itens, envio e visualização da proposta.",
+   "tags": [
+    "component",
+    "propostas",
+    "detalhe",
+    "crud"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/agency/src/pages/SalesJourneyPages.tsx:ProposalBuilderPage",
+   "type": "function",
+   "name": "ProposalBuilderPage",
+   "filePath": "apps/agency/src/pages/SalesJourneyPages.tsx",
+   "lineRange": [
+    324,
+    584
+   ],
+   "summary": "Editor completo da proposta: seções, itens, mídia e pré-visualização em tempo real.",
+   "tags": [
+    "component",
+    "propostas",
+    "editor",
+    "form"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:apps/agency/src/pages/SalesJourneyPages.tsx:ProposalPreviewPage",
+   "type": "function",
+   "name": "ProposalPreviewPage",
+   "filePath": "apps/agency/src/pages/SalesJourneyPages.tsx",
+   "lineRange": [
+    593,
+    631
+   ],
+   "summary": "Visualização da proposta antes do envio ao cliente.",
+   "tags": [
+    "component",
+    "propostas",
+    "preview"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/agency/src/pages/SalesJourneyPages.tsx:BookingListPage",
+   "type": "function",
+   "name": "BookingListPage",
+   "filePath": "apps/agency/src/pages/SalesJourneyPages.tsx",
+   "lineRange": [
+    633,
+    724
+   ],
+   "summary": "Lista de reservas vinculadas à jornada de vendas.",
+   "tags": [
+    "component",
+    "reservas",
+    "lista"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/agency/src/pages/SalesJourneyPages.tsx:BookingDetailPage",
+   "type": "function",
+   "name": "BookingDetailPage",
+   "filePath": "apps/agency/src/pages/SalesJourneyPages.tsx",
+   "lineRange": [
+    726,
+    789
+   ],
+   "summary": "Detalhe de uma reserva com dados do fornecedor e passageiros.",
+   "tags": [
+    "component",
+    "reservas",
+    "detalhe"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/agency/src/pages/SalesJourneyPages.tsx:saleStatusLabel",
+   "type": "function",
+   "name": "saleStatusLabel",
+   "filePath": "apps/agency/src/pages/SalesJourneyPages.tsx",
+   "lineRange": [
+    798,
+    807
+   ],
+   "summary": "Retorna o rótulo em português para o status de uma venda.",
+   "tags": [
+    "utility",
+    "vendas",
+    "status",
+    "localization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/agency/src/pages/SalesJourneyPages.tsx:SalesListPage",
+   "type": "function",
+   "name": "SalesListPage",
+   "filePath": "apps/agency/src/pages/SalesJourneyPages.tsx",
+   "lineRange": [
+    809,
+    901
+   ],
+   "summary": "Lista de vendas com filtros por período e status.",
+   "tags": [
+    "component",
+    "vendas",
+    "lista",
+    "crud"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/agency/src/pages/SalesJourneyPages.tsx:SaleSummaryPage",
+   "type": "function",
+   "name": "SaleSummaryPage",
+   "filePath": "apps/agency/src/pages/SalesJourneyPages.tsx",
+   "lineRange": [
+    908,
+    1076
+   ],
+   "summary": "Resumo detalhado de uma venda com métricas financeiras e linhas de valores.",
+   "tags": [
+    "component",
+    "vendas",
+    "financeiro",
+    "resumo"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/agency/src/pages/SegmentsPage.tsx:coerceValue",
+   "type": "function",
+   "name": "coerceValue",
+   "filePath": "apps/agency/src/pages/SegmentsPage.tsx",
+   "lineRange": [
+    113,
+    128
+   ],
+   "summary": "Converte valores digitados no editor de segmentos conforme o tipo esperado pelo operador do filtro.",
+   "tags": [
+    "validation",
+    "utility",
+    "segmentos"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/agency/src/pages/SegmentsPage.tsx:SegmentsPage",
+   "type": "function",
+   "name": "SegmentsPage",
+   "filePath": "apps/agency/src/pages/SegmentsPage.tsx",
+   "lineRange": [
+    130,
+    296
+   ],
+   "summary": "Componente principal de Segmentos: lista segmentos com contagem e abre editor e resultados.",
+   "tags": [
+    "component",
+    "segmentos",
+    "crm",
+    "crud"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/agency/src/pages/SegmentsPage.tsx:SegmentRow",
+   "type": "function",
+   "name": "SegmentRow",
+   "filePath": "apps/agency/src/pages/SegmentsPage.tsx",
+   "lineRange": [
+    298,
+    336
+   ],
+   "summary": "Linha de segmento com contagem de clientes e ações de ver resultados e arquivar.",
+   "tags": [
+    "component",
+    "segmentos",
+    "crud"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/agency/src/pages/SegmentsPage.tsx:SegmentResultsTable",
+   "type": "function",
+   "name": "SegmentResultsTable",
+   "filePath": "apps/agency/src/pages/SegmentsPage.tsx",
+   "lineRange": [
+    338,
+    367
+   ],
+   "summary": "Tabela de clientes resultantes de um segmento.",
+   "tags": [
+    "component",
+    "segmentos",
+    "table"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/agency/src/pages/SegmentsPage.tsx:SegmentEditor",
+   "type": "function",
+   "name": "SegmentEditor",
+   "filePath": "apps/agency/src/pages/SegmentsPage.tsx",
+   "lineRange": [
+    376,
+    526
+   ],
+   "summary": "Editor de segmento com grupos de condições de filtro, preview e persistência.",
+   "tags": [
+    "component",
+    "segmentos",
+    "form",
+    "crud"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/agency/src/pages/SegmentsPage.tsx:ValueInput",
+   "type": "function",
+   "name": "ValueInput",
+   "filePath": "apps/agency/src/pages/SegmentsPage.tsx",
+   "lineRange": [
+    528,
+    569
+   ],
+   "summary": "Campo de valor adaptado ao tipo de cada condição de filtro do segmento.",
+   "tags": [
+    "component",
+    "form",
+    "segmentos"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/agency/src/pages/SegmentsPage.tsx:SummaryCard",
+   "type": "function",
+   "name": "SummaryCard",
+   "filePath": "apps/agency/src/pages/SegmentsPage.tsx",
+   "lineRange": [
+    571,
+    580
+   ],
+   "summary": "Card compacto de resumo com rótulo e valor.",
+   "tags": [
+    "component",
+    "ui",
+    "display"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/agency/src/pages/SegmentsPage.tsx:LabeledInput",
+   "type": "function",
+   "name": "LabeledInput",
+   "filePath": "apps/agency/src/pages/SegmentsPage.tsx",
+   "lineRange": [
+    582,
+    592
+   ],
+   "summary": "Campo de input rotulado usado no editor de segmentos.",
+   "tags": [
+    "component",
+    "form",
+    "ui"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/agency/src/pages/SegmentsPage.tsx:LabeledSelect",
+   "type": "function",
+   "name": "LabeledSelect",
+   "filePath": "apps/agency/src/pages/SegmentsPage.tsx",
+   "lineRange": [
+    594,
+    607
+   ],
+   "summary": "Campo de select rotulado usado no editor de segmentos.",
+   "tags": [
+    "component",
+    "form",
+    "ui",
+    "select"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/agency/src/pages/SettingsPage.tsx:getRoleColor",
+   "type": "function",
+   "name": "getRoleColor",
+   "filePath": "apps/agency/src/pages/SettingsPage.tsx",
+   "lineRange": [
+    90,
+    105
+   ],
+   "summary": "Retorna as classes de cor do badge conforme o papel (role) do membro da equipe.",
+   "tags": [
+    "utility",
+    "rbac",
+    "ui"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/agency/src/pages/SettingsPage.tsx:SettingsPage",
+   "type": "function",
+   "name": "SettingsPage",
+   "filePath": "apps/agency/src/pages/SettingsPage.tsx",
+   "lineRange": [
+    118,
+    1191
+   ],
+   "summary": "Componente principal das Configurações: sete abas para perfil, branding, departamentos, equipe, convites, permissões e notificações.",
+   "tags": [
+    "component",
+    "configuracoes",
+    "administracao",
+    "rbac"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:apps/agency/src/pages/SettingsPage.tsx:AreaGrantsEditor",
+   "type": "function",
+   "name": "AreaGrantsEditor",
+   "filePath": "apps/agency/src/pages/SettingsPage.tsx",
+   "lineRange": [
+    1246,
+    1316
+   ],
+   "summary": "Editor de permissões por área de atuação para um membro da equipe.",
+   "tags": [
+    "component",
+    "rbac",
+    "form",
+    "configuracoes"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/agency/src/pages/SignupPage.tsx:SignupPage",
+   "type": "function",
+   "name": "SignupPage",
+   "filePath": "apps/agency/src/pages/SignupPage.tsx",
+   "lineRange": [
+    16,
+    250
+   ],
+   "summary": "Componente da tela de cadastro: cria nova agência e conta, redirecionando para o login.",
+   "tags": [
+    "component",
+    "cadastro",
+    "autenticacao",
+    "form"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:apps/agency/src/pages/StubPage.tsx:StubPage",
+   "type": "function",
+   "name": "StubPage",
+   "filePath": "apps/agency/src/pages/StubPage.tsx",
+   "lineRange": [
+    29,
+    75
+   ],
+   "summary": "Componente genérico de página placeholder que renderiza cabeçalho e tabela de linhas para rotas em construção.",
+   "tags": [
+    "component",
+    "placeholder",
+    "table",
+    "reutilizavel"
+   ],
+   "complexity": "simple"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:apps/agency/src/pages/SaleFinancialStoryPage.tsx",
+   "target": "function:apps/agency/src/pages/SaleFinancialStoryPage.tsx:SaleFinancialStoryPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/agency/src/pages/SaleFinancialStoryPage.tsx",
+   "target": "function:apps/agency/src/pages/SaleFinancialStoryPage.tsx:Row",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/agency/src/pages/SalesJourneyPages.tsx",
+   "target": "function:apps/agency/src/pages/SalesJourneyPages.tsx:JourneyRail",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/agency/src/pages/SalesJourneyPages.tsx",
+   "target": "function:apps/agency/src/pages/SalesJourneyPages.tsx:ProposalListPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/agency/src/pages/SalesJourneyPages.tsx",
+   "target": "function:apps/agency/src/pages/SalesJourneyPages.tsx:ProposalDetailPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/agency/src/pages/SalesJourneyPages.tsx",
+   "target": "function:apps/agency/src/pages/SalesJourneyPages.tsx:ProposalBuilderPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/agency/src/pages/SalesJourneyPages.tsx",
+   "target": "function:apps/agency/src/pages/SalesJourneyPages.tsx:ProposalPreviewPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/agency/src/pages/SalesJourneyPages.tsx",
+   "target": "function:apps/agency/src/pages/SalesJourneyPages.tsx:BookingListPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/agency/src/pages/SalesJourneyPages.tsx",
+   "target": "function:apps/agency/src/pages/SalesJourneyPages.tsx:BookingDetailPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/agency/src/pages/SalesJourneyPages.tsx",
+   "target": "function:apps/agency/src/pages/SalesJourneyPages.tsx:saleStatusLabel",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/agency/src/pages/SalesJourneyPages.tsx",
+   "target": "function:apps/agency/src/pages/SalesJourneyPages.tsx:SalesListPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/agency/src/pages/SalesJourneyPages.tsx",
+   "target": "function:apps/agency/src/pages/SalesJourneyPages.tsx:SaleSummaryPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/agency/src/pages/SegmentsPage.tsx",
+   "target": "function:apps/agency/src/pages/SegmentsPage.tsx:coerceValue",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/agency/src/pages/SegmentsPage.tsx",
+   "target": "function:apps/agency/src/pages/SegmentsPage.tsx:SegmentsPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/agency/src/pages/SegmentsPage.tsx",
+   "target": "function:apps/agency/src/pages/SegmentsPage.tsx:SegmentRow",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/agency/src/pages/SegmentsPage.tsx",
+   "target": "function:apps/agency/src/pages/SegmentsPage.tsx:SegmentResultsTable",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/agency/src/pages/SegmentsPage.tsx",
+   "target": "function:apps/agency/src/pages/SegmentsPage.tsx:SegmentEditor",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/agency/src/pages/SegmentsPage.tsx",
+   "target": "function:apps/agency/src/pages/SegmentsPage.tsx:ValueInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/agency/src/pages/SegmentsPage.tsx",
+   "target": "function:apps/agency/src/pages/SegmentsPage.tsx:SummaryCard",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/agency/src/pages/SegmentsPage.tsx",
+   "target": "function:apps/agency/src/pages/SegmentsPage.tsx:LabeledInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/agency/src/pages/SegmentsPage.tsx",
+   "target": "function:apps/agency/src/pages/SegmentsPage.tsx:LabeledSelect",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/agency/src/pages/SettingsPage.tsx",
+   "target": "function:apps/agency/src/pages/SettingsPage.tsx:getRoleColor",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/agency/src/pages/SettingsPage.tsx",
+   "target": "function:apps/agency/src/pages/SettingsPage.tsx:SettingsPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/agency/src/pages/SettingsPage.tsx",
+   "target": "function:apps/agency/src/pages/SettingsPage.tsx:AreaGrantsEditor",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/agency/src/pages/SignupPage.tsx",
+   "target": "function:apps/agency/src/pages/SignupPage.tsx:SignupPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/agency/src/pages/StubPage.tsx",
+   "target": "function:apps/agency/src/pages/StubPage.tsx:StubPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/agency/src/pages/SaleFinancialStoryPage.tsx",
+   "target": "function:apps/agency/src/pages/SaleFinancialStoryPage.tsx:SaleFinancialStoryPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/agency/src/pages/SalesJourneyPages.tsx",
+   "target": "function:apps/agency/src/pages/SalesJourneyPages.tsx:ProposalListPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/agency/src/pages/SalesJourneyPages.tsx",
+   "target": "function:apps/agency/src/pages/SalesJourneyPages.tsx:ProposalDetailPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/agency/src/pages/SalesJourneyPages.tsx",
+   "target": "function:apps/agency/src/pages/SalesJourneyPages.tsx:ProposalBuilderPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/agency/src/pages/SalesJourneyPages.tsx",
+   "target": "function:apps/agency/src/pages/SalesJourneyPages.tsx:ProposalPreviewPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/agency/src/pages/SalesJourneyPages.tsx",
+   "target": "function:apps/agency/src/pages/SalesJourneyPages.tsx:BookingListPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/agency/src/pages/SalesJourneyPages.tsx",
+   "target": "function:apps/agency/src/pages/SalesJourneyPages.tsx:BookingDetailPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/agency/src/pages/SalesJourneyPages.tsx",
+   "target": "function:apps/agency/src/pages/SalesJourneyPages.tsx:SalesListPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/agency/src/pages/SalesJourneyPages.tsx",
+   "target": "function:apps/agency/src/pages/SalesJourneyPages.tsx:SaleSummaryPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/agency/src/pages/SegmentsPage.tsx",
+   "target": "function:apps/agency/src/pages/SegmentsPage.tsx:SegmentsPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/agency/src/pages/SettingsPage.tsx",
+   "target": "function:apps/agency/src/pages/SettingsPage.tsx:SettingsPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/agency/src/pages/SignupPage.tsx",
+   "target": "function:apps/agency/src/pages/SignupPage.tsx:SignupPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/agency/src/pages/StubPage.tsx",
+   "target": "function:apps/agency/src/pages/StubPage.tsx:StubPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/agency/src/pages/SaleFinancialStoryPage.tsx",
+   "target": "file:apps/agency/src/components/layout/PageHeader.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/SaleFinancialStoryPage.tsx",
+   "target": "file:apps/agency/src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/SaleFinancialStoryPage.tsx",
+   "target": "file:apps/agency/src/components/ui/card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/SaleFinancialStoryPage.tsx",
+   "target": "file:apps/agency/src/components/ui/error-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/SaleFinancialStoryPage.tsx",
+   "target": "file:apps/agency/src/components/ui/loading-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/SaleFinancialStoryPage.tsx",
+   "target": "file:apps/agency/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/SaleFinancialStoryPage.tsx",
+   "target": "file:apps/agency/src/lib/formatCurrency.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/SaleFinancialStoryPage.tsx",
+   "target": "file:apps/agency/src/lib/formatDateBR.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/SalesJourneyPages.test.tsx",
+   "target": "file:apps/agency/src/App.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/SalesJourneyPages.test.tsx",
+   "target": "file:apps/agency/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/SalesJourneyPages.tsx",
+   "target": "file:apps/agency/src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/SalesJourneyPages.tsx",
+   "target": "file:apps/agency/src/components/ui/card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/SalesJourneyPages.tsx",
+   "target": "file:apps/agency/src/components/ui/empty-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/SalesJourneyPages.tsx",
+   "target": "file:apps/agency/src/components/ui/error-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/SalesJourneyPages.tsx",
+   "target": "file:apps/agency/src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/SalesJourneyPages.tsx",
+   "target": "file:apps/agency/src/components/ui/loading-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/SalesJourneyPages.tsx",
+   "target": "file:apps/agency/src/components/ui/select.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/SalesJourneyPages.tsx",
+   "target": "file:apps/agency/src/components/ui/status-badge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/SalesJourneyPages.tsx",
+   "target": "file:apps/agency/src/components/ui/textarea.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/SalesJourneyPages.tsx",
+   "target": "file:apps/agency/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/SalesJourneyPages.tsx",
+   "target": "file:apps/agency/src/lib/formatCurrency.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/SalesJourneyPages.tsx",
+   "target": "file:apps/agency/src/lib/formatDateBR.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/SalesJourneyPages.tsx",
+   "target": "file:apps/agency/src/lib/statusLabels.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/SalesJourneyPages.tsx",
+   "target": "file:apps/agency/src/pages/proposals/ProposalVisualPreview.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/SalesJourneyPages.tsx",
+   "target": "file:apps/agency/src/types/booking.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/SalesJourneyPages.tsx",
+   "target": "file:apps/agency/src/types/sale.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/SegmentsPage.test.tsx",
+   "target": "file:apps/agency/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/SegmentsPage.test.tsx",
+   "target": "file:apps/agency/src/test/render.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/SegmentsPage.tsx",
+   "target": "file:apps/agency/src/components/layout/PageHeader.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/SegmentsPage.tsx",
+   "target": "file:apps/agency/src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/SegmentsPage.tsx",
+   "target": "file:apps/agency/src/components/ui/card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/SegmentsPage.tsx",
+   "target": "file:apps/agency/src/components/ui/empty-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/SegmentsPage.tsx",
+   "target": "file:apps/agency/src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/SegmentsPage.tsx",
+   "target": "file:apps/agency/src/components/ui/loading-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/SegmentsPage.tsx",
+   "target": "file:apps/agency/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/SettingsPage.tsx",
+   "target": "file:apps/agency/src/components/layout/PageHeader.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/SettingsPage.tsx",
+   "target": "file:apps/agency/src/components/ui/card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/SettingsPage.tsx",
+   "target": "file:apps/agency/src/components/ui/loading-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/SettingsPage.tsx",
+   "target": "file:apps/agency/src/components/ui/modal.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/SettingsPage.tsx",
+   "target": "file:apps/agency/src/components/ui/status-badge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/SettingsPage.tsx",
+   "target": "file:apps/agency/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/SignupPage.tsx",
+   "target": "file:apps/agency/src/lib/authApi.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/StubPage.tsx",
+   "target": "file:apps/agency/src/components/layout/PageHeader.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/StubPage.tsx",
+   "target": "file:apps/agency/src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/StubPage.tsx",
+   "target": "file:apps/agency/src/components/ui/card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/StubPage.tsx",
+   "target": "file:apps/agency/src/components/ui/empty-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/StubPage.tsx",
+   "target": "file:apps/agency/src/components/ui/status-badge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/StubPage.tsx",
+   "target": "file:apps/agency/src/components/ui/table.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/SaleFinancialStoryPage.tsx",
+   "target": "file:apps/agency/src/pages/SaleFinancialStoryPage.test.tsx",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:apps/agency/src/pages/SalesJourneyPages.tsx",
+   "target": "file:apps/agency/src/pages/SalesJourneyPages.test.tsx",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:apps/agency/src/pages/SegmentsPage.tsx",
+   "target": "file:apps/agency/src/pages/SegmentsPage.test.tsx",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "function:apps/agency/src/pages/SaleFinancialStoryPage.tsx:SaleFinancialStoryPage",
+   "target": "function:apps/agency/src/lib/api.ts:getSaleFinancialStory",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/SaleFinancialStoryPage.tsx:SaleFinancialStoryPage",
+   "target": "function:apps/agency/src/lib/formatCurrency.ts:formatBRL",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/SaleFinancialStoryPage.tsx:SaleFinancialStoryPage",
+   "target": "function:apps/agency/src/lib/formatDateBR.ts:formatDateBR",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/SalesJourneyPages.tsx:ProposalListPage",
+   "target": "function:apps/agency/src/lib/api.ts:listProposals",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/SalesJourneyPages.tsx:ProposalDetailPage",
+   "target": "function:apps/agency/src/lib/api.ts:getProposal",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/SalesJourneyPages.tsx:ProposalDetailPage",
+   "target": "function:apps/agency/src/lib/formatCurrency.ts:formatBRL",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/SalesJourneyPages.tsx:ProposalDetailPage",
+   "target": "function:apps/agency/src/lib/statusLabels.ts:getProposalStatusLabel",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/SalesJourneyPages.tsx:ProposalBuilderPage",
+   "target": "function:apps/agency/src/lib/formatCurrency.ts:formatBRL",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/SalesJourneyPages.tsx:ProposalPreviewPage",
+   "target": "function:apps/agency/src/lib/api.ts:getProposal",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/SalesJourneyPages.tsx:ProposalPreviewPage",
+   "target": "function:apps/agency/src/lib/api.ts:listProposalSections",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/SalesJourneyPages.tsx:ProposalPreviewPage",
+   "target": "function:apps/agency/src/lib/api.ts:listProposalMedia",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/SalesJourneyPages.tsx:ProposalPreviewPage",
+   "target": "function:apps/agency/src/lib/api.ts:listProposalItems",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/SalesJourneyPages.tsx:BookingListPage",
+   "target": "function:apps/agency/src/lib/api.ts:listBookings",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/SalesJourneyPages.tsx:BookingDetailPage",
+   "target": "function:apps/agency/src/lib/api.ts:getBooking",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/SalesJourneyPages.tsx:SalesListPage",
+   "target": "function:apps/agency/src/lib/api.ts:listSales",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/SalesJourneyPages.tsx:SaleSummaryPage",
+   "target": "function:apps/agency/src/lib/api.ts:getSale",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/SalesJourneyPages.tsx:SaleSummaryPage",
+   "target": "function:apps/agency/src/lib/api.ts:getSaleFinancialStory",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/SalesJourneyPages.tsx:SaleSummaryPage",
+   "target": "function:apps/agency/src/lib/formatDateBR.ts:formatDateBR",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/SalesJourneyPages.tsx:SaleSummaryPage",
+   "target": "function:apps/agency/src/lib/formatCurrency.ts:formatBRL",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/SegmentsPage.tsx:SegmentsPage",
+   "target": "function:apps/agency/src/lib/api.ts:listCustomerSegments",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/SegmentsPage.tsx:SegmentsPage",
+   "target": "function:apps/agency/src/lib/api.ts:getCustomerSegmentResults",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  }
+ ]
+}

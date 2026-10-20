@@ -1,0 +1,1137 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/agency/src/pages/AirServicesPage.tsx",
+      "type": "file",
+      "name": "AirServicesPage.tsx",
+      "filePath": "apps/agency/src/pages/AirServicesPage.tsx",
+      "summary": "Página de gestão de serviços aéreos com CRUD em modal, filtros por viagem e formulário dividido em seções.",
+      "tags": [
+        "componente",
+        "página",
+        "crud",
+        "serviços aéreos"
+      ],
+      "complexity": "complex",
+      "languageNotes": "Componente de ~800 linhas que concentra helpers de formulário (toInput, sanitize) no mesmo arquivo."
+    },
+    {
+      "id": "file:apps/agency/src/pages/CampaignsPage.tsx",
+      "type": "file",
+      "name": "CampaignsPage.tsx",
+      "filePath": "apps/agency/src/pages/CampaignsPage.tsx",
+      "summary": "CRUD de campanhas de comunicação com listagem, criação e edição em modal e filtros por status.",
+      "tags": [
+        "componente",
+        "página",
+        "crud",
+        "campanhas"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/agency/src/pages/CashTransactionsPage.tsx",
+      "type": "file",
+      "name": "CashTransactionsPage.tsx",
+      "filePath": "apps/agency/src/pages/CashTransactionsPage.tsx",
+      "summary": "Extrato de transações de caixa com filtros de período, totais e identificação visual por tipo de movimento.",
+      "tags": [
+        "componente",
+        "página",
+        "financeiro",
+        "caixa"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/agency/src/pages/CategoriesPage.tsx",
+      "type": "file",
+      "name": "CategoriesPage.tsx",
+      "filePath": "apps/agency/src/pages/CategoriesPage.tsx",
+      "summary": "CRUD de categorias financeiras de receitas e despesas com validação do tipo de categoria.",
+      "tags": [
+        "componente",
+        "página",
+        "crud",
+        "financeiro"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/agency/src/pages/CommissionPlansPage.tsx",
+      "type": "file",
+      "name": "CommissionPlansPage.tsx",
+      "filePath": "apps/agency/src/pages/CommissionPlansPage.tsx",
+      "summary": "CRUD de planos de comissão aplicados aos vendedores, com percentuais configuráveis.",
+      "tags": [
+        "componente",
+        "página",
+        "crud",
+        "comissões"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/agency/src/pages/CommunicationFormPage.tsx",
+      "type": "file",
+      "name": "CommunicationFormPage.tsx",
+      "filePath": "apps/agency/src/pages/CommunicationFormPage.tsx",
+      "summary": "Formulário de criação e edição de comunicações com seleção de mídia via MediaAssetPicker e validação de conteúdo.",
+      "tags": [
+        "componente",
+        "página",
+        "formulário",
+        "comunicação"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/agency/src/pages/CommunicationPage.tsx",
+      "type": "file",
+      "name": "CommunicationPage.tsx",
+      "filePath": "apps/agency/src/pages/CommunicationPage.tsx",
+      "summary": "Listagem de comunicações institucionais com status de envio e atalho para nova mensagem.",
+      "tags": [
+        "componente",
+        "página",
+        "comunicação",
+        "listagem"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/agency/src/pages/CostCentersPage.tsx",
+      "type": "file",
+      "name": "CostCentersPage.tsx",
+      "filePath": "apps/agency/src/pages/CostCentersPage.tsx",
+      "summary": "CRUD de centros de custo usados na classificação de despesas contábeis da agência.",
+      "tags": [
+        "componente",
+        "página",
+        "crud",
+        "financeiro"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/agency/src/pages/AirServicesPage.tsx:toInput",
+      "type": "function",
+      "name": "toInput",
+      "filePath": "apps/agency/src/pages/AirServicesPage.tsx",
+      "lineRange": [
+        111,
+        144
+      ],
+      "summary": "Converte um AirService existente no formato do formulário, normalizando datas e valores numéricos.",
+      "tags": [
+        "serialização",
+        "formulário",
+        "utilitário"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/agency/src/pages/AirServicesPage.tsx:sanitize",
+      "type": "function",
+      "name": "sanitize",
+      "filePath": "apps/agency/src/pages/AirServicesPage.tsx",
+      "lineRange": [
+        146,
+        168
+      ],
+      "summary": "Normaliza e valida os campos do formulário antes de enviar um serviço aéreo à API.",
+      "tags": [
+        "validação",
+        "formulário",
+        "serialização"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/agency/src/pages/AirServicesPage.tsx:AirServicesPage",
+      "type": "function",
+      "name": "AirServicesPage",
+      "filePath": "apps/agency/src/pages/AirServicesPage.tsx",
+      "lineRange": [
+        170,
+        792
+      ],
+      "summary": "Componente principal da página: carrega serviços aéreos, viagens, clientes e fornecedores, aplica filtros e conduz o CRUD em modal.",
+      "tags": [
+        "componente",
+        "página",
+        "crud",
+        "estado"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/agency/src/pages/CampaignsPage.tsx:CampaignsPage",
+      "type": "function",
+      "name": "CampaignsPage",
+      "filePath": "apps/agency/src/pages/CampaignsPage.tsx",
+      "lineRange": [
+        59,
+        286
+      ],
+      "summary": "Componente da página de campanhas: lista campanhas existentes e gerencia criação e edição com estado de formulário.",
+      "tags": [
+        "componente",
+        "página",
+        "crud",
+        "estado"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/agency/src/pages/CashTransactionsPage.tsx:CashTransactionsPage",
+      "type": "function",
+      "name": "CashTransactionsPage",
+      "filePath": "apps/agency/src/pages/CashTransactionsPage.tsx",
+      "lineRange": [
+        49,
+        266
+      ],
+      "summary": "Componente da página de transações de caixa: carrega movimentações, aplica filtros e calcula totais exibidos.",
+      "tags": [
+        "componente",
+        "página",
+        "financeiro",
+        "estado"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/agency/src/pages/CategoriesPage.tsx:CategoriesPage",
+      "type": "function",
+      "name": "CategoriesPage",
+      "filePath": "apps/agency/src/pages/CategoriesPage.tsx",
+      "lineRange": [
+        18,
+        177
+      ],
+      "summary": "Componente da página de categorias: lista categorias financeiras e gerencia criação e edição.",
+      "tags": [
+        "componente",
+        "página",
+        "crud",
+        "financeiro"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/agency/src/pages/CommissionPlansPage.tsx:CommissionPlansPage",
+      "type": "function",
+      "name": "CommissionPlansPage",
+      "filePath": "apps/agency/src/pages/CommissionPlansPage.tsx",
+      "lineRange": [
+        38,
+        258
+      ],
+      "summary": "Componente da página de planos de comissão: lista planos e gerencia criação e edição com percentuais.",
+      "tags": [
+        "componente",
+        "página",
+        "crud",
+        "comissões"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/agency/src/pages/CommunicationFormPage.tsx:CommunicationFormPage",
+      "type": "function",
+      "name": "CommunicationFormPage",
+      "filePath": "apps/agency/src/pages/CommunicationFormPage.tsx",
+      "lineRange": [
+        68,
+        376
+      ],
+      "summary": "Componente do formulário de comunicação: carrega registro existente ou inicia um novo, valida conteúdo e anexos de mídia.",
+      "tags": [
+        "componente",
+        "página",
+        "formulário",
+        "estado"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/agency/src/pages/CommunicationPage.tsx:CommunicationPage",
+      "type": "function",
+      "name": "CommunicationPage",
+      "filePath": "apps/agency/src/pages/CommunicationPage.tsx",
+      "lineRange": [
+        44,
+        222
+      ],
+      "summary": "Componente da página de comunicações: carrega a lista de mensagens e apresenta status de envio.",
+      "tags": [
+        "componente",
+        "página",
+        "comunicação",
+        "listagem"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/agency/src/pages/CostCentersPage.tsx:CostCentersPage",
+      "type": "function",
+      "name": "CostCentersPage",
+      "filePath": "apps/agency/src/pages/CostCentersPage.tsx",
+      "lineRange": [
+        18,
+        168
+      ],
+      "summary": "Componente da página de centros de custo: lista registros e gerencia criação e edição.",
+      "tags": [
+        "componente",
+        "página",
+        "crud",
+        "financeiro"
+      ],
+      "complexity": "complex"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/agency/src/pages/AirServicesPage.tsx",
+      "target": "function:apps/agency/src/pages/AirServicesPage.tsx:toInput",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/pages/AirServicesPage.tsx",
+      "target": "function:apps/agency/src/pages/AirServicesPage.tsx:sanitize",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/pages/AirServicesPage.tsx",
+      "target": "function:apps/agency/src/pages/AirServicesPage.tsx:AirServicesPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/pages/CampaignsPage.tsx",
+      "target": "function:apps/agency/src/pages/CampaignsPage.tsx:CampaignsPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/pages/CashTransactionsPage.tsx",
+      "target": "function:apps/agency/src/pages/CashTransactionsPage.tsx:CashTransactionsPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/pages/CategoriesPage.tsx",
+      "target": "function:apps/agency/src/pages/CategoriesPage.tsx:CategoriesPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/pages/CommissionPlansPage.tsx",
+      "target": "function:apps/agency/src/pages/CommissionPlansPage.tsx:CommissionPlansPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/pages/CommunicationFormPage.tsx",
+      "target": "function:apps/agency/src/pages/CommunicationFormPage.tsx:CommunicationFormPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/pages/CommunicationPage.tsx",
+      "target": "function:apps/agency/src/pages/CommunicationPage.tsx:CommunicationPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/pages/CostCentersPage.tsx",
+      "target": "function:apps/agency/src/pages/CostCentersPage.tsx:CostCentersPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/pages/AirServicesPage.tsx",
+      "target": "file:apps/agency/src/components/layout/PageHeader.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/AirServicesPage.tsx",
+      "target": "file:apps/agency/src/components/ui/button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/AirServicesPage.tsx",
+      "target": "file:apps/agency/src/components/ui/card.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/AirServicesPage.tsx",
+      "target": "file:apps/agency/src/components/ui/empty-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/AirServicesPage.tsx",
+      "target": "file:apps/agency/src/components/ui/error-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/AirServicesPage.tsx",
+      "target": "file:apps/agency/src/components/ui/input.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/AirServicesPage.tsx",
+      "target": "file:apps/agency/src/components/ui/loading-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/AirServicesPage.tsx",
+      "target": "file:apps/agency/src/components/ui/modal.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/AirServicesPage.tsx",
+      "target": "file:apps/agency/src/components/ui/select.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/AirServicesPage.tsx",
+      "target": "file:apps/agency/src/components/ui/status-badge.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/AirServicesPage.tsx",
+      "target": "file:apps/agency/src/components/ui/table.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/AirServicesPage.tsx",
+      "target": "file:apps/agency/src/components/ui/textarea.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/AirServicesPage.tsx",
+      "target": "file:apps/agency/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/AirServicesPage.tsx",
+      "target": "file:apps/agency/src/types/customer.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/AirServicesPage.tsx",
+      "target": "file:apps/agency/src/types/trip.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CampaignsPage.tsx",
+      "target": "file:apps/agency/src/components/layout/PageHeader.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CampaignsPage.tsx",
+      "target": "file:apps/agency/src/components/ui/button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CampaignsPage.tsx",
+      "target": "file:apps/agency/src/components/ui/card.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CampaignsPage.tsx",
+      "target": "file:apps/agency/src/components/ui/empty-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CampaignsPage.tsx",
+      "target": "file:apps/agency/src/components/ui/error-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CampaignsPage.tsx",
+      "target": "file:apps/agency/src/components/ui/input.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CampaignsPage.tsx",
+      "target": "file:apps/agency/src/components/ui/loading-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CampaignsPage.tsx",
+      "target": "file:apps/agency/src/components/ui/modal.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CampaignsPage.tsx",
+      "target": "file:apps/agency/src/components/ui/status-badge.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CampaignsPage.tsx",
+      "target": "file:apps/agency/src/components/ui/table.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CampaignsPage.tsx",
+      "target": "file:apps/agency/src/components/ui/textarea.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CampaignsPage.tsx",
+      "target": "file:apps/agency/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CampaignsPage.tsx",
+      "target": "file:apps/agency/src/lib/formatDateBR.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CampaignsPage.tsx",
+      "target": "file:apps/agency/src/types/campaign.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CashTransactionsPage.tsx",
+      "target": "file:apps/agency/src/components/layout/PageHeader.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CashTransactionsPage.tsx",
+      "target": "file:apps/agency/src/components/ui/card.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CashTransactionsPage.tsx",
+      "target": "file:apps/agency/src/components/ui/empty-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CashTransactionsPage.tsx",
+      "target": "file:apps/agency/src/components/ui/error-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CashTransactionsPage.tsx",
+      "target": "file:apps/agency/src/components/ui/loading-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CashTransactionsPage.tsx",
+      "target": "file:apps/agency/src/components/ui/status-badge.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CashTransactionsPage.tsx",
+      "target": "file:apps/agency/src/components/ui/table.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CashTransactionsPage.tsx",
+      "target": "file:apps/agency/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CashTransactionsPage.tsx",
+      "target": "file:apps/agency/src/lib/formatCurrency.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CashTransactionsPage.tsx",
+      "target": "file:apps/agency/src/lib/formatDateBR.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CategoriesPage.tsx",
+      "target": "file:apps/agency/src/components/layout/PageHeader.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CategoriesPage.tsx",
+      "target": "file:apps/agency/src/components/ui/button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CategoriesPage.tsx",
+      "target": "file:apps/agency/src/components/ui/card.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CategoriesPage.tsx",
+      "target": "file:apps/agency/src/components/ui/empty-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CategoriesPage.tsx",
+      "target": "file:apps/agency/src/components/ui/error-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CategoriesPage.tsx",
+      "target": "file:apps/agency/src/components/ui/input.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CategoriesPage.tsx",
+      "target": "file:apps/agency/src/components/ui/loading-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CategoriesPage.tsx",
+      "target": "file:apps/agency/src/components/ui/table.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CategoriesPage.tsx",
+      "target": "file:apps/agency/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CommissionPlansPage.tsx",
+      "target": "file:apps/agency/src/components/layout/PageHeader.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CommissionPlansPage.tsx",
+      "target": "file:apps/agency/src/components/ui/button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CommissionPlansPage.tsx",
+      "target": "file:apps/agency/src/components/ui/card.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CommissionPlansPage.tsx",
+      "target": "file:apps/agency/src/components/ui/empty-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CommissionPlansPage.tsx",
+      "target": "file:apps/agency/src/components/ui/error-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CommissionPlansPage.tsx",
+      "target": "file:apps/agency/src/components/ui/input.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CommissionPlansPage.tsx",
+      "target": "file:apps/agency/src/components/ui/loading-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CommissionPlansPage.tsx",
+      "target": "file:apps/agency/src/components/ui/table.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CommissionPlansPage.tsx",
+      "target": "file:apps/agency/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CommunicationFormPage.tsx",
+      "target": "file:apps/agency/src/components/media/MediaAssetPicker.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CommunicationFormPage.tsx",
+      "target": "file:apps/agency/src/components/ui/button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CommunicationFormPage.tsx",
+      "target": "file:apps/agency/src/components/ui/card.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CommunicationFormPage.tsx",
+      "target": "file:apps/agency/src/components/ui/error-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CommunicationFormPage.tsx",
+      "target": "file:apps/agency/src/components/ui/input.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CommunicationFormPage.tsx",
+      "target": "file:apps/agency/src/components/ui/loading-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CommunicationFormPage.tsx",
+      "target": "file:apps/agency/src/components/ui/textarea.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CommunicationFormPage.tsx",
+      "target": "file:apps/agency/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CommunicationPage.tsx",
+      "target": "file:apps/agency/src/components/ui/badge.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CommunicationPage.tsx",
+      "target": "file:apps/agency/src/components/ui/button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CommunicationPage.tsx",
+      "target": "file:apps/agency/src/components/ui/card.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CommunicationPage.tsx",
+      "target": "file:apps/agency/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CostCentersPage.tsx",
+      "target": "file:apps/agency/src/components/layout/PageHeader.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CostCentersPage.tsx",
+      "target": "file:apps/agency/src/components/ui/button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CostCentersPage.tsx",
+      "target": "file:apps/agency/src/components/ui/card.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CostCentersPage.tsx",
+      "target": "file:apps/agency/src/components/ui/empty-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CostCentersPage.tsx",
+      "target": "file:apps/agency/src/components/ui/error-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CostCentersPage.tsx",
+      "target": "file:apps/agency/src/components/ui/input.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CostCentersPage.tsx",
+      "target": "file:apps/agency/src/components/ui/loading-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CostCentersPage.tsx",
+      "target": "file:apps/agency/src/components/ui/table.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/CostCentersPage.tsx",
+      "target": "file:apps/agency/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/AirServicesPage.tsx",
+      "target": "function:apps/agency/src/pages/AirServicesPage.tsx:AirServicesPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/pages/CampaignsPage.tsx",
+      "target": "function:apps/agency/src/pages/CampaignsPage.tsx:CampaignsPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/pages/CashTransactionsPage.tsx",
+      "target": "function:apps/agency/src/pages/CashTransactionsPage.tsx:CashTransactionsPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/pages/CategoriesPage.tsx",
+      "target": "function:apps/agency/src/pages/CategoriesPage.tsx:CategoriesPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/pages/CommissionPlansPage.tsx",
+      "target": "function:apps/agency/src/pages/CommissionPlansPage.tsx:CommissionPlansPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/pages/CommunicationFormPage.tsx",
+      "target": "function:apps/agency/src/pages/CommunicationFormPage.tsx:CommunicationFormPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/pages/CommunicationPage.tsx",
+      "target": "function:apps/agency/src/pages/CommunicationPage.tsx:CommunicationPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/pages/CostCentersPage.tsx",
+      "target": "function:apps/agency/src/pages/CostCentersPage.tsx:CostCentersPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/AirServicesPage.tsx:AirServicesPage",
+      "target": "function:apps/agency/src/lib/api.ts:listAirServices",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/AirServicesPage.tsx:AirServicesPage",
+      "target": "function:apps/agency/src/lib/api.ts:listTrips",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/AirServicesPage.tsx:AirServicesPage",
+      "target": "function:apps/agency/src/lib/api.ts:listCustomers",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/AirServicesPage.tsx:AirServicesPage",
+      "target": "function:apps/agency/src/lib/api.ts:listSuppliers",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/pages/AirServicesPage.tsx",
+      "target": "function:apps/agency/src/lib/api.ts:updateAirService",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/pages/AirServicesPage.tsx",
+      "target": "function:apps/agency/src/lib/api.ts:createAirService",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/pages/AirServicesPage.tsx",
+      "target": "function:apps/agency/src/lib/api.ts:deleteAirService",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/CampaignsPage.tsx:CampaignsPage",
+      "target": "function:apps/agency/src/lib/api.ts:listCampaigns",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/pages/CampaignsPage.tsx",
+      "target": "function:apps/agency/src/lib/api.ts:createCampaign",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/CampaignsPage.tsx:CampaignsPage",
+      "target": "function:apps/agency/src/lib/formatDateBR.ts:formatDateBR",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/CashTransactionsPage.tsx:CashTransactionsPage",
+      "target": "function:apps/agency/src/lib/formatDateBR.ts:formatDateBR",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/CashTransactionsPage.tsx:CashTransactionsPage",
+      "target": "function:apps/agency/src/lib/formatCurrency.ts:formatBRL",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/CategoriesPage.tsx:CategoriesPage",
+      "target": "function:apps/agency/src/lib/api.ts:listCategories",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/pages/CategoriesPage.tsx",
+      "target": "function:apps/agency/src/lib/api.ts:createCategory",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/CommissionPlansPage.tsx:CommissionPlansPage",
+      "target": "function:apps/agency/src/lib/api.ts:listCommissionPlans",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/pages/CommissionPlansPage.tsx",
+      "target": "function:apps/agency/src/lib/api.ts:createCommissionPlan",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/pages/CommissionPlansPage.tsx",
+      "target": "function:apps/agency/src/lib/api.ts:updateCommissionPlan",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/CommunicationFormPage.tsx:CommunicationFormPage",
+      "target": "function:apps/agency/src/lib/api.ts:getCommunication",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/pages/CommunicationFormPage.tsx",
+      "target": "function:apps/agency/src/lib/api.ts:updateCommunication",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/pages/CommunicationFormPage.tsx",
+      "target": "function:apps/agency/src/lib/api.ts:createCommunication",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/CommunicationPage.tsx:CommunicationPage",
+      "target": "function:apps/agency/src/lib/api.ts:listCommunications",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/CostCentersPage.tsx:CostCentersPage",
+      "target": "function:apps/agency/src/lib/api.ts:listCostCenters",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/pages/CostCentersPage.tsx",
+      "target": "function:apps/agency/src/lib/api.ts:createCostCenter",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/pages/CostCentersPage.tsx",
+      "target": "function:apps/agency/src/lib/api.ts:updateCostCenter",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

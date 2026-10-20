@@ -1,0 +1,1068 @@
+{
+ "nodes": [
+  {
+   "id": "file:services/api/src/agency-signup.ts",
+   "type": "file",
+   "name": "agency-signup.ts",
+   "filePath": "services/api/src/agency-signup.ts",
+   "summary": "Fluxo de cadastro de agências que cria agência, usuário OWNER e convite inicial em transação multi-tenant, com hash de senha e login automático.",
+   "tags": [
+    "authentication",
+    "signup",
+    "multi-tenant",
+    "api-handler",
+    "service"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:services/api/src/customer-local-auth.ts",
+   "type": "file",
+   "name": "customer-local-auth.ts",
+   "filePath": "services/api/src/customer-local-auth.ts",
+   "summary": "Autenticação local de clientes finais: login, sessões opacas, logout e recuperação de senha com auditoria por tenant e envio de e-mail.",
+   "tags": [
+    "authentication",
+    "session-management",
+    "multi-tenant",
+    "security",
+    "service"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:services/api/src/email/dev-log-provider.ts",
+   "type": "file",
+   "name": "dev-log-provider.ts",
+   "filePath": "services/api/src/email/dev-log-provider.ts",
+   "summary": "Provider de e-mail de desenvolvimento que apenas imprime a mensagem no console quando não há provedor real configurado.",
+   "tags": [
+    "email",
+    "provider",
+    "development",
+    "service"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:services/api/src/email/factory.ts",
+   "type": "file",
+   "name": "factory.ts",
+   "filePath": "services/api/src/email/factory.ts",
+   "summary": "Factory com cache que seleciona o provedor de e-mail (Resend, dev-log ou não configurado) conforme o ambiente, com fail-closed em produção.",
+   "tags": [
+    "email",
+    "factory",
+    "configuration",
+    "security",
+    "service"
+   ],
+   "complexity": "simple",
+   "languageNotes": "Factory com cache singleton e fail-closed por NODE_ENV: produção/staging exigem RESEND_API_KEY."
+  },
+  {
+   "id": "file:services/api/src/email/index.ts",
+   "type": "file",
+   "name": "index.ts",
+   "filePath": "services/api/src/email/index.ts",
+   "summary": "Fachada do sistema de e-mail: monta URLs de redirecionamento e envia e-mails transacionais (convites, resets, ativação) com log estruturado.",
+   "tags": [
+    "email",
+    "notification",
+    "service",
+    "template"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:services/api/src/email/resend-provider.ts",
+   "type": "file",
+   "name": "resend-provider.ts",
+   "filePath": "services/api/src/email/resend-provider.ts",
+   "summary": "Provider de e-mail que chama a API da Resend via fetch, com timeout por AbortSignal e erros tipados.",
+   "tags": [
+    "email",
+    "provider",
+    "http-client",
+    "service"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:services/api/src/email/templates.ts",
+   "type": "file",
+   "name": "templates.ts",
+   "filePath": "services/api/src/email/templates.ts",
+   "summary": "Templates HTML dos e-mails transacionais (convite, redefinição de senha, ativação) com invólucro de layout comum.",
+   "tags": [
+    "email",
+    "template",
+    "html",
+    "utility"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/agency-signup.ts:signUpAgency",
+   "type": "function",
+   "name": "signUpAgency",
+   "filePath": "services/api/src/agency-signup.ts",
+   "lineRange": [
+    55,
+    153
+   ],
+   "summary": "Cria agência com slug único, usuário OWNER, convite e sessão de login em uma única transação atômica.",
+   "tags": [
+    "authentication",
+    "signup",
+    "multi-tenant",
+    "service"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/customer-local-auth.ts:withAgencyAudit",
+   "type": "function",
+   "name": "withAgencyAudit",
+   "filePath": "services/api/src/customer-local-auth.ts",
+   "lineRange": [
+    41,
+    51
+   ],
+   "summary": "Envolve operações sensíveis no contexto de tenant e transação da agência para gravar auditoria atomicamente.",
+   "tags": [
+    "audit",
+    "multi-tenant",
+    "utility"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/customer-local-auth.ts:customerLogin",
+   "type": "function",
+   "name": "customerLogin",
+   "filePath": "services/api/src/customer-local-auth.ts",
+   "lineRange": [
+    78,
+    145
+   ],
+   "summary": "Autentica cliente por slug da agência, e-mail e senha com respostas fail-safe contra user enumeration e cria sessão opaca.",
+   "tags": [
+    "authentication",
+    "session-management",
+    "security"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/customer-local-auth.ts:resolveCustomerSessionByToken",
+   "type": "function",
+   "name": "resolveCustomerSessionByToken",
+   "filePath": "services/api/src/customer-local-auth.ts",
+   "lineRange": [
+    153,
+    192
+   ],
+   "summary": "Resolve a sessão do cliente a partir do token branco, renova a expiração e audita o uso.",
+   "tags": [
+    "session-management",
+    "authentication",
+    "security"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/customer-local-auth.ts:customerLogout",
+   "type": "function",
+   "name": "customerLogout",
+   "filePath": "services/api/src/customer-local-auth.ts",
+   "lineRange": [
+    194,
+    214
+   ],
+   "summary": "Revoga a sessão do cliente pelo token branco e registra o logout na auditoria.",
+   "tags": [
+    "session-management",
+    "authentication",
+    "security"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/customer-local-auth.ts:customerForgotPassword",
+   "type": "function",
+   "name": "customerForgotPassword",
+   "filePath": "services/api/src/customer-local-auth.ts",
+   "lineRange": [
+    223,
+    273
+   ],
+   "summary": "Gera token opaco de recuperação com hash persistido e envia e-mail de reset sem revelar se o usuário existe.",
+   "tags": [
+    "password-reset",
+    "authentication",
+    "security"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/customer-local-auth.ts:customerResetPassword",
+   "type": "function",
+   "name": "customerResetPassword",
+   "filePath": "services/api/src/customer-local-auth.ts",
+   "lineRange": [
+    275,
+    332
+   ],
+   "summary": "Valida o token de reset, grava a nova senha com scrypt, revoga sessões e audita a operação.",
+   "tags": [
+    "password-reset",
+    "authentication",
+    "security"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "class:services/api/src/email/dev-log-provider.ts:DevLogEmailProvider",
+   "type": "class",
+   "name": "DevLogEmailProvider",
+   "filePath": "services/api/src/email/dev-log-provider.ts",
+   "lineRange": [
+    16,
+    32
+   ],
+   "summary": "Implementação de EmailProvider que registra destinatário, assunto e payload em JSON no console.",
+   "tags": [
+    "email",
+    "provider",
+    "development"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/email/factory.ts:getEmailProvider",
+   "type": "function",
+   "name": "getEmailProvider",
+   "filePath": "services/api/src/email/factory.ts",
+   "lineRange": [
+    15,
+    20
+   ],
+   "summary": "Retorna o provedor de e-mail em cache, criando-o sob demanda a partir das variáveis de ambiente.",
+   "tags": [
+    "email",
+    "factory",
+    "singleton"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/email/factory.ts:createEmailProvider",
+   "type": "function",
+   "name": "createEmailProvider",
+   "filePath": "services/api/src/email/factory.ts",
+   "lineRange": [
+    23,
+    43
+   ],
+   "summary": "Instancia o provedor adequado conforme RESEND_API_KEY e NODE_ENV, exigindo configuração real em ambientes de produção.",
+   "tags": [
+    "email",
+    "factory",
+    "configuration",
+    "security"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/email/index.ts:logEmailEvent",
+   "type": "function",
+   "name": "logEmailEvent",
+   "filePath": "services/api/src/email/index.ts",
+   "lineRange": [
+    17,
+    36
+   ],
+   "summary": "Registra eventos de envio de e-mail em JSON estruturado no console.",
+   "tags": [
+    "email",
+    "logging",
+    "utility"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/email/index.ts:sendEmployeeInvitationEmail",
+   "type": "function",
+   "name": "sendEmployeeInvitationEmail",
+   "filePath": "services/api/src/email/index.ts",
+   "lineRange": [
+    50,
+    65
+   ],
+   "summary": "Envia convite de colaborador com link de ativação apontando para o portal do cliente.",
+   "tags": [
+    "email",
+    "invitation",
+    "notification"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/email/index.ts:sendStaffPasswordResetEmail",
+   "type": "function",
+   "name": "sendStaffPasswordResetEmail",
+   "filePath": "services/api/src/email/index.ts",
+   "lineRange": [
+    67,
+    77
+   ],
+   "summary": "Envia e-mail de redefinição de senha para colaboradores com link do app da agência.",
+   "tags": [
+    "email",
+    "password-reset",
+    "notification"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/email/index.ts:sendPlatformPasswordResetEmail",
+   "type": "function",
+   "name": "sendPlatformPasswordResetEmail",
+   "filePath": "services/api/src/email/index.ts",
+   "lineRange": [
+    79,
+    86
+   ],
+   "summary": "Envia e-mail de redefinição de senha para usuários da plataforma com link do admin.",
+   "tags": [
+    "email",
+    "password-reset",
+    "notification"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/email/index.ts:sendCustomerPasswordResetEmail",
+   "type": "function",
+   "name": "sendCustomerPasswordResetEmail",
+   "filePath": "services/api/src/email/index.ts",
+   "lineRange": [
+    88,
+    98
+   ],
+   "summary": "Envia e-mail de redefinição de senha para clientes com link do portal.",
+   "tags": [
+    "email",
+    "password-reset",
+    "notification"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/email/index.ts:sendCustomerActivationEmail",
+   "type": "function",
+   "name": "sendCustomerActivationEmail",
+   "filePath": "services/api/src/email/index.ts",
+   "lineRange": [
+    100,
+    110
+   ],
+   "summary": "Envia e-mail de ativação de conta de cliente com link de acesso ao portal.",
+   "tags": [
+    "email",
+    "activation",
+    "notification"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/email/index.ts:sendAndLog",
+   "type": "function",
+   "name": "sendAndLog",
+   "filePath": "services/api/src/email/index.ts",
+   "lineRange": [
+    112,
+    135
+   ],
+   "summary": "Obtém o provedor configurado, envia a mensagem e grava log de sucesso ou erro sem quebrar o fluxo de negócio.",
+   "tags": [
+    "email",
+    "error-handling",
+    "logging"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "class:services/api/src/email/resend-provider.ts:ResendEmailProvider",
+   "type": "class",
+   "name": "ResendEmailProvider",
+   "filePath": "services/api/src/email/resend-provider.ts",
+   "lineRange": [
+    22,
+    68
+   ],
+   "summary": "Cliente da API Resend que envia mensagens com API key, from/reply-to e timeout configurável.",
+   "tags": [
+    "email",
+    "provider",
+    "http-client"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/email/templates.ts:wrapHtml",
+   "type": "function",
+   "name": "wrapHtml",
+   "filePath": "services/api/src/email/templates.ts",
+   "lineRange": [
+    12,
+    26
+   ],
+   "summary": "Envolve o corpo do e-mail em layout HTML comum com título e estilos embutidos.",
+   "tags": [
+    "email",
+    "template",
+    "html"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/email/templates.ts:employeeInvitationEmail",
+   "type": "function",
+   "name": "employeeInvitationEmail",
+   "filePath": "services/api/src/email/templates.ts",
+   "lineRange": [
+    28,
+    41
+   ],
+   "summary": "Renderiza o HTML do e-mail de convite de colaborador com botão de aceite.",
+   "tags": [
+    "email",
+    "template",
+    "invitation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/email/templates.ts:passwordResetEmail",
+   "type": "function",
+   "name": "passwordResetEmail",
+   "filePath": "services/api/src/email/templates.ts",
+   "lineRange": [
+    43,
+    55
+   ],
+   "summary": "Renderiza o HTML do e-mail de redefinição de senha com link expirável.",
+   "tags": [
+    "email",
+    "template",
+    "password-reset"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/email/templates.ts:customerActivationEmail",
+   "type": "function",
+   "name": "customerActivationEmail",
+   "filePath": "services/api/src/email/templates.ts",
+   "lineRange": [
+    57,
+    69
+   ],
+   "summary": "Renderiza o HTML do e-mail de ativação de conta de cliente.",
+   "tags": [
+    "email",
+    "template",
+    "activation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/email/factory.ts:resetEmailProviderCacheForTests",
+   "type": "function",
+   "name": "resetEmailProviderCacheForTests",
+   "filePath": "services/api/src/email/factory.ts",
+   "lineRange": [
+    46,
+    48
+   ],
+   "summary": "Limpa o cache do provedor de e-mail entre testes para forçar nova instanciação.",
+   "tags": [
+    "email",
+    "factory",
+    "test-helper"
+   ],
+   "complexity": "simple"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:services/api/src/agency-signup.ts",
+   "target": "function:services/api/src/agency-signup.ts:signUpAgency",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/customer-local-auth.ts",
+   "target": "function:services/api/src/customer-local-auth.ts:withAgencyAudit",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/customer-local-auth.ts",
+   "target": "function:services/api/src/customer-local-auth.ts:customerLogin",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/customer-local-auth.ts",
+   "target": "function:services/api/src/customer-local-auth.ts:resolveCustomerSessionByToken",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/customer-local-auth.ts",
+   "target": "function:services/api/src/customer-local-auth.ts:customerLogout",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/customer-local-auth.ts",
+   "target": "function:services/api/src/customer-local-auth.ts:customerForgotPassword",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/customer-local-auth.ts",
+   "target": "function:services/api/src/customer-local-auth.ts:customerResetPassword",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/email/dev-log-provider.ts",
+   "target": "class:services/api/src/email/dev-log-provider.ts:DevLogEmailProvider",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/email/factory.ts",
+   "target": "function:services/api/src/email/factory.ts:getEmailProvider",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/email/factory.ts",
+   "target": "function:services/api/src/email/factory.ts:createEmailProvider",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/email/index.ts",
+   "target": "function:services/api/src/email/index.ts:logEmailEvent",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/email/index.ts",
+   "target": "function:services/api/src/email/index.ts:sendEmployeeInvitationEmail",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/email/index.ts",
+   "target": "function:services/api/src/email/index.ts:sendStaffPasswordResetEmail",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/email/index.ts",
+   "target": "function:services/api/src/email/index.ts:sendPlatformPasswordResetEmail",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/email/index.ts",
+   "target": "function:services/api/src/email/index.ts:sendCustomerPasswordResetEmail",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/email/index.ts",
+   "target": "function:services/api/src/email/index.ts:sendCustomerActivationEmail",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/email/index.ts",
+   "target": "function:services/api/src/email/index.ts:sendAndLog",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/email/resend-provider.ts",
+   "target": "class:services/api/src/email/resend-provider.ts:ResendEmailProvider",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/email/templates.ts",
+   "target": "function:services/api/src/email/templates.ts:wrapHtml",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/email/templates.ts",
+   "target": "function:services/api/src/email/templates.ts:employeeInvitationEmail",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/email/templates.ts",
+   "target": "function:services/api/src/email/templates.ts:passwordResetEmail",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/email/templates.ts",
+   "target": "function:services/api/src/email/templates.ts:customerActivationEmail",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/agency-signup.ts",
+   "target": "function:services/api/src/agency-signup.ts:signUpAgency",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/customer-local-auth.ts",
+   "target": "function:services/api/src/customer-local-auth.ts:customerLogin",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/customer-local-auth.ts",
+   "target": "function:services/api/src/customer-local-auth.ts:resolveCustomerSessionByToken",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/customer-local-auth.ts",
+   "target": "function:services/api/src/customer-local-auth.ts:customerLogout",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/customer-local-auth.ts",
+   "target": "function:services/api/src/customer-local-auth.ts:customerForgotPassword",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/customer-local-auth.ts",
+   "target": "function:services/api/src/customer-local-auth.ts:customerResetPassword",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/email/dev-log-provider.ts",
+   "target": "class:services/api/src/email/dev-log-provider.ts:DevLogEmailProvider",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/email/factory.ts",
+   "target": "function:services/api/src/email/factory.ts:getEmailProvider",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/email/factory.ts",
+   "target": "function:services/api/src/email/factory.ts:createEmailProvider",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/email/index.ts",
+   "target": "function:services/api/src/email/index.ts:sendEmployeeInvitationEmail",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/email/index.ts",
+   "target": "function:services/api/src/email/index.ts:sendStaffPasswordResetEmail",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/email/index.ts",
+   "target": "function:services/api/src/email/index.ts:sendPlatformPasswordResetEmail",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/email/index.ts",
+   "target": "function:services/api/src/email/index.ts:sendCustomerPasswordResetEmail",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/email/index.ts",
+   "target": "function:services/api/src/email/index.ts:sendCustomerActivationEmail",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/email/resend-provider.ts",
+   "target": "class:services/api/src/email/resend-provider.ts:ResendEmailProvider",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/email/templates.ts",
+   "target": "function:services/api/src/email/templates.ts:employeeInvitationEmail",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/email/templates.ts",
+   "target": "function:services/api/src/email/templates.ts:passwordResetEmail",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/email/templates.ts",
+   "target": "function:services/api/src/email/templates.ts:customerActivationEmail",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/agency-signup.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/agency-signup.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/agency-signup.ts",
+   "target": "file:services/api/src/local-auth.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/agency-signup.ts",
+   "target": "file:services/api/src/password-hashing.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/customer-local-auth.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/customer-local-auth.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/customer-local-auth.ts",
+   "target": "file:services/api/src/audit-log.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/customer-local-auth.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/customer-local-auth.ts",
+   "target": "file:services/api/src/email/index.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/customer-local-auth.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/customer-local-auth.ts",
+   "target": "file:services/api/src/local-auth.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/customer-local-auth.ts",
+   "target": "file:services/api/src/password-hashing.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/email/dev-log-provider.ts",
+   "target": "file:services/api/src/email/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/email/factory.ts",
+   "target": "file:services/api/src/email/dev-log-provider.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/email/factory.ts",
+   "target": "file:services/api/src/email/resend-provider.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/email/factory.ts",
+   "target": "file:services/api/src/email/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/email/factory.ts",
+   "target": "file:services/api/src/email/unconfigured-provider.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/email/index.ts",
+   "target": "file:services/api/src/email/factory.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/email/index.ts",
+   "target": "file:services/api/src/email/templates.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/email/index.ts",
+   "target": "file:services/api/src/email/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/email/resend-provider.ts",
+   "target": "file:services/api/src/email/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/customer-local-auth.ts",
+   "target": "function:services/api/src/email/index.ts:sendCustomerPasswordResetEmail",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/customer-local-auth.ts",
+   "target": "function:packages/domain/tenant-context.ts:runWithTenantContext",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/customer-local-auth.ts",
+   "target": "function:services/api/src/audit-log.ts:recordAuditEvent",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/email/index.ts",
+   "target": "function:services/api/src/email/factory.ts:getEmailProvider",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/email/index.ts",
+   "target": "function:services/api/src/email/templates.ts:employeeInvitationEmail",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/email/index.ts",
+   "target": "function:services/api/src/email/templates.ts:passwordResetEmail",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/email/index.ts",
+   "target": "function:services/api/src/email/templates.ts:customerActivationEmail",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/email/factory.ts",
+   "target": "class:services/api/src/email/dev-log-provider.ts:DevLogEmailProvider",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/email/factory.ts",
+   "target": "class:services/api/src/email/resend-provider.ts:ResendEmailProvider",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/email/factory.ts",
+   "target": "class:services/api/src/email/unconfigured-provider.ts:UnconfiguredEmailProvider",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/customer-local-auth.ts",
+   "target": "file:services/api/tests/customer-platform-auth.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/email/index.ts",
+   "target": "file:services/api/tests/email-provider.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/email/factory.ts",
+   "target": "file:services/api/tests/email-provider.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/email/factory.ts",
+   "target": "function:services/api/src/email/factory.ts:resetEmailProviderCacheForTests",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/email/factory.ts",
+   "target": "function:services/api/src/email/factory.ts:resetEmailProviderCacheForTests",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/agency-signup.ts",
+   "target": "function:services/api/src/password-hashing.ts:hashPassword",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/agency-signup.ts",
+   "target": "function:services/api/src/local-auth.ts:login",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/customer-local-auth.ts",
+   "target": "function:services/api/src/local-auth.ts:resolveAgencyIdBySlug",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/customer-local-auth.ts",
+   "target": "function:services/api/src/password-hashing.ts:verifyPassword",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/customer-local-auth.ts",
+   "target": "function:services/api/src/password-hashing.ts:hashPassword",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  }
+ ]
+}

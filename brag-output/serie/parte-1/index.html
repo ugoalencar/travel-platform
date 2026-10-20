@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=1920, height=1080">
+<title>Travel Plataforma - parte 1</title>
+<script src="assets/gsap.min.js"></script><script src="assets/audio-data.js"></script>
+<style>
+@font-face{font-family:'Fraunces';src:url(assets/fonts/Fraunces-400.woff2) format('woff2');font-weight:100 900;}
+@font-face{font-family:'Inter';src:url(assets/fonts/Inter-400.woff2) format('woff2');font-weight:100 900;}
+*{box-sizing:border-box}
+body{margin:0;background:#fff;color:#0f2a4a;font-family:'Inter',sans-serif}
+#root{position:relative;width:100%;height:100%;overflow:hidden}
+.clip{position:absolute;inset:0}
+.scene{position:absolute;inset:0;overflow:hidden}
+.paper{background:#fff}.deep{background:#f3f4f6}.navy{background:#0f2a4a}
+.abs{position:absolute}
+.serif{font-family:'Fraunces',serif;font-weight:400;letter-spacing:-0.02em;margin:0}
+.eyebrow{position:absolute;margin:0;font-weight:600;font-size:28px;line-height:1;letter-spacing:.18em;text-transform:uppercase;color:#1554d1}
+.eyebrow.c{color:#06b6d4}
+.glow{position:absolute;width:1200px;height:1200px;border-radius:50%;background:radial-gradient(circle,rgba(6,182,212,.45) 0%,rgba(6,182,212,0) 65%)}
+.card{position:absolute;background:#fff;border:2px solid #e2e6ea;border-radius:4px}
+.shot{position:absolute;background:#fff;border:2px solid #e2e6ea;border-radius:4px;box-shadow:0 30px 70px rgba(15,42,74,.25);color:#1a1d21}
+.btn{position:absolute;background:#1554d1;color:#fff;font-weight:600;border-radius:4px;display:flex;align-items:center;justify-content:center}
+.num{font-family:'Fraunces',serif;color:#1554d1;margin:0}
+.th,.tr{position:absolute;left:0;right:0}
+.th span,.tr span{position:absolute;display:flex;align-items:center}
+.tr{border-top:2px solid #e2e6ea}
+.nav{position:absolute;left:20px;width:260px;height:64px;padding:0 20px;display:flex;align-items:center;font-size:30px;border-radius:4px;color:#1a1d21}
+.nav.on{background:#e6eeff;color:#1043a8;font-weight:800}
+.panel{position:absolute;top:130px;height:640px;background:#fff;border:2px solid #e2e6ea;border-radius:4px;width:408px}
+.panel .lbl{position:absolute;left:28px;top:24px;font-size:36px;font-weight:800;color:#1554d1}
+</style></head><body>
+<div id="root" data-composition-id="main" data-start="0" data-width="1920" data-height="1080" data-duration="20">
+<section id="s1" class="clip" data-start="0" data-duration="3.4" data-track-index="1"><div id="s1-scene" class="scene deep"><div class="abs" style="inset:0;background-image:linear-gradient(#e0e4ea 2px,transparent 2px),linear-gradient(90deg,#e0e4ea 2px,transparent 2px);background-size:240px 72px"></div><div class="abs cell" style="left:1300px;top:130px;background:#fff;border:2px solid #c5ccd6;color:#5b6370;font-size:32px;padding:10px 22px;white-space:nowrap">pago?</div><div class="abs cell" style="left:1180px;top:260px;background:#fff;border:2px solid #c5ccd6;color:#5b6370;font-size:32px;padding:10px 22px;white-space:nowrap">confirmar com o cliente</div><div class="abs cell" style="left:1420px;top:420px;background:#fff;border:2px solid #c5ccd6;color:#5b6370;font-size:32px;padding:10px 22px;white-space:nowrap">parcela 2 ???</div><div class="abs cell" style="left:1260px;top:560px;background:#fff;border:2px solid #c5ccd6;color:#5b6370;font-size:32px;padding:10px 22px;white-space:nowrap">R$ ??</div><div class="abs cell" style="left:1360px;top:700px;background:#fff;border:2px solid #c5ccd6;color:#5b6370;font-size:32px;padding:10px 22px;white-space:nowrap">ver comissão</div><div class="abs cell" style="left:1220px;top:840px;background:#fff;border:2px solid #c5ccd6;color:#5b6370;font-size:32px;padding:10px 22px;white-space:nowrap">vendedor?</div>
+<h1 class="serif abs" style="left:120px;top:330px;font-size:132px;line-height:1.08;width:1100px"><span id="s1a" style="display:block">Sua agência ainda</span><span id="s1b" style="display:block">vive de <span style="color:#1554d1">planilha?</span></span></h1></div></section>
+<section id="s2" class="clip" data-start="3.0" data-duration="6.6" data-track-index="2"><div id="s2-scene" class="scene paper"><p id="s2e" class="eyebrow" style="left:120px;top:150px">Para agências de viagem</p>
+<img id="s2logo" class="abs" src="assets/logo-completa.svg" style="left:120px;top:205px;height:130px" alt="Travel Plataforma">
+<h2 id="s2h" class="serif abs" style="left:120px;top:420px;width:900px;font-size:74px;line-height:1.1">Transforme sua agência em uma operação mais inteligente.</h2>
+<div id="s2frame" class="abs" style="left:1180px;top:110px;width:620px;height:800px;background:#0f2a4a"><svg data-layout-allow-overflow viewBox="0 0 400 520" preserveAspectRatio="xMidYMid slice" width="100%" height="100%"><rect width="400" height="520" fill="#0f2a4a"/><g fill="none" stroke="#fff" stroke-opacity=".14" stroke-width="1.5"><ellipse cx="300" cy="150" rx="40" ry="28"/><ellipse cx="300" cy="150" rx="90" ry="62"/><ellipse cx="300" cy="150" rx="150" ry="104"/><ellipse cx="300" cy="150" rx="215" ry="148"/><ellipse cx="300" cy="150" rx="285" ry="196"/><ellipse cx="80" cy="440" rx="60" ry="40"/><ellipse cx="80" cy="440" rx="125" ry="84"/><ellipse cx="80" cy="440" rx="200" ry="134"/></g><path d="M70 440 C 140 330, 90 250, 190 210 S 330 170, 305 148" fill="none" stroke="#fff" stroke-width="3" stroke-dasharray="2 12" stroke-linecap="round"/><circle cx="70" cy="440" r="9" fill="#fff"/><circle cx="305" cy="148" r="11" fill="#06b6d4"/><circle cx="305" cy="148" r="22" fill="none" stroke="#06b6d4" stroke-opacity=".5" stroke-width="2"/></svg></div>
+<div id="s2shot" class="shot" style="left:960px;top:600px;width:540px;height:430px;padding:30px 34px">
+<div style="font-size:22px;color:#5b6370;font-weight:600">Vendas</div>
+<div class="serif" style="font-size:36px;margin-top:6px">Família Souza · Cancún</div>
+<div class="btn" style="position:relative;margin-top:18px;height:60px;font-size:26px">Registrar venda</div>
+<div style="position:relative;margin-top:22px;height:200px;font-size:26px">
+<div class="th" style="top:0;height:44px;font-size:20px;color:#5b6370;font-weight:600"><span style="left:0;height:44px">Parcela</span><span style="left:130px;height:44px">Vencimento</span><span style="right:0;height:44px">Valor</span></div>
+<div class="tr" style="top:48px;height:50px"><span style="left:0;height:50px">1/3</span><span style="left:130px;height:50px">10/12</span><span style="right:0;height:50px">R$ 4.200</span></div>
+<div class="tr" style="top:98px;height:50px"><span style="left:0;height:50px">2/3</span><span style="left:130px;height:50px">10/01</span><span style="right:0;height:50px">R$ 4.200</span></div>
+<div class="tr" style="top:148px;height:50px"><span style="left:0;height:50px">3/3</span><span style="left:130px;height:50px">10/02</span><span style="right:0;height:50px">R$ 4.200</span></div>
+</div></div></div></section>
+<section id="s3" class="clip" data-start="9.4" data-duration="6.2" data-track-index="3"><div id="s3-scene" class="scene paper"><p class="eyebrow" style="left:120px;top:190px">O produto</p>
+<h2 id="s3h" data-layout-allow-overlap class="serif abs" style="left:120px;top:250px;width:680px;font-size:96px;line-height:1.08">Tudo que a sua agência precisa</h2><div id="s3r0" class="abs" style="left:900px;top:150px;width:900px;height:130px;border-top:2px solid rgba(15,42,74,.2);display:flex;align-items:center;gap:40px"><span class="num" style="font-size:44px;width:70px">01</span><span class="serif" style="font-size:52px">CRM / Cliente 360</span></div><div id="s3r1" class="abs" style="left:900px;top:280px;width:900px;height:130px;border-top:2px solid rgba(15,42,74,.2);display:flex;align-items:center;gap:40px"><span class="num" style="font-size:44px;width:70px">02</span><span class="serif" style="font-size:52px">Pipeline comercial</span></div><div id="s3r2" class="abs" style="left:900px;top:410px;width:900px;height:130px;border-top:2px solid rgba(15,42,74,.2);display:flex;align-items:center;gap:40px"><span class="num" style="font-size:44px;width:70px">03</span><span class="serif" style="font-size:52px">Viagens e operação</span></div><div id="s3r3" class="abs" style="left:900px;top:540px;width:900px;height:130px;border-top:2px solid rgba(15,42,74,.2);display:flex;align-items:center;gap:40px"><span class="num" style="font-size:44px;width:70px">04</span><span class="serif" style="font-size:52px">Financeiro</span></div><div id="s3r4" class="abs" style="left:900px;top:670px;width:900px;height:130px;border-top:2px solid rgba(15,42,74,.2);display:flex;align-items:center;gap:40px"><span class="num" style="font-size:44px;width:70px">05</span><span class="serif" style="font-size:52px">Equipe</span></div><div id="s3r5" class="abs" style="left:900px;top:800px;width:900px;height:130px;border-top:2px solid rgba(15,42,74,.2);display:flex;align-items:center;gap:40px"><span class="num" style="font-size:44px;width:70px">06</span><span class="serif" style="font-size:52px">Portal do cliente</span></div>
+<div class="abs" style="left:900px;top:930px;width:900px;border-top:2px solid rgba(15,42,74,.2)"></div></div></section>
+<section id="s4" class="clip" data-start="15.0" data-duration="5.0" data-track-index="4"><div id="s4-scene" class="scene navy"><div id="s4glow" data-layout-allow-overflow class="glow" style="left:1100px;top:-500px"></div>
+<div id="s4c"><p class="eyebrow c" style="left:120px;top:290px">Confiança</p>
+<h2 id="s4h" class="serif abs" style="left:120px;top:350px;width:760px;font-size:100px;line-height:1.06;color:#fff">Segurança por padrão</h2><div id="s4r0" class="abs" style="left:980px;top:250px;width:820px;height:170px;border-top:2px solid rgba(255,255,255,.25)"><span class="num" style="position:absolute;left:0;top:34px;font-size:40px;color:#06b6d4">01</span><span class="serif" style="position:absolute;left:80px;top:26px;font-size:46px;color:#fff;width:740px">Isolamento por agência</span><span style="position:absolute;left:80px;top:96px;font-size:26px;color:#bfe9f2;width:740px">Cada agência opera em seu próprio espaço de dados.</span></div><div id="s4r1" class="abs" style="left:980px;top:420px;width:820px;height:170px;border-top:2px solid rgba(255,255,255,.25)"><span class="num" style="position:absolute;left:0;top:34px;font-size:40px;color:#06b6d4">02</span><span class="serif" style="position:absolute;left:80px;top:26px;font-size:46px;color:#fff;width:740px">Controle de acesso por papel</span><span style="position:absolute;left:80px;top:96px;font-size:26px;color:#bfe9f2;width:740px">Permissões para donos, gerentes, agentes e operação.</span></div><div id="s4r2" class="abs" style="left:980px;top:590px;width:820px;height:170px;border-top:2px solid rgba(255,255,255,.25)"><span class="num" style="position:absolute;left:0;top:34px;font-size:40px;color:#06b6d4">03</span><span class="serif" style="position:absolute;left:80px;top:26px;font-size:46px;color:#fff;width:740px">Trilha de auditoria</span><span style="position:absolute;left:80px;top:96px;font-size:26px;color:#bfe9f2;width:740px">Ações relevantes ficam registradas para consulta.</span></div></div>
+<h2 id="s4hook" class="serif abs" style="left:0;right:0;top:400px;text-align:center;font-size:132px;color:#fff;line-height:1.1">Mas por onde <span style="color:#06b6d4">começar?</span></h2></div></section>
+<audio id="bgm" data-start="0" data-duration="20" data-media-start="0" data-track-index="10" data-volume="0.35" src="assets/music/music.mp3" data-automation='{"version":1,"lanes":[{"target":"volume","points":[{"t":0,"v":0.55},{"t":3,"v":0.55},{"t":4,"v":1}]}]}'></audio>
+<audio id="sx1" data-start="3.68" data-duration="0.11" data-track-index="11" data-volume="0.5" src="assets/sfx/drop_001.ogg"></audio>
+<audio id="sx2" data-start="3.68" data-duration="0.18" data-track-index="12" data-volume="0.7" src="assets/sfx/impactSoft_medium_001.ogg"></audio>
+<audio id="sx3" data-start="6.32" data-duration="0.69" data-track-index="13" data-volume="0.6" src="assets/sfx/card-place-1.ogg"></audio>
+<audio id="sx4" data-start="10.52" data-duration="0.11" data-track-index="14" data-volume="0.55" src="assets/sfx/drop_001.ogg"></audio>
+<audio id="sx5" data-start="11.58" data-duration="0.11" data-track-index="15" data-volume="0.55" src="assets/sfx/drop_001.ogg"></audio>
+<audio id="sx6" data-start="12.63" data-duration="0.11" data-track-index="16" data-volume="0.55" src="assets/sfx/drop_001.ogg"></audio>
+<audio id="sx7" data-start="15.79" data-duration="0.19" data-track-index="17" data-volume="0.55" src="assets/sfx/drop_002.ogg"></audio>
+<audio id="sx8" data-start="16.32" data-duration="0.19" data-track-index="18" data-volume="0.55" src="assets/sfx/drop_002.ogg"></audio>
+<audio id="sx9" data-start="16.84" data-duration="0.19" data-track-index="19" data-volume="0.55" src="assets/sfx/drop_002.ogg"></audio>
+<audio id="sx10" data-start="18.38" data-duration="0.18" data-track-index="20" data-volume="0.7" src="assets/sfx/impactSoft_medium_001.ogg"></audio>
+</div>
+<script>
+var tl = gsap.timeline({ paused: true });
+var E = "power3.out";
+function show(sel, at, d, y) { tl.fromTo(sel, { y: y === undefined ? 40 : y, opacity: 0 }, { y: 0, opacity: 1, duration: d || 0.5, ease: E }, at); }
+function fadeScene(id, at) { tl.fromTo(id, { opacity: 0 }, { opacity: 1, duration: 0.35, ease: "power2.out" }, at); }
+
+fadeScene("#s2-scene", 3.0);
+show("#s1a", 0.3, 0.5); show("#s1b", 0.7, 0.5);
+tl.fromTo(".cell", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5, stagger: 0.12, ease: E }, 0.2);
+show("#s2e", 3.6, 0.5); show("#s2logo", 3.7, 0.6);
+show("#s2h", 4.4, 0.6);
+tl.fromTo("#s2frame", { opacity: 0, y: 60 }, { opacity: 1, y: 0, duration: 0.7, ease: E }, 5.28);
+show("#s2shot", 6.34, 0.6, 50);
+fadeScene("#s3-scene", 9.4);
+show("#s3h", 9.8, 0.6);
+tl.fromTo(["#s3r0", "#s3r1"], { x: 50, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, stagger: 0.1, ease: E }, 10.54);
+tl.fromTo(["#s3r2", "#s3r3"], { x: 50, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, stagger: 0.1, ease: E }, 11.6);
+tl.fromTo(["#s3r4", "#s3r5"], { x: 50, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, stagger: 0.1, ease: E }, 12.65);
+fadeScene("#s4-scene", 15.0);
+show("#s4h", 15.4, 0.6);
+tl.fromTo("#s4r0", { x: 50, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, ease: E }, 15.81);
+tl.fromTo("#s4r1", { x: 50, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, ease: E }, 16.34);
+tl.fromTo("#s4r2", { x: 50, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, ease: E }, 16.86);
+tl.to("#s4c", { opacity: 0, y: -30, duration: 0.4, ease: "power2.in" }, 18.0);
+tl.set("#s4hook", { opacity: 0 }, 0);
+tl.fromTo("#s4hook", { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: E }, 18.4);
+
+for (var f = 0; f < AUDIO_DATA.totalFrames; f++) {
+  tl.call((function (fr) { return function () {
+    gsap.set(".glow", { scale: 0.94 + fr.bands[0] * 0.14, opacity: 0.55 + fr.bands[1] * 0.35 });
+  }; })(AUDIO_DATA.frames[f]), [], f / AUDIO_DATA.fps);
+}
+window.__timelines["main"] = tl;
+</script></body></html>

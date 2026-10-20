@@ -1,0 +1,410 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/agency/src/lib/authApi.ts",
+      "type": "file",
+      "name": "authApi.ts",
+      "filePath": "apps/agency/src/lib/authApi.ts",
+      "summary": "API de autenticação da agência (login, MFA, cadastro, recuperação de senha e logout) com persistência de sessão e erros traduzidos.",
+      "tags": [
+        "api-client",
+        "auth",
+        "http"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/agency/src/lib/errorTranslation.ts",
+      "type": "file",
+      "name": "errorTranslation.ts",
+      "filePath": "apps/agency/src/lib/errorTranslation.ts",
+      "summary": "Traduz as mensagens de erro do backend para pt-BR por correspondência de padrões e tabelas de mensagens, mantendo identificadores técnicos intactos.",
+      "tags": [
+        "i18n",
+        "error-handling",
+        "utility"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Pattern-matching sobre ~680 mensagens inglesas do backend em vez de tradução uma a uma; cai para a mensagem original quando nada casa."
+    },
+    {
+      "id": "function:apps/agency/src/lib/authApi.ts:postJson",
+      "type": "function",
+      "name": "postJson",
+      "filePath": "apps/agency/src/lib/authApi.ts",
+      "lineRange": [
+        18,
+        33
+      ],
+      "summary": "Envia POST JSON para a API de autenticação e converte falhas em AuthApiError com mensagem traduzida.",
+      "tags": [
+        "api-client",
+        "auth",
+        "http"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/agency/src/lib/authApi.ts:login",
+      "type": "function",
+      "name": "login",
+      "filePath": "apps/agency/src/lib/authApi.ts",
+      "lineRange": [
+        39,
+        46
+      ],
+      "summary": "Autentica agência, e-mail e senha, persistindo a sessão quando não há MFA pendente.",
+      "tags": [
+        "api-client",
+        "auth",
+        "login"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/agency/src/lib/authApi.ts:signUp",
+      "type": "function",
+      "name": "signUp",
+      "filePath": "apps/agency/src/lib/authApi.ts",
+      "lineRange": [
+        60,
+        71
+      ],
+      "summary": "Cadastra nova agência, persiste a sessão quando autenticado e memoriza o slug atribuído no cadastro.",
+      "tags": [
+        "api-client",
+        "auth",
+        "signup"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/agency/src/lib/authApi.ts:verifyMfa",
+      "type": "function",
+      "name": "verifyMfa",
+      "filePath": "apps/agency/src/lib/authApi.ts",
+      "lineRange": [
+        73,
+        79
+      ],
+      "summary": "Confirma o código MFA e persiste a sessão resultante.",
+      "tags": [
+        "api-client",
+        "auth",
+        "mfa"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/agency/src/lib/authApi.ts:forgotPassword",
+      "type": "function",
+      "name": "forgotPassword",
+      "filePath": "apps/agency/src/lib/authApi.ts",
+      "lineRange": [
+        81,
+        83
+      ],
+      "summary": "Solicita o e-mail de recuperação de senha para a agência informada.",
+      "tags": [
+        "api-client",
+        "auth",
+        "password-reset"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/agency/src/lib/authApi.ts:resetPassword",
+      "type": "function",
+      "name": "resetPassword",
+      "filePath": "apps/agency/src/lib/authApi.ts",
+      "lineRange": [
+        85,
+        87
+      ],
+      "summary": "Redefine a senha usando o token de recuperação recebido por e-mail.",
+      "tags": [
+        "api-client",
+        "auth",
+        "password-reset"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/agency/src/lib/authApi.ts:logout",
+      "type": "function",
+      "name": "logout",
+      "filePath": "apps/agency/src/lib/authApi.ts",
+      "lineRange": [
+        89,
+        103
+      ],
+      "summary": "Limpa a sessão local e revoga o token no servidor de forma best-effort, ignorando falhas de rede.",
+      "tags": [
+        "api-client",
+        "auth",
+        "logout"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:apps/agency/src/lib/authApi.ts:AuthApiError",
+      "type": "class",
+      "name": "AuthApiError",
+      "filePath": "apps/agency/src/lib/authApi.ts",
+      "lineRange": [
+        6,
+        16
+      ],
+      "summary": "Erro de autenticação com status HTTP e sinalização de captcha exigido pelo backend.",
+      "tags": [
+        "error-class",
+        "auth",
+        "type-definition"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/agency/src/lib/errorTranslation.ts:translateApiErrorMessage",
+      "type": "function",
+      "name": "translateApiErrorMessage",
+      "filePath": "apps/agency/src/lib/errorTranslation.ts",
+      "lineRange": [
+        81,
+        116
+      ],
+      "summary": "Converte mensagens de erro do backend em pt-BR por correspondência de padrões, tabelas de entidades e mensagens exatas.",
+      "tags": [
+        "i18n",
+        "error-handling",
+        "utility"
+      ],
+      "complexity": "moderate"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/agency/src/lib/authApi.ts",
+      "target": "function:apps/agency/src/lib/authApi.ts:postJson",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/lib/authApi.ts",
+      "target": "function:apps/agency/src/lib/authApi.ts:login",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/lib/authApi.ts",
+      "target": "function:apps/agency/src/lib/authApi.ts:login",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/lib/authApi.ts",
+      "target": "function:apps/agency/src/lib/authApi.ts:signUp",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/lib/authApi.ts",
+      "target": "function:apps/agency/src/lib/authApi.ts:signUp",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/lib/authApi.ts",
+      "target": "function:apps/agency/src/lib/authApi.ts:verifyMfa",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/lib/authApi.ts",
+      "target": "function:apps/agency/src/lib/authApi.ts:verifyMfa",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/lib/authApi.ts",
+      "target": "function:apps/agency/src/lib/authApi.ts:forgotPassword",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/lib/authApi.ts",
+      "target": "function:apps/agency/src/lib/authApi.ts:forgotPassword",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/lib/authApi.ts",
+      "target": "function:apps/agency/src/lib/authApi.ts:resetPassword",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/lib/authApi.ts",
+      "target": "function:apps/agency/src/lib/authApi.ts:resetPassword",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/lib/authApi.ts",
+      "target": "function:apps/agency/src/lib/authApi.ts:logout",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/lib/authApi.ts",
+      "target": "function:apps/agency/src/lib/authApi.ts:logout",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/lib/authApi.ts",
+      "target": "class:apps/agency/src/lib/authApi.ts:AuthApiError",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/lib/authApi.ts",
+      "target": "class:apps/agency/src/lib/authApi.ts:AuthApiError",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/lib/errorTranslation.ts",
+      "target": "function:apps/agency/src/lib/errorTranslation.ts:translateApiErrorMessage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/lib/errorTranslation.ts",
+      "target": "function:apps/agency/src/lib/errorTranslation.ts:translateApiErrorMessage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/lib/authApi.ts",
+      "target": "file:apps/agency/src/lib/errorTranslation.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/lib/authApi.ts",
+      "target": "file:apps/agency/src/lib/session.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/agency/src/lib/authApi.ts:postJson",
+      "target": "function:apps/agency/src/lib/errorTranslation.ts:translateApiErrorMessage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/lib/authApi.ts:login",
+      "target": "function:apps/agency/src/lib/session.ts:setSession",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/lib/authApi.ts:login",
+      "target": "function:apps/agency/src/lib/session.ts:rememberAgencySlug",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/lib/authApi.ts:signUp",
+      "target": "function:apps/agency/src/lib/session.ts:setSession",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/lib/authApi.ts:signUp",
+      "target": "function:apps/agency/src/lib/session.ts:rememberAgencySlug",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/lib/authApi.ts:verifyMfa",
+      "target": "function:apps/agency/src/lib/session.ts:setSession",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/lib/authApi.ts:logout",
+      "target": "function:apps/agency/src/lib/session.ts:getSessionToken",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/lib/authApi.ts:logout",
+      "target": "function:apps/agency/src/lib/session.ts:clearSession",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/lib/authApi.ts:login",
+      "target": "function:apps/agency/src/lib/authApi.ts:postJson",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/lib/authApi.ts:signUp",
+      "target": "function:apps/agency/src/lib/authApi.ts:postJson",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/lib/authApi.ts:verifyMfa",
+      "target": "function:apps/agency/src/lib/authApi.ts:postJson",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/lib/authApi.ts:forgotPassword",
+      "target": "function:apps/agency/src/lib/authApi.ts:postJson",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/lib/authApi.ts:resetPassword",
+      "target": "function:apps/agency/src/lib/authApi.ts:postJson",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

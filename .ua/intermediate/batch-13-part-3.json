@@ -1,0 +1,1809 @@
+{
+ "nodes": [
+  {
+   "id": "file:services/api/tests/proposal-visual-http.test.ts",
+   "type": "file",
+   "name": "proposal-visual-http.test.ts",
+   "filePath": "services/api/tests/proposal-visual-http.test.ts",
+   "summary": "Testes HTTP da visão visual de propostas no portal do cliente, incluindo autenticação de customer e mídia.",
+   "tags": [
+    "test",
+    "http",
+    "proposals",
+    "customer-portal",
+    "visual"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/tests/proposal-visual-http.test.ts:assertSafeTestDatabase",
+   "type": "function",
+   "name": "assertSafeTestDatabase",
+   "filePath": "services/api/tests/proposal-visual-http.test.ts",
+   "lineRange": [
+    619,
+    638
+   ],
+   "summary": "Valida que o banco alvo é local e descartável antes de liberar operações destrutivas nos testes.",
+   "tags": [
+    "test-helper",
+    "safety",
+    "database",
+    "docker"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/proposal-visual-http.test.ts:waitForHealthyContainer",
+   "type": "function",
+   "name": "waitForHealthyContainer",
+   "filePath": "services/api/tests/proposal-visual-http.test.ts",
+   "lineRange": [
+    650,
+    663
+   ],
+   "summary": "Aguarda o container Docker ficar saudável com timeout, inspecionando o estado reportado pelo docker compose.",
+   "tags": [
+    "test-helper",
+    "docker",
+    "containerization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/proposal-visual-http.test.ts:assertContainerIsLocal",
+   "type": "function",
+   "name": "assertContainerIsLocal",
+   "filePath": "services/api/tests/proposal-visual-http.test.ts",
+   "lineRange": [
+    665,
+    677
+   ],
+   "summary": "Confere que o host do banco aponta para 127.0.0.1/localhost e que o nome do schema é descartável.",
+   "tags": [
+    "test-helper",
+    "safety",
+    "database"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/proposal-visual-http.test.ts:run",
+   "type": "function",
+   "name": "run",
+   "filePath": "services/api/tests/proposal-visual-http.test.ts",
+   "lineRange": [
+    684,
+    700
+   ],
+   "summary": "Executa um comando via spawnSync e falha com stdout/stderr detalhados quando o exit code é diferente de zero.",
+   "tags": [
+    "test-helper",
+    "shell",
+    "process"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:services/api/tests/proposals.test.ts",
+   "type": "file",
+   "name": "proposals.test.ts",
+   "filePath": "services/api/tests/proposals.test.ts",
+   "summary": "Testes de unidade do serviço de propostas com banco falso: listagem, totais e regras de edição por estágio.",
+   "tags": [
+    "test",
+    "proposals",
+    "unit-test",
+    "domain",
+    "multi-tenant"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/tests/proposals.test.ts:assertSafeTestDatabase",
+   "type": "function",
+   "name": "assertSafeTestDatabase",
+   "filePath": "services/api/tests/proposals.test.ts",
+   "lineRange": [
+    370,
+    393
+   ],
+   "summary": "Valida que o banco alvo é local e descartável antes de liberar operações destrutivas nos testes.",
+   "tags": [
+    "test-helper",
+    "safety",
+    "database",
+    "docker"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/proposals.test.ts:waitForHealthyContainer",
+   "type": "function",
+   "name": "waitForHealthyContainer",
+   "filePath": "services/api/tests/proposals.test.ts",
+   "lineRange": [
+    405,
+    426
+   ],
+   "summary": "Aguarda o container Docker ficar saudável com timeout, inspecionando o estado reportado pelo docker compose.",
+   "tags": [
+    "test-helper",
+    "docker",
+    "containerization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/proposals.test.ts:assertContainerIsLocal",
+   "type": "function",
+   "name": "assertContainerIsLocal",
+   "filePath": "services/api/tests/proposals.test.ts",
+   "lineRange": [
+    428,
+    441
+   ],
+   "summary": "Confere que o host do banco aponta para 127.0.0.1/localhost e que o nome do schema é descartável.",
+   "tags": [
+    "test-helper",
+    "safety",
+    "database"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/proposals.test.ts:seedAgenciesAndUsers",
+   "type": "function",
+   "name": "seedAgenciesAndUsers",
+   "filePath": "services/api/tests/proposals.test.ts",
+   "lineRange": [
+    459,
+    478
+   ],
+   "summary": "Insere agências e usuários de exemplo via SQL para semear os cenários de teste.",
+   "tags": [
+    "test-helper",
+    "seed",
+    "database"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/proposals.test.ts:run",
+   "type": "function",
+   "name": "run",
+   "filePath": "services/api/tests/proposals.test.ts",
+   "lineRange": [
+    485,
+    513
+   ],
+   "summary": "Executa um comando via spawnSync e falha com stdout/stderr detalhados quando o exit code é diferente de zero.",
+   "tags": [
+    "test-helper",
+    "shell",
+    "process"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:services/api/tests/request-body-errors.test.ts",
+   "type": "file",
+   "name": "request-body-errors.test.ts",
+   "filePath": "services/api/tests/request-body-errors.test.ts",
+   "summary": "Testes de tratamento de corpo de requisição inválido: verifica logs de warn/error e as respostas de erro da aplicação.",
+   "tags": [
+    "test",
+    "validation",
+    "error-handling",
+    "http",
+    "logging"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:services/api/tests/route-points-http.test.ts",
+   "type": "file",
+   "name": "route-points-http.test.ts",
+   "filePath": "services/api/tests/route-points-http.test.ts",
+   "summary": "Testes HTTP dos pontos de rota: criação, atualização e reordenação nas rotas de viagem.",
+   "tags": [
+    "test",
+    "api-handler",
+    "http",
+    "routes",
+    "rest"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/tests/route-points-http.test.ts:assertSafeTestDatabase",
+   "type": "function",
+   "name": "assertSafeTestDatabase",
+   "filePath": "services/api/tests/route-points-http.test.ts",
+   "lineRange": [
+    348,
+    367
+   ],
+   "summary": "Valida que o banco alvo é local e descartável antes de liberar operações destrutivas nos testes.",
+   "tags": [
+    "test-helper",
+    "safety",
+    "database",
+    "docker"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/route-points-http.test.ts:waitForHealthyContainer",
+   "type": "function",
+   "name": "waitForHealthyContainer",
+   "filePath": "services/api/tests/route-points-http.test.ts",
+   "lineRange": [
+    379,
+    392
+   ],
+   "summary": "Aguarda o container Docker ficar saudável com timeout, inspecionando o estado reportado pelo docker compose.",
+   "tags": [
+    "test-helper",
+    "docker",
+    "containerization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/route-points-http.test.ts:seedAgenciesAndUsers",
+   "type": "function",
+   "name": "seedAgenciesAndUsers",
+   "filePath": "services/api/tests/route-points-http.test.ts",
+   "lineRange": [
+    419,
+    438
+   ],
+   "summary": "Insere agências e usuários de exemplo via SQL para semear os cenários de teste.",
+   "tags": [
+    "test-helper",
+    "seed",
+    "database"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/route-points-http.test.ts:run",
+   "type": "function",
+   "name": "run",
+   "filePath": "services/api/tests/route-points-http.test.ts",
+   "lineRange": [
+    445,
+    464
+   ],
+   "summary": "Executa um comando via spawnSync e falha com stdout/stderr detalhados quando o exit code é diferente de zero.",
+   "tags": [
+    "test-helper",
+    "shell",
+    "process"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:services/api/tests/route-points.test.ts",
+   "type": "file",
+   "name": "route-points.test.ts",
+   "filePath": "services/api/tests/route-points.test.ts",
+   "summary": "Testes de unidade do serviço de pontos de rota com banco falso: CRUD e ordenação por tenant.",
+   "tags": [
+    "test",
+    "routes",
+    "unit-test",
+    "multi-tenant",
+    "domain"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/tests/route-points.test.ts:assertSafeTestDatabase",
+   "type": "function",
+   "name": "assertSafeTestDatabase",
+   "filePath": "services/api/tests/route-points.test.ts",
+   "lineRange": [
+    311,
+    330
+   ],
+   "summary": "Valida que o banco alvo é local e descartável antes de liberar operações destrutivas nos testes.",
+   "tags": [
+    "test-helper",
+    "safety",
+    "database",
+    "docker"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/route-points.test.ts:waitForHealthyContainer",
+   "type": "function",
+   "name": "waitForHealthyContainer",
+   "filePath": "services/api/tests/route-points.test.ts",
+   "lineRange": [
+    342,
+    355
+   ],
+   "summary": "Aguarda o container Docker ficar saudável com timeout, inspecionando o estado reportado pelo docker compose.",
+   "tags": [
+    "test-helper",
+    "docker",
+    "containerization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/route-points.test.ts:seedAgenciesAndUsers",
+   "type": "function",
+   "name": "seedAgenciesAndUsers",
+   "filePath": "services/api/tests/route-points.test.ts",
+   "lineRange": [
+    382,
+    401
+   ],
+   "summary": "Insere agências e usuários de exemplo via SQL para semear os cenários de teste.",
+   "tags": [
+    "test-helper",
+    "seed",
+    "database"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/route-points.test.ts:run",
+   "type": "function",
+   "name": "run",
+   "filePath": "services/api/tests/route-points.test.ts",
+   "lineRange": [
+    408,
+    427
+   ],
+   "summary": "Executa um comando via spawnSync e falha com stdout/stderr detalhados quando o exit code é diferente de zero.",
+   "tags": [
+    "test-helper",
+    "shell",
+    "process"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:services/api/tests/sale-e2e.test.ts",
+   "type": "file",
+   "name": "sale-e2e.test.ts",
+   "filePath": "services/api/tests/sale-e2e.test.ts",
+   "summary": "Teste end-to-end do ciclo de vendas: criação, confirmação e pagamento contra a API com banco descartável.",
+   "tags": [
+    "test",
+    "e2e",
+    "sales",
+    "integration",
+    "docker"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/tests/sale-e2e.test.ts:assertSafeTestDatabase",
+   "type": "function",
+   "name": "assertSafeTestDatabase",
+   "filePath": "services/api/tests/sale-e2e.test.ts",
+   "lineRange": [
+    529,
+    552
+   ],
+   "summary": "Valida que o banco alvo é local e descartável antes de liberar operações destrutivas nos testes.",
+   "tags": [
+    "test-helper",
+    "safety",
+    "database",
+    "docker"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/sale-e2e.test.ts:waitForHealthyContainer",
+   "type": "function",
+   "name": "waitForHealthyContainer",
+   "filePath": "services/api/tests/sale-e2e.test.ts",
+   "lineRange": [
+    564,
+    585
+   ],
+   "summary": "Aguarda o container Docker ficar saudável com timeout, inspecionando o estado reportado pelo docker compose.",
+   "tags": [
+    "test-helper",
+    "docker",
+    "containerization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/sale-e2e.test.ts:assertContainerIsLocal",
+   "type": "function",
+   "name": "assertContainerIsLocal",
+   "filePath": "services/api/tests/sale-e2e.test.ts",
+   "lineRange": [
+    587,
+    600
+   ],
+   "summary": "Confere que o host do banco aponta para 127.0.0.1/localhost e que o nome do schema é descartável.",
+   "tags": [
+    "test-helper",
+    "safety",
+    "database"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/sale-e2e.test.ts:resetDatabase",
+   "type": "function",
+   "name": "resetDatabase",
+   "filePath": "services/api/tests/sale-e2e.test.ts",
+   "lineRange": [
+    602,
+    616
+   ],
+   "summary": "Limpa e recria as tabelas do banco de teste antes de cada cenário.",
+   "tags": [
+    "test-helper",
+    "database",
+    "reset"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/sale-e2e.test.ts:seedAgenciesAndUsers",
+   "type": "function",
+   "name": "seedAgenciesAndUsers",
+   "filePath": "services/api/tests/sale-e2e.test.ts",
+   "lineRange": [
+    625,
+    644
+   ],
+   "summary": "Insere agências e usuários de exemplo via SQL para semear os cenários de teste.",
+   "tags": [
+    "test-helper",
+    "seed",
+    "database"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/sale-e2e.test.ts:run",
+   "type": "function",
+   "name": "run",
+   "filePath": "services/api/tests/sale-e2e.test.ts",
+   "lineRange": [
+    651,
+    679
+   ],
+   "summary": "Executa um comando via spawnSync e falha com stdout/stderr detalhados quando o exit code é diferente de zero.",
+   "tags": [
+    "test-helper",
+    "shell",
+    "process"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:services/api/tests/sale-item-routes.test.ts",
+   "type": "file",
+   "name": "sale-item-routes.test.ts",
+   "filePath": "services/api/tests/sale-item-routes.test.ts",
+   "summary": "Testes HTTP dos itens de venda com integração ao módulo financeiro (receitas, descontos e rateios).",
+   "tags": [
+    "test",
+    "api-handler",
+    "http",
+    "sales",
+    "financial"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/tests/sale-item-routes.test.ts:assertSafeTestDatabase",
+   "type": "function",
+   "name": "assertSafeTestDatabase",
+   "filePath": "services/api/tests/sale-item-routes.test.ts",
+   "lineRange": [
+    495,
+    518
+   ],
+   "summary": "Valida que o banco alvo é local e descartável antes de liberar operações destrutivas nos testes.",
+   "tags": [
+    "test-helper",
+    "safety",
+    "database",
+    "docker"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/sale-item-routes.test.ts:resetDisposableDatabase",
+   "type": "function",
+   "name": "resetDisposableDatabase",
+   "filePath": "services/api/tests/sale-item-routes.test.ts",
+   "lineRange": [
+    520,
+    532
+   ],
+   "summary": "Reseta o banco descartável recriando o schema a partir dos arquivos SQL de migração.",
+   "tags": [
+    "test-helper",
+    "database",
+    "reset"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/sale-item-routes.test.ts:waitForHealthyContainer",
+   "type": "function",
+   "name": "waitForHealthyContainer",
+   "filePath": "services/api/tests/sale-item-routes.test.ts",
+   "lineRange": [
+    538,
+    559
+   ],
+   "summary": "Aguarda o container Docker ficar saudável com timeout, inspecionando o estado reportado pelo docker compose.",
+   "tags": [
+    "test-helper",
+    "docker",
+    "containerization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/sale-item-routes.test.ts:assertContainerIsLocal",
+   "type": "function",
+   "name": "assertContainerIsLocal",
+   "filePath": "services/api/tests/sale-item-routes.test.ts",
+   "lineRange": [
+    561,
+    574
+   ],
+   "summary": "Confere que o host do banco aponta para 127.0.0.1/localhost e que o nome do schema é descartável.",
+   "tags": [
+    "test-helper",
+    "safety",
+    "database"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/sale-item-routes.test.ts:seedAgenciesAndUsers",
+   "type": "function",
+   "name": "seedAgenciesAndUsers",
+   "filePath": "services/api/tests/sale-item-routes.test.ts",
+   "lineRange": [
+    592,
+    611
+   ],
+   "summary": "Insere agências e usuários de exemplo via SQL para semear os cenários de teste.",
+   "tags": [
+    "test-helper",
+    "seed",
+    "database"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/sale-item-routes.test.ts:run",
+   "type": "function",
+   "name": "run",
+   "filePath": "services/api/tests/sale-item-routes.test.ts",
+   "lineRange": [
+    618,
+    646
+   ],
+   "summary": "Executa um comando via spawnSync e falha com stdout/stderr detalhados quando o exit code é diferente de zero.",
+   "tags": [
+    "test-helper",
+    "shell",
+    "process"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:services/api/tests/sale-routes.test.ts",
+   "type": "file",
+   "name": "sale-routes.test.ts",
+   "filePath": "services/api/tests/sale-routes.test.ts",
+   "summary": "Testes HTTP das rotas de vendas: CRUD, transições de estágio e regras comerciais com autenticação.",
+   "tags": [
+    "test",
+    "api-handler",
+    "http",
+    "sales",
+    "rest"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/tests/sale-routes.test.ts:assertSafeTestDatabase",
+   "type": "function",
+   "name": "assertSafeTestDatabase",
+   "filePath": "services/api/tests/sale-routes.test.ts",
+   "lineRange": [
+    876,
+    899
+   ],
+   "summary": "Valida que o banco alvo é local e descartável antes de liberar operações destrutivas nos testes.",
+   "tags": [
+    "test-helper",
+    "safety",
+    "database",
+    "docker"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/sale-routes.test.ts:waitForHealthyContainer",
+   "type": "function",
+   "name": "waitForHealthyContainer",
+   "filePath": "services/api/tests/sale-routes.test.ts",
+   "lineRange": [
+    911,
+    932
+   ],
+   "summary": "Aguarda o container Docker ficar saudável com timeout, inspecionando o estado reportado pelo docker compose.",
+   "tags": [
+    "test-helper",
+    "docker",
+    "containerization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/sale-routes.test.ts:assertContainerIsLocal",
+   "type": "function",
+   "name": "assertContainerIsLocal",
+   "filePath": "services/api/tests/sale-routes.test.ts",
+   "lineRange": [
+    934,
+    947
+   ],
+   "summary": "Confere que o host do banco aponta para 127.0.0.1/localhost e que o nome do schema é descartável.",
+   "tags": [
+    "test-helper",
+    "safety",
+    "database"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/sale-routes.test.ts:seedAgenciesAndUsers",
+   "type": "function",
+   "name": "seedAgenciesAndUsers",
+   "filePath": "services/api/tests/sale-routes.test.ts",
+   "lineRange": [
+    965,
+    984
+   ],
+   "summary": "Insere agências e usuários de exemplo via SQL para semear os cenários de teste.",
+   "tags": [
+    "test-helper",
+    "seed",
+    "database"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/sale-routes.test.ts:run",
+   "type": "function",
+   "name": "run",
+   "filePath": "services/api/tests/sale-routes.test.ts",
+   "lineRange": [
+    991,
+    1019
+   ],
+   "summary": "Executa um comando via spawnSync e falha com stdout/stderr detalhados quando o exit code é diferente de zero.",
+   "tags": [
+    "test-helper",
+    "shell",
+    "process"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:services/api/tests/sales.test.ts",
+   "type": "file",
+   "name": "sales.test.ts",
+   "filePath": "services/api/tests/sales.test.ts",
+   "summary": "Testes de unidade do serviço de vendas com banco falso: listagem, totais, confirmação e isolamento de tenant.",
+   "tags": [
+    "test",
+    "sales",
+    "unit-test",
+    "multi-tenant",
+    "domain"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/tests/sales.test.ts:assertSafeTestDatabase",
+   "type": "function",
+   "name": "assertSafeTestDatabase",
+   "filePath": "services/api/tests/sales.test.ts",
+   "lineRange": [
+    394,
+    417
+   ],
+   "summary": "Valida que o banco alvo é local e descartável antes de liberar operações destrutivas nos testes.",
+   "tags": [
+    "test-helper",
+    "safety",
+    "database",
+    "docker"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/sales.test.ts:waitForHealthyContainer",
+   "type": "function",
+   "name": "waitForHealthyContainer",
+   "filePath": "services/api/tests/sales.test.ts",
+   "lineRange": [
+    429,
+    450
+   ],
+   "summary": "Aguarda o container Docker ficar saudável com timeout, inspecionando o estado reportado pelo docker compose.",
+   "tags": [
+    "test-helper",
+    "docker",
+    "containerization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/sales.test.ts:assertContainerIsLocal",
+   "type": "function",
+   "name": "assertContainerIsLocal",
+   "filePath": "services/api/tests/sales.test.ts",
+   "lineRange": [
+    452,
+    465
+   ],
+   "summary": "Confere que o host do banco aponta para 127.0.0.1/localhost e que o nome do schema é descartável.",
+   "tags": [
+    "test-helper",
+    "safety",
+    "database"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/sales.test.ts:resetDatabase",
+   "type": "function",
+   "name": "resetDatabase",
+   "filePath": "services/api/tests/sales.test.ts",
+   "lineRange": [
+    467,
+    481
+   ],
+   "summary": "Limpa e recria as tabelas do banco de teste antes de cada cenário.",
+   "tags": [
+    "test-helper",
+    "database",
+    "reset"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/sales.test.ts:seedAgenciesAndUsers",
+   "type": "function",
+   "name": "seedAgenciesAndUsers",
+   "filePath": "services/api/tests/sales.test.ts",
+   "lineRange": [
+    490,
+    509
+   ],
+   "summary": "Insere agências e usuários de exemplo via SQL para semear os cenários de teste.",
+   "tags": [
+    "test-helper",
+    "seed",
+    "database"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/sales.test.ts:run",
+   "type": "function",
+   "name": "run",
+   "filePath": "services/api/tests/sales.test.ts",
+   "lineRange": [
+    516,
+    544
+   ],
+   "summary": "Executa um comando via spawnSync e falha com stdout/stderr detalhados quando o exit code é diferente de zero.",
+   "tags": [
+    "test-helper",
+    "shell",
+    "process"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:services/api/tests/scheduled-departures-http.test.ts",
+   "type": "file",
+   "name": "scheduled-departures-http.test.ts",
+   "filePath": "services/api/tests/scheduled-departures-http.test.ts",
+   "summary": "Testes HTTP das partidas programadas: CRUD e consulta de agenda com autenticação e banco descartável.",
+   "tags": [
+    "test",
+    "api-handler",
+    "http",
+    "departures",
+    "rest"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/tests/scheduled-departures-http.test.ts:assertSafeTestDatabase",
+   "type": "function",
+   "name": "assertSafeTestDatabase",
+   "filePath": "services/api/tests/scheduled-departures-http.test.ts",
+   "lineRange": [
+    395,
+    414
+   ],
+   "summary": "Valida que o banco alvo é local e descartável antes de liberar operações destrutivas nos testes.",
+   "tags": [
+    "test-helper",
+    "safety",
+    "database",
+    "docker"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/scheduled-departures-http.test.ts:waitForHealthyContainer",
+   "type": "function",
+   "name": "waitForHealthyContainer",
+   "filePath": "services/api/tests/scheduled-departures-http.test.ts",
+   "lineRange": [
+    426,
+    439
+   ],
+   "summary": "Aguarda o container Docker ficar saudável com timeout, inspecionando o estado reportado pelo docker compose.",
+   "tags": [
+    "test-helper",
+    "docker",
+    "containerization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/scheduled-departures-http.test.ts:seedAgenciesAndUsers",
+   "type": "function",
+   "name": "seedAgenciesAndUsers",
+   "filePath": "services/api/tests/scheduled-departures-http.test.ts",
+   "lineRange": [
+    465,
+    484
+   ],
+   "summary": "Insere agências e usuários de exemplo via SQL para semear os cenários de teste.",
+   "tags": [
+    "test-helper",
+    "seed",
+    "database"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/scheduled-departures-http.test.ts:run",
+   "type": "function",
+   "name": "run",
+   "filePath": "services/api/tests/scheduled-departures-http.test.ts",
+   "lineRange": [
+    491,
+    510
+   ],
+   "summary": "Executa um comando via spawnSync e falha com stdout/stderr detalhados quando o exit code é diferente de zero.",
+   "tags": [
+    "test-helper",
+    "shell",
+    "process"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:services/api/tests/scheduled-departures.test.ts",
+   "type": "file",
+   "name": "scheduled-departures.test.ts",
+   "filePath": "services/api/tests/scheduled-departures.test.ts",
+   "summary": "Testes de unidade do serviço de partidas programadas com banco falso: CRUD e agenda por tenant.",
+   "tags": [
+    "test",
+    "departures",
+    "unit-test",
+    "multi-tenant",
+    "domain"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/tests/scheduled-departures.test.ts:assertSafeTestDatabase",
+   "type": "function",
+   "name": "assertSafeTestDatabase",
+   "filePath": "services/api/tests/scheduled-departures.test.ts",
+   "lineRange": [
+    285,
+    304
+   ],
+   "summary": "Valida que o banco alvo é local e descartável antes de liberar operações destrutivas nos testes.",
+   "tags": [
+    "test-helper",
+    "safety",
+    "database",
+    "docker"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/scheduled-departures.test.ts:waitForHealthyContainer",
+   "type": "function",
+   "name": "waitForHealthyContainer",
+   "filePath": "services/api/tests/scheduled-departures.test.ts",
+   "lineRange": [
+    316,
+    329
+   ],
+   "summary": "Aguarda o container Docker ficar saudável com timeout, inspecionando o estado reportado pelo docker compose.",
+   "tags": [
+    "test-helper",
+    "docker",
+    "containerization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/scheduled-departures.test.ts:seedAgenciesAndUsers",
+   "type": "function",
+   "name": "seedAgenciesAndUsers",
+   "filePath": "services/api/tests/scheduled-departures.test.ts",
+   "lineRange": [
+    355,
+    374
+   ],
+   "summary": "Insere agências e usuários de exemplo via SQL para semear os cenários de teste.",
+   "tags": [
+    "test-helper",
+    "seed",
+    "database"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/scheduled-departures.test.ts:run",
+   "type": "function",
+   "name": "run",
+   "filePath": "services/api/tests/scheduled-departures.test.ts",
+   "lineRange": [
+    381,
+    400
+   ],
+   "summary": "Executa um comando via spawnSync e falha com stdout/stderr detalhados quando o exit code é diferente de zero.",
+   "tags": [
+    "test-helper",
+    "shell",
+    "process"
+   ],
+   "complexity": "simple"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:services/api/tests/proposal-visual-http.test.ts",
+   "target": "function:services/api/tests/proposal-visual-http.test.ts:assertSafeTestDatabase",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/proposal-visual-http.test.ts",
+   "target": "function:services/api/tests/proposal-visual-http.test.ts:waitForHealthyContainer",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/proposal-visual-http.test.ts",
+   "target": "function:services/api/tests/proposal-visual-http.test.ts:assertContainerIsLocal",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/proposal-visual-http.test.ts",
+   "target": "function:services/api/tests/proposal-visual-http.test.ts:run",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/proposals.test.ts",
+   "target": "function:services/api/tests/proposals.test.ts:assertSafeTestDatabase",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/proposals.test.ts",
+   "target": "function:services/api/tests/proposals.test.ts:waitForHealthyContainer",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/proposals.test.ts",
+   "target": "function:services/api/tests/proposals.test.ts:assertContainerIsLocal",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/proposals.test.ts",
+   "target": "function:services/api/tests/proposals.test.ts:seedAgenciesAndUsers",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/proposals.test.ts",
+   "target": "function:services/api/tests/proposals.test.ts:run",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/route-points-http.test.ts",
+   "target": "function:services/api/tests/route-points-http.test.ts:assertSafeTestDatabase",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/route-points-http.test.ts",
+   "target": "function:services/api/tests/route-points-http.test.ts:waitForHealthyContainer",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/route-points-http.test.ts",
+   "target": "function:services/api/tests/route-points-http.test.ts:seedAgenciesAndUsers",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/route-points-http.test.ts",
+   "target": "function:services/api/tests/route-points-http.test.ts:run",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/route-points.test.ts",
+   "target": "function:services/api/tests/route-points.test.ts:assertSafeTestDatabase",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/route-points.test.ts",
+   "target": "function:services/api/tests/route-points.test.ts:waitForHealthyContainer",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/route-points.test.ts",
+   "target": "function:services/api/tests/route-points.test.ts:seedAgenciesAndUsers",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/route-points.test.ts",
+   "target": "function:services/api/tests/route-points.test.ts:run",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/sale-e2e.test.ts",
+   "target": "function:services/api/tests/sale-e2e.test.ts:assertSafeTestDatabase",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/sale-e2e.test.ts",
+   "target": "function:services/api/tests/sale-e2e.test.ts:waitForHealthyContainer",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/sale-e2e.test.ts",
+   "target": "function:services/api/tests/sale-e2e.test.ts:assertContainerIsLocal",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/sale-e2e.test.ts",
+   "target": "function:services/api/tests/sale-e2e.test.ts:resetDatabase",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/sale-e2e.test.ts",
+   "target": "function:services/api/tests/sale-e2e.test.ts:seedAgenciesAndUsers",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/sale-e2e.test.ts",
+   "target": "function:services/api/tests/sale-e2e.test.ts:run",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/sale-item-routes.test.ts",
+   "target": "function:services/api/tests/sale-item-routes.test.ts:assertSafeTestDatabase",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/sale-item-routes.test.ts",
+   "target": "function:services/api/tests/sale-item-routes.test.ts:resetDisposableDatabase",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/sale-item-routes.test.ts",
+   "target": "function:services/api/tests/sale-item-routes.test.ts:waitForHealthyContainer",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/sale-item-routes.test.ts",
+   "target": "function:services/api/tests/sale-item-routes.test.ts:assertContainerIsLocal",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/sale-item-routes.test.ts",
+   "target": "function:services/api/tests/sale-item-routes.test.ts:seedAgenciesAndUsers",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/sale-item-routes.test.ts",
+   "target": "function:services/api/tests/sale-item-routes.test.ts:run",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/sale-routes.test.ts",
+   "target": "function:services/api/tests/sale-routes.test.ts:assertSafeTestDatabase",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/sale-routes.test.ts",
+   "target": "function:services/api/tests/sale-routes.test.ts:waitForHealthyContainer",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/sale-routes.test.ts",
+   "target": "function:services/api/tests/sale-routes.test.ts:assertContainerIsLocal",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/sale-routes.test.ts",
+   "target": "function:services/api/tests/sale-routes.test.ts:seedAgenciesAndUsers",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/sale-routes.test.ts",
+   "target": "function:services/api/tests/sale-routes.test.ts:run",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/sales.test.ts",
+   "target": "function:services/api/tests/sales.test.ts:assertSafeTestDatabase",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/sales.test.ts",
+   "target": "function:services/api/tests/sales.test.ts:waitForHealthyContainer",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/sales.test.ts",
+   "target": "function:services/api/tests/sales.test.ts:assertContainerIsLocal",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/sales.test.ts",
+   "target": "function:services/api/tests/sales.test.ts:resetDatabase",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/sales.test.ts",
+   "target": "function:services/api/tests/sales.test.ts:seedAgenciesAndUsers",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/sales.test.ts",
+   "target": "function:services/api/tests/sales.test.ts:run",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/scheduled-departures-http.test.ts",
+   "target": "function:services/api/tests/scheduled-departures-http.test.ts:assertSafeTestDatabase",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/scheduled-departures-http.test.ts",
+   "target": "function:services/api/tests/scheduled-departures-http.test.ts:waitForHealthyContainer",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/scheduled-departures-http.test.ts",
+   "target": "function:services/api/tests/scheduled-departures-http.test.ts:seedAgenciesAndUsers",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/scheduled-departures-http.test.ts",
+   "target": "function:services/api/tests/scheduled-departures-http.test.ts:run",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/scheduled-departures.test.ts",
+   "target": "function:services/api/tests/scheduled-departures.test.ts:assertSafeTestDatabase",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/scheduled-departures.test.ts",
+   "target": "function:services/api/tests/scheduled-departures.test.ts:waitForHealthyContainer",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/scheduled-departures.test.ts",
+   "target": "function:services/api/tests/scheduled-departures.test.ts:seedAgenciesAndUsers",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/scheduled-departures.test.ts",
+   "target": "function:services/api/tests/scheduled-departures.test.ts:run",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/proposal-visual-http.test.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/proposal-visual-http.test.ts",
+   "target": "file:services/api/src/app.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/proposal-visual-http.test.ts",
+   "target": "file:services/api/src/customer-auth.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/proposal-visual-http.test.ts",
+   "target": "file:services/api/src/customer-portal.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/proposal-visual-http.test.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/proposals.test.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/proposals.test.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/proposals.test.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/proposals.test.ts",
+   "target": "file:services/api/src/proposals.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/request-body-errors.test.ts",
+   "target": "file:services/api/src/app.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/request-body-errors.test.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/route-points-http.test.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/route-points-http.test.ts",
+   "target": "file:services/api/src/app.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/route-points-http.test.ts",
+   "target": "file:services/api/src/auth.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/route-points-http.test.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/route-points.test.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/route-points.test.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/route-points.test.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/route-points.test.ts",
+   "target": "file:services/api/src/route-points.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/sale-e2e.test.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/sale-e2e.test.ts",
+   "target": "file:services/api/src/app.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/sale-e2e.test.ts",
+   "target": "file:services/api/src/auth.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/sale-e2e.test.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/sale-item-routes.test.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/sale-item-routes.test.ts",
+   "target": "file:services/api/src/app.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/sale-item-routes.test.ts",
+   "target": "file:services/api/src/auth.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/sale-item-routes.test.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/sale-item-routes.test.ts",
+   "target": "file:services/api/src/financial.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/sale-routes.test.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/sale-routes.test.ts",
+   "target": "file:services/api/src/app.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/sale-routes.test.ts",
+   "target": "file:services/api/src/auth.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/sale-routes.test.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/sales.test.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/sales.test.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/sales.test.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/sales.test.ts",
+   "target": "file:services/api/src/sales.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/scheduled-departures-http.test.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/scheduled-departures-http.test.ts",
+   "target": "file:services/api/src/app.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/scheduled-departures-http.test.ts",
+   "target": "file:services/api/src/auth.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/scheduled-departures-http.test.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/scheduled-departures.test.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/scheduled-departures.test.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/scheduled-departures.test.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/scheduled-departures.test.ts",
+   "target": "file:services/api/src/scheduled-departures.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/proposal-visual-http.test.ts",
+   "target": "function:services/api/src/app.ts:buildApp",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/tests/proposal-visual-http.test.ts",
+   "target": "function:services/api/src/customer-portal.ts:createCustomerAccessValidator",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/tests/request-body-errors.test.ts",
+   "target": "function:services/api/src/app.ts:buildApp",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/tests/route-points-http.test.ts",
+   "target": "function:services/api/src/app.ts:buildApp",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/tests/route-points-http.test.ts",
+   "target": "function:services/api/src/database.ts:createDatabaseRuntime",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/tests/sale-e2e.test.ts",
+   "target": "function:services/api/src/app.ts:buildApp",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/tests/sale-e2e.test.ts",
+   "target": "function:services/api/src/database.ts:createDatabaseRuntime",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/tests/sale-item-routes.test.ts",
+   "target": "function:services/api/src/app.ts:buildApp",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/tests/sale-item-routes.test.ts",
+   "target": "function:services/api/src/database.ts:createDatabaseRuntime",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/tests/sale-routes.test.ts",
+   "target": "function:services/api/src/app.ts:buildApp",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/tests/sale-routes.test.ts",
+   "target": "function:services/api/src/database.ts:createDatabaseRuntime",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/tests/scheduled-departures-http.test.ts",
+   "target": "function:services/api/src/app.ts:buildApp",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/tests/scheduled-departures-http.test.ts",
+   "target": "function:services/api/src/database.ts:createDatabaseRuntime",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/app.ts",
+   "target": "file:services/api/tests/proposal-visual-http.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/app.ts",
+   "target": "file:services/api/tests/request-body-errors.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/app.ts",
+   "target": "file:services/api/tests/route-points-http.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/app.ts",
+   "target": "file:services/api/tests/sale-e2e.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/app.ts",
+   "target": "file:services/api/tests/sale-item-routes.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/app.ts",
+   "target": "file:services/api/tests/sale-routes.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/app.ts",
+   "target": "file:services/api/tests/scheduled-departures-http.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/proposals.ts",
+   "target": "file:services/api/tests/proposals.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/route-points.ts",
+   "target": "file:services/api/tests/route-points.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/sales.ts",
+   "target": "file:services/api/tests/sales.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/scheduled-departures.ts",
+   "target": "file:services/api/tests/scheduled-departures.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  }
+ ]
+}

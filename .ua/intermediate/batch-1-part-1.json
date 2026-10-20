@@ -1,0 +1,1349 @@
+{
+ "nodes": [
+  {
+   "id": "file:apps/customer/src/App.offerGrowth.test.tsx",
+   "type": "file",
+   "name": "App.offerGrowth.test.tsx",
+   "filePath": "apps/customer/src/App.offerGrowth.test.tsx",
+   "summary": "Testes do App centrados no módulo offer-growth, verificando rotas e comportamento das páginas de crescimento de ofertas.",
+   "tags": [
+    "test",
+    "react",
+    "routing"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:apps/customer/src/App.test.tsx",
+   "type": "file",
+   "name": "App.test.tsx",
+   "filePath": "apps/customer/src/App.test.tsx",
+   "summary": "Suíte extensa do componente App cobrindo roteamento, renderização das páginas principais e guardas de autenticação.",
+   "tags": [
+    "test",
+    "react",
+    "routing"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:apps/customer/src/App.tsx",
+   "type": "file",
+   "name": "App.tsx",
+   "filePath": "apps/customer/src/App.tsx",
+   "summary": "Componente raiz que configura o React Router com todas as rotas do back-office e do portal do cliente, aplicando shells e guardas de autenticação.",
+   "tags": [
+    "entry-point",
+    "routing",
+    "react"
+   ],
+   "complexity": "complex",
+   "languageNotes": "Barrel central de rotas: importa ~85 módulos de páginas do SPA."
+  },
+  {
+   "id": "function:apps/customer/src/App.tsx:App",
+   "type": "function",
+   "name": "App",
+   "filePath": "apps/customer/src/App.tsx",
+   "lineRange": [
+    88,
+    199
+   ],
+   "summary": "Componente raiz que monta o React Router com rotas do back-office, portal do cliente e páginas públicas, aplicando shells e guardas de autenticação.",
+   "tags": [
+    "routing",
+    "entry-point",
+    "react"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:apps/customer/src/components/RoutePointsEditor.test.tsx",
+   "type": "file",
+   "name": "RoutePointsEditor.test.tsx",
+   "filePath": "apps/customer/src/components/RoutePointsEditor.test.tsx",
+   "summary": "Testes do RoutePointsEditor cobrindo criação, edição, remoção e reordenação dos pontos de rota.",
+   "tags": [
+    "test",
+    "react",
+    "transport"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:apps/customer/src/components/RoutePointsEditor.tsx",
+   "type": "file",
+   "name": "RoutePointsEditor.tsx",
+   "filePath": "apps/customer/src/components/RoutePointsEditor.tsx",
+   "summary": "Editor dos pontos de uma rota de transporte com CRUD, validação local e reordenação persistida via API.",
+   "tags": [
+    "component",
+    "form",
+    "transport"
+   ],
+   "complexity": "complex",
+   "languageNotes": "Pontos não salvos recebem chave local temporária (localKey) para controlar identidade no estado."
+  },
+  {
+   "id": "function:apps/customer/src/components/RoutePointsEditor.tsx:toEditable",
+   "type": "function",
+   "name": "toEditable",
+   "filePath": "apps/customer/src/components/RoutePointsEditor.tsx",
+   "lineRange": [
+    45,
+    57
+   ],
+   "summary": "Converte um ponto vindo da API em formato editável, stringificando campos e atribuindo chave local.",
+   "tags": [
+    "utility",
+    "mapping",
+    "serialization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/components/RoutePointsEditor.tsx:RoutePointsEditor",
+   "type": "function",
+   "name": "RoutePointsEditor",
+   "filePath": "apps/customer/src/components/RoutePointsEditor.tsx",
+   "lineRange": [
+    68,
+    357
+   ],
+   "summary": "Editor completo dos pontos de uma rota: carrega, valida, cria, atualiza, remove e reordena com persistência na API.",
+   "tags": [
+    "component",
+    "form",
+    "crud"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:apps/customer/src/components/commercial/Customer360.tsx",
+   "type": "file",
+   "name": "Customer360.tsx",
+   "filePath": "apps/customer/src/components/commercial/Customer360.tsx",
+   "summary": "Painel Customer 360 que agrega dados do cliente — wishes, propostas, vendas, reservas, receivables, viagens, oportunidades, interações e tarefas — em uma única visão.",
+   "tags": [
+    "component",
+    "dashboard",
+    "commercial"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:apps/customer/src/components/commercial/Customer360.tsx:Customer360",
+   "type": "function",
+   "name": "Customer360",
+   "filePath": "apps/customer/src/components/commercial/Customer360.tsx",
+   "lineRange": [
+    62,
+    269
+   ],
+   "summary": "Carrega em paralelo todas as fontes de dados do cliente e renderiza a visão 360 com oportunidades, propostas, vendas, reservas, viagens, interações e tarefas.",
+   "tags": [
+    "component",
+    "dashboard",
+    "data-fetching"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:apps/customer/src/components/commercial/Customer360.tsx:AtAGlance",
+   "type": "function",
+   "name": "AtAGlance",
+   "filePath": "apps/customer/src/components/commercial/Customer360.tsx",
+   "lineRange": [
+    275,
+    345
+   ],
+   "summary": "Resumo de relance que ordena tarefas, interações, oportunidades, vendas e propostas pendentes para destacar o próximo contato.",
+   "tags": [
+    "component",
+    "summary",
+    "sorting"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:apps/customer/src/components/commercial/QuickSearch.tsx",
+   "type": "file",
+   "name": "QuickSearch.tsx",
+   "filePath": "apps/customer/src/components/commercial/QuickSearch.tsx",
+   "summary": "Campo de busca de clientes no topo do app que consulta a API comercial e navega para o resultado selecionado.",
+   "tags": [
+    "component",
+    "search",
+    "commercial"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/components/commercial/QuickSearch.tsx:QuickSearch",
+   "type": "function",
+   "name": "QuickSearch",
+   "filePath": "apps/customer/src/components/commercial/QuickSearch.tsx",
+   "lineRange": [
+    11,
+    82
+   ],
+   "summary": "Busca de clientes com estado controlado que consulta a API comercial e navega para o resultado escolhido.",
+   "tags": [
+    "component",
+    "search",
+    "navigation"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:apps/customer/src/components/layout/AppShell.tsx",
+   "type": "file",
+   "name": "AppShell.tsx",
+   "filePath": "apps/customer/src/components/layout/AppShell.tsx",
+   "summary": "Layout base do app autenticado com Sidebar, QuickSearch e área de conteúdo.",
+   "tags": [
+    "layout",
+    "component",
+    "shell"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/components/layout/AppShell.tsx:AppShell",
+   "type": "function",
+   "name": "AppShell",
+   "filePath": "apps/customer/src/components/layout/AppShell.tsx",
+   "lineRange": [
+    5,
+    19
+   ],
+   "summary": "Layout do app autenticado que compõe Sidebar, QuickSearch e área de conteúdo.",
+   "tags": [
+    "layout",
+    "component",
+    "shell"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:apps/customer/src/components/layout/Sidebar.tsx",
+   "type": "file",
+   "name": "Sidebar.tsx",
+   "filePath": "apps/customer/src/components/layout/Sidebar.tsx",
+   "summary": "Menu lateral do back-office com seções de links agrupados e destaque do item ativo.",
+   "tags": [
+    "navigation",
+    "layout",
+    "component"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/components/layout/Sidebar.tsx:Sidebar",
+   "type": "function",
+   "name": "Sidebar",
+   "filePath": "apps/customer/src/components/layout/Sidebar.tsx",
+   "lineRange": [
+    78,
+    105
+   ],
+   "summary": "Renderiza as seções de navegação do back-office a partir de NAV_SECTIONS com destaque do item ativo.",
+   "tags": [
+    "navigation",
+    "component",
+    "layout"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/components/layout/Sidebar.tsx:NavItemLink",
+   "type": "function",
+   "name": "NavItemLink",
+   "filePath": "apps/customer/src/components/layout/Sidebar.tsx",
+   "lineRange": [
+    107,
+    133
+   ],
+   "summary": "Link do menu lateral que aplica classes visuais conforme a rota ativa.",
+   "tags": [
+    "navigation",
+    "component",
+    "ui"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:apps/customer/src/components/offer-growth/EntitlementNotice.tsx",
+   "type": "file",
+   "name": "EntitlementNotice.tsx",
+   "filePath": "apps/customer/src/components/offer-growth/EntitlementNotice.tsx",
+   "summary": "Avisos de entitlement do offer-growth: aviso de recurso fora do plano e badge de canal em teste.",
+   "tags": [
+    "component",
+    "offer-growth",
+    "ui"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/components/offer-growth/EntitlementNotice.tsx:EntitlementNotice",
+   "type": "function",
+   "name": "EntitlementNotice",
+   "filePath": "apps/customer/src/components/offer-growth/EntitlementNotice.tsx",
+   "lineRange": [
+    5,
+    15
+   ],
+   "summary": "Exibe aviso de que o recurso do offer-growth solicitado não está incluído no plano contratado.",
+   "tags": [
+    "component",
+    "entitlement",
+    "offer-growth"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/components/offer-growth/EntitlementNotice.tsx:TestChannelBadge",
+   "type": "function",
+   "name": "TestChannelBadge",
+   "filePath": "apps/customer/src/components/offer-growth/EntitlementNotice.tsx",
+   "lineRange": [
+    17,
+    23
+   ],
+   "summary": "Badge curta sinalizando que o canal de exibição está em modo de teste.",
+   "tags": [
+    "component",
+    "ui",
+    "offer-growth"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:apps/customer/src/components/ui/StatusPill.test.tsx",
+   "type": "file",
+   "name": "StatusPill.test.tsx",
+   "filePath": "apps/customer/src/components/ui/StatusPill.test.tsx",
+   "summary": "Testes do StatusPill verificando os tons de cor por status de proposta, venda, receivable e oferta.",
+   "tags": [
+    "test",
+    "react",
+    "ui"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:apps/customer/src/components/ui/button.tsx",
+   "type": "file",
+   "name": "button.tsx",
+   "filePath": "apps/customer/src/components/ui/button.tsx",
+   "summary": "Componente Button reutilizável com variantes e tamanhos definidos via class-variance-authority.",
+   "tags": [
+    "component",
+    "ui",
+    "design-system"
+   ],
+   "complexity": "simple",
+   "languageNotes": "cva gera as classes Tailwind por variante; React.forwardRef preserva a ref do botão."
+  },
+  {
+   "id": "function:apps/customer/src/components/ui/button.tsx:Button",
+   "type": "function",
+   "name": "Button",
+   "filePath": "apps/customer/src/components/ui/button.tsx",
+   "lineRange": [
+    36,
+    46
+   ],
+   "summary": "Componente de botão com forwardRef que aplica variantes cva e repassa props nativas do elemento.",
+   "tags": [
+    "component",
+    "ui",
+    "design-system"
+   ],
+   "complexity": "simple"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:apps/customer/src/App.offerGrowth.test.tsx",
+   "target": "file:apps/customer/src/App.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.offerGrowth.test.tsx",
+   "target": "file:apps/customer/src/lib/offerGrowthApi.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.test.tsx",
+   "target": "file:apps/customer/src/App.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/components/layout/AppShell.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/customer-portal/CustomerPortalShell.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/customer-portal/RequireCustomerAuth.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/customer-portal/pages/CustomerBookingDetailsPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/customer-portal/pages/CustomerBookingsPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/customer-portal/pages/CustomerDocumentsPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/customer-portal/pages/CustomerForgotPasswordPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/customer-portal/pages/CustomerHelpPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/customer-portal/pages/CustomerHomePage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/customer-portal/pages/CustomerLoginPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/customer-portal/pages/CustomerOfferDetailsPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/customer-portal/pages/CustomerOffersPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/customer-portal/pages/CustomerPaymentsPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/customer-portal/pages/CustomerProfilePage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/customer-portal/pages/CustomerProposalDetailsPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/customer-portal/pages/CustomerProposalsPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/customer-portal/pages/CustomerResetPasswordPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/customer-portal/pages/CustomerTripsPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/AcceptInvitationPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/BookingDetailsPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/BookingFormPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/BookingsPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/CustomerDetailsPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/CustomerEditPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/CustomerFormPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/CustomersPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/DepartureDetailsPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/DepartureEditPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/DepartureFormPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/DeparturesPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/EnrollmentPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/FinancialPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/OfferDetailsPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/OfferEditPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/OfferFormPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/OffersPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/OperationDetailsPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/OperationalCostsPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/OperationsTodayPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/PayablesPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/PaymentsPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/PescadorPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/ProposalDetailsPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/ProposalEditPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/ProposalFormPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/ProposalsPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/SaleDetailsPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/SaleEditPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/SaleFormPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/SaleMarginPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/SalesPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/SupplierDetailsPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/SupplierEditPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/SupplierFormPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/SuppliersPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/TransportAgendaPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/TransportProductDetailsPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/TransportProductEditPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/TransportProductFormPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/TransportProductsPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/TransportRouteDetailsPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/TransportRouteEditPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/TransportRouteFormPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/TransportRoutesPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/TripDetailsPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/TripEditPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/TripFormPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/TripsPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/WishDetailsPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/WishEditPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/WishFormPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/WishesPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/commercial/CommercialAgendaPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/commercial/CommercialDashboardPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/commercial/CommercialPipelinePage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/commercial/PipelineConfigPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/offer-growth/AssetsPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/offer-growth/AutomationsPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/offer-growth/CampaignsPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/offer-growth/CouponsPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/offer-growth/CreativeStudioPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/offer-growth/DemoPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/offer-growth/PublicationsPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/pages/offer-growth/TemplatesPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/components/RoutePointsEditor.test.tsx",
+   "target": "file:apps/customer/src/components/RoutePointsEditor.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/components/RoutePointsEditor.test.tsx",
+   "target": "file:apps/customer/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/components/RoutePointsEditor.tsx",
+   "target": "file:apps/customer/src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/components/RoutePointsEditor.tsx",
+   "target": "file:apps/customer/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/components/RoutePointsEditor.tsx",
+   "target": "file:apps/customer/src/types/transport.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/components/commercial/Customer360.tsx",
+   "target": "file:apps/customer/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/components/commercial/Customer360.tsx",
+   "target": "file:apps/customer/src/lib/commercialApi.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/components/commercial/Customer360.tsx",
+   "target": "file:apps/customer/src/types/booking.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/components/commercial/Customer360.tsx",
+   "target": "file:apps/customer/src/types/commercial.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/components/commercial/Customer360.tsx",
+   "target": "file:apps/customer/src/types/financial.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/components/commercial/Customer360.tsx",
+   "target": "file:apps/customer/src/types/proposal.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/components/commercial/Customer360.tsx",
+   "target": "file:apps/customer/src/types/sale.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/components/commercial/Customer360.tsx",
+   "target": "file:apps/customer/src/types/trip.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/components/commercial/Customer360.tsx",
+   "target": "file:apps/customer/src/types/wish.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/components/commercial/QuickSearch.tsx",
+   "target": "file:apps/customer/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/components/commercial/QuickSearch.tsx",
+   "target": "file:apps/customer/src/lib/commercialApi.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/components/commercial/QuickSearch.tsx",
+   "target": "file:apps/customer/src/types/commercial.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/components/layout/AppShell.tsx",
+   "target": "file:apps/customer/src/components/commercial/QuickSearch.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/components/layout/AppShell.tsx",
+   "target": "file:apps/customer/src/components/layout/Sidebar.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/components/layout/Sidebar.tsx",
+   "target": "file:apps/customer/src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/components/ui/StatusPill.test.tsx",
+   "target": "file:apps/customer/src/components/ui/StatusPill.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/components/ui/button.tsx",
+   "target": "file:apps/customer/src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "function:apps/customer/src/App.tsx:App",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "function:apps/customer/src/App.tsx:App",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/components/RoutePointsEditor.tsx",
+   "target": "function:apps/customer/src/components/RoutePointsEditor.tsx:toEditable",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/components/RoutePointsEditor.tsx",
+   "target": "function:apps/customer/src/components/RoutePointsEditor.tsx:RoutePointsEditor",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/components/RoutePointsEditor.tsx",
+   "target": "function:apps/customer/src/components/RoutePointsEditor.tsx:RoutePointsEditor",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/components/commercial/Customer360.tsx",
+   "target": "function:apps/customer/src/components/commercial/Customer360.tsx:Customer360",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/components/commercial/Customer360.tsx",
+   "target": "function:apps/customer/src/components/commercial/Customer360.tsx:Customer360",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/components/commercial/Customer360.tsx",
+   "target": "function:apps/customer/src/components/commercial/Customer360.tsx:AtAGlance",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/components/commercial/QuickSearch.tsx",
+   "target": "function:apps/customer/src/components/commercial/QuickSearch.tsx:QuickSearch",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/components/commercial/QuickSearch.tsx",
+   "target": "function:apps/customer/src/components/commercial/QuickSearch.tsx:QuickSearch",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/components/layout/AppShell.tsx",
+   "target": "function:apps/customer/src/components/layout/AppShell.tsx:AppShell",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/components/layout/AppShell.tsx",
+   "target": "function:apps/customer/src/components/layout/AppShell.tsx:AppShell",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/components/layout/Sidebar.tsx",
+   "target": "function:apps/customer/src/components/layout/Sidebar.tsx:Sidebar",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/components/layout/Sidebar.tsx",
+   "target": "function:apps/customer/src/components/layout/Sidebar.tsx:Sidebar",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/components/layout/Sidebar.tsx",
+   "target": "function:apps/customer/src/components/layout/Sidebar.tsx:NavItemLink",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/components/offer-growth/EntitlementNotice.tsx",
+   "target": "function:apps/customer/src/components/offer-growth/EntitlementNotice.tsx:EntitlementNotice",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/components/offer-growth/EntitlementNotice.tsx",
+   "target": "function:apps/customer/src/components/offer-growth/EntitlementNotice.tsx:EntitlementNotice",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/components/offer-growth/EntitlementNotice.tsx",
+   "target": "function:apps/customer/src/components/offer-growth/EntitlementNotice.tsx:TestChannelBadge",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/components/offer-growth/EntitlementNotice.tsx",
+   "target": "function:apps/customer/src/components/offer-growth/EntitlementNotice.tsx:TestChannelBadge",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/components/ui/button.tsx",
+   "target": "function:apps/customer/src/components/ui/button.tsx:Button",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/components/ui/button.tsx",
+   "target": "function:apps/customer/src/components/ui/button.tsx:Button",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/App.offerGrowth.test.tsx",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:apps/customer/src/App.tsx",
+   "target": "file:apps/customer/src/App.test.tsx",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:apps/customer/src/components/RoutePointsEditor.tsx",
+   "target": "file:apps/customer/src/components/RoutePointsEditor.test.tsx",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "function:apps/customer/src/components/commercial/QuickSearch.tsx:QuickSearch",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:searchCustomers",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/components/commercial/Customer360.tsx:Customer360",
+   "target": "function:apps/customer/src/lib/api.ts:listWishes",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/components/commercial/Customer360.tsx:Customer360",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:listOpportunities",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/components/RoutePointsEditor.tsx:RoutePointsEditor",
+   "target": "function:apps/customer/src/lib/api.ts:listRoutePoints",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/components/RoutePointsEditor.tsx:RoutePointsEditor",
+   "target": "function:apps/customer/src/lib/api.ts:createRoutePoint",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/components/RoutePointsEditor.tsx:RoutePointsEditor",
+   "target": "function:apps/customer/src/lib/api.ts:reorderRoutePoints",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  }
+ ]
+}

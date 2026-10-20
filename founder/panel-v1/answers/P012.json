@@ -1,0 +1,13 @@
+{
+  "id": "P012",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Eu decido por medo de continuar perdendo venda em planilha, mas o próprio anúncio já confirma a minha maior dúvida: cobrança automática e nota fiscal ainda não funcionam, são só promessa. E não tem nenhuma agência usando de verdade pra eu ver que funciona.",
+  "objection": "O financeiro de verdade (cobrar o cliente e emitir nota) ainda não existe, e sem nenhuma agência de referência eu não sei se isso vai ficar pronto ou se vou ficar pagando por um funil bonito enquanto continuo emitindo nota por fora do mesmo jeito que já faço hoje.",
+  "would_change_my_mind": "Ver pelo menos uma agência parecida com a minha usando de verdade, e ter uma data real pra cobrança automática e nota fiscal saírem do papel",
+  "price_too_cheap": 29,
+  "price_cheap": 69,
+  "price_expensive": 150,
+  "price_too_expensive": 280
+}

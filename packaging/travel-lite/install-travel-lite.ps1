@@ -7,6 +7,8 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
+. (Join-Path $PSScriptRoot 'open-in-chrome.ps1')
+
 function New-Secret([int]$Bytes = 32) {
   $buffer = [byte[]]::new($Bytes)
   [System.Security.Cryptography.RandomNumberGenerator]::Fill($buffer)
@@ -120,7 +122,7 @@ try {
 
   Write-Output 'Travel Lite installed successfully.'
   Write-Output 'Open: http://127.0.0.1:4010'
-  if (-not $NoBrowser) { Start-Process 'http://127.0.0.1:4010' | Out-Null }
+  if (-not $NoBrowser) { Open-InChrome 'http://127.0.0.1:4010' }
 }
 finally {
   if ($null -ne $initialCredential) { $initialCredential = $null }

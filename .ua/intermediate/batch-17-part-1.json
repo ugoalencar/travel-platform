@@ -1,0 +1,1524 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/agency/src/pages/SuppliersPage.tsx",
+      "type": "file",
+      "name": "SuppliersPage.tsx",
+      "filePath": "apps/agency/src/pages/SuppliersPage.tsx",
+      "summary": "Página da área da agência para gerenciar fornecedores: listagem com busca e filtros, cadastro/edição em modal e ativação ou desativação de registros.",
+      "tags": [
+        "component",
+        "crud",
+        "list-page",
+        "agency-ui",
+        "react"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/agency/src/pages/SuppliersPage.tsx:toInput",
+      "type": "function",
+      "name": "toInput",
+      "filePath": "apps/agency/src/pages/SuppliersPage.tsx",
+      "lineRange": [
+        116,
+        140
+      ],
+      "summary": "Converte um fornecedor existente no formato de formulário para edição no modal.",
+      "tags": [
+        "utility",
+        "form",
+        "mapping"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/agency/src/pages/SuppliersPage.tsx:sanitize",
+      "type": "function",
+      "name": "sanitize",
+      "filePath": "apps/agency/src/pages/SuppliersPage.tsx",
+      "lineRange": [
+        142,
+        165
+      ],
+      "summary": "Normaliza e valida os campos do formulário antes de enviar o fornecedor à API.",
+      "tags": [
+        "validation",
+        "form",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/agency/src/pages/SuppliersPage.tsx:SuppliersPage",
+      "type": "function",
+      "name": "SuppliersPage",
+      "filePath": "apps/agency/src/pages/SuppliersPage.tsx",
+      "lineRange": [
+        167,
+        666
+      ],
+      "summary": "Componente principal da página de fornecedores, orquestrando estado, CRUD e renderização da tabela.",
+      "tags": [
+        "component",
+        "crud",
+        "state-management"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/agency/src/pages/TaskFormPage.tsx",
+      "type": "file",
+      "name": "TaskFormPage.tsx",
+      "filePath": "apps/agency/src/pages/TaskFormPage.tsx",
+      "summary": "Formulário de criação e edição de tarefas com seleção de cliente ativo, validação de campos e integração com a API de tasks.",
+      "tags": [
+        "component",
+        "form",
+        "agency-ui",
+        "react-router"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/agency/src/pages/TaskFormPage.tsx:TaskFormPage",
+      "type": "function",
+      "name": "TaskFormPage",
+      "filePath": "apps/agency/src/pages/TaskFormPage.tsx",
+      "lineRange": [
+        45,
+        245
+      ],
+      "summary": "Componente de formulário de tarefas que carrega clientes ativos, pré-preenche em modo edição e grava via API.",
+      "tags": [
+        "component",
+        "form",
+        "state-management"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/agency/src/pages/TasksPage.test.tsx",
+      "type": "file",
+      "name": "TasksPage.test.tsx",
+      "filePath": "apps/agency/src/pages/TasksPage.test.tsx",
+      "summary": "Suíte de testes da TasksPage cobrindo listagem, filtros e ações de concluir/reabrir tarefas com API mockada.",
+      "tags": [
+        "test",
+        "vitest",
+        "react",
+        "list-page"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/agency/src/pages/TasksPage.tsx",
+      "type": "file",
+      "name": "TasksPage.tsx",
+      "filePath": "apps/agency/src/pages/TasksPage.tsx",
+      "summary": "Listagem de tarefas da agência com filtros por prazo e status, cartões de resumo e ações de concluir ou reabrir.",
+      "tags": [
+        "component",
+        "list-page",
+        "filters",
+        "agency-ui"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/agency/src/pages/TasksPage.tsx:TasksPage",
+      "type": "function",
+      "name": "TasksPage",
+      "filePath": "apps/agency/src/pages/TasksPage.tsx",
+      "lineRange": [
+        47,
+        217
+      ],
+      "summary": "Componente principal da listagem de tarefas com filtros, resumo e ações de conclusão.",
+      "tags": [
+        "component",
+        "list-page",
+        "filters"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/agency/src/pages/TasksPage.tsx:SummaryCard",
+      "type": "function",
+      "name": "SummaryCard",
+      "filePath": "apps/agency/src/pages/TasksPage.tsx",
+      "lineRange": [
+        219,
+        229
+      ],
+      "summary": "Cartão de resumo que exibe um contador de tarefas com tom de cor configurável.",
+      "tags": [
+        "component",
+        "display",
+        "summary"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/agency/src/pages/TasksPage.tsx:FilterSelect",
+      "type": "function",
+      "name": "FilterSelect",
+      "filePath": "apps/agency/src/pages/TasksPage.tsx",
+      "lineRange": [
+        231,
+        249
+      ],
+      "summary": "Select controlado reutilizável usado nos filtros da página de tarefas.",
+      "tags": [
+        "component",
+        "form",
+        "filters"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/agency/src/pages/TripDetailPage.tsx",
+      "type": "file",
+      "name": "TripDetailPage.tsx",
+      "filePath": "apps/agency/src/pages/TripDetailPage.tsx",
+      "summary": "Detalhe de viagem com dados do cliente, serviços aéreos e terrestres, vendas associadas, galeria de fotos e edição do cadastro.",
+      "tags": [
+        "component",
+        "detail-page",
+        "photos",
+        "agency-ui"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/agency/src/pages/TripDetailPage.tsx:TripDetailPage",
+      "type": "function",
+      "name": "TripDetailPage",
+      "filePath": "apps/agency/src/pages/TripDetailPage.tsx",
+      "lineRange": [
+        79,
+        540
+      ],
+      "summary": "Componente de detalhe da viagem que carrega dados agregados (cliente, serviços, vendas, fotos) e edita o cadastro.",
+      "tags": [
+        "component",
+        "detail-page",
+        "state-management"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/agency/src/pages/TripsPage.test.tsx",
+      "type": "file",
+      "name": "TripsPage.test.tsx",
+      "filePath": "apps/agency/src/pages/TripsPage.test.tsx",
+      "summary": "Suíte de testes da TripsPage validando listagem, filtros, busca e criação de viagens com API mockada.",
+      "tags": [
+        "test",
+        "vitest",
+        "react",
+        "list-page"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/agency/src/pages/TripsPage.tsx",
+      "type": "file",
+      "name": "TripsPage.tsx",
+      "filePath": "apps/agency/src/pages/TripsPage.tsx",
+      "summary": "Listagem de viagens com busca, filtros por status, categoria, cliente e período, além de criação rápida em modal.",
+      "tags": [
+        "component",
+        "list-page",
+        "filters",
+        "agency-ui"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/agency/src/pages/TripsPage.tsx:TripsPage",
+      "type": "function",
+      "name": "TripsPage",
+      "filePath": "apps/agency/src/pages/TripsPage.tsx",
+      "lineRange": [
+        50,
+        414
+      ],
+      "summary": "Componente principal da listagem de viagens com filtros combinados, busca e criação em modal.",
+      "tags": [
+        "component",
+        "list-page",
+        "filters"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/agency/src/pages/WishDetailPage.tsx",
+      "type": "file",
+      "name": "WishDetailPage.tsx",
+      "filePath": "apps/agency/src/pages/WishDetailPage.tsx",
+      "summary": "Detalhe de wish com edição do desejo, vínculo de novos wishes, orçamento estimado e listagem de viagens do cliente.",
+      "tags": [
+        "component",
+        "detail-page",
+        "wish",
+        "agency-ui"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/agency/src/pages/WishDetailPage.tsx:WishDetailPage",
+      "type": "function",
+      "name": "WishDetailPage",
+      "filePath": "apps/agency/src/pages/WishDetailPage.tsx",
+      "lineRange": [
+        51,
+        467
+      ],
+      "summary": "Componente de detalhe do wish com edição, criação de novos wishes e listagem de viagens do cliente.",
+      "tags": [
+        "component",
+        "detail-page",
+        "crud"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/agency/src/pages/WishesPage.test.tsx",
+      "type": "file",
+      "name": "WishesPage.test.tsx",
+      "filePath": "apps/agency/src/pages/WishesPage.test.tsx",
+      "summary": "Suíte de testes da WishesPage cobrindo listagem, filtros por status e criação de novos wishes com API mockada.",
+      "tags": [
+        "test",
+        "vitest",
+        "react",
+        "list-page"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/agency/src/pages/WishesPage.tsx",
+      "type": "file",
+      "name": "WishesPage.tsx",
+      "filePath": "apps/agency/src/pages/WishesPage.tsx",
+      "summary": "Listagem de wishes com busca, filtros por status e criação rápida de novo wish para um cliente.",
+      "tags": [
+        "component",
+        "list-page",
+        "wish",
+        "agency-ui"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/agency/src/pages/WishesPage.tsx:WishesPage",
+      "type": "function",
+      "name": "WishesPage",
+      "filePath": "apps/agency/src/pages/WishesPage.tsx",
+      "lineRange": [
+        29,
+        289
+      ],
+      "summary": "Componente principal da listagem de wishes com filtros por status e criação rápida.",
+      "tags": [
+        "component",
+        "list-page",
+        "wish"
+      ],
+      "complexity": "complex"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/agency/src/pages/SuppliersPage.tsx",
+      "target": "function:apps/agency/src/pages/SuppliersPage.tsx:toInput",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/pages/SuppliersPage.tsx",
+      "target": "function:apps/agency/src/pages/SuppliersPage.tsx:sanitize",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/pages/SuppliersPage.tsx",
+      "target": "function:apps/agency/src/pages/SuppliersPage.tsx:SuppliersPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/pages/SuppliersPage.tsx",
+      "target": "function:apps/agency/src/pages/SuppliersPage.tsx:SuppliersPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/pages/TaskFormPage.tsx",
+      "target": "function:apps/agency/src/pages/TaskFormPage.tsx:TaskFormPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/pages/TaskFormPage.tsx",
+      "target": "function:apps/agency/src/pages/TaskFormPage.tsx:TaskFormPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/pages/TasksPage.tsx",
+      "target": "function:apps/agency/src/pages/TasksPage.tsx:TasksPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/pages/TasksPage.tsx",
+      "target": "function:apps/agency/src/pages/TasksPage.tsx:TasksPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/pages/TasksPage.tsx",
+      "target": "function:apps/agency/src/pages/TasksPage.tsx:SummaryCard",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/pages/TasksPage.tsx",
+      "target": "function:apps/agency/src/pages/TasksPage.tsx:FilterSelect",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/pages/TripDetailPage.tsx",
+      "target": "function:apps/agency/src/pages/TripDetailPage.tsx:TripDetailPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/pages/TripDetailPage.tsx",
+      "target": "function:apps/agency/src/pages/TripDetailPage.tsx:TripDetailPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/pages/TripsPage.tsx",
+      "target": "function:apps/agency/src/pages/TripsPage.tsx:TripsPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/pages/TripsPage.tsx",
+      "target": "function:apps/agency/src/pages/TripsPage.tsx:TripsPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/pages/WishDetailPage.tsx",
+      "target": "function:apps/agency/src/pages/WishDetailPage.tsx:WishDetailPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/pages/WishDetailPage.tsx",
+      "target": "function:apps/agency/src/pages/WishDetailPage.tsx:WishDetailPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/pages/WishesPage.tsx",
+      "target": "function:apps/agency/src/pages/WishesPage.tsx:WishesPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/pages/WishesPage.tsx",
+      "target": "function:apps/agency/src/pages/WishesPage.tsx:WishesPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/pages/SuppliersPage.tsx",
+      "target": "file:apps/agency/src/components/layout/PageHeader.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/SuppliersPage.tsx",
+      "target": "file:apps/agency/src/components/ui/button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/SuppliersPage.tsx",
+      "target": "file:apps/agency/src/components/ui/card.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/SuppliersPage.tsx",
+      "target": "file:apps/agency/src/components/ui/empty-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/SuppliersPage.tsx",
+      "target": "file:apps/agency/src/components/ui/error-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/SuppliersPage.tsx",
+      "target": "file:apps/agency/src/components/ui/input.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/SuppliersPage.tsx",
+      "target": "file:apps/agency/src/components/ui/loading-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/SuppliersPage.tsx",
+      "target": "file:apps/agency/src/components/ui/modal.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/SuppliersPage.tsx",
+      "target": "file:apps/agency/src/components/ui/select.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/SuppliersPage.tsx",
+      "target": "file:apps/agency/src/components/ui/status-badge.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/SuppliersPage.tsx",
+      "target": "file:apps/agency/src/components/ui/table.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/SuppliersPage.tsx",
+      "target": "file:apps/agency/src/components/ui/textarea.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/SuppliersPage.tsx",
+      "target": "file:apps/agency/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/TaskFormPage.tsx",
+      "target": "file:apps/agency/src/components/ui/button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/TaskFormPage.tsx",
+      "target": "file:apps/agency/src/components/ui/card.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/TaskFormPage.tsx",
+      "target": "file:apps/agency/src/components/ui/error-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/TaskFormPage.tsx",
+      "target": "file:apps/agency/src/components/ui/input.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/TaskFormPage.tsx",
+      "target": "file:apps/agency/src/components/ui/loading-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/TaskFormPage.tsx",
+      "target": "file:apps/agency/src/components/ui/textarea.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/TaskFormPage.tsx",
+      "target": "file:apps/agency/src/hooks/useCurrentUser.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/TaskFormPage.tsx",
+      "target": "file:apps/agency/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/TaskFormPage.tsx",
+      "target": "file:apps/agency/src/types/customer.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/TasksPage.test.tsx",
+      "target": "file:apps/agency/src/hooks/useCurrentUser.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/TasksPage.test.tsx",
+      "target": "file:apps/agency/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/TasksPage.test.tsx",
+      "target": "file:apps/agency/src/pages/TasksPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/TasksPage.tsx",
+      "target": "file:apps/agency/src/components/layout/PageHeader.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/TasksPage.tsx",
+      "target": "file:apps/agency/src/components/ui/button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/TasksPage.tsx",
+      "target": "file:apps/agency/src/components/ui/card.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/TasksPage.tsx",
+      "target": "file:apps/agency/src/components/ui/empty-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/TasksPage.tsx",
+      "target": "file:apps/agency/src/components/ui/loading-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/TasksPage.tsx",
+      "target": "file:apps/agency/src/hooks/useCurrentUser.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/TasksPage.tsx",
+      "target": "file:apps/agency/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/TripDetailPage.tsx",
+      "target": "file:apps/agency/src/components/ui/button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/TripDetailPage.tsx",
+      "target": "file:apps/agency/src/components/ui/card.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/TripDetailPage.tsx",
+      "target": "file:apps/agency/src/components/ui/error-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/TripDetailPage.tsx",
+      "target": "file:apps/agency/src/components/ui/input.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/TripDetailPage.tsx",
+      "target": "file:apps/agency/src/components/ui/loading-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/TripDetailPage.tsx",
+      "target": "file:apps/agency/src/components/ui/modal.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/TripDetailPage.tsx",
+      "target": "file:apps/agency/src/components/ui/status-badge.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/TripDetailPage.tsx",
+      "target": "file:apps/agency/src/components/ui/tabs.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/TripDetailPage.tsx",
+      "target": "file:apps/agency/src/components/ui/textarea.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/TripDetailPage.tsx",
+      "target": "file:apps/agency/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/TripDetailPage.tsx",
+      "target": "file:apps/agency/src/lib/formatDateBR.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/TripDetailPage.tsx",
+      "target": "file:apps/agency/src/lib/statusLabels.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/TripDetailPage.tsx",
+      "target": "file:apps/agency/src/types/customer.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/TripDetailPage.tsx",
+      "target": "file:apps/agency/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/TripDetailPage.tsx",
+      "target": "file:apps/agency/src/types/sale.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/TripDetailPage.tsx",
+      "target": "file:apps/agency/src/types/trip.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/TripsPage.test.tsx",
+      "target": "file:apps/agency/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/TripsPage.test.tsx",
+      "target": "file:apps/agency/src/test/render.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/TripsPage.test.tsx",
+      "target": "file:apps/agency/src/types/customer.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/TripsPage.test.tsx",
+      "target": "file:apps/agency/src/types/trip.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/TripsPage.tsx",
+      "target": "file:apps/agency/src/components/layout/PageHeader.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/TripsPage.tsx",
+      "target": "file:apps/agency/src/components/ui/button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/TripsPage.tsx",
+      "target": "file:apps/agency/src/components/ui/empty-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/TripsPage.tsx",
+      "target": "file:apps/agency/src/components/ui/error-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/TripsPage.tsx",
+      "target": "file:apps/agency/src/components/ui/input.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/TripsPage.tsx",
+      "target": "file:apps/agency/src/components/ui/loading-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/TripsPage.tsx",
+      "target": "file:apps/agency/src/components/ui/modal.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/TripsPage.tsx",
+      "target": "file:apps/agency/src/components/ui/select.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/TripsPage.tsx",
+      "target": "file:apps/agency/src/components/ui/status-badge.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/TripsPage.tsx",
+      "target": "file:apps/agency/src/components/ui/textarea.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/TripsPage.tsx",
+      "target": "file:apps/agency/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/TripsPage.tsx",
+      "target": "file:apps/agency/src/lib/formatDateBR.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/TripsPage.tsx",
+      "target": "file:apps/agency/src/lib/statusLabels.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/TripsPage.tsx",
+      "target": "file:apps/agency/src/types/customer.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/TripsPage.tsx",
+      "target": "file:apps/agency/src/types/trip.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/WishDetailPage.tsx",
+      "target": "file:apps/agency/src/components/ui/button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/WishDetailPage.tsx",
+      "target": "file:apps/agency/src/components/ui/card.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/WishDetailPage.tsx",
+      "target": "file:apps/agency/src/components/ui/error-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/WishDetailPage.tsx",
+      "target": "file:apps/agency/src/components/ui/input.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/WishDetailPage.tsx",
+      "target": "file:apps/agency/src/components/ui/loading-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/WishDetailPage.tsx",
+      "target": "file:apps/agency/src/components/ui/modal.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/WishDetailPage.tsx",
+      "target": "file:apps/agency/src/components/ui/select.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/WishDetailPage.tsx",
+      "target": "file:apps/agency/src/components/ui/status-badge.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/WishDetailPage.tsx",
+      "target": "file:apps/agency/src/components/ui/tabs.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/WishDetailPage.tsx",
+      "target": "file:apps/agency/src/components/ui/textarea.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/WishDetailPage.tsx",
+      "target": "file:apps/agency/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/WishDetailPage.tsx",
+      "target": "file:apps/agency/src/lib/formatCurrency.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/WishDetailPage.tsx",
+      "target": "file:apps/agency/src/lib/formatDateBR.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/WishDetailPage.tsx",
+      "target": "file:apps/agency/src/lib/statusLabels.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/WishDetailPage.tsx",
+      "target": "file:apps/agency/src/types/customer.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/WishDetailPage.tsx",
+      "target": "file:apps/agency/src/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/WishDetailPage.tsx",
+      "target": "file:apps/agency/src/types/trip.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/WishDetailPage.tsx",
+      "target": "file:apps/agency/src/types/wish.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/WishesPage.test.tsx",
+      "target": "file:apps/agency/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/WishesPage.test.tsx",
+      "target": "file:apps/agency/src/test/render.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/WishesPage.test.tsx",
+      "target": "file:apps/agency/src/types/customer.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/WishesPage.test.tsx",
+      "target": "file:apps/agency/src/types/wish.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/WishesPage.tsx",
+      "target": "file:apps/agency/src/components/ui/button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/WishesPage.tsx",
+      "target": "file:apps/agency/src/components/ui/empty-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/WishesPage.tsx",
+      "target": "file:apps/agency/src/components/ui/error-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/WishesPage.tsx",
+      "target": "file:apps/agency/src/components/ui/input.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/WishesPage.tsx",
+      "target": "file:apps/agency/src/components/ui/loading-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/WishesPage.tsx",
+      "target": "file:apps/agency/src/components/ui/modal.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/WishesPage.tsx",
+      "target": "file:apps/agency/src/components/ui/select.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/WishesPage.tsx",
+      "target": "file:apps/agency/src/components/ui/status-badge.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/WishesPage.tsx",
+      "target": "file:apps/agency/src/components/ui/textarea.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/WishesPage.tsx",
+      "target": "file:apps/agency/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/WishesPage.tsx",
+      "target": "file:apps/agency/src/lib/formatCurrency.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/WishesPage.tsx",
+      "target": "file:apps/agency/src/lib/formatDateBR.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/WishesPage.tsx",
+      "target": "file:apps/agency/src/lib/statusLabels.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/WishesPage.tsx",
+      "target": "file:apps/agency/src/types/customer.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/WishesPage.tsx",
+      "target": "file:apps/agency/src/types/wish.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/TasksPage.tsx",
+      "target": "file:apps/agency/src/pages/TasksPage.test.tsx",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/agency/src/pages/TripsPage.tsx",
+      "target": "file:apps/agency/src/pages/TripsPage.test.tsx",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/agency/src/pages/WishesPage.tsx",
+      "target": "file:apps/agency/src/pages/WishesPage.test.tsx",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "function:apps/agency/src/pages/SuppliersPage.tsx:SuppliersPage",
+      "target": "function:apps/agency/src/lib/api.ts:listSuppliers",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/SuppliersPage.tsx:SuppliersPage",
+      "target": "function:apps/agency/src/lib/api.ts:updateSupplier",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/SuppliersPage.tsx:SuppliersPage",
+      "target": "function:apps/agency/src/lib/api.ts:createSupplier",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/SuppliersPage.tsx:SuppliersPage",
+      "target": "function:apps/agency/src/lib/api.ts:deactivateSupplier",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/TaskFormPage.tsx:TaskFormPage",
+      "target": "function:apps/agency/src/hooks/useCurrentUser.ts:useCurrentUser",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/TaskFormPage.tsx:TaskFormPage",
+      "target": "function:apps/agency/src/lib/api.ts:listCustomers",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/TaskFormPage.tsx:TaskFormPage",
+      "target": "function:apps/agency/src/lib/api.ts:getTask",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/TaskFormPage.tsx:TaskFormPage",
+      "target": "function:apps/agency/src/lib/api.ts:updateTask",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/TaskFormPage.tsx:TaskFormPage",
+      "target": "function:apps/agency/src/lib/api.ts:createTask",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/TasksPage.tsx:TasksPage",
+      "target": "function:apps/agency/src/hooks/useCurrentUser.ts:useCurrentUser",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/TasksPage.tsx:TasksPage",
+      "target": "function:apps/agency/src/lib/api.ts:listTasks",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/TasksPage.tsx:TasksPage",
+      "target": "function:apps/agency/src/lib/api.ts:updateTask",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/TripDetailPage.tsx:TripDetailPage",
+      "target": "function:apps/agency/src/lib/api.ts:getTrip",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/TripDetailPage.tsx:TripDetailPage",
+      "target": "function:apps/agency/src/lib/api.ts:getCustomer",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/TripDetailPage.tsx:TripDetailPage",
+      "target": "function:apps/agency/src/lib/api.ts:listAirServicesByTrip",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/TripDetailPage.tsx:TripDetailPage",
+      "target": "function:apps/agency/src/lib/api.ts:listLandServicesByTrip",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/TripDetailPage.tsx:TripDetailPage",
+      "target": "function:apps/agency/src/lib/api.ts:listSales",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/TripDetailPage.tsx:TripDetailPage",
+      "target": "function:apps/agency/src/lib/api.ts:listTripPhotos",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/TripDetailPage.tsx:TripDetailPage",
+      "target": "function:apps/agency/src/lib/api.ts:loadTripPhotoBlobUrl",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/TripDetailPage.tsx:TripDetailPage",
+      "target": "function:apps/agency/src/lib/api.ts:uploadTripPhoto",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/TripDetailPage.tsx:TripDetailPage",
+      "target": "function:apps/agency/src/lib/api.ts:deleteTripPhoto",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/TripDetailPage.tsx:TripDetailPage",
+      "target": "function:apps/agency/src/lib/api.ts:updateTrip",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/TripDetailPage.tsx:TripDetailPage",
+      "target": "function:apps/agency/src/lib/statusLabels.ts:getTripStatusLabel",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/TripDetailPage.tsx:TripDetailPage",
+      "target": "function:apps/agency/src/lib/formatDateBR.ts:formatDateBR",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/TripsPage.tsx:TripsPage",
+      "target": "function:apps/agency/src/lib/api.ts:listTrips",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/TripsPage.tsx:TripsPage",
+      "target": "function:apps/agency/src/lib/api.ts:listCustomers",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/TripsPage.tsx:TripsPage",
+      "target": "function:apps/agency/src/lib/api.ts:createTrip",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/TripsPage.tsx:TripsPage",
+      "target": "function:apps/agency/src/lib/statusLabels.ts:getTripStatusLabel",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/TripsPage.tsx:TripsPage",
+      "target": "function:apps/agency/src/lib/formatDateBR.ts:formatDateBR",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/WishDetailPage.tsx:WishDetailPage",
+      "target": "function:apps/agency/src/lib/api.ts:getWish",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/WishDetailPage.tsx:WishDetailPage",
+      "target": "function:apps/agency/src/lib/api.ts:getCustomer",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/WishDetailPage.tsx:WishDetailPage",
+      "target": "function:apps/agency/src/lib/api.ts:listTripsByCustomer",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/WishDetailPage.tsx:WishDetailPage",
+      "target": "function:apps/agency/src/lib/api.ts:listCustomers",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/WishDetailPage.tsx:WishDetailPage",
+      "target": "function:apps/agency/src/lib/api.ts:createWish",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/WishDetailPage.tsx:WishDetailPage",
+      "target": "function:apps/agency/src/lib/api.ts:updateWish",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/WishDetailPage.tsx:WishDetailPage",
+      "target": "function:apps/agency/src/lib/statusLabels.ts:getWishStatusLabel",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/WishDetailPage.tsx:WishDetailPage",
+      "target": "function:apps/agency/src/lib/formatCurrency.ts:formatBRL",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/WishDetailPage.tsx:WishDetailPage",
+      "target": "function:apps/agency/src/lib/formatDateBR.ts:formatDateBR",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/WishDetailPage.tsx:WishDetailPage",
+      "target": "function:apps/agency/src/lib/statusLabels.ts:getTripStatusLabel",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/WishesPage.tsx:WishesPage",
+      "target": "function:apps/agency/src/lib/api.ts:listWishes",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/WishesPage.tsx:WishesPage",
+      "target": "function:apps/agency/src/lib/api.ts:listCustomers",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/WishesPage.tsx:WishesPage",
+      "target": "function:apps/agency/src/lib/api.ts:createWish",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/WishesPage.tsx:WishesPage",
+      "target": "function:apps/agency/src/lib/statusLabels.ts:getWishStatusLabel",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/WishesPage.tsx:WishesPage",
+      "target": "function:apps/agency/src/lib/formatCurrency.ts:formatBRL",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/WishesPage.tsx:WishesPage",
+      "target": "function:apps/agency/src/lib/formatDateBR.ts:formatDateBR",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

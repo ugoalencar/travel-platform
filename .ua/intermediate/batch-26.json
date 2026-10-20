@@ -1,0 +1,288 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/marketing/src/App.tsx",
+      "type": "file",
+      "name": "App.tsx",
+      "filePath": "apps/marketing/src/App.tsx",
+      "summary": "Componente raiz do app de marketing que define as rotas das páginas públicas (landing, preços, demo, trial e 404).",
+      "tags": ["component", "roteamento", "marketing", "layout"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/marketing/src/App.tsx:App",
+      "type": "function",
+      "name": "App",
+      "filePath": "apps/marketing/src/App.tsx",
+      "lineRange": [8, 18],
+      "summary": "Renderiza o roteador com as cinco páginas públicas do site de marketing.",
+      "tags": ["component", "roteamento", "react"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/marketing/src/lib/agencyAppUrl.ts",
+      "type": "file",
+      "name": "agencyAppUrl.ts",
+      "filePath": "apps/marketing/src/lib/agencyAppUrl.ts",
+      "summary": "Helpers que constroem as URLs de login e cadastro do app de agências, usadas como destino dos CTAs do site de marketing.",
+      "tags": ["utility", "url-builder", "marketing"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/marketing/src/lib/agencyAppUrl.ts:agencySignupUrl",
+      "type": "function",
+      "name": "agencySignupUrl",
+      "filePath": "apps/marketing/src/lib/agencyAppUrl.ts",
+      "lineRange": [9, 11],
+      "summary": "Retorna a URL de cadastro de agência no app da plataforma, usada nos CTAs de marketing.",
+      "tags": ["utility", "url", "cta"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/marketing/src/lib/agencyAppUrl.ts:agencyLoginUrl",
+      "type": "function",
+      "name": "agencyLoginUrl",
+      "filePath": "apps/marketing/src/lib/agencyAppUrl.ts",
+      "lineRange": [13, 15],
+      "summary": "Retorna a URL de login de agência no app da plataforma para links de acesso existente.",
+      "tags": ["utility", "url", "cta"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/marketing/src/lib/publicCommercialApi.test.ts",
+      "type": "file",
+      "name": "publicCommercialApi.test.ts",
+      "filePath": "apps/marketing/src/lib/publicCommercialApi.test.ts",
+      "summary": "Testes Vitest de isSafeHref cobrindo URLs absolutas, caminhos internos e vetores de ataque (javascript:, data:, protocol-relative) como defesa contra open redirect.",
+      "tags": ["test", "security", "validation", "vitest"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/marketing/src/lib/publicCommercialApi.ts",
+      "type": "file",
+      "name": "publicCommercialApi.ts",
+      "filePath": "apps/marketing/src/lib/publicCommercialApi.ts",
+      "summary": "Cliente leve da API comercial pública: busca landing, parceiros e banners via fetch e valida hrefs externos com isSafeHref antes da renderização.",
+      "tags": ["api-client", "fetch", "validation", "marketing"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/marketing/src/lib/publicCommercialApi.ts:getPublicLanding",
+      "type": "function",
+      "name": "getPublicLanding",
+      "filePath": "apps/marketing/src/lib/publicCommercialApi.ts",
+      "lineRange": [70, 79],
+      "summary": "Busca o conteúdo da landing page pública via GET na API comercial e retorna o JSON.",
+      "tags": ["api-client", "fetch", "landing"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/marketing/src/lib/publicCommercialApi.ts:getPublicPartners",
+      "type": "function",
+      "name": "getPublicPartners",
+      "filePath": "apps/marketing/src/lib/publicCommercialApi.ts",
+      "lineRange": [81, 90],
+      "summary": "Busca a lista de parceiros exibida na landing page pública.",
+      "tags": ["api-client", "fetch", "partners"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/marketing/src/lib/publicCommercialApi.ts:getPublicBanners",
+      "type": "function",
+      "name": "getPublicBanners",
+      "filePath": "apps/marketing/src/lib/publicCommercialApi.ts",
+      "lineRange": [92, 101],
+      "summary": "Busca banners públicos por placement (ex.: LANDING) na API comercial.",
+      "tags": ["api-client", "fetch", "banners"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/marketing/src/lib/publicCommercialApi.ts:isSafeHref",
+      "type": "function",
+      "name": "isSafeHref",
+      "filePath": "apps/marketing/src/lib/publicCommercialApi.ts",
+      "lineRange": [108, 119],
+      "summary": "Valida hrefs dinâmicos antes da renderização, rejeitando protocolos perigosos (javascript:, data:) e URLs protocol-relative (defesa contra open redirect).",
+      "tags": ["validation", "security", "xss-prevention"],
+      "complexity": "simple",
+      "languageNotes": "Defesa em profundidade no cliente: o backend já valida na escrita (assertSafeExternalUrl), mas o renderer nunca confia cegamente em valores armazenados."
+    },
+    {
+      "id": "file:apps/marketing/src/main.tsx",
+      "type": "file",
+      "name": "main.tsx",
+      "filePath": "apps/marketing/src/main.tsx",
+      "summary": "Ponto de entrada React que monta o app de marketing no DOM e importa os estilos globais.",
+      "tags": ["entry-point", "react", "bootstrap"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/marketing/src/pages/DemoRequest.tsx",
+      "type": "file",
+      "name": "DemoRequest.tsx",
+      "filePath": "apps/marketing/src/pages/DemoRequest.tsx",
+      "summary": "Página de solicitação de demo com formulário controlado que envia leads para a API pública e exibe estados de carregando, erro e sucesso.",
+      "tags": ["component", "form", "lead-capture", "marketing"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/marketing/src/pages/DemoRequest.tsx:DemoRequest",
+      "type": "function",
+      "name": "DemoRequest",
+      "filePath": "apps/marketing/src/pages/DemoRequest.tsx",
+      "lineRange": [4, 183],
+      "summary": "Componente de página que valida o formulário de demo, envia os dados via fetch para a rota pública de demo-requests e gerencia estados de erro/sucesso.",
+      "tags": ["component", "form", "api-handler", "state"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/marketing/src/pages/LandingPage.tsx",
+      "type": "file",
+      "name": "LandingPage.tsx",
+      "filePath": "apps/marketing/src/pages/LandingPage.tsx",
+      "summary": "Landing page principal do marketing, combinando conteúdo estático com dados dinâmicos da CMS (banners, parceiros, depoimentos e FAQ).",
+      "tags": ["component", "landing-page", "cms", "marketing"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/marketing/src/pages/LandingPage.tsx:LandingPage",
+      "type": "function",
+      "name": "LandingPage",
+      "filePath": "apps/marketing/src/pages/LandingPage.tsx",
+      "lineRange": [45, 265],
+      "summary": "Carrega landing, parceiros e banners da API comercial e renderiza as seções de produto, segurança, depoimentos, FAQ e CTAs de signup/login.",
+      "tags": ["component", "landing-page", "data-fetching", "state"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/marketing/src/pages/LandingPage.tsx:FeatureCard",
+      "type": "function",
+      "name": "FeatureCard",
+      "filePath": "apps/marketing/src/pages/LandingPage.tsx",
+      "lineRange": [267, 285],
+      "summary": "Componente auxiliar que renderiza um card de feature com ícone, título e descrição.",
+      "tags": ["component", "ui", "card"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/marketing/src/pages/NotFoundPage.tsx",
+      "type": "file",
+      "name": "NotFoundPage.tsx",
+      "filePath": "apps/marketing/src/pages/NotFoundPage.tsx",
+      "summary": "Página de erro 404 com mensagem e link de retorno para o início do site.",
+      "tags": ["component", "error-page", "routing"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/marketing/src/pages/NotFoundPage.tsx:NotFoundPage",
+      "type": "function",
+      "name": "NotFoundPage",
+      "filePath": "apps/marketing/src/pages/NotFoundPage.tsx",
+      "lineRange": [3, 11],
+      "summary": "Renderiza a tela 404 com navegação de volta para a landing page.",
+      "tags": ["component", "error-page"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/marketing/src/pages/PricingPage.tsx",
+      "type": "file",
+      "name": "PricingPage.tsx",
+      "filePath": "apps/marketing/src/pages/PricingPage.tsx",
+      "summary": "Página de preços com três planos, comparação de features e CTAs de cadastro para o app de agências.",
+      "tags": ["component", "pricing", "marketing"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/marketing/src/pages/PricingPage.tsx:PricingPage",
+      "type": "function",
+      "name": "PricingPage",
+      "filePath": "apps/marketing/src/pages/PricingPage.tsx",
+      "lineRange": [5, 64],
+      "summary": "Monta a página de planos com dados estáticos de pricing e CTAs apontando para o cadastro no app de agências.",
+      "tags": ["component", "pricing", "cta"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/marketing/src/pages/PricingPage.tsx:PlanCard",
+      "type": "function",
+      "name": "PlanCard",
+      "filePath": "apps/marketing/src/pages/PricingPage.tsx",
+      "lineRange": [66, 106],
+      "summary": "Renderiza um card de plano com preço, lista de features e CTA (link interno ou externo).",
+      "tags": ["component", "ui", "pricing"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/marketing/src/pages/TrialSignup.tsx",
+      "type": "file",
+      "name": "TrialSignup.tsx",
+      "filePath": "apps/marketing/src/pages/TrialSignup.tsx",
+      "summary": "Página de cadastro de trial gratuito com validação client-side e chamada à API pública de trials.",
+      "tags": ["component", "form", "signup", "trial"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/marketing/src/pages/TrialSignup.tsx:TrialSignup",
+      "type": "function",
+      "name": "TrialSignup",
+      "filePath": "apps/marketing/src/pages/TrialSignup.tsx",
+      "lineRange": [6, 231],
+      "summary": "Componente de página que valida os campos do formulário de trial, envia a criação de conta via fetch e trata erros e sucesso da API.",
+      "tags": ["component", "form", "api-handler", "state"],
+      "complexity": "complex"
+    }
+  ],
+  "edges": [
+    {"source": "file:apps/marketing/src/App.tsx", "target": "file:apps/marketing/src/pages/DemoRequest.tsx", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:apps/marketing/src/App.tsx", "target": "file:apps/marketing/src/pages/LandingPage.tsx", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:apps/marketing/src/App.tsx", "target": "file:apps/marketing/src/pages/NotFoundPage.tsx", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:apps/marketing/src/App.tsx", "target": "file:apps/marketing/src/pages/PricingPage.tsx", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:apps/marketing/src/App.tsx", "target": "file:apps/marketing/src/pages/TrialSignup.tsx", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:apps/marketing/src/lib/publicCommercialApi.test.ts", "target": "file:apps/marketing/src/lib/publicCommercialApi.ts", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:apps/marketing/src/main.tsx", "target": "file:apps/marketing/src/App.tsx", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:apps/marketing/src/main.tsx", "target": "file:apps/marketing/src/index.css", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:apps/marketing/src/pages/LandingPage.tsx", "target": "file:apps/marketing/src/lib/agencyAppUrl.ts", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:apps/marketing/src/pages/LandingPage.tsx", "target": "file:apps/marketing/src/lib/publicCommercialApi.ts", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:apps/marketing/src/pages/PricingPage.tsx", "target": "file:apps/marketing/src/lib/agencyAppUrl.ts", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:apps/marketing/src/pages/TrialSignup.tsx", "target": "file:apps/marketing/src/lib/agencyAppUrl.ts", "type": "imports", "direction": "forward", "weight": 0.7},
+
+    {"source": "file:apps/marketing/src/App.tsx", "target": "function:apps/marketing/src/App.tsx:App", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:apps/marketing/src/lib/agencyAppUrl.ts", "target": "function:apps/marketing/src/lib/agencyAppUrl.ts:agencySignupUrl", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:apps/marketing/src/lib/agencyAppUrl.ts", "target": "function:apps/marketing/src/lib/agencyAppUrl.ts:agencyLoginUrl", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:apps/marketing/src/lib/publicCommercialApi.ts", "target": "function:apps/marketing/src/lib/publicCommercialApi.ts:getPublicLanding", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:apps/marketing/src/lib/publicCommercialApi.ts", "target": "function:apps/marketing/src/lib/publicCommercialApi.ts:getPublicPartners", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:apps/marketing/src/lib/publicCommercialApi.ts", "target": "function:apps/marketing/src/lib/publicCommercialApi.ts:getPublicBanners", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:apps/marketing/src/lib/publicCommercialApi.ts", "target": "function:apps/marketing/src/lib/publicCommercialApi.ts:isSafeHref", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:apps/marketing/src/pages/DemoRequest.tsx", "target": "function:apps/marketing/src/pages/DemoRequest.tsx:DemoRequest", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:apps/marketing/src/pages/LandingPage.tsx", "target": "function:apps/marketing/src/pages/LandingPage.tsx:LandingPage", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:apps/marketing/src/pages/LandingPage.tsx", "target": "function:apps/marketing/src/pages/LandingPage.tsx:FeatureCard", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:apps/marketing/src/pages/NotFoundPage.tsx", "target": "function:apps/marketing/src/pages/NotFoundPage.tsx:NotFoundPage", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:apps/marketing/src/pages/PricingPage.tsx", "target": "function:apps/marketing/src/pages/PricingPage.tsx:PricingPage", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:apps/marketing/src/pages/PricingPage.tsx", "target": "function:apps/marketing/src/pages/PricingPage.tsx:PlanCard", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:apps/marketing/src/pages/TrialSignup.tsx", "target": "function:apps/marketing/src/pages/TrialSignup.tsx:TrialSignup", "type": "contains", "direction": "forward", "weight": 1.0},
+
+    {"source": "file:apps/marketing/src/App.tsx", "target": "function:apps/marketing/src/App.tsx:App", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:apps/marketing/src/lib/agencyAppUrl.ts", "target": "function:apps/marketing/src/lib/agencyAppUrl.ts:agencySignupUrl", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:apps/marketing/src/lib/agencyAppUrl.ts", "target": "function:apps/marketing/src/lib/agencyAppUrl.ts:agencyLoginUrl", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:apps/marketing/src/lib/publicCommercialApi.ts", "target": "function:apps/marketing/src/lib/publicCommercialApi.ts:getPublicLanding", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:apps/marketing/src/lib/publicCommercialApi.ts", "target": "function:apps/marketing/src/lib/publicCommercialApi.ts:getPublicPartners", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:apps/marketing/src/lib/publicCommercialApi.ts", "target": "function:apps/marketing/src/lib/publicCommercialApi.ts:getPublicBanners", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:apps/marketing/src/lib/publicCommercialApi.ts", "target": "function:apps/marketing/src/lib/publicCommercialApi.ts:isSafeHref", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:apps/marketing/src/pages/DemoRequest.tsx", "target": "function:apps/marketing/src/pages/DemoRequest.tsx:DemoRequest", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:apps/marketing/src/pages/LandingPage.tsx", "target": "function:apps/marketing/src/pages/LandingPage.tsx:LandingPage", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:apps/marketing/src/pages/NotFoundPage.tsx", "target": "function:apps/marketing/src/pages/NotFoundPage.tsx:NotFoundPage", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:apps/marketing/src/pages/PricingPage.tsx", "target": "function:apps/marketing/src/pages/PricingPage.tsx:PricingPage", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:apps/marketing/src/pages/TrialSignup.tsx", "target": "function:apps/marketing/src/pages/TrialSignup.tsx:TrialSignup", "type": "exports", "direction": "forward", "weight": 0.8},
+
+    {"source": "function:apps/marketing/src/pages/LandingPage.tsx:LandingPage", "target": "function:apps/marketing/src/lib/publicCommercialApi.ts:getPublicLanding", "type": "calls", "direction": "forward", "weight": 0.8},
+    {"source": "function:apps/marketing/src/pages/LandingPage.tsx:LandingPage", "target": "function:apps/marketing/src/lib/publicCommercialApi.ts:getPublicPartners", "type": "calls", "direction": "forward", "weight": 0.8},
+    {"source": "function:apps/marketing/src/pages/LandingPage.tsx:LandingPage", "target": "function:apps/marketing/src/lib/publicCommercialApi.ts:getPublicBanners", "type": "calls", "direction": "forward", "weight": 0.8},
+    {"source": "function:apps/marketing/src/pages/LandingPage.tsx:LandingPage", "target": "function:apps/marketing/src/lib/publicCommercialApi.ts:isSafeHref", "type": "calls", "direction": "forward", "weight": 0.8},
+    {"source": "function:apps/marketing/src/pages/LandingPage.tsx:LandingPage", "target": "function:apps/marketing/src/lib/agencyAppUrl.ts:agencySignupUrl", "type": "calls", "direction": "forward", "weight": 0.8},
+    {"source": "function:apps/marketing/src/pages/LandingPage.tsx:LandingPage", "target": "function:apps/marketing/src/lib/agencyAppUrl.ts:agencyLoginUrl", "type": "calls", "direction": "forward", "weight": 0.8},
+    {"source": "function:apps/marketing/src/pages/PricingPage.tsx:PricingPage", "target": "function:apps/marketing/src/lib/agencyAppUrl.ts:agencySignupUrl", "type": "calls", "direction": "forward", "weight": 0.8},
+    {"source": "function:apps/marketing/src/pages/TrialSignup.tsx:TrialSignup", "target": "function:apps/marketing/src/lib/agencyAppUrl.ts:agencyLoginUrl", "type": "calls", "direction": "forward", "weight": 0.8},
+
+    {"source": "file:apps/marketing/src/lib/publicCommercialApi.ts", "target": "file:apps/marketing/src/lib/publicCommercialApi.test.ts", "type": "tested_by", "direction": "forward", "weight": 0.5}
+  ]
+}

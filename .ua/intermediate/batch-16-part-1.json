@@ -1,0 +1,970 @@
+{
+ "nodes": [
+  {
+   "id": "file:apps/agency/src/pages/InsurancePage.tsx",
+   "type": "file",
+   "name": "InsurancePage.tsx",
+   "filePath": "apps/agency/src/pages/InsurancePage.tsx",
+   "summary": "Página de Seguros: lista produtos de seguro-viagem e apólices vendidas, com criação de produtos, venda de apólices e atualização de status.",
+   "tags": [
+    "component",
+    "page",
+    "seguros",
+    "crud",
+    "api-integration"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:apps/agency/src/pages/LandServicesPage.tsx",
+   "type": "file",
+   "name": "LandServicesPage.tsx",
+   "filePath": "apps/agency/src/pages/LandServicesPage.tsx",
+   "summary": "Página Terrestre: gerencia serviços terrestres por viagem (hospedagem, transfer, passeios) com filtros, criação, edição e exclusão vinculadas a viagens, clientes e fornecedores.",
+   "tags": [
+    "component",
+    "page",
+    "servicos-terrestres",
+    "crud"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:apps/agency/src/pages/LoginPage.tsx",
+   "type": "file",
+   "name": "LoginPage.tsx",
+   "filePath": "apps/agency/src/pages/LoginPage.tsx",
+   "summary": "Tela de login com autenticação de agência, lembrança de slug e fluxo de verificação em duas etapas (MFA).",
+   "tags": [
+    "component",
+    "page",
+    "autenticacao",
+    "mfa"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:apps/agency/src/pages/MediaLibraryPage.tsx",
+   "type": "file",
+   "name": "MediaLibraryPage.tsx",
+   "filePath": "apps/agency/src/pages/MediaLibraryPage.tsx",
+   "summary": "Biblioteca de Mídia: exibe, envia, arquiva e exclui assets de mídia com busca e verificação de uso.",
+   "tags": [
+    "component",
+    "page",
+    "midia",
+    "upload",
+    "crud"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:apps/agency/src/pages/NotFoundPage.tsx",
+   "type": "file",
+   "name": "NotFoundPage.tsx",
+   "filePath": "apps/agency/src/pages/NotFoundPage.tsx",
+   "summary": "Página 404 que exibe estado vazio de página não encontrada com ação de voltar ao painel.",
+   "tags": [
+    "component",
+    "page",
+    "404",
+    "navegacao"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:apps/agency/src/pages/OfferDetailPage.test.tsx",
+   "type": "file",
+   "name": "OfferDetailPage.test.tsx",
+   "filePath": "apps/agency/src/pages/OfferDetailPage.test.tsx",
+   "summary": "Testes de renderização do OfferDetailPage cobrindo carregamento, estados de erro e interações principais.",
+   "tags": [
+    "test",
+    "component",
+    "ofertas",
+    "rendering"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:apps/agency/src/pages/OfferDetailPage.tsx",
+   "type": "file",
+   "name": "OfferDetailPage.tsx",
+   "filePath": "apps/agency/src/pages/OfferDetailPage.tsx",
+   "summary": "Detalhe de Oferta: exibe, edita, duplica e arquiva uma oferta com seções de mídia e valores vinculados.",
+   "tags": [
+    "component",
+    "page",
+    "ofertas",
+    "crud",
+    "form"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:apps/agency/src/pages/OffersPage.test.tsx",
+   "type": "file",
+   "name": "OffersPage.test.tsx",
+   "filePath": "apps/agency/src/pages/OffersPage.test.tsx",
+   "summary": "Testes da lista de ofertas validando carregamento, criação e estados de erro.",
+   "tags": [
+    "test",
+    "component",
+    "ofertas",
+    "rendering"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/agency/src/pages/InsurancePage.tsx:InsurancePage",
+   "type": "function",
+   "name": "InsurancePage",
+   "filePath": "apps/agency/src/pages/InsurancePage.tsx",
+   "lineRange": [
+    51,
+    363
+   ],
+   "summary": "Componente principal da página de Seguros: carrega produtos e apólices, permite cadastrar produtos, vender apólices e atualizar seus status.",
+   "tags": [
+    "component",
+    "seguros",
+    "crud",
+    "form"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:apps/agency/src/pages/InsurancePage.tsx:LabeledInput",
+   "type": "function",
+   "name": "LabeledInput",
+   "filePath": "apps/agency/src/pages/InsurancePage.tsx",
+   "lineRange": [
+    365,
+    376
+   ],
+   "summary": "Campo de input rotulado usado nos formulários da página de seguros.",
+   "tags": [
+    "component",
+    "form",
+    "ui"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/agency/src/pages/InsurancePage.tsx:LabeledSelect",
+   "type": "function",
+   "name": "LabeledSelect",
+   "filePath": "apps/agency/src/pages/InsurancePage.tsx",
+   "lineRange": [
+    378,
+    392
+   ],
+   "summary": "Campo de select rotulado usado nos formulários da página de seguros.",
+   "tags": [
+    "component",
+    "form",
+    "ui",
+    "select"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/agency/src/pages/LandServicesPage.tsx:toInput",
+   "type": "function",
+   "name": "toInput",
+   "filePath": "apps/agency/src/pages/LandServicesPage.tsx",
+   "lineRange": [
+    126,
+    148
+   ],
+   "summary": "Converte um LandService existente no formato de formulário, normalizando as datas.",
+   "tags": [
+    "utility",
+    "serialization",
+    "form",
+    "date"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/agency/src/pages/LandServicesPage.tsx:sanitize",
+   "type": "function",
+   "name": "sanitize",
+   "filePath": "apps/agency/src/pages/LandServicesPage.tsx",
+   "lineRange": [
+    150,
+    163
+   ],
+   "summary": "Valida e normaliza os campos do formulário de serviço terrestre antes do envio.",
+   "tags": [
+    "validation",
+    "utility",
+    "form"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/agency/src/pages/LandServicesPage.tsx:LandServicesPage",
+   "type": "function",
+   "name": "LandServicesPage",
+   "filePath": "apps/agency/src/pages/LandServicesPage.tsx",
+   "lineRange": [
+    165,
+    682
+   ],
+   "summary": "Componente principal da página Terrestre: lista serviços terrestres por viagem com filtros e modais de criação, edição e exclusão.",
+   "tags": [
+    "component",
+    "crud",
+    "servicos-terrestres",
+    "api-integration"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:apps/agency/src/pages/LoginPage.tsx:LoginPage",
+   "type": "function",
+   "name": "LoginPage",
+   "filePath": "apps/agency/src/pages/LoginPage.tsx",
+   "lineRange": [
+    21,
+    216
+   ],
+   "summary": "Componente da tela de login: autentica credenciais, gerencia o slug lembrado e conduz o fluxo de verificação em duas etapas.",
+   "tags": [
+    "component",
+    "autenticacao",
+    "mfa",
+    "form"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/agency/src/pages/MediaLibraryPage.tsx:MediaLibraryPage",
+   "type": "function",
+   "name": "MediaLibraryPage",
+   "filePath": "apps/agency/src/pages/MediaLibraryPage.tsx",
+   "lineRange": [
+    23,
+    82
+   ],
+   "summary": "Componente principal da Biblioteca de Mídia: busca e lista assets com estados de loading e erro.",
+   "tags": [
+    "component",
+    "midia",
+    "api-integration"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/agency/src/pages/MediaLibraryPage.tsx:UploadButton",
+   "type": "function",
+   "name": "UploadButton",
+   "filePath": "apps/agency/src/pages/MediaLibraryPage.tsx",
+   "lineRange": [
+    84,
+    128
+   ],
+   "summary": "Botão de upload de novo asset de mídia que recarrega a lista após o envio.",
+   "tags": [
+    "component",
+    "upload",
+    "midia",
+    "form"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/agency/src/pages/MediaLibraryPage.tsx:MediaAssetCard",
+   "type": "function",
+   "name": "MediaAssetCard",
+   "filePath": "apps/agency/src/pages/MediaLibraryPage.tsx",
+   "lineRange": [
+    130,
+    216
+   ],
+   "summary": "Card de asset de mídia com preview, verificação de uso, arquivamento e exclusão.",
+   "tags": [
+    "component",
+    "midia",
+    "crud"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/agency/src/pages/NotFoundPage.tsx:NotFoundPage",
+   "type": "function",
+   "name": "NotFoundPage",
+   "filePath": "apps/agency/src/pages/NotFoundPage.tsx",
+   "lineRange": [
+    5,
+    23
+   ],
+   "summary": "Componente da página 404 com estado vazio e navegação de volta ao painel.",
+   "tags": [
+    "component",
+    "404",
+    "navegacao"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/agency/src/pages/OfferDetailPage.tsx:OfferDetailPage",
+   "type": "function",
+   "name": "OfferDetailPage",
+   "filePath": "apps/agency/src/pages/OfferDetailPage.tsx",
+   "lineRange": [
+    52,
+    682
+   ],
+   "summary": "Componente principal do detalhe de oferta: carrega a oferta por id, edita campos, duplica, arquiva e gerencia mídia vinculada.",
+   "tags": [
+    "component",
+    "ofertas",
+    "crud",
+    "form",
+    "api-integration"
+   ],
+   "complexity": "complex"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:apps/agency/src/pages/InsurancePage.tsx",
+   "target": "function:apps/agency/src/pages/InsurancePage.tsx:InsurancePage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/agency/src/pages/InsurancePage.tsx",
+   "target": "function:apps/agency/src/pages/InsurancePage.tsx:LabeledInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/agency/src/pages/InsurancePage.tsx",
+   "target": "function:apps/agency/src/pages/InsurancePage.tsx:LabeledSelect",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/agency/src/pages/LandServicesPage.tsx",
+   "target": "function:apps/agency/src/pages/LandServicesPage.tsx:toInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/agency/src/pages/LandServicesPage.tsx",
+   "target": "function:apps/agency/src/pages/LandServicesPage.tsx:sanitize",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/agency/src/pages/LandServicesPage.tsx",
+   "target": "function:apps/agency/src/pages/LandServicesPage.tsx:LandServicesPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/agency/src/pages/LoginPage.tsx",
+   "target": "function:apps/agency/src/pages/LoginPage.tsx:LoginPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/agency/src/pages/MediaLibraryPage.tsx",
+   "target": "function:apps/agency/src/pages/MediaLibraryPage.tsx:MediaLibraryPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/agency/src/pages/MediaLibraryPage.tsx",
+   "target": "function:apps/agency/src/pages/MediaLibraryPage.tsx:UploadButton",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/agency/src/pages/MediaLibraryPage.tsx",
+   "target": "function:apps/agency/src/pages/MediaLibraryPage.tsx:MediaAssetCard",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/agency/src/pages/NotFoundPage.tsx",
+   "target": "function:apps/agency/src/pages/NotFoundPage.tsx:NotFoundPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/agency/src/pages/OfferDetailPage.tsx",
+   "target": "function:apps/agency/src/pages/OfferDetailPage.tsx:OfferDetailPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/agency/src/pages/InsurancePage.tsx",
+   "target": "function:apps/agency/src/pages/InsurancePage.tsx:InsurancePage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/agency/src/pages/LandServicesPage.tsx",
+   "target": "function:apps/agency/src/pages/LandServicesPage.tsx:LandServicesPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/agency/src/pages/LoginPage.tsx",
+   "target": "function:apps/agency/src/pages/LoginPage.tsx:LoginPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/agency/src/pages/MediaLibraryPage.tsx",
+   "target": "function:apps/agency/src/pages/MediaLibraryPage.tsx:MediaLibraryPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/agency/src/pages/NotFoundPage.tsx",
+   "target": "function:apps/agency/src/pages/NotFoundPage.tsx:NotFoundPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/agency/src/pages/OfferDetailPage.tsx",
+   "target": "function:apps/agency/src/pages/OfferDetailPage.tsx:OfferDetailPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/agency/src/pages/InsurancePage.tsx",
+   "target": "file:apps/agency/src/components/layout/PageHeader.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/InsurancePage.tsx",
+   "target": "file:apps/agency/src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/InsurancePage.tsx",
+   "target": "file:apps/agency/src/components/ui/card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/InsurancePage.tsx",
+   "target": "file:apps/agency/src/components/ui/empty-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/InsurancePage.tsx",
+   "target": "file:apps/agency/src/components/ui/error-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/InsurancePage.tsx",
+   "target": "file:apps/agency/src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/InsurancePage.tsx",
+   "target": "file:apps/agency/src/components/ui/loading-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/InsurancePage.tsx",
+   "target": "file:apps/agency/src/components/ui/select.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/InsurancePage.tsx",
+   "target": "file:apps/agency/src/components/ui/table.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/InsurancePage.tsx",
+   "target": "file:apps/agency/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/InsurancePage.tsx",
+   "target": "file:apps/agency/src/lib/formatCurrency.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/InsurancePage.tsx",
+   "target": "file:apps/agency/src/lib/formatDateBR.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/InsurancePage.tsx",
+   "target": "file:apps/agency/src/types/customer.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/LandServicesPage.tsx",
+   "target": "file:apps/agency/src/components/layout/PageHeader.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/LandServicesPage.tsx",
+   "target": "file:apps/agency/src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/LandServicesPage.tsx",
+   "target": "file:apps/agency/src/components/ui/card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/LandServicesPage.tsx",
+   "target": "file:apps/agency/src/components/ui/empty-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/LandServicesPage.tsx",
+   "target": "file:apps/agency/src/components/ui/error-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/LandServicesPage.tsx",
+   "target": "file:apps/agency/src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/LandServicesPage.tsx",
+   "target": "file:apps/agency/src/components/ui/loading-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/LandServicesPage.tsx",
+   "target": "file:apps/agency/src/components/ui/modal.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/LandServicesPage.tsx",
+   "target": "file:apps/agency/src/components/ui/select.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/LandServicesPage.tsx",
+   "target": "file:apps/agency/src/components/ui/status-badge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/LandServicesPage.tsx",
+   "target": "file:apps/agency/src/components/ui/table.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/LandServicesPage.tsx",
+   "target": "file:apps/agency/src/components/ui/textarea.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/LandServicesPage.tsx",
+   "target": "file:apps/agency/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/LandServicesPage.tsx",
+   "target": "file:apps/agency/src/types/customer.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/LandServicesPage.tsx",
+   "target": "file:apps/agency/src/types/trip.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/LoginPage.tsx",
+   "target": "file:apps/agency/src/lib/authApi.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/LoginPage.tsx",
+   "target": "file:apps/agency/src/lib/session.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/MediaLibraryPage.tsx",
+   "target": "file:apps/agency/src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/MediaLibraryPage.tsx",
+   "target": "file:apps/agency/src/components/ui/card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/MediaLibraryPage.tsx",
+   "target": "file:apps/agency/src/components/ui/error-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/MediaLibraryPage.tsx",
+   "target": "file:apps/agency/src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/MediaLibraryPage.tsx",
+   "target": "file:apps/agency/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/NotFoundPage.tsx",
+   "target": "file:apps/agency/src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/NotFoundPage.tsx",
+   "target": "file:apps/agency/src/components/ui/empty-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/OfferDetailPage.test.tsx",
+   "target": "file:apps/agency/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/OfferDetailPage.test.tsx",
+   "target": "file:apps/agency/src/pages/OfferDetailPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/OfferDetailPage.test.tsx",
+   "target": "file:apps/agency/src/test/render.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/OfferDetailPage.test.tsx",
+   "target": "file:apps/agency/src/types/offer.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/OfferDetailPage.tsx",
+   "target": "file:apps/agency/src/components/media/MediaAssetPicker.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/OfferDetailPage.tsx",
+   "target": "file:apps/agency/src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/OfferDetailPage.tsx",
+   "target": "file:apps/agency/src/components/ui/card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/OfferDetailPage.tsx",
+   "target": "file:apps/agency/src/components/ui/error-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/OfferDetailPage.tsx",
+   "target": "file:apps/agency/src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/OfferDetailPage.tsx",
+   "target": "file:apps/agency/src/components/ui/loading-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/OfferDetailPage.tsx",
+   "target": "file:apps/agency/src/components/ui/modal.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/OfferDetailPage.tsx",
+   "target": "file:apps/agency/src/components/ui/status-badge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/OfferDetailPage.tsx",
+   "target": "file:apps/agency/src/components/ui/textarea.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/OfferDetailPage.tsx",
+   "target": "file:apps/agency/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/OfferDetailPage.tsx",
+   "target": "file:apps/agency/src/lib/formatCurrency.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/OfferDetailPage.tsx",
+   "target": "file:apps/agency/src/lib/formatDateBR.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/OffersPage.test.tsx",
+   "target": "file:apps/agency/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/OffersPage.test.tsx",
+   "target": "file:apps/agency/src/pages/OffersPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/OffersPage.test.tsx",
+   "target": "file:apps/agency/src/test/render.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/OffersPage.test.tsx",
+   "target": "file:apps/agency/src/types/offer.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/OfferDetailPage.tsx",
+   "target": "file:apps/agency/src/pages/OfferDetailPage.test.tsx",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "function:apps/agency/src/pages/InsurancePage.tsx:InsurancePage",
+   "target": "function:apps/agency/src/lib/api.ts:listInsuranceProducts",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/InsurancePage.tsx:InsurancePage",
+   "target": "function:apps/agency/src/lib/api.ts:listInsurancePolicies",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/InsurancePage.tsx:InsurancePage",
+   "target": "function:apps/agency/src/lib/api.ts:listCustomers",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/InsurancePage.tsx:InsurancePage",
+   "target": "function:apps/agency/src/lib/formatCurrency.ts:formatBRL",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/InsurancePage.tsx:InsurancePage",
+   "target": "function:apps/agency/src/lib/formatDateBR.ts:formatDateBR",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/LandServicesPage.tsx:LandServicesPage",
+   "target": "function:apps/agency/src/lib/api.ts:listLandServices",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/LandServicesPage.tsx:LandServicesPage",
+   "target": "function:apps/agency/src/lib/api.ts:listTrips",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/LandServicesPage.tsx:LandServicesPage",
+   "target": "function:apps/agency/src/lib/api.ts:listCustomers",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/LandServicesPage.tsx:LandServicesPage",
+   "target": "function:apps/agency/src/lib/api.ts:listSuppliers",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/LoginPage.tsx:LoginPage",
+   "target": "function:apps/agency/src/lib/session.ts:getRememberedAgencySlug",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/MediaLibraryPage.tsx:MediaAssetCard",
+   "target": "function:apps/agency/src/lib/api.ts:loadMediaAssetBlobUrl",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/MediaLibraryPage.tsx:MediaAssetCard",
+   "target": "function:apps/agency/src/lib/api.ts:getMediaAssetUsage",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/OfferDetailPage.tsx:OfferDetailPage",
+   "target": "function:apps/agency/src/lib/api.ts:getOffer",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/OfferDetailPage.tsx:OfferDetailPage",
+   "target": "function:apps/agency/src/lib/formatCurrency.ts:formatBRL",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/OfferDetailPage.tsx:OfferDetailPage",
+   "target": "function:apps/agency/src/lib/formatDateBR.ts:formatDateBR",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  }
+ ]
+}

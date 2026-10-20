@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=1920, height=1080">
+<title>Travel Plataforma - parte 1</title>
+<script src="assets/gsap.min.js"></script><script src="assets/audio-data.js"></script>
+<style>
+@font-face{font-family:'Fraunces';src:url(assets/fonts/Fraunces-400.woff2) format('woff2');font-weight:100 900;}
+@font-face{font-family:'Inter';src:url(assets/fonts/Inter-400.woff2) format('woff2');font-weight:100 900;}
+*{box-sizing:border-box}
+body{margin:0;background:#fff;color:#0f2a4a;font-family:'Inter',sans-serif}
+#root{position:relative;width:100%;height:100%;overflow:hidden}
+.clip{position:absolute;inset:0}
+.scene{position:absolute;inset:0;overflow:hidden}
+.paper{background:#fff}.deep{background:#f3f4f6}.navy{background:#0f2a4a}
+.abs{position:absolute}
+.serif{font-family:'Fraunces',serif;font-weight:400;letter-spacing:-0.02em;margin:0}
+.eyebrow{position:absolute;margin:0;font-weight:600;font-size:28px;line-height:1;letter-spacing:.18em;text-transform:uppercase;color:#1554d1}
+.eyebrow.c{color:#06b6d4}
+.glow{position:absolute;width:1200px;height:1200px;border-radius:50%;background:radial-gradient(circle,rgba(6,182,212,.45) 0%,rgba(6,182,212,0) 65%)}
+.card{position:absolute;background:#fff;border:2px solid #e2e6ea;border-radius:4px}
+.shot{position:absolute;background:#fff;border:2px solid #e2e6ea;border-radius:4px;box-shadow:0 30px 70px rgba(15,42,74,.25);color:#1a1d21}
+.btn{position:absolute;background:#1554d1;color:#fff;font-weight:600;border-radius:4px;display:flex;align-items:center;justify-content:center}
+.num{font-family:'Fraunces',serif;color:#1554d1;margin:0}
+.th,.tr{position:absolute;left:0;right:0}
+.th span,.tr span{position:absolute;display:flex;align-items:center}
+.tr{border-top:2px solid #e2e6ea}
+.nav{position:absolute;left:20px;width:260px;height:64px;padding:0 20px;display:flex;align-items:center;font-size:30px;border-radius:4px;color:#1a1d21}
+.nav.on{background:#e6eeff;color:#1043a8;font-weight:800}
+.panel{position:absolute;top:130px;height:640px;background:#fff;border:2px solid #e2e6ea;border-radius:4px;width:408px}
+.panel .lbl{position:absolute;left:28px;top:24px;font-size:36px;font-weight:800;color:#1554d1}
+</style></head><body>
+<div id="root" data-composition-id="main" data-start="0" data-width="1920" data-height="1080" data-duration="30">
+<section id="s1" class="clip" data-start="0" data-duration="4.6" data-track-index="1"><div id="s1-scene" class="scene deep"><div class="abs" style="inset:0;background-image:linear-gradient(#e0e4ea 2px,transparent 2px),linear-gradient(90deg,#e0e4ea 2px,transparent 2px);background-size:240px 72px"></div><div class="abs cell" style="left:1300px;top:130px;background:#fff;border:2px solid #c5ccd6;color:#5b6370;font-size:32px;padding:10px 22px;white-space:nowrap">pago?</div><div class="abs cell" style="left:1180px;top:260px;background:#fff;border:2px solid #c5ccd6;color:#5b6370;font-size:32px;padding:10px 22px;white-space:nowrap">confirmar com o cliente</div><div class="abs cell" style="left:1420px;top:420px;background:#fff;border:2px solid #c5ccd6;color:#5b6370;font-size:32px;padding:10px 22px;white-space:nowrap">parcela 2 ???</div><div class="abs cell" style="left:1260px;top:560px;background:#fff;border:2px solid #c5ccd6;color:#5b6370;font-size:32px;padding:10px 22px;white-space:nowrap">R$ ??</div><div class="abs cell" style="left:1360px;top:700px;background:#fff;border:2px solid #c5ccd6;color:#5b6370;font-size:32px;padding:10px 22px;white-space:nowrap">ver comissão</div><div class="abs cell" style="left:1220px;top:840px;background:#fff;border:2px solid #c5ccd6;color:#5b6370;font-size:32px;padding:10px 22px;white-space:nowrap">vendedor?</div>
+<h1 class="serif abs" style="left:120px;top:330px;font-size:132px;line-height:1.08;width:1100px"><span id="s1a" style="display:block">Sua agência ainda</span><span id="s1b" style="display:block">vive de <span style="color:#1554d1">planilha?</span></span></h1></div></section>
+<section id="s2" class="clip" data-start="4.2" data-duration="7.6" data-track-index="2"><div id="s2-scene" class="scene paper"><p id="s2e" class="eyebrow" style="left:120px;top:150px">Para agências de viagem</p>
+<img id="s2logo" class="abs" src="assets/logo-completa.svg" style="left:120px;top:205px;height:130px" alt="Travel Plataforma">
+<h2 id="s2h" class="serif abs" style="left:120px;top:420px;width:920px;font-size:70px;line-height:1.12">Um único produto para o time comercial, operacional, financeiro — e para o seu cliente.</h2>
+<div id="s2frame" class="abs" style="left:1180px;top:110px;width:620px;height:800px;background:#0f2a4a"><svg data-layout-allow-overflow viewBox="0 0 400 520" preserveAspectRatio="xMidYMid slice" width="100%" height="100%"><rect width="400" height="520" fill="#0f2a4a"/><g fill="none" stroke="#fff" stroke-opacity=".14" stroke-width="1.5"><ellipse cx="300" cy="150" rx="40" ry="28"/><ellipse cx="300" cy="150" rx="90" ry="62"/><ellipse cx="300" cy="150" rx="150" ry="104"/><ellipse cx="300" cy="150" rx="215" ry="148"/><ellipse cx="300" cy="150" rx="285" ry="196"/><ellipse cx="80" cy="440" rx="60" ry="40"/><ellipse cx="80" cy="440" rx="125" ry="84"/><ellipse cx="80" cy="440" rx="200" ry="134"/></g><path d="M70 440 C 140 330, 90 250, 190 210 S 330 170, 305 148" fill="none" stroke="#fff" stroke-width="3" stroke-dasharray="2 12" stroke-linecap="round"/><circle cx="70" cy="440" r="9" fill="#fff"/><circle cx="305" cy="148" r="11" fill="#06b6d4"/><circle cx="305" cy="148" r="22" fill="none" stroke="#06b6d4" stroke-opacity=".5" stroke-width="2"/></svg></div></div></section>
+<section id="s3" class="clip" data-start="11.4" data-duration="13.2" data-track-index="3"><div id="s3-scene" class="scene paper"><p class="eyebrow" style="left:120px;top:120px">No dia a dia</p>
+<h2 id="s3h" class="serif abs" style="left:120px;top:180px;width:1200px;font-size:84px;line-height:1.08">O que sustenta a operação da sua agência</h2><div id="s3c0" class="abs" style="left:120px;top:430px;width:520px;height:520px;border-top:3px solid #1554d1;padding-top:30px"><span class="num" style="font-size:48px">01</span><div class="serif" style="font-size:60px;line-height:1.08;margin-top:14px">Pipeline comercial</div><div style="font-size:32px;line-height:1.38;color:#5b6370;margin-top:22px">Do primeiro contato à venda, com etapas configuráveis por agência.</div></div><div id="s3c1" class="abs" style="left:700px;top:430px;width:520px;height:520px;border-top:3px solid #1554d1;padding-top:30px"><span class="num" style="font-size:48px">02</span><div class="serif" style="font-size:60px;line-height:1.08;margin-top:14px">App do cliente</div><div style="font-size:32px;line-height:1.38;color:#5b6370;margin-top:22px">Seus clientes acompanham viagens, documentos e ofertas direto do celular.</div></div><div id="s3c2" class="abs" style="left:1280px;top:430px;width:520px;height:520px;border-top:3px solid #1554d1;padding-top:30px"><span class="num" style="font-size:48px">03</span><div class="serif" style="font-size:60px;line-height:1.08;margin-top:14px">Equipe e acessos</div><div style="font-size:32px;line-height:1.38;color:#5b6370;margin-top:22px">Papéis, permissões e convites para sua equipe comercial e operacional.</div></div></div></section>
+<section id="s4" class="clip" data-start="24.2" data-duration="3.4" data-track-index="4"><div id="s4-scene" class="scene deep"><h2 id="s4h" class="serif abs" style="left:120px;top:330px;font-size:100px;line-height:1.05">Financeiro completo</h2>
+<p id="s4d" class="abs" style="left:120px;top:490px;width:1300px;margin:0;font-size:40px;line-height:1.35;color:#5b6370">Contas a receber, a pagar, fluxo de caixa e margem em tempo real.</p></div></section>
+<section id="s5" class="clip" data-start="27.2" data-duration="2.8" data-track-index="5"><div id="s5-scene" class="scene navy"><div id="s5glow" data-layout-allow-overflow class="glow" style="left:1100px;top:-500px"></div><h2 id="s5h" class="serif abs" style="left:0;right:0;top:400px;text-align:center;font-size:136px;color:#fff;line-height:1.12">Tudo começa no <span style="color:#06b6d4">primeiro contato.</span></h2></div></section>
+<audio id="bgm" data-start="0" data-duration="30" data-media-start="0" data-track-index="10" data-volume="0.33" src="assets/music/music.mp3" data-automation='{"version":1,"lanes":[{"target":"volume","points":[{"t":0,"v":0.55},{"t":4.2,"v":0.55},{"t":6,"v":1}]}]}'></audio>
+<audio id="sx1" data-start="0.58" data-duration="0.11" data-track-index="11" data-volume="0.5" src="assets/sfx/drop_001.ogg"></audio>
+<audio id="sx2" data-start="1.28" data-duration="0.11" data-track-index="12" data-volume="0.5" src="assets/sfx/drop_001.ogg"></audio>
+<audio id="sx3" data-start="5.48" data-duration="0.18" data-track-index="13" data-volume="0.7" src="assets/sfx/impactSoft_medium_001.ogg"></audio>
+<audio id="sx4" data-start="7.48" data-duration="0.69" data-track-index="14" data-volume="0.6" src="assets/sfx/card-place-1.ogg"></audio>
+<audio id="sx5" data-start="12.98" data-duration="0.69" data-track-index="15" data-volume="0.6" src="assets/sfx/card-place-1.ogg"></audio>
+<audio id="sx6" data-start="16.58" data-duration="0.69" data-track-index="16" data-volume="0.6" src="assets/sfx/card-place-1.ogg"></audio>
+<audio id="sx7" data-start="20.18" data-duration="0.69" data-track-index="17" data-volume="0.6" src="assets/sfx/card-place-1.ogg"></audio>
+<audio id="sx8" data-start="24.68" data-duration="0.19" data-track-index="18" data-volume="0.5" src="assets/sfx/drop_002.ogg"></audio>
+<audio id="sx9" data-start="27.68" data-duration="0.18" data-track-index="19" data-volume="0.7" src="assets/sfx/impactSoft_medium_001.ogg"></audio>
+</div>
+<script>
+var tl = gsap.timeline({ paused: true });
+var E = "power3.out";
+function show(sel, at, d, y) { tl.fromTo(sel, { y: y === undefined ? 40 : y, opacity: 0 }, { y: 0, opacity: 1, duration: d || 0.7, ease: E }, at); }
+function fadeScene(id, at) { tl.fromTo(id, { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "power2.out" }, at); }
+
+fadeScene("#s2-scene", 4.2);
+show("#s1a", 0.6, 0.8); show("#s1b", 1.3, 0.8);
+tl.fromTo(".cell", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.7, stagger: 0.2, ease: E }, 0.3);
+show("#s2e", 4.9, 0.7); show("#s2logo", 5.53, 0.8);
+show("#s2h", 6.4, 0.9);
+tl.fromTo("#s2frame", { opacity: 0, y: 60 }, { opacity: 1, y: 0, duration: 0.9, ease: E }, 7.52);
+fadeScene("#s3-scene", 11.4);
+show("#s3h", 11.9, 0.8);
+tl.fromTo("#s3c0", { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: E }, 13.01);
+tl.fromTo("#s3c1", { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: E }, 16.52);
+tl.fromTo("#s3c2", { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: E }, 20.2);
+fadeScene("#s4-scene", 24.2);
+show("#s4h", 24.7, 0.8); show("#s4d", 25.3, 0.8);
+fadeScene("#s5-scene", 27.2);
+show("#s5h", 27.7, 0.9);
+
+for (var f = 0; f < AUDIO_DATA.totalFrames; f++) {
+  tl.call((function (fr) { return function () {
+    gsap.set(".glow", { scale: 0.94 + fr.bands[0] * 0.14, opacity: 0.55 + fr.bands[1] * 0.35 });
+  }; })(AUDIO_DATA.frames[f]), [], f / AUDIO_DATA.fps);
+}
+window.__timelines["main"] = tl;
+</script></body></html>

@@ -1,0 +1,13 @@
+{
+  "id": "P009",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Eu nunca assino nada assim sem ver outra agência do meu grupo usando e aprovando antes. Virar 'agência pioneira' e dar depoimento logo de cara é o contrário do que eu faço: eu espero alguém testar primeiro.",
+  "objection": "Ninguém do meu sindicato/grupo apareceu recomendando isso ainda, e R$99 por mês já pesa pro que minha agência fatura — fora que cobrança automática e nota fiscal nem estão prontas, e isso é exatamente o que me daria mais trabalho pela frente.",
+  "would_change_my_mind": "Ver uma colega de agência do meu grupo, do mesmo porte, já usando o sistema há alguns meses e falando bem, fora da minha alta temporada.",
+  "price_too_cheap": 19,
+  "price_cheap": 49,
+  "price_expensive": 99,
+  "price_too_expensive": 180
+}

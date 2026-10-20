@@ -1,0 +1,788 @@
+{
+ "nodes": [
+  {
+   "id": "file:apps/agency/src/pages/ReceivablesPage.test.tsx",
+   "type": "file",
+   "name": "ReceivablesPage.test.tsx",
+   "filePath": "apps/agency/src/pages/ReceivablesPage.test.tsx",
+   "summary": "Testes da página de Contas a Receber verificando renderização e carregamento.",
+   "tags": [
+    "test",
+    "component",
+    "financeiro",
+    "rendering"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:apps/agency/src/pages/ReceivablesPage.tsx",
+   "type": "file",
+   "name": "ReceivablesPage.tsx",
+   "filePath": "apps/agency/src/pages/ReceivablesPage.tsx",
+   "summary": "Contas a Receber: lista recebíveis com filtros, registro e alocação de pagamentos de clientes.",
+   "tags": [
+    "component",
+    "page",
+    "financeiro",
+    "crud",
+    "contas-a-receber"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:apps/agency/src/pages/ReconciliationPage.tsx",
+   "type": "file",
+   "name": "ReconciliationPage.tsx",
+   "filePath": "apps/agency/src/pages/ReconciliationPage.tsx",
+   "summary": "Reconciliação financeira: lista e cria reconciliações cruzando pagamentos registrados com obrigações.",
+   "tags": [
+    "component",
+    "page",
+    "financeiro",
+    "reconciliacao",
+    "crud"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:apps/agency/src/pages/ReportsPage.test.tsx",
+   "type": "file",
+   "name": "ReportsPage.test.tsx",
+   "filePath": "apps/agency/src/pages/ReportsPage.test.tsx",
+   "summary": "Testes da página de Relatórios validando o carregamento dos indicadores.",
+   "tags": [
+    "test",
+    "component",
+    "relatorios",
+    "rendering"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:apps/agency/src/pages/ReportsPage.tsx",
+   "type": "file",
+   "name": "ReportsPage.tsx",
+   "filePath": "apps/agency/src/pages/ReportsPage.tsx",
+   "summary": "Página Relatórios: exibe indicadores de vendas, conversão e destinos por período, mais a seção de relatórios gerenciais.",
+   "tags": [
+    "component",
+    "page",
+    "relatorios",
+    "dashboard"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:apps/agency/src/pages/ResetPasswordPage.tsx",
+   "type": "file",
+   "name": "ResetPasswordPage.tsx",
+   "filePath": "apps/agency/src/pages/ResetPasswordPage.tsx",
+   "summary": "Tela de redefinição de senha por token, confirmando a nova senha e tratando erros do fluxo.",
+   "tags": [
+    "component",
+    "page",
+    "autenticacao",
+    "recuperacao-de-senha"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:apps/agency/src/pages/RevenuesPage.tsx",
+   "type": "file",
+   "name": "RevenuesPage.tsx",
+   "filePath": "apps/agency/src/pages/RevenuesPage.tsx",
+   "summary": "Gestão de receitas: lista receitas por categoria com criação, exclusão e filtros por período.",
+   "tags": [
+    "component",
+    "page",
+    "financeiro",
+    "receitas",
+    "crud"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:apps/agency/src/pages/SaleFinancialStoryPage.test.tsx",
+   "type": "file",
+   "name": "SaleFinancialStoryPage.test.tsx",
+   "filePath": "apps/agency/src/pages/SaleFinancialStoryPage.test.tsx",
+   "summary": "Testes da história financeira da venda validando estados de carregamento e conteúdo.",
+   "tags": [
+    "test",
+    "component",
+    "financeiro",
+    "rendering"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/agency/src/pages/ReceivablesPage.tsx:ReceivablesPage",
+   "type": "function",
+   "name": "ReceivablesPage",
+   "filePath": "apps/agency/src/pages/ReceivablesPage.tsx",
+   "lineRange": [
+    53,
+    296
+   ],
+   "summary": "Componente principal de Contas a Receber: lista recebíveis com filtros e registra ou aloca pagamentos.",
+   "tags": [
+    "component",
+    "financeiro",
+    "crud",
+    "api-integration"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:apps/agency/src/pages/ReconciliationPage.tsx:ReconciliationPage",
+   "type": "function",
+   "name": "ReconciliationPage",
+   "filePath": "apps/agency/src/pages/ReconciliationPage.tsx",
+   "lineRange": [
+    34,
+    363
+   ],
+   "summary": "Componente principal da reconciliação financeira: cruza pagamentos com obrigações e cria ou atualiza reconciliações.",
+   "tags": [
+    "component",
+    "financeiro",
+    "reconciliacao",
+    "crud"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:apps/agency/src/pages/ReportsPage.tsx:ReportsPage",
+   "type": "function",
+   "name": "ReportsPage",
+   "filePath": "apps/agency/src/pages/ReportsPage.tsx",
+   "lineRange": [
+    38,
+    351
+   ],
+   "summary": "Componente principal da página Relatórios: calcula indicadores de vendas, conversão e viagens a partir de dados por período.",
+   "tags": [
+    "component",
+    "relatorios",
+    "dashboard",
+    "api-integration"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:apps/agency/src/pages/ReportsPage.tsx:ManagementReportsSection",
+   "type": "function",
+   "name": "ManagementReportsSection",
+   "filePath": "apps/agency/src/pages/ReportsPage.tsx",
+   "lineRange": [
+    389,
+    547
+   ],
+   "summary": "Seção de relatórios gerenciais com cards de estatísticas e tabelas de status de viagens.",
+   "tags": [
+    "component",
+    "relatorios",
+    "dashboard"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/agency/src/pages/ResetPasswordPage.tsx:ResetPasswordPage",
+   "type": "function",
+   "name": "ResetPasswordPage",
+   "filePath": "apps/agency/src/pages/ResetPasswordPage.tsx",
+   "lineRange": [
+    5,
+    107
+   ],
+   "summary": "Componente da tela de redefinição de senha: valida o token da URL e envia a nova senha.",
+   "tags": [
+    "component",
+    "autenticacao",
+    "recuperacao-de-senha",
+    "form"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/agency/src/pages/RevenuesPage.tsx:RevenuesPage",
+   "type": "function",
+   "name": "RevenuesPage",
+   "filePath": "apps/agency/src/pages/RevenuesPage.tsx",
+   "lineRange": [
+    68,
+    419
+   ],
+   "summary": "Componente principal de receitas: lista receitas por categoria com filtros, criação e exclusão.",
+   "tags": [
+    "component",
+    "financeiro",
+    "receitas",
+    "crud"
+   ],
+   "complexity": "complex"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:apps/agency/src/pages/ReceivablesPage.tsx",
+   "target": "function:apps/agency/src/pages/ReceivablesPage.tsx:ReceivablesPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/agency/src/pages/ReconciliationPage.tsx",
+   "target": "function:apps/agency/src/pages/ReconciliationPage.tsx:ReconciliationPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/agency/src/pages/ReportsPage.tsx",
+   "target": "function:apps/agency/src/pages/ReportsPage.tsx:ReportsPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/agency/src/pages/ReportsPage.tsx",
+   "target": "function:apps/agency/src/pages/ReportsPage.tsx:ManagementReportsSection",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/agency/src/pages/ResetPasswordPage.tsx",
+   "target": "function:apps/agency/src/pages/ResetPasswordPage.tsx:ResetPasswordPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/agency/src/pages/RevenuesPage.tsx",
+   "target": "function:apps/agency/src/pages/RevenuesPage.tsx:RevenuesPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/agency/src/pages/ReceivablesPage.tsx",
+   "target": "function:apps/agency/src/pages/ReceivablesPage.tsx:ReceivablesPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/agency/src/pages/ReconciliationPage.tsx",
+   "target": "function:apps/agency/src/pages/ReconciliationPage.tsx:ReconciliationPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/agency/src/pages/ReportsPage.tsx",
+   "target": "function:apps/agency/src/pages/ReportsPage.tsx:ReportsPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/agency/src/pages/ResetPasswordPage.tsx",
+   "target": "function:apps/agency/src/pages/ResetPasswordPage.tsx:ResetPasswordPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/agency/src/pages/RevenuesPage.tsx",
+   "target": "function:apps/agency/src/pages/RevenuesPage.tsx:RevenuesPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/agency/src/pages/ReceivablesPage.test.tsx",
+   "target": "file:apps/agency/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/ReceivablesPage.test.tsx",
+   "target": "file:apps/agency/src/pages/ReceivablesPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/ReceivablesPage.tsx",
+   "target": "file:apps/agency/src/components/layout/PageHeader.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/ReceivablesPage.tsx",
+   "target": "file:apps/agency/src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/ReceivablesPage.tsx",
+   "target": "file:apps/agency/src/components/ui/card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/ReceivablesPage.tsx",
+   "target": "file:apps/agency/src/components/ui/empty-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/ReceivablesPage.tsx",
+   "target": "file:apps/agency/src/components/ui/error-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/ReceivablesPage.tsx",
+   "target": "file:apps/agency/src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/ReceivablesPage.tsx",
+   "target": "file:apps/agency/src/components/ui/loading-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/ReceivablesPage.tsx",
+   "target": "file:apps/agency/src/components/ui/modal.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/ReceivablesPage.tsx",
+   "target": "file:apps/agency/src/components/ui/status-badge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/ReceivablesPage.tsx",
+   "target": "file:apps/agency/src/components/ui/textarea.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/ReceivablesPage.tsx",
+   "target": "file:apps/agency/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/ReceivablesPage.tsx",
+   "target": "file:apps/agency/src/lib/formatCurrency.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/ReceivablesPage.tsx",
+   "target": "file:apps/agency/src/lib/formatDateBR.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/ReceivablesPage.tsx",
+   "target": "file:apps/agency/src/types/customer.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/ReconciliationPage.tsx",
+   "target": "file:apps/agency/src/components/layout/PageHeader.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/ReconciliationPage.tsx",
+   "target": "file:apps/agency/src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/ReconciliationPage.tsx",
+   "target": "file:apps/agency/src/components/ui/card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/ReconciliationPage.tsx",
+   "target": "file:apps/agency/src/components/ui/empty-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/ReconciliationPage.tsx",
+   "target": "file:apps/agency/src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/ReconciliationPage.tsx",
+   "target": "file:apps/agency/src/components/ui/loading-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/ReconciliationPage.tsx",
+   "target": "file:apps/agency/src/components/ui/modal.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/ReconciliationPage.tsx",
+   "target": "file:apps/agency/src/components/ui/select.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/ReconciliationPage.tsx",
+   "target": "file:apps/agency/src/components/ui/status-badge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/ReconciliationPage.tsx",
+   "target": "file:apps/agency/src/components/ui/table.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/ReconciliationPage.tsx",
+   "target": "file:apps/agency/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/ReconciliationPage.tsx",
+   "target": "file:apps/agency/src/lib/formatCurrency.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/ReconciliationPage.tsx",
+   "target": "file:apps/agency/src/lib/formatDateBR.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/ReportsPage.test.tsx",
+   "target": "file:apps/agency/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/ReportsPage.test.tsx",
+   "target": "file:apps/agency/src/pages/ReportsPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/ReportsPage.tsx",
+   "target": "file:apps/agency/src/components/layout/PageHeader.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/ReportsPage.tsx",
+   "target": "file:apps/agency/src/components/ui/card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/ReportsPage.tsx",
+   "target": "file:apps/agency/src/components/ui/stat-card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/ReportsPage.tsx",
+   "target": "file:apps/agency/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/ReportsPage.tsx",
+   "target": "file:apps/agency/src/lib/statusLabels.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/ReportsPage.tsx",
+   "target": "file:apps/agency/src/types/trip.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/ResetPasswordPage.tsx",
+   "target": "file:apps/agency/src/lib/authApi.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/RevenuesPage.tsx",
+   "target": "file:apps/agency/src/components/layout/PageHeader.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/RevenuesPage.tsx",
+   "target": "file:apps/agency/src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/RevenuesPage.tsx",
+   "target": "file:apps/agency/src/components/ui/card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/RevenuesPage.tsx",
+   "target": "file:apps/agency/src/components/ui/empty-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/RevenuesPage.tsx",
+   "target": "file:apps/agency/src/components/ui/error-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/RevenuesPage.tsx",
+   "target": "file:apps/agency/src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/RevenuesPage.tsx",
+   "target": "file:apps/agency/src/components/ui/loading-state.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/RevenuesPage.tsx",
+   "target": "file:apps/agency/src/components/ui/modal.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/RevenuesPage.tsx",
+   "target": "file:apps/agency/src/components/ui/select.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/RevenuesPage.tsx",
+   "target": "file:apps/agency/src/components/ui/status-badge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/RevenuesPage.tsx",
+   "target": "file:apps/agency/src/components/ui/table.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/RevenuesPage.tsx",
+   "target": "file:apps/agency/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/RevenuesPage.tsx",
+   "target": "file:apps/agency/src/lib/formatCurrency.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/RevenuesPage.tsx",
+   "target": "file:apps/agency/src/lib/formatDateBR.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/SaleFinancialStoryPage.test.tsx",
+   "target": "file:apps/agency/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/SaleFinancialStoryPage.test.tsx",
+   "target": "file:apps/agency/src/pages/SaleFinancialStoryPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/agency/src/pages/ReceivablesPage.tsx",
+   "target": "file:apps/agency/src/pages/ReceivablesPage.test.tsx",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:apps/agency/src/pages/ReportsPage.tsx",
+   "target": "file:apps/agency/src/pages/ReportsPage.test.tsx",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "function:apps/agency/src/pages/ReceivablesPage.tsx:ReceivablesPage",
+   "target": "function:apps/agency/src/lib/api.ts:listReceivables",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/ReceivablesPage.tsx:ReceivablesPage",
+   "target": "function:apps/agency/src/lib/api.ts:listCustomers",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/ReceivablesPage.tsx:ReceivablesPage",
+   "target": "function:apps/agency/src/lib/formatCurrency.ts:formatBRL",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/ReceivablesPage.tsx:ReceivablesPage",
+   "target": "function:apps/agency/src/lib/formatDateBR.ts:formatDateBR",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/ReconciliationPage.tsx:ReconciliationPage",
+   "target": "function:apps/agency/src/lib/api.ts:listReconciliations",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/ReconciliationPage.tsx:ReconciliationPage",
+   "target": "function:apps/agency/src/lib/api.ts:listPayments",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/ReconciliationPage.tsx:ReconciliationPage",
+   "target": "function:apps/agency/src/lib/formatCurrency.ts:formatBRL",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/ReconciliationPage.tsx:ReconciliationPage",
+   "target": "function:apps/agency/src/lib/formatDateBR.ts:formatDateBR",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/ReportsPage.tsx:ReportsPage",
+   "target": "function:apps/agency/src/lib/statusLabels.ts:getTripStatusLabel",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/RevenuesPage.tsx:RevenuesPage",
+   "target": "function:apps/agency/src/lib/api.ts:listRevenues",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/RevenuesPage.tsx:RevenuesPage",
+   "target": "function:apps/agency/src/lib/api.ts:listRevenueCategories",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/RevenuesPage.tsx:RevenuesPage",
+   "target": "function:apps/agency/src/lib/formatCurrency.ts:formatBRL",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/agency/src/pages/RevenuesPage.tsx:RevenuesPage",
+   "target": "function:apps/agency/src/lib/formatDateBR.ts:formatDateBR",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  }
+ ]
+}

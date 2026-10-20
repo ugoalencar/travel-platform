@@ -1,0 +1,1220 @@
+{
+  "nodes": [
+    {
+      "id": "file:services/api/tests/wish-routes.test.ts",
+      "type": "file",
+      "name": "wish-routes.test.ts",
+      "filePath": "services/api/tests/wish-routes.test.ts",
+      "summary": "Testes das rotas HTTP de desejos (wishes) cobrindo autorização, CRUD e regras de negócio do domínio.",
+      "tags": [
+        "test",
+        "wish",
+        "http",
+        "authorization"
+      ],
+      "complexity": "complex",
+      "languageNotes": "Suíte baseada em Docker: helpers de segurança impedem execução contra bancos fora de localhost."
+    },
+    {
+      "id": "file:services/api/tests/wishes.test.ts",
+      "type": "file",
+      "name": "wishes.test.ts",
+      "filePath": "services/api/tests/wishes.test.ts",
+      "summary": "Testes do módulo de desejos com operações CRUD sob contexto de tenant e seed de clientes.",
+      "tags": [
+        "test",
+        "wish",
+        "crud",
+        "tenant"
+      ],
+      "complexity": "complex",
+      "languageNotes": "Suíte baseada em Docker: helpers de segurança impedem execução contra bancos fora de localhost."
+    },
+    {
+      "id": "file:tests/security/customer-segment-visibility.test.ts",
+      "type": "file",
+      "name": "customer-segment-visibility.test.ts",
+      "filePath": "tests/security/customer-segment-visibility.test.ts",
+      "summary": "Testes de segurança da visibilidade de segmentos de clientes em comunicações da agência e no portal do cliente.",
+      "tags": [
+        "test",
+        "security",
+        "segmentation",
+        "visibility"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:tests/security/import-allowlist.test.ts",
+      "type": "file",
+      "name": "import-allowlist.test.ts",
+      "filePath": "tests/security/import-allowlist.test.ts",
+      "summary": "Testes da allowlist de importação, garantindo que apenas campos permitidos sejam aceitos pelo serviço de import.",
+      "tags": [
+        "test",
+        "security",
+        "import",
+        "validation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tests/security/platform-dev-auth.test.ts",
+      "type": "file",
+      "name": "platform-dev-auth.test.ts",
+      "filePath": "tests/security/platform-dev-auth.test.ts",
+      "summary": "Testes do autenticador de desenvolvimento da plataforma, verificando ativação condicional e rejeição em produção.",
+      "tags": [
+        "test",
+        "security",
+        "platform-auth",
+        "dev-auth"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:tests/security/platform-write-rbac.test.ts",
+      "type": "file",
+      "name": "platform-write-rbac.test.ts",
+      "filePath": "tests/security/platform-write-rbac.test.ts",
+      "summary": "Testes de RBAC para operações de escrita da plataforma, validando permissões por papel nos endpoints.",
+      "tags": [
+        "test",
+        "security",
+        "rbac",
+        "authorization"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:tests/security/storage-provider.test.ts",
+      "type": "file",
+      "name": "storage-provider.test.ts",
+      "filePath": "tests/security/storage-provider.test.ts",
+      "summary": "Testes da seleção do provider de storage, cobrindo mocks dos drivers e comportamento do factory.",
+      "tags": [
+        "test",
+        "storage",
+        "provider",
+        "factory"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tests/security/tenant-fastify-lifecycle.test.ts",
+      "type": "file",
+      "name": "tenant-fastify-lifecycle.test.ts",
+      "filePath": "tests/security/tenant-fastify-lifecycle.test.ts",
+      "summary": "Testes do ciclo de vida dos hooks de tenant no Fastify, incluindo criação e limpeza de contexto entre requisições.",
+      "tags": [
+        "test",
+        "tenant",
+        "fastify",
+        "lifecycle"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tests/security/tenant-isolation.test.ts",
+      "type": "file",
+      "name": "tenant-isolation.test.ts",
+      "filePath": "tests/security/tenant-isolation.test.ts",
+      "summary": "Testes de isolamento de tenant na camada de queries, garantindo filtro automático por agência em repositórios.",
+      "tags": [
+        "test",
+        "security",
+        "tenant-isolation",
+        "queries"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:tests/security/tenant-repository-error-safety.test.ts",
+      "type": "file",
+      "name": "tenant-repository-error-safety.test.ts",
+      "filePath": "tests/security/tenant-repository-error-safety.test.ts",
+      "summary": "Testes de segurança de erro dos repositórios de tenant, assegurando falha fechada quando não há contexto ativo.",
+      "tags": [
+        "test",
+        "tenant",
+        "error-handling",
+        "repository"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:services/api/tests/wish-routes.test.ts:assertSafeTestDatabase",
+      "type": "function",
+      "name": "assertSafeTestDatabase",
+      "filePath": "services/api/tests/wish-routes.test.ts",
+      "lineRange": [
+        652,
+        675
+      ],
+      "summary": "Valida que o banco alvo é um container de teste local antes de executar operações destrutivas.",
+      "tags": [
+        "test",
+        "database",
+        "safety-guard"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:services/api/tests/wish-routes.test.ts:waitForHealthyContainer",
+      "type": "function",
+      "name": "waitForHealthyContainer",
+      "filePath": "services/api/tests/wish-routes.test.ts",
+      "lineRange": [
+        687,
+        708
+      ],
+      "summary": "Aguarda o container do PostgreSQL ficar healthy antes da execução dos testes.",
+      "tags": [
+        "test",
+        "docker",
+        "health-check"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:services/api/tests/wish-routes.test.ts:assertContainerIsLocal",
+      "type": "function",
+      "name": "assertContainerIsLocal",
+      "filePath": "services/api/tests/wish-routes.test.ts",
+      "lineRange": [
+        710,
+        723
+      ],
+      "summary": "Garante que o container apontado pertence ao ambiente local de desenvolvimento.",
+      "tags": [
+        "test",
+        "docker",
+        "safety-guard"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:services/api/tests/wish-routes.test.ts:resetDatabase",
+      "type": "function",
+      "name": "resetDatabase",
+      "filePath": "services/api/tests/wish-routes.test.ts",
+      "lineRange": [
+        725,
+        737
+      ],
+      "summary": "Restaura o schema do banco aplicando o reset das migrations entre testes.",
+      "tags": [
+        "test",
+        "database",
+        "migrations"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:services/api/tests/wish-routes.test.ts:seedAgenciesAndUsers",
+      "type": "function",
+      "name": "seedAgenciesAndUsers",
+      "filePath": "services/api/tests/wish-routes.test.ts",
+      "lineRange": [
+        746,
+        765
+      ],
+      "summary": "Insere agências e usuários base necessários aos cenários de teste HTTP.",
+      "tags": [
+        "test",
+        "fixture",
+        "seed"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:services/api/tests/wish-routes.test.ts:run",
+      "type": "function",
+      "name": "run",
+      "filePath": "services/api/tests/wish-routes.test.ts",
+      "lineRange": [
+        772,
+        800
+      ],
+      "summary": "Orquestra a execução de comandos shell (docker/psql) usados pela suíte de teste.",
+      "tags": [
+        "test",
+        "orchestration",
+        "shell"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:services/api/tests/wishes.test.ts:assertSafeTestDatabase",
+      "type": "function",
+      "name": "assertSafeTestDatabase",
+      "filePath": "services/api/tests/wishes.test.ts",
+      "lineRange": [
+        235,
+        258
+      ],
+      "summary": "Valida que o banco alvo é um container de teste local antes de executar operações destrutivas.",
+      "tags": [
+        "test",
+        "database",
+        "safety-guard"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:services/api/tests/wishes.test.ts:waitForHealthyContainer",
+      "type": "function",
+      "name": "waitForHealthyContainer",
+      "filePath": "services/api/tests/wishes.test.ts",
+      "lineRange": [
+        270,
+        291
+      ],
+      "summary": "Aguarda o container do PostgreSQL ficar healthy antes da execução dos testes.",
+      "tags": [
+        "test",
+        "docker",
+        "health-check"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:services/api/tests/wishes.test.ts:assertContainerIsLocal",
+      "type": "function",
+      "name": "assertContainerIsLocal",
+      "filePath": "services/api/tests/wishes.test.ts",
+      "lineRange": [
+        293,
+        306
+      ],
+      "summary": "Garante que o container apontado pertence ao ambiente local de desenvolvimento.",
+      "tags": [
+        "test",
+        "docker",
+        "safety-guard"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:services/api/tests/wishes.test.ts:seedAgenciesAndUsers",
+      "type": "function",
+      "name": "seedAgenciesAndUsers",
+      "filePath": "services/api/tests/wishes.test.ts",
+      "lineRange": [
+        323,
+        342
+      ],
+      "summary": "Insere agências e usuários base necessários aos cenários de teste HTTP.",
+      "tags": [
+        "test",
+        "fixture",
+        "seed"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:services/api/tests/wishes.test.ts:run",
+      "type": "function",
+      "name": "run",
+      "filePath": "services/api/tests/wishes.test.ts",
+      "lineRange": [
+        349,
+        377
+      ],
+      "summary": "Orquestra a execução de comandos shell (docker/psql) usados pela suíte de teste.",
+      "tags": [
+        "test",
+        "orchestration",
+        "shell"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/security/customer-segment-visibility.test.ts:offerRow",
+      "type": "function",
+      "name": "offerRow",
+      "filePath": "tests/security/customer-segment-visibility.test.ts",
+      "lineRange": [
+        60,
+        79
+      ],
+      "summary": "Monta uma linha de exemplo de oferta para os cenários de segmentação.",
+      "tags": [
+        "test",
+        "fixture",
+        "offer"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/security/customer-segment-visibility.test.ts:communicationRow",
+      "type": "function",
+      "name": "communicationRow",
+      "filePath": "tests/security/customer-segment-visibility.test.ts",
+      "lineRange": [
+        81,
+        103
+      ],
+      "summary": "Monta uma linha de exemplo de comunicação usada nos testes de visibilidade.",
+      "tags": [
+        "test",
+        "fixture",
+        "communication"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/security/import-allowlist.test.ts:buildTestApp",
+      "type": "function",
+      "name": "buildTestApp",
+      "filePath": "tests/security/import-allowlist.test.ts",
+      "lineRange": [
+        45,
+        78
+      ],
+      "summary": "Constrói a instância Fastify do app para os testes injetando autenticação de teste, validação de agência e runtime de banco.",
+      "tags": [
+        "test",
+        "fixture",
+        "app-builder"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/security/platform-dev-auth.test.ts:buildTestApp",
+      "type": "function",
+      "name": "buildTestApp",
+      "filePath": "tests/security/platform-dev-auth.test.ts",
+      "lineRange": [
+        17,
+        45
+      ],
+      "summary": "Constrói a instância Fastify do app para os testes injetando autenticação de teste, validação de agência e runtime de banco.",
+      "tags": [
+        "test",
+        "fixture",
+        "app-builder"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/security/platform-write-rbac.test.ts:buildTestApp",
+      "type": "function",
+      "name": "buildTestApp",
+      "filePath": "tests/security/platform-write-rbac.test.ts",
+      "lineRange": [
+        94,
+        126
+      ],
+      "summary": "Constrói a instância Fastify do app para os testes injetando autenticação de teste, validação de agência e runtime de banco.",
+      "tags": [
+        "test",
+        "fixture",
+        "app-builder"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/security/platform-write-rbac.test.ts:toInjectOptions",
+      "type": "function",
+      "name": "toInjectOptions",
+      "filePath": "tests/security/platform-write-rbac.test.ts",
+      "lineRange": [
+        135,
+        147
+      ],
+      "summary": "Converte método, URL e payload em opções de injeção do Fastify.",
+      "tags": [
+        "test",
+        "helper",
+        "fastify"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/security/storage-provider.test.ts:loadMocks",
+      "type": "function",
+      "name": "loadMocks",
+      "filePath": "tests/security/storage-provider.test.ts",
+      "lineRange": [
+        21,
+        36
+      ],
+      "summary": "Carrega mocks dinâmicos do provider de storage conforme o driver selecionado.",
+      "tags": [
+        "test",
+        "mock",
+        "storage"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/security/tenant-fastify-lifecycle.test.ts:buildApp",
+      "type": "function",
+      "name": "buildApp",
+      "filePath": "tests/security/tenant-fastify-lifecycle.test.ts",
+      "lineRange": [
+        36,
+        90
+      ],
+      "summary": "Constrói um app Fastify local com hooks de tenant para testar o ciclo de vida das requisições.",
+      "tags": [
+        "test",
+        "app-builder",
+        "tenant",
+        "fastify"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/security/tenant-isolation.test.ts:createReply",
+      "type": "function",
+      "name": "createReply",
+      "filePath": "tests/security/tenant-isolation.test.ts",
+      "lineRange": [
+        262,
+        273
+      ],
+      "summary": "Cria um objeto reply simulado para interceptar o comportamento das rotas.",
+      "tags": [
+        "test",
+        "mock",
+        "fastify"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/security/tenant-isolation.test.ts:createQueryClient",
+      "type": "function",
+      "name": "createQueryClient",
+      "filePath": "tests/security/tenant-isolation.test.ts",
+      "lineRange": [
+        275,
+        285
+      ],
+      "summary": "Cria um cliente de query simulado que registra as consultas executadas.",
+      "tags": [
+        "test",
+        "mock",
+        "database"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:services/api/tests/wish-routes.test.ts",
+      "target": "file:packages/domain/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/domain/types.ts",
+      "target": "file:services/api/tests/wish-routes.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:services/api/tests/wish-routes.test.ts",
+      "target": "file:services/api/src/app.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:services/api/src/app.ts",
+      "target": "file:services/api/tests/wish-routes.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:services/api/tests/wish-routes.test.ts",
+      "target": "file:services/api/src/auth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:services/api/src/auth.ts",
+      "target": "file:services/api/tests/wish-routes.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:services/api/tests/wish-routes.test.ts",
+      "target": "file:services/api/src/database.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:services/api/src/database.ts",
+      "target": "file:services/api/tests/wish-routes.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:services/api/tests/wishes.test.ts",
+      "target": "file:packages/domain/tenant-context.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/domain/tenant-context.ts",
+      "target": "file:services/api/tests/wishes.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:services/api/tests/wishes.test.ts",
+      "target": "file:packages/domain/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/domain/types.ts",
+      "target": "file:services/api/tests/wishes.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:services/api/tests/wishes.test.ts",
+      "target": "file:services/api/src/database.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:services/api/src/database.ts",
+      "target": "file:services/api/tests/wishes.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:services/api/tests/wishes.test.ts",
+      "target": "file:services/api/src/wishes.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:services/api/src/wishes.ts",
+      "target": "file:services/api/tests/wishes.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:tests/security/customer-segment-visibility.test.ts",
+      "target": "file:packages/domain/tenant-context.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/domain/tenant-context.ts",
+      "target": "file:tests/security/customer-segment-visibility.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:tests/security/customer-segment-visibility.test.ts",
+      "target": "file:packages/domain/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/domain/types.ts",
+      "target": "file:tests/security/customer-segment-visibility.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:tests/security/customer-segment-visibility.test.ts",
+      "target": "file:services/api/src/agency-communications.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:services/api/src/agency-communications.ts",
+      "target": "file:tests/security/customer-segment-visibility.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:tests/security/customer-segment-visibility.test.ts",
+      "target": "file:services/api/src/customer-portal.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:services/api/src/customer-portal.ts",
+      "target": "file:tests/security/customer-segment-visibility.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:tests/security/customer-segment-visibility.test.ts",
+      "target": "file:services/api/src/customer-segmentation.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:services/api/src/customer-segmentation.ts",
+      "target": "file:tests/security/customer-segment-visibility.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:tests/security/customer-segment-visibility.test.ts",
+      "target": "file:services/api/src/database.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:services/api/src/database.ts",
+      "target": "file:tests/security/customer-segment-visibility.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:tests/security/import-allowlist.test.ts",
+      "target": "file:packages/domain/tenant-context.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/domain/tenant-context.ts",
+      "target": "file:tests/security/import-allowlist.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:tests/security/import-allowlist.test.ts",
+      "target": "file:packages/domain/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/domain/types.ts",
+      "target": "file:tests/security/import-allowlist.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:tests/security/import-allowlist.test.ts",
+      "target": "file:services/api/src/app.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:services/api/src/app.ts",
+      "target": "file:tests/security/import-allowlist.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:tests/security/import-allowlist.test.ts",
+      "target": "file:services/api/src/database.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:services/api/src/database.ts",
+      "target": "file:tests/security/import-allowlist.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:tests/security/import-allowlist.test.ts",
+      "target": "file:services/api/src/errors.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:services/api/src/errors.ts",
+      "target": "file:tests/security/import-allowlist.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:tests/security/import-allowlist.test.ts",
+      "target": "file:services/api/src/import/allowlist.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:services/api/src/import/allowlist.ts",
+      "target": "file:tests/security/import-allowlist.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:tests/security/import-allowlist.test.ts",
+      "target": "file:services/api/src/import/service.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:services/api/src/import/service.ts",
+      "target": "file:tests/security/import-allowlist.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:tests/security/import-allowlist.test.ts",
+      "target": "file:services/api/src/import/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:services/api/src/import/types.ts",
+      "target": "file:tests/security/import-allowlist.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:tests/security/platform-dev-auth.test.ts",
+      "target": "file:packages/domain/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/domain/types.ts",
+      "target": "file:tests/security/platform-dev-auth.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:tests/security/platform-dev-auth.test.ts",
+      "target": "file:services/api/src/app.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:services/api/src/app.ts",
+      "target": "file:tests/security/platform-dev-auth.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:tests/security/platform-dev-auth.test.ts",
+      "target": "file:services/api/src/database.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:services/api/src/database.ts",
+      "target": "file:tests/security/platform-dev-auth.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:tests/security/platform-dev-auth.test.ts",
+      "target": "file:services/api/src/platform-dev-auth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:services/api/src/platform-dev-auth.ts",
+      "target": "file:tests/security/platform-dev-auth.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:tests/security/platform-write-rbac.test.ts",
+      "target": "file:packages/domain/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/domain/types.ts",
+      "target": "file:tests/security/platform-write-rbac.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:tests/security/platform-write-rbac.test.ts",
+      "target": "file:services/api/src/app.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:services/api/src/app.ts",
+      "target": "file:tests/security/platform-write-rbac.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:tests/security/platform-write-rbac.test.ts",
+      "target": "file:services/api/src/database.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:services/api/src/database.ts",
+      "target": "file:tests/security/platform-write-rbac.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:tests/security/storage-provider.test.ts",
+      "target": "file:services/api/src/storage.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:services/api/src/storage.ts",
+      "target": "file:tests/security/storage-provider.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:tests/security/tenant-fastify-lifecycle.test.ts",
+      "target": "file:packages/domain/tenant-context.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/domain/tenant-context.ts",
+      "target": "file:tests/security/tenant-fastify-lifecycle.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:tests/security/tenant-fastify-lifecycle.test.ts",
+      "target": "file:packages/domain/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/domain/types.ts",
+      "target": "file:tests/security/tenant-fastify-lifecycle.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:tests/security/tenant-isolation.test.ts",
+      "target": "file:packages/domain/tenant-context.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/domain/tenant-context.ts",
+      "target": "file:tests/security/tenant-isolation.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:tests/security/tenant-isolation.test.ts",
+      "target": "file:packages/domain/tenant-scoped-queries.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/domain/tenant-scoped-queries.ts",
+      "target": "file:tests/security/tenant-isolation.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:tests/security/tenant-isolation.test.ts",
+      "target": "file:packages/domain/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/domain/types.ts",
+      "target": "file:tests/security/tenant-isolation.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:tests/security/tenant-repository-error-safety.test.ts",
+      "target": "file:packages/domain/tenant-context.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/domain/tenant-context.ts",
+      "target": "file:tests/security/tenant-repository-error-safety.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:tests/security/tenant-repository-error-safety.test.ts",
+      "target": "file:packages/domain/tenant-scoped-queries.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/domain/tenant-scoped-queries.ts",
+      "target": "file:tests/security/tenant-repository-error-safety.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:tests/security/tenant-repository-error-safety.test.ts",
+      "target": "file:packages/domain/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/domain/types.ts",
+      "target": "file:tests/security/tenant-repository-error-safety.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:services/api/tests/wish-routes.test.ts",
+      "target": "function:services/api/tests/wish-routes.test.ts:assertSafeTestDatabase",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:services/api/tests/wish-routes.test.ts",
+      "target": "function:services/api/tests/wish-routes.test.ts:waitForHealthyContainer",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:services/api/tests/wish-routes.test.ts",
+      "target": "function:services/api/tests/wish-routes.test.ts:assertContainerIsLocal",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:services/api/tests/wish-routes.test.ts",
+      "target": "function:services/api/tests/wish-routes.test.ts:resetDatabase",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:services/api/tests/wish-routes.test.ts",
+      "target": "function:services/api/tests/wish-routes.test.ts:seedAgenciesAndUsers",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:services/api/tests/wish-routes.test.ts",
+      "target": "function:services/api/tests/wish-routes.test.ts:run",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:services/api/tests/wishes.test.ts",
+      "target": "function:services/api/tests/wishes.test.ts:assertSafeTestDatabase",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:services/api/tests/wishes.test.ts",
+      "target": "function:services/api/tests/wishes.test.ts:waitForHealthyContainer",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:services/api/tests/wishes.test.ts",
+      "target": "function:services/api/tests/wishes.test.ts:assertContainerIsLocal",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:services/api/tests/wishes.test.ts",
+      "target": "function:services/api/tests/wishes.test.ts:seedAgenciesAndUsers",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:services/api/tests/wishes.test.ts",
+      "target": "function:services/api/tests/wishes.test.ts:run",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/security/customer-segment-visibility.test.ts",
+      "target": "function:tests/security/customer-segment-visibility.test.ts:offerRow",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/security/customer-segment-visibility.test.ts",
+      "target": "function:tests/security/customer-segment-visibility.test.ts:communicationRow",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/security/import-allowlist.test.ts",
+      "target": "function:tests/security/import-allowlist.test.ts:buildTestApp",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/security/platform-dev-auth.test.ts",
+      "target": "function:tests/security/platform-dev-auth.test.ts:buildTestApp",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/security/platform-write-rbac.test.ts",
+      "target": "function:tests/security/platform-write-rbac.test.ts:buildTestApp",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/security/platform-write-rbac.test.ts",
+      "target": "function:tests/security/platform-write-rbac.test.ts:toInjectOptions",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/security/storage-provider.test.ts",
+      "target": "function:tests/security/storage-provider.test.ts:loadMocks",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/security/tenant-fastify-lifecycle.test.ts",
+      "target": "function:tests/security/tenant-fastify-lifecycle.test.ts:buildApp",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/security/tenant-isolation.test.ts",
+      "target": "function:tests/security/tenant-isolation.test.ts:createReply",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/security/tenant-isolation.test.ts",
+      "target": "function:tests/security/tenant-isolation.test.ts:createQueryClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "function:tests/security/import-allowlist.test.ts:buildTestApp",
+      "target": "function:services/api/src/app.ts:buildApp",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:tests/security/platform-dev-auth.test.ts:buildTestApp",
+      "target": "function:services/api/src/app.ts:buildApp",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:tests/security/platform-write-rbac.test.ts:buildTestApp",
+      "target": "function:services/api/src/app.ts:buildApp",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:tests/security/tenant-fastify-lifecycle.test.ts:buildApp",
+      "target": "function:packages/domain/tenant-context.ts:createTenantContextHook",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:tests/security/tenant-fastify-lifecycle.test.ts:buildApp",
+      "target": "function:packages/domain/tenant-context.ts:getAgencyId",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

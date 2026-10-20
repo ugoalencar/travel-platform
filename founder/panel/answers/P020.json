@@ -1,0 +1,13 @@
+{
+  "id": "P020",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Até que algum nome conhecido no mercado de agências esteja usando e falando bem, pra mim isso é só uma tela bonita. Eu cuido do financeiro da minha agência sozinha no fim do mês e não vou trocar minha planilha por um sistema sem ninguém pra confirmar que funciona de verdade.",
+  "objection": "Não tem nenhuma agência conhecida usando isso — quem já usa e recomenda? Sem isso eu não arrisco meus dados de cliente numa migração.",
+  "would_change_my_mind": "Se eu visse 2 ou 3 agências do meu porte, com nome e depoimento público, usando o sistema há uns meses sem problema, e se eu conseguisse entrar no Programa Agência Pioneira com o desconto de R$79 enquanto testo sem compromisso.",
+  "price_too_cheap": 30,
+  "price_cheap": 50,
+  "price_expensive": 120,
+  "price_too_expensive": 180
+}

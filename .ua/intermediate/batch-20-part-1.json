@@ -1,0 +1,1316 @@
+{
+  "nodes": [
+    {
+      "id": "file:services/api/tests/sec-a-api-exposure.test.ts",
+      "type": "file",
+      "name": "sec-a-api-exposure.test.ts",
+      "filePath": "services/api/tests/sec-a-api-exposure.test.ts",
+      "summary": "Suite de testes de segurança que valida a exposição da superfície da API: classificação de rotas, ausência de endpoints não catalogados e comportamento seguro dos hooks de autenticação.",
+      "tags": [
+        "test",
+        "security",
+        "api-exposure",
+        "route-classification"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:services/api/tests/sec-g-privacy-idor.test.ts",
+      "type": "file",
+      "name": "sec-g-privacy-idor.test.ts",
+      "filePath": "services/api/tests/sec-g-privacy-idor.test.ts",
+      "summary": "Suite de testes de segurança focada em vazamento de privacidade e falhas de autorização do tipo IDOR nos endpoints autenticados da API.",
+      "tags": [
+        "test",
+        "security",
+        "idor",
+        "privacy",
+        "authorization"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:services/api/tests/security-headers.test.ts",
+      "type": "file",
+      "name": "security-headers.test.ts",
+      "filePath": "services/api/tests/security-headers.test.ts",
+      "summary": "Verifica cabeçalhos de segurança HTTP, política de CORS e limites de corpo da aplicação Fastify.",
+      "tags": [
+        "test",
+        "security",
+        "headers",
+        "cors"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:services/api/tests/storage-delete.test.ts",
+      "type": "file",
+      "name": "storage-delete.test.ts",
+      "filePath": "services/api/tests/storage-delete.test.ts",
+      "summary": "Teste pontual que confirma a exclusão de arquivos do storage após o commit da transação.",
+      "tags": [
+        "test",
+        "storage",
+        "delete",
+        "transaction"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:services/api/tests/suppliers-http.test.ts",
+      "type": "file",
+      "name": "suppliers-http.test.ts",
+      "filePath": "services/api/tests/suppliers-http.test.ts",
+      "summary": "Testes de integração HTTP dos endpoints de fornecedores usando banco descartável em container Docker.",
+      "tags": [
+        "test",
+        "suppliers",
+        "http",
+        "integration",
+        "docker"
+      ],
+      "complexity": "complex",
+      "languageNotes": "Suíte baseada em Docker: helpers de segurança impedem execução contra bancos fora de localhost."
+    },
+    {
+      "id": "file:services/api/tests/suppliers.test.ts",
+      "type": "file",
+      "name": "suppliers.test.ts",
+      "filePath": "services/api/tests/suppliers.test.ts",
+      "summary": "Testes das operações CRUD de fornecedores contra o banco real de teste, com verificação de segurança do container.",
+      "tags": [
+        "test",
+        "suppliers",
+        "crud",
+        "database"
+      ],
+      "complexity": "complex",
+      "languageNotes": "Suíte baseada em Docker: helpers de segurança impedem execução contra bancos fora de localhost."
+    },
+    {
+      "id": "file:services/api/tests/support-center.test.ts",
+      "type": "file",
+      "name": "support-center.test.ts",
+      "filePath": "services/api/tests/support-center.test.ts",
+      "summary": "Testes do módulo de central de suporte usando um runtime de banco gravador para validar as chamadas executadas.",
+      "tags": [
+        "test",
+        "support-center",
+        "recording-database"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:services/api/tests/transport-operations-http.test.ts",
+      "type": "file",
+      "name": "transport-operations-http.test.ts",
+      "filePath": "services/api/tests/transport-operations-http.test.ts",
+      "summary": "Testes HTTP do domínio de operações de transporte, com seed de dados e banco descartável em container.",
+      "tags": [
+        "test",
+        "transport",
+        "operations",
+        "http",
+        "integration"
+      ],
+      "complexity": "complex",
+      "languageNotes": "Suíte baseada em Docker: helpers de segurança impedem execução contra bancos fora de localhost."
+    },
+    {
+      "id": "file:services/api/tests/transport-operations.test.ts",
+      "type": "file",
+      "name": "transport-operations.test.ts",
+      "filePath": "services/api/tests/transport-operations.test.ts",
+      "summary": "Testes das operações de transporte (criação, alocação e confirmações de chegada/partida) sob contexto de tenant.",
+      "tags": [
+        "test",
+        "transport",
+        "operations",
+        "tenant"
+      ],
+      "complexity": "complex",
+      "languageNotes": "Suíte baseada em Docker: helpers de segurança impedem execução contra bancos fora de localhost."
+    },
+    {
+      "id": "file:services/api/tests/transport-products-http.test.ts",
+      "type": "file",
+      "name": "transport-products-http.test.ts",
+      "filePath": "services/api/tests/transport-products-http.test.ts",
+      "summary": "Testes HTTP do catálogo de produtos de transporte com banco de teste em container local.",
+      "tags": [
+        "test",
+        "transport",
+        "products",
+        "http"
+      ],
+      "complexity": "complex",
+      "languageNotes": "Suíte baseada em Docker: helpers de segurança impedem execução contra bancos fora de localhost."
+    },
+    {
+      "id": "function:services/api/tests/sec-a-api-exposure.test.ts:buildTestApp",
+      "type": "function",
+      "name": "buildTestApp",
+      "filePath": "services/api/tests/sec-a-api-exposure.test.ts",
+      "lineRange": [
+        76,
+        137
+      ],
+      "summary": "Constrói a instância Fastify do app para os testes injetando autenticação de teste, validação de agência e runtime de banco.",
+      "tags": [
+        "test",
+        "fixture",
+        "app-builder"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:services/api/tests/sec-g-privacy-idor.test.ts:buildTestApp",
+      "type": "function",
+      "name": "buildTestApp",
+      "filePath": "services/api/tests/sec-g-privacy-idor.test.ts",
+      "lineRange": [
+        78,
+        133
+      ],
+      "summary": "Constrói a instância Fastify do app para os testes injetando autenticação de teste, validação de agência e runtime de banco.",
+      "tags": [
+        "test",
+        "fixture",
+        "app-builder"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:services/api/tests/suppliers-http.test.ts:assertSafeTestDatabase",
+      "type": "function",
+      "name": "assertSafeTestDatabase",
+      "filePath": "services/api/tests/suppliers-http.test.ts",
+      "lineRange": [
+        328,
+        347
+      ],
+      "summary": "Valida que o banco alvo é um container de teste local antes de executar operações destrutivas.",
+      "tags": [
+        "test",
+        "database",
+        "safety-guard"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:services/api/tests/suppliers-http.test.ts:waitForHealthyContainer",
+      "type": "function",
+      "name": "waitForHealthyContainer",
+      "filePath": "services/api/tests/suppliers-http.test.ts",
+      "lineRange": [
+        359,
+        372
+      ],
+      "summary": "Aguarda o container do PostgreSQL ficar healthy antes da execução dos testes.",
+      "tags": [
+        "test",
+        "docker",
+        "health-check"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:services/api/tests/suppliers-http.test.ts:seedAgenciesAndUsers",
+      "type": "function",
+      "name": "seedAgenciesAndUsers",
+      "filePath": "services/api/tests/suppliers-http.test.ts",
+      "lineRange": [
+        399,
+        418
+      ],
+      "summary": "Insere agências e usuários base necessários aos cenários de teste HTTP.",
+      "tags": [
+        "test",
+        "fixture",
+        "seed"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:services/api/tests/suppliers-http.test.ts:run",
+      "type": "function",
+      "name": "run",
+      "filePath": "services/api/tests/suppliers-http.test.ts",
+      "lineRange": [
+        425,
+        444
+      ],
+      "summary": "Orquestra a execução de comandos shell (docker/psql) usados pela suíte de teste.",
+      "tags": [
+        "test",
+        "orchestration",
+        "shell"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:services/api/tests/suppliers.test.ts:assertSafeTestDatabase",
+      "type": "function",
+      "name": "assertSafeTestDatabase",
+      "filePath": "services/api/tests/suppliers.test.ts",
+      "lineRange": [
+        170,
+        189
+      ],
+      "summary": "Valida que o banco alvo é um container de teste local antes de executar operações destrutivas.",
+      "tags": [
+        "test",
+        "database",
+        "safety-guard"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:services/api/tests/suppliers.test.ts:waitForHealthyContainer",
+      "type": "function",
+      "name": "waitForHealthyContainer",
+      "filePath": "services/api/tests/suppliers.test.ts",
+      "lineRange": [
+        201,
+        214
+      ],
+      "summary": "Aguarda o container do PostgreSQL ficar healthy antes da execução dos testes.",
+      "tags": [
+        "test",
+        "docker",
+        "health-check"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:services/api/tests/suppliers.test.ts:seedAgenciesAndUsers",
+      "type": "function",
+      "name": "seedAgenciesAndUsers",
+      "filePath": "services/api/tests/suppliers.test.ts",
+      "lineRange": [
+        241,
+        260
+      ],
+      "summary": "Insere agências e usuários base necessários aos cenários de teste HTTP.",
+      "tags": [
+        "test",
+        "fixture",
+        "seed"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:services/api/tests/suppliers.test.ts:run",
+      "type": "function",
+      "name": "run",
+      "filePath": "services/api/tests/suppliers.test.ts",
+      "lineRange": [
+        267,
+        286
+      ],
+      "summary": "Orquestra a execução de comandos shell (docker/psql) usados pela suíte de teste.",
+      "tags": [
+        "test",
+        "orchestration",
+        "shell"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:services/api/tests/support-center.test.ts:buildRecordingDatabase",
+      "type": "function",
+      "name": "buildRecordingDatabase",
+      "filePath": "services/api/tests/support-center.test.ts",
+      "lineRange": [
+        9,
+        92
+      ],
+      "summary": "Cria um runtime de banco de dados que grava todas as chamadas para asserções dos testes.",
+      "tags": [
+        "test",
+        "database",
+        "recording"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:services/api/tests/support-center.test.ts:buildTestApp",
+      "type": "function",
+      "name": "buildTestApp",
+      "filePath": "services/api/tests/support-center.test.ts",
+      "lineRange": [
+        94,
+        131
+      ],
+      "summary": "Constrói a instância Fastify do app para os testes injetando autenticação de teste, validação de agência e runtime de banco.",
+      "tags": [
+        "test",
+        "fixture",
+        "app-builder"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:services/api/tests/transport-operations-http.test.ts:assertSafeTestDatabase",
+      "type": "function",
+      "name": "assertSafeTestDatabase",
+      "filePath": "services/api/tests/transport-operations-http.test.ts",
+      "lineRange": [
+        667,
+        686
+      ],
+      "summary": "Valida que o banco alvo é um container de teste local antes de executar operações destrutivas.",
+      "tags": [
+        "test",
+        "database",
+        "safety-guard"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:services/api/tests/transport-operations-http.test.ts:waitForHealthyContainer",
+      "type": "function",
+      "name": "waitForHealthyContainer",
+      "filePath": "services/api/tests/transport-operations-http.test.ts",
+      "lineRange": [
+        698,
+        711
+      ],
+      "summary": "Aguarda o container do PostgreSQL ficar healthy antes da execução dos testes.",
+      "tags": [
+        "test",
+        "docker",
+        "health-check"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:services/api/tests/transport-operations-http.test.ts:resetDatabase",
+      "type": "function",
+      "name": "resetDatabase",
+      "filePath": "services/api/tests/transport-operations-http.test.ts",
+      "lineRange": [
+        721,
+        731
+      ],
+      "summary": "Restaura o schema do banco aplicando o reset das migrations entre testes.",
+      "tags": [
+        "test",
+        "database",
+        "migrations"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:services/api/tests/transport-operations-http.test.ts:seedAgenciesAndUsers",
+      "type": "function",
+      "name": "seedAgenciesAndUsers",
+      "filePath": "services/api/tests/transport-operations-http.test.ts",
+      "lineRange": [
+        740,
+        760
+      ],
+      "summary": "Insere agências e usuários base necessários aos cenários de teste HTTP.",
+      "tags": [
+        "test",
+        "fixture",
+        "seed"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:services/api/tests/transport-operations-http.test.ts:run",
+      "type": "function",
+      "name": "run",
+      "filePath": "services/api/tests/transport-operations-http.test.ts",
+      "lineRange": [
+        767,
+        786
+      ],
+      "summary": "Orquestra a execução de comandos shell (docker/psql) usados pela suíte de teste.",
+      "tags": [
+        "test",
+        "orchestration",
+        "shell"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:services/api/tests/transport-operations.test.ts:assertSafeTestDatabase",
+      "type": "function",
+      "name": "assertSafeTestDatabase",
+      "filePath": "services/api/tests/transport-operations.test.ts",
+      "lineRange": [
+        332,
+        351
+      ],
+      "summary": "Valida que o banco alvo é um container de teste local antes de executar operações destrutivas.",
+      "tags": [
+        "test",
+        "database",
+        "safety-guard"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:services/api/tests/transport-operations.test.ts:waitForHealthyContainer",
+      "type": "function",
+      "name": "waitForHealthyContainer",
+      "filePath": "services/api/tests/transport-operations.test.ts",
+      "lineRange": [
+        363,
+        376
+      ],
+      "summary": "Aguarda o container do PostgreSQL ficar healthy antes da execução dos testes.",
+      "tags": [
+        "test",
+        "docker",
+        "health-check"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:services/api/tests/transport-operations.test.ts:resetDatabase",
+      "type": "function",
+      "name": "resetDatabase",
+      "filePath": "services/api/tests/transport-operations.test.ts",
+      "lineRange": [
+        386,
+        396
+      ],
+      "summary": "Restaura o schema do banco aplicando o reset das migrations entre testes.",
+      "tags": [
+        "test",
+        "database",
+        "migrations"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:services/api/tests/transport-operations.test.ts:seedAgenciesAndUsers",
+      "type": "function",
+      "name": "seedAgenciesAndUsers",
+      "filePath": "services/api/tests/transport-operations.test.ts",
+      "lineRange": [
+        405,
+        424
+      ],
+      "summary": "Insere agências e usuários base necessários aos cenários de teste HTTP.",
+      "tags": [
+        "test",
+        "fixture",
+        "seed"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:services/api/tests/transport-operations.test.ts:run",
+      "type": "function",
+      "name": "run",
+      "filePath": "services/api/tests/transport-operations.test.ts",
+      "lineRange": [
+        431,
+        450
+      ],
+      "summary": "Orquestra a execução de comandos shell (docker/psql) usados pela suíte de teste.",
+      "tags": [
+        "test",
+        "orchestration",
+        "shell"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:services/api/tests/transport-products-http.test.ts:assertSafeTestDatabase",
+      "type": "function",
+      "name": "assertSafeTestDatabase",
+      "filePath": "services/api/tests/transport-products-http.test.ts",
+      "lineRange": [
+        351,
+        370
+      ],
+      "summary": "Valida que o banco alvo é um container de teste local antes de executar operações destrutivas.",
+      "tags": [
+        "test",
+        "database",
+        "safety-guard"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:services/api/tests/transport-products-http.test.ts:waitForHealthyContainer",
+      "type": "function",
+      "name": "waitForHealthyContainer",
+      "filePath": "services/api/tests/transport-products-http.test.ts",
+      "lineRange": [
+        382,
+        395
+      ],
+      "summary": "Aguarda o container do PostgreSQL ficar healthy antes da execução dos testes.",
+      "tags": [
+        "test",
+        "docker",
+        "health-check"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:services/api/tests/transport-products-http.test.ts:seedAgenciesAndUsers",
+      "type": "function",
+      "name": "seedAgenciesAndUsers",
+      "filePath": "services/api/tests/transport-products-http.test.ts",
+      "lineRange": [
+        421,
+        440
+      ],
+      "summary": "Insere agências e usuários base necessários aos cenários de teste HTTP.",
+      "tags": [
+        "test",
+        "fixture",
+        "seed"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:services/api/tests/transport-products-http.test.ts:run",
+      "type": "function",
+      "name": "run",
+      "filePath": "services/api/tests/transport-products-http.test.ts",
+      "lineRange": [
+        447,
+        466
+      ],
+      "summary": "Orquestra a execução de comandos shell (docker/psql) usados pela suíte de teste.",
+      "tags": [
+        "test",
+        "orchestration",
+        "shell"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:services/api/tests/sec-a-api-exposure.test.ts",
+      "target": "file:packages/domain/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/domain/types.ts",
+      "target": "file:services/api/tests/sec-a-api-exposure.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:services/api/tests/sec-a-api-exposure.test.ts",
+      "target": "file:services/api/src/app.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:services/api/src/app.ts",
+      "target": "file:services/api/tests/sec-a-api-exposure.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:services/api/tests/sec-a-api-exposure.test.ts",
+      "target": "file:services/api/src/auth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:services/api/src/auth.ts",
+      "target": "file:services/api/tests/sec-a-api-exposure.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:services/api/tests/sec-a-api-exposure.test.ts",
+      "target": "file:services/api/src/customer-auth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:services/api/src/customer-auth.ts",
+      "target": "file:services/api/tests/sec-a-api-exposure.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:services/api/tests/sec-a-api-exposure.test.ts",
+      "target": "file:services/api/src/route-classification.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:services/api/src/route-classification.ts",
+      "target": "file:services/api/tests/sec-a-api-exposure.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:services/api/tests/sec-a-api-exposure.test.ts",
+      "target": "file:services/api/src/route-inventory.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:services/api/src/route-inventory.ts",
+      "target": "file:services/api/tests/sec-a-api-exposure.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:services/api/tests/sec-g-privacy-idor.test.ts",
+      "target": "file:packages/domain/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/domain/types.ts",
+      "target": "file:services/api/tests/sec-g-privacy-idor.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:services/api/tests/sec-g-privacy-idor.test.ts",
+      "target": "file:services/api/src/app.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:services/api/src/app.ts",
+      "target": "file:services/api/tests/sec-g-privacy-idor.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:services/api/tests/sec-g-privacy-idor.test.ts",
+      "target": "file:services/api/src/auth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:services/api/src/auth.ts",
+      "target": "file:services/api/tests/sec-g-privacy-idor.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:services/api/tests/sec-g-privacy-idor.test.ts",
+      "target": "file:services/api/src/customer-auth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:services/api/src/customer-auth.ts",
+      "target": "file:services/api/tests/sec-g-privacy-idor.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:services/api/tests/security-headers.test.ts",
+      "target": "file:services/api/src/app.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:services/api/src/app.ts",
+      "target": "file:services/api/tests/security-headers.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:services/api/tests/security-headers.test.ts",
+      "target": "file:services/api/src/database.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:services/api/src/database.ts",
+      "target": "file:services/api/tests/security-headers.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:services/api/tests/security-headers.test.ts",
+      "target": "file:services/api/src/security-config.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:services/api/src/security-config.ts",
+      "target": "file:services/api/tests/security-headers.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:services/api/tests/storage-delete.test.ts",
+      "target": "file:services/api/src/storage.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:services/api/src/storage.ts",
+      "target": "file:services/api/tests/storage-delete.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:services/api/tests/suppliers-http.test.ts",
+      "target": "file:packages/domain/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/domain/types.ts",
+      "target": "file:services/api/tests/suppliers-http.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:services/api/tests/suppliers-http.test.ts",
+      "target": "file:services/api/src/app.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:services/api/src/app.ts",
+      "target": "file:services/api/tests/suppliers-http.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:services/api/tests/suppliers-http.test.ts",
+      "target": "file:services/api/src/auth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:services/api/src/auth.ts",
+      "target": "file:services/api/tests/suppliers-http.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:services/api/tests/suppliers-http.test.ts",
+      "target": "file:services/api/src/database.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:services/api/src/database.ts",
+      "target": "file:services/api/tests/suppliers-http.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:services/api/tests/suppliers.test.ts",
+      "target": "file:packages/domain/tenant-context.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/domain/tenant-context.ts",
+      "target": "file:services/api/tests/suppliers.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:services/api/tests/suppliers.test.ts",
+      "target": "file:packages/domain/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/domain/types.ts",
+      "target": "file:services/api/tests/suppliers.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:services/api/tests/suppliers.test.ts",
+      "target": "file:services/api/src/database.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:services/api/src/database.ts",
+      "target": "file:services/api/tests/suppliers.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:services/api/tests/suppliers.test.ts",
+      "target": "file:services/api/src/suppliers.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:services/api/src/suppliers.ts",
+      "target": "file:services/api/tests/suppliers.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:services/api/tests/support-center.test.ts",
+      "target": "file:packages/domain/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/domain/types.ts",
+      "target": "file:services/api/tests/support-center.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:services/api/tests/support-center.test.ts",
+      "target": "file:services/api/src/app.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:services/api/src/app.ts",
+      "target": "file:services/api/tests/support-center.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:services/api/tests/support-center.test.ts",
+      "target": "file:services/api/src/database.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:services/api/src/database.ts",
+      "target": "file:services/api/tests/support-center.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:services/api/tests/transport-operations-http.test.ts",
+      "target": "file:packages/domain/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/domain/types.ts",
+      "target": "file:services/api/tests/transport-operations-http.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:services/api/tests/transport-operations-http.test.ts",
+      "target": "file:services/api/src/app.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:services/api/src/app.ts",
+      "target": "file:services/api/tests/transport-operations-http.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:services/api/tests/transport-operations-http.test.ts",
+      "target": "file:services/api/src/auth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:services/api/src/auth.ts",
+      "target": "file:services/api/tests/transport-operations-http.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:services/api/tests/transport-operations-http.test.ts",
+      "target": "file:services/api/src/database.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:services/api/src/database.ts",
+      "target": "file:services/api/tests/transport-operations-http.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:services/api/tests/transport-operations.test.ts",
+      "target": "file:packages/domain/tenant-context.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/domain/tenant-context.ts",
+      "target": "file:services/api/tests/transport-operations.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:services/api/tests/transport-operations.test.ts",
+      "target": "file:packages/domain/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/domain/types.ts",
+      "target": "file:services/api/tests/transport-operations.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:services/api/tests/transport-operations.test.ts",
+      "target": "file:services/api/src/database.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:services/api/src/database.ts",
+      "target": "file:services/api/tests/transport-operations.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:services/api/tests/transport-operations.test.ts",
+      "target": "file:services/api/src/transport-operations.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:services/api/src/transport-operations.ts",
+      "target": "file:services/api/tests/transport-operations.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:services/api/tests/transport-products-http.test.ts",
+      "target": "file:packages/domain/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/domain/types.ts",
+      "target": "file:services/api/tests/transport-products-http.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:services/api/tests/transport-products-http.test.ts",
+      "target": "file:services/api/src/app.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:services/api/src/app.ts",
+      "target": "file:services/api/tests/transport-products-http.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:services/api/tests/transport-products-http.test.ts",
+      "target": "file:services/api/src/auth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:services/api/src/auth.ts",
+      "target": "file:services/api/tests/transport-products-http.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:services/api/tests/transport-products-http.test.ts",
+      "target": "file:services/api/src/database.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:services/api/src/database.ts",
+      "target": "file:services/api/tests/transport-products-http.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:services/api/tests/sec-a-api-exposure.test.ts",
+      "target": "function:services/api/tests/sec-a-api-exposure.test.ts:buildTestApp",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:services/api/tests/sec-g-privacy-idor.test.ts",
+      "target": "function:services/api/tests/sec-g-privacy-idor.test.ts:buildTestApp",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:services/api/tests/suppliers-http.test.ts",
+      "target": "function:services/api/tests/suppliers-http.test.ts:assertSafeTestDatabase",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:services/api/tests/suppliers-http.test.ts",
+      "target": "function:services/api/tests/suppliers-http.test.ts:waitForHealthyContainer",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:services/api/tests/suppliers-http.test.ts",
+      "target": "function:services/api/tests/suppliers-http.test.ts:seedAgenciesAndUsers",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:services/api/tests/suppliers-http.test.ts",
+      "target": "function:services/api/tests/suppliers-http.test.ts:run",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:services/api/tests/suppliers.test.ts",
+      "target": "function:services/api/tests/suppliers.test.ts:assertSafeTestDatabase",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:services/api/tests/suppliers.test.ts",
+      "target": "function:services/api/tests/suppliers.test.ts:waitForHealthyContainer",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:services/api/tests/suppliers.test.ts",
+      "target": "function:services/api/tests/suppliers.test.ts:seedAgenciesAndUsers",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:services/api/tests/suppliers.test.ts",
+      "target": "function:services/api/tests/suppliers.test.ts:run",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:services/api/tests/support-center.test.ts",
+      "target": "function:services/api/tests/support-center.test.ts:buildRecordingDatabase",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:services/api/tests/support-center.test.ts",
+      "target": "function:services/api/tests/support-center.test.ts:buildTestApp",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:services/api/tests/transport-operations-http.test.ts",
+      "target": "function:services/api/tests/transport-operations-http.test.ts:assertSafeTestDatabase",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:services/api/tests/transport-operations-http.test.ts",
+      "target": "function:services/api/tests/transport-operations-http.test.ts:waitForHealthyContainer",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:services/api/tests/transport-operations-http.test.ts",
+      "target": "function:services/api/tests/transport-operations-http.test.ts:resetDatabase",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:services/api/tests/transport-operations-http.test.ts",
+      "target": "function:services/api/tests/transport-operations-http.test.ts:seedAgenciesAndUsers",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:services/api/tests/transport-operations-http.test.ts",
+      "target": "function:services/api/tests/transport-operations-http.test.ts:run",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:services/api/tests/transport-operations.test.ts",
+      "target": "function:services/api/tests/transport-operations.test.ts:assertSafeTestDatabase",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:services/api/tests/transport-operations.test.ts",
+      "target": "function:services/api/tests/transport-operations.test.ts:waitForHealthyContainer",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:services/api/tests/transport-operations.test.ts",
+      "target": "function:services/api/tests/transport-operations.test.ts:resetDatabase",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:services/api/tests/transport-operations.test.ts",
+      "target": "function:services/api/tests/transport-operations.test.ts:seedAgenciesAndUsers",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:services/api/tests/transport-operations.test.ts",
+      "target": "function:services/api/tests/transport-operations.test.ts:run",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:services/api/tests/transport-products-http.test.ts",
+      "target": "function:services/api/tests/transport-products-http.test.ts:assertSafeTestDatabase",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:services/api/tests/transport-products-http.test.ts",
+      "target": "function:services/api/tests/transport-products-http.test.ts:waitForHealthyContainer",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:services/api/tests/transport-products-http.test.ts",
+      "target": "function:services/api/tests/transport-products-http.test.ts:seedAgenciesAndUsers",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:services/api/tests/transport-products-http.test.ts",
+      "target": "function:services/api/tests/transport-products-http.test.ts:run",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "function:services/api/tests/sec-a-api-exposure.test.ts:buildTestApp",
+      "target": "function:services/api/src/app.ts:buildApp",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:services/api/tests/sec-g-privacy-idor.test.ts:buildTestApp",
+      "target": "function:services/api/src/app.ts:buildApp",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:services/api/tests/support-center.test.ts:buildTestApp",
+      "target": "function:services/api/src/app.ts:buildApp",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

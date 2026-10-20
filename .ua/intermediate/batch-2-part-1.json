@@ -1,0 +1,991 @@
+{
+ "nodes": [
+  {
+   "id": "file:apps/customer/src/customer-portal/pages/CustomerProfilePage.test.tsx",
+   "type": "file",
+   "name": "CustomerProfilePage.test.tsx",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerProfilePage.test.tsx",
+   "summary": "Testes de renderização do CustomerProfilePage cobrindo exibição dos dados básicos e do endereço do perfil.",
+   "tags": [
+    "test",
+    "react",
+    "customer-portal",
+    "profile"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:apps/customer/src/customer-portal/pages/CustomerProfilePage.tsx",
+   "type": "file",
+   "name": "CustomerProfilePage.tsx",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerProfilePage.tsx",
+   "summary": "Página do portal do cliente que exibe o perfil do usuário autenticado, com dados pessoais, contato e endereço carregados via customerApi.",
+   "tags": [
+    "component",
+    "page",
+    "customer-portal",
+    "profile"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/pages/CustomerProfilePage.tsx:CustomerProfilePage",
+   "type": "function",
+   "name": "CustomerProfilePage",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerProfilePage.tsx",
+   "lineRange": [
+    10,
+    108
+   ],
+   "summary": "Página que carrega e exibe o perfil do cliente autenticado com dados pessoais, contato e endereço.",
+   "tags": [
+    "component",
+    "page",
+    "customer-portal",
+    "profile"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:apps/customer/src/customer-portal/pages/CustomerProposalDetailsPage.test.tsx",
+   "type": "file",
+   "name": "CustomerProposalDetailsPage.test.tsx",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerProposalDetailsPage.test.tsx",
+   "summary": "Testes do CustomerProposalDetailsPage verificando a renderização da proposta e o conteúdo exibido ao cliente.",
+   "tags": [
+    "test",
+    "react",
+    "proposal",
+    "customer-portal"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/pages/CustomerProposalDetailsPage.test.tsx:renderPage",
+   "type": "function",
+   "name": "renderPage",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerProposalDetailsPage.test.tsx",
+   "lineRange": [
+    94,
+    110
+   ],
+   "summary": "Helper de teste que monta o CustomerProposalDetailsPage dentro de um roteador para os casos de renderização.",
+   "tags": [
+    "test",
+    "helper",
+    "react"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:apps/customer/src/customer-portal/pages/CustomerProposalDetailsPage.tsx",
+   "type": "file",
+   "name": "CustomerProposalDetailsPage.tsx",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerProposalDetailsPage.tsx",
+   "summary": "Página do portal do cliente que apresenta o detalhe de uma proposta com capa, seções, itens, resumo e chamadas para aceitar ou recusar.",
+   "tags": [
+    "component",
+    "page",
+    "customer-portal",
+    "proposal"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/pages/CustomerProposalDetailsPage.tsx:CustomerProposalDetailsPage",
+   "type": "function",
+   "name": "CustomerProposalDetailsPage",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerProposalDetailsPage.tsx",
+   "lineRange": [
+    45,
+    84
+   ],
+   "summary": "Página de detalhe da proposta no portal do cliente; orquestra o carregamento via customerApi e monta o ProposalViewer.",
+   "tags": [
+    "component",
+    "page",
+    "proposal",
+    "customer-portal"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/pages/CustomerProposalDetailsPage.tsx:ProposalViewer",
+   "type": "function",
+   "name": "ProposalViewer",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerProposalDetailsPage.tsx",
+   "lineRange": [
+    86,
+    144
+   ],
+   "summary": "Visualizador completo da proposta combinando capa, seções, resumo e chamadas para ação.",
+   "tags": [
+    "component",
+    "proposal",
+    "presentation"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/pages/CustomerProposalDetailsPage.tsx:ProposalCover",
+   "type": "function",
+   "name": "ProposalCover",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerProposalDetailsPage.tsx",
+   "lineRange": [
+    155,
+    187
+   ],
+   "summary": "Bloco de capa da proposta com identidade visual, agência e metadados principais.",
+   "tags": [
+    "component",
+    "proposal",
+    "layout"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/pages/CustomerProposalDetailsPage.tsx:ProposalSection",
+   "type": "function",
+   "name": "ProposalSection",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerProposalDetailsPage.tsx",
+   "lineRange": [
+    189,
+    206
+   ],
+   "summary": "Seção da proposta agrupando título, descrição e linhas de itens.",
+   "tags": [
+    "component",
+    "proposal",
+    "layout"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/pages/CustomerProposalDetailsPage.tsx:ProposalItemRow",
+   "type": "function",
+   "name": "ProposalItemRow",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerProposalDetailsPage.tsx",
+   "lineRange": [
+    208,
+    237
+   ],
+   "summary": "Linha de item da proposta exibindo descrição, quantidade e valores.",
+   "tags": [
+    "component",
+    "proposal",
+    "line-item"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/pages/CustomerProposalDetailsPage.tsx:ProposalCta",
+   "type": "function",
+   "name": "ProposalCta",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerProposalDetailsPage.tsx",
+   "lineRange": [
+    245,
+    287
+   ],
+   "summary": "Área de chamadas para ação da proposta com botões de aceitar/recusar e estados de feedback.",
+   "tags": [
+    "component",
+    "proposal",
+    "cta"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:apps/customer/src/customer-portal/pages/CustomerProposalsPage.tsx",
+   "type": "file",
+   "name": "CustomerProposalsPage.tsx",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerProposalsPage.tsx",
+   "summary": "Listagem das propostas disponíveis para o cliente no portal, renderizando cartões com status, datas e valores.",
+   "tags": [
+    "component",
+    "page",
+    "customer-portal",
+    "proposal",
+    "list"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/pages/CustomerProposalsPage.tsx:CustomerProposalsPage",
+   "type": "function",
+   "name": "CustomerProposalsPage",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerProposalsPage.tsx",
+   "lineRange": [
+    12,
+    75
+   ],
+   "summary": "Listagem das propostas do cliente, carregando dados via customerApi e renderizando cartões de proposta.",
+   "tags": [
+    "component",
+    "page",
+    "proposal",
+    "list"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/pages/CustomerProposalsPage.tsx:ProposalCard",
+   "type": "function",
+   "name": "ProposalCard",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerProposalsPage.tsx",
+   "lineRange": [
+    77,
+    129
+   ],
+   "summary": "Cartão de proposta com status, datas, valores e link para o detalhe.",
+   "tags": [
+    "component",
+    "card",
+    "proposal"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/pages/CustomerProposalsPage.tsx:getProposalStatusColor",
+   "type": "function",
+   "name": "getProposalStatusColor",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerProposalsPage.tsx",
+   "lineRange": [
+    131,
+    141
+   ],
+   "summary": "Mapeia o status da proposta para classes de cor do Tailwind usadas no cartão.",
+   "tags": [
+    "utility",
+    "status",
+    "styling"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:apps/customer/src/customer-portal/pages/CustomerResetPasswordPage.tsx",
+   "type": "file",
+   "name": "CustomerResetPasswordPage.tsx",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerResetPasswordPage.tsx",
+   "summary": "Página de redefinição de senha do portal do cliente, validando token e nova senha no formulário antes de chamar a customerAuthApi.",
+   "tags": [
+    "component",
+    "page",
+    "customer-portal",
+    "auth"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/pages/CustomerResetPasswordPage.tsx:CustomerResetPasswordPage",
+   "type": "function",
+   "name": "CustomerResetPasswordPage",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerResetPasswordPage.tsx",
+   "lineRange": [
+    5,
+    82
+   ],
+   "summary": "Página que valida token e nova senha no formulário e chama resetPassword da customerAuthApi.",
+   "tags": [
+    "component",
+    "page",
+    "auth",
+    "password-reset"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.test.tsx",
+   "type": "file",
+   "name": "CustomerTripDetailsPage.test.tsx",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.test.tsx",
+   "summary": "Testes do CustomerTripDetailsPage cobrindo a renderização das abas e das seções da viagem.",
+   "tags": [
+    "test",
+    "react",
+    "trip",
+    "customer-portal"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.test.tsx:renderPage",
+   "type": "function",
+   "name": "renderPage",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.test.tsx",
+   "lineRange": [
+    66,
+    88
+   ],
+   "summary": "Helper de teste que renderiza o CustomerTripDetailsPage com dados de viagem mockados.",
+   "tags": [
+    "test",
+    "helper",
+    "react"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx",
+   "type": "file",
+   "name": "CustomerTripDetailsPage.tsx",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx",
+   "summary": "Página completa de detalhes da viagem no portal do cliente, organizada em abas com resumo, galeria de fotos, itinerário, trechos aéreos e terrestres, próximos passos, documentos, pagamentos, passageiros e contato da agência.",
+   "tags": [
+    "component",
+    "page",
+    "customer-portal",
+    "trip"
+   ],
+   "complexity": "complex",
+   "languageNotes": "Componente monolítico com 13 subcomponentes internos organizados por abas."
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx:CustomerTripDetailsPage",
+   "type": "function",
+   "name": "CustomerTripDetailsPage",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx",
+   "lineRange": [
+    37,
+    106
+   ],
+   "summary": "Página de detalhes da viagem; carrega os dados via customerApi e coordena a navegação entre as abas de conteúdo.",
+   "tags": [
+    "component",
+    "page",
+    "trip",
+    "customer-portal"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx:TripSummary",
+   "type": "function",
+   "name": "TripSummary",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx",
+   "lineRange": [
+    117,
+    179
+   ],
+   "summary": "Resumo da viagem com datas, destino, status e principais informações do roteiro.",
+   "tags": [
+    "component",
+    "trip",
+    "summary"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx:friendlyTripStatus",
+   "type": "function",
+   "name": "friendlyTripStatus",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx",
+   "lineRange": [
+    181,
+    190
+   ],
+   "summary": "Converte o status técnico da viagem em rótulo legível para o cliente.",
+   "tags": [
+    "utility",
+    "status",
+    "i18n"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx:TripPhotoCarousel",
+   "type": "function",
+   "name": "TripPhotoCarousel",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx",
+   "lineRange": [
+    199,
+    294
+   ],
+   "summary": "Carrossel de fotos da viagem com navegação, carregamento de blobs e indicadores de posição.",
+   "tags": [
+    "component",
+    "carousel",
+    "media"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx:TripItinerary",
+   "type": "function",
+   "name": "TripItinerary",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx",
+   "lineRange": [
+    298,
+    311
+   ],
+   "summary": "Exibe o itinerário da viagem em lista cronológica.",
+   "tags": [
+    "component",
+    "trip",
+    "itinerary"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx:buildLifecycleSteps",
+   "type": "function",
+   "name": "buildLifecycleSteps",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx",
+   "lineRange": [
+    313,
+    333
+   ],
+   "summary": "Monta os passos do ciclo de vida da viagem (planejada, confirmada, em andamento, concluída) para a linha do tempo.",
+   "tags": [
+    "utility",
+    "trip",
+    "lifecycle"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx:TripAirLandSections",
+   "type": "function",
+   "name": "TripAirLandSections",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx",
+   "lineRange": [
+    337,
+    424
+   ],
+   "summary": "Seções de serviços aéreos e terrestres da viagem com detalhes de cada trecho.",
+   "tags": [
+    "component",
+    "trip",
+    "transport"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx:TripNextSteps",
+   "type": "function",
+   "name": "TripNextSteps",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx",
+   "lineRange": [
+    440,
+    492
+   ],
+   "summary": "Lista de próximos passos e pendências da viagem para o cliente.",
+   "tags": [
+    "component",
+    "trip",
+    "checklist"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx:TripDocuments",
+   "type": "function",
+   "name": "TripDocuments",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx",
+   "lineRange": [
+    499,
+    533
+   ],
+   "summary": "Bloco de documentos da viagem disponíveis para consulta e download.",
+   "tags": [
+    "component",
+    "trip",
+    "documents"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx:TripPayments",
+   "type": "function",
+   "name": "TripPayments",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx",
+   "lineRange": [
+    541,
+    585
+   ],
+   "summary": "Bloco de pagamentos da viagem com cronograma e status financeiro.",
+   "tags": [
+    "component",
+    "trip",
+    "payments"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx:TripPassengers",
+   "type": "function",
+   "name": "TripPassengers",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx",
+   "lineRange": [
+    589,
+    611
+   ],
+   "summary": "Lista dos passageiros da viagem.",
+   "tags": [
+    "component",
+    "trip",
+    "passengers"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx:TripAgencyContact",
+   "type": "function",
+   "name": "TripAgencyContact",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx",
+   "lineRange": [
+    615,
+    658
+   ],
+   "summary": "Cartão de contato da agência responsável pela viagem.",
+   "tags": [
+    "component",
+    "trip",
+    "contact"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:apps/customer/src/customer-portal/pages/CustomerTripsPage.test.tsx",
+   "type": "file",
+   "name": "CustomerTripsPage.test.tsx",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerTripsPage.test.tsx",
+   "summary": "Testes da listagem de viagens do portal do cliente.",
+   "tags": [
+    "test",
+    "react",
+    "trip",
+    "customer-portal"
+   ],
+   "complexity": "moderate"
+  }
+ ],
+ "edges": [
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerProfilePage.test.tsx",
+   "target": "file:apps/customer/src/customer-portal/pages/CustomerProfilePage.tsx",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerProfilePage.test.tsx",
+   "target": "file:apps/customer/src/types/customer-portal.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerProfilePage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerProfilePage.tsx:CustomerProfilePage",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerProfilePage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerProfilePage.tsx:CustomerProfilePage",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerProfilePage.tsx",
+   "target": "file:apps/customer/src/lib/customerApi.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerProfilePage.tsx",
+   "target": "file:apps/customer/src/types/customer-portal.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerProposalDetailsPage.test.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerProposalDetailsPage.test.tsx:renderPage",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerProposalDetailsPage.test.tsx",
+   "target": "file:apps/customer/src/customer-portal/pages/CustomerProposalDetailsPage.tsx",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerProposalDetailsPage.test.tsx",
+   "target": "file:apps/customer/src/types/customer-portal.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerProposalDetailsPage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerProposalDetailsPage.tsx:CustomerProposalDetailsPage",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerProposalDetailsPage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerProposalDetailsPage.tsx:CustomerProposalDetailsPage",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerProposalDetailsPage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerProposalDetailsPage.tsx:ProposalViewer",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerProposalDetailsPage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerProposalDetailsPage.tsx:ProposalCover",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerProposalDetailsPage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerProposalDetailsPage.tsx:ProposalSection",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerProposalDetailsPage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerProposalDetailsPage.tsx:ProposalItemRow",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerProposalDetailsPage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerProposalDetailsPage.tsx:ProposalCta",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerProposalDetailsPage.tsx",
+   "target": "file:apps/customer/src/customer-portal/BackLink.tsx",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerProposalDetailsPage.tsx",
+   "target": "file:apps/customer/src/lib/customerApi.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerProposalDetailsPage.tsx",
+   "target": "file:apps/customer/src/lib/statusLabels.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerProposalDetailsPage.tsx",
+   "target": "file:apps/customer/src/types/customer-portal.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerProposalsPage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerProposalsPage.tsx:CustomerProposalsPage",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerProposalsPage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerProposalsPage.tsx:CustomerProposalsPage",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerProposalsPage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerProposalsPage.tsx:ProposalCard",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerProposalsPage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerProposalsPage.tsx:getProposalStatusColor",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerProposalsPage.tsx",
+   "target": "file:apps/customer/src/lib/customerApi.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerProposalsPage.tsx",
+   "target": "file:apps/customer/src/lib/statusLabels.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerProposalsPage.tsx",
+   "target": "file:apps/customer/src/types/customer-portal.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerResetPasswordPage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerResetPasswordPage.tsx:CustomerResetPasswordPage",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerResetPasswordPage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerResetPasswordPage.tsx:CustomerResetPasswordPage",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerResetPasswordPage.tsx",
+   "target": "file:apps/customer/src/lib/customerAuthApi.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.test.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.test.tsx:renderPage",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.test.tsx",
+   "target": "file:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.test.tsx",
+   "target": "file:apps/customer/src/types/travelRequirement.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.test.tsx",
+   "target": "file:apps/customer/src/types/trip.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx:CustomerTripDetailsPage",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx:CustomerTripDetailsPage",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx:TripSummary",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx:friendlyTripStatus",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx:TripPhotoCarousel",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx:TripItinerary",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx:buildLifecycleSteps",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx:TripAirLandSections",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx:TripNextSteps",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx:TripDocuments",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx:TripPayments",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx:TripPassengers",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx:TripAgencyContact",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx",
+   "target": "file:apps/customer/src/customer-portal/BackLink.tsx",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx",
+   "target": "file:apps/customer/src/customer-portal/Tabs.tsx",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx",
+   "target": "file:apps/customer/src/customer-portal/Timeline.tsx",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx",
+   "target": "file:apps/customer/src/customer-portal/destinationArt.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx",
+   "target": "file:apps/customer/src/lib/customerApi.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx",
+   "target": "file:apps/customer/src/lib/statusLabels.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx",
+   "target": "file:apps/customer/src/types/customer-portal.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx",
+   "target": "file:apps/customer/src/types/travelRequirement.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx",
+   "target": "file:apps/customer/src/types/trip.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerTripsPage.test.tsx",
+   "target": "file:apps/customer/src/customer-portal/pages/CustomerTripsPage.tsx",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerTripsPage.test.tsx",
+   "target": "file:apps/customer/src/types/trip.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerProfilePage.tsx",
+   "target": "file:apps/customer/src/customer-portal/pages/CustomerProfilePage.test.tsx",
+   "type": "tested_by",
+   "weight": 0.5
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerProposalDetailsPage.tsx",
+   "target": "file:apps/customer/src/customer-portal/pages/CustomerProposalDetailsPage.test.tsx",
+   "type": "tested_by",
+   "weight": 0.5
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.tsx",
+   "target": "file:apps/customer/src/customer-portal/pages/CustomerTripDetailsPage.test.tsx",
+   "type": "tested_by",
+   "weight": 0.5
+  }
+ ]
+}

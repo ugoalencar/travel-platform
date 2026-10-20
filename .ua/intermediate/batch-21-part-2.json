@@ -1,0 +1,289 @@
+{
+  "nodes": [
+    {
+      "id": "file:services/api-lite/tests/customers.test.ts",
+      "type": "file",
+      "name": "customers.test.ts",
+      "filePath": "services/api-lite/tests/customers.test.ts",
+      "summary": "Suíte de CRUD de clientes com validação de CPF, paginação e isolamento por tenant.",
+      "tags": ["test", "customers", "crud", "vitest"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:services/api-lite/tests/finance.test.ts",
+      "type": "file",
+      "name": "finance.test.ts",
+      "filePath": "services/api-lite/tests/finance.test.ts",
+      "summary": "Suíte do catálogo financeiro e do fluxo de caixa: contas, categorias, centros de custo, lançamentos e agregações.",
+      "tags": ["test", "finance", "cash-flow", "vitest"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:services/api-lite/tests/hardening.test.ts",
+      "type": "file",
+      "name": "hardening.test.ts",
+      "filePath": "services/api-lite/tests/hardening.test.ts",
+      "summary": "Suíte de hardening pré-homologação: headers de segurança, limites de request e comportamentos defensivos da API.",
+      "tags": ["test", "security", "hardening", "vitest"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:services/api-lite/tests/health.test.ts",
+      "type": "file",
+      "name": "health.test.ts",
+      "filePath": "services/api-lite/tests/health.test.ts",
+      "summary": "Smoke test da fundação da API: monta o app com buildApp e valida os endpoints de saúde.",
+      "tags": ["test", "health-check", "smoke", "vitest"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:services/api-lite/tests/helpers/fixture.ts",
+      "type": "file",
+      "name": "fixture.ts",
+      "filePath": "services/api-lite/tests/helpers/fixture.ts",
+      "summary": "Fixture compartilhada da suíte Lite: sobe o schema de teste, semeia dois tenants com variedade de papéis e boota o app Fastify com helpers de login.",
+      "tags": ["test", "fixture", "setup", "vitest", "multi-tenant"],
+      "complexity": "moderate",
+      "languageNotes": "Os arquivos de teste rodam sequencialmente (fileParallelism: false) porque compartilham uma única fixture de banco."
+    },
+    {
+      "id": "file:services/api-lite/tests/helpers/lite-db.ts",
+      "type": "file",
+      "name": "lite-db.ts",
+      "filePath": "services/api-lite/tests/helpers/lite-db.ts",
+      "summary": "Helpers de PostgreSQL descartáveis para a suíte Lite: container próprio na porta 55437, reset por DROP SCHEMA com reaplicação das migrations e fixtures de tenant/usuário.",
+      "tags": ["test", "database", "docker", "fixtures", "postgres"],
+      "complexity": "moderate",
+      "languageNotes": "Usa container e banco próprios (55437) para nunca colidir com o container de teste do Travel Platform (55432) nem com o dev do Travel Lite (55436)."
+    },
+    {
+      "id": "file:services/api-lite/tests/imports.test.ts",
+      "type": "file",
+      "name": "imports.test.ts",
+      "filePath": "services/api-lite/tests/imports.test.ts",
+      "summary": "Suíte do centro de importação: monta workbooks XLSX sintéticos em base64 no próprio teste e valida parse, mapeamento de colunas e erros.",
+      "tags": ["test", "imports", "xlsx", "vitest"],
+      "complexity": "complex",
+      "languageNotes": "Gera XLSX combinando XML e base64 manualmente para não depender de biblioteca externa."
+    },
+    {
+      "id": "file:services/api-lite/tests/migration-readiness.test.ts",
+      "type": "file",
+      "name": "migration-readiness.test.ts",
+      "filePath": "services/api-lite/tests/migration-readiness.test.ts",
+      "summary": "Suíte de readiness de migração do Travel Lite para a plataforma principal, exercitando buildMigrationReadiness e seus relatórios.",
+      "tags": ["test", "migration", "readiness", "vitest"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:services/api-lite/tests/plan-capabilities.test.ts",
+      "type": "file",
+      "name": "plan-capabilities.test.ts",
+      "filePath": "services/api-lite/tests/plan-capabilities.test.ts",
+      "summary": "Suíte de capacidades por plano: derivação pura de status, plano mínimo de cada capacidade e alvo de upgrade.",
+      "tags": ["test", "plans", "capabilities", "vitest"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:services/api-lite/tests/rate-limit.test.ts",
+      "type": "file",
+      "name": "rate-limit.test.ts",
+      "filePath": "services/api-lite/tests/rate-limit.test.ts",
+      "summary": "Suíte dos controles de abuso: rate limit por IP e proteção contra força bruta no login.",
+      "tags": ["test", "rate-limit", "security", "vitest"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:services/api-lite/tests/reports.test.ts",
+      "type": "file",
+      "name": "reports.test.ts",
+      "filePath": "services/api-lite/tests/reports.test.ts",
+      "summary": "Suíte de dashboard e relatórios: widgets, séries de gráficos e agregações de vendas por período.",
+      "tags": ["test", "reports", "dashboard", "vitest"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:services/api-lite/tests/sale-costs.test.ts",
+      "type": "file",
+      "name": "sale-costs.test.ts",
+      "filePath": "services/api-lite/tests/sale-costs.test.ts",
+      "summary": "Suíte de custos de venda e partes financeiras: recálculo de totais e vínculos com fornecedores e pessoas.",
+      "tags": ["test", "sale-costs", "finance", "vitest"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:services/api-lite/tests/sales.test.ts",
+      "type": "file",
+      "name": "sales.test.ts",
+      "filePath": "services/api-lite/tests/sales.test.ts",
+      "summary": "Suíte do ciclo de vida de vendas: rascunho, confirmação, pagamentos, rateios e cancelamento.",
+      "tags": ["test", "sales", "lifecycle", "vitest"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:services/api-lite/tests/static.test.ts",
+      "type": "file",
+      "name": "static.test.ts",
+      "filePath": "services/api-lite/tests/static.test.ts",
+      "summary": "Testes do handler estático do SPA: serviço de arquivos do dist, content-types e fallback de roteamento.",
+      "tags": ["test", "static-files", "spa", "vitest"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:services/api-lite/tests/helpers/fixture.ts:createLiteFixture",
+      "type": "function",
+      "name": "createLiteFixture",
+      "filePath": "services/api-lite/tests/helpers/fixture.ts",
+      "lineRange": [43, 147],
+      "summary": "Cria a fixture completa: reseta o banco de teste, semeia dois tenants com papéis variados, cria usuários e devolve app, pools e helpers de login.",
+      "tags": ["test", "fixture", "database", "setup"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:services/api-lite/tests/helpers/lite-db.ts:migrationFiles",
+      "type": "function",
+      "name": "migrationFiles",
+      "filePath": "services/api-lite/tests/helpers/lite-db.ts",
+      "lineRange": [60, 65],
+      "summary": "Lista os nomes dos arquivos de migration existentes no diretório de migrations do Travel Lite.",
+      "tags": ["test", "migration", "filesystem"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:services/api-lite/tests/helpers/lite-db.ts:resetLiteTestDatabase",
+      "type": "function",
+      "name": "resetLiteTestDatabase",
+      "filePath": "services/api-lite/tests/helpers/lite-db.ts",
+      "lineRange": [71, 92],
+      "summary": "Reset completo do banco de teste: encerra pools, executa DROP SCHEMA e reaplica as migrations com o papel admin.",
+      "tags": ["test", "database", "reset", "postgres"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:services/api-lite/tests/helpers/lite-db.ts:endPools",
+      "type": "function",
+      "name": "endPools",
+      "filePath": "services/api-lite/tests/helpers/lite-db.ts",
+      "lineRange": [94, 97],
+      "summary": "Encerra de forma segura os pools de conexão abertos.",
+      "tags": ["database", "cleanup", "utility"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:services/api-lite/tests/helpers/lite-db.ts:teardownLiteTestDatabase",
+      "type": "function",
+      "name": "teardownLiteTestDatabase",
+      "filePath": "services/api-lite/tests/helpers/lite-db.ts",
+      "lineRange": [99, 101],
+      "summary": "Encerra os pools e derruba o container PostgreSQL de teste.",
+      "tags": ["test", "database", "teardown"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:services/api-lite/tests/helpers/lite-db.ts:createTenantFixture",
+      "type": "function",
+      "name": "createTenantFixture",
+      "filePath": "services/api-lite/tests/helpers/lite-db.ts",
+      "lineRange": [104, 113],
+      "summary": "Insere um tenant de fixture no banco admin e devolve seu identificador.",
+      "tags": ["test", "fixture", "multi-tenant"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:services/api-lite/tests/helpers/lite-db.ts:createUserFixture",
+      "type": "function",
+      "name": "createUserFixture",
+      "filePath": "services/api-lite/tests/helpers/lite-db.ts",
+      "lineRange": [115, 131],
+      "summary": "Insere usuários de fixture com senha hasheada, papel e tenant informados, devolvendo seus IDs.",
+      "tags": ["test", "fixture", "users"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:services/api-lite/tests/helpers/lite-db.ts:assertLocalTestDatabase",
+      "type": "function",
+      "name": "assertLocalTestDatabase",
+      "filePath": "services/api-lite/tests/helpers/lite-db.ts",
+      "lineRange": [133, 143],
+      "summary": "Valida que as URLs apontam para o banco local de teste, abortando o processo se apontarem para outro ambiente.",
+      "tags": ["test", "database", "safety-check"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:services/api-lite/tests/imports.test.ts:columnName",
+      "type": "function",
+      "name": "columnName",
+      "filePath": "services/api-lite/tests/imports.test.ts",
+      "lineRange": [22, 31],
+      "summary": "Converte um índice numérico de coluna na letra da planilha (A, B, ... AA).",
+      "tags": ["test", "utility", "xlsx"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:services/api-lite/tests/imports.test.ts:worksheetXml",
+      "type": "function",
+      "name": "worksheetXml",
+      "filePath": "services/api-lite/tests/imports.test.ts",
+      "lineRange": [33, 47],
+      "summary": "Gera o XML de uma worksheet com linhas e células para o XLSX sintético do teste.",
+      "tags": ["test", "xlsx", "xml"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:services/api-lite/tests/imports.test.ts:makeXlsxBase64",
+      "type": "function",
+      "name": "makeXlsxBase64",
+      "filePath": "services/api-lite/tests/imports.test.ts",
+      "lineRange": [49, 80],
+      "summary": "Monta um arquivo XLSX completo em base64 combinando worksheets, content-types e manifest.",
+      "tags": ["test", "xlsx", "encoding"],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    { "source": "file:services/api-lite/tests/customers.test.ts", "target": "file:services/api-lite/tests/helpers/fixture.ts", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "file:services/api-lite/tests/finance.test.ts", "target": "file:services/api-lite/tests/helpers/fixture.ts", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "file:services/api-lite/tests/hardening.test.ts", "target": "file:services/api-lite/tests/helpers/fixture.ts", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "file:services/api-lite/tests/health.test.ts", "target": "file:services/api-lite/src/app.ts", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "file:services/api-lite/tests/helpers/fixture.ts", "target": "file:services/api-lite/src/app.ts", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "file:services/api-lite/tests/helpers/fixture.ts", "target": "file:services/api-lite/src/database.ts", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "file:services/api-lite/tests/helpers/fixture.ts", "target": "file:services/api-lite/src/password.ts", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "file:services/api-lite/tests/helpers/fixture.ts", "target": "file:services/api-lite/tests/helpers/lite-db.ts", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "file:services/api-lite/tests/imports.test.ts", "target": "file:services/api-lite/tests/helpers/fixture.ts", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "file:services/api-lite/tests/migration-readiness.test.ts", "target": "file:services/api-lite/tests/helpers/fixture.ts", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "file:services/api-lite/tests/plan-capabilities.test.ts", "target": "file:services/api-lite/src/capabilities.ts", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "file:services/api-lite/tests/plan-capabilities.test.ts", "target": "file:services/api-lite/tests/helpers/fixture.ts", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "file:services/api-lite/tests/rate-limit.test.ts", "target": "file:services/api-lite/src/rate-limit.ts", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "file:services/api-lite/tests/reports.test.ts", "target": "file:services/api-lite/tests/helpers/fixture.ts", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "file:services/api-lite/tests/sale-costs.test.ts", "target": "file:services/api-lite/tests/helpers/fixture.ts", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "file:services/api-lite/tests/sales.test.ts", "target": "file:services/api-lite/tests/helpers/fixture.ts", "type": "imports", "direction": "forward", "weight": 0.7 },
+    { "source": "file:services/api-lite/tests/static.test.ts", "target": "file:services/api-lite/src/app.ts", "type": "imports", "direction": "forward", "weight": 0.7 },
+
+    { "source": "file:services/api-lite/tests/helpers/fixture.ts", "target": "function:services/api-lite/tests/helpers/fixture.ts:createLiteFixture", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:services/api-lite/tests/helpers/lite-db.ts", "target": "function:services/api-lite/tests/helpers/lite-db.ts:migrationFiles", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:services/api-lite/tests/helpers/lite-db.ts", "target": "function:services/api-lite/tests/helpers/lite-db.ts:resetLiteTestDatabase", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:services/api-lite/tests/helpers/lite-db.ts", "target": "function:services/api-lite/tests/helpers/lite-db.ts:endPools", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:services/api-lite/tests/helpers/lite-db.ts", "target": "function:services/api-lite/tests/helpers/lite-db.ts:teardownLiteTestDatabase", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:services/api-lite/tests/helpers/lite-db.ts", "target": "function:services/api-lite/tests/helpers/lite-db.ts:createTenantFixture", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:services/api-lite/tests/helpers/lite-db.ts", "target": "function:services/api-lite/tests/helpers/lite-db.ts:createUserFixture", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:services/api-lite/tests/helpers/lite-db.ts", "target": "function:services/api-lite/tests/helpers/lite-db.ts:assertLocalTestDatabase", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:services/api-lite/tests/imports.test.ts", "target": "function:services/api-lite/tests/imports.test.ts:columnName", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:services/api-lite/tests/imports.test.ts", "target": "function:services/api-lite/tests/imports.test.ts:worksheetXml", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:services/api-lite/tests/imports.test.ts", "target": "function:services/api-lite/tests/imports.test.ts:makeXlsxBase64", "type": "contains", "direction": "forward", "weight": 1.0 },
+
+    { "source": "file:services/api-lite/tests/helpers/fixture.ts", "target": "function:services/api-lite/tests/helpers/fixture.ts:createLiteFixture", "type": "exports", "direction": "forward", "weight": 0.8 },
+    { "source": "file:services/api-lite/tests/helpers/lite-db.ts", "target": "function:services/api-lite/tests/helpers/lite-db.ts:migrationFiles", "type": "exports", "direction": "forward", "weight": 0.8 },
+    { "source": "file:services/api-lite/tests/helpers/lite-db.ts", "target": "function:services/api-lite/tests/helpers/lite-db.ts:resetLiteTestDatabase", "type": "exports", "direction": "forward", "weight": 0.8 },
+    { "source": "file:services/api-lite/tests/helpers/lite-db.ts", "target": "function:services/api-lite/tests/helpers/lite-db.ts:endPools", "type": "exports", "direction": "forward", "weight": 0.8 },
+    { "source": "file:services/api-lite/tests/helpers/lite-db.ts", "target": "function:services/api-lite/tests/helpers/lite-db.ts:teardownLiteTestDatabase", "type": "exports", "direction": "forward", "weight": 0.8 },
+    { "source": "file:services/api-lite/tests/helpers/lite-db.ts", "target": "function:services/api-lite/tests/helpers/lite-db.ts:createTenantFixture", "type": "exports", "direction": "forward", "weight": 0.8 },
+    { "source": "file:services/api-lite/tests/helpers/lite-db.ts", "target": "function:services/api-lite/tests/helpers/lite-db.ts:createUserFixture", "type": "exports", "direction": "forward", "weight": 0.8 },
+    { "source": "file:services/api-lite/tests/helpers/lite-db.ts", "target": "function:services/api-lite/tests/helpers/lite-db.ts:assertLocalTestDatabase", "type": "exports", "direction": "forward", "weight": 0.8 },
+
+    { "source": "file:services/api-lite/tests/plan-capabilities.test.ts", "target": "file:services/api-lite/src/capabilities.ts", "type": "tested_by", "direction": "forward", "weight": 0.5 },
+    { "source": "file:services/api-lite/tests/rate-limit.test.ts", "target": "file:services/api-lite/src/rate-limit.ts", "type": "tested_by", "direction": "forward", "weight": 0.5 },
+
+    { "source": "function:services/api-lite/tests/helpers/fixture.ts:createLiteFixture", "target": "function:services/api-lite/src/app.ts:buildApp", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "function:services/api-lite/tests/helpers/fixture.ts:createLiteFixture", "target": "function:services/api-lite/src/database.ts:createDatabase", "type": "calls", "direction": "forward", "weight": 0.8 }
+  ]
+}
