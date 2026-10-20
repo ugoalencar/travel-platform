@@ -189,6 +189,27 @@ export function documentRow(overrides: Record<string, unknown> = {}): Record<str
   };
 }
 
+/** A `customer_loyalty_programs` row with sensible defaults. */
+export function loyaltyProgramRow(
+  overrides: Record<string, unknown> = {},
+): Record<string, unknown> {
+  return {
+    id: 'loy-1',
+    agency_id: AGENCY_A,
+    customer_id: CUSTOMER_A,
+    dependent_id: null,
+    program_type: 'AEREO',
+    program_name: 'LATAM Pass',
+    member_number: '123456789',
+    tier: null,
+    notes: null,
+    created_at: NOW,
+    updated_at: NOW,
+    deleted_at: null,
+    ...overrides,
+  };
+}
+
 /** A `document_attachments` row with sensible defaults. */
 export function attachmentRow(overrides: Record<string, unknown> = {}): Record<string, unknown> {
   return {

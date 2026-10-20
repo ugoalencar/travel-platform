@@ -85,6 +85,59 @@ export interface Customer {
   deletedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
+  // Traveler 360 internacional (Agent 05)
+  passportFullName?: string;
+  dualCitizenship: boolean;
+  dualCitizenshipCountry?: string;
+  birthCountry?: string;
+  birthCity?: string;
+  residenceCountry?: string;
+  internationalPhone?: string;
+  preferredLanguage?: string;
+  travelPreferences: TravelPreferences;
+}
+
+/**
+ * Flexible, documented shape for `customers.travel_preferences` (JSONB).
+ * Every field optional -- the column defaults to `{}`. Mirrors the JSONB
+ * blob convention already used by `customers.address` and
+ * `enrollment_submissions.dependents`.
+ */
+export interface TravelPreferences {
+  preferredAirport?: string;
+  seatPreference?: string;
+  mealPreference?: string;
+  baggagePreference?: string;
+  preferredAirline?: string;
+  hotelCategory?: string;
+  roomType?: string;
+  bedType?: string;
+  transferPreference?: string;
+  accessibilityNeeds?: string;
+  dietaryRestrictions?: string;
+  notes?: string;
+}
+
+export enum LoyaltyProgramType {
+  AEREO = 'AEREO',
+  HOTEL = 'HOTEL',
+  LOCADORA = 'LOCADORA',
+  OUTRO = 'OUTRO',
+}
+
+export interface CustomerLoyaltyProgram {
+  id: string;
+  agencyId: string;
+  customerId: string;
+  dependentId?: string;
+  programType: LoyaltyProgramType;
+  programName: string;
+  memberNumber: string;
+  tier?: string;
+  notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
+  deletedAt?: Date;
 }
 
 export interface CustomerAccount {
@@ -1863,6 +1916,7 @@ export interface CustomerDocument {
   id: string;
   agencyId: string;
   customerId: string;
+  dependentId?: string;
   documentType: DocumentType;
   documentNumber: string;
   holderName?: string;

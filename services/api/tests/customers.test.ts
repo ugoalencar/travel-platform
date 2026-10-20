@@ -20,6 +20,10 @@ const migration019 = resolve(repoRoot, 'infrastructure/migrations/019_customer_3
 const migration020 = resolve(repoRoot, 'infrastructure/migrations/020_customer_360_dependents.sql');
 const migration021 = resolve(repoRoot, 'infrastructure/migrations/021_customer_360_documents.sql');
 const migration046 = resolve(repoRoot, 'infrastructure/migrations/046_customer_360_completion.sql');
+const migration052 = resolve(
+  repoRoot,
+  'infrastructure/migrations/052_traveler_international_profile.sql',
+);
 const prepareRolesSql = resolve(repoRoot, 'tests/integration/database/002_prepare_local_roles.sql');
 const composeFile = resolve(repoRoot, 'infrastructure/docker-compose.local-postgres.yml');
 
@@ -198,6 +202,81 @@ describe.sequential('Customer data-access layer (Task 1)', () => {
     ).resolves.toMatchObject({ email: 'dup@example.test' });
   });
 
+  it('persists Traveler 360 international profile fields end-to-end', async () => {
+    const created = await runWithTenantContext(contextA, () =>
+      createCustomer(database, {
+        name: 'Traveler One',
+        passportFullName: 'TRAVELER ONE SILVA',
+        dualCitizenship: true,
+        dualCitizenshipCountry: 'Portugal',
+        birthCountry: 'Brazil',
+        birthCity: 'Sao Paulo',
+        residenceCountry: 'Brazil',
+        internationalPhone: '+55 11 99999-0000',
+        preferredLanguage: 'pt-BR',
+        travelPreferences: {
+          preferredAirport: 'GRU',
+          seatPreference: 'Corredor',
+          mealPreference: 'Vegetariana',
+        },
+      }),
+    );
+
+    expect(created.passportFullName).toBe('TRAVELER ONE SILVA');
+    expect(created.dualCitizenship).toBe(true);
+    expect(created.dualCitizenshipCountry).toBe('Portugal');
+    expect(created.travelPreferences).toEqual({
+      preferredAirport: 'GRU',
+      seatPreference: 'Corredor',
+      mealPreference: 'Vegetariana',
+    });
+
+    const fetched = await runWithTenantContext(contextA, () =>
+      getCustomerById(database, created.id),
+    );
+    expect(fetched?.birthCity).toBe('Sao Paulo');
+    expect(fetched?.residenceCountry).toBe('Brazil');
+    expect(fetched?.internationalPhone).toBe('+55 11 99999-0000');
+    expect(fetched?.preferredLanguage).toBe('pt-BR');
+  });
+
+  it('defaults dualCitizenship to false and travelPreferences to {} when omitted', async () => {
+    const created = await runWithTenantContext(contextA, () =>
+      createCustomer(database, { name: 'No Prefs' }),
+    );
+
+    expect(created.dualCitizenship).toBe(false);
+    expect(created.travelPreferences).toEqual({});
+  });
+
+  it('updateCustomer merges travelPreferences and dualCitizenship without touching other tenants', async () => {
+    const created = await runWithTenantContext(contextA, () =>
+      createCustomer(database, { name: 'Updatable' }),
+    );
+    const bId = await seedCustomer(agencyBId, { name: 'B Untouched' });
+
+    const updated = await runWithTenantContext(contextA, () =>
+      updateCustomer(database, created.id, {
+        dualCitizenship: true,
+        travelPreferences: { seatPreference: 'Janela' },
+      }),
+    );
+
+    expect(updated?.dualCitizenship).toBe(true);
+    expect(updated?.travelPreferences).toEqual({ seatPreference: 'Janela' });
+
+    const crossTenantAttempt = await runWithTenantContext(contextA, () =>
+      updateCustomer(database, bId, { dualCitizenship: true }),
+    );
+    expect(crossTenantAttempt).toBeNull();
+
+    const bRow = await adminPool.query<{ dual_citizenship: boolean }>(
+      'SELECT dual_citizenship FROM customers WHERE id = $1',
+      [bId],
+    );
+    expect(bRow.rows[0]?.dual_citizenship).toBe(false);
+  });
+
   async function seedCustomer(
     agencyId: string,
     data: { name: string; email?: string; cpf?: string },
@@ -292,6 +371,7 @@ async function resetDatabase(pool: Pool): Promise<void> {
   await pool.query(readSqlForPg(migration020));
   await pool.query(readSqlForPg(migration021));
   await pool.query(readSqlForPg(migration046));
+  await pool.query(readSqlForPg(migration052));
   await pool.query(readSqlForPg(prepareRolesSql));
   await seedAgenciesAndUsers(pool);
 }

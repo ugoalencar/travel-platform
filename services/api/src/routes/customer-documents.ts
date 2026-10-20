@@ -53,6 +53,16 @@ import {
   type UpdateDocumentInput,
 } from '../customer-documents';
 import {
+  createLoyaltyProgram,
+  deleteLoyaltyProgram,
+  getLoyaltyProgramById,
+  listLoyaltyPrograms,
+  updateLoyaltyProgram,
+  type CreateLoyaltyProgramInput,
+  type UpdateLoyaltyProgramInput,
+} from '../customer-loyalty-programs';
+import { LoyaltyProgramType } from '../../../../packages/domain/types';
+import {
   createTravelRequirement,
   deleteTravelRequirement,
   getTravelRequirementById,
@@ -344,6 +354,92 @@ export function registerCustomerDocumentRoutes(
         throw new NotFoundError('Document not found');
       }
       return { document };
+    },
+  );
+
+  // ============================================================
+  // LOYALTY PROGRAMS (Fidelidade)
+  // ============================================================
+
+  app.get<{ Params: { customerId: string } }>(
+    '/customers/:customerId/loyalty-programs',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      await assertCustomerExists(request.params.customerId);
+      const loyaltyPrograms = await listLoyaltyPrograms(database, request.params.customerId);
+      return { loyaltyPrograms };
+    },
+  );
+
+  app.get<{ Params: { customerId: string; loyaltyProgramId: string } }>(
+    '/customers/:customerId/loyalty-programs/:loyaltyProgramId',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      const loyaltyProgram = await getLoyaltyProgramById(
+        database,
+        request.params.loyaltyProgramId,
+      );
+      if (!loyaltyProgram || loyaltyProgram.customerId !== request.params.customerId) {
+        throw new NotFoundError('Loyalty program not found');
+      }
+      return { loyaltyProgram };
+    },
+  );
+
+  app.post<{ Params: { customerId: string } }>(
+    '/customers/:customerId/loyalty-programs',
+    { preHandler: protectedHooks },
+    async (request, reply) => {
+      requireRole(UserRole.AGENT);
+      await assertCustomerExists(request.params.customerId);
+      const data = parseCreateLoyaltyProgramInput(request.body, request.params.customerId);
+      const loyaltyProgram = await createLoyaltyProgram(database, data);
+      reply.code(201);
+      return { loyaltyProgram };
+    },
+  );
+
+  app.patch<{ Params: { customerId: string; loyaltyProgramId: string } }>(
+    '/customers/:customerId/loyalty-programs/:loyaltyProgramId',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.AGENT);
+      const existing = await getLoyaltyProgramById(database, request.params.loyaltyProgramId);
+      if (!existing || existing.customerId !== request.params.customerId) {
+        throw new NotFoundError('Loyalty program not found');
+      }
+      const data = parseUpdateLoyaltyProgramInput(request.body);
+      const loyaltyProgram = await updateLoyaltyProgram(
+        database,
+        request.params.loyaltyProgramId,
+        data,
+      );
+      if (!loyaltyProgram) {
+        throw new NotFoundError('Loyalty program not found');
+      }
+      return { loyaltyProgram };
+    },
+  );
+
+  app.delete<{ Params: { customerId: string; loyaltyProgramId: string } }>(
+    '/customers/:customerId/loyalty-programs/:loyaltyProgramId',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.AGENT);
+      const existing = await getLoyaltyProgramById(database, request.params.loyaltyProgramId);
+      if (!existing || existing.customerId !== request.params.customerId) {
+        throw new NotFoundError('Loyalty program not found');
+      }
+      const loyaltyProgram = await deleteLoyaltyProgram(
+        database,
+        request.params.loyaltyProgramId,
+      );
+      if (!loyaltyProgram) {
+        throw new NotFoundError('Loyalty program not found');
+      }
+      return { loyaltyProgram };
     },
   );
 
@@ -843,12 +939,13 @@ export function parseUpdateDependentInput(body: unknown): UpdateDependentInput {
 }
 
 const DOCUMENT_CREATE_FIELDS = [
-  'documentType', 'documentNumber', 'holderName', 'holderBirthDate', 'holderNationality',
-  'issuingCountry', 'issuingAuthority', 'issuedDate', 'expiryDate', 'notes',
+  'documentType', 'documentNumber', 'dependentId', 'holderName', 'holderBirthDate',
+  'holderNationality', 'issuingCountry', 'issuingAuthority', 'issuedDate', 'expiryDate', 'notes',
 ] as const;
 
 const DOCUMENT_UPDATE_FIELDS = [
-  ...DOCUMENT_CREATE_FIELDS,
+  'documentType', 'documentNumber', 'holderName', 'holderBirthDate', 'holderNationality',
+  'issuingCountry', 'issuingAuthority', 'issuedDate', 'expiryDate', 'notes',
   'verificationStatus',
 ] as const;
 
@@ -866,7 +963,7 @@ export function parseCreateDocumentInput(
   };
 
   for (const field of [
-    'holderName', 'holderBirthDate', 'holderNationality', 'issuingCountry',
+    'dependentId', 'holderName', 'holderBirthDate', 'holderNationality', 'issuingCountry',
     'issuingAuthority', 'issuedDate', 'expiryDate', 'notes',
   ] as const) {
     const value = optionalString(record, field);
@@ -1022,4 +1119,59 @@ export function parseAttachmentInput(body: unknown): ParsedAttachmentInput {
   if (fileHash !== undefined) parsed.fileHash = fileHash;
 
   return parsed;
+}
+
+const LOYALTY_PROGRAM_CREATE_FIELDS = [
+  'dependentId', 'programType', 'programName', 'memberNumber', 'tier', 'notes',
+] as const;
+
+const LOYALTY_PROGRAM_UPDATE_FIELDS = [
+  'programType', 'programName', 'memberNumber', 'tier', 'notes',
+] as const;
+
+export function parseCreateLoyaltyProgramInput(
+  body: unknown,
+  customerId: string,
+): CreateLoyaltyProgramInput {
+  const record = asRecord(body);
+  rejectUnknownFields(record, LOYALTY_PROGRAM_CREATE_FIELDS);
+
+  const data: CreateLoyaltyProgramInput = {
+    customerId,
+    programName: requireStringField(record, 'programName'),
+    memberNumber: requireStringField(record, 'memberNumber'),
+  };
+
+  const programType = optionalEnum(record, 'programType', Object.values(LoyaltyProgramType));
+  if (programType !== undefined) data.programType = programType;
+
+  for (const field of ['dependentId', 'tier', 'notes'] as const) {
+    const value = optionalString(record, field);
+    if (value !== undefined) data[field] = value;
+  }
+
+  return data;
+}
+
+export function parseUpdateLoyaltyProgramInput(body: unknown): UpdateLoyaltyProgramInput {
+  const record = asRecord(body);
+  rejectUnknownFields(record, LOYALTY_PROGRAM_UPDATE_FIELDS);
+
+  const data: UpdateLoyaltyProgramInput = {};
+
+  const programType = optionalEnum(record, 'programType', Object.values(LoyaltyProgramType));
+  if (programType !== undefined) data.programType = programType;
+
+  const programName = optionalString(record, 'programName');
+  if (programName !== undefined) data.programName = programName;
+
+  const memberNumber = optionalString(record, 'memberNumber');
+  if (memberNumber !== undefined) data.memberNumber = memberNumber;
+
+  for (const field of ['tier', 'notes'] as const) {
+    const value = nullableString(record, field);
+    if (value !== undefined) data[field] = value;
+  }
+
+  return data;
 }

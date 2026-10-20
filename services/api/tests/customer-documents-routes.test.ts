@@ -33,6 +33,7 @@ import {
   documentRow,
   extractionRow,
   auditEventRow,
+  loyaltyProgramRow,
   USER_A,
   verificationRow,
   type QueryResponder,
@@ -95,6 +96,7 @@ const defaultResponder: QueryResponder = (query) => {
   if (text.includes('customer_addresses')) return [addressRow()];
   if (text.includes('customer_dependents')) return [dependentRow()];
   if (text.includes('customer_documents')) return [documentRow()];
+  if (text.includes('customer_loyalty_programs')) return [loyaltyProgramRow()];
   if (text.includes('document_attachments')) return [attachmentRow()];
   if (text.includes('document_extractions')) return [extractionRow()];
   if (text.includes('document_verifications')) return [verificationRow()];
@@ -593,6 +595,135 @@ describe('Customer 360 routes -- extraction and verification', () => {
     });
 
     expect(response.statusCode).toBe(403);
+  });
+});
+
+describe('Customer 360 routes -- loyalty programs', () => {
+  it('lists loyalty programs for an existing customer', async () => {
+    const response = await app.inject({
+      method: 'GET',
+      url: `/customers/${CUSTOMER_A}/loyalty-programs`,
+      headers: authHeaders,
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(readJson<{ loyaltyPrograms: unknown[] }>(response).loyaltyPrograms).toBeInstanceOf(
+      Array,
+    );
+  });
+
+  it('creates a loyalty program and returns 201', async () => {
+    const response = await app.inject({
+      method: 'POST',
+      url: `/customers/${CUSTOMER_A}/loyalty-programs`,
+      headers: authHeaders,
+      payload: { programName: 'LATAM Pass', memberNumber: '123456789', programType: 'AEREO' },
+    });
+
+    expect(response.statusCode).toBe(201);
+    expect(
+      readJson<{ loyaltyProgram: { customerId: string } }>(response).loyaltyProgram,
+    ).toMatchObject({ customerId: CUSTOMER_A });
+  });
+
+  it('rejects a create missing a required field with 400', async () => {
+    const response = await app.inject({
+      method: 'POST',
+      url: `/customers/${CUSTOMER_A}/loyalty-programs`,
+      headers: authHeaders,
+      payload: { programName: 'LATAM Pass' },
+    });
+
+    expect(response.statusCode).toBe(400);
+    expect(readJson<{ code: string }>(response).code).toBe('VALIDATION_ERROR');
+  });
+
+  it('rejects an unknown field in the body', async () => {
+    const response = await app.inject({
+      method: 'POST',
+      url: `/customers/${CUSTOMER_A}/loyalty-programs`,
+      headers: authHeaders,
+      payload: { programName: 'LATAM Pass', memberNumber: '123', agencyId: 'other-agency' },
+    });
+
+    expect(response.statusCode).toBe(400);
+  });
+
+  it('404s when the parent customer does not exist', async () => {
+    const isolated = buildTestApp((query) =>
+      query.text.includes('FROM customers') ? [] : [loyaltyProgramRow()],
+    );
+    await isolated.ready();
+
+    const response = await isolated.inject({
+      method: 'GET',
+      url: `/customers/${CUSTOMER_A}/loyalty-programs`,
+      headers: authHeaders,
+    });
+
+    expect(response.statusCode).toBe(404);
+    await isolated.close();
+  });
+
+  it('404s when the loyalty program belongs to a different customer', async () => {
+    const isolated = buildTestApp((query) =>
+      query.text.includes('customer_loyalty_programs')
+        ? [loyaltyProgramRow({ customer_id: 'someone-else' })]
+        : defaultResponder(query),
+    );
+    await isolated.ready();
+
+    const response = await isolated.inject({
+      method: 'GET',
+      url: `/customers/${CUSTOMER_A}/loyalty-programs/loy-1`,
+      headers: authHeaders,
+    });
+
+    expect(response.statusCode).toBe(404);
+    await isolated.close();
+  });
+
+  it('updates a loyalty program via PATCH', async () => {
+    const response = await app.inject({
+      method: 'PATCH',
+      url: `/customers/${CUSTOMER_A}/loyalty-programs/loy-1`,
+      headers: authHeaders,
+      payload: { tier: 'Gold' },
+    });
+
+    expect(response.statusCode).toBe(200);
+  });
+
+  it('soft deletes through DELETE and returns the row', async () => {
+    const response = await app.inject({
+      method: 'DELETE',
+      url: `/customers/${CUSTOMER_A}/loyalty-programs/loy-1`,
+      headers: authHeaders,
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(readJson<{ loyaltyProgram: unknown }>(response).loyaltyProgram).toBeTruthy();
+  });
+
+  it('denies a write to a VIEWER', async () => {
+    const response = await app.inject({
+      method: 'POST',
+      url: `/customers/${CUSTOMER_A}/loyalty-programs`,
+      headers: viewerHeaders,
+      payload: { programName: 'LATAM Pass', memberNumber: '123' },
+    });
+
+    expect(response.statusCode).toBe(403);
+  });
+
+  it('allows a VIEWER to read', async () => {
+    const response = await app.inject({
+      method: 'GET',
+      url: `/customers/${CUSTOMER_A}/loyalty-programs`,
+      headers: viewerHeaders,
+    });
+
+    expect(response.statusCode).toBe(200);
   });
 });
 

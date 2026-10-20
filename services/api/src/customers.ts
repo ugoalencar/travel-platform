@@ -1,4 +1,4 @@
-import type { Customer } from '../../../packages/domain/types';
+import type { Customer, TravelPreferences } from '../../../packages/domain/types';
 import type { Status } from '../../../packages/domain/types';
 import { getAgencyId } from '../../../packages/domain/tenant-context';
 import type { DatabaseRuntime } from './database';
@@ -12,6 +12,9 @@ const CUSTOMER_COLUMNS = `id, agency_id, name, email, phone, cpf, passport, rg, 
               id_issuing_authority, id_issued_date, emergency_contact_name,
               emergency_contact_relationship, emergency_contact_phone, emergency_contact_whatsapp,
               emergency_contact_email, emergency_contact_notes, address, notes, status,
+              passport_full_name, dual_citizenship, dual_citizenship_country, birth_country,
+              birth_city, residence_country, international_phone, preferred_language,
+              travel_preferences,
               deleted_at, created_at, updated_at`;
 
 interface CustomerRow {
@@ -41,6 +44,15 @@ interface CustomerRow {
   address: Record<string, unknown> | null;
   notes: string | null;
   status: Status;
+  passport_full_name: string | null;
+  dual_citizenship: boolean;
+  dual_citizenship_country: string | null;
+  birth_country: string | null;
+  birth_city: string | null;
+  residence_country: string | null;
+  international_phone: string | null;
+  preferred_language: string | null;
+  travel_preferences: TravelPreferences;
   deleted_at: string | null;
   created_at: string;
   updated_at: string;
@@ -70,6 +82,15 @@ export interface CreateCustomerInput {
   emergencyContactNotes?: string;
   address?: Record<string, unknown>;
   notes?: string;
+  passportFullName?: string;
+  dualCitizenship?: boolean;
+  dualCitizenshipCountry?: string;
+  birthCountry?: string;
+  birthCity?: string;
+  residenceCountry?: string;
+  internationalPhone?: string;
+  preferredLanguage?: string;
+  travelPreferences?: TravelPreferences;
 }
 
 export type UpdateCustomerInput = Partial<CreateCustomerInput>;
@@ -96,6 +117,13 @@ const OPTIONAL_STRING_COLUMNS = [
   ['emergencyContactEmail', 'emergency_contact_email'],
   ['emergencyContactNotes', 'emergency_contact_notes'],
   ['notes', 'notes'],
+  ['passportFullName', 'passport_full_name'],
+  ['dualCitizenshipCountry', 'dual_citizenship_country'],
+  ['birthCountry', 'birth_country'],
+  ['birthCity', 'birth_city'],
+  ['residenceCountry', 'residence_country'],
+  ['internationalPhone', 'international_phone'],
+  ['preferredLanguage', 'preferred_language'],
 ] as const;
 
 export async function listCustomers(database: DatabaseRuntime): Promise<Customer[]> {
@@ -147,10 +175,13 @@ export async function createCustomer(
            nationality, whatsapp, social_name, marital_status, profession,
            id_issuing_authority, id_issued_date, emergency_contact_name,
            emergency_contact_relationship, emergency_contact_phone, emergency_contact_whatsapp,
-           emergency_contact_email, emergency_contact_notes, address, notes
+           emergency_contact_email, emergency_contact_notes, address, notes,
+           passport_full_name, dual_citizenship, dual_citizenship_country, birth_country,
+           birth_city, residence_country, international_phone, preferred_language,
+           travel_preferences
          )
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17,
-                 $18, $19, $20, $21, $22, $23, $24)
+                 $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33)
          RETURNING ${CUSTOMER_COLUMNS}`,
         [
           agencyId,
@@ -177,6 +208,15 @@ export async function createCustomer(
           data.emergencyContactNotes ?? null,
           data.address ? JSON.stringify(data.address) : null,
           data.notes ?? null,
+          data.passportFullName ?? null,
+          data.dualCitizenship ?? false,
+          data.dualCitizenshipCountry ?? null,
+          data.birthCountry ?? null,
+          data.birthCity ?? null,
+          data.residenceCountry ?? null,
+          data.internationalPhone ?? null,
+          data.preferredLanguage ?? null,
+          data.travelPreferences ? JSON.stringify(data.travelPreferences) : '{}',
         ],
       );
 
@@ -226,6 +266,16 @@ export async function updateCustomer(
     fields.push(`address = $${++index}`);
     values.push(JSON.stringify(data.address));
     changedFields.push('address');
+  }
+  if (data.dualCitizenship !== undefined) {
+    fields.push(`dual_citizenship = $${++index}`);
+    values.push(data.dualCitizenship);
+    changedFields.push('dualCitizenship');
+  }
+  if (data.travelPreferences !== undefined) {
+    fields.push(`travel_preferences = $${++index}`);
+    values.push(JSON.stringify(data.travelPreferences));
+    changedFields.push('travelPreferences');
   }
 
   if (fields.length === 0) {
@@ -317,6 +367,17 @@ function toCustomer(row: CustomerRow): Customer {
       : {}),
     ...(row.address !== null ? { address: row.address } : {}),
     ...(row.notes !== null ? { notes: row.notes } : {}),
+    dualCitizenship: row.dual_citizenship,
+    travelPreferences: row.travel_preferences ?? {},
+    ...(row.passport_full_name !== null ? { passportFullName: row.passport_full_name } : {}),
+    ...(row.dual_citizenship_country !== null
+      ? { dualCitizenshipCountry: row.dual_citizenship_country }
+      : {}),
+    ...(row.birth_country !== null ? { birthCountry: row.birth_country } : {}),
+    ...(row.birth_city !== null ? { birthCity: row.birth_city } : {}),
+    ...(row.residence_country !== null ? { residenceCountry: row.residence_country } : {}),
+    ...(row.international_phone !== null ? { internationalPhone: row.international_phone } : {}),
+    ...(row.preferred_language !== null ? { preferredLanguage: row.preferred_language } : {}),
     ...(row.deleted_at !== null ? { deletedAt: new Date(row.deleted_at) } : {}),
   };
 }

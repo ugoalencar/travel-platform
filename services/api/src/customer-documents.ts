@@ -22,9 +22,9 @@ import { AuditEventType, recordAuditEvent } from './audit-log';
 import { recordDocumentAuditEvent } from './document-audit';
 import { maskDocumentNumber } from './document-masking';
 
-const DOCUMENT_COLUMNS = `id, agency_id, customer_id, document_type, document_number, holder_name,
-              holder_birth_date, holder_nationality, issuing_country, issuing_authority,
-              issued_date, expiry_date,
+const DOCUMENT_COLUMNS = `id, agency_id, customer_id, dependent_id, document_type, document_number,
+              holder_name, holder_birth_date, holder_nationality, issuing_country,
+              issuing_authority, issued_date, expiry_date,
               (expiry_date IS NOT NULL AND expiry_date < CURRENT_DATE) AS is_expired,
               verification_status, verified_at,
               verified_by_user_id, notes, created_at, updated_at, deleted_at`;
@@ -33,6 +33,7 @@ export interface CustomerDocumentRow {
   id: string;
   agency_id: string;
   customer_id: string;
+  dependent_id: string | null;
   document_type: DocumentType;
   document_number: string;
   holder_name: string | null;
@@ -54,6 +55,7 @@ export interface CustomerDocumentRow {
 
 export interface CreateDocumentInput {
   customerId: string;
+  dependentId?: string;
   documentType: DocumentType;
   documentNumber: string;
   holderName?: string;
@@ -142,14 +144,15 @@ export async function createDocument(
   return database.withTenantTransaction(async (client) => {
     const result = await client.query<CustomerDocumentRow>(
       `INSERT INTO customer_documents
-         (agency_id, customer_id, document_type, document_number, holder_name,
+         (agency_id, customer_id, dependent_id, document_type, document_number, holder_name,
           holder_birth_date, holder_nationality, issuing_country, issuing_authority,
           issued_date, expiry_date, notes)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
        RETURNING ${DOCUMENT_COLUMNS}`,
       [
         agencyId,
         data.customerId,
+        data.dependentId ?? null,
         data.documentType,
         data.documentNumber.trim(),
         data.holderName ?? null,
@@ -343,6 +346,7 @@ export function toCustomerDocument(row: CustomerDocumentRow): CustomerDocument {
     verificationStatus: row.verification_status,
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
+    ...(row.dependent_id !== null ? { dependentId: row.dependent_id } : {}),
     ...(row.holder_name !== null ? { holderName: row.holder_name } : {}),
     ...(row.holder_birth_date !== null
       ? { holderBirthDate: new Date(row.holder_birth_date) }

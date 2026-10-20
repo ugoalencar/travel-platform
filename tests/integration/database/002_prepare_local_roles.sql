@@ -407,6 +407,16 @@ $$;
 
 DO $$
 BEGIN
+  IF to_regclass('public.customer_loyalty_programs') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON
+      customer_loyalty_programs
+    TO travel_app_runtime_local;
+  END IF;
+END;
+$$;
+
+DO $$
+BEGIN
   IF to_regclass('public.trip_occurrences') IS NOT NULL THEN
     GRANT SELECT, INSERT, UPDATE, DELETE ON
       trip_occurrences,

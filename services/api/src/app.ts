@@ -23,6 +23,7 @@ import {
   OperationalStaffCapability,
   PaymentDirection,
   UserRole,
+  type TravelPreferences,
 } from '../../../packages/domain/types';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
@@ -4223,18 +4224,30 @@ const CUSTOMER_OPTIONAL_STRING_FIELDS = [
   'emergencyContactEmail',
   'emergencyContactNotes',
   'notes',
+  // Traveler 360 internacional (Agent 05)
+  'passportFullName',
+  'dualCitizenshipCountry',
+  'birthCountry',
+  'birthCity',
+  'residenceCountry',
+  'internationalPhone',
+  'preferredLanguage',
 ] as const;
 
 const ALLOWED_CREATE_FIELDS = [
   'name',
   ...CUSTOMER_OPTIONAL_STRING_FIELDS,
   'address',
+  'dualCitizenship',
+  'travelPreferences',
 ] as const;
 
 const ALLOWED_UPDATE_FIELDS = [
   'name',
   ...CUSTOMER_OPTIONAL_STRING_FIELDS,
   'address',
+  'dualCitizenship',
+  'travelPreferences',
 ] as const;
 
 function parseCreateCustomerInput(body: unknown): CreateCustomerInput {
@@ -4281,6 +4294,15 @@ function parseCreateCustomerInput(body: unknown): CreateCustomerInput {
     }
     data.address = record.address as Record<string, unknown>;
   }
+  if (record.dualCitizenship !== undefined) {
+    if (typeof record.dualCitizenship !== 'boolean') {
+      throw new ValidationError('Field "dualCitizenship" must be a boolean');
+    }
+    data.dualCitizenship = record.dualCitizenship;
+  }
+  if (record.travelPreferences !== undefined) {
+    data.travelPreferences = parseTravelPreferences(record.travelPreferences);
+  }
 
   return data;
 }
@@ -4325,12 +4347,55 @@ function parseUpdateCustomerInput(body: unknown): UpdateCustomerInput {
     }
     data.address = record.address as Record<string, unknown>;
   }
+  if (record.dualCitizenship !== undefined) {
+    if (typeof record.dualCitizenship !== 'boolean') {
+      throw new ValidationError('Field "dualCitizenship" must be a boolean');
+    }
+    data.dualCitizenship = record.dualCitizenship;
+  }
+  if (record.travelPreferences !== undefined) {
+    data.travelPreferences = parseTravelPreferences(record.travelPreferences);
+  }
 
   if (Object.keys(data).length === 0) {
     throw new ValidationError('At least one field must be provided');
   }
 
   return data;
+}
+
+const TRAVEL_PREFERENCES_FIELDS = [
+  'preferredAirport',
+  'seatPreference',
+  'mealPreference',
+  'baggagePreference',
+  'preferredAirline',
+  'hotelCategory',
+  'roomType',
+  'bedType',
+  'transferPreference',
+  'accessibilityNeeds',
+  'dietaryRestrictions',
+  'notes',
+] as const;
+
+function parseTravelPreferences(value: unknown): TravelPreferences {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    throw new ValidationError('Field "travelPreferences" must be an object');
+  }
+  const record = value as Record<string, unknown>;
+  const preferences: TravelPreferences = {};
+  for (const key of Object.keys(record)) {
+    if (!(TRAVEL_PREFERENCES_FIELDS as readonly string[]).includes(key)) {
+      throw new ValidationError(`Unknown field "${key}" in travelPreferences`);
+    }
+    const fieldValue = record[key];
+    if (typeof fieldValue !== 'string') {
+      throw new ValidationError(`Field "travelPreferences.${key}" must be a string`);
+    }
+    (preferences as Record<string, string>)[key] = fieldValue;
+  }
+  return preferences;
 }
 
 // ============================================================
