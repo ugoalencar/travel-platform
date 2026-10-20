@@ -10,8 +10,8 @@ const migration001 = resolve(repoRoot, 'infrastructure/migrations/001_initial_sc
 const migration002 = resolve(repoRoot, 'infrastructure/migrations/002_rls_policies.sql');
 const prepareRolesSql = resolve(repoRoot, 'tests/integration/database/002_prepare_local_roles.sql');
 
-const projectName = 'travel-platform-api-manual-postgres';
-const containerName = 'travel-platform-postgres-local';
+const projectName = process.env.DEMO_PROJECT_NAME ?? 'travel-platform-api-manual-postgres';
+const containerName = process.env.DEMO_CONTAINER_NAME ?? 'travel-platform-postgres-local';
 const postgresImage = 'postgres:15';
 const databaseHost = process.env.DATABASE_TEST_HOST ?? '127.0.0.1';
 const databasePort = Number(process.env.DATABASE_TEST_PORT ?? '55432');

@@ -36,7 +36,7 @@ export default defineConfig(({ command }) => {
       emptyOutDir: false,
     },
     server: {
-      port: 5174,
+      port: 5184,
       strictPort: true,
       ...(isDevServer
         ? {

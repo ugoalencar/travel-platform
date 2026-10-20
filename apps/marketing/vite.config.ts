@@ -13,7 +13,7 @@ export default defineConfig(({ command }) => {
       emptyOutDir: false,
     },
     server: {
-      port: 5175,
+      port: 5185,
       strictPort: true,
       ...(isDevServer
         ? {
