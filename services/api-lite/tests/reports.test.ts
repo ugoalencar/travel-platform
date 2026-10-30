@@ -82,7 +82,7 @@ describe('Travel Lite dashboard and reports', () => {
     const category = await lite.app.inject({
       method: 'POST',
       url: '/categories',
-      headers: lite.headers(staffToken),
+      headers: lite.headers(await lite.login('tenant-a', 'admin@a.test')),
       payload: { name: 'HOTEL' },
     });
     const categoryId = category.json<{ category: { id: string } }>().category.id;

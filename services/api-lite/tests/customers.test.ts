@@ -53,7 +53,7 @@ describe('Travel Lite customers CRUD', () => {
     const response = await post(staffToken, { name: 'Invalid CPF', cpf: INVALID_CPF });
 
     expect(response.statusCode).toBe(400);
-    expect(response.json<{ error: string }>().error).toMatch(/valid CPF/);
+    expect(response.json<{ error: string }>().error).toMatch(/CPF válido/);
   });
 
   it('rejects a duplicate CPF inside the same tenant with 409', async () => {

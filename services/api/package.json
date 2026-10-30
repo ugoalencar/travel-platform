@@ -10,6 +10,7 @@
     "build": "tsc -p tsconfig.build.json",
     "dev": "node scripts/start-local-api.cjs",
     "start": "node dist/services/api/src/server.js",
+    "start:backup-worker": "node dist/services/api/src/backup-worker.js",
     "dev:db": "node scripts/bootstrap-local-db.cjs",
     "lint": "eslint src/**/*.ts tests/**/*.test.ts scripts/**/*.cjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",

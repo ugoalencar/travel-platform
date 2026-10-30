@@ -1,0 +1,3 @@
+aguardando 13:23 (13:13)
+tentativa 1 as 13:23
+concluido (exit=0) as 13:56

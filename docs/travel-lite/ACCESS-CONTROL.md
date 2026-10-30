@@ -62,6 +62,7 @@ O MASTER pode ajustar cada usuário em **Configurações › Usuários e permiss
   - Listas e saldos exigem `finance.read`.
   - Recebimentos, despesas, pagamentos e estornos exigem `finance.manage`.
   - Pagar uma comissão exige também `commissions.pay`.
+  - `commissions.rules_manage` (ADMIN e MANAGER por padrão) cria, revisa e arquiva regras de comissão (`/commission-rules`); quem só tem `commissions.read_own` vê as regras que se aplicam ao próprio vendedor.
 - **Relatórios:**
   - `reports.sales_all` ou `reports.sales_own` dão acesso a vendas e indicadores (os próprios, no caso de `_own`).
   - `reports.sellers_all` dá acesso ao comparativo de vendedores.
@@ -98,3 +99,10 @@ O MASTER pode ajustar cada usuário em **Configurações › Usuários e permiss
 - As demais pessoas são SELLER.
 - O seed não altera senha, perfil nem status de usuários existentes.
 - Os vendedores são vinculados aos logins.
+
+## Precedência e novas permissões (SEC-01 / Frente 2)
+
+- Precedência efetiva: perfil padrão − `REVOKE` + `GRANT`. `GRANT` e `REVOKE` da mesma permissão não coexistem (chave primária de `user_permissions`).
+- `customers.fields_manage` (migration 013): configurar os campos do cadastro de cliente (habilitar e tornar obrigatório). Padrão: ADMIN (MASTER tem todas). Não está em MANAGER nem SELLER.
+- `catalog.manage` (Q4) **não foi criada no Lite**: nenhuma rota a usa ainda; a decisão de categorias fica com a Onda B.
+- Contrato do Full: `docs/adr/ADR-009-permissoes-individuais-por-usuario.md`.

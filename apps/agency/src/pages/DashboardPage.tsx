@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
+import {DashboardWidgets} from '../components/DashboardWidgets';
+import { useEffect, useState } from 'react';
 import {
   TrendingUp,
   FileText,
@@ -32,7 +33,6 @@ import {
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
 import { KpiChip } from '../components/ui/kpi-chip';
 import { Button } from '../components/ui/button';
-import { Select } from '../components/ui/select';
 import { Modal } from '../components/ui/modal';
 import { Input } from '../components/ui/input';
 import { LoadingState } from '../components/ui/loading-state';
@@ -42,10 +42,8 @@ import { cn } from '../lib/utils';
 import {
   ApiError,
   createProposal,
-  getDashboardSummary,
   getSalesReportByPeriod,
   getUpcomingTravel,
-  listCustomers,
   listOffers,
   listOpportunities,
   listPipelines,
@@ -57,7 +55,8 @@ import {
   type Pipeline,
   type SalesReportRow,
 } from '../lib/api';
-import type { Customer } from '../types/customer';
+import { CustomerCombobox } from '../components/customers/CustomerCombobox';
+import type { CustomerLookupItem } from '../lib/customerLookup';
 
 // Every figure on this page comes from real backend aggregates (GET
 // /commercial/dashboard, /commercial/travel-search, /reports/sales,
@@ -76,7 +75,6 @@ type LoadState =
       revenueTrend: SalesReportRow[] | null; // null = 403 (role can't see reports), not an error
       opportunities: CommercialOpportunity[];
       offers: Offer[];
-      customers: Customer[];
       tasks: CommercialTask[];
     };
 
@@ -95,6 +93,10 @@ function greeting(): string {
 }
 
 export function DashboardPage() {
+  return <DashboardWidgets commercial={summary=><CommercialDashboard summary={summary}/>}/>;
+}
+
+function CommercialDashboard({summary:configuredSummary}:{summary:DashboardSummary}) {
   const [state, setState] = useState<LoadState>({ status: 'loading' });
   const [offerIndex, setOfferIndex] = useState(0);
   const [offerModal, setOfferModal] = useState<Offer | null>(null);
@@ -108,7 +110,7 @@ export function DashboardPage() {
     const to = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().slice(0, 10);
 
     Promise.all([
-      getDashboardSummary(),
+      Promise.resolve(configuredSummary),
       getUpcomingTravel('week'),
       getSalesReportByPeriod(from, to).catch((err: unknown) => {
         if (err instanceof ApiError && err.status === 403) return null;
@@ -118,10 +120,9 @@ export function DashboardPage() {
         .then((pipelines) => pipelines.find((p) => p.active) ?? pipelines[0] ?? null)
         .then((pipeline: Pipeline | null) => (pipeline ? listOpportunities(pipeline.id) : [])),
       listOffers(),
-      listCustomers(),
       listTasks({ pending: true }).catch(() => ({ tasks: [] as CommercialTask[], total: 0 })),
     ])
-      .then(([summary, travel, revenueTrend, opportunities, offers, customers, taskResult]) => {
+      .then(([summary, travel, revenueTrend, opportunities, offers, taskResult]) => {
         if (cancelled) return;
         setState({
           status: 'success',
@@ -133,7 +134,6 @@ export function DashboardPage() {
             .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
             .slice(0, 5),
           offers: offers.filter((o) => o.status === 'ACTIVE'),
-          customers: customers.filter((c) => c.status === 'ACTIVE'),
           tasks: taskResult.tasks,
         });
       })
@@ -147,7 +147,7 @@ export function DashboardPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [configuredSummary]);
 
   if (state.status === 'loading') {
     return <LoadingState label="Carregando resumo da agência…" />;
@@ -165,7 +165,7 @@ export function DashboardPage() {
     );
   }
 
-  const { summary, upcomingDeparturesCount, revenueTrend, opportunities, offers, customers } = state;
+  const { summary, upcomingDeparturesCount, revenueTrend, opportunities, offers } = state;
 
   const alerts: Array<{ icon: React.ComponentType<{ className?: string }>; text: string; sub: string; to: string }> = [];
   if (summary.overdueFollowUpsCount > 0) {
@@ -238,10 +238,11 @@ export function DashboardPage() {
       {/* KPI chips */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <KpiChip
-          label="Vendas (mês)"
+          label="Volume vendido (mês)"
           value={formatBRL(Number(summary.salesThisMonthTotal))}
           icon={<TrendingUp className="h-5 w-5" />}
           tone="green"
+          description="Base para metas; não representa a receita da agência."
         />
         <KpiChip
           label="Propostas aguardando resposta"
@@ -483,11 +484,7 @@ export function DashboardPage() {
       </div>
 
       {offerModal && (
-        <OfferToCustomerModal
-          offer={offerModal}
-          customers={customers}
-          onClose={() => setOfferModal(null)}
-        />
+        <OfferToCustomerModal offer={offerModal} onClose={() => setOfferModal(null)} />
       )}
     </div>
   );
@@ -541,25 +538,12 @@ function OfferCard({
   );
 }
 
-function OfferToCustomerModal({
-  offer,
-  customers,
-  onClose,
-}: {
-  offer: Offer;
-  customers: Customer[];
-  onClose: () => void;
-}) {
+function OfferToCustomerModal({ offer, onClose }: { offer: Offer; onClose: () => void }) {
   const [customerId, setCustomerId] = useState('');
   const [price, setPrice] = useState(String(offer.price));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [createdId, setCreatedId] = useState<string | null>(null);
-
-  const sortedCustomers = useMemo(
-    () => customers.slice().sort((a, b) => a.name.localeCompare(b.name)),
-    [customers],
-  );
 
   async function handleSubmit() {
     if (!customerId) {
@@ -612,15 +596,10 @@ function OfferToCustomerModal({
       ) : (
         <div className="space-y-4">
           {error && <p role="alert" className="rounded-md bg-red-50 p-2 text-xs text-red-700">{error}</p>}
-          <div>
-            <label className="mb-1 block text-xs font-medium text-slate-700">Cliente</label>
-            <Select value={customerId} onChange={(e) => setCustomerId(e.target.value)}>
-              <option value="">Selecione um cliente…</option>
-              {sortedCustomers.map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
-            </Select>
-          </div>
+          <CustomerCombobox
+            value={customerId}
+            onSelect={(customer: CustomerLookupItem | null) => setCustomerId(customer?.id ?? '')}
+          />
           <div>
             <label className="mb-1 block text-xs font-medium text-slate-700">Valor da proposta</label>
             <Input value={price} onChange={(e) => setPrice(e.target.value)} inputMode="decimal" />

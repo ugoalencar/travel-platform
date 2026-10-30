@@ -1,3 +1,4 @@
+import { assertEntryReleasableForPayable } from './commission-release-service';
 import {
   CommissionCalculationType,
   CommissionEntryStatus,
@@ -7,12 +8,15 @@ import { getAgencyId } from '../../../packages/domain/tenant-context';
 import type { DatabaseRuntime } from './database';
 import { ConflictError, NotFoundError, ValidationError } from './errors';
 import { getSaleMargin } from './financial';
+import { captureSaleReleasePolicySnapshot } from './commission-release-service';
 
 interface CommissionEntryRow {
   id: string;
   agency_id: string;
   employee_id: string;
   sale_id: string;
+  supplier_id?: string | null;
+  calculation_snapshot?: Record<string, unknown> | null;
   trip_id: string | null;
   commission_plan_id: string | null;
   commission_rule_id: string | null;
@@ -32,7 +36,7 @@ interface CommissionEntryRow {
   updated_at: string;
 }
 
-const COMMISSION_ENTRY_COLUMNS = `id, agency_id, employee_id, sale_id, trip_id, commission_plan_id,
+const COMMISSION_ENTRY_COLUMNS = `id, agency_id, employee_id, sale_id, supplier_id, trip_id, commission_plan_id,
   commission_rule_id, product_type, source_item_id, source_item_type, quantity,
   calculation_base, rate, amount, status, approved_at, approved_by, paid_at, notes,
   created_at, updated_at`;
@@ -56,6 +60,7 @@ function toCommissionEntry(row: CommissionEntryRow): CommissionEntry {
     agencyId: row.agency_id,
     employeeId: row.employee_id,
     saleId: row.sale_id,
+    ...(row.supplier_id ? { supplierId: row.supplier_id } : {}),
     tripId: row.trip_id ?? undefined,
     commissionPlanId: row.commission_plan_id ?? undefined,
     commissionRuleId: row.commission_rule_id ?? undefined,
@@ -73,6 +78,7 @@ function toCommissionEntry(row: CommissionEntryRow): CommissionEntry {
     notes: row.notes ?? undefined,
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
+    ...(row.calculation_snapshot?.agencyRevenueWarning === 'COMMISSION_EXCEEDS_AGENCY_REVENUE' ? { agencyRevenueWarning: true } : {}),
   };
 }
 
@@ -99,7 +105,7 @@ export async function listCommissionEntries(
 
   const rows = await database.withTenantTransaction(async (client) => {
     const result = await client.query<CommissionEntryRow>(
-      `SELECT ${COMMISSION_ENTRY_COLUMNS} FROM commission_entries
+      `SELECT ${COMMISSION_ENTRY_COLUMNS}, calculation_snapshot FROM commission_entries
        WHERE ${conditions.join(' AND ')} ORDER BY created_at DESC`,
       values,
     );
@@ -136,6 +142,8 @@ export async function generateCommission(
   const agencyId = getAgencyId();
 
   return database.withTenantTransaction(async (client) => {
+    await client.query('SELECT pg_advisory_xact_lock(hashtextextended($1,0))',
+      [`commission-motor:${agencyId}:${data.saleId}:${data.employeeId}`]);
     const employeeResult = await client.query<{
       id: string;
       default_commission_plan_id: string | null;
@@ -170,14 +178,27 @@ export async function generateCommission(
       throw new NotFoundError('Commission plan not found');
     }
 
-    const saleResult = await client.query<{ id: string; total: string }>(
-      `SELECT id, total FROM sales WHERE agency_id = $1 AND id = $2`,
+    const saleResult = await client.query<{ id: string; total: string; recognition_date: string }>(
+      `SELECT id, total, to_char(created_at AT TIME ZONE 'America/Sao_Paulo','YYYY-MM-DD') AS recognition_date
+         FROM sales WHERE agency_id = $1 AND id = $2`,
       [agencyId, data.saleId],
     );
     const sale = saleResult.rows[0];
     if (!sale) {
       throw new NotFoundError('Sale not found');
     }
+
+    const engineSettings = await client.query<{ cutover_date: string | null }>(
+      'SELECT cutover_date::text FROM agency_commission_engine_settings WHERE agency_id=$1', [agencyId],
+    );
+    if (engineSettings.rows[0]?.cutover_date && sale.recognition_date >= engineSettings.rows[0].cutover_date) {
+      throw new ConflictError('This sale is within the versioned commission engine period');
+    }
+    const attribution = await client.query(
+      `SELECT 1 FROM sale_commission_attributions WHERE agency_id=$1 AND sale_id=$2 AND employee_id=$3 AND state='ACTIVE'`,
+      [agencyId, data.saleId, data.employeeId],
+    );
+    if (attribution.rows.length > 0) throw new ConflictError('This sale uses versioned commission rules');
 
     const tripResult = await client.query<{ id: string }>(
       `SELECT id FROM trips WHERE agency_id = $1 AND sale_id = $2 LIMIT 1`,
@@ -248,13 +269,15 @@ export async function generateCommission(
       throw new ValidationError('Calculated commission amount is negative');
     }
 
+    const releasePolicySnapshot = await captureSaleReleasePolicySnapshot(client, agencyId, data.saleId);
+
     const result = await client.query<CommissionEntryRow>(
       `INSERT INTO commission_entries
          (agency_id, employee_id, sale_id, trip_id, commission_plan_id, calculation_base,
-          rate, amount, status, notes)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'PENDING', $9)
+          rate, amount, status, notes, release_policy_snapshot)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'PENDING', $9, $10::jsonb)
        RETURNING ${COMMISSION_ENTRY_COLUMNS}`,
-      [agencyId, data.employeeId, data.saleId, tripId, planId, calculationBase, rate, amount, data.notes ?? null],
+      [agencyId, data.employeeId, data.saleId, tripId, planId, calculationBase, rate, amount, data.notes ?? null, JSON.stringify(releasePolicySnapshot)],
     );
     const inserted = result.rows[0];
     if (!inserted) {
@@ -273,7 +296,7 @@ export async function approveCommissionEntry(
 
   return database.withTenantTransaction(async (client) => {
     const existingResult = await client.query<CommissionEntryRow>(
-      `SELECT ${COMMISSION_ENTRY_COLUMNS} FROM commission_entries WHERE agency_id = $1 AND id = $2`,
+      `SELECT ${COMMISSION_ENTRY_COLUMNS} FROM commission_entries WHERE agency_id = $1 AND id = $2 FOR UPDATE`,
       [agencyId, id],
     );
     const existing = existingResult.rows[0];
@@ -309,8 +332,11 @@ export async function createPayableFromCommissionEntry(
   const agencyId = getAgencyId();
 
   return database.withTenantTransaction(async (client) => {
-    const existingResult = await client.query<CommissionEntryRow>(
-      `SELECT ${COMMISSION_ENTRY_COLUMNS} FROM commission_entries WHERE agency_id = $1 AND id = $2`,
+    // FOR UPDATE: two concurrent calls serialize here, so the second one sees PAYABLE and is
+    // refused instead of creating a second obligation (backed by payables_agency_commission_entry_live_key).
+    const existingResult = await client.query<CommissionEntryRow & { payroll_entry_id: string | null }>(
+      `SELECT ${COMMISSION_ENTRY_COLUMNS}, payroll_entry_id FROM commission_entries
+       WHERE agency_id = $1 AND id = $2 FOR UPDATE`,
       [agencyId, id],
     );
     const existing = existingResult.rows[0];
@@ -322,6 +348,15 @@ export async function createPayableFromCommissionEntry(
         `Commission entry must be APPROVED to create a payable (current: ${existing.status})`,
       );
     }
+    // Single payment channel (decision F3): an entry reserved by a payroll is paid through it.
+    if (existing.payroll_entry_id !== null) {
+      throw new ConflictError(
+        'This commission is already included in a payroll entry and is paid through it; it cannot also get a standalone payable',
+      );
+    }
+
+    // COM-03: blocked without release configuration; needs something released by real receipts.
+    await assertEntryReleasableForPayable(client, existing.id);
 
     const employeeResult = await client.query<{ name: string }>(
       `SELECT name FROM employees WHERE agency_id = $1 AND id = $2`,
@@ -368,4 +403,59 @@ export async function createPayableFromCommissionEntry(
 
     return { payableId };
   });
+}
+
+export interface CommissionChannelConflict {
+  commissionEntryId: string;
+  employeeId: string;
+  amount: number;
+  status: string;
+  payableId: string;
+  payrollEntryId: string;
+  competence: string;
+}
+
+/**
+ * READ-ONLY report of legacy double-channel exposure: commission entries that have a live
+ * standalone payable AND whose employee has a non-cancelled payroll entry for the entry's
+ * month that counted commissions, without the entry being reserved by that payroll
+ * (payroll_entry_id IS NULL -- only legacy rows look like this). Nothing is corrected here:
+ * what to do with each case is a human financial decision.
+ */
+export async function listCommissionChannelConflicts(
+  database: DatabaseRuntime,
+): Promise<CommissionChannelConflict[]> {
+  const agencyId = getAgencyId();
+  const rows = await database.withTenantTransaction(async (client) => {
+    const result = await client.query<{
+      commission_entry_id: string;
+      employee_id: string;
+      amount: string;
+      status: string;
+      payable_id: string;
+      payroll_entry_id: string;
+      competence: string;
+    }>(
+      `SELECT ce.id AS commission_entry_id, ce.employee_id, ce.amount::text AS amount, ce.status,
+              p.id AS payable_id, pe.id AS payroll_entry_id, pe.competence::text AS competence
+       FROM commission_entries ce
+       JOIN payables p ON p.agency_id = ce.agency_id AND p.commission_entry_id = ce.id AND p.status <> 'CANCELLED'
+       JOIN payroll_entries pe ON pe.agency_id = ce.agency_id AND pe.employee_id = ce.employee_id
+         AND date_trunc('month', pe.competence) = date_trunc('month', ce.created_at)
+         AND pe.status <> 'CANCELLED' AND pe.commissions_total > 0
+       WHERE ce.agency_id = $1 AND ce.status IN ('PAYABLE', 'PAID') AND ce.payroll_entry_id IS NULL
+       ORDER BY pe.competence, ce.id`,
+      [agencyId],
+    );
+    return result.rows;
+  });
+  return rows.map((row) => ({
+    commissionEntryId: row.commission_entry_id,
+    employeeId: row.employee_id,
+    amount: Number(row.amount),
+    status: row.status,
+    payableId: row.payable_id,
+    payrollEntryId: row.payroll_entry_id,
+    competence: row.competence,
+  }));
 }

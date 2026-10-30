@@ -1,6 +1,22 @@
 # Deployment
 
-Deployment is deferred.
+Production deployment is deferred. A Vercel Preview target is used for the
+authorized Travel Full API deployment work; this does not establish production
+readiness or a production cutover.
+
+## Vercel Preview API
+
+The API Preview uses the root `server.js` entrypoint to export a Node.js request
+handler backed by the compiled Fastify application in `services/api`. Vercel
+invokes that handler per request; it must not start the persistent local
+listener when `VERCEL` is set. Runtime initialization remains fail-closed and
+validates the configured database roles before routing requests.
+
+The Preview build command is `npm run --workspace=@travel-platform/api build`.
+Keep database and platform connection strings distinct, using the
+`travel_app_runtime` and `travel_app_platform` PostgreSQL roles respectively.
+Preview status `Ready` confirms the build completed; check runtime logs and
+`/health` plus `/readiness` before considering the API usable.
 
 The application now exposes separate `/health` and `/readiness` endpoints for
 deployment orchestration. `/health` confirms the API process is alive;
@@ -56,3 +72,5 @@ A future deployment design must define:
 - branch protection and required checks.
 
 See also `docs/08-devops/backup-and-recovery.md`.
+For Full agency-level encrypted snapshots and the supervised worker prerequisites,
+see `docs/08-devops/FULL-MANAGED-BACKUP-RUNBOOK.md`.

@@ -1,7 +1,12 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api';
-import { useCan } from '../auth';
+import { useAuth, useCan } from '../auth';
+import { CustomerCombobox, type CustomerOption } from '../CustomerCombobox';
+import { SaleCategoryFormFields } from '../SaleCategoryFormFields';
+import { SaleItemsPanel } from '../SaleItemsPanel';
+import { SalePaymentPanel } from '../SalePaymentPanel';
+import { buildFormPayload, missingRequired, useSaleCategoryForm } from '../saleForm';
 import { EmptyState, ErrorNote, Pager, StatusBadge, SuccessNote, formatBRL } from '../ui';
 
 interface SaleListItem {
@@ -17,6 +22,14 @@ interface SaleListItem {
   customer: { id: string; name: string };
   seller: { id: string; name: string };
   category: { id: string; name: string };
+  missing_required_fields?: string[];
+  travel_start_date?: string | null;
+  travel_end_date?: string | null;
+  origin_text?: string | null;
+  destination_text?: string | null;
+  passenger_count?: number | null;
+  modality_data?: Record<string, string>;
+  form_snapshot?: { fields: Array<{ fieldKey: string; label: string; enabled: boolean }> } | null;
 }
 
 interface ListJson {
@@ -97,16 +110,19 @@ const EMPTY_COST_FORM = {
 export function SalesPage() {
   const canCancel = useCan('sales.update_all');
   const canCreate = useCan('sales.create');
+  const { user } = useAuth();
   const canCreateCost = useCan('sale_costs.create');
   const [items, setItems] = useState<SaleListItem[]>([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [status, setStatus] = useState('');
   const [search, setSearch] = useState('');
+  const [onlyIncomplete, setOnlyIncomplete] = useState(false);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
+  const [formValues, setFormValues] = useState<Record<string, string>>({});
+  const categoryForm = useSaleCategoryForm(form.category_id);
   const [formOpen, setFormOpen] = useState(false);
   const [detail, setDetail] = useState<DetailJson | null>(null);
-  const [customers, setCustomers] = useState<NamedItem[]>([]);
   const [sellers, setSellers] = useState<NamedItem[]>([]);
   const [categories, setCategories] = useState<NamedItem[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<NamedItem[]>([]);
@@ -120,6 +136,7 @@ export function SalesPage() {
     const params = new URLSearchParams({ page: String(page), pageSize: '20' });
     if (status) params.set('status', status);
     if (search.trim()) params.set('search', search.trim());
+    if (onlyIncomplete) params.set('incomplete', 'true');
     try {
       const response = await api<ListJson>(`/sales?${params.toString()}`);
       setItems(response.items);
@@ -128,7 +145,7 @@ export function SalesPage() {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Falha ao carregar');
     }
-  }, [page, status, search]);
+  }, [page, status, search, onlyIncomplete]);
 
   useEffect(() => {
     void load();
@@ -136,15 +153,13 @@ export function SalesPage() {
 
   async function loadFormOptions(): Promise<void> {
     try {
-      const [customerList, sellerList, categoryList, methodList, partyList, expenseCategoryList] = await Promise.all([
-        api<{ items: NamedItem[] }>('/customers?pageSize=100'),
+      const [sellerList, categoryList, methodList, partyList, expenseCategoryList] = await Promise.all([
         api<{ items: NamedItem[] }>('/sellers?pageSize=100'),
         api<{ items: NamedItem[] }>('/categories'),
         api<{ items: NamedItem[] }>('/payment-methods'),
         api<{ items: NamedItem[] }>('/financial-parties?pageSize=100').catch(() => ({ items: [] })),
         api<{ items: Array<NamedItem & { direction: string }> }>('/financial-categories').catch(() => ({ items: [] })),
       ]);
-      setCustomers(customerList.items);
       setSellers(sellerList.items);
       // An own-scoped seller only gets their own seller back: preselect it.
       const onlySeller = sellerList.items.length === 1 ? sellerList.items[0] : undefined;
@@ -160,6 +175,7 @@ export function SalesPage() {
 
   async function openCreate(): Promise<void> {
     setForm(EMPTY_FORM);
+    setFormValues({});
     setNotice(null);
     setFormOpen(true);
     await loadFormOptions();
@@ -167,8 +183,20 @@ export function SalesPage() {
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
+    const configured = categoryForm.status === 'ready' ? categoryForm.fields : [];
+    if (form.category_id !== '' && categoryForm.status !== 'ready') {
+      setError('Aguarde o formulário da categoria carregar.');
+      return;
+    }
+    const missing = missingRequired(configured, formValues);
+    if (missing.length > 0) {
+      setNotice(null);
+      setError(`Preencha: ${missing.join(', ')}.`);
+      return;
+    }
     try {
       const payload: Record<string, unknown> = {
+        ...buildFormPayload(configured, formValues),
         customer_id: form.customer_id,
         seller_id: form.seller_id,
         category_id: form.category_id,
@@ -276,6 +304,17 @@ export function SalesPage() {
           <option value="PAID">Paga</option>
           <option value="CANCELLED">Cancelada</option>
         </select>
+        <label>
+          <input
+            type="checkbox"
+            checked={onlyIncomplete}
+            onChange={(event) => {
+              setOnlyIncomplete(event.target.checked);
+              setPage(1);
+            }}
+          />{' '}
+          Só vendas a completar
+        </label>
         <span className="spacer" />
         {canCreate ? (
           <button
@@ -291,21 +330,11 @@ export function SalesPage() {
       <SuccessNote success={notice} />
       {formOpen ? (
         <form className="lite-form" onSubmit={(event) => void onSubmit(event)}>
-          <label className="field">
-            <span>Cliente *</span>
-            <select
-              value={form.customer_id}
-              onChange={(event) => setForm({ ...form, customer_id: event.target.value })}
-              required
-            >
-              <option value="">Selecione…</option>
-              {customers.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.name}
-                </option>
-              ))}
-            </select>
-          </label>
+          <CustomerCombobox
+            label="Cliente *"
+            value={form.customer_id}
+            onSelect={(customer: CustomerOption | null) => setForm((current) => ({ ...current, customer_id: customer?.id ?? '' }))}
+          />
           <label className="field">
             <span>Vendedor *</span>
             <select
@@ -325,7 +354,10 @@ export function SalesPage() {
             <span>Categoria *</span>
             <select
               value={form.category_id}
-              onChange={(event) => setForm({ ...form, category_id: event.target.value })}
+              onChange={(event) => {
+                setForm({ ...form, category_id: event.target.value });
+                setFormValues({});
+              }}
               required
             >
               <option value="">Selecione…</option>
@@ -336,6 +368,11 @@ export function SalesPage() {
               ))}
             </select>
           </label>
+          <SaleCategoryFormFields
+            state={categoryForm}
+            values={formValues}
+            onChange={(key, value) => setFormValues((current) => ({ ...current, [key]: value }))}
+          />
           <label className="field">
             <span>Forma de pagamento</span>
             <select
@@ -392,7 +429,11 @@ export function SalesPage() {
             <button type="button" className="btn" onClick={() => setFormOpen(false)}>
               Cancelar
             </button>
-            <button type="submit" className="btn btn-primary">
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={form.category_id !== '' && categoryForm.status === 'loading'}
+            >
               Criar rascunho
             </button>
           </div>
@@ -434,6 +475,41 @@ export function SalesPage() {
             {formatBRL(detail.sale.gross_amount)} · custos {formatBRL(detail.sale.cost_amount)} · margem{' '}
             {formatBRL(detail.sale.margin_amount)}
           </p>
+          {(() => {
+            const sale = detail.sale;
+            const parts = [
+              sale.origin_text ? `Origem: ${sale.origin_text}` : null,
+              sale.destination_text ? `Destino: ${sale.destination_text}` : null,
+              sale.travel_start_date ? `Ida: ${sale.travel_start_date}` : null,
+              sale.travel_end_date ? `Volta: ${sale.travel_end_date}` : null,
+              sale.passenger_count ? `Passageiros: ${sale.passenger_count}` : null,
+              ...Object.entries(sale.modality_data ?? {}).map(([key, value]) => {
+                const label = sale.form_snapshot?.fields.find((field) => field.fieldKey === key)?.label ?? key;
+                return `${label}: ${value}`;
+              }),
+            ].filter(Boolean);
+            return parts.length > 0 ? <p className="lite-muted">{parts.join(' · ')}</p> : null;
+          })()}
+          <SaleItemsPanel
+            key={detail.sale.id}
+            saleId={detail.sale.id}
+            editable={detail.sale.status === 'DRAFT'}
+            onChanged={() => void Promise.all([load(), openDetail(detail.sale.id)])}
+          />
+          {detail.sale.status !== 'CANCELLED' ? (
+            <SalePaymentPanel
+              key={`pay-${detail.sale.id}`}
+              sale={{
+                id: detail.sale.id,
+                gross_amount: detail.sale.gross_amount,
+                sale_date: detail.sale.sale_date,
+                travel_start_date: detail.sale.travel_start_date ?? null,
+                status: detail.sale.status,
+              }}
+              role={user?.role ?? ''}
+              onChange={() => void load()}
+            />
+          ) : null}
           {canCreateCost && detail.sale.status === 'DRAFT' ? (
             <form className="lite-form" onSubmit={(event) => void addCost(event)}>
               <label className="field">
@@ -593,7 +669,15 @@ export function SalesPage() {
           <tbody>
             {items.map((sale) => (
               <tr key={sale.id}>
-                <td className="lite-card-title" data-label="Número">{sale.sale_number}</td>
+                <td className="lite-card-title" data-label="Número">
+                  {sale.sale_number}
+                  {(sale.missing_required_fields ?? []).length > 0 ? (
+                    <>
+                      {' '}
+                      <StatusBadge status="A_COMPLETAR" />
+                    </>
+                  ) : null}
+                </td>
                 <td data-label="Data">{sale.sale_date}</td>
                 <td data-label="Cliente">{sale.customer.name}</td>
                 <td data-label="Vendedor">{sale.seller.name}</td>

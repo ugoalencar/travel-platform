@@ -458,11 +458,11 @@ const FORBIDDEN_TRIP_CREATE_FIELDS = [
   'createdAt',
   'updatedAt',
   'status',
-  'saleId',
 ] as const;
 
 const ALLOWED_TRIP_CREATE_FIELDS = [
   'customerId',
+  'saleId',
   'name',
   'destination',
   'startDate',
@@ -545,6 +545,13 @@ function parseCreateTripInput(body: unknown): { customerId: string; data: Create
     startDate: parseTripDate(record.startDate, 'startDate'),
     endDate: parseTripDate(record.endDate, 'endDate'),
   };
+
+  if (record.saleId !== undefined) {
+    if (typeof record.saleId !== 'string' || record.saleId.trim().length === 0 || record.saleId.length > 200) {
+      throw new ValidationError('Field "saleId" must be a valid sale identifier');
+    }
+    data.saleId = record.saleId.trim();
+  }
 
   if (record.description !== undefined) {
     if (typeof record.description !== 'string') {

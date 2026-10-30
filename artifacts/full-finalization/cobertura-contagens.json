@@ -1,0 +1,546 @@
+[
+  {
+    "area": "Painel",
+    "route": "/",
+    "endpoint": "/dashboard/widgets",
+    "count": 6,
+    "status": "COM DADOS",
+    "keys": [
+      "widgets"
+    ]
+  },
+  {
+    "area": "Clientes",
+    "route": "/customers",
+    "endpoint": "/customers",
+    "count": 34,
+    "status": "COM DADOS",
+    "keys": [
+      "customers"
+    ]
+  },
+  {
+    "area": "Cadastro Remoto",
+    "route": "/enrollment-links",
+    "endpoint": "/enrollment-links",
+    "count": 1,
+    "status": "COM DADOS",
+    "keys": [
+      "links"
+    ]
+  },
+  {
+    "area": "Tarefas",
+    "route": "/tasks",
+    "endpoint": "/commercial/tasks",
+    "count": 3,
+    "status": "COM DADOS",
+    "keys": [
+      "tasks",
+      "total",
+      "limit",
+      "offset"
+    ]
+  },
+  {
+    "area": "Pipeline",
+    "route": "/pipeline",
+    "endpoint": "/commercial/opportunities",
+    "count": 3,
+    "status": "COM DADOS",
+    "keys": [
+      "opportunities",
+      "total",
+      "limit",
+      "offset"
+    ]
+  },
+  {
+    "area": "Segmentacao",
+    "route": "/segments",
+    "endpoint": "/customer-segments",
+    "count": 1,
+    "status": "COM DADOS",
+    "keys": [
+      "segments"
+    ]
+  },
+  {
+    "area": "Desejos",
+    "route": "/wishes",
+    "endpoint": "/wishes",
+    "count": 3,
+    "status": "COM DADOS",
+    "keys": [
+      "wishes"
+    ]
+  },
+  {
+    "area": "Pescador",
+    "route": "/pescador",
+    "endpoint": "/pescador/captures",
+    "count": 1,
+    "status": "COM DADOS",
+    "keys": [
+      "captures"
+    ]
+  },
+  {
+    "area": "Ofertas",
+    "route": "/offers",
+    "endpoint": "/offers",
+    "count": 3,
+    "status": "COM DADOS",
+    "keys": [
+      "offers"
+    ]
+  },
+  {
+    "area": "Seguros",
+    "route": "/insurance",
+    "endpoint": "/insurance/policies",
+    "count": 1,
+    "status": "COM DADOS",
+    "keys": [
+      "policies"
+    ]
+  },
+  {
+    "area": "Propostas",
+    "route": "/proposals",
+    "endpoint": "/proposals",
+    "count": 3,
+    "status": "COM DADOS",
+    "keys": [
+      "proposals"
+    ]
+  },
+  {
+    "area": "Reservas",
+    "route": "/bookings",
+    "endpoint": "/bookings",
+    "count": 1,
+    "status": "COM DADOS",
+    "keys": [
+      "bookings"
+    ]
+  },
+  {
+    "area": "Vendas",
+    "route": "/sales",
+    "endpoint": "/sales",
+    "count": 42,
+    "status": "COM DADOS",
+    "keys": [
+      "sales"
+    ]
+  },
+  {
+    "area": "Importacao",
+    "route": "/sales/import",
+    "endpoint": "/sales?incomplete=true",
+    "count": 2,
+    "status": "COM DADOS",
+    "keys": [
+      "sales"
+    ]
+  },
+  {
+    "area": "Viagens",
+    "route": "/trips",
+    "endpoint": "/trips",
+    "count": 8,
+    "status": "COM DADOS",
+    "keys": [
+      "trips"
+    ]
+  },
+  {
+    "area": "Excursoes",
+    "route": "/excursions",
+    "endpoint": "/excursions",
+    "count": 2,
+    "status": "COM DADOS",
+    "keys": [
+      "excursions"
+    ]
+  },
+  {
+    "area": "Aereo",
+    "route": "/operations/air",
+    "endpoint": "/air-services",
+    "count": 2,
+    "status": "COM DADOS",
+    "keys": [
+      "airServices"
+    ]
+  },
+  {
+    "area": "Terrestre",
+    "route": "/operations/land",
+    "endpoint": "/land-services",
+    "count": 2,
+    "status": "COM DADOS",
+    "keys": [
+      "landServices"
+    ]
+  },
+  {
+    "area": "Passageiros",
+    "route": "/operations/passengers",
+    "endpoint": "/operations/passengers",
+    "count": 7,
+    "status": "COM DADOS",
+    "keys": [
+      "passengers"
+    ]
+  },
+  {
+    "area": "Documentos",
+    "route": "/operations/documents",
+    "endpoint": "/operations/document-alerts",
+    "count": 1,
+    "status": "COM DADOS",
+    "keys": [
+      "alerts"
+    ]
+  },
+  {
+    "area": "Ocorrencias",
+    "route": "/operations/occurrences",
+    "endpoint": "/operations/occurrences",
+    "count": 1,
+    "status": "COM DADOS",
+    "keys": [
+      "occurrences"
+    ]
+  },
+  {
+    "area": "Pos-viagem",
+    "route": "/operations/post-trip",
+    "endpoint": "/operations/post-trip",
+    "count": 1,
+    "status": "COM DADOS",
+    "keys": [
+      "trips"
+    ]
+  },
+  {
+    "area": "Financeiro",
+    "route": "/financial",
+    "endpoint": "/financial/summary",
+    "count": null,
+    "status": "INDICADORES/CONFIGURACAO",
+    "keys": [
+      "summary"
+    ]
+  },
+  {
+    "area": "Recebiveis",
+    "route": "/financial/receivables",
+    "endpoint": "/financial/receivables",
+    "count": 79,
+    "status": "COM DADOS",
+    "keys": [
+      "receivables"
+    ]
+  },
+  {
+    "area": "Pagaveis",
+    "route": "/financial/payables",
+    "endpoint": "/financial/payables",
+    "count": 48,
+    "status": "COM DADOS",
+    "keys": [
+      "payables"
+    ]
+  },
+  {
+    "area": "Caixa",
+    "route": "/financial/cash-transactions",
+    "endpoint": "/financial/cash-transactions",
+    "count": 1,
+    "status": "COM DADOS",
+    "keys": [
+      "transactions"
+    ]
+  },
+  {
+    "area": "Conciliacao",
+    "route": "/financial/reconciliation",
+    "endpoint": "/financial/reconciliations",
+    "count": 1,
+    "status": "COM DADOS",
+    "keys": [
+      "reconciliations"
+    ]
+  },
+  {
+    "area": "Receitas",
+    "route": "/financial/revenues",
+    "endpoint": "/financial/revenues",
+    "count": 1,
+    "status": "COM DADOS",
+    "keys": [
+      "revenues"
+    ]
+  },
+  {
+    "area": "Despesas",
+    "route": "/financial/expenses",
+    "endpoint": "/financial/expenses",
+    "count": 1,
+    "status": "COM DADOS",
+    "keys": [
+      "expenses"
+    ]
+  },
+  {
+    "area": "DRE",
+    "route": "/financial/dre",
+    "endpoint": "/financial/dre",
+    "count": null,
+    "status": "INDICADORES/CONFIGURACAO",
+    "keys": [
+      "dre"
+    ]
+  },
+  {
+    "area": "Relatorios financeiros",
+    "route": "/financial/reports",
+    "endpoint": "/reports/sales",
+    "count": 1,
+    "status": "COM DADOS",
+    "keys": [
+      "rows"
+    ]
+  },
+  {
+    "area": "Projecoes",
+    "route": "/financial/projections",
+    "endpoint": "/reports/receivables-projection",
+    "count": null,
+    "status": "INDICADORES/CONFIGURACAO",
+    "keys": [
+      "late",
+      "byMonth",
+      "totalOpen"
+    ]
+  },
+  {
+    "area": "Configuracao financeira",
+    "route": "/financial/settings",
+    "endpoint": "/payment-conditions",
+    "count": 7,
+    "status": "COM DADOS",
+    "keys": [
+      "conditions"
+    ]
+  },
+  {
+    "area": "Fornecedores",
+    "route": "/suppliers",
+    "endpoint": "/suppliers",
+    "count": 5,
+    "status": "COM DADOS",
+    "keys": [
+      "suppliers"
+    ]
+  },
+  {
+    "area": "Centros de custo",
+    "route": "/financial/cost-centers",
+    "endpoint": "/cost-centers",
+    "count": 1,
+    "status": "COM DADOS",
+    "keys": [
+      "costCenters"
+    ]
+  },
+  {
+    "area": "Categorias financeiras",
+    "route": "/financial/categories",
+    "endpoint": "/financial/categories",
+    "count": 2,
+    "status": "COM DADOS",
+    "keys": [
+      "categories"
+    ]
+  },
+  {
+    "area": "Funcionarios",
+    "route": "/employees",
+    "endpoint": "/employees",
+    "count": 7,
+    "status": "COM DADOS",
+    "keys": [
+      "employees"
+    ]
+  },
+  {
+    "area": "Planos",
+    "route": "/commission-plans",
+    "endpoint": "/commission-plans",
+    "count": 1,
+    "status": "COM DADOS",
+    "keys": [
+      "commissionPlans"
+    ]
+  },
+  {
+    "area": "Folha",
+    "route": "/payroll",
+    "endpoint": "/payroll-entries",
+    "count": 2,
+    "status": "COM DADOS",
+    "keys": [
+      "payrollEntries"
+    ]
+  },
+  {
+    "area": "Midia",
+    "route": "/media-library",
+    "endpoint": "/media-assets",
+    "count": 1,
+    "status": "COM DADOS",
+    "keys": [
+      "assets"
+    ]
+  },
+  {
+    "area": "Comunicacao",
+    "route": "/communications",
+    "endpoint": "/agency-communications",
+    "count": 1,
+    "status": "COM DADOS",
+    "keys": [
+      "communications"
+    ]
+  },
+  {
+    "area": "Campanhas",
+    "route": "/campaigns",
+    "endpoint": "/campaigns",
+    "count": 1,
+    "status": "COM DADOS",
+    "keys": [
+      "campaigns"
+    ]
+  },
+  {
+    "area": "Cupons",
+    "route": "/coupons",
+    "endpoint": "/coupons",
+    "count": 1,
+    "status": "COM DADOS",
+    "keys": [
+      "coupons"
+    ]
+  },
+  {
+    "area": "Usuarios",
+    "route": "/settings?tab=invitations",
+    "endpoint": "/settings/team",
+    "count": 7,
+    "status": "COM DADOS",
+    "keys": [
+      "team"
+    ]
+  },
+  {
+    "area": "Papeis",
+    "route": "/settings?tab=permissions",
+    "endpoint": "/settings/permission-restrictions",
+    "count": 1,
+    "status": "COM DADOS",
+    "keys": [
+      "restrictions"
+    ]
+  },
+  {
+    "area": "Configuracoes",
+    "route": "/settings",
+    "endpoint": "/settings/agency",
+    "count": null,
+    "status": "INDICADORES/CONFIGURACAO",
+    "keys": [
+      "profile",
+      "userRole"
+    ]
+  },
+  {
+    "area": "Categorias venda",
+    "route": "/sale-categories",
+    "endpoint": "/sale-categories",
+    "count": 5,
+    "status": "COM DADOS",
+    "keys": [
+      "categories"
+    ]
+  },
+  {
+    "area": "Receita agencia",
+    "route": "/financial/agency-revenue",
+    "endpoint": "/agency-revenue/entries",
+    "count": 31,
+    "status": "COM DADOS",
+    "keys": [
+      "entries",
+      "limit"
+    ]
+  },
+  {
+    "area": "Dashboard configuracao",
+    "route": "/settings/dashboard",
+    "endpoint": "/settings/dashboard",
+    "count": 6,
+    "status": "COM DADOS",
+    "keys": [
+      "version",
+      "widgets"
+    ]
+  },
+  {
+    "area": "Relatorios",
+    "route": "/reports",
+    "endpoint": "/reports/sales",
+    "count": 1,
+    "status": "COM DADOS",
+    "keys": [
+      "rows"
+    ]
+  },
+  {
+    "area": "Regras",
+    "route": "/commission-rules",
+    "endpoint": "/commission-rule-scopes",
+    "count": 9,
+    "status": "COM DADOS",
+    "keys": [
+      "scopes"
+    ]
+  },
+  {
+    "area": "Condicoes",
+    "route": "/payment-conditions",
+    "endpoint": "/payment-conditions",
+    "count": 7,
+    "status": "COM DADOS",
+    "keys": [
+      "conditions"
+    ]
+  },
+  {
+    "area": "Liberacao",
+    "route": "/commission-release",
+    "endpoint": "/commission-release/config",
+    "count": 3,
+    "status": "COM DADOS",
+    "keys": [
+      "receiptRules",
+      "profiles",
+      "blocked",
+      "missing"
+    ]
+  }
+]

@@ -5,6 +5,7 @@ import { useCan } from '../auth';
 import { FirstRunChecklist } from '../FirstRunChecklist';
 import { ErrorNote, StatusBadge, SuccessNote } from '../ui';
 import { BrandingSection } from './BrandingSection';
+import { BackupSection } from './BackupSection';
 
 /**
  * Settings > Users and permissions. The API enforces every rule (no
@@ -327,7 +328,7 @@ export function SettingsPage() {
             <input
               type="password"
               autoComplete="new-password"
-              minLength={8}
+              minLength={12}
               value={form.password}
               onChange={(event) => setForm({ ...form, password: event.target.value })}
               required={!editingId}
@@ -477,6 +478,7 @@ export function SettingsPage() {
         </table>
       </div>
       <BrandingSection />
+      <BackupSection />
       <section className="lite-card">
         <h2>Plano e recursos</h2>
         <p className="lite-muted">

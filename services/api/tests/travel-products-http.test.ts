@@ -14,7 +14,7 @@ const prepareRolesSql = resolve(repoRoot, 'tests/integration/database/002_prepar
 const composeFile = resolve(repoRoot, 'infrastructure/docker-compose.local-postgres.yml');
 
 const projectName = 'travel-platform-travel-products-http-postgres';
-const containerName = 'travel-platform-postgres-local';
+const containerName = process.env.DATABASE_TEST_CONTAINER_NAME ?? 'travel-platform-postgres-local';
 const postgresImage = 'postgres:15';
 const databaseHost = process.env.DATABASE_TEST_HOST ?? '127.0.0.1';
 const databasePort = Number(process.env.DATABASE_TEST_PORT ?? '55432');
@@ -181,6 +181,41 @@ describe('Travel product catalog HTTP routes', () => {
       expect(audit.rows).toHaveLength(1);
       expect(audit.rows[0]).toMatchObject({ action: 'travel_product.created', entity_type: 'TravelProduct' });
 
+      await app.close();
+    });
+
+    it('links a product to a sale category of the same agency; another agency category is refused (404); the FK also refuses it', async () => {
+      const own = (await adminPool.query<{ id: string }>(
+        `INSERT INTO commission_categories (agency_id, name) VALUES ($1, 'Aéreo') RETURNING id`, [agencyAId])).rows[0]!.id;
+      const foreign = (await adminPool.query<{ id: string }>(
+        `INSERT INTO commission_categories (agency_id, name) VALUES ($1, 'Aéreo') RETURNING id`, [agencyBId])).rows[0]!.id;
+      const app = buildTestApp(runtimePool);
+      const ok = await app.inject({
+        method: 'POST', url: '/travel-products', headers: { 'x-test-principal': 'manager' },
+        payload: { category: 'TOUR', title: 'Com categoria', categoryId: own },
+      });
+      expect(ok.statusCode).toBe(201);
+      expect(ok.json<{ product: { categoryId: string; category: string } }>().product).toMatchObject({ categoryId: own, category: 'TOUR' });
+      const bad = await app.inject({
+        method: 'POST', url: '/travel-products', headers: { 'x-test-principal': 'manager' },
+        payload: { category: 'TOUR', title: 'Categoria alheia', categoryId: foreign },
+      });
+      expect(bad.statusCode).toBe(404);
+      const productId = ok.json<{ product: { id: string } }>().product.id;
+      const patched = await app.inject({
+        method: 'PATCH', url: `/travel-products/${productId}`, headers: { 'x-test-principal': 'manager' },
+        payload: { categoryId: foreign },
+      });
+      expect(patched.statusCode).toBe(404);
+      const cleared = await app.inject({
+        method: 'PATCH', url: `/travel-products/${productId}`, headers: { 'x-test-principal': 'manager' },
+        payload: { categoryId: null },
+      });
+      expect(cleared.statusCode).toBe(200);
+      expect(cleared.json<{ product: { categoryId?: string } }>().product.categoryId).toBeUndefined();
+      await expect(
+        adminPool.query('UPDATE travel_products SET category_id = $1 WHERE id = $2', [foreign, productId]),
+      ).rejects.toMatchObject({ code: '23503' });
       await app.close();
     });
 

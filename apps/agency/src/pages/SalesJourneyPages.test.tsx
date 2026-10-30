@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 import { App } from '../App';
@@ -27,6 +27,10 @@ vi.mock('../lib/api', async () => {
   listOffers: vi.fn(() => Promise.resolve([])),
   createProposal: vi.fn(),
   listSales: vi.fn(() => Promise.resolve([])),
+  listEmployees: vi.fn(() => Promise.resolve([])),
+  listSuppliers: vi.fn(() => Promise.resolve([])),
+  listCustomerSegments: vi.fn(() => Promise.resolve([])),
+  createTrip: vi.fn(),
   getSale: vi.fn(() => Promise.reject(new Error('Not found'))),
   getSaleFinancialStory: vi.fn(() => Promise.reject(new Error('Not found'))),
   };
@@ -117,6 +121,20 @@ describe('UI-03 sales journey prototype', () => {
     expect(await screen.findByText('Nenhuma venda encontrada')).toBeInTheDocument();
   });
 
+  it('marks sales "to complete" and filters them', async () => {
+    vi.mocked(api.listSales).mockResolvedValueOnce([
+      { ...mariana, missingRequiredFields: ['origin_text'] },
+      { ...mariana, id: 'sale-2', customerName: 'Cliente Completo', missingRequiredFields: [] },
+    ]);
+    renderRoute('/sales');
+
+    expect(await screen.findByText('A completar')).toBeInTheDocument();
+    expect(screen.getByText('Cliente Completo')).toBeInTheDocument();
+    fireEvent.click(screen.getByLabelText('Só vendas a completar'));
+    expect(screen.queryByText('Cliente Completo')).not.toBeInTheDocument();
+    expect(screen.getByText('Mariana Alves Silva')).toBeInTheDocument();
+  });
+
   it('renders the proposal builder page', async () => {
     renderRoute('/proposals/test-id/edit');
 
@@ -143,6 +161,22 @@ describe('UI-03 sales journey prototype', () => {
     expect(screen.getByRole('link', { name: 'Abrir' })).toHaveAttribute('href', `/sales/${mariana.id}`);
   });
 
+  it('applies date, status and employee filters through the sales API', async () => {
+    renderRoute('/sales');
+    await screen.findByRole('heading', { name: 'Vendas realizadas' });
+
+    fireEvent.change(screen.getByLabelText('Data inicial'), { target: { value: '2026-10-01' } });
+    fireEvent.change(screen.getByLabelText('Data final'), { target: { value: '2026-10-31' } });
+    fireEvent.change(screen.getByLabelText('Status da venda'), { target: { value: 'CONFIRMED' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Aplicar filtros' }));
+
+    await waitFor(() => expect(api.listSales).toHaveBeenLastCalledWith({
+      dateFrom: '2026-10-01',
+      dateTo: '2026-10-31',
+      status: 'CONFIRMED',
+    }));
+  });
+
   it('loads a real sale detail page combining the sale and its financial story', async () => {
     vi.mocked(api.getSale).mockResolvedValueOnce(mariana);
     vi.mocked(api.getSaleFinancialStory).mockResolvedValueOnce(marianaStory);
@@ -155,6 +189,26 @@ describe('UI-03 sales journey prototype', () => {
     expect(screen.getAllByText('R$ 18.000,00').length).toBeGreaterThan(0);
     expect(screen.getAllByText('R$ 6.000,00').length).toBeGreaterThan(0);
     expect(screen.getByText('Hotel - Grand Palladium Cancun')).toBeInTheDocument();
+  });
+
+  it('links a travel record to the sale and its buyer', async () => {
+    const saleWithoutTrip = { ...mariana, tripId: null, tripName: null };
+    vi.mocked(api.getSale).mockResolvedValue(saleWithoutTrip);
+    vi.mocked(api.getSaleFinancialStory).mockResolvedValue(marianaStory);
+    vi.mocked(api.createTrip).mockResolvedValue({ id: 'trip-new' } as never);
+
+    renderRoute(`/sales/${mariana.id}`);
+    fireEvent.click(await screen.findByRole('button', { name: 'Vincular viagem' }));
+    fireEvent.change(screen.getByLabelText('Destino'), { target: { value: 'Roma' } });
+    fireEvent.change(screen.getByLabelText('Data de ida'), { target: { value: '2026-12-10' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Criar vínculo de viagem' }));
+
+    await waitFor(() => expect(api.createTrip).toHaveBeenCalledWith(expect.objectContaining({
+      customerId: mariana.customerId,
+      saleId: mariana.id,
+      destination: 'Roma',
+      startDate: '2026-12-10',
+    })));
   });
 
   it('shows an empty state (not a hardcoded stub) when a sale genuinely does not exist', async () => {

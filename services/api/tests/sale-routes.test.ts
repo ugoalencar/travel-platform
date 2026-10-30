@@ -27,7 +27,7 @@ const prepareRolesSql = resolve(repoRoot, 'tests/integration/database/002_prepar
 const composeFile = resolve(repoRoot, 'infrastructure/docker-compose.local-postgres.yml');
 
 const projectName = 'travel-platform-sale-routes-postgres';
-const containerName = 'travel-platform-postgres-local';
+const containerName = process.env.DATABASE_TEST_CONTAINER_NAME ?? 'travel-platform-postgres-local';
 const postgresImage = 'postgres:15';
 const databaseHost = process.env.DATABASE_TEST_HOST ?? '127.0.0.1';
 const databasePort = Number(process.env.DATABASE_TEST_PORT ?? '55432');
@@ -143,6 +143,39 @@ describe('Sale HTTP routes', () => {
       expect(body.sales[0]?.agencyId).toBe(agencyAId);
       expect(body.sales[0]?.customerName).toBe('Customer A');
 
+      await app.close();
+    });
+
+    it('filters by sale date, status and authenticated employee without crossing tenants', async () => {
+      const matchingId = await seedSale(agencyAId, customerAId, { amount: '150.00', status: 'CONFIRMED' });
+      const otherDateId = await seedSale(agencyAId, customerAId, { amount: '250.00', status: 'CONFIRMED' });
+      const otherStatusId = await seedSale(agencyAId, customerAId, { amount: '350.00', status: 'PENDING' });
+      const otherTenantId = await seedSale(agencyBId, customerBId, { amount: '450.00', status: 'CONFIRMED' });
+      await adminPool.query('UPDATE sales SET sale_date = $2::date WHERE id = $1', [matchingId, '2026-10-15']);
+      await adminPool.query('UPDATE sales SET sale_date = $2::date WHERE id = $1', [otherDateId, '2026-09-15']);
+      await adminPool.query('UPDATE sales SET sale_date = $2::date WHERE id = $1', [otherStatusId, '2026-10-20']);
+      await adminPool.query('UPDATE sales SET sale_date = $2::date WHERE id = $1', [otherTenantId, '2026-10-20']);
+
+      const app = buildTestApp(runtimePool);
+      const response = await app.inject({
+        method: 'GET',
+        url: `/sales?dateFrom=2026-10-01&dateTo=2026-10-31&status=CONFIRMED&employeeId=${userAId}`,
+        headers: { 'x-test-principal': 'a' },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.json<{ sales: Array<{ id: string }> }>().sales.map((sale) => sale.id)).toEqual([matchingId]);
+      await app.close();
+    });
+
+    it('rejects malformed date filters', async () => {
+      const app = buildTestApp(runtimePool);
+      const response = await app.inject({
+        method: 'GET',
+        url: '/sales?dateFrom=2026-02-31',
+        headers: { 'x-test-principal': 'a' },
+      });
+      expect(response.statusCode).toBe(400);
       await app.close();
     });
   });

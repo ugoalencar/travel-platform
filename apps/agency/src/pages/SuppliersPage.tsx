@@ -21,6 +21,7 @@ import {
 } from '../components/ui/table';
 import {
   ApiError,
+  api,
   createSupplier,
   deactivateSupplier,
   listSuppliers,
@@ -31,15 +32,17 @@ import {
   type SupplierInput,
   type SupplierType,
 } from '../lib/api';
+import { SupplierCommissionTerms } from './SupplierCommissionTerms';
 
 type LoadState =
   | { status: 'loading' }
   | { status: 'error'; message: string }
-  | { status: 'success'; suppliers: Supplier[] };
+  | { status: 'success'; suppliers: Supplier[]; suppliersWithTerms: string[] };
 
 type ModalState = { type: 'closed' } | { type: 'create' } | { type: 'edit'; supplier: Supplier };
 
 type FormSection = 'legal' | 'contact' | 'address' | 'banking' | 'categories';
+type ModalSection = 'data' | 'agency-commission' | 'product-commission' | 'history';
 
 const SUPPLIER_TYPE_LABELS: Record<SupplierType, string> = {
   TRAVEL: 'Viagem',
@@ -170,14 +173,15 @@ export function SuppliersPage() {
   const [typeFilter, setTypeFilter] = useState<'ALL' | SupplierType>('ALL');
   const [modal, setModal] = useState<ModalState>({ type: 'closed' });
   const [form, setForm] = useState<SupplierInput>(emptyForm);
-  const [section, setSection] = useState<FormSection>('legal');
+  const [section, setSection] = useState<ModalSection>('data');
+  const [formSection, setFormSection] = useState<FormSection>('legal');
   const [formError, setFormError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   const load = useCallback(() => {
     setState({ status: 'loading' });
-    listSuppliers()
-      .then((suppliers) => setState({ status: 'success', suppliers }))
+    Promise.all([listSuppliers(), api.get<{ rules: Array<{ supplier_id: string | null }> }>('/agency-revenue/rules')])
+      .then(([suppliers, ruleResult]) => setState({ status: 'success', suppliers, suppliersWithTerms: [...new Set(ruleResult.data.rules.flatMap(rule => rule.supplier_id ? [rule.supplier_id] : []))] }))
       .catch((err: unknown) => {
         const message = err instanceof ApiError ? err.message : 'Não foi possível carregar os fornecedores.';
         setState({ status: 'error', message });
@@ -190,14 +194,16 @@ export function SuppliersPage() {
 
   function openCreate() {
     setForm(emptyForm);
-    setSection('legal');
+    setSection('data');
+    setFormSection('legal');
     setFormError(null);
     setModal({ type: 'create' });
   }
 
   function openEdit(supplier: Supplier) {
     setForm(toInput(supplier));
-    setSection('legal');
+    setSection('data');
+    setFormSection('legal');
     setFormError(null);
     setModal({ type: 'edit', supplier });
   }
@@ -220,7 +226,8 @@ export function SuppliersPage() {
   async function handleSave() {
     if (!form.name.trim()) {
       setFormError('Informe a razão social / nome do fornecedor.');
-      setSection('legal');
+      setSection('data');
+      setFormSection('legal');
       return;
     }
 
@@ -352,6 +359,7 @@ export function SuppliersPage() {
                   <TableHead>Documento</TableHead>
                   <TableHead>Tipo</TableHead>
                   <TableHead>Categorias</TableHead>
+                  <TableHead>Comissão da agência</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Ações</TableHead>
                 </TableRow>
@@ -381,6 +389,11 @@ export function SuppliersPage() {
                           ))
                         )}
                       </div>
+                    </TableCell>
+                    <TableCell>
+                      {state.status === 'success' && state.suppliersWithTerms.includes(supplier.id)
+                        ? <StatusBadge tone="positive">Acordo cadastrado</StatusBadge>
+                        : <StatusBadge tone="inactive">Sem acordo de comissão</StatusBadge>}
                     </TableCell>
                     <TableCell>
                       <StatusBadge tone={supplier.active ? 'positive' : 'inactive'}>
@@ -425,11 +438,11 @@ export function SuppliersPage() {
         footer={
           <>
             <Button variant="outline" size="sm" onClick={closeModal} disabled={saving}>
-              Cancelar
+              {section === 'data' ? 'Cancelar' : 'Fechar'}
             </Button>
-            <Button size="sm" onClick={() => { void handleSave(); }} disabled={saving}>
+            {section === 'data' && <Button size="sm" onClick={() => { void handleSave(); }} disabled={saving}>
               {saving ? 'Salvando...' : 'Salvar'}
-            </Button>
+            </Button>}
           </>
         }
       >
@@ -437,13 +450,23 @@ export function SuppliersPage() {
           {formError && <p role="alert" className="rounded-md bg-red-50 p-3 text-sm text-red-700">{formError}</p>}
 
           <div className="flex flex-wrap gap-1 border-b border-slate-200 pb-2">
+            <button type="button" onClick={() => setSection('data')} className={`rounded-md px-3 py-1.5 text-sm font-medium ${section === 'data' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100'}`}>Dados</button>
+            {modal.type === 'edit' && <>
+              <button type="button" onClick={() => setSection('agency-commission')} className={`rounded-md px-3 py-1.5 text-sm font-medium ${section === 'agency-commission' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100'}`}>Comissão da agência</button>
+              <button type="button" onClick={() => setSection('product-commission')} className={`rounded-md px-3 py-1.5 text-sm font-medium ${section === 'product-commission' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100'}`}>Regras por produto/categoria</button>
+              <button type="button" onClick={() => setSection('history')} className={`rounded-md px-3 py-1.5 text-sm font-medium ${section === 'history' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100'}`}>Histórico</button>
+            </>}
+          </div>
+
+          {section === 'data' && <>
+          <div className="flex flex-wrap gap-1 border-b border-slate-200 pb-2">
             {FORM_SECTIONS.map(({ key, label }) => (
               <button
                 key={key}
                 type="button"
-                onClick={() => setSection(key)}
+                onClick={() => setFormSection(key)}
                 className={`rounded-md px-3 py-1.5 text-sm font-medium ${
-                  section === key ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100'
+                  formSection === key ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100'
                 }`}
               >
                 {label}
@@ -451,7 +474,7 @@ export function SuppliersPage() {
             ))}
           </div>
 
-          {section === 'legal' && (
+          {formSection === 'legal' && (
             <div className="space-y-4">
               <div>
                 <label htmlFor="supplier-name" className="mb-1 block text-sm font-medium text-slate-700">Razão Social *</label>
@@ -514,7 +537,7 @@ export function SuppliersPage() {
             </div>
           )}
 
-          {section === 'contact' && (
+          {formSection === 'contact' && (
             <div className="space-y-4">
               <div>
                 <label htmlFor="supplier-contact" className="mb-1 block text-sm font-medium text-slate-700">Pessoa de Contato</label>
@@ -555,7 +578,7 @@ export function SuppliersPage() {
             </div>
           )}
 
-          {section === 'address' && (
+          {formSection === 'address' && (
             <div className="space-y-4">
               <div>
                 <label htmlFor="supplier-address-line" className="mb-1 block text-sm font-medium text-slate-700">Endereço</label>
@@ -604,7 +627,7 @@ export function SuppliersPage() {
             </div>
           )}
 
-          {section === 'banking' && (
+          {formSection === 'banking' && (
             <div className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
@@ -645,7 +668,7 @@ export function SuppliersPage() {
             </div>
           )}
 
-          {section === 'categories' && (
+          {formSection === 'categories' && (
             <div className="grid gap-2 sm:grid-cols-2">
               {SUPPLIER_CATEGORY_OPTIONS.map((category) => (
                 <label key={category} className="flex items-center gap-2 text-sm text-slate-700">
@@ -659,6 +682,10 @@ export function SuppliersPage() {
               ))}
             </div>
           )}
+          </>}
+          {modal.type === 'edit' && section === 'agency-commission' && <SupplierCommissionTerms supplierId={modal.supplier.id} scopeRules={false} />}
+          {modal.type === 'edit' && section === 'product-commission' && <SupplierCommissionTerms supplierId={modal.supplier.id} scopeRules />}
+          {modal.type === 'edit' && section === 'history' && <SupplierCommissionTerms supplierId={modal.supplier.id} scopeRules historyOnly />}
         </div>
       </Modal>
     </div>

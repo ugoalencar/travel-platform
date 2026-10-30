@@ -16,6 +16,7 @@ vi.mock('../lib/api', async () => {
     listWishesByCustomer: vi.fn(),
     listTripsByCustomer: vi.fn(),
     createCustomer: vi.fn(),
+    getCustomerFieldSettings: vi.fn(),
     listCustomerAddresses: vi.fn(),
     listCustomerDocuments: vi.fn(),
     listCustomerDependents: vi.fn(),
@@ -114,6 +115,7 @@ const tripPortugal: Trip = {
 };
 
 beforeEach(() => {
+  vi.mocked(api.getCustomerFieldSettings).mockResolvedValue([]);
   vi.mocked(api.listCustomers).mockResolvedValue([customerLucas, customerAna, customerRicardo, customerFernanda, customerPedro]);
   vi.mocked(api.getCustomer).mockImplementation((id: string) =>
     Promise.resolve([customerLucas, customerAna, customerRicardo, customerFernanda, customerPedro].find((c) => c.id === id)!),
@@ -184,6 +186,58 @@ describe('CustomersPage', () => {
     vi.mocked(api.listCustomers).mockResolvedValueOnce([customerLucas]);
     fireEvent.click(screen.getByRole('button', { name: /Tentar novamente/ }));
     expect(await screen.findByText('Lucas Martins')).toBeInTheDocument();
+  });
+
+  const setting = (fieldKey: string, enabled: boolean, required: boolean): api.CustomerFieldSetting => ({
+    fieldKey,
+    apiField: fieldKey,
+    label: fieldKey,
+    group: 'x',
+    locked: false,
+    enabled,
+    required,
+  });
+
+  it('hides disabled fields in the new-customer form and never sends them', async () => {
+    vi.mocked(api.getCustomerFieldSettings).mockResolvedValue([setting('phone', false, false)]);
+    vi.mocked(api.createCustomer).mockResolvedValue({ ...customerLucas, id: 'cust-998' });
+    renderRouted('/customers');
+    await screen.findByText('Lucas Martins');
+    fireEvent.click(screen.getByRole('button', { name: /Novo cliente/ }));
+    expect(screen.queryByPlaceholderText('(11) 99999-9999')).not.toBeInTheDocument();
+    expect(screen.getByPlaceholderText('email@exemplo.com')).toBeInTheDocument();
+    fireEvent.change(screen.getByPlaceholderText(/Nome completo/), { target: { value: 'Sem Telefone' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar' }));
+    await waitFor(() => expect(api.createCustomer).toHaveBeenCalled());
+    expect(vi.mocked(api.createCustomer).mock.calls.at(-1)?.[0]).not.toHaveProperty('phone', expect.anything());
+  });
+
+  it('marks required fields and blocks saving until they are filled', async () => {
+    vi.mocked(api.getCustomerFieldSettings).mockResolvedValue([setting('phone', true, true)]);
+    vi.mocked(api.createCustomer).mockClear().mockResolvedValue({ ...customerLucas, id: 'cust-997' });
+    renderRouted('/customers');
+    await screen.findByText('Lucas Martins');
+    fireEvent.click(screen.getByRole('button', { name: /Novo cliente/ }));
+    expect(await screen.findByText('Telefone *')).toBeInTheDocument();
+    fireEvent.change(screen.getByPlaceholderText(/Nome completo/), { target: { value: 'Maria' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Telefone');
+    expect(api.createCustomer).not.toHaveBeenCalled();
+    fireEvent.change(screen.getByPlaceholderText('(11) 99999-9999'), { target: { value: '11999990000' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar' }));
+    await waitFor(() =>
+      expect(api.createCustomer).toHaveBeenCalledWith(expect.objectContaining({ name: 'Maria', phone: '11999990000' })),
+    );
+  });
+
+  it('shows the server 422 message when the server rejects a configured field', async () => {
+    vi.mocked(api.createCustomer).mockRejectedValue(new api.ApiError('O campo "Telefone" é obrigatório', 'FIELD_REQUIRED', 422, 'phone'));
+    renderRouted('/customers');
+    await screen.findByText('Lucas Martins');
+    fireEvent.click(screen.getByRole('button', { name: /Novo cliente/ }));
+    fireEvent.change(screen.getByPlaceholderText(/Nome completo/), { target: { value: 'Joana' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('obrigatório');
   });
 
   it('creates a new customer via the API and refreshes the list', async () => {

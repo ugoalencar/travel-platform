@@ -168,6 +168,24 @@ export class ValidationError extends HttpError {
   }
 }
 
+export type FormFieldErrorCode =
+  | 'FIELD_REQUIRED'
+  | 'FIELD_DISABLED'
+  | 'FIELD_UNKNOWN'
+  | 'FIELD_INVALID'
+  | 'FIELD_NOT_ALLOWED'
+  | 'CATEGORY_INACTIVE';
+
+/** 422 for a configurable-form rule violation (ADR-008); fieldKey names the offending field. */
+export class FormFieldError extends HttpError {
+  readonly fieldKey: string | undefined;
+
+  constructor(code: FormFieldErrorCode, fieldKey: string | undefined, message: string) {
+    super(422, code, message);
+    this.fieldKey = fieldKey;
+  }
+}
+
 export class UnauthorizedError extends HttpError {
   constructor(message = 'Authentication required') {
     super(401, 'UNAUTHORIZED', message);

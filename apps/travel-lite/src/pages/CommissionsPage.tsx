@@ -15,6 +15,8 @@ interface Commission {
   sale_number: string;
   payable_id: string | null;
   payable_status: string | null;
+  release_mode?: string;
+  released_amount?: number | null;
 }
 
 interface ListJson {
@@ -178,6 +180,7 @@ export function CommissionsPage() {
               <th>Cálculo</th>
               <th className="num">Valor</th>
               <th>Status</th>
+              <th>Liberação</th>
               <th>Pagável</th>
               <th>Ações</th>
             </tr>
@@ -195,6 +198,11 @@ export function CommissionsPage() {
                 </td>
                 <td>
                   <StatusBadge status={commission.status} />
+                </td>
+                <td>
+                  {commission.release_mode === 'ON_RECEIPT'
+                    ? `Por recebimento: ${formatBRL(commission.released_amount ?? 0)} liberado`
+                    : 'Direta na venda'}
                 </td>
                 <td>
                   {commission.payable_status ? (

@@ -1,5 +1,5 @@
-import { Menu, LogOut } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Menu, LogOut, CircleHelp } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { CURRENT_USER_ROLE_LABELS, type CurrentUser } from '../../hooks/useCurrentUser';
@@ -53,6 +53,10 @@ export function Topbar({ onMenuClick, user }: TopbarProps) {
         <span className="text-sm text-slate-700">
           {roleLabel ?? 'Carregando…'}
         </span>
+        <Link to="/ajuda" className="inline-flex items-center gap-1 rounded-md px-2 py-1.5 text-sm font-medium text-blue-800 hover:bg-blue-50" aria-label="Abrir ajuda">
+          <CircleHelp className="h-4 w-4" />
+          <span className="hidden sm:inline">Ajuda</span>
+        </Link>
         <Button variant="ghost" size="sm" onClick={() => void handleLogout()} aria-label="Sair">
           <LogOut className="h-4 w-4" />
         </Button>

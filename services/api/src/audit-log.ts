@@ -29,10 +29,42 @@ export const AuditEventType = {
   INVITATION_REVOKED: 'INVITATION_REVOKED',
   PERMISSION_RESTRICTION_CREATED: 'PERMISSION_RESTRICTION_CREATED',
   PERMISSION_RESTRICTION_DELETED: 'PERMISSION_RESTRICTION_DELETED',
+  USER_PERMISSION_OVERRIDES_CHANGED: 'USER_PERMISSION_OVERRIDES_CHANGED',
+  CUSTOMER_FIELD_SETTINGS_CHANGED: 'CUSTOMER_FIELD_SETTINGS_CHANGED',
+  DASHBOARD_CONFIGURED: 'DASHBOARD_CONFIGURED',
+  SALES_IMPORTED: 'SALES_IMPORTED',
+  BACKUP_EXPORTED: 'BACKUP_EXPORTED',
+  BACKUP_EXPORT_DENIED: 'BACKUP_EXPORT_DENIED',
+  BACKUP_VERIFIED: 'BACKUP_VERIFIED',
+  BACKUP_RESTORED: 'BACKUP_RESTORED',
+  BACKUP_SCHEDULE_UPDATED: 'BACKUP_SCHEDULE_UPDATED',
+  BACKUP_SCHEDULED: 'BACKUP_SCHEDULED',
+  BACKUP_SCHEDULE_FAILED: 'BACKUP_SCHEDULE_FAILED',
+  BACKUP_MANAGED_VERIFIED: 'BACKUP_MANAGED_VERIFIED',
+  BACKUP_MANAGED_RESTORED: 'BACKUP_MANAGED_RESTORED',
+  REPORT_EXPORTED: 'REPORT_EXPORTED',
+  AGENCY_REVENUE_RULE_CREATED: 'AGENCY_REVENUE_RULE_CREATED',
+  AGENCY_REVENUE_RULE_REVISED: 'AGENCY_REVENUE_RULE_REVISED',
+  AGENCY_REVENUE_CALCULATED: 'AGENCY_REVENUE_CALCULATED',
+  AGENCY_REVENUE_ENTITLED: 'AGENCY_REVENUE_ENTITLED',
+  AGENCY_REVENUE_RECEIVED: 'AGENCY_REVENUE_RECEIVED',
+  AGENCY_REVENUE_REACTIVATED: 'AGENCY_REVENUE_REACTIVATED',
+  AGENCY_REVENUE_CANCELLED: 'AGENCY_REVENUE_CANCELLED',
+  AGENCY_REVENUE_SETTLEMENT_CONFIGURED: 'AGENCY_REVENUE_SETTLEMENT_CONFIGURED',
+  AGENCY_REVENUE_BATCH_CLOSED: 'AGENCY_REVENUE_BATCH_CLOSED',
+  AGENCY_REVENUE_BATCH_RECEIVED: 'AGENCY_REVENUE_BATCH_RECEIVED',
+  AGENCY_MODULE_SETTINGS_CHANGED: 'AGENCY_MODULE_SETTINGS_CHANGED',
   ONBOARDING_STEP_UPDATED: 'ONBOARDING_STEP_UPDATED',
   ONBOARDING_COMPLETED: 'ONBOARDING_COMPLETED',
   ENTITLEMENT_CHANGED: 'ENTITLEMENT_CHANGED',
   PAYMENT_RECORDED: 'PAYMENT_RECORDED',
+  PAYMENT_CONDITION_CREATED: 'PAYMENT_CONDITION_CREATED',
+  PAYMENT_CONDITION_REVISED: 'PAYMENT_CONDITION_REVISED',
+  PAYMENT_CONDITION_DEACTIVATED: 'PAYMENT_CONDITION_DEACTIVATED',
+  COMMISSION_ENGINE_CUTOFF_CHANGED: 'COMMISSION_ENGINE_CUTOFF_CHANGED',
+  SALE_PAYMENT_SCHEDULE_APPLIED: 'SALE_PAYMENT_SCHEDULE_APPLIED',
+  SALE_PAYMENT_RECORDED: 'SALE_PAYMENT_RECORDED',
+  SALE_PAYMENT_REVERSED: 'SALE_PAYMENT_REVERSED',
   BOOKING_CANCELLED: 'BOOKING_CANCELLED',
   PROPOSAL_CREATED: 'PROPOSAL_CREATED',
   PROPOSAL_SENT: 'PROPOSAL_SENT',
@@ -91,6 +123,21 @@ export const AuditEventType = {
   PARTNER_COMMISSION_APPROVED: 'PARTNER_COMMISSION_APPROVED',
   PARTNER_COMMISSION_PAYABLE_CREATED: 'PARTNER_COMMISSION_PAYABLE_CREATED',
   // Upsell (Agent 08): SaleItem/ProposalOptionalItem/UpsellSuggestion.
+  // Onda E1: versioned commission rules, attributions and versioned generation.
+  COMMISSION_RULE_VERSION_CREATED: 'COMMISSION_RULE_VERSION_CREATED',
+  COMMISSION_PAYMENT_POLICY_CREATED: 'COMMISSION_PAYMENT_POLICY_CREATED',
+  COMMISSION_COST_POLICY_CHANGED: 'COMMISSION_COST_POLICY_CHANGED',
+  SALE_COMMISSION_ATTRIBUTED: 'SALE_COMMISSION_ATTRIBUTED',
+  SALE_COMMISSION_ATTRIBUTION_CANCELLED: 'SALE_COMMISSION_ATTRIBUTION_CANCELLED',
+  COMMISSION_VERSIONED_GENERATED: 'COMMISSION_VERSIONED_GENERATED',
+  // Onda E2: release policy and partial settlement.
+  PAYMENT_METHOD_RECEIPT_RULE_SET: 'PAYMENT_METHOD_RECEIPT_RULE_SET',
+  COMMISSION_FINANCIAL_PROFILE_CREATED: 'COMMISSION_FINANCIAL_PROFILE_CREATED',
+  COMMISSION_RELEASE_ALLOCATED: 'COMMISSION_RELEASE_ALLOCATED',
+  // Onda B (ADR-008): configurable sale categories and form profile.
+  SALE_CATEGORY_CREATED: 'SALE_CATEGORY_CREATED',
+  SALE_CATEGORY_UPDATED: 'SALE_CATEGORY_UPDATED',
+  SALE_CATEGORY_FORM_UPDATED: 'SALE_CATEGORY_FORM_UPDATED',
   SALE_ITEM_CREATED: 'SALE_ITEM_CREATED',
   SALE_ITEM_CANCELLED: 'SALE_ITEM_CANCELLED',
   PROPOSAL_OPTIONAL_ITEM_CREATED: 'PROPOSAL_OPTIONAL_ITEM_CREATED',
@@ -165,6 +212,11 @@ export interface RecordAuditEventInput {
   entityId?: string;
   outcome?: AuditOutcome;
   metadata?: Record<string, unknown>;
+  /**
+   * Fail closed: when true a failed audit insert propagates and rolls the business
+   * transaction back (configuration changes that must never go unaudited).
+   */
+  required?: boolean;
 }
 
 interface AuditLogRow {
@@ -199,6 +251,9 @@ export interface ListAuditEventsOptions {
 }
 
 const allowedMetadataKeys = new Set([
+  'version',
+  'paymentId',
+  'reason',
   'amount',
   'currency',
   'method',
@@ -219,9 +274,44 @@ const allowedMetadataKeys = new Set([
   'title',
   'fileName',
   'mimeType',
+  'moduleKey',
+  'previousEnabled',
+  'enabled',
+  'dependencies',
+  'dataset',
+  'columns',
+  'filterKeys',
+  'rowCount',
+  'runId',
+  'retentionDays',
+  'dailyTime',
+  'timezone',
+  'keyVersion',
 ]);
 
 const maxMetadataStringLength = 128;
+
+async function insertAuditRow(
+  client: TenantTransactionClient,
+  context: ReturnType<typeof getTenantContext>,
+  input: RecordAuditEventInput,
+): Promise<void> {
+  await client.query(
+    `INSERT INTO audit_logs
+       (agency_id, actor_type, actor_id, event_type, entity_type, entity_id, outcome, metadata)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb)`,
+    [
+      context.agencyId,
+      'USER',
+      context.userId,
+      input.eventType,
+      input.entityType,
+      input.entityId ?? null,
+      input.outcome ?? 'SUCCESS',
+      JSON.stringify(sanitizeAuditMetadata(input.metadata)),
+    ],
+  );
+}
 
 export async function recordAuditEvent(
   client: TenantTransactionClient,
@@ -229,23 +319,14 @@ export async function recordAuditEvent(
 ): Promise<void> {
   const context = getTenantContext();
 
+  if (input.required) {
+    await insertAuditRow(client, context, input);
+    return;
+  }
+
   await client.query('SAVEPOINT audit_insert');
   try {
-    await client.query(
-      `INSERT INTO audit_logs
-         (agency_id, actor_type, actor_id, event_type, entity_type, entity_id, outcome, metadata)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb)`,
-      [
-        context.agencyId,
-        'USER',
-        context.userId,
-        input.eventType,
-        input.entityType,
-        input.entityId ?? null,
-        input.outcome ?? 'SUCCESS',
-        JSON.stringify(sanitizeAuditMetadata(input.metadata)),
-      ],
-    );
+    await insertAuditRow(client, context, input);
     await client.query('RELEASE SAVEPOINT audit_insert');
   } catch {
     await client.query('ROLLBACK TO SAVEPOINT audit_insert');

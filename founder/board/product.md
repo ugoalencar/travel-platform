@@ -1,26 +1,38 @@
-# Product lens
-Score: 4 | Vote: FUND IF
-## What is strong
-- There is a real product in production, not a deck: two live apps (`app.travelplataforma.com.br`, `travellite.travelplataforma.com.br`) with real domains responding. The Product lens treats "ship something real a customer can touch" as a baseline test, and this clears it.
-- Multi-tenant isolation (data isolation per agency, role-based access, 2FA, audit trail) was designed up front rather than bolted on later. That is evidence of thinking about the whole experience, including the part a customer never sees directly but silently depends on — the "taste in parts nobody sees" idea.
-- The architecture decisions for billing and fiscal emission were written down as ADRs before being coded. That is the right order of operations even though the thing described in them is not built yet.
-- A "Travel Lite" variant exists, which at least gestures toward the discipline of asking "what is the smaller, focused version of this" — whether it is actually that smaller focused thing is a separate, open question below.
+# Lente Product
+Nota: 5 | Voto: FUND IF
 
-## What would kill it (the top 3, most dangerous first)
-1. **The landing page promises a transaction the product cannot complete.** Marketing says recurring billing (Pix/boleto/cartão) and automatic NFS-e issuance. In production today, neither is implemented — only the ADR exists. The Product lens says every touchpoint from the first ad to the receipt is the product, and the receipt is exactly where this breaks: a real prospect who signs up and tries to pay or get an invoice hits a dead end. That is not a missing feature, it is a broken promise at the single moment trust matters most, and it will be discovered by the first serious buyer, not by an internal test.
-2. **The product tries to be seven things at once with no stated "one thing."** CRM, sales pipeline, trip/operations tracking, full financial module, team/role management, a client-facing portal, and a separate Travel Lite tier — all announced together. The brief gives no evidence anyone has decided what this product must do brilliantly before anything else. Lack of focus is not a cosmetic problem under this lens; it is the mechanism by which quality gets thin everywhere at once, which is consistent with finding #3 below.
-3. **The craft gaps already found are in the parts customers can't see until something goes wrong.** A security audit (not yet acted on) found: no captcha/validation on the public lead form, security headers not configured, MFA not required for a super-admin account, and CI secret-scanning (gitleaks) not wired up. The lens's claim is that a business which cuts corners where customers can't look will cut them where they can — this is the leading indicator of exactly that pattern, on a product whose core sell to a B2B buyer is "trust us with your client data and your money."
+## O que é forte
+- Há produto real em produção, não apresentação: Full no ar, banco com 118 migrations, e-mail transacional, e uma agência real (Gadotti) já operando com 1 OWNER + 4 AGENT. Isso passa o teste básico de "algo que o cliente pode tocar".
+- O primeiro cliente veio do Lite, não de um anúncio. Para a lente Product é o melhor sinal disponível: alguém que já conhece a dor migrou para o Full. É um caso de uso concreto para contar a história em uma frase.
+- O cuidado com as partes invisíveis (isolamento multi-tenant com RLS, MFA, papéis, trilha de auditoria) já existe. Para um B2B que guarda dados de clientes e dinheiro da agência, isso é craft de verdade.
+- Melhora em relação à rodada de 12/10: o Full existe e tem cliente. Falta o resto do ciclo (cobrar), não o núcleo.
+- Há modelo de teste barato à mão: o tenant Demo e o tenant cortesia permitem observar uso real sem custo de aquisição.
 
-## The questions I would ask the founder
-- If a travel agency owner uses this for five minutes on day one, what is the one thing that happens that makes them stop using a spreadsheet or WhatsApp group? Can you say it in one sentence, without "and"?
-- Of CRM, pipeline, operations, financial, team management, client portal, and Travel Lite — if you had to cut four and keep the rest live, which three stay?
-- Have you personally walked the path a real prospect walks — landing page, demo form, signup, first login, first attempt to get billed or get an invoice — end to end, right now, as they would experience it?
-- Today, when someone actually tries to subscribe and pay, what do they see, given billing isn't wired up? Is that moment hidden from prospects, or will they hit it?
-- Is Travel Lite the focused, cut-down version of the product you'd bet the business on, or is it dilution — a second thing to maintain instead of a sharper first thing?
-- The login incident the founder reported (recusado, resolved via password reset) — is there any reason to believe that was a one-off, or is it a crack in a seam nobody has looked at yet?
+## O que mataria (top 3, mais perigoso primeiro)
+1. **Sem foco e sem "a uma coisa".** CRM, pipeline, financeiro, folha/comissões, relatórios, portal do cliente, mais um Lite separado. A lente Product pergunta o que cortar; ninguém disse. Com fundador solo, cada módulo extra é qualidade fina em todo lugar e suporte espalhado. Hoje não dá para dizer em uma frase, sem "e", por que a agência larga a planilha/WhatsApp.
+2. **O recibo não existe.** Cobrança recorrente (Asaas) e NFS-e só em ADR. A experiência do cliente termina exatamente onde começa a relação comercial: não há como cobrar, atribuir plano ou emitir nota. Enquanto isso, qualquer promessa de planos de R$ 99/R$ 299 na landing é promessa sem o último passo. Os "fundadores" funcionam sem isso; os demais, não.
+3. **Dois produtos para um fundador solo.** Lite e Full evoluem em paralelo, o Demo tem senha pública, e a Ideia B (venda + suporte) multiplicaria versões. Se cada cliente vendido virar uma instância ou uma bifurcação, o fundador vira operador de N produtos e a qualidade cai onde o cliente não vê até quebrar. É o risco central das duas ideias.
 
-## If FUND IF: the conditions
-- Before adding any more features: pick the one thing this product must do brilliantly, and either remove or clearly mark as "coming soon" anything the landing page promises that production cannot yet deliver — starting with recurring billing and NFS-e.
-- Close the promise/reality gap on billing and invoicing — either ship the ADR'd implementation or stop advertising it — before spending more on acquisition, since every new signup currently walks into that dead end.
-- Fix the already-identified craft gaps (public form validation/captcha, security headers, mandatory MFA for super-admin, CI secret scanning) before layering on new modules; these are foundational trust items, not polish.
-- Open questions this lens cannot answer and should not guess at: market size and competitive crowding (/founder-competitors), whether real agencies actually want this and would pay at the stated prices (/founder-consumer), and whether the unit economics work at all (/founder-cfo). Fund conditional on those being run before scaling spend.
+## Perguntas ao fundador
+- Qual é a única coisa que a agência Gadotti usa todo dia no Full? Se cortasse metade dos módulos, quais três ficam?
+- O que o Full faz que o Lite não faz, e a Gadotti pediu isso ou foi você que decidiu?
+- Qual é a primeira coisa que um agente da Gadotti faz nos primeiros cinco minutos, hoje? Você já assistiu a isso acontecer?
+- Ideia B: "vender o sistema" significa código-fonte, instância dedicada ou acesso no mesmo multi-tenant? Quem opera as atualizações depois?
+- "Vitalício" é vitalício de quê: do plano, do suporte, de novas funções, do preço? Vitalício de quem, da agência ou do usuário? E se a agência for vendida ou fechar?
+- Quem são os outros 3 fundadores? Já conversaram? Cada um tem uma dor que o Full resolve hoje ou só curiosidade?
+- Mercado, número de agências, concorrência e disposição a pagar: ainda abertos (`/founder-competitors`, `/founder-consumer`, `/founder-cfo`).
+
+## Se FUND IF: condições
+**Ideia A (4 fundadores):** boa, com desenho. O risco é virar 4 usuários grátis e nenhuma prova.
+- O teste mede uso, não opinião: login semanal por agente, vendas/propostas criadas no sistema, contas a receber/pagar lançadas, substituição de planilha ou WhatsApp, e se a agência trocou rotina real por ele. Definir 3 a 4 métricas por escrito antes do dia 1.
+- Cada fundador deve pagar alguma coisa ou dar algo concreto: cartão de crédito ou valor simbólico, depoimento com nome, estudo de caso com números, 1 ligação por mês de feedback, e permissão de usar a logo. Gratuito sem contrapartida não gera prova.
+- Marcos em 30/90/180 dias com critério de saída; se a agência não usa, ela sai do programa e a vaga é reocupada. Vitalício só vale para quem cumprir.
+- "Vitalício" precisa de limite: o plano de hoje, N usuários, sem novas edições premium, sem SLA, transferível ou não, cláusula de encerramento do produto. Sem isso é passivo sem teto. Alternativa mais segura: preço congelado por tempo longo (ex.: 5 anos) em vez de "para sempre", decisão a validar com `/founder-cfo`.
+- Antes de iniciar o relógio de 6 meses: ter ao menos cobrança manual (boleto/Pix na mão) e o processo de suporte definidos, para que a transição para assinatura não seja um evento novo.
+
+**Ideia B (venda + suporte):** só como exceção, não como modelo.
+- Impacto em atualizações: cada cliente que "compra" fica preso a uma versão ou força manutenção paralela; o multi-tenant único é o maior ativo do fundador solo e a venda de licença o enfraquece.
+- Impacto em suporte: suporte vira o produto. Sem equipe, é teto de receita igual ao tempo do fundador.
+- Se existir, que seja implantação/migração/treinamento pontual (venda de serviço) sobre a mesma assinatura multi-tenant, nunca uma versão separada do sistema.
+
+**Melhor combinação:** Ideia A com contrapartida, vitalício limitado e em escopo definido; depois assinatura multi-tenant única, com implantação e suporte como serviços opcionais pagos (parte da Ideia B). Não vender cópia do sistema. Antes de abrir para o resto: ligar cobrança (Asaas) e fechar a história em uma frase para a landing.

@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { api } from '../api';
 import { useCan } from '../auth';
 import { EmptyState, ErrorNote, Pager, StatusBadge, SuccessNote } from '../ui';
+import { CustomerCepField } from '../CustomerCepField';
 
 const OPTIONAL_FIELDS = [
   'email',
@@ -57,6 +58,18 @@ export function CustomersPage() {
   const canReassign = useCan('customers.update_all');
   const canCreate = useCan('customers.create');
   const [sellers, setSellers] = useState<Array<{ id: string; name: string }>>([]);
+  // Registration-form configuration (Frente 2): hides disabled fields and marks required ones.
+  // The server enforces it; if it cannot be loaded every field stays as before.
+  const [fieldRules, setFieldRules] = useState<Array<{ field_key: string; enabled: boolean; required: boolean }>>([]);
+  useEffect(() => {
+    api<{ fields: Array<{ field_key: string; enabled: boolean; required: boolean }> }>('/customers/field-settings')
+      .then((result) => setFieldRules(result.fields))
+      .catch(() => setFieldRules([]));
+  }, []);
+  const rule = (key: string) => {
+    const found = fieldRules.find((field) => field.field_key === key);
+    return { enabled: found?.enabled ?? true, required: found?.required ?? false };
+  };
   const [originalResponsible, setOriginalResponsible] = useState('');
   const [items, setItems] = useState<Customer[]>([]);
   const [page, setPage] = useState(1);
@@ -139,8 +152,14 @@ export function CustomersPage() {
     // Editing sends every field (blank -> null) so a value can be cleared;
     // creating omits blanks.
     const payload: Record<string, unknown> = { name: form.name.trim() };
+    const originalCustomer = editingId ? items.find((customer) => customer.id === editingId) : undefined;
+    const addressFields: readonly string[] = ['zip_code', 'street', 'number', 'complement', 'neighborhood', 'city', 'state'];
     for (const field of OPTIONAL_FIELDS) {
+      const ruleKey = addressFields.includes(field) ? 'address' : field;
+      if (!rule(ruleKey).enabled) continue;
       const value = form[field].trim();
+      // On edit only send what changed, so a legacy customer without a now-required field can still be edited.
+      if (editingId && value === String(originalCustomer?.[field] ?? '').trim()) continue;
       if (value) payload[field] = value;
       else if (editingId) payload[field] = null;
     }
@@ -230,53 +249,66 @@ export function CustomersPage() {
               required
             />
           </label>
+          {rule('cpf').enabled ? (
           <label className="field lite-more">
-            <span>CPF</span>
+            <span>CPF{rule('cpf').required ? ' *' : ''}</span>
             <input
               value={form.cpf}
               onChange={(event) => setForm({ ...form, cpf: event.target.value })}
               placeholder="000.000.000-00"
+              required={rule('cpf').required}
             />
           </label>
+          ) : null}
+          {rule('birth_date').enabled ? (
           <label className="field lite-more">
-            <span>Data de nascimento</span>
+            <span>Data de nascimento{rule('birth_date').required ? ' *' : ''}</span>
             <input
               type="date"
               value={form.birth_date}
               onChange={(event) => setForm({ ...form, birth_date: event.target.value })}
+              required={rule('birth_date').required}
             />
           </label>
+          ) : null}
+          {rule('phone').enabled ? (
           <label className="field">
-            <span>Telefone</span>
+            <span>Telefone{rule('phone').required ? ' *' : ''}</span>
             <input
               value={form.phone}
               onChange={(event) => setForm({ ...form, phone: event.target.value })}
+              required={rule('phone').required}
             />
           </label>
+          ) : null}
+          {rule('whatsapp').enabled ? (
           <label className="field lite-more">
-            <span>WhatsApp</span>
+            <span>WhatsApp{rule('whatsapp').required ? ' *' : ''}</span>
             <input
               value={form.whatsapp}
               onChange={(event) => setForm({ ...form, whatsapp: event.target.value })}
+              required={rule('whatsapp').required}
             />
           </label>
+          ) : null}
+          {rule('email').enabled ? (
           <label className="field">
-            <span>E-mail</span>
+            <span>E-mail{rule('email').required ? ' *' : ''}</span>
             <input
               type="email"
               value={form.email}
               onChange={(event) => setForm({ ...form, email: event.target.value })}
+              required={rule('email').required}
             />
           </label>
-          <label className="field lite-more">
-            <span>CEP</span>
-            <input
-              value={form.zip_code}
-              onChange={(event) => setForm({ ...form, zip_code: event.target.value })}
-              placeholder="00000-000"
-              maxLength={12}
-            />
-          </label>
+          ) : null}
+          {rule('address').enabled ? (
+          <>
+          <CustomerCepField key={editingId ?? 'new'} value={form.zip_code} address={form}
+            onChange={(zip_code) => setForm((current) => ({ ...current, zip_code }))}
+            onAddress={(address, expected) => setForm((current) => ({ ...current, ...Object.fromEntries(
+              Object.entries(address).filter(([field]) => current[field as keyof typeof expected] === expected[field as keyof typeof expected]),
+            ) }))} />
           <label className="field lite-more">
             <span>Rua</span>
             <input
@@ -332,6 +364,8 @@ export function CustomersPage() {
               ))}
             </select>
           </label>
+          </>
+          ) : null}
           {canReassign ? (
             <label className="field lite-more">
               <span>Responsável (carteira)</span>
@@ -357,15 +391,18 @@ export function CustomersPage() {
               </select>
             </label>
           ) : null}
+          {rule('notes').enabled ? (
           <label className="field field-wide lite-more">
-            <span>Observações</span>
+            <span>Observações{rule('notes').required ? ' *' : ''}</span>
             <textarea
               value={form.notes}
               onChange={(event) => setForm({ ...form, notes: event.target.value })}
               maxLength={2000}
               rows={3}
+              required={rule('notes').required}
             />
           </label>
+          ) : null}
           {!editingId ? (
             <button
               type="button"

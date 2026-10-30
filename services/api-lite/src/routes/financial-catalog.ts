@@ -75,6 +75,17 @@ function registerCatalogRoutes(
       const sortOrder = optionalInteger(body, 'sort_order', { min: 0, max: 1_000_000 }) ?? 0;
       columns.push('sort_order');
       params.push(sortOrder);
+      if ('requires_receipt' in body) {
+        if (typeof body.requires_receipt !== 'boolean') {
+          throw new ValidationError('Field requires_receipt must be a boolean');
+        }
+        columns.push('requires_receipt');
+        params.push(body.requires_receipt);
+      } else if (table === 'payment_methods') {
+        // COM-03: a method created without the flag has an undecided receipt rule (releases stay blocked).
+        columns.push('receipt_rule_decided');
+        params.push(false);
+      }
     }
 
     const placeholders = params.map((_, i) => `$${i + 1}`).join(', ');
@@ -130,6 +141,13 @@ function registerCatalogRoutes(
         throw new ValidationError('Field active must be a boolean');
       }
       set('active', body.active);
+    }
+    if (table === 'payment_methods' && 'requires_receipt' in body) {
+      if (typeof body.requires_receipt !== 'boolean') {
+        throw new ValidationError('Field requires_receipt must be a boolean');
+      }
+      set('requires_receipt', body.requires_receipt);
+      set('receipt_rule_decided', true);
     }
     if (table === 'payment_methods' && 'sort_order' in body) {
       const sortOrder = optionalInteger(body, 'sort_order', { min: 0, max: 1_000_000 });
@@ -210,7 +228,7 @@ export function registerFinancialCatalogRoutes(
     readPermissions: [],
     table: 'payment_methods',
     entityType: 'paymentMethod',
-    select: 'id, name, active, sort_order',
+    select: 'id, name, active, sort_order, requires_receipt, receipt_rule_decided',
     auditCreate: AUDIT_EVENTS.PAYMENT_METHOD_CREATED,
     auditUpdate: AUDIT_EVENTS.PAYMENT_METHOD_UPDATED,
     outboxCreate: 'PAYMENT_METHOD_CREATED',

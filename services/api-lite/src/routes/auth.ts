@@ -7,7 +7,7 @@ import type { LiteDatabase } from '../database';
 import type { TenantClient } from '../database';
 import { sendPasswordResetEmail } from '../email';
 import { NotFoundError, UnauthorizedError, ValidationError } from '../errors';
-import { hashPassword, verifyPassword } from '../password';
+import { hashPassword, verifyPassword, MIN_PASSWORD_LENGTH } from '../password';
 import { loginClientIp, sendRateLimited, type LiteLoginAbuseProtector } from '../rate-limit';
 import { getTenantContext } from '../tenant-context';
 import { parseObjectBody, requiredString } from '../validation';
@@ -52,7 +52,6 @@ interface UserRow {
   password_hash: string;
 }
 
-const MIN_PASSWORD_LENGTH = 8;
 
 async function passwordChangeRequired(client: TenantClient, tenantId: string, userId: string): Promise<boolean> {
   const result = await client.query<{ reset_at: string | null; changed_at: string | null }>(

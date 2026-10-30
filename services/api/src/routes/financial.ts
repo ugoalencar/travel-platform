@@ -10,11 +10,12 @@ import { getTenantContext, requireRole } from '../../../../packages/domain/tenan
 import {
   PaymentDirection,
   UserRole,
+  FinancialObligationStatus,
   type CashTransactionType,
   type FinancialCategoryType,
 } from '../../../../packages/domain/types';
 import type { DatabaseRuntime } from '../database';
-import { ValidationError } from '../errors';
+import { NotFoundError, ValidationError } from '../errors';
 import { requireRoleOrAreaGrant } from '../area-grants';
 import {
   parseObjectBody,
@@ -77,10 +78,12 @@ import {
   type CreateReconciliationInput,
   type CreateRevenueInput,
   type RecordPaymentInput,
+  type ListFinancialObligationFilters,
   type UpdateExpenseInput,
   type UpdateRevenueInput,
 } from '../financial';
 import { assertNotRestricted } from '../permission-restrictions';
+import { getCustomerSegmentById } from '../customer-segments';
 
 export interface FinancialRoutesOptions {
   database: DatabaseRuntime;
@@ -96,9 +99,10 @@ export function registerFinancialRoutes(
   // ============================================================
   // RECEIVABLES
   // ============================================================
-  app.get('/financial/receivables', { preHandler: protectedHooks }, async () => {
+  app.get('/financial/receivables', { preHandler: protectedHooks }, async (request) => {
     await requireRoleOrAreaGrant(database, UserRole.MANAGER, 'FINANCIAL_RECEIVABLES');
-    const receivables = await listReceivables(database);
+    const filters = await parseFinancialListFilters(database, request.query);
+    const receivables = await listReceivables(database, filters);
     return { receivables };
   });
 
@@ -113,9 +117,10 @@ export function registerFinancialRoutes(
   // ============================================================
   // PAYABLES
   // ============================================================
-  app.get('/financial/payables', { preHandler: protectedHooks }, async () => {
+  app.get('/financial/payables', { preHandler: protectedHooks }, async (request) => {
     await requireRoleOrAreaGrant(database, UserRole.MANAGER, 'FINANCIAL_PAYABLES');
-    const payables = await listPayables(database);
+    const filters = await parseFinancialListFilters(database, request.query);
+    const payables = await listPayables(database, filters);
     return { payables };
   });
 
@@ -550,6 +555,61 @@ export function registerFinancialRoutes(
     const report = await getCashFlowReport(database);
     return { report };
   });
+}
+
+async function parseFinancialListFilters(
+  database: DatabaseRuntime,
+  rawQuery: unknown,
+): Promise<ListFinancialObligationFilters> {
+  if (typeof rawQuery !== 'object' || rawQuery === null || Array.isArray(rawQuery)) {
+    throw new ValidationError('Query parameters are invalid');
+  }
+  const query = rawQuery as Record<string, unknown>;
+  const readText = (field: string): string | undefined => {
+    const value = query[field];
+    if (value === undefined || value === '') return undefined;
+    if (typeof value !== 'string') throw new ValidationError(`Query "${field}" must be a string`);
+    return value;
+  };
+  const dateFrom = parseFinancialListDate(readText('dateFrom'), 'dateFrom');
+  const dateTo = parseFinancialListDate(readText('dateTo'), 'dateTo');
+  if (dateFrom && dateTo && dateFrom > dateTo) {
+    throw new ValidationError('Query "dateFrom" must not be after "dateTo"');
+  }
+  const status = readText('status');
+  const validStatuses = [...Object.values(FinancialObligationStatus), 'OVERDUE'];
+  if (status && !validStatuses.includes(status)) {
+    throw new ValidationError('Query "status" is invalid');
+  }
+  const supplierValue = readText('supplierId');
+  const employeeValue = readText('employeeId');
+  const segmentValue = readText('segmentId');
+  const supplierId = supplierValue ? parseUuidParam(supplierValue, 'supplierId') : undefined;
+  const employeeId = employeeValue ? parseUuidParam(employeeValue, 'employeeId') : undefined;
+  const segmentId = segmentValue ? parseUuidParam(segmentValue, 'segmentId') : undefined;
+  const segment = segmentId ? await getCustomerSegmentById(database, segmentId) : null;
+  if (segmentId && !segment) throw new NotFoundError('Customer segment not found');
+
+  return {
+    ...(dateFrom ? { dateFrom } : {}),
+    ...(dateTo ? { dateTo } : {}),
+    ...(status ? { status: status as FinancialObligationStatus | 'OVERDUE' } : {}),
+    ...(supplierId ? { supplierId } : {}),
+    ...(employeeId ? { employeeId } : {}),
+    ...(segment ? { customerFilterDefinition: segment.filterDefinition } : {}),
+  };
+}
+
+function parseFinancialListDate(value: string | undefined, field: string): string | undefined {
+  if (value === undefined) return undefined;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    throw new ValidationError(`Query "${field}" must use YYYY-MM-DD`);
+  }
+  const parsed = new Date(`${value}T00:00:00.000Z`);
+  if (Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== value) {
+    throw new ValidationError(`Query "${field}" must be a valid date`);
+  }
+  return value;
 }
 
 // ============================================================

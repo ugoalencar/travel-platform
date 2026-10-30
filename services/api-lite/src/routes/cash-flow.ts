@@ -1,11 +1,13 @@
 import type { FastifyInstance, preHandlerHookHandler } from 'fastify';
+import { roundMoney } from '../money';
 import { requirePermission } from '../access';
 import { AUDIT_EVENTS, recordAuditEvent } from '../audit-log';
 import type { LiteDatabase, TenantClient } from '../database';
 import { ConflictError, NotFoundError, ValidationError } from '../errors';
-import { recordPayment, refreshSaleStatus, reversePayment } from '../finance';
+import { loadCommissionRelease, lockCommissionRelease, recordPayment, refreshSaleStatus, reversePayment } from '../finance';
 import { enqueueOutboxEvent } from '../outbox';
 import { getTenantContext } from '../tenant-context';
+import { overdueReceivableSql } from '../receivable-sql';
 import {
   optionalDate,
   optionalEnum,
@@ -179,7 +181,8 @@ export function registerCashFlowRoutes(
       addCondition('r.due_at', '<=', optionalDate({ to: query.to }, 'to'));
     }
     if (query.overdue === 'true') {
-      conditions.push(`r.due_at < CURRENT_DATE AND r.status IN ('OPEN', 'PARTIALLY_PAID')`);
+      // civil due date against today in the agency time zone (same rule as the Full receivable-sql)
+      conditions.push(`${overdueReceivableSql('now()')} AND r.status IN ('OPEN', 'PARTIALLY_PAID')`);
     }
     const where = conditions.join(' AND ');
 
@@ -208,7 +211,7 @@ export function registerCashFlowRoutes(
         ...row,
         amount: Number(row.amount),
         paid_amount: Number(row.paid_amount),
-        remaining_amount: Math.round((Number(row.amount) - Number(row.paid_amount)) * 100) / 100,
+        remaining_amount: Math.max(0, roundMoney(Number(row.amount) - Number(row.paid_amount))),
       })),
       page,
       pageSize,
@@ -224,13 +227,20 @@ export function registerCashFlowRoutes(
     const payment = parsePaymentBody(body);
 
     await database.withTenantTransaction(async (client) => {
+      const target = await client.query<{ sale_id: string | null }>(
+        'SELECT sale_id FROM receivables WHERE tenant_id=$1 AND id=$2', [context.tenantId, id]);
+      const saleId = target.rows[0]?.sale_id;
+      if (saleId) {
+        await lockCommissionRelease(client, context.tenantId, saleId);
+        await client.query('SELECT id FROM sales WHERE tenant_id=$1 AND id=$2 FOR UPDATE', [context.tenantId, saleId]);
+      }
       const receivable = await loadReceivableForUpdate(client, context.tenantId, id);
       if (receivable.status === 'CANCELLED') {
         throw new ConflictError('A cancelled receivable cannot receive payments');
       }
       const total = Number(receivable.amount);
       const alreadyPaid = Number(receivable.paid_amount);
-      const remaining = Math.round((total - alreadyPaid) * 100) / 100;
+      const remaining = roundMoney(total - alreadyPaid);
       if (remaining <= 0) {
         throw new ConflictError('Receivable is already fully paid');
       }
@@ -241,7 +251,7 @@ export function registerCashFlowRoutes(
         );
       }
 
-      const newPaid = Math.round((alreadyPaid + amount) * 100) / 100;
+      const newPaid = roundMoney(alreadyPaid + amount);
       const newStatus = newPaid >= total ? 'PAID' : 'PARTIALLY_PAID';
       await client.query(
         `UPDATE receivables SET paid_amount = $3, status = $4, updated_at = now()
@@ -357,7 +367,11 @@ export function registerCashFlowRoutes(
     const dueAt = requiredDate(body, 'due_at');
     const categoryId = optionalUuid(body, 'category_id');
     const sellerId = optionalUuid(body, 'seller_id');
-    const commissionId = optionalUuid(body, 'commission_id');
+    // Commission obligations are created only by commission approval, so a
+    // commission can never be paid through a second, hand-made payable.
+    if (body.commission_id !== undefined && body.commission_id !== null) {
+      throw new ValidationError('Field commission_id cannot be set on a manual payable');
+    }
 
     const payable = await database.withTenantTransaction(async (client) => {
       if (categoryId) {
@@ -379,15 +393,14 @@ export function registerCashFlowRoutes(
         }
       }
       const result = await client.query<{ id: string }>(
-        `INSERT INTO payables (tenant_id, category_id, seller_id, commission_id, supplier_name,
+        `INSERT INTO payables (tenant_id, category_id, seller_id, supplier_name,
                                description, amount, due_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)
          RETURNING id`,
         [
           context.tenantId,
           categoryId,
           sellerId,
-          commissionId,
           optionalString(body, 'supplier_name', { max: 200 }),
           description,
           amount,
@@ -424,6 +437,15 @@ export function registerCashFlowRoutes(
     const payment = parsePaymentBody(body);
 
     await database.withTenantTransaction(async (client) => {
+      // Commission payables share one lock per sale with receipt reversals (taken before any row lock).
+      const commissionSale = await client.query<{ sale_id: string }>(
+        `SELECT sc.sale_id FROM payables p
+           JOIN seller_commissions sc ON sc.tenant_id = p.tenant_id AND sc.id = p.commission_id
+          WHERE p.tenant_id = $1 AND p.id = $2`,
+        [context.tenantId, id],
+      );
+      if (commissionSale.rows[0]) await lockCommissionRelease(client, context.tenantId, commissionSale.rows[0].sale_id);
+
       const result = await client.query<{
         id: string;
         commission_id: string | null;
@@ -448,18 +470,39 @@ export function registerCashFlowRoutes(
       }
       const total = Number(payable.amount);
       const alreadyPaid = Number(payable.paid_amount);
-      const remaining = Math.round((total - alreadyPaid) * 100) / 100;
+      const remaining = roundMoney(total - alreadyPaid);
       if (remaining <= 0) {
         throw new ConflictError('Payable is already fully paid');
       }
-      const amount = payment.amount ?? remaining;
+      // Commission tied to receipts: only the part already received is payable.
+      let payableNow = remaining;
+      if (payable.commission_id) {
+        const release = await loadCommissionRelease(client, context.tenantId, payable.commission_id);
+        if (release.release_mode === 'BLOCKED') {
+          throw new ConflictError(
+            `COMMISSION_RELEASE_POLICY_MISSING: commission release configuration missing (${(release.missing ?? []).join(', ')})`,
+          );
+        }
+        if (release.release_mode === 'ON_RECEIPT') {
+          payableNow = Math.min(remaining, roundMoney(release.released - alreadyPaid));
+          if (payableNow <= 0) {
+            throw new ConflictError('No commission amount is released yet: it follows the sale receipts');
+          }
+        }
+      }
+      const amount = payment.amount ?? payableNow;
       if (amount > remaining) {
         throw new ValidationError(
           `Payment amount exceeds the remaining balance (${remaining.toFixed(2)})`,
         );
       }
+      if (amount > payableNow) {
+        throw new ValidationError(
+          `Payment amount exceeds the released commission (${payableNow.toFixed(2)}); it follows the sale receipts`,
+        );
+      }
 
-      const newPaid = Math.round((alreadyPaid + amount) * 100) / 100;
+      const newPaid = roundMoney(alreadyPaid + amount);
       const newStatus = newPaid >= total ? 'PAID' : 'PARTIALLY_PAID';
       await client.query(
         `UPDATE payables SET paid_amount = $3, status = $4, updated_at = now()
@@ -484,7 +527,9 @@ export function registerCashFlowRoutes(
         paidByUserId: context.userId,
       });
 
-      if (payable.commission_id) {
+      // A commission is only PAID once its payable is fully settled; a
+      // partial payment leaves it APPROVED with the balance still open.
+      if (payable.commission_id && newStatus === 'PAID') {
         await client.query(
           `UPDATE seller_commissions SET status = 'PAID', paid_at = now(), updated_at = now()
             WHERE tenant_id = $1 AND id = $2 AND status IN ('APPROVED', 'PENDING')`,

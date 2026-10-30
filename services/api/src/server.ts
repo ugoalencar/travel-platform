@@ -1,5 +1,6 @@
 import { Pool } from 'pg';
 import { buildApp } from './app';
+import { CepLookup, resolveCepProviderEnabled } from './cep';
 import { createCustomerAccessValidator } from './customer-portal';
 import { createDatabaseRuntime, createPlatformDatabaseRuntime } from './database';
 import {
@@ -17,6 +18,7 @@ import {
 import { createServerPlatformAuthProvider } from './platform-dev-auth';
 import { createRedisRateLimitStore, resolveRateLimitRuntimeConfig, type RedisClientInstance } from './rate-limit';
 import { resolveDatabaseTls } from './database-tls';
+import { createVercelHandler } from './vercel-handler';
 
 // Fail-closed production startup gate: throws synchronously if required
 // config is missing/malformed, or if a prohibited flag (ALLOW_DEV_AUTH) is
@@ -26,6 +28,10 @@ validateProductionEnvironment();
 // Mirror gate for every other NODE_ENV: a dev/staging process may only use
 // local databases, so `npm run dev` can never reach production data.
 validateNonProductionDatabaseTargets();
+
+const cepLookup = new CepLookup({
+  enabled: resolveCepProviderEnabled(process.env),
+});
 
 const port = Number(process.env.PORT ?? 3000);
 const host = process.env.HOST ?? '127.0.0.1';
@@ -74,6 +80,7 @@ function baseAppOptions() {
     validateUserAgencyAccess: composeUserAgencyValidators(createServerAccessValidator(), createStaffAccessValidator(pool)),
     database: createDatabaseRuntime(pool, platformPool),
     platformDatabase: createPlatformDatabaseRuntime(platformPool),
+    cepLookup,
     // Explicit platform auth provider (F-01): production always gets the
     // deny-all provider; outside production the dual-gated dev provider.
     // buildApp()'s default is also deny-all, but the real server never
@@ -116,6 +123,37 @@ let app: ReturnType<typeof buildApp> | undefined =
   initialRuntimeConfig.store === 'external' ? undefined : buildApp(baseAppOptions());
 
 let redisClientInstance: RedisClientInstance | undefined = undefined;
+let initialization: Promise<void> | undefined;
+
+async function initializeRuntime(): Promise<void> {
+  if (!initialization) {
+    initialization = (async () => {
+      const runtimeConfig = resolveRateLimitRuntimeConfig(process.env);
+      if (runtimeConfig.store === 'external' && !app) {
+        const store = await createRedisRateLimitStore(process.env);
+        redisClientInstance = store.redisClient;
+        app = buildApp({ ...baseAppOptions(), rateLimit: { store } });
+      }
+
+      if (!app) {
+        throw new Error('Internal error: app was not initialized before startup.');
+      }
+
+      await assertSafeDatabasePools(pool, platformPool);
+      await app.ready();
+    })();
+  }
+
+  await initialization;
+}
+
+export const handler = createVercelHandler(async () => {
+  await initializeRuntime();
+  if (!app) {
+    throw new Error('Internal error: app was not initialized before handling a request.');
+  }
+  return app;
+});
 
 async function gracefulShutdown(signal: string): Promise<void> {
   if (!app) {
@@ -156,27 +194,10 @@ async function gracefulShutdown(signal: string): Promise<void> {
 
 async function main(): Promise<void> {
   try {
-    // Initialize rate limit store if external store is configured
-    const runtimeConfig = resolveRateLimitRuntimeConfig(process.env);
-    if (runtimeConfig.store === 'external') {
-      const store = await createRedisRateLimitStore(process.env);
-      redisClientInstance = store.redisClient;
-      // First (and only, on this path) buildApp() call -- app was left
-      // undefined at module scope specifically so this is where it happens.
-      app = buildApp({ ...baseAppOptions(), rateLimit: { store } });
-    }
-
-    // Invariant: app is assigned either at module scope (non-external
-    // store) or just above (external store) -- always defined by this
-    // point. Narrows the type rather than asserting past a real gap.
+    await initializeRuntime();
     if (!app) {
       throw new Error('Internal error: app was not initialized before startup.');
     }
-
-    // DB runtime role guards (production only): both pools must use distinct
-    // non-superuser, non-BYPASSRLS roles. This only reads the configured
-    // roles' existing privileges; grants and RLS policies remain unchanged.
-    await assertSafeDatabasePools(pool, platformPool);
     await app.listen({ port, host });
     app.log.info({ host, port, service: 'api' }, 'service started');
   } catch (error: unknown) {
@@ -196,4 +217,9 @@ process.on('SIGINT', () => {
   void gracefulShutdown('SIGINT');
 });
 
-void main();
+// Vercel invokes the exported handler for each request; starting a listener
+// inside a Function would bypass its request lifecycle. Local deployments keep
+// the persistent Fastify listener.
+if (!process.env.VERCEL) {
+  void main();
+}

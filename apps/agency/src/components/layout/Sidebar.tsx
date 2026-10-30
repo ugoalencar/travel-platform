@@ -3,6 +3,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { ChevronDown } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { api } from '../../lib/api';
+import { matchAgencyModuleForUiPath, useAgencyModules } from '../../modules/AgencyModulesContext';
 import type { CurrentUserRole } from '../../hooks/useCurrentUser';
 
 interface NavItem {
@@ -55,6 +56,7 @@ const NAV_SECTIONS: NavSection[] = [
       { label: 'Propostas', to: '/proposals' },
       { label: 'Reservas', to: '/bookings' },
       { label: 'Vendas', to: '/sales' },
+      { label: 'Importar vendas', to: '/sales/import' },
     ],
   },
   {
@@ -89,6 +91,8 @@ const NAV_SECTIONS: NavSection[] = [
       { label: 'Despesas', to: '/financial/expenses' },
       { label: 'DRE Gerencial', to: '/financial/dre' },
       { label: 'Relatórios', to: '/financial/reports' },
+      { label: 'Projeções', to: '/financial/projections' },
+      { label: 'Configuração financeira', to: '/financial/settings' },
     ],
   },
   {
@@ -103,7 +107,7 @@ const NAV_SECTIONS: NavSection[] = [
     label: 'Pessoal',
     items: [
       { label: 'Funcionários', to: '/employees' },
-      { label: 'Planos de Comissão', to: '/commission-plans' },
+      { label: 'Regras de comissão', to: '/commission-rules' },
       // Comissões, Salários e Benefícios, Descontos e Adiantamentos and
       // Pagamentos were four separate labels all pointing at this same
       // single-page screen (PayrollPage.tsx has no per-section deep link)
@@ -129,6 +133,7 @@ const NAV_SECTIONS: NavSection[] = [
       // the unrelated default "Perfil" tab instead of their own.
       { label: 'Usuários', to: '/settings?tab=invitations' },
       { label: 'Papéis e Acessos', to: '/settings?tab=permissions' },
+      { label: 'Módulos', to: '/settings/modules' },
     ],
   },
 ];
@@ -238,6 +243,8 @@ export interface SidebarProps {
 
 export function Sidebar({ mobileOpen, onClose, role }: SidebarProps) {
   const isOperationalStaff = role === 'AGENT';
+  const canManageModules = role === 'OWNER' || role === 'ADMIN';
+  const { modules, loading: modulesLoading } = useAgencyModules();
   const [grantedModules, setGrantedModules] = useState<AreaGrantModule[]>([]);
 
   useEffect(() => {
@@ -256,9 +263,19 @@ export function Sidebar({ mobileOpen, onClose, role }: SidebarProps) {
     };
   }, [isOperationalStaff]);
 
-  const sections = isOperationalStaff
+  const baseSections = isOperationalStaff
     ? [...STAFF_OPERATIONAL_SECTIONS, ...buildGrantedSections(grantedModules)]
     : NAV_SECTIONS;
+  const sections = baseSections.map((section) => ({
+    ...section,
+    items: section.items.filter((item) => {
+      const path = item.to.split('?')[0] ?? item.to;
+      if (path === '/settings/modules' && !canManageModules) return false;
+      if (modulesLoading) return true;
+      const module = matchAgencyModuleForUiPath(path, modules);
+      return !module || module.key === 'CORE' || module.available;
+    }),
+  })).filter((section) => section.items.length > 0);
   const location = useLocation();
 
   // Areas are collapsed by default -- each section header is a toggle, not

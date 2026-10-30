@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { Pool } from 'pg';
 import { runWithTenantContext } from '../../../packages/domain/tenant-context';
 import { PaymentDirection, UserRole } from '../../../packages/domain/types';
@@ -14,9 +14,11 @@ import {
   createReceivable,
   getCashFlowSummary,
   getSaleMargin,
+  listPayables,
   listReceivables,
   recordPayment,
 } from '../src/financial';
+import { approvePayrollEntry, generatePayrollEntry, payPayrollEntry } from '../src/payroll';
 
 const repoRoot = resolve(import.meta.dirname, '../../..');
 const migrations = [
@@ -51,12 +53,15 @@ const migrations = [
   '041_finance_categories_cost_centers.sql',
   '042_employees_commission_plans.sql',
   '043_commissions_payroll.sql',
+  '099_payroll_payable_unique.sql',
+  '100_commission_channel_protection.sql',
+  '113_sale_payment_reversals.sql',
 ].map((name) => resolve(repoRoot, 'infrastructure/migrations', name));
 const prepareRolesSql = resolve(repoRoot, 'tests/integration/database/002_prepare_local_roles.sql');
 const composeFile = resolve(repoRoot, 'infrastructure/docker-compose.local-postgres.yml');
 
-const projectName = 'travel-platform-financial-postgres';
-const containerName = 'travel-platform-postgres-local';
+const projectName = process.env.DATABASE_TEST_PROJECT_NAME ?? 'travel-platform-financial-postgres';
+const containerName = process.env.DATABASE_TEST_CONTAINER_NAME ?? 'travel-platform-postgres-local';
 const postgresImage = 'postgres:15';
 const databaseHost = process.env.DATABASE_TEST_HOST ?? '127.0.0.1';
 const databasePort = Number(process.env.DATABASE_TEST_PORT ?? '55432');
@@ -252,6 +257,118 @@ describe('Financial foundation data-access layer', () => {
     );
   });
 
+  describe('payroll entry payment lifecycle', () => {
+    const competence = '2027-01-01';
+
+    async function approvedEntry(baseSalary: string | null): Promise<string> {
+      const employee = await adminPool.query<{ id: string }>(
+        `INSERT INTO employees (agency_id, name, base_salary) VALUES ($1, 'Funcionario Teste', $2) RETURNING id`,
+        [agencyAId, baseSalary],
+      );
+      return runWithTenantContext(contextA, async () => {
+        const entry = await generatePayrollEntry(database, { employeeId: employee.rows[0]!.id, competence });
+        await approvePayrollEntry(database, entry.id);
+        return entry.id;
+      });
+    }
+
+    async function payOut(amount: number, payableId: string) {
+      return runWithTenantContext(contextA, async () => {
+        const payment = await recordPayment(database, {
+          direction: PaymentDirection.OUT,
+          amount,
+          occurredAt: new Date('2027-02-05T00:00:00Z'),
+          method: 'PIX',
+        });
+        return allocatePayment(database, payment.id, [{ payableId, amount }]);
+      });
+    }
+
+    afterEach(async () => {
+      await adminPool.query('TRUNCATE TABLE payroll_entries RESTART IDENTITY CASCADE');
+      await adminPool.query('TRUNCATE TABLE employees RESTART IDENTITY CASCADE');
+    });
+
+    it('creating the obligation leaves the entry APPROVED and a second attempt is refused', async () => {
+      const entryId = await approvedEntry('3000.00');
+
+      const first = await runWithTenantContext(contextA, () => payPayrollEntry(database, entryId));
+      expect(first.payrollEntry.status).toBe('APPROVED');
+      expect(first.payrollEntry.paidAt).toBeUndefined();
+      expect(first.payrollEntry.payableId).toBe(first.payableId);
+
+      await expect(
+        runWithTenantContext(contextA, () => payPayrollEntry(database, entryId)),
+      ).rejects.toThrow(/already has a payment obligation/);
+      const payables = await adminPool.query(`SELECT 1 FROM payables WHERE payroll_entry_id = $1`, [entryId]);
+      expect(payables.rowCount).toBe(1);
+    });
+
+    it('concurrent pay calls create exactly one payable', async () => {
+      const entryId = await approvedEntry('3000.00');
+
+      const results = await Promise.allSettled([
+        runWithTenantContext(contextA, () => payPayrollEntry(database, entryId)),
+        runWithTenantContext(contextA, () => payPayrollEntry(database, entryId)),
+      ]);
+
+      expect(results.filter((r) => r.status === 'fulfilled')).toHaveLength(1);
+      const payables = await adminPool.query(`SELECT 1 FROM payables WHERE payroll_entry_id = $1`, [entryId]);
+      expect(payables.rowCount).toBe(1);
+    });
+
+    it('becomes PAID only when the payable is fully settled by payment allocations', async () => {
+      const entryId = await approvedEntry('3000.00');
+      const { payableId } = await runWithTenantContext(contextA, () => payPayrollEntry(database, entryId));
+
+      const partial = await payOut(1000, payableId);
+      expect(partial.targets[0]?.status).toBe('PARTIALLY_PAID');
+      let entry = await adminPool.query<{ status: string; paid_at: Date | null }>(
+        `SELECT status, paid_at FROM payroll_entries WHERE id = $1`,
+        [entryId],
+      );
+      expect(entry.rows[0]).toMatchObject({ status: 'APPROVED', paid_at: null });
+
+      const final = await payOut(2000, payableId);
+      expect(final.targets[0]?.status).toBe('PAID');
+      entry = await adminPool.query(`SELECT status, paid_at FROM payroll_entries WHERE id = $1`, [entryId]);
+      expect(entry.rows[0]?.status).toBe('PAID');
+      expect(entry.rows[0]?.paid_at).not.toBeNull();
+    });
+
+    it('refuses an obligation for an entry with no positive net amount', async () => {
+      const entryId = await approvedEntry(null);
+
+      await expect(
+        runWithTenantContext(contextA, () => payPayrollEntry(database, entryId)),
+      ).rejects.toThrow(/net amount must be positive/);
+      const payables = await adminPool.query(`SELECT 1 FROM payables WHERE payroll_entry_id = $1`, [entryId]);
+      expect(payables.rowCount).toBe(0);
+    });
+
+    it('does not let another tenant create the obligation', async () => {
+      const entryId = await approvedEntry('3000.00');
+      const contextB = { ...contextA, agencyId: agencyBId, userId: userBId, email: 'user-b@example.test' };
+
+      await expect(runWithTenantContext(contextB, () => payPayrollEntry(database, entryId))).rejects.toThrow(
+        /not found/i,
+      );
+    });
+
+    it('enforces one live payable per entry in the database', async () => {
+      const entryId = await approvedEntry('3000.00');
+      await runWithTenantContext(contextA, () => payPayrollEntry(database, entryId));
+
+      await expect(
+        adminPool.query(
+          `INSERT INTO payables (agency_id, description, amount, due_at, payroll_entry_id)
+           SELECT agency_id, 'dup', 10, now(), payroll_entry_id FROM payables WHERE payroll_entry_id = $1`,
+          [entryId],
+        ),
+      ).rejects.toMatchObject({ code: '23505' });
+    });
+  });
+
   it('rejects over-allocation against both payment amount and receivable amount', async () => {
     const receivable = await runWithTenantContext(contextA, () =>
       createReceivable(database, {
@@ -357,6 +474,29 @@ describe('Financial foundation data-access layer', () => {
       operationalCosts: 50,
       commission: 80,
       margin: 620,
+    });
+  });
+
+  it('lists payables when the joined sale also has an amount column', async () => {
+    const payable = await runWithTenantContext(contextA, () =>
+      createPayable(database, {
+        saleId: saleA,
+        supplierId: supplierA,
+        transportOperationId: operationA,
+        description: 'Supplier payable for listing',
+        amount: 250,
+        dueAt: new Date('2027-01-12T00:00:00Z'),
+      }),
+    );
+
+    const payables = await runWithTenantContext(contextA, () => listPayables(database));
+
+    expect(payables).toHaveLength(1);
+    expect(payables[0]).toMatchObject({
+      id: payable.id,
+      agencyId: agencyAId,
+      saleId: saleA,
+      amount: 250,
     });
   });
 
@@ -502,6 +642,8 @@ function assertContainerIsLocal(): void {
 
 async function resetDatabase(pool: Pool): Promise<void> {
   await pool.query('DROP SCHEMA public CASCADE; CREATE SCHEMA public;');
+  // 113 reuses the immutable-history trigger function created by 105 (which needs the full product chain).
+  await pool.query("CREATE FUNCTION reject_payment_history_change() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'Payment history is immutable' USING ERRCODE = 'check_violation'; END; $$");
   for (const migration of migrations) {
     await pool.query(readSqlForPg(migration));
   }

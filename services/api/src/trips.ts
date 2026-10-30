@@ -47,6 +47,7 @@ function toCategory(row: TripRowWithCategory): TripCategory {
 }
 
 export interface CreateTripInput {
+  saleId?: string;
   name: string;
   destination: string;
   startDate: Date;
@@ -169,14 +170,28 @@ export async function createTrip(
       throw new NotFoundError('Customer not found');
     }
 
+    if (data.saleId) {
+      const saleCheck = await client.query(
+        `SELECT 1 FROM sales WHERE agency_id = $1 AND id = $2 AND customer_id = $3`,
+        [agencyId, data.saleId, customerId],
+      );
+      if (saleCheck.rows.length === 0) throw new NotFoundError('Sale not found for customer');
+      const existingTrip = await client.query(
+        `SELECT 1 FROM trips WHERE agency_id = $1 AND sale_id = $2`,
+        [agencyId, data.saleId],
+      );
+      if (existingTrip.rows.length > 0) throw new ValidationError('A trip is already linked to this sale');
+    }
+
     const result = await client.query<TripRow>(
-      `INSERT INTO trips (agency_id, customer_id, name, destination, description, start_date,
+      `INSERT INTO trips (agency_id, customer_id, sale_id, name, destination, description, start_date,
                            end_date, notes)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
        RETURNING ${TRIP_COLUMNS}`,
       [
         agencyId,
         customerId,
+        data.saleId ?? null,
         data.name,
         data.destination,
         data.description ?? null,

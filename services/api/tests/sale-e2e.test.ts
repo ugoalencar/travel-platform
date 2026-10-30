@@ -19,11 +19,13 @@ const migration007 = resolve(repoRoot, 'infrastructure/migrations/007_commission
 const migration010 = resolve(repoRoot, 'infrastructure/migrations/010_financial_foundation.sql');
 const migration015 = resolve(repoRoot, 'infrastructure/migrations/015_audit_logging.sql');
 const migration024 = resolve(repoRoot, 'infrastructure/migrations/024_extended_financial_module.sql');
+const migration101 = resolve(repoRoot, 'infrastructure/migrations/101_sale_categories_and_form_profile.sql');
+const migration113 = resolve(repoRoot, 'infrastructure/migrations/113_sale_payment_reversals.sql');
 const prepareRolesSql = resolve(repoRoot, 'tests/integration/database/002_prepare_local_roles.sql');
 const composeFile = resolve(repoRoot, 'infrastructure/docker-compose.local-postgres.yml');
 
 const projectName = 'travel-platform-sale-e2e-postgres';
-const containerName = 'travel-platform-postgres-local';
+const containerName = process.env.DATABASE_TEST_CONTAINER_NAME ?? 'travel-platform-postgres-local';
 const postgresImage = 'postgres:15';
 const databaseHost = process.env.DATABASE_TEST_HOST ?? '127.0.0.1';
 const databasePort = Number(process.env.DATABASE_TEST_PORT ?? '55432');
@@ -611,6 +613,10 @@ async function resetDatabase(pool: Pool): Promise<void> {
   await pool.query(readSqlForPg(migration010));
   await pool.query(readSqlForPg(migration015));
   await pool.query(readSqlForPg(migration024));
+  await pool.query(readSqlForPg(migration101));
+  // 113 reuses the immutable-history trigger function created by 105 (which needs the full product chain).
+  await pool.query("CREATE FUNCTION reject_payment_history_change() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'Payment history is immutable' USING ERRCODE = 'check_violation'; END; $$");
+  await pool.query(readSqlForPg(migration113));
   await pool.query(readSqlForPg(prepareRolesSql));
   await seedAgenciesAndUsers(pool);
 }

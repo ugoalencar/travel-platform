@@ -1126,7 +1126,9 @@ export async function listMyPaymentSchedule(
       `SELECT r.id, r.description, r.amount::text AS amount, r.due_at::text AS due_at, r.status,
               COALESCE((
                 SELECT SUM(pa.amount) FROM payment_allocations pa
-                WHERE pa.agency_id = r.agency_id AND pa.receivable_id = r.id
+                JOIN payments p ON p.agency_id=pa.agency_id AND p.id=pa.payment_id
+                WHERE pa.agency_id = r.agency_id AND pa.receivable_id = r.id AND p.direction='IN'
+                  AND NOT EXISTS (SELECT 1 FROM sale_payment_reversals spr WHERE spr.agency_id=p.agency_id AND spr.original_payment_id=p.id)
               ), 0)::text AS amount_paid
        FROM receivables r
        WHERE r.agency_id = $1 AND r.customer_id = $2

@@ -12,6 +12,7 @@ import { Modal } from '../components/ui/modal';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Select } from '../components/ui/select';
+import { CustomerCepField, type CepAddress as CustomerCepAddress } from '../components/customer/CustomerCepField';
 import {
   ApiError,
   api,
@@ -89,6 +90,24 @@ const TABS = [
   { value: 'bookings', label: 'Reservas' },
   { value: 'tasks', label: 'Tarefas' },
 ];
+
+interface AddressDraft extends CustomerCepAddress {
+  cep: string;
+  number: string;
+  complement: string;
+  country: string;
+}
+
+const EMPTY_ADDRESS_DRAFT: AddressDraft = {
+  cep: '',
+  street: '',
+  number: '',
+  complement: '',
+  district: '',
+  city: '',
+  state: '',
+  country: 'Brazil',
+};
 
 const PROPOSAL_STATUS_LABELS: Record<string, string> = {
   DRAFT: 'Rascunho',
@@ -570,6 +589,7 @@ export function CustomerDetailPage() {
   const [notFound, setNotFound] = useState(false);
 
   const [addressModalOpen, setAddressModalOpen] = useState(false);
+  const [addressDraft, setAddressDraft] = useState<AddressDraft>(EMPTY_ADDRESS_DRAFT);
   const [documentModalOpen, setDocumentModalOpen] = useState(false);
   const [dependentModalOpen, setDependentModalOpen] = useState(false);
   const [companionModalOpen, setCompanionModalOpen] = useState(false);
@@ -740,6 +760,32 @@ export function CustomerDetailPage() {
     }
   }
 
+  function updateAddressDraft(field: keyof AddressDraft, value: string) {
+    setAddressDraft((current) => ({ ...current, [field]: value }));
+  }
+
+  const applyCepAddress = useCallback(
+    (next: Partial<CustomerCepAddress>, expected: CustomerCepAddress) => {
+      setAddressDraft((current) => {
+        let changed = false;
+        const updated = { ...current };
+        for (const field of ['street', 'district', 'city', 'state'] as const) {
+          const value = next[field];
+          if (
+            value !== undefined &&
+            current[field] === expected[field] &&
+            current[field] !== value
+          ) {
+            updated[field] = value;
+            changed = true;
+          }
+        }
+        return changed ? updated : current;
+      });
+    },
+    [],
+  );
+
   async function handleCreateAddress(form: FormData) {
     if (!id) return;
     setSaving(true);
@@ -748,14 +794,14 @@ export function CustomerDetailPage() {
       await createCustomerAddress(id, {
         type: formString(form, 'type') || 'RESIDENTIAL',
         isPrimary: form.get('isPrimary') === 'on',
-        cep: formString(form, 'cep') || undefined,
-        street: formString(form, 'street'),
-        number: formString(form, 'number'),
-        complement: formString(form, 'complement') || undefined,
-        district: formString(form, 'district'),
-        city: formString(form, 'city'),
-        state: formString(form, 'state'),
-        country: formString(form, 'country') || 'Brazil',
+        cep: addressDraft.cep || undefined,
+        street: addressDraft.street,
+        number: addressDraft.number,
+        complement: addressDraft.complement || undefined,
+        district: addressDraft.district,
+        city: addressDraft.city,
+        state: addressDraft.state,
+        country: addressDraft.country || 'Brazil',
       });
       setAddressModalOpen(false);
       reloadAddresses();
@@ -1527,7 +1573,7 @@ export function CustomerDetailPage() {
       {tab === 'addresses' && (
         <div className="space-y-3">
           <div className="flex justify-end">
-            <Button size="sm" onClick={() => { setFormError(null); setAddressModalOpen(true); }}>
+            <Button size="sm" onClick={() => { setFormError(null); setAddressDraft({ ...EMPTY_ADDRESS_DRAFT }); setAddressModalOpen(true); }}>
               <Plus className="h-4 w-4" /> Novo endereço
             </Button>
           </div>
@@ -1775,19 +1821,25 @@ export function CustomerDetailPage() {
               <input type="checkbox" name="isPrimary" className="h-4 w-4" /> Endereço principal
             </label>
           </div>
-          <label className="text-xs text-slate-500">CEP<Input name="cep" className="mt-1" /></label>
+          <CustomerCepField
+            value={addressDraft.cep}
+            address={addressDraft}
+            onChange={(cep) => updateAddressDraft('cep', cep)}
+            onAddress={applyCepAddress}
+            disabled={saving}
+          />
           <div className="grid grid-cols-3 gap-3">
-            <label className="col-span-2 text-xs text-slate-500">Rua<Input name="street" required className="mt-1" /></label>
-            <label className="text-xs text-slate-500">Número<Input name="number" required className="mt-1" /></label>
+            <label className="col-span-2 text-xs text-slate-500">Rua<Input name="street" value={addressDraft.street} onChange={(event) => updateAddressDraft('street', event.target.value)} required className="mt-1" /></label>
+            <label className="text-xs text-slate-500">Número<Input name="number" value={addressDraft.number} onChange={(event) => updateAddressDraft('number', event.target.value)} required className="mt-1" /></label>
           </div>
-          <label className="text-xs text-slate-500">Complemento<Input name="complement" className="mt-1" /></label>
+          <label className="text-xs text-slate-500">Complemento<Input name="complement" value={addressDraft.complement} onChange={(event) => updateAddressDraft('complement', event.target.value)} className="mt-1" /></label>
           <div className="grid grid-cols-2 gap-3">
-            <label className="text-xs text-slate-500">Bairro<Input name="district" required className="mt-1" /></label>
-            <label className="text-xs text-slate-500">Cidade<Input name="city" required className="mt-1" /></label>
+            <label className="text-xs text-slate-500">Bairro<Input name="district" value={addressDraft.district} onChange={(event) => updateAddressDraft('district', event.target.value)} required className="mt-1" /></label>
+            <label className="text-xs text-slate-500">Cidade<Input name="city" value={addressDraft.city} onChange={(event) => updateAddressDraft('city', event.target.value)} required className="mt-1" /></label>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <label className="text-xs text-slate-500">Estado<Input name="state" required className="mt-1" /></label>
-            <label className="text-xs text-slate-500">País<Input name="country" defaultValue="Brazil" className="mt-1" /></label>
+            <label className="text-xs text-slate-500">Estado<Input name="state" value={addressDraft.state} onChange={(event) => updateAddressDraft('state', event.target.value)} required className="mt-1" /></label>
+            <label className="text-xs text-slate-500">País<Input name="country" value={addressDraft.country} onChange={(event) => updateAddressDraft('country', event.target.value)} className="mt-1" /></label>
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <Button type="button" variant="outline" onClick={() => setAddressModalOpen(false)}>Cancelar</Button>

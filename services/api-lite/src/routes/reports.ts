@@ -1,4 +1,6 @@
 import type { FastifyInstance, FastifyReply, preHandlerHookHandler } from 'fastify';
+import { roundMoney } from '../money';
+import { REPORT_ROW_LIMIT, rowsWithinLimit, toCsv } from '../report-csv';
 import {
   can,
   effectiveSellerFilter,
@@ -20,25 +22,10 @@ import { getTenantContext, type TenantContext } from '../tenant-context';
 import { optionalDate, optionalEnum, optionalUuid } from '../validation';
 
 const COMMISSION_STATUSES = ['PENDING_RULE', 'PENDING', 'APPROVED', 'PAID', 'CANCELLED'] as const;
-const REPORT_LIMIT = 50_000;
 const DEFAULT_CASH_FLOW_DAYS = 90;
 
 function optionalCsvFlag(query: Record<string, string | undefined>): boolean {
   return query.format === 'csv';
-}
-
-function escapeCsvCell(value: string | number | null): string {
-  if (value === null || value === undefined) return '';
-  const text = String(value);
-  return /[";\n\r,]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
-}
-
-function toCsv(headers: string[], rows: Array<Array<string | number | null>>): string {
-  const lines = [headers.map(escapeCsvCell).join(',')];
-  for (const row of rows) {
-    lines.push(row.map(escapeCsvCell).join(','));
-  }
-  return `\uFEFF${lines.join('\r\n')}\r\n`;
 }
 
 function sendCsv(
@@ -77,7 +64,7 @@ export function registerReportRoutes(
     filters.sellerId = effectiveSellerFilter(salesReportScope(context), filters.sellerId);
 
     const items = await database.withTenantTransaction((client) =>
-      loadSalesReportRows(client, context.tenantId, filters),
+      loadSalesReportRows(client, context.tenantId, filters, true),
     );
 
     const totals = {
@@ -154,7 +141,7 @@ export function registerReportRoutes(
       );
       return {
         sellers: sellerResult.rows,
-        rows: await loadSalesReportRows(client, context.tenantId, filters),
+        rows: await loadSalesReportRows(client, context.tenantId, filters, true),
       };
     });
 
@@ -291,12 +278,12 @@ export function registerReportRoutes(
            JOIN sales s ON s.tenant_id = sc.tenant_id AND s.id = sc.sale_id
           WHERE ${where}
           ORDER BY sc.created_at DESC
-          LIMIT ${REPORT_LIMIT}`,
+          LIMIT ${REPORT_ROW_LIMIT + 1}`,
         params,
       ),
     );
 
-    const items = rows.rows.map((row) => ({
+    const items = rowsWithinLimit(rows.rows, true).map((row) => ({
       ...row,
       commission_amount: row.commission_amount !== null ? Number(row.commission_amount) : null,
     }));
@@ -368,12 +355,12 @@ export function registerReportRoutes(
     const items = rows.rows.map((row) => {
       const inflow = Number(row.inflow);
       const outflow = Number(row.outflow);
-      return { day: row.day, inflow, outflow, net: Math.round((inflow - outflow) * 100) / 100 };
+      return { day: row.day, inflow, outflow, net: roundMoney(inflow - outflow) };
     });
 
     const totals = {
-      inflow: Math.round(items.reduce((sum, r) => sum + r.inflow, 0) * 100) / 100,
-      outflow: Math.round(items.reduce((sum, r) => sum + r.outflow, 0) * 100) / 100,
+      inflow: roundMoney(items.reduce((sum, r) => sum + r.inflow, 0)),
+      outflow: roundMoney(items.reduce((sum, r) => sum + r.outflow, 0)),
     };
 
     if (optionalCsvFlag(query)) {

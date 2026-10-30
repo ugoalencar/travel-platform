@@ -1,0 +1,43 @@
+{
+  "at": "2026-10-26T11:59:26.653Z",
+  "total": 7,
+  "passed": 7,
+  "failed": 0,
+  "results": [
+    {
+      "description": "Login OWNER",
+      "ok": true,
+      "detail": "sessao e papel confirmados"
+    },
+    {
+      "description": "Login ADMIN",
+      "ok": true,
+      "detail": "sessao e papel confirmados"
+    },
+    {
+      "description": "Login MANAGER",
+      "ok": true,
+      "detail": "sessao e papel confirmados"
+    },
+    {
+      "description": "Login AGENT",
+      "ok": true,
+      "detail": "sessao e papel confirmados"
+    },
+    {
+      "description": "Login VIEWER",
+      "ok": true,
+      "detail": "sessao e papel confirmados"
+    },
+    {
+      "description": "Comissao por fornecedor aguarda repasse e usa data fixa",
+      "ok": true,
+      "detail": "venda=1.000; receita=70 recebida em lote 2025-07; comissao=10 liberada apos o lote e agrupada na folha dia 10"
+    },
+    {
+      "description": "WARN marca comissao do funcionario acima da receita do fornecedor",
+      "ok": true,
+      "detail": "receita=20; comissao=200; alerta de custo registrado no snapshot"
+    }
+  ]
+}

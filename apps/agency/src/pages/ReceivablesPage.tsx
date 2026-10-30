@@ -5,6 +5,7 @@ import { PageHeader } from '../components/layout/PageHeader';
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
+import { Select } from '../components/ui/select';
 import { Textarea } from '../components/ui/textarea';
 import { StatusBadge, type StatusTone } from '../components/ui/status-badge';
 import { EmptyState } from '../components/ui/empty-state';
@@ -15,10 +16,17 @@ import {
   ApiError,
   allocatePayment,
   listCustomers,
+  listSuppliers,
+  listEmployees,
+  listCustomerSegments,
   listReceivables,
   recordPayment,
   type Receivable,
   type ReceivableStatus,
+  type Supplier,
+  type Employee,
+  type CustomerSegment,
+  type FinancialObligationListFilters,
 } from '../lib/api';
 import type { Customer } from '../types/customer';
 import { formatBRL } from '../lib/formatCurrency';
@@ -27,7 +35,7 @@ import { formatDateBR } from '../lib/formatDateBR';
 type LoadState =
   | { status: 'loading' }
   | { status: 'error'; message: string }
-  | { status: 'success'; receivables: Receivable[]; customers: Customer[] };
+  | { status: 'success'; receivables: Receivable[]; customers: Customer[]; suppliers: Supplier[]; employees: Employee[]; segments: CustomerSegment[] };
 
 const RECEIVABLE_STATUS_LABELS: Record<ReceivableStatus, string> = {
   OPEN: 'Aberto',
@@ -53,6 +61,8 @@ const emptyPaymentForm = {
 export function ReceivablesPage() {
   const [search, setSearch] = useState('');
   const [state, setState] = useState<LoadState>({ status: 'loading' });
+  const [draftFilters, setDraftFilters] = useState<FinancialObligationListFilters>({});
+  const [appliedFilters, setAppliedFilters] = useState<FinancialObligationListFilters>({});
   const [selectedReceivable, setSelectedReceivable] = useState<Receivable | null>(null);
   const [paymentForm, setPaymentForm] = useState(emptyPaymentForm);
   const [formError, setFormError] = useState<string | null>(null);
@@ -60,13 +70,19 @@ export function ReceivablesPage() {
 
   const load = useCallback(() => {
     setState({ status: 'loading' });
-    Promise.all([listReceivables(), listCustomers()])
-      .then(([receivables, customers]) => setState({ status: 'success', receivables, customers }))
+    Promise.all([
+      listReceivables(appliedFilters),
+      listCustomers(),
+      listSuppliers().catch(() => []),
+      listEmployees().catch(() => []),
+      listCustomerSegments().catch(() => []),
+    ])
+      .then(([receivables, customers, suppliers, employees, segments]) => setState({ status: 'success', receivables, customers, suppliers, employees, segments }))
       .catch((err: unknown) => {
         const message = err instanceof ApiError ? err.message : 'Não foi possível carregar as contas a receber.';
         setState({ status: 'error', message });
       });
-  }, []);
+  }, [appliedFilters]);
 
   useEffect(() => {
     load();
@@ -161,6 +177,48 @@ export function ReceivablesPage() {
           className="pl-9"
         />
       </div>
+
+      <fieldset className="grid gap-3 rounded-lg border border-slate-200 bg-white p-4 sm:grid-cols-2 xl:grid-cols-4">
+        <legend className="px-1 text-sm font-semibold text-slate-800">Filtrar contas a receber</legend>
+        <label className="flex flex-col gap-1 text-sm text-slate-700" htmlFor="receivables-date-from">Data inicial
+          <Input id="receivables-date-from" type="date" value={draftFilters.dateFrom ?? ''} onChange={(event) => setDraftFilters({ ...draftFilters, dateFrom: event.target.value || undefined })} />
+        </label>
+        <label className="flex flex-col gap-1 text-sm text-slate-700" htmlFor="receivables-date-to">Data final
+          <Input id="receivables-date-to" type="date" value={draftFilters.dateTo ?? ''} onChange={(event) => setDraftFilters({ ...draftFilters, dateTo: event.target.value || undefined })} />
+        </label>
+        <label className="flex flex-col gap-1 text-sm text-slate-700" htmlFor="receivables-status">Status das contas
+          <Select id="receivables-status" value={draftFilters.status ?? ''} onChange={(event) => setDraftFilters({ ...draftFilters, status: event.target.value || undefined })}>
+            <option value="">Todos os status</option>
+            <option value="OPEN">Aberto</option>
+            <option value="PARTIALLY_PAID">Parcial</option>
+            <option value="PAID">Pago</option>
+            <option value="CANCELLED">Cancelado</option>
+            <option value="OVERDUE">Vencido</option>
+          </Select>
+        </label>
+        <label className="flex flex-col gap-1 text-sm text-slate-700" htmlFor="receivables-supplier">Fornecedor
+          <Select id="receivables-supplier" value={draftFilters.supplierId ?? ''} onChange={(event) => setDraftFilters({ ...draftFilters, supplierId: event.target.value || undefined })}>
+            <option value="">Todos os fornecedores</option>
+            {state.suppliers.map((supplier) => <option key={supplier.id} value={supplier.id}>{supplier.name}</option>)}
+          </Select>
+        </label>
+        <label className="flex flex-col gap-1 text-sm text-slate-700" htmlFor="receivables-employee">Funcionário
+          <Select id="receivables-employee" value={draftFilters.employeeId ?? ''} onChange={(event) => setDraftFilters({ ...draftFilters, employeeId: event.target.value || undefined })}>
+            <option value="">Todos os funcionários</option>
+            {state.employees.filter((employee) => employee.userId).map((employee) => <option key={employee.id} value={employee.userId}>{employee.name}</option>)}
+          </Select>
+        </label>
+        <label className="flex flex-col gap-1 text-sm text-slate-700" htmlFor="receivables-segment">Segmentação
+          <Select id="receivables-segment" value={draftFilters.segmentId ?? ''} onChange={(event) => setDraftFilters({ ...draftFilters, segmentId: event.target.value || undefined })}>
+            <option value="">Todos os clientes</option>
+            {state.segments.map((segment) => <option key={segment.id} value={segment.id}>{segment.name}</option>)}
+          </Select>
+        </label>
+        <div className="flex flex-wrap items-end gap-2 sm:col-span-2 xl:col-span-4">
+          <Button type="button" size="sm" onClick={() => setAppliedFilters(draftFilters)}>Aplicar filtros</Button>
+          <Button type="button" size="sm" variant="outline" onClick={() => { setDraftFilters({}); setAppliedFilters({}); }}>Limpar filtros</Button>
+        </div>
+      </fieldset>
 
       {filtered.length === 0 ? (
         <EmptyState

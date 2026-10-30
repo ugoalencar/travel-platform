@@ -63,7 +63,7 @@ const prepareRolesSql = resolve(repoRoot, 'tests/integration/database/002_prepar
 const composeFile = resolve(repoRoot, 'infrastructure/docker-compose.local-postgres.yml');
 
 const projectName = 'travel-platform-trip-routes-postgres';
-const containerName = 'travel-platform-postgres-local';
+const containerName = process.env.DATABASE_TEST_CONTAINER_NAME ?? 'travel-platform-postgres-local';
 const postgresImage = 'postgres:15';
 const databaseHost = process.env.DATABASE_TEST_HOST ?? '127.0.0.1';
 const databasePort = Number(process.env.DATABASE_TEST_PORT ?? '55432');
@@ -242,7 +242,7 @@ describe('Trip HTTP routes (Package 1)', () => {
       await app.close();
     });
 
-    it.each(['agencyId', 'tenantId', 'id', 'createdAt', 'updatedAt', 'status', 'saleId'] as const)(
+    it.each(['agencyId', 'tenantId', 'id', 'createdAt', 'updatedAt', 'status'] as const)(
       'rejects forbidden field "%s" with 400',
       async (field) => {
         const app = buildTestApp(runtimePool);
@@ -259,6 +259,25 @@ describe('Trip HTTP routes (Package 1)', () => {
         await app.close();
       },
     );
+
+    it('links a trip to a sale belonging to the selected customer', async () => {
+      const sale = await adminPool.query<{ id: string }>(
+        `INSERT INTO sales (agency_id, customer_id, user_id, amount, discount, total, status)
+         VALUES ($1, $2, $3, 100, 0, 100, 'CONFIRMED') RETURNING id`,
+        [agencyAId, customerAId, userAId],
+      );
+      const app = buildTestApp(runtimePool);
+      const response = await app.inject({
+        method: 'POST',
+        url: '/trips',
+        headers: { 'x-test-principal': 'a' },
+        payload: { ...validTripPayload(customerAId), saleId: sale.rows[0]!.id },
+      });
+
+      expect(response.statusCode).toBe(201);
+      expect(response.json<{ trip: { saleId: string } }>().trip.saleId).toBe(sale.rows[0]!.id);
+      await app.close();
+    });
 
     it('rejects unknown field with 400', async () => {
       const app = buildTestApp(runtimePool);

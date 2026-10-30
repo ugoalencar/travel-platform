@@ -9,7 +9,8 @@ import type { FastifyInstance, preHandlerHookHandler } from 'fastify';
 import { can, requirePermission, type Permission, type Scope } from '../access';
 import { AUDIT_EVENTS, recordAuditEvent } from '../audit-log';
 import type { LiteDatabase, TenantClient } from '../database';
-import { ValidationError } from '../errors';
+import { ConflictError, ValidationError } from '../errors';
+import { roundMoney } from '../money';
 import {
   EFFECTIVE_SALE_STATUSES,
   buildSalesCharts,
@@ -147,7 +148,7 @@ async function openBalance(
       ? 'JOIN sales s ON s.tenant_id = t.tenant_id AND s.id = t.sale_id AND s.seller_id = $2'
       : '';
   const result = await client.query<{ total: string }>(
-    `SELECT coalesce(sum(t.amount - t.paid_amount), 0) AS total
+    `SELECT coalesce(sum(GREATEST(t.amount - t.paid_amount, 0)), 0) AS total
        FROM ${table} t ${sellerJoin}
       WHERE t.tenant_id = $1 AND t.status IN ('OPEN', 'PARTIALLY_PAID')`,
     sellerJoin ? [tenantId, sellerId] : [tenantId],
@@ -196,7 +197,7 @@ async function computeWidgets(
     receivable: async () => money(await openBalance(client, context.tenantId, 'receivables', salesSeller)),
     expenses: async () => money(await expenses()),
     payable: async () => money(await openBalance(client, context.tenantId, 'payables', null)),
-    result: async () => money(Math.round(((await received()) - (await expenses())) * 100) / 100),
+    result: async () => money(roundMoney((await received()) - (await expenses()))),
     pending_commissions: async () => {
       const sellerId = sellerOf(scopes.commissions);
       const result = await client.query<{ amount: string; count: number; rule_count: number }>(
@@ -298,7 +299,11 @@ export function registerDashboardRoutes(
     const context = getTenantContext();
     requirePermission(context, 'dashboard.configure');
     const layout = await database.withTenantTransaction((client) => loadLayout(client, context.tenantId));
+    const stored = await database.withTenantTransaction((client) =>
+      client.query<{ version: number }>(`SELECT version FROM dashboard_settings WHERE tenant_id = $1`, [context.tenantId]),
+    );
     return {
+      version: stored.rows[0]?.version ?? 0,
       widgets: layout.map((item) => {
         const definition = WIDGETS.find((w) => w.key === item.key)!;
         return { ...item, title: definition.title, kind: definition.kind };
@@ -309,15 +314,29 @@ export function registerDashboardRoutes(
   app.put('/dashboard/settings', { preHandler: protectedHooks }, async (request) => {
     const context = getTenantContext();
     requirePermission(context, 'dashboard.configure');
-    const layout = parseLayout(parseObjectBody(request.body));
+    const body = parseObjectBody(request.body);
+    if (!Number.isInteger(body.version) || (body.version as number) < 0) {
+      throw new ValidationError('Field version is required');
+    }
+    const expected = body.version as number;
+    const layout = parseLayout(body);
     await database.withTenantTransaction(async (client) => {
-      await client.query(
-        `INSERT INTO dashboard_settings (tenant_id, widgets, updated_by, updated_at)
-         VALUES ($1, $2::jsonb, $3, now())
-         ON CONFLICT (tenant_id) DO UPDATE
-           SET widgets = EXCLUDED.widgets, updated_by = EXCLUDED.updated_by, updated_at = now()`,
-        [context.tenantId, JSON.stringify(layout), context.userId],
-      );
+      // Optimistic concurrency: only the writer holding the current version may save.
+      if (expected === 0) {
+        const inserted = await client.query(
+          `INSERT INTO dashboard_settings (tenant_id, widgets, updated_by, updated_at, version)
+           VALUES ($1, $2::jsonb, $3, now(), 1) ON CONFLICT (tenant_id) DO NOTHING`,
+          [context.tenantId, JSON.stringify(layout), context.userId],
+        );
+        if (inserted.rowCount === 0) throw new ConflictError('The dashboard was changed by someone else; reload and try again');
+      } else {
+        const updated = await client.query(
+          `UPDATE dashboard_settings SET widgets = $2::jsonb, updated_by = $3, updated_at = now(), version = version + 1
+            WHERE tenant_id = $1 AND version = $4`,
+          [context.tenantId, JSON.stringify(layout), context.userId, expected],
+        );
+        if (updated.rowCount === 0) throw new ConflictError('The dashboard was changed by someone else; reload and try again');
+      }
       await recordAuditEvent(client, {
         eventType: AUDIT_EVENTS.DASHBOARD_CONFIGURED,
         entityType: 'dashboard',

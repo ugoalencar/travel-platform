@@ -5,10 +5,10 @@
   "outputDirectory": "dist",
   "installCommand": "echo 'handled by buildCommand (workspace install)'",
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "https://api.travelplataforma.com.br/$1" },
-    { "source": "/customer-api/(.*)", "destination": "https://api.travelplataforma.com.br/customer-api/$1" },
-    { "source": "/customer-auth/(.*)", "destination": "https://api.travelplataforma.com.br/customer-auth/$1" },
-    { "source": "/invitations/(.*)", "destination": "https://api.travelplataforma.com.br/invitations/$1" },
+    { "source": "/api/(.*)", "destination": "https://travel-platform-api-ugoalencars-projects.vercel.app/$1" },
+    { "source": "/customer-api/(.*)", "destination": "https://travel-platform-api-ugoalencars-projects.vercel.app/customer-api/$1" },
+    { "source": "/customer-auth/(.*)", "destination": "https://travel-platform-api-ugoalencars-projects.vercel.app/customer-auth/$1" },
+    { "source": "/invitations/(.*)", "destination": "https://travel-platform-api-ugoalencars-projects.vercel.app/invitations/$1" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

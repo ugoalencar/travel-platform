@@ -69,17 +69,19 @@ const migrations = [
   // instead of the expected 403), found via a real CI run.
   '064_agent_area_grants.sql',
   '065_agent_area_grants_modules.sql',
+  '103_user_permission_overrides.sql',
   // customers.protocol_number is a required NOT NULL column that
   // createCustomer()/this file's own customer fixture insert always
   // populate -- omitting it 500s with "column protocol_number does not
   // exist" (found via a real CI run).
   '068_protocol_numbers.sql',
+  '113_sale_payment_reversals.sql',
 ].map((name) => resolve(repoRoot, 'infrastructure/migrations', name));
 const prepareRolesSql = resolve(repoRoot, 'tests/integration/database/002_prepare_local_roles.sql');
 const composeFile = resolve(repoRoot, 'infrastructure/docker-compose.local-postgres.yml');
 
 const projectName = 'travel-platform-financial-http-postgres';
-const containerName = 'travel-platform-postgres-local';
+const containerName = process.env.DATABASE_TEST_CONTAINER_NAME ?? 'travel-platform-postgres-local';
 const postgresImage = 'postgres:15';
 const databaseHost = process.env.DATABASE_TEST_HOST ?? '127.0.0.1';
 const databasePort = Number(process.env.DATABASE_TEST_PORT ?? '55432');
@@ -788,6 +790,8 @@ function assertContainerIsLocal(): void {
 
 async function resetDatabase(pool: Pool): Promise<void> {
   await pool.query('DROP SCHEMA public CASCADE; CREATE SCHEMA public;');
+  // 113 reuses the immutable-history trigger function created by 105 (which needs the full product chain).
+  await pool.query("CREATE FUNCTION reject_payment_history_change() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'Payment history is immutable' USING ERRCODE = 'check_violation'; END; $$");
   for (const migration of migrations) {
     await pool.query(readSqlForPg(migration));
   }

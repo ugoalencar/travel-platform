@@ -4,10 +4,10 @@
  * so a chart can never disagree with the table next to it.
  */
 import type { TenantClient } from './database';
+import { REPORT_ROW_LIMIT, rowsWithinLimit } from './report-csv';
 import { optionalDate, optionalEnum, optionalUuid } from './validation';
 
 export const SALE_STATUSES = ['DRAFT', 'CONFIRMED', 'PARTIALLY_PAID', 'PAID', 'CANCELLED'] as const;
-const REPORT_LIMIT = 50_000;
 
 export interface PeriodFilters {
   from: string | null;
@@ -85,6 +85,8 @@ export async function loadSalesReportRows(
   client: TenantClient,
   tenantId: string,
   filters: SalesReportFilters,
+  /** Report routes pass true: more rows than the ceiling is refused instead of truncated. The dashboard keeps the historical truncation. */
+  strict = false,
 ): Promise<SalesReportRow[]> {
   const conditions: string[] = ['s.tenant_id = $1'];
   const params: unknown[] = [tenantId];
@@ -136,11 +138,11 @@ export async function loadSalesReportRows(
          ON sc.tenant_id = s.tenant_id AND sc.sale_id = s.id AND sc.status <> 'CANCELLED'
       WHERE ${conditions.join(' AND ')}
       ORDER BY s.sale_date DESC, s.sale_number
-      LIMIT ${REPORT_LIMIT}`,
+      LIMIT ${REPORT_ROW_LIMIT + 1}`,
     params,
   );
 
-  return result.rows.map((row) => {
+  return rowsWithinLimit(result.rows, strict).map((row) => {
     const commission = Number(row.commission_amount ?? 0);
     return {
       ...row,

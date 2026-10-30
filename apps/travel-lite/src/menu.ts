@@ -18,10 +18,17 @@ export const MENU: MenuItem[] = [
   { to: '/vendedores', label: 'Vendedores', anyOf: ['sellers.read'] },
   { to: '/comissoes', label: 'Comissões', anyOf: ['commissions.read_all', 'commissions.read_own'] },
   {
+    to: '/regras-comissao',
+    label: 'Regras de comissão',
+    anyOf: ['commissions.rules_manage', 'commissions.read_all', 'commissions.read_own'],
+  },
+  {
     to: '/relatorios',
     label: 'Relatórios',
     anyOf: ['reports.sales_all', 'reports.sales_own', 'reports.sellers_all', 'reports.finance'],
   },
+  { to: '/receita-agencia', label: 'Receita da agência', anyOf: ['revenue.read_all'] },
+  { to: '/projecoes', label: 'Projeções', anyOf: ['reports.finance', 'revenue.read_all'] },
   { to: '/cadastros', label: 'Cadastros', anyOf: ['settings.manage'] },
   { to: '/configuracoes', label: 'Configurações', anyOf: ['users.manage', 'permissions.manage'] },
 ];

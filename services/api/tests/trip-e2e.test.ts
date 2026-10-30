@@ -63,7 +63,7 @@ const prepareRolesSql = resolve(repoRoot, 'tests/integration/database/002_prepar
 const composeFile = resolve(repoRoot, 'infrastructure/docker-compose.local-postgres.yml');
 
 const projectName = 'travel-platform-trip-e2e-postgres';
-const containerName = 'travel-platform-postgres-local';
+const containerName = process.env.DATABASE_TEST_CONTAINER_NAME ?? 'travel-platform-postgres-local';
 const postgresImage = 'postgres:15';
 const databaseHost = process.env.DATABASE_TEST_HOST ?? '127.0.0.1';
 const databasePort = Number(process.env.DATABASE_TEST_PORT ?? '55432');
@@ -556,7 +556,7 @@ describe('Trip end-to-end vertical validation (Package 2)', () => {
     await app.close();
   });
 
-  it('Scenario: saleId is rejected as a forbidden field at the HTTP layer', async () => {
+  it('Scenario: saleId must reference a sale belonging to the selected customer', async () => {
     const app = buildTestApp(runtimePool);
 
     const created = await app.inject({
@@ -572,7 +572,8 @@ describe('Trip end-to-end vertical validation (Package 2)', () => {
         saleId: '00000000-0000-4000-8000-000000000099',
       },
     });
-    expect(created.statusCode).toBe(400);
+    expect(created.statusCode).toBe(404);
+    expect(created.json()).toMatchObject({ code: 'NOT_FOUND' });
 
     await app.close();
   });

@@ -23,12 +23,14 @@ import { getAgencyId } from '../../../packages/domain/tenant-context';
 import type { DatabaseRuntime, TenantTransactionClient } from './database';
 import { ConflictError, NotFoundError, ValidationError } from './errors';
 import { findApplicableRule } from './employee-commission-rules';
+import { captureSaleReleasePolicySnapshot } from './commission-release-service';
 
 interface CommissionEntryRow {
   id: string;
   agency_id: string;
   employee_id: string;
   sale_id: string;
+  supplier_id?: string | null;
   trip_id: string | null;
   commission_plan_id: string | null;
   commission_rule_id: string | null;
@@ -48,7 +50,7 @@ interface CommissionEntryRow {
   updated_at: string;
 }
 
-const ENTRY_COLUMNS = `id, agency_id, employee_id, sale_id, trip_id, commission_plan_id,
+const ENTRY_COLUMNS = `id, agency_id, employee_id, sale_id, supplier_id, trip_id, commission_plan_id,
   commission_rule_id, product_type, source_item_id, source_item_type, quantity,
   calculation_base, rate, amount, status, approved_at, approved_by, paid_at, notes,
   created_at, updated_at`;
@@ -59,6 +61,7 @@ function toCommissionEntry(row: CommissionEntryRow): CommissionEntry {
     agencyId: row.agency_id,
     employeeId: row.employee_id,
     saleId: row.sale_id,
+    ...(row.supplier_id ? { supplierId: row.supplier_id } : {}),
     tripId: row.trip_id ?? undefined,
     commissionPlanId: row.commission_plan_id ?? undefined,
     commissionRuleId: row.commission_rule_id ?? undefined,
@@ -256,6 +259,8 @@ export async function generateEmployeeCommission(
   const agencyId = getAgencyId();
 
   return database.withTenantTransaction(async (client) => {
+    await client.query('SELECT pg_advisory_xact_lock(hashtextextended($1,0))',
+      [`commission-motor:${agencyId}:${input.saleId}:${input.employeeId}`]);
     const employeeResult = await client.query<{ id: string }>(
       `SELECT id FROM employees WHERE agency_id = $1 AND id = $2`,
       [agencyId, input.employeeId],
@@ -264,14 +269,33 @@ export async function generateEmployeeCommission(
       throw new NotFoundError('Employee not found');
     }
 
-    const saleResult = await client.query<{ id: string; total: string; status: string; created_at: string }>(
-      `SELECT id, total, status, created_at FROM sales WHERE agency_id = $1 AND id = $2`,
+    const saleResult = await client.query<{ id: string; total: string; status: string; created_at: string; recognition_date: string }>(
+      `SELECT id, total, status, created_at,
+        to_char(created_at AT TIME ZONE 'America/Sao_Paulo','YYYY-MM-DD') AS recognition_date
+       FROM sales WHERE agency_id = $1 AND id = $2`,
       [agencyId, input.saleId],
     );
     const sale = saleResult.rows[0];
     if (!sale) throw new NotFoundError('Sale not found');
     if (sale.status === 'CANCELLED') {
       throw new ValidationError('Cannot generate a commission for a cancelled sale');
+    }
+
+    const engineSettings = await client.query<{ cutover_date: string | null }>(
+      'SELECT cutover_date::text FROM agency_commission_engine_settings WHERE agency_id=$1', [agencyId],
+    );
+    const cutoverDate = engineSettings.rows[0]?.cutover_date;
+    if (cutoverDate && sale.recognition_date >= cutoverDate) {
+      throw new ConflictError('This sale is within the versioned commission engine period');
+    }
+
+    const versionedAttribution = await client.query(
+      `SELECT 1 FROM sale_commission_attributions
+        WHERE agency_id = $1 AND sale_id = $2 AND employee_id = $3 AND state = 'ACTIVE'`,
+      [agencyId, input.saleId, input.employeeId],
+    );
+    if (versionedAttribution.rows.length > 0) {
+      throw new ConflictError('This sale uses versioned commission rules');
     }
 
     const tripResult = await client.query<{ id: string }>(
@@ -326,12 +350,14 @@ export async function generateEmployeeCommission(
       throw new ValidationError('Calculated commission amount is negative');
     }
 
+    const releasePolicySnapshot = await captureSaleReleasePolicySnapshot(client, agencyId, input.saleId);
+
     const result = await client.query<CommissionEntryRow>(
       `INSERT INTO commission_entries
          (agency_id, employee_id, sale_id, trip_id, commission_rule_id, product_type,
           source_item_id, source_item_type, quantity, calculation_base, rate, amount,
-          status, notes)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'PENDING', $13)
+          status, notes, release_policy_snapshot)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'PENDING', $13, $14::jsonb)
        RETURNING ${ENTRY_COLUMNS}`,
       [
         agencyId,
@@ -347,6 +373,7 @@ export async function generateEmployeeCommission(
         rate,
         amount,
         input.notes ?? null,
+        JSON.stringify(releasePolicySnapshot),
       ],
     );
     return toCommissionEntry(result.rows[0]!);
@@ -485,20 +512,35 @@ export async function getEmployeeCommissionsReport(
 }
 
 /**
- * Cancellation cascade (audited gap: sales.ts's cancelSale() never
- * touched commission_entries -- a cancelled sale could leave an
- * orphaned PENDING/APPROVED commission). Conservative, documented
- * policy: PENDING/APPROVED entries for the cancelled sale are marked
- * CANCELLED; PAYABLE/PAID entries are left untouched (money already
- * queued/disbursed is a real financial-policy decision beyond this
- * round's scope -- "não inventar política financeira"). Called from
- * sales.ts's cancelSale() in the same transaction.
+ * Cancellation cascade for a cancelled sale. PENDING/APPROVED entries are marked
+ * CANCELLED. An entry already committed to a payment channel -- PAYABLE (standalone
+ * payable), PAID, or APPROVED but reserved by a payroll entry -- cannot be silently
+ * dropped: the sale cancellation is refused with 409 (decision F3), so no payable or
+ * payroll keeps paying a commission whose sale no longer exists. Recovering money from
+ * such cases is a separate, explicit financial adjustment (not implemented). Called
+ * from sales.ts's cancelSale() in the same transaction; the entries are locked FOR
+ * UPDATE so a concurrent create-payable / payroll generation serializes with it.
  */
 export async function cancelCommissionsForSale(
   client: TenantTransactionClient,
   agencyId: string,
   saleId: string,
 ): Promise<void> {
+  const entries = await client.query<{ id: string; status: string; payroll_entry_id: string | null }>(
+    `SELECT id, status, payroll_entry_id FROM commission_entries
+     WHERE agency_id = $1 AND sale_id = $2 AND status <> 'CANCELLED'
+     ORDER BY id
+     FOR UPDATE`,
+    [agencyId, saleId],
+  );
+  const committed = entries.rows.filter(
+    (entry) => entry.status === 'PAYABLE' || entry.status === 'PAID' || entry.payroll_entry_id !== null,
+  );
+  if (committed.length > 0) {
+    throw new ConflictError(
+      'Cannot cancel this sale: a commission for it is already in a payable, in a payroll entry or paid',
+    );
+  }
   await client.query(
     `UPDATE commission_entries
      SET status = 'CANCELLED', updated_at = now(),

@@ -1,92 +1,38 @@
-# Board verdict — Travel Plataforma
+# Veredito do board — Travel Plataforma (rodada 2, 30/10/2026)
 
-**Votos: 3 fund if, 0 fund, 0 pass. Nota média: 3,3/10** (Offers 3, Monopoly 3,
-Product 4).
+Rodada anterior (12/10) arquivada em `founder/board-v1/`.
 
-Nenhum membro deu PASS puro, mas nenhum deu FUND puro, e todos os três ficaram
-na parte baixa da escala (3-4/10). O voto é unânime na forma, mas a nota
-baixa diz que as condições para liberar o "fund" são substanciais, não
-formalidade.
+**Votos: 3 FUND IF, 0 FUND, 0 PASS. Nota média: 4,3/10** (Offers 4, Monopoly 4, Product 5).
 
-## Os riscos que mais de um membro levantou (em primeiro lugar, do mais perigoso)
+Nenhum conselheiro deu PASS nem FUND. Todos concordam que as duas ideias só valem com condições escritas.
 
-1. **A landing page promete uma transação que o produto não consegue
-   completar hoje.** Os três lenses bateram nisso de ângulos diferentes: o
-   Offers lens chama de "likelihood falsa" dentro da equação de valor; o
-   Monopoly lens aponta que a única peça defensável do negócio (cobrança
-   Asaas + NFS-e) existe só em ADR, não em código; o Product lens chama de
-   "promessa quebrada no exato momento em que a confiança importa" — o
-   recibo/nota fiscal. Os três concordam: isso não é feature faltando, é
-   risco de confiança e, no caso fiscal, possivelmente legal.
-2. **Lacunas de segurança/confiança já conhecidas e não corrigidas**, bem na
-   boca do funil: formulário público de lead sem captcha/validação,
-   cabeçalhos de segurança pendentes, MFA opcional para super-admin,
-   scanning de segredos no CI pendente. Os três lenses chegaram
-   independentemente à mesma conclusão — Offers e Product como "ferida
-   autoinfligida no ponto onde o comprador forma a primeira opinião", e o
-   Monopoly lens como condição antes de lidar com dados reais de pagamento.
-3. **Nenhuma prova de que alguém compra isso.** Zero cliente pagante, zero
-   piloto, zero dado de conversão da landing page — só um formulário de
-   demo. Offers e Monopoly lens bateram nisso: sem prova, a oferta perde a
-   batalha mais difícil (likelihood), e sem distribuição comprovada, ainda
-   não é um negócio, muito menos um negócio defensável.
+## Riscos levantados por mais de uma lente (mais perigoso primeiro)
 
-## O que cada lens levantou sozinho (vale registrar — o board não concordou em tudo)
+1. **"Vitalício" sem definição vira passivo ilimitado para um fundador solo.** Offers e Monopoly. Suporte perpétuo com receita zero.
+2. **Cobrança Asaas e NFS-e existem só em ADR**, e a landing page pode prometê-las. Offers, Monopoly e Product. Não cobrar ainda é aceitável; prometer é o problema.
+3. **Ideia B (vender o sistema) não é modelo de negócio.** O sistema roda hospedado e multi-tenant; "vender a licença" vira assinatura disfarçada, sem recorrência, com suporte obrigatório e versões paralelas. Offers, Monopoly e Product.
+4. **Falta uma frase única de foco.** Product e Monopoly.
 
-- **Offers**: o preço por assentos/GB/nível de suporte (R$99/299/sob
-  consulta) tem forma de lista de preço de software genérico, não de oferta
-  — nada sobreviveria a um preço em dobro.
-- **Monopoly**: o cenário competitivo é totalmente desconhecido — o formato
-  "CRM + pipeline + financeiro + portal" é um padrão replicado com
-  frequência, e nada no brief descarta que já existam 2-3 concorrentes
-  verticais entrincheirados no Brasil.
-- **Product**: o produto tenta ser sete coisas ao mesmo tempo (CRM, pipeline,
-  operação, financeiro, equipe, portal do cliente, Travel Lite) sem
-  evidência de que alguém decidiu qual dessas deve ser excelente antes das
-  outras.
+## Pontos onde divergiram
 
-## Checklist de condições (combinando os três memos — isso é o que `/founder-cfo`, o painel de consumidores e o pricing vão testar)
+- **Ideia A:** Offers aceita como programa de prova. Monopoly aceita só como preço congelado do plano atual, com contrato. Product aceita se medir uso real, não só dar acesso grátis. Consenso: funciona como programa de prova com contrapartida, não como gratuidade.
+- **Duração do "vitalício":** Monopoly sugere cobrar um valor simbólico (R$ 79) após os 6 meses. Product sugere preço congelado por ~5 anos, a validar com o CFO. Offers sugere "enquanto o produto existir, na versão e plano contratados, com aviso de 12 meses e exportação de dados".
 
-- [ ] Parar de anunciar cobrança recorrente (Asaas) e emissão de NFS-e como
-      capacidade ao vivo na landing page — remover a afirmação ou marcar
-      explicitamente como "em breve", até o código existir de fato.
-- [ ] Fechar as lacunas de segurança já identificadas antes de gastar
-      dinheiro trazendo tráfego: validação/captcha no formulário público de
-      lead, cabeçalhos de segurança, MFA obrigatório para super-admin,
-      scanning de segredos no CI.
-- [ ] Conseguir pelo menos uma agência real (piloto ou pagante) usando o
-      produto de ponta a ponta como prova concreta, antes de criar mais
-      camadas de preço ou investir em marketing sobre uma "likelihood" que
-      hoje não tem evidência.
-- [ ] Rodar `/founder-competitors` antes de mais investimento de build — o
-      cenário competitivo é desconhecido e pode mudar a tese inteira.
-- [ ] Implementar e validar a integração Asaas + NFS-e contra o ciclo real
-      de cobrança/nota de uma agência real antes de tratá-la como
-      diferencial — um ADR não é um fosso competitivo.
-- [ ] Redesenhar o preço em torno de um resultado garantido e uma pilha de
-      problemas resolvidos (não assentos/GB/nível de suporte).
-- [ ] Decidir a "uma coisa" que este produto precisa fazer de forma
-      brilhante, e cortar ou rebaixar prioridade do resto até isso estar
-      resolvido.
-- [ ] Nomear explicitamente o "segredo"/vantagem real — o que um concorrente
-      bem financiado não conseguiria replicar em seis meses — em vez de se
-      apoiar só em "construímos CRM + cobrança + fiscal".
-- [ ] Rodar `/founder-consumer` (validação de demanda/preço) e `/founder-cfo`
-      (economia unitária) antes de escalar qualquer investimento — nenhum
-      dos três memos inventou número de mercado, concorrente, CAC ou churn;
-      todos ficaram como pergunta aberta.
+## Checklist de condições (para o CFO, o painel de consumidores e o pricing testar)
+
+- [ ] Escrever o termo do programa de fundadores: 4 vagas nominais, prazo de 6 meses, critérios de saída objetivos, teto de usuários e armazenamento, intransferível e preso ao CNPJ, aviso de 12 meses para encerrar, exportação de dados.
+- [ ] Definir a contrapartida de cada fundador: depoimento com nome, estudo de caso, feedback mensal, indicações. Vitalício sem contrapartida não entra.
+- [ ] Definir a métrica do teste: login semanal por usuário, contas lançadas no sistema, vendas registradas, planilha ou WhatsApp substituídos. Marcos em 30, 90 e 180 dias.
+- [ ] Revisar o termo com advogado antes de assinar qualquer coisa.
+- [ ] Tirar da landing page qualquer promessa de cobrança recorrente ou NFS-e até o código existir.
+- [ ] Fechar uma frase única de foco e a oferta principal.
+- [ ] Escolher o modelo de vitalício (preço congelado por prazo fixo, ou valor simbólico após 6 meses) com `/founder-cfo`.
+- [ ] Rodar `/founder-cfo` com pró-labore real. O CFO de 12/10 mostrou break-even de 13 para 124 agências com R$ 9.000/mês de custo.
+- [ ] Rodar `/founder-competitors`, `/founder-consumer` e `/founder-pricing`. Mercado, CAC, churn e preços de concorrentes não foram informados em lugar nenhum; ficam em aberto.
+- [ ] Implantação, migração e treinamento como serviços pagos opcionais sobre a assinatura, não como venda de licença.
 
 ## A versão mais forte deste negócio que o board consegue ver
 
-Não é a plataforma de sete módulos anunciada hoje — é uma oferta muito mais
-estreita: uma ferramenta focada para pequenas agências de viagem brasileiras
-que resolve uma coisa que elas sentem toda semana (hoje organizado em
-planilha/WhatsApp) e que, de verdade, cobra o cliente final via Pix/boleto e
-emite a nota fiscal sem a agência tocar em outro sistema — com essa
-integração Asaas+NFS-e provada em produção contra pelo menos uma agência
-real antes de qualquer expansão para CRM completo, portal do cliente e
-camadas de preço por assento. O "Travel Lite" já aponta nessa direção; a
-pergunta que o board deixa para o fundador é se ele está disposto a vender
-essa versão mais estreita primeiro, com uma prova real, em vez da versão de
-sete módulos que a landing page já promete hoje sem ter construído a parte
-mais difícil e mais defensável dela.
+Um produto multi-tenant único, com assinatura como modelo principal, aberto com um programa pequeno de 4 fundadores que dão prova real em troca de preço congelado e contrapartida pública. A Gadotti é o primeiro caso, ainda como cortesia. Antes de abrir para o público, ligar a cobrança de verdade e fechar a frase de valor. Implantação e migração pagas cobrem o suporte sem transformar o negócio em consultoria. A venda do sistema como licença não entra na estratégia.
+
+*Notas: os números de break-even e o mapa de concorrentes são de 12/10 e estão desatualizados. A lente Product não abriu o código; suas afirmações sobre o produto vêm do brief. Isto não é parecer financeiro nem jurídico.*

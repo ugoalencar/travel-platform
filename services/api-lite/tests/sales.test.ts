@@ -91,7 +91,7 @@ describe('Travel Lite sales lifecycle', () => {
     const category = await lite.app.inject({
       method: 'POST',
       url: '/categories',
-      headers: lite.headers(staffToken),
+      headers: lite.headers(adminToken),
       payload: { name: 'AÉREO' },
     });
     categoryId = category.json<{ category: { id: string } }>().category.id;
@@ -300,6 +300,80 @@ describe('Travel Lite sales lifecycle', () => {
       headers: lite.headers(managerToken),
     });
     expect(again.statusCode).toBe(409);
+  });
+
+  async function confirmAndApproveCommission(): Promise<{ saleId: string; commissionId: string }> {
+    const created = await createSale({});
+    const { sale } = created.json<{ sale: SaleJson }>();
+    await lite.app.inject({
+      method: 'POST',
+      url: `/sales/${sale.id}/confirm`,
+      headers: lite.headers(staffToken),
+    });
+    const commission = await lite.adminPool.query<{ id: string }>(
+      `SELECT id FROM seller_commissions WHERE sale_id = $1`,
+      [sale.id],
+    );
+    const commissionId = commission.rows[0]!.id;
+    const approve = await lite.app.inject({
+      method: 'POST',
+      url: `/commissions/${commissionId}/approve`,
+      headers: lite.headers(managerToken),
+      payload: {},
+    });
+    expect(approve.statusCode).toBe(200);
+    return { saleId: sale.id, commissionId };
+  }
+
+  it('cancels the open commission payable when the sale is cancelled', async () => {
+    const { saleId, commissionId } = await confirmAndApproveCommission();
+
+    const cancel = await lite.app.inject({
+      method: 'POST',
+      url: `/sales/${saleId}/cancel`,
+      headers: lite.headers(managerToken),
+    });
+    expect(cancel.statusCode).toBe(200);
+
+    const payable = await lite.adminPool.query<{ status: string }>(
+      `SELECT status FROM payables WHERE commission_id = $1`,
+      [commissionId],
+    );
+    expect(payable.rows.map((r) => r.status)).toEqual(['CANCELLED']);
+
+    const pay = await lite.app.inject({
+      method: 'POST',
+      url: `/payables/${(await lite.adminPool.query<{ id: string }>(
+        `SELECT id FROM payables WHERE commission_id = $1`,
+        [commissionId],
+      )).rows[0]!.id}/pay`,
+      headers: lite.headers(managerToken),
+      payload: { account_id: '00000000-0000-4000-8000-000000000000' },
+    });
+    expect(pay.statusCode).toBe(409);
+  });
+
+  it('refuses to cancel a sale whose commission payable was partially paid', async () => {
+    const { saleId, commissionId } = await confirmAndApproveCommission();
+    await lite.adminPool.query(
+      `UPDATE payables SET paid_amount = 1, status = 'PARTIALLY_PAID' WHERE commission_id = $1`,
+      [commissionId],
+    );
+
+    const cancel = await lite.app.inject({
+      method: 'POST',
+      url: `/sales/${saleId}/cancel`,
+      headers: lite.headers(managerToken),
+    });
+    expect(cancel.statusCode).toBe(409);
+
+    const payable = await lite.adminPool.query<{ status: string }>(
+      `SELECT status FROM payables WHERE commission_id = $1`,
+      [commissionId],
+    );
+    expect(payable.rows[0]?.status).toBe('PARTIALLY_PAID');
+    const sale = await lite.adminPool.query<{ status: string }>(`SELECT status FROM sales WHERE id = $1`, [saleId]);
+    expect(sale.rows[0]?.status).not.toBe('CANCELLED');
   });
 
   it('refuses to cancel a sale once any amount was received', async () => {

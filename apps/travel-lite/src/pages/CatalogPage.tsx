@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api';
+import { useCan } from '../auth';
 import { EmptyState, ErrorNote, StatusBadge, SuccessNote } from '../ui';
+import { CatalogProductsSection } from './CatalogProductsSection';
+import { SaleFormProfileSection } from './SaleFormProfileSection';
+import { CustomerFieldsSection } from './CustomerFieldsSection';
 
 interface CatalogItem {
   id: string;
@@ -10,6 +14,7 @@ interface CatalogItem {
   type?: string;
   direction?: string;
   sort_order?: number;
+  requires_receipt?: boolean;
   initial_balance?: number;
   document?: string | null;
   phone?: string | null;
@@ -32,6 +37,7 @@ function CatalogSection({ path, title, extra }: SectionProps) {
   const [type, setType] = useState(() => defaultType(extra));
   const [direction, setDirection] = useState('IN');
   const [sortOrder, setSortOrder] = useState('0');
+  const [requiresReceipt, setRequiresReceipt] = useState(false);
   const [document, setDocument] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
@@ -60,6 +66,7 @@ function CatalogSection({ path, title, extra }: SectionProps) {
     setType(defaultType(extra));
     setDirection('IN');
     setSortOrder('0');
+    setRequiresReceipt(false);
     setDocument('');
     setPhone('');
     setEmail('');
@@ -73,6 +80,7 @@ function CatalogSection({ path, title, extra }: SectionProps) {
     setType(item.type ?? defaultType(extra));
     setDirection(item.direction ?? 'IN');
     setSortOrder(String(item.sort_order ?? 0));
+    setRequiresReceipt(item.requires_receipt ?? false);
     setDocument(item.document ?? '');
     setPhone(item.phone ?? '');
     setEmail(item.email ?? '');
@@ -85,7 +93,10 @@ function CatalogSection({ path, title, extra }: SectionProps) {
     const payload: Record<string, unknown> = { name: name.trim() };
     if (extra === 'account') payload.type = type;
     if (extra === 'category') payload.direction = direction;
-    if (extra === 'method') payload.sort_order = Number(sortOrder);
+    if (extra === 'method') {
+      payload.sort_order = Number(sortOrder);
+      payload.requires_receipt = requiresReceipt;
+    }
     if (extra === 'party') {
       payload.type = type;
       payload.document = document.trim();
@@ -194,6 +205,21 @@ function CatalogSection({ path, title, extra }: SectionProps) {
             />
           </label>
         ) : null}
+        {extra === 'method' ? (
+          <label className="field field-wide field-check">
+            <span>
+              <input
+                type="checkbox"
+                checked={requiresReceipt}
+                onChange={(event) => setRequiresReceipt(event.target.checked)}
+              />{' '}
+              Comissão só é liberada conforme o recebimento
+            </span>
+            <small className="lite-muted">
+              Marcada: a comissão é paga em parcelas, proporcional ao que foi recebido da venda. Desmarcada: é paga direto sobre o total da venda. A meta sempre conta a venda inteira.
+            </small>
+          </label>
+        ) : null}
         <div className="form-actions">
           {editingId ? (
             <button type="button" className="btn" onClick={startCreate}>
@@ -214,6 +240,7 @@ function CatalogSection({ path, title, extra }: SectionProps) {
               {extra === 'account' ? <th className="num">Saldo inicial</th> : null}
               {extra === 'category' ? <th>Direção</th> : null}
               {extra === 'method' ? <th className="num">Ordem</th> : null}
+              {extra === 'method' ? <th>Comissão</th> : null}
               {extra === 'party' ? <th>Tipo</th> : null}
               {extra === 'party' ? <th>Documento</th> : null}
               {extra === 'party' ? <th>Contato</th> : null}
@@ -236,6 +263,7 @@ function CatalogSection({ path, title, extra }: SectionProps) {
                 ) : null}
                 {extra === 'category' ? <td>{item.direction}</td> : null}
                 {extra === 'method' ? <td className="num">{item.sort_order}</td> : null}
+                {extra === 'method' ? <td>{item.requires_receipt ? 'Libera ao receber' : 'Direta na venda'}</td> : null}
                 {extra === 'party' ? <td>{partyTypeLabel(item.type)}</td> : null}
                 {extra === 'party' ? <td>{item.document || '—'}</td> : null}
                 {extra === 'party' ? (
@@ -292,6 +320,9 @@ function partyTypeLabel(type?: string): string {
 
 const SECTIONS: Array<SectionProps & { id: string }> = [
   { id: 'sale-categories', path: '/categories', title: 'Categorias de venda', extra: 'none' },
+  { id: 'sale-forms', path: '', title: 'Formulário de venda', extra: 'none' },
+  { id: 'customer-fields', path: '', title: 'Cadastro de cliente', extra: 'none' },
+  { id: 'catalog-products', path: '/catalog-products', title: 'Produtos', extra: 'none' },
   {
     id: 'financial-parties',
     path: '/financial-parties',
@@ -320,14 +351,16 @@ const SECTIONS: Array<SectionProps & { id: string }> = [
 
 export function CatalogPage() {
   const [tab, setTab] = useState(SECTIONS[0]!.id);
+  const canConfigureCustomerFields = useCan('customers.fields_manage');
+  const sections = SECTIONS.filter((section) => section.id !== 'customer-fields' || canConfigureCustomerFields);
 
-  const current = SECTIONS.find((section) => section.id === tab) ?? SECTIONS[0]!;
+  const current = sections.find((section) => section.id === tab) ?? sections[0]!;
 
   return (
     <>
       <h1>Cadastros</h1>
       <div className="lite-tabs">
-        {SECTIONS.map((section) => (
+        {sections.map((section) => (
           <button
             key={section.id}
             type="button"
@@ -338,12 +371,20 @@ export function CatalogPage() {
           </button>
         ))}
       </div>
-      <CatalogSection
-        key={current.id}
-        path={current.path}
-        title={current.title}
-        extra={current.extra}
-      />
+      {current.id === 'sale-forms' ? (
+        <SaleFormProfileSection />
+      ) : current.id === 'customer-fields' ? (
+        <CustomerFieldsSection />
+      ) : current.id === 'catalog-products' ? (
+        <CatalogProductsSection />
+      ) : (
+        <CatalogSection
+          key={current.id}
+          path={current.path}
+          title={current.title}
+          extra={current.extra}
+        />
+      )}
     </>
   );
 }

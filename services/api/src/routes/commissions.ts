@@ -37,6 +37,7 @@ import {
   createPayableFromCommissionEntry,
   generateCommission,
   getCommissionEntryById,
+  listCommissionChannelConflicts,
   listCommissionEntries,
   type GenerateCommissionInput,
 } from '../commissions';
@@ -361,6 +362,13 @@ export function registerCommissionsRoutes(
       to: query.to,
     });
     return { rows };
+  });
+
+  // Read-only report of legacy commissions exposed to double payment (standalone payable AND payroll).
+  app.get('/commissions/channel-conflicts', { preHandler: protectedHooks }, async () => {
+    requireRole(UserRole.MANAGER);
+    const conflicts = await listCommissionChannelConflicts(database);
+    return { conflicts };
   });
 
   // ============================================================

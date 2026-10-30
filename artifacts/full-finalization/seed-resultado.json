@@ -1,0 +1,246 @@
+{
+  "at": "2026-10-26T04:07:28.678Z",
+  "steps": {
+    "usuarios MANAGER e VIEWER": {
+      "ok": true
+    },
+    "departamento e convite pendente": {
+      "ok": true
+    },
+    "campos cliente": {
+      "ok": true
+    },
+    "cliente 1": {
+      "ok": true
+    },
+    "cliente 2": {
+      "ok": true
+    },
+    "cliente 3": {
+      "ok": true
+    },
+    "cliente 4": {
+      "ok": true
+    },
+    "cliente 5": {
+      "ok": true
+    },
+    "cliente 6": {
+      "ok": true
+    },
+    "cliente 7": {
+      "ok": true
+    },
+    "cliente 8": {
+      "ok": true
+    },
+    "cliente 9": {
+      "ok": true
+    },
+    "cliente 10": {
+      "ok": true
+    },
+    "cliente 11": {
+      "ok": true
+    },
+    "cliente 12": {
+      "ok": true
+    },
+    "cliente 13": {
+      "ok": true
+    },
+    "cliente 14": {
+      "ok": true
+    },
+    "cliente 15": {
+      "ok": true
+    },
+    "cliente 16": {
+      "ok": true
+    },
+    "cliente 17": {
+      "ok": true
+    },
+    "cliente 18": {
+      "ok": true
+    },
+    "cliente 19": {
+      "ok": true
+    },
+    "cliente 20": {
+      "ok": true
+    },
+    "categoria Aereo": {
+      "ok": true
+    },
+    "categoria Terrestre": {
+      "ok": true
+    },
+    "categoria Rodoviario": {
+      "ok": true
+    },
+    "categoria Cruzeiro": {
+      "ok": true
+    },
+    "categoria Hospedagem": {
+      "ok": true
+    },
+    "fornecedor e produto 0": {
+      "ok": true
+    },
+    "fornecedor e produto 1": {
+      "ok": true
+    },
+    "fornecedor e produto 2": {
+      "ok": true
+    },
+    "fornecedor e produto 3": {
+      "ok": true
+    },
+    "fornecedor e produto 4": {
+      "ok": true
+    },
+    "condicoes de pagamento": {
+      "ok": true
+    },
+    "planos e funcionarios": {
+      "ok": true
+    },
+    "politica de recebimento": {
+      "ok": true
+    },
+    "venda 1": {
+      "ok": true
+    },
+    "venda 2": {
+      "ok": true
+    },
+    "venda 3": {
+      "ok": true
+    },
+    "venda 4": {
+      "ok": true
+    },
+    "venda 5": {
+      "ok": true
+    },
+    "venda 6": {
+      "ok": true
+    },
+    "venda 7": {
+      "ok": true
+    },
+    "venda 8": {
+      "ok": true
+    },
+    "venda 9": {
+      "ok": true
+    },
+    "venda 10": {
+      "ok": true
+    },
+    "venda 11": {
+      "ok": true
+    },
+    "venda 12": {
+      "ok": true
+    },
+    "desejos viagens ofertas propostas tarefas": {
+      "ok": true
+    },
+    "importacao CSV": {
+      "ok": true
+    },
+    "permissoes individuais e pessoal": {
+      "ok": true
+    },
+    "dependentes e documentos": {
+      "ok": true
+    },
+    "segmentacao": {
+      "ok": true
+    },
+    "pipeline e oportunidades": {
+      "ok": true
+    },
+    "cadastro remoto": {
+      "ok": true
+    },
+    "excursao aerea e terrestre": {
+      "ok": true
+    },
+    "rotas saidas e reservas": {
+      "ok": true
+    },
+    "ocorrencias": {
+      "ok": true
+    },
+    "pos viagem": {
+      "ok": true
+    },
+    "seguro": {
+      "ok": true
+    },
+    "campanhas cupons comunicacao": {
+      "ok": true
+    },
+    "biblioteca midia": {
+      "ok": true
+    },
+    "pescador captura manual sem rede externa": {
+      "ok": true
+    },
+    "financeiro categorias centros receitas despesas": {
+      "ok": true
+    },
+    "regras versionadas comissoes": {
+      "ok": true
+    },
+    "comissoes atribuidas": {
+      "ok": true
+    },
+    "receita regras e calculos": {
+      "ok": true
+    },
+    "folha gerada e paga": {
+      "ok": true
+    },
+    "dashboard configurado": {
+      "ok": true
+    },
+    "backup criptografado e verificacao": {
+      "ok": true
+    },
+    "habilitacao local de modulos sem rota de agencia": {
+      "ok": true
+    },
+    "agencia B para isolamento": {
+      "ok": true
+    },
+    "estornos de teste": {
+      "ok": true
+    },
+    "alertas documentais": {
+      "ok": true
+    },
+    "pescador fonte local": {
+      "ok": true
+    },
+    "parceiro comercial": {
+      "ok": true
+    },
+    "comissoes estados e canais": {
+      "ok": true
+    },
+    "receita lotes fechado e recebido": {
+      "ok": true
+    },
+    "passageiros dos itens sem rota de edicao": {
+      "ok": true
+    },
+    "politicas por fornecedor e data fixa": {
+      "ok": true
+    }
+  },
+  "failed": 0
+}

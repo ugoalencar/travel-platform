@@ -1,0 +1,5 @@
+external_ref;sale_date;customer_cpf;category;supplier;total;discount;origin;destination;travel_start_date;notes
+SEED-CSV-1;2026-10-26;79000000114;SEED-Aereo;SEED-Fornecedor 1;1000;0;Sao Paulo;Destino Ficticio;2026-12-20;SEED-CSV completa
+SEED-CSV-2;2026-10-26;79000000203;;;800;;;;;SEED-CSV a completar
+SEED-CSV-3;2026-10-26;79000000386;;;800;;;;;SEED-CSV a completar
+SEED-CSV-REJEITADA;2026-10-26;00000000000;;;-1;;;;;SEED-rejeitada

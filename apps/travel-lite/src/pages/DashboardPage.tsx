@@ -122,11 +122,15 @@ function RankingWidget({ widget }: { widget: Widget }) {
 
 function DashboardEditor({ onSaved, onCancel }: { onSaved: () => void; onCancel: () => void }) {
   const [layout, setLayout] = useState<LayoutItem[] | null>(null);
+  const [version, setVersion] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    api<{ widgets: LayoutItem[] }>('/dashboard/settings')
-      .then((response) => setLayout(response.widgets))
+    api<{ version: number; widgets: LayoutItem[] }>('/dashboard/settings')
+      .then((response) => {
+        setLayout(response.widgets);
+        setVersion(response.version);
+      })
       .catch((err: unknown) => setError(err instanceof Error ? err.message : 'Falha ao carregar'));
   }, []);
 
@@ -146,7 +150,7 @@ function DashboardEditor({ onSaved, onCancel }: { onSaved: () => void; onCancel:
     try {
       await api('/dashboard/settings', {
         method: 'PUT',
-        body: { widgets: layout.map(({ key, enabled }) => ({ key, enabled })) },
+        body: { version, widgets: layout.map(({ key, enabled }) => ({ key, enabled })) },
       });
       onSaved();
     } catch (err) {

@@ -71,6 +71,7 @@ describe('Travel Lite pre-homologation hardening', () => {
     return response.json<T>();
   }
 
+  let cashMethodId = '';
   async function createConfirmedSale(sellerId: string, gross: number, cost: number, installments: number) {
     const created = await post(staffToken, '/sales', {
       customer_id: customerId,
@@ -81,6 +82,7 @@ describe('Travel Lite pre-homologation hardening', () => {
       sale_date: '2026-09-10',
       due_date: '2026-10-10',
       installment_count: installments,
+      payment_method_id: cashMethodId,
     });
     expect(created.statusCode).toBe(201);
     const id = created.json<{ sale: { id: string } }>().sale.id;
@@ -109,6 +111,9 @@ describe('Travel Lite pre-homologation hardening', () => {
     staffToken = await lite.login('tenant-a', 'staff@a.test');
     sellerToken = await lite.login('tenant-a', 'seller1@a.test');
     managerToken = await lite.login('tenant-a', 'admin@a.test');
+
+    // COM-03: a sale needs a payment method whose receipt rule was decided, otherwise the commission is BLOCKED.
+    cashMethodId = (await lite.app.inject({ method: 'POST', url: '/payment-methods', headers: lite.headers(managerToken), payload: { name: 'Dinheiro', requires_receipt: false } })).json<{ paymentMethod: { id: string } }>().paymentMethod.id;
     foreignManagerToken = await lite.login('tenant-b', 'admin@b.test');
 
     const account = await post(staffToken, '/financial-accounts', {
@@ -118,7 +123,7 @@ describe('Travel Lite pre-homologation hardening', () => {
     });
     accountId = account.json<{ account: { id: string } }>().account.id;
 
-    const category = await post(staffToken, '/categories', { name: 'AÉREO' });
+    const category = await post(managerToken, '/categories', { name: 'AÉREO' });
     categoryId = category.json<{ category: { id: string } }>().category.id;
 
     const customer = await post(staffToken, '/customers', { name: 'Cliente Hardening' });

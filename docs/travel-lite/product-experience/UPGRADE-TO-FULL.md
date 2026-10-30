@@ -13,6 +13,11 @@ Permitir que uma agência comece no Lite e migre para a Plataforma Full sentindo
 
 ## Fluxo recomendado
 
+Procedimento operacional obrigatorio, com identificacao do cliente,
+pareamento, bloqueio, validacao e recuperacao:
+[Migracao Lite para Full](../MIGRACAO-LITE-PARA-FULL.md).
+O resumo abaixo nao autoriza execucao nem substitui seus gates.
+
 1. Agência solicita upgrade.
 2. Sistema gera relatório de prontidão.
 3. Pendências são corrigidas no Lite.

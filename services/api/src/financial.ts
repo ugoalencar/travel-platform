@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/consistent-type-imports */
+import { outstandingReceivableSql, overdueReceivableSql, receivableDueDateSql, receivableTimezone } from './receivable-sql';
 import {
   PaymentDirection,
   FinancialObligationStatus,
@@ -22,7 +23,10 @@ import {
 import { getAgencyId, getUserId } from '../../../packages/domain/tenant-context';
 import type { DatabaseRuntime, TenantTransactionClient } from './database';
 import { AuditEventType, recordAuditEvent } from './audit-log';
-import { NotFoundError, ValidationError } from './errors';
+import { validateCommissionPaymentTargets } from './commission-payment-guard';
+import { assertAllocationWithinRelease } from './commission-release-service';
+import { ConflictError, NotFoundError, ValidationError } from './errors';
+import { compileCustomerFilter } from './customer-segmentation';
 
 // ============================================================
 // ROW INTERFACES
@@ -1491,12 +1495,14 @@ export async function getOverdueReport(database: DatabaseRuntime): Promise<Overd
       amount: string;
       days_overdue: string;
     }>(
-      `SELECT r.id, c.name AS customer_name, r.amount,
-              EXTRACT(DAY FROM $2::timestamp - r.due_at)::text AS days_overdue
+      `SELECT r.id, c.name AS customer_name, ${outstandingReceivableSql} AS amount,
+              (CASE WHEN ${receivableDueDateSql} IS NOT NULL
+                THEN (($2::timestamptz AT TIME ZONE '${receivableTimezone}')::date - ${receivableDueDateSql})
+                ELSE EXTRACT(DAY FROM $2::timestamptz - r.due_at) END)::text AS days_overdue
        FROM receivables r
        LEFT JOIN customers c ON r.agency_id = c.agency_id AND r.customer_id = c.id
        WHERE r.agency_id = $1 AND r.status IN ('OPEN', 'PARTIALLY_PAID')
-         AND r.due_at < $2
+         AND ${overdueReceivableSql('$2')}
        ORDER BY days_overdue DESC`,
       [agencyId, now],
     );
@@ -1815,10 +1821,13 @@ export async function getCashFlowReport(database: DatabaseRuntime): Promise<Cash
       const horizon = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
 
       const recResult = await client.query<{ total: string }>(
-        `SELECT COALESCE(SUM(amount), 0)::text AS total
-         FROM receivables
-         WHERE agency_id = $1 AND status IN ('OPEN', 'PARTIALLY_PAID')
-           AND due_at >= $2 AND due_at <= $3`,
+        `SELECT COALESCE(SUM(${outstandingReceivableSql}), 0)::text AS total
+         FROM receivables r
+         WHERE r.agency_id = $1 AND r.status IN ('OPEN', 'PARTIALLY_PAID')
+           AND CASE WHEN ${receivableDueDateSql} IS NOT NULL THEN
+             ${receivableDueDateSql} >= ($2::timestamptz AT TIME ZONE '${receivableTimezone}')::date
+             AND ${receivableDueDateSql} <= ($3::timestamptz AT TIME ZONE '${receivableTimezone}')::date
+           ELSE r.due_at >= $2 AND r.due_at <= $3 END`,
         [agencyId, now, horizon],
       );
       const payResult = await client.query<{ total: string }>(
@@ -1854,37 +1863,119 @@ export async function getCashFlowReport(database: DatabaseRuntime): Promise<Cash
 // EXISTING FUNCTIONS (Retained for backward compatibility)
 // ============================================================
 
-export async function listReceivables(database: DatabaseRuntime): Promise<Receivable[]> {
+export interface ListFinancialObligationFilters {
+  dateFrom?: string;
+  dateTo?: string;
+  status?: FinancialObligationStatus | 'OVERDUE';
+  supplierId?: string;
+  employeeId?: string;
+  customerFilterDefinition?: unknown;
+}
+
+export async function listReceivables(
+  database: DatabaseRuntime,
+  filters: ListFinancialObligationFilters = {},
+): Promise<Receivable[]> {
   const agencyId = getAgencyId();
   return database.withTenantTransaction(async (client) => {
+    const conditions = ['r.agency_id = $1'];
+    let values: unknown[] = [agencyId];
+    if (filters.dateFrom) {
+      values.push(filters.dateFrom);
+      conditions.push(`r.due_at::date >= $${values.length}::date`);
+    }
+    if (filters.dateTo) {
+      values.push(filters.dateTo);
+      conditions.push(`r.due_at::date <= $${values.length}::date`);
+    }
+    if (filters.status === 'OVERDUE') {
+      conditions.push(`r.status IN ('OPEN', 'PARTIALLY_PAID') AND r.due_at < now()`);
+    } else if (filters.status) {
+      values.push(filters.status);
+      conditions.push(`r.status = $${values.length}`);
+    }
+    if (filters.employeeId) {
+      values.push(filters.employeeId);
+      conditions.push(`s.user_id = $${values.length}`);
+    }
+    if (filters.supplierId) {
+      values.push(filters.supplierId);
+      conditions.push(`EXISTS (
+        SELECT 1 FROM sale_items si
+        WHERE si.agency_id = r.agency_id AND si.sale_id = r.sale_id
+          AND si.supplier_id = $${values.length} AND si.status = 'ACTIVE'
+      )`);
+    }
+    if (filters.customerFilterDefinition !== undefined) {
+      const compiled = compileCustomerFilter(filters.customerFilterDefinition, values);
+      values = compiled.values;
+      conditions.push(`c.deleted_at IS NULL AND (${compiled.whereSql})`);
+    }
     const result = await client.query<ReceivableRow>(
       `SELECT r.id, r.agency_id, r.sale_id, r.customer_id, r.description, r.amount,
               r.due_at, r.status, r.created_at, r.updated_at,
               COALESCE(pa.total, 0)::text AS paid_amount
        FROM receivables r
+       LEFT JOIN sales s ON s.agency_id = r.agency_id AND s.id = r.sale_id
+       JOIN customers c ON c.agency_id = r.agency_id AND c.id = r.customer_id
        LEFT JOIN (
-         SELECT receivable_id, SUM(amount) AS total
-         FROM payment_allocations
-         WHERE agency_id = $1 AND receivable_id IS NOT NULL
+         SELECT pa.receivable_id, SUM(pa.amount) AS total
+         FROM payment_allocations pa
+         WHERE pa.agency_id = $1 AND pa.receivable_id IS NOT NULL
+           AND NOT EXISTS (SELECT 1 FROM sale_payment_reversals spr WHERE spr.agency_id=pa.agency_id AND spr.original_payment_id=pa.payment_id)
          GROUP BY receivable_id
        ) pa ON pa.receivable_id = r.id
-       WHERE r.agency_id = $1
+       WHERE ${conditions.join(' AND ')}
        ORDER BY r.due_at ASC, r.created_at DESC`,
-      [agencyId],
+      values,
     );
     return result.rows.map(toReceivable);
   });
 }
 
-export async function listPayables(database: DatabaseRuntime): Promise<Payable[]> {
+export async function listPayables(
+  database: DatabaseRuntime,
+  filters: ListFinancialObligationFilters = {},
+): Promise<Payable[]> {
   const agencyId = getAgencyId();
   return database.withTenantTransaction(async (client) => {
+    const conditions = ['p.agency_id = $1'];
+    let values: unknown[] = [agencyId];
+    if (filters.dateFrom) {
+      values.push(filters.dateFrom);
+      conditions.push(`p.due_at::date >= $${values.length}::date`);
+    }
+    if (filters.dateTo) {
+      values.push(filters.dateTo);
+      conditions.push(`p.due_at::date <= $${values.length}::date`);
+    }
+    if (filters.status === 'OVERDUE') {
+      conditions.push(`p.status IN ('OPEN', 'PARTIALLY_PAID') AND p.due_at < now()`);
+    } else if (filters.status) {
+      values.push(filters.status);
+      conditions.push(`p.status = $${values.length}`);
+    }
+    if (filters.supplierId) {
+      values.push(filters.supplierId);
+      conditions.push(`p.supplier_id = $${values.length}`);
+    }
+    if (filters.employeeId) {
+      values.push(filters.employeeId);
+      conditions.push(`p.employee_id = $${values.length}`);
+    }
+    if (filters.customerFilterDefinition !== undefined) {
+      const compiled = compileCustomerFilter(filters.customerFilterDefinition, values);
+      values = compiled.values;
+      conditions.push(`p.sale_id IS NOT NULL AND c.deleted_at IS NULL AND (${compiled.whereSql})`);
+    }
     const result = await client.query<PayableRow>(
-      `SELECT ${PAYABLE_COLUMNS}
-       FROM payables
-       WHERE agency_id = $1
-       ORDER BY due_at ASC, created_at DESC`,
-      [agencyId],
+      `SELECT ${PAYABLE_COLUMNS.split(',').map((column) => `p.${column.trim()}`).join(', ')}
+       FROM payables p
+       LEFT JOIN sales s ON s.agency_id = p.agency_id AND s.id = p.sale_id
+       LEFT JOIN customers c ON c.agency_id = s.agency_id AND c.id = s.customer_id
+       WHERE ${conditions.join(' AND ')}
+       ORDER BY p.due_at ASC, p.created_at DESC`,
+      values,
     );
     return result.rows.map(toPayable);
   });
@@ -1970,6 +2061,9 @@ export async function createReceivable(
     await assertRef(client, agencyId, 'customers', data.customerId, 'Customer not found');
     if (data.saleId !== undefined) {
       await assertRef(client, agencyId, 'sales', data.saleId, 'Sale not found');
+      await client.query('SELECT id FROM sales WHERE agency_id=$1 AND id=$2 FOR UPDATE', [agencyId,data.saleId]);
+      const existing = await client.query('SELECT id FROM receivables WHERE agency_id=$1 AND sale_id=$2', [agencyId,data.saleId]);
+      if (existing.rows.length > 0) throw new ConflictError('Use the sale payment schedule to create additional receivables');
     }
 
     const result = await client.query<ReceivableRow>(
@@ -1987,12 +2081,13 @@ export async function createReceivable(
 export async function createPayable(
   database: DatabaseRuntime,
   data: CreatePayableInput,
+  existingClient?: TenantTransactionClient,
 ): Promise<Payable> {
   const agencyId = getAgencyId();
   assertPositiveMoney(data.amount, 'amount');
   assertNonEmpty(data.description, 'description');
 
-  return database.withTenantTransaction(async (client) => {
+  const create = async (client: TenantTransactionClient) => {
     await assertOptionalRef(client, agencyId, 'sales', data.saleId, 'Sale not found');
     await assertOptionalRef(client, agencyId, 'suppliers', data.supplierId, 'Supplier not found');
     await assertOptionalRef(client, agencyId, 'commissions', data.commissionId, 'Commission not found');
@@ -2042,7 +2137,8 @@ export async function createPayable(
     const row = result.rows[0];
     if (!row) throw new Error('Payable insert did not return a row');
     return toPayable(row);
-  });
+  };
+  return existingClient ? create(existingClient) : database.withTenantTransaction(create);
 }
 
 export async function recordPayment(
@@ -2101,6 +2197,18 @@ export async function allocatePayment(
   }
 
   return database.withTenantTransaction(async (client) => {
+    await validateCommissionPaymentTargets(client, agencyId,
+      [...new Set(allocations.flatMap((allocation) => allocation.payableId ? [allocation.payableId] : []))]);
+    const receivableIds = [...new Set(allocations.flatMap((a) => a.receivableId ? [a.receivableId] : []))];
+    if (receivableIds.length > 0) {
+      const scheduled = await client.query<{ applied: boolean }>(
+        `SELECT to_jsonb(s)->>'payment_condition_snapshot' IS NOT NULL AS applied FROM sales s
+         WHERE s.agency_id=$1 AND s.id IN (
+           SELECT r.sale_id FROM receivables r WHERE r.agency_id=$1 AND r.id=ANY($2::text[])
+         ) ORDER BY s.id FOR UPDATE`, [agencyId,receivableIds],
+      );
+      if (scheduled.rows.some((r) => r.applied)) throw new ConflictError('Use the sale payments endpoint for a payment schedule');
+    }
     const paymentResult = await client.query<PaymentRow>(
       `SELECT ${PAYMENT_COLUMNS} FROM payments
        WHERE agency_id = $1 AND id = $2
@@ -2146,6 +2254,9 @@ export async function allocatePayment(
           throw new ValidationError('OUT payments can only be allocated to payables');
         }
         const target = await lockPayable(client, agencyId, allocation.payableId!);
+        if (target.commissionEntryId !== undefined) {
+          await assertAllocationWithinRelease(client, target.commissionEntryId, allocation.amount);
+        }
         await assertTargetCapacity(client, agencyId, 'payable_id', target.id, target.amount, allocation.amount);
         const row = await insertAllocation(client, agencyId, paymentId, allocation);
         const updated = await refreshPayableStatus(client, agencyId, target.id);
@@ -2335,7 +2446,9 @@ export async function getSaleFinancialStory(
       `SELECT COALESCE(SUM(pa.amount), 0)::text AS total
        FROM payment_allocations pa
        JOIN receivables r ON r.agency_id = pa.agency_id AND r.id = pa.receivable_id
-       WHERE pa.agency_id = $1 AND r.sale_id = $2`,
+       JOIN payments p ON p.agency_id=pa.agency_id AND p.id=pa.payment_id
+       WHERE pa.agency_id = $1 AND r.sale_id = $2 AND p.direction='IN'
+         AND NOT EXISTS (SELECT 1 FROM sale_payment_reversals spr WHERE spr.agency_id=p.agency_id AND spr.original_payment_id=p.id)`,
       [agencyId, saleId],
     );
 
@@ -2448,9 +2561,9 @@ export async function getFinancialSummary(database: DatabaseRuntime): Promise<Fi
 
     // Pending receivables (OPEN or PARTIALLY_PAID)
     const pendingResult = await client.query<{ total: string }>(
-      `SELECT COALESCE(SUM(amount), 0)::text AS total
-       FROM receivables
-       WHERE agency_id = $1 AND status IN ('OPEN', 'PARTIALLY_PAID')`,
+      `SELECT COALESCE(SUM(${outstandingReceivableSql}), 0)::text AS total
+       FROM receivables r
+       WHERE r.agency_id = $1 AND r.status IN ('OPEN', 'PARTIALLY_PAID')`,
       [agencyId],
     );
     const pending = roundMoney(Number(pendingResult.rows[0]?.total ?? 0));
@@ -2496,11 +2609,17 @@ export async function getFinancialSummary(database: DatabaseRuntime): Promise<Fi
       `SELECT p.id, r.customer_id, c.name AS customer_name,
               r.description, p.amount, p.occurred_at
        FROM payments p
-       LEFT JOIN payment_allocations pa ON p.agency_id = pa.agency_id AND p.id = pa.payment_id
-       LEFT JOIN receivables r ON p.agency_id = r.agency_id AND pa.receivable_id = r.id
-       LEFT JOIN customers c ON r.agency_id = c.agency_id AND r.customer_id = c.id
+       LEFT JOIN LATERAL (
+         SELECT target.customer_id,target.description
+         FROM payment_allocations pa
+         JOIN receivables target ON target.agency_id=pa.agency_id AND target.id=pa.receivable_id
+         WHERE pa.agency_id=p.agency_id AND pa.payment_id=p.id
+         ORDER BY target.due_at,(to_jsonb(target)->>'installment_number')::integer,target.id LIMIT 1
+       ) r ON true
+       LEFT JOIN customers c ON p.agency_id = c.agency_id AND r.customer_id = c.id
        WHERE p.agency_id = $1 AND p.direction = 'IN'
-       ORDER BY p.occurred_at DESC
+         AND NOT EXISTS (SELECT 1 FROM sale_payment_reversals spr WHERE spr.agency_id=p.agency_id AND spr.original_payment_id=p.id)
+       ORDER BY p.occurred_at DESC,p.id DESC
        LIMIT 10`,
       [agencyId],
     );
@@ -2525,7 +2644,7 @@ export async function getFinancialSummary(database: DatabaseRuntime): Promise<Fi
       status: FinancialObligationStatus;
     }>(
       `SELECT r.id, r.customer_id, c.name AS customer_name, r.description,
-              r.amount, r.due_at, r.status
+              ${outstandingReceivableSql} AS amount, r.due_at, r.status
        FROM receivables r
        LEFT JOIN customers c ON r.agency_id = c.agency_id AND r.customer_id = c.id
        WHERE r.agency_id = $1 AND r.status IN ('OPEN', 'PARTIALLY_PAID')
@@ -2589,10 +2708,10 @@ async function getFinancialDashboardMetrics(
 
   const receivablesResult = await client.query<{ total: string; overdue: string }>(
     `SELECT
-       COALESCE(SUM(amount), 0)::text AS total,
-       COALESCE(SUM(CASE WHEN due_at < $2 THEN amount ELSE 0 END), 0)::text AS overdue
-     FROM receivables
-     WHERE agency_id = $1 AND status IN ('OPEN', 'PARTIALLY_PAID')`,
+       COALESCE(SUM(${outstandingReceivableSql}), 0)::text AS total,
+       COALESCE(SUM(CASE WHEN ${overdueReceivableSql('$2')} THEN ${outstandingReceivableSql} ELSE 0 END), 0)::text AS overdue
+     FROM receivables r
+     WHERE r.agency_id = $1 AND r.status IN ('OPEN', 'PARTIALLY_PAID')`,
     [agencyId, now],
   );
   const totalReceivable = roundMoney(Number(receivablesResult.rows[0]?.total ?? 0));
@@ -2798,7 +2917,7 @@ async function assertTargetCapacity(
   const result = await client.query<{ sum: string | null }>(
     `SELECT COALESCE(SUM(amount), 0)::text AS sum
      FROM payment_allocations
-     WHERE agency_id = $1 AND ${column} = $2`,
+     WHERE agency_id = $1 AND ${column} = $2 ${column === 'receivable_id' ? "AND NOT EXISTS (SELECT 1 FROM sale_payment_reversals spr WHERE spr.agency_id=payment_allocations.agency_id AND spr.original_payment_id=payment_allocations.payment_id)" : ''}`,
     [agencyId, targetId],
   );
   const allocated = Number(result.rows[0]?.sum ?? 0);
@@ -2845,9 +2964,10 @@ async function refreshReceivableStatus(
      END,
      updated_at = now()
      FROM (
-       SELECT COALESCE(SUM(amount), 0) AS total
-       FROM payment_allocations
-       WHERE agency_id = $1 AND receivable_id = $2
+       SELECT COALESCE(SUM(pa.amount), 0) AS total
+       FROM payment_allocations pa
+       WHERE pa.agency_id = $1 AND pa.receivable_id = $2
+         AND NOT EXISTS (SELECT 1 FROM sale_payment_reversals spr WHERE spr.agency_id=pa.agency_id AND spr.original_payment_id=pa.payment_id)
      ) allocated
      WHERE r.agency_id = $1 AND r.id = $2
      RETURNING ${RECEIVABLE_COLUMNS}, allocated.total::text AS paid_amount`,
@@ -2882,6 +3002,37 @@ async function refreshPayableStatus(
   );
   const row = result.rows[0];
   if (!row) throw new NotFoundError('Payable not found');
+  if (row.payroll_entry_id !== null) {
+    // A payroll entry is PAID exactly when its payable is fully settled.
+    await client.query(
+      `UPDATE payroll_entries SET
+         status = CASE WHEN $3 = 'PAID' THEN 'PAID' ELSE 'APPROVED' END,
+         paid_at = CASE WHEN $3 = 'PAID' THEN COALESCE(paid_at, now()) ELSE NULL END,
+         updated_at = now()
+       WHERE agency_id = $1 AND id = $2 AND status IN ('APPROVED', 'PAID')`,
+      [agencyId, row.payroll_entry_id, row.status],
+    );
+    // The commissions reserved by that payroll follow it: a partially paid payroll settles none of them.
+    await client.query(
+      `UPDATE commission_entries SET
+         status = CASE WHEN $3 = 'PAID' THEN 'PAID' ELSE 'APPROVED' END,
+         paid_at = CASE WHEN $3 = 'PAID' THEN COALESCE(paid_at, now()) ELSE NULL END,
+         updated_at = now()
+       WHERE agency_id = $1 AND payroll_entry_id = $2 AND status IN ('APPROVED', 'PAID')`,
+      [agencyId, row.payroll_entry_id, row.status],
+    );
+  }
+  if (row.commission_entry_id !== null) {
+    // A standalone commission payable: the entry is PAID exactly when its payable is fully settled.
+    await client.query(
+      `UPDATE commission_entries SET
+         status = CASE WHEN $3 = 'PAID' THEN 'PAID' ELSE 'PAYABLE' END,
+         paid_at = CASE WHEN $3 = 'PAID' THEN COALESCE(paid_at, now()) ELSE NULL END,
+         updated_at = now()
+       WHERE agency_id = $1 AND id = $2 AND status IN ('PAYABLE', 'PAID')`,
+      [agencyId, row.commission_entry_id, row.status],
+    );
+  }
   return toPayable(row);
 }
 

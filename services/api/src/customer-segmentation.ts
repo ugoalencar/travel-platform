@@ -94,6 +94,9 @@ export const FIELD_REGISTRY: Record<string, SegmentFieldDef> = {
   'customer.name': {
     type: 'STRING', label: 'Nome', category: 'CLIENTE', operators: TEXT_OPS, expr: 'c.name',
   },
+  'customer.notes': {
+    type: 'STRING', label: 'Observações', category: 'CLIENTE', operators: TEXT_OPS, expr: 'c.notes',
+  },
   'customer.protocolNumber': {
     type: 'STRING', label: 'Protocolo', category: 'CLIENTE', operators: TEXT_OPS, expr: 'c.protocol_number',
   },
@@ -361,6 +364,19 @@ interface SqlBuildContext {
   values: unknown[];
 }
 
+/** Build a validated, parameterized customer predicate for use by other
+ * tenant-scoped read models that need to filter records through a customer
+ * relationship (for example sales and receivables). The SQL always uses the
+ * existing `c` alias and never accepts SQL fragments from the caller. */
+export function compileCustomerFilter(
+  filterDefinition: unknown,
+  initialValues: unknown[] = [],
+): { whereSql: string; values: unknown[] } {
+  const validated = validateFilterDefinition(filterDefinition);
+  const ctx: SqlBuildContext = { values: [...initialValues] };
+  return { whereSql: buildGroupSql(validated, ctx), values: ctx.values };
+}
+
 function buildGroupSql(group: SegmentGroup, ctx: SqlBuildContext): string {
   const parts = group.conditions.map((node) =>
     isGroup(node) ? `(${buildGroupSql(node, ctx)})` : buildConditionSql(node, ctx),
@@ -564,13 +580,12 @@ export async function runFilterDefinition(
   sort?: string,
 ): Promise<SegmentRunResult> {
   const agencyId = getAgencyId();
-  const ctx: SqlBuildContext = { values: [agencyId] };
-  const whereSql = buildGroupSql(filterDefinition, ctx);
+  const { whereSql, values } = compileCustomerFilter(filterDefinition, [agencyId]);
 
   const countResult = await client.query<{ count: string }>(
     `SELECT COUNT(*)::text AS count FROM customers c
      WHERE c.agency_id = $1 AND c.deleted_at IS NULL AND (${whereSql})`,
-    ctx.values,
+      values,
   );
   const total = Number(countResult.rows[0]?.count ?? '0');
 
@@ -578,7 +593,7 @@ export async function runFilterDefinition(
   const limit = pagination.pageSize;
   const offset = (pagination.page - 1) * pagination.pageSize;
 
-  const dataValues = [...ctx.values, limit, offset];
+  const dataValues = [...values, limit, offset];
   const dataResult = await client.query<{
     id: string;
     name: string;

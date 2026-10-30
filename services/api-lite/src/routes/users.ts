@@ -15,7 +15,7 @@ import { effectivePermissions, isPermission, requirePermission, type AccessConte
 import { AUDIT_EVENTS, recordAuditEvent } from '../audit-log';
 import type { LiteDatabase, TenantClient } from '../database';
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from '../errors';
-import { generateTemporaryPassword, hashPassword } from '../password';
+import { generateTemporaryPassword, hashPassword, MIN_PASSWORD_LENGTH } from '../password';
 import { getTenantContext } from '../tenant-context';
 import {
   optionalEnum,
@@ -26,7 +26,6 @@ import {
   requiredUuid,
 } from '../validation';
 
-const MIN_PASSWORD_LENGTH = 8;
 
 interface UserRow {
   id: string;

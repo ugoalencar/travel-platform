@@ -186,8 +186,8 @@ const RAW_ARTICLES: RawArticle[] = [
     ],
     steps: [
       'Menu “Vendas” → “Nova venda”.',
-      'Escolha cliente, vendedor e categoria.',
-      'Informe valores, vencimento e parcelas; lance os custos diretos se houver.',
+      'Escolha cliente, vendedor e categoria; os campos extras da categoria (origem, destino, datas…) aparecem em seguida.',
+      'Informe valores, vencimento e parcelas; no rascunho, adicione os itens da venda (o valor bruto passa a ser a soma deles) e lance os custos diretos se houver.',
       'Salvar como rascunho, revisar e “Confirmar”.',
       'Após confirmada: as parcelas aparecem em Financeiro › A receber e a comissão em Comissões.',
       'Para cancelar: abra a venda → “Cancelar venda” (a confirmação é pedida e a ação não pode ser desfeita).',
@@ -357,7 +357,7 @@ const RAW_ARTICLES: RawArticle[] = [
     purpose: 'Gerir usuários, perfis, permissões exceções e quem pode executar cada ação da agência.',
     when: 'Criar um login, trocar perfil, conceder uma permissão extra, reativar ou desativar acesso.',
     requiredFields: [
-      'Usuário: nome, e-mail (login), senha com no mínimo 8 caracteres e perfil',
+      'Usuário: nome, e-mail (login), senha com no mínimo 12 caracteres e perfil',
       'Perfis: MASTER, ADMIN, MANAGER, SELLER ou VIEWER',
       'Vendedor vinculado (opcional, para quem vai vender)',
       'Exceções de permissão (diferentes do padrão do perfil) exigem permissão de gestão de permissões',
@@ -376,7 +376,7 @@ const RAW_ARTICLES: RawArticle[] = [
       'Ninguém altera o próprio perfil, o próprio status ou as próprias permissões — nem mesmo o MASTER.',
       'O último MASTER da agência nunca pode ser rebaixado.',
       'Ninguém concede uma permissão que não possui; permissões só MASTER só são concedidas por um MASTER.',
-      'Senha com menos de 8 caracteres é recusada.',
+      'Senha com menos de 12 caracteres é recusada.',
     ],
     sections: [
       {
@@ -435,7 +435,7 @@ const RAW_FAQ: RawFaqItem[] = [
   {
     question: 'Como faço a primeira venda, do começo ao fim?',
     answer:
-      'Cadastre vendedores com regra de comissão, conta financeira e categorias (Cadastros), cadastre o cliente, abra Vendas → Nova venda, preencha cliente, vendedor, categoria e valores, salve, revise e confirme. As parcelas vão para Financeiro › A receber e a comissão para Comissões.',
+      'Cadastre vendedores com regra de comissão, conta financeira e categorias (Cadastros), cadastre o cliente, abra Vendas → Nova venda, escolha o cliente digitando o nome ou colando o CPF, preencha vendedor, categoria e valores, salve, revise e confirme. As parcelas vão para Financeiro › A receber e a comissão para Comissões.',
   },
   {
     question: 'Posso desfazer o cancelamento de uma venda?',
@@ -480,7 +480,7 @@ const RAW_FAQ: RawFaqItem[] = [
   {
     question: 'Esqueci a senha de um usuário. E agora?',
     answer:
-      'Nesta edição não há redefinição por e-mail. Alguém com acesso a Configurações define uma nova senha em Editar — no mínimo 8 caracteres. Fale com um administrador da agência.',
+      'Alguém com acesso a Configurações pode definir uma nova senha em Editar, com no mínimo 12 caracteres. Fale com um administrador da agência.',
   },
 ];
 

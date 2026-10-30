@@ -1,4 +1,5 @@
 import type { FastifyInstance, preHandlerHookHandler } from 'fastify';
+import { computeCommissionForSale, mirrorSellerRule } from '../commission-engine';
 import { can, requirePermission } from '../access';
 import { AUDIT_EVENTS, recordAuditEvent } from '../audit-log';
 import type { LiteDatabase, TenantClient } from '../database';
@@ -119,6 +120,16 @@ async function assertUserLinkable(
   }
 }
 
+/**
+ * The legacy commission fields of a seller write commission rules (mirrorSellerRule), so they need the
+ * same permission as the rules API; sellers.manage alone must not be a way around it.
+ */
+function requireRulesPermission(body: Record<string, unknown>): void {
+  if ('commission_rule_type' in body || 'commission_rate' in body || 'commission_fixed_amount' in body) {
+    requirePermission(getTenantContext(), 'commissions.rules_manage');
+  }
+}
+
 /** Linking a login to a seller changes that login's data scope. */
 function requireLinkPermission(body: Record<string, unknown>): void {
   if ('user_id' in body) requirePermission(getTenantContext(), 'users.manage');
@@ -133,10 +144,16 @@ async function recalculatePendingRuleCommissions(
   client: TenantClient,
   tenantId: string,
   sellerId: string,
-  rule: CommissionFields,
 ): Promise<void> {
-  const pending = await client.query<{ id: string; gross_amount: string; margin_amount: string }>(
-    `SELECT sc.id, s.gross_amount, s.margin_amount
+  const pending = await client.query<{
+    id: string;
+    sale_id: string;
+    category_id: string;
+    sale_date: string;
+    gross_amount: string;
+    margin_amount: string;
+  }>(
+    `SELECT sc.id, sc.sale_id, s.category_id, s.sale_date::text AS sale_date, s.gross_amount, s.margin_amount
        FROM seller_commissions sc
        JOIN sales s ON s.tenant_id = sc.tenant_id AND s.id = sc.sale_id
       WHERE sc.tenant_id = $1 AND sc.seller_id = $2 AND sc.status = 'PENDING_RULE'`,
@@ -144,17 +161,16 @@ async function recalculatePendingRuleCommissions(
   );
 
   for (const row of pending.rows) {
-    let baseAmount: number | null = null;
-    let amount: number;
-    if (rule.ruleType === 'FIXED') {
-      amount = rule.fixedAmount ?? 0;
-    } else {
-      baseAmount =
-        rule.ruleType === 'PERCENTAGE_ON_MARGIN'
-          ? Number(row.margin_amount)
-          : Number(row.gross_amount);
-      amount = Math.round(baseAmount * (rule.rate ?? 0)) / 100;
-    }
+    const calculation = await computeCommissionForSale(client, tenantId, {
+      id: row.sale_id,
+      seller_id: sellerId,
+      category_id: row.category_id,
+      sale_date: row.sale_date,
+      gross_amount: Number(row.gross_amount),
+      margin_amount: Number(row.margin_amount),
+    });
+    if (calculation.pending_rule) continue;
+    const amount = calculation.amount;
     await client.query(
       `UPDATE seller_commissions
           SET calculation_type = $3, calculation_base = $4, percentage = $5,
@@ -164,17 +180,12 @@ async function recalculatePendingRuleCommissions(
       [
         tenantId,
         row.id,
-        rule.ruleType,
-        baseAmount,
-        rule.rate,
-        rule.fixedAmount,
+        calculation.calculation_type,
+        calculation.calculation_base,
+        calculation.percentage,
+        calculation.fixed_amount,
         amount,
-        JSON.stringify({
-          rule_type: rule.ruleType,
-          rate: rule.rate,
-          fixed_amount: rule.fixedAmount,
-          recalculated: true,
-        }),
+        JSON.stringify({ ...calculation.snapshot, recalculated: true }),
       ],
     );
     await recordAuditEvent(client, {
@@ -269,6 +280,7 @@ export function registerSellerRoutes(
     const name = requiredString(body, 'name', { max: 200 });
     const cpf = parseOptionalCpf(body);
     const commission = parseCommissionFields(body);
+    requireRulesPermission(body);
     const userId = optionalUuid(body, 'user_id');
 
     const seller = await database.withTenantTransaction(async (client) => {
@@ -292,6 +304,7 @@ export function registerSellerRoutes(
         ],
       );
       const created = result.rows[0]!;
+      await mirrorSellerRule(client, context.tenantId, context.userId, created.id, commission);
       await recordAuditEvent(client, {
         eventType: AUDIT_EVENTS.SELLER_CREATED,
         entityType: 'seller',
@@ -337,6 +350,7 @@ export function registerSellerRoutes(
       );
     }
     const commission = commissionProvided ? parseCommissionFields(body) : null;
+    requireRulesPermission(body);
 
     if ('name' in body) set('name', requiredString(body, 'name', { max: 200 }));
     if (cpfProvided) set('cpf', cpfValue);
@@ -383,8 +397,11 @@ export function registerSellerRoutes(
         entityId: updated.id,
         payload: { name: updated.name },
       });
-      if (commission && commission.ruleType !== 'UNDEFINED') {
-        await recalculatePendingRuleCommissions(client, context.tenantId, id, commission);
+      if (commission) {
+        await mirrorSellerRule(client, context.tenantId, context.userId, id, commission);
+        if (commission.ruleType !== 'UNDEFINED') {
+          await recalculatePendingRuleCommissions(client, context.tenantId, id);
+        }
       }
       return updated;
     });

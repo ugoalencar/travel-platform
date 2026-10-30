@@ -1,4 +1,5 @@
 import type { FastifyInstance, preHandlerHookHandler } from 'fastify';
+import { roundMoney } from '../money';
 import {
   can,
   inScope,
@@ -130,11 +131,11 @@ export async function recalculateSaleCostTotals(
   const row = result.rows[0];
   if (!row) throw new NotFoundError('Sale not found');
   const gross = Number(row.gross_amount);
-  const totalCost = Math.round(Number(row.total_cost) * 100) / 100;
+  const totalCost = roundMoney(Number(row.total_cost));
   if (totalCost > gross) {
     throw new ValidationError('Total sale costs must not exceed gross_amount');
   }
-  const margin = Math.round((gross - totalCost) * 100) / 100;
+  const margin = roundMoney(gross - totalCost);
   await client.query(
     `UPDATE sales SET cost_amount = $3, margin_amount = $4, updated_at = now()
       WHERE tenant_id = $1 AND id = $2`,
