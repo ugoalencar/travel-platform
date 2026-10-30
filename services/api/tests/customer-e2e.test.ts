@@ -24,11 +24,13 @@ const migration068 = resolve(repoRoot, 'infrastructure/migrations/068_protocol_n
 // 049_enrollment_links.sql: 068 ALTERs enrollment_submissions too, which
 // doesn't exist until this migration creates it.
 const migration049b = resolve(repoRoot, 'infrastructure/migrations/049_enrollment_links.sql');
+// 104_customer_field_settings.sql: POST/PATCH /customers read the field configuration (fail closed).
+const migration104 = resolve(repoRoot, 'infrastructure/migrations/104_customer_field_settings.sql');
 const prepareRolesSql = resolve(repoRoot, 'tests/integration/database/002_prepare_local_roles.sql');
 const composeFile = resolve(repoRoot, 'infrastructure/docker-compose.local-postgres.yml');
 
 const projectName = 'travel-platform-customer-e2e-postgres';
-const containerName = 'travel-platform-postgres-local';
+const containerName = process.env.DATABASE_TEST_CONTAINER_NAME ?? 'travel-platform-postgres-local';
 const postgresImage = 'postgres:15';
 const databaseHost = process.env.DATABASE_TEST_HOST ?? '127.0.0.1';
 const databasePort = Number(process.env.DATABASE_TEST_PORT ?? '55432');
@@ -695,6 +697,7 @@ async function resetDatabase(pool: Pool): Promise<void> {
   await pool.query(readSqlForPg(migration046));
   await pool.query(readSqlForPg(migration049b));
   await pool.query(readSqlForPg(migration068));
+  await pool.query(readSqlForPg(migration104));
   await pool.query(readSqlForPg(prepareRolesSql));
   await seedAgenciesAndUsers(pool);
 }

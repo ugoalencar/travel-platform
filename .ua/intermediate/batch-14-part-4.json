@@ -1,0 +1,282 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/agency/src/components/ui/empty-state.tsx",
+      "type": "file",
+      "name": "empty-state.tsx",
+      "filePath": "apps/agency/src/components/ui/empty-state.tsx",
+      "summary": "Estado vazio com ícone, título, descrição e ação opcional para listas sem dados.",
+      "tags": [
+        "component",
+        "ui",
+        "empty-state"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/agency/src/components/ui/error-state.tsx",
+      "type": "file",
+      "name": "error-state.tsx",
+      "filePath": "apps/agency/src/components/ui/error-state.tsx",
+      "summary": "Estado de erro com mensagens padrão em pt-BR e botão de nova tentativa para falhas de carregamento.",
+      "tags": [
+        "component",
+        "ui",
+        "error-handling"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/agency/src/components/ui/input.tsx",
+      "type": "file",
+      "name": "input.tsx",
+      "filePath": "apps/agency/src/components/ui/input.tsx",
+      "summary": "Campo de input de texto estilizado via forwardRef usando cn.",
+      "tags": [
+        "component",
+        "ui",
+        "form",
+        "input"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/agency/src/components/ui/kpi-chip.tsx",
+      "type": "file",
+      "name": "kpi-chip.tsx",
+      "filePath": "apps/agency/src/components/ui/kpi-chip.tsx",
+      "summary": "Chip de KPI com rótulo, valor, ícone e tom de cor para indicadores do dashboard.",
+      "tags": [
+        "component",
+        "ui",
+        "kpi",
+        "dashboard"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/agency/src/components/ui/loading-state.tsx",
+      "type": "file",
+      "name": "loading-state.tsx",
+      "filePath": "apps/agency/src/components/ui/loading-state.tsx",
+      "summary": "Indicador de carregamento com rótulo padrão em pt-BR.",
+      "tags": [
+        "component",
+        "ui",
+        "loading"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/agency/src/components/ui/empty-state.tsx:EmptyState",
+      "type": "function",
+      "name": "EmptyState",
+      "filePath": "apps/agency/src/components/ui/empty-state.tsx",
+      "lineRange": [
+        12,
+        28
+      ],
+      "summary": "Mensagem de lista vazia com ícone, título, descrição e ação opcional.",
+      "tags": [
+        "component",
+        "ui",
+        "empty-state"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/agency/src/components/ui/error-state.tsx:ErrorState",
+      "type": "function",
+      "name": "ErrorState",
+      "filePath": "apps/agency/src/components/ui/error-state.tsx",
+      "lineRange": [
+        11,
+        36
+      ],
+      "summary": "Painel de erro com textos padrão em pt-BR e botão de nova tentativa acionável.",
+      "tags": [
+        "component",
+        "ui",
+        "error-handling"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/agency/src/components/ui/kpi-chip.tsx:KpiChip",
+      "type": "function",
+      "name": "KpiChip",
+      "filePath": "apps/agency/src/components/ui/kpi-chip.tsx",
+      "lineRange": [
+        15,
+        37
+      ],
+      "summary": "Indicador em card com rótulo, valor, ícone e tom de cor para KPIs do dashboard.",
+      "tags": [
+        "component",
+        "ui",
+        "kpi",
+        "dashboard"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/agency/src/components/ui/loading-state.tsx:LoadingState",
+      "type": "function",
+      "name": "LoadingState",
+      "filePath": "apps/agency/src/components/ui/loading-state.tsx",
+      "lineRange": [
+        8,
+        21
+      ],
+      "summary": "Spinner centralizado com rótulo de carregamento configurável.",
+      "tags": [
+        "component",
+        "ui",
+        "loading"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/agency/src/components/ui/empty-state.tsx",
+      "target": "function:apps/agency/src/components/ui/empty-state.tsx:EmptyState",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/components/ui/empty-state.tsx",
+      "target": "function:apps/agency/src/components/ui/empty-state.tsx:EmptyState",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/components/ui/error-state.tsx",
+      "target": "function:apps/agency/src/components/ui/error-state.tsx:ErrorState",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/components/ui/error-state.tsx",
+      "target": "function:apps/agency/src/components/ui/error-state.tsx:ErrorState",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/components/ui/kpi-chip.tsx",
+      "target": "function:apps/agency/src/components/ui/kpi-chip.tsx:KpiChip",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/components/ui/kpi-chip.tsx",
+      "target": "function:apps/agency/src/components/ui/kpi-chip.tsx:KpiChip",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/components/ui/loading-state.tsx",
+      "target": "function:apps/agency/src/components/ui/loading-state.tsx:LoadingState",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/components/ui/loading-state.tsx",
+      "target": "function:apps/agency/src/components/ui/loading-state.tsx:LoadingState",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/components/ui/empty-state.tsx",
+      "target": "file:apps/agency/src/lib/utils.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/components/ui/error-state.tsx",
+      "target": "file:apps/agency/src/components/ui/button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/components/ui/error-state.tsx",
+      "target": "file:apps/agency/src/lib/utils.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/components/ui/input.tsx",
+      "target": "file:apps/agency/src/lib/utils.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/components/ui/kpi-chip.tsx",
+      "target": "file:apps/agency/src/components/ui/card.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/components/ui/kpi-chip.tsx",
+      "target": "file:apps/agency/src/lib/utils.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/components/ui/loading-state.tsx",
+      "target": "file:apps/agency/src/lib/utils.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/agency/src/components/ui/empty-state.tsx:EmptyState",
+      "target": "function:apps/agency/src/lib/utils.ts:cn",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/components/ui/error-state.tsx:ErrorState",
+      "target": "function:apps/agency/src/lib/utils.ts:cn",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/components/ui/kpi-chip.tsx:KpiChip",
+      "target": "function:apps/agency/src/lib/utils.ts:cn",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/components/ui/loading-state.tsx:LoadingState",
+      "target": "function:apps/agency/src/lib/utils.ts:cn",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/components/ui/kpi-chip.tsx:KpiChip",
+      "target": "function:apps/agency/src/components/ui/card.tsx:Card",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

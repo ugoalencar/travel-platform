@@ -104,3 +104,4 @@ backups/
 *.sql.gz
 *.sql.bak
 .vercel
+.env*

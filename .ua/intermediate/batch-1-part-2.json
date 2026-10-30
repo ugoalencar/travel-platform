@@ -1,0 +1,928 @@
+{
+ "nodes": [
+  {
+   "id": "file:apps/customer/src/components/ui/StatusPill.tsx",
+   "type": "file",
+   "name": "StatusPill.tsx",
+   "filePath": "apps/customer/src/components/ui/StatusPill.tsx",
+   "summary": "Badge de status com funções exportadas que mapeiam tons de cor para propostas, vendas, receivables e ofertas.",
+   "tags": [
+    "component",
+    "ui",
+    "status"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/components/ui/StatusPill.tsx:StatusPill",
+   "type": "function",
+   "name": "StatusPill",
+   "filePath": "apps/customer/src/components/ui/StatusPill.tsx",
+   "lineRange": [
+    26,
+    38
+   ],
+   "summary": "Badge de status que combina o tom recebido com classes extras via cn.",
+   "tags": [
+    "component",
+    "ui",
+    "status"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/components/ui/StatusPill.tsx:proposalStatusTone",
+   "type": "function",
+   "name": "proposalStatusTone",
+   "filePath": "apps/customer/src/components/ui/StatusPill.tsx",
+   "lineRange": [
+    42,
+    59
+   ],
+   "summary": "Mapeia o status de uma proposta para o tom de cor do badge.",
+   "tags": [
+    "utility",
+    "status",
+    "mapping"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/components/ui/StatusPill.tsx:saleStatusTone",
+   "type": "function",
+   "name": "saleStatusTone",
+   "filePath": "apps/customer/src/components/ui/StatusPill.tsx",
+   "lineRange": [
+    61,
+    77
+   ],
+   "summary": "Mapeia o status de uma venda para o tom de cor do badge.",
+   "tags": [
+    "utility",
+    "status",
+    "mapping"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/components/ui/StatusPill.tsx:receivableStatusTone",
+   "type": "function",
+   "name": "receivableStatusTone",
+   "filePath": "apps/customer/src/components/ui/StatusPill.tsx",
+   "lineRange": [
+    79,
+    94
+   ],
+   "summary": "Mapeia o status de um receivable para o tom de cor do badge.",
+   "tags": [
+    "utility",
+    "status",
+    "mapping"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/components/ui/StatusPill.tsx:offerStatusTone",
+   "type": "function",
+   "name": "offerStatusTone",
+   "filePath": "apps/customer/src/components/ui/StatusPill.tsx",
+   "lineRange": [
+    96,
+    107
+   ],
+   "summary": "Mapeia o status de uma oferta para o tom de cor do badge.",
+   "tags": [
+    "utility",
+    "status",
+    "mapping"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:apps/customer/src/customer-portal/BackLink.tsx",
+   "type": "file",
+   "name": "BackLink.tsx",
+   "filePath": "apps/customer/src/customer-portal/BackLink.tsx",
+   "summary": "Link de voltar compacto usado nas páginas de detalhe do portal do cliente.",
+   "tags": [
+    "component",
+    "navigation",
+    "ui"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/BackLink.tsx:BackLink",
+   "type": "function",
+   "name": "BackLink",
+   "filePath": "apps/customer/src/customer-portal/BackLink.tsx",
+   "lineRange": [
+    7,
+    17
+   ],
+   "summary": "Link de retorno com ícone de seta para navegar à página anterior.",
+   "tags": [
+    "component",
+    "navigation",
+    "ui"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:apps/customer/src/customer-portal/CustomerNav.tsx",
+   "type": "file",
+   "name": "CustomerNav.tsx",
+   "filePath": "apps/customer/src/customer-portal/CustomerNav.tsx",
+   "summary": "Barra de navegação do portal do cliente com links principais e ação de logout.",
+   "tags": [
+    "navigation",
+    "auth",
+    "component"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/CustomerNav.tsx:CustomerNav",
+   "type": "function",
+   "name": "CustomerNav",
+   "filePath": "apps/customer/src/customer-portal/CustomerNav.tsx",
+   "lineRange": [
+    24,
+    79
+   ],
+   "summary": "Navegação principal do portal do cliente com links ativos e logout que encerra a sessão.",
+   "tags": [
+    "navigation",
+    "component",
+    "auth"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:apps/customer/src/customer-portal/CustomerPortalShell.tsx",
+   "type": "file",
+   "name": "CustomerPortalShell.tsx",
+   "filePath": "apps/customer/src/customer-portal/CustomerPortalShell.tsx",
+   "summary": "Shell do portal do cliente que combina banner de instalação e navegação ao redor do conteúdo.",
+   "tags": [
+    "layout",
+    "portal",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/CustomerPortalShell.tsx:CustomerPortalShell",
+   "type": "function",
+   "name": "CustomerPortalShell",
+   "filePath": "apps/customer/src/customer-portal/CustomerPortalShell.tsx",
+   "lineRange": [
+    9,
+    21
+   ],
+   "summary": "Envolve o conteúdo do portal com o banner de instalação e a navegação do cliente.",
+   "tags": [
+    "layout",
+    "component",
+    "portal"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:apps/customer/src/customer-portal/InstallAppBanner.tsx",
+   "type": "file",
+   "name": "InstallAppBanner.tsx",
+   "filePath": "apps/customer/src/customer-portal/InstallAppBanner.tsx",
+   "summary": "Banner de instalação PWA que intercepta beforeinstallprompt, oferece instalação e memoriza a dispensa.",
+   "tags": [
+    "component",
+    "pwa",
+    "ui"
+   ],
+   "complexity": "moderate",
+   "languageNotes": "beforeinstallprompt é evento exclusivo de PWAs instaláveis, suportado por Chromium."
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/InstallAppBanner.tsx:InstallAppBanner",
+   "type": "function",
+   "name": "InstallAppBanner",
+   "filePath": "apps/customer/src/customer-portal/InstallAppBanner.tsx",
+   "lineRange": [
+    17,
+    77
+   ],
+   "summary": "Controla o prompt de instalação PWA: captura beforeinstallprompt, dispara prompt() e grava a dispensa no localStorage.",
+   "tags": [
+    "component",
+    "pwa",
+    "event-handler"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:apps/customer/src/customer-portal/destinationArt.ts",
+   "type": "file",
+   "name": "destinationArt.ts",
+   "filePath": "apps/customer/src/customer-portal/destinationArt.ts",
+   "summary": "Gera arte por destino de viagem: gradiente determinístico por hash e emoji por palavra-chave.",
+   "tags": [
+    "utility",
+    "visual",
+    "deterministic"
+   ],
+   "complexity": "simple",
+   "languageNotes": "Hash de string simples garante visual estável entre renderizações sem dependência externa."
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/destinationArt.ts:destinationGradient",
+   "type": "function",
+   "name": "destinationGradient",
+   "filePath": "apps/customer/src/customer-portal/destinationArt.ts",
+   "lineRange": [
+    34,
+    37
+   ],
+   "summary": "Retorna um gradiente CSS escolhido por hash determinístico do nome do destino.",
+   "tags": [
+    "utility",
+    "visual",
+    "deterministic"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/destinationArt.ts:destinationEmoji",
+   "type": "function",
+   "name": "destinationEmoji",
+   "filePath": "apps/customer/src/customer-portal/destinationArt.ts",
+   "lineRange": [
+    39,
+    42
+   ],
+   "summary": "Retorna o emoji do destino por correspondência de palavras-chave, com padrão de fallback.",
+   "tags": [
+    "utility",
+    "visual",
+    "lookup"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:apps/customer/src/customer-portal/pages/CustomerBookingDetailsPage.tsx",
+   "type": "file",
+   "name": "CustomerBookingDetailsPage.tsx",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerBookingDetailsPage.tsx",
+   "summary": "Página de detalhes da reserva do cliente com passageiros, datas e status carregados via customerApi.",
+   "tags": [
+    "page",
+    "booking",
+    "portal"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/pages/CustomerBookingDetailsPage.tsx:CustomerBookingDetailsPage",
+   "type": "function",
+   "name": "CustomerBookingDetailsPage",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerBookingDetailsPage.tsx",
+   "lineRange": [
+    14,
+    54
+   ],
+   "summary": "Busca a reserva por id via getMyBooking e coordena os estados de carregamento, sucesso e erro.",
+   "tags": [
+    "page",
+    "data-fetching",
+    "booking"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/pages/CustomerBookingDetailsPage.tsx:BookingDetails",
+   "type": "function",
+   "name": "BookingDetails",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerBookingDetailsPage.tsx",
+   "lineRange": [
+    56,
+    130
+   ],
+   "summary": "Apresenta status, datas de partida, tipo de viagem e lista de passageiros da reserva.",
+   "tags": [
+    "component",
+    "booking",
+    "display"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:apps/customer/src/customer-portal/pages/CustomerBookingsPage.test.tsx",
+   "type": "file",
+   "name": "CustomerBookingsPage.test.tsx",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerBookingsPage.test.tsx",
+   "summary": "Testes da lista de reservas do portal, cobrindo renderização dos cartões e estados.",
+   "tags": [
+    "test",
+    "react",
+    "booking"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:apps/customer/src/customer-portal/pages/CustomerBookingsPage.tsx",
+   "type": "file",
+   "name": "CustomerBookingsPage.tsx",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerBookingsPage.tsx",
+   "summary": "Lista de reservas do cliente com cartões de status e carregamento assíncrono.",
+   "tags": [
+    "page",
+    "booking",
+    "portal"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/pages/CustomerBookingsPage.tsx:CustomerBookingsPage",
+   "type": "function",
+   "name": "CustomerBookingsPage",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerBookingsPage.tsx",
+   "lineRange": [
+    12,
+    71
+   ],
+   "summary": "Carrega as reservas do cliente e lista cartões com indicador de reservas futuras ativas.",
+   "tags": [
+    "page",
+    "booking",
+    "data-fetching"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/pages/CustomerBookingsPage.tsx:BookingCard",
+   "type": "function",
+   "name": "BookingCard",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerBookingsPage.tsx",
+   "lineRange": [
+    73,
+    118
+   ],
+   "summary": "Cartão de reserva com cor de status condicional e datas de partida formatadas.",
+   "tags": [
+    "component",
+    "booking",
+    "ui"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:apps/customer/src/customer-portal/pages/CustomerDocumentsPage.tsx",
+   "type": "file",
+   "name": "CustomerDocumentsPage.tsx",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerDocumentsPage.tsx",
+   "summary": "Página de documentos do cliente com abas por categoria e status de verificação.",
+   "tags": [
+    "page",
+    "documents",
+    "portal"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/pages/CustomerDocumentsPage.tsx:CustomerDocumentsPage",
+   "type": "function",
+   "name": "CustomerDocumentsPage",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerDocumentsPage.tsx",
+   "lineRange": [
+    41,
+    95
+   ],
+   "summary": "Carrega os documentos do cliente e renderiza as abas de categorias com filtro.",
+   "tags": [
+    "page",
+    "documents",
+    "data-fetching"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/pages/CustomerDocumentsPage.tsx:DocumentsTabs",
+   "type": "function",
+   "name": "DocumentsTabs",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerDocumentsPage.tsx",
+   "lineRange": [
+    103,
+    165
+   ],
+   "summary": "Agrupa documentos por categoria com filtro por status de verificação e exibição de validade.",
+   "tags": [
+    "component",
+    "documents",
+    "filtering"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:apps/customer/src/customer-portal/pages/CustomerForgotPasswordPage.tsx",
+   "type": "file",
+   "name": "CustomerForgotPasswordPage.tsx",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerForgotPasswordPage.tsx",
+   "summary": "Formulário de recuperação de senha por slug da agência e e-mail com confirmação de envio.",
+   "tags": [
+    "page",
+    "auth",
+    "form"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/pages/CustomerForgotPasswordPage.tsx:CustomerForgotPasswordPage",
+   "type": "function",
+   "name": "CustomerForgotPasswordPage",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerForgotPasswordPage.tsx",
+   "lineRange": [
+    4,
+    69
+   ],
+   "summary": "Formulário de recuperação de senha que chama forgotPassword e confirma o envio ao usuário.",
+   "tags": [
+    "page",
+    "auth",
+    "form"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:apps/customer/src/customer-portal/pages/CustomerHelpPage.tsx",
+   "type": "file",
+   "name": "CustomerHelpPage.tsx",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerHelpPage.tsx",
+   "summary": "Página de ajuda do portal com FAQ e dados de contato da agência.",
+   "tags": [
+    "page",
+    "help",
+    "portal"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/pages/CustomerHelpPage.tsx:CustomerHelpPage",
+   "type": "function",
+   "name": "CustomerHelpPage",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerHelpPage.tsx",
+   "lineRange": [
+    37,
+    115
+   ],
+   "summary": "Exibe contatos da agência via getMyAgencyContact além de perguntas frequentes.",
+   "tags": [
+    "page",
+    "help",
+    "faq"
+   ],
+   "complexity": "moderate"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:apps/customer/src/components/ui/StatusPill.tsx",
+   "target": "file:apps/customer/src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/CustomerNav.tsx",
+   "target": "file:apps/customer/src/lib/customerAuthApi.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/CustomerPortalShell.tsx",
+   "target": "file:apps/customer/src/customer-portal/CustomerNav.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/CustomerPortalShell.tsx",
+   "target": "file:apps/customer/src/customer-portal/InstallAppBanner.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerBookingDetailsPage.tsx",
+   "target": "file:apps/customer/src/customer-portal/BackLink.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerBookingDetailsPage.tsx",
+   "target": "file:apps/customer/src/lib/customerApi.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerBookingDetailsPage.tsx",
+   "target": "file:apps/customer/src/lib/statusLabels.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerBookingDetailsPage.tsx",
+   "target": "file:apps/customer/src/types/booking.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerBookingDetailsPage.tsx",
+   "target": "file:apps/customer/src/types/customer-portal.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerBookingsPage.test.tsx",
+   "target": "file:apps/customer/src/customer-portal/pages/CustomerBookingsPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerBookingsPage.test.tsx",
+   "target": "file:apps/customer/src/types/customer-portal.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerBookingsPage.tsx",
+   "target": "file:apps/customer/src/lib/customerApi.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerBookingsPage.tsx",
+   "target": "file:apps/customer/src/lib/statusLabels.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerBookingsPage.tsx",
+   "target": "file:apps/customer/src/types/customer-portal.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerDocumentsPage.tsx",
+   "target": "file:apps/customer/src/customer-portal/Tabs.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerDocumentsPage.tsx",
+   "target": "file:apps/customer/src/lib/customerApi.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerDocumentsPage.tsx",
+   "target": "file:apps/customer/src/types/customer-portal.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerForgotPasswordPage.tsx",
+   "target": "file:apps/customer/src/lib/customerAuthApi.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerHelpPage.tsx",
+   "target": "file:apps/customer/src/lib/customerApi.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerHelpPage.tsx",
+   "target": "file:apps/customer/src/types/customer-portal.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/components/ui/StatusPill.tsx",
+   "target": "function:apps/customer/src/components/ui/StatusPill.tsx:StatusPill",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/components/ui/StatusPill.tsx",
+   "target": "function:apps/customer/src/components/ui/StatusPill.tsx:StatusPill",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/components/ui/StatusPill.tsx",
+   "target": "function:apps/customer/src/components/ui/StatusPill.tsx:proposalStatusTone",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/components/ui/StatusPill.tsx",
+   "target": "function:apps/customer/src/components/ui/StatusPill.tsx:proposalStatusTone",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/components/ui/StatusPill.tsx",
+   "target": "function:apps/customer/src/components/ui/StatusPill.tsx:saleStatusTone",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/components/ui/StatusPill.tsx",
+   "target": "function:apps/customer/src/components/ui/StatusPill.tsx:saleStatusTone",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/components/ui/StatusPill.tsx",
+   "target": "function:apps/customer/src/components/ui/StatusPill.tsx:receivableStatusTone",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/components/ui/StatusPill.tsx",
+   "target": "function:apps/customer/src/components/ui/StatusPill.tsx:receivableStatusTone",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/components/ui/StatusPill.tsx",
+   "target": "function:apps/customer/src/components/ui/StatusPill.tsx:offerStatusTone",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/components/ui/StatusPill.tsx",
+   "target": "function:apps/customer/src/components/ui/StatusPill.tsx:offerStatusTone",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/BackLink.tsx",
+   "target": "function:apps/customer/src/customer-portal/BackLink.tsx:BackLink",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/BackLink.tsx",
+   "target": "function:apps/customer/src/customer-portal/BackLink.tsx:BackLink",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/CustomerNav.tsx",
+   "target": "function:apps/customer/src/customer-portal/CustomerNav.tsx:CustomerNav",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/CustomerNav.tsx",
+   "target": "function:apps/customer/src/customer-portal/CustomerNav.tsx:CustomerNav",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/CustomerPortalShell.tsx",
+   "target": "function:apps/customer/src/customer-portal/CustomerPortalShell.tsx:CustomerPortalShell",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/CustomerPortalShell.tsx",
+   "target": "function:apps/customer/src/customer-portal/CustomerPortalShell.tsx:CustomerPortalShell",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/InstallAppBanner.tsx",
+   "target": "function:apps/customer/src/customer-portal/InstallAppBanner.tsx:InstallAppBanner",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/InstallAppBanner.tsx",
+   "target": "function:apps/customer/src/customer-portal/InstallAppBanner.tsx:InstallAppBanner",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/destinationArt.ts",
+   "target": "function:apps/customer/src/customer-portal/destinationArt.ts:destinationGradient",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/destinationArt.ts",
+   "target": "function:apps/customer/src/customer-portal/destinationArt.ts:destinationGradient",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/destinationArt.ts",
+   "target": "function:apps/customer/src/customer-portal/destinationArt.ts:destinationEmoji",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/destinationArt.ts",
+   "target": "function:apps/customer/src/customer-portal/destinationArt.ts:destinationEmoji",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerBookingDetailsPage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerBookingDetailsPage.tsx:CustomerBookingDetailsPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerBookingDetailsPage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerBookingDetailsPage.tsx:CustomerBookingDetailsPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerBookingDetailsPage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerBookingDetailsPage.tsx:BookingDetails",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerBookingsPage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerBookingsPage.tsx:CustomerBookingsPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerBookingsPage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerBookingsPage.tsx:CustomerBookingsPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerBookingsPage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerBookingsPage.tsx:BookingCard",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerDocumentsPage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerDocumentsPage.tsx:CustomerDocumentsPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerDocumentsPage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerDocumentsPage.tsx:CustomerDocumentsPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerDocumentsPage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerDocumentsPage.tsx:DocumentsTabs",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerForgotPasswordPage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerForgotPasswordPage.tsx:CustomerForgotPasswordPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerForgotPasswordPage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerForgotPasswordPage.tsx:CustomerForgotPasswordPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerHelpPage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerHelpPage.tsx:CustomerHelpPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerHelpPage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerHelpPage.tsx:CustomerHelpPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/components/ui/StatusPill.tsx",
+   "target": "file:apps/customer/src/components/ui/StatusPill.test.tsx",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerBookingsPage.tsx",
+   "target": "file:apps/customer/src/customer-portal/pages/CustomerBookingsPage.test.tsx",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "function:apps/customer/src/customer-portal/CustomerNav.tsx:CustomerNav",
+   "target": "function:apps/customer/src/lib/customerAuthApi.ts:logout",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/customer-portal/pages/CustomerForgotPasswordPage.tsx:CustomerForgotPasswordPage",
+   "target": "function:apps/customer/src/lib/customerAuthApi.ts:forgotPassword",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/customer-portal/pages/CustomerBookingDetailsPage.tsx:CustomerBookingDetailsPage",
+   "target": "function:apps/customer/src/lib/customerApi.ts:getMyBooking",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/customer-portal/pages/CustomerBookingsPage.tsx:CustomerBookingsPage",
+   "target": "function:apps/customer/src/lib/customerApi.ts:listMyBookings",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/customer-portal/pages/CustomerDocumentsPage.tsx:CustomerDocumentsPage",
+   "target": "function:apps/customer/src/lib/customerApi.ts:listMyDocuments",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/customer-portal/pages/CustomerHelpPage.tsx:CustomerHelpPage",
+   "target": "function:apps/customer/src/lib/customerApi.ts:getMyAgencyContact",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  }
+ ]
+}

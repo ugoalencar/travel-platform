@@ -9,6 +9,7 @@ const repoRoot = resolve(testDir, '../../..');
 const composeFile = resolve(repoRoot, 'infrastructure/docker-compose.local-postgres.yml');
 const migrationsDir = resolve(repoRoot, 'infrastructure/migrations');
 const constraintsTestSql = resolve(repoRoot, 'tests/integration/database/001_constraints_test.sql');
+const createLocalRolesSql = resolve(repoRoot, 'tests/integration/database/000_create_local_roles.sql');
 const prepareRolesSql = resolve(repoRoot, 'tests/integration/database/002_prepare_local_roles.sql');
 const rlsRuntimeTestSql = resolve(repoRoot, 'tests/integration/database/003_rls_runtime_test.sql');
 
@@ -32,8 +33,18 @@ const localPort = process.env.DATABASE_TEST_PORT ?? (isCiMode ? '5432' : '0');
 
 const expectedAllTables = [
   'agencies',
+  'agency_commission_cost_policies',
+  'agency_commission_engine_settings',
   'agency_communications',
   'agency_entitlements',
+  'agency_module_settings',
+  'agency_revenue_batch_entries',
+  'agency_revenue_batch_receipts',
+  'agency_revenue_batches',
+  'agency_revenue_entries',
+  'agency_revenue_rule_versions',
+  'agency_revenue_scopes',
+  'agency_revenue_settlement_settings',
   'agent_area_grants',
   'air_services',
   'assets',
@@ -60,8 +71,11 @@ const expectedAllTables = [
   'commercial_opportunities',
   'commercial_partners',
   'commercial_tasks',
+  'commission_categories',
   'commission_entries',
+  'commission_financial_profiles',
   'commission_plans',
+  'commission_release_events',
   'commissions',
   'connector_actions',
   'contract_documents',
@@ -79,16 +93,22 @@ const expectedAllTables = [
   'customer_addresses',
   'customer_dependents',
   'customer_documents',
+  'customer_field_settings',
   'customer_interactions',
   'customer_password_reset_tokens',
   'customer_segments',
   'customer_sessions',
   'customers',
+  'dashboard_layouts',
   'departments',
   'document_attachments',
   'document_audit_events',
   'document_extractions',
   'document_verifications',
+  'employee_commission_payment_policies',
+  'employee_commission_rule_scopes',
+  'employee_commission_rule_tiers',
+  'employee_commission_rule_versions',
   'employee_commission_rules',
   'employee_deductions',
   'employees',
@@ -142,6 +162,11 @@ const expectedAllTables = [
   'password_reset_tokens',
   'payables',
   'payment_allocations',
+  'payment_condition_categories',
+  'payment_condition_methods',
+  'payment_condition_products',
+  'payment_conditions',
+  'payment_method_receipt_rules',
   'payments',
   'payroll_entries',
   'permission_restrictions',
@@ -183,7 +208,14 @@ const expectedAllTables = [
   'revenues',
   'route_points',
   'routes',
+  'sale_category_fields',
+  'sale_commission_attributions',
+  'sale_import_batches',
+  'sale_import_keys',
   'sale_items',
+  'sale_payment_condition_versions',
+  'sale_payment_requests',
+  'sale_payment_reversals',
   'sales',
   'sales_demos',
   'sales_opportunities',
@@ -198,6 +230,8 @@ const expectedAllTables = [
   'suppliers',
   'support_access_log',
   'support_cases',
+  'tenant_backup_runs',
+  'tenant_backup_schedules',
   'transport_operations',
   'transport_products',
   'travel_products',
@@ -207,13 +241,24 @@ const expectedAllTables = [
   'trips',
   'upsell_rules',
   'upsell_suggestions',
+  'user_permission_overrides',
   'users',
   'wishes',
 ];
 const expectedTenantTables = [
   'agencies',
+  'agency_commission_cost_policies',
+  'agency_commission_engine_settings',
   'agency_communications',
   'agency_entitlements',
+  'agency_module_settings',
+  'agency_revenue_batch_entries',
+  'agency_revenue_batch_receipts',
+  'agency_revenue_batches',
+  'agency_revenue_entries',
+  'agency_revenue_rule_versions',
+  'agency_revenue_scopes',
+  'agency_revenue_settlement_settings',
   'agent_area_grants',
   'air_services',
   'assets',
@@ -235,8 +280,11 @@ const expectedTenantTables = [
   'commercial_opportunities',
   'commercial_partners',
   'commercial_tasks',
+  'commission_categories',
   'commission_entries',
+  'commission_financial_profiles',
   'commission_plans',
+  'commission_release_events',
   'commissions',
   'connector_actions',
   'contract_documents',
@@ -252,16 +300,22 @@ const expectedTenantTables = [
   'customer_addresses',
   'customer_dependents',
   'customer_documents',
+  'customer_field_settings',
   'customer_interactions',
   'customer_password_reset_tokens',
   'customer_segments',
   'customer_sessions',
   'customers',
+  'dashboard_layouts',
   'departments',
   'document_attachments',
   'document_audit_events',
   'document_extractions',
   'document_verifications',
+  'employee_commission_payment_policies',
+  'employee_commission_rule_scopes',
+  'employee_commission_rule_tiers',
+  'employee_commission_rule_versions',
   'employee_commission_rules',
   'employee_deductions',
   'employees',
@@ -305,6 +359,11 @@ const expectedTenantTables = [
   'password_reset_tokens',
   'payables',
   'payment_allocations',
+  'payment_condition_categories',
+  'payment_condition_methods',
+  'payment_condition_products',
+  'payment_conditions',
+  'payment_method_receipt_rules',
   'payments',
   'payroll_entries',
   'permission_restrictions',
@@ -326,11 +385,20 @@ const expectedTenantTables = [
   'revenues',
   'route_points',
   'routes',
+  'sale_category_fields',
+  'sale_commission_attributions',
+  'sale_import_batches',
+  'sale_import_keys',
   'sale_items',
+  'sale_payment_condition_versions',
+  'sale_payment_requests',
+  'sale_payment_reversals',
   'sales',
   'scheduled_departures',
   'supplier_category_links',
   'suppliers',
+  'tenant_backup_runs',
+  'tenant_backup_schedules',
   'transport_operations',
   'transport_products',
   'travel_products',
@@ -340,6 +408,7 @@ const expectedTenantTables = [
   'trips',
   'upsell_rules',
   'upsell_suggestions',
+  'user_permission_overrides',
   'users',
   'wishes',
 ];
@@ -352,13 +421,31 @@ const expectedTenantTables = [
 // 095_platform_role_separation.sql, so they no longer appear in any
 // runtime grant at all.
 const readInsertOnlyTables = [
+  'agency_revenue_batch_entries',
+  'agency_revenue_batch_receipts',
+  'agency_revenue_batches',
+  'agency_revenue_rule_versions',
+  'agency_revenue_scopes',
   'audit_logs',
   'campaign_attributions',
   'captcha_verifications',
   'cash_transactions',
+  'commission_financial_profiles',
+  'commission_release_events',
   'contract_signature_evidence',
   'document_audit_events',
+  'employee_commission_payment_policies',
+  'employee_commission_rule_tiers',
+  'employee_commission_rule_versions',
   'mfa_totp_attempts',
+  'payment_condition_categories',
+  'payment_condition_methods',
+  'payment_condition_products',
+  'sale_import_batches',
+  'sale_import_keys',
+  'sale_payment_condition_versions',
+  'sale_payment_requests',
+  'sale_payment_reversals',
 ];
 // SELECT/INSERT/UPDATE but no DELETE -- session and reset-token tables:
 // a session/token is revoked or marked used via UPDATE, never physically
@@ -367,12 +454,24 @@ const readInsertOnlyTables = [
 // included UPDATE (needed to mark a session revoked), confirmed against
 // the actual migrated grants rather than assumed.
 const noDeleteTables = [
+  'agency_commission_cost_policies',
+  'agency_commission_engine_settings',
+  'agency_module_settings',
+  'agency_revenue_entries',
+  'agency_revenue_settlement_settings',
   'auth_sessions',
+  'customer_field_settings',
   'customer_password_reset_tokens',
   'customer_sessions',
+  'dashboard_layouts',
+  'employee_commission_rule_scopes',
   'password_reset_tokens',
+  'payment_conditions',
+  'payment_method_receipt_rules',
+  'sale_commission_attributions',
+  'tenant_backup_schedules',
 ];
-const noUpdateTables = ['agent_area_grants', 'permission_restrictions'];
+const noUpdateTables = ['agent_area_grants', 'permission_restrictions', 'user_permission_overrides'];
 // F-06: platform-global tables (no agency_id, no RLS) that the runtime
 // role must hold ZERO grants on. Granted only to the platform role
 // (travel_app_platform_local / travel_app_platform) by
@@ -457,6 +556,7 @@ describe('database integration migrations and RLS', () => {
       await waitForHealthyContainer();
       assertContainerIsLocal();
     }
+    psqlAdmin(readSql(createLocalRolesSql));
   });
 
   afterAll(() => {
@@ -527,6 +627,10 @@ describe('database integration migrations and RLS', () => {
     expect(result.stdout).toContain('RLS UPDATE agency_id A to B');
     expect(result.stdout).toContain('RLS DELETE Customer B while tenant A');
     expect(result.stdout).toContain('RLS SELECT Audit Log B while tenant A');
+    expect(result.stdout).toContain('Module setting visible to owning agency');
+    expect(result.stdout).toContain('Module setting hidden from another agency');
+    expect(result.stdout).toContain('Runtime cannot delete agency module setting');
+    expect(result.stdout).toContain('Module setting survives restricted delete');
     expect(result.stdout).toContain('RLS INSERT Audit Log agency B while tenant A');
     expect(result.stdout).toContain('Runtime cannot UPDATE Audit Log');
     expect(result.stdout).toContain('Runtime cannot DELETE Audit Log');
@@ -550,7 +654,7 @@ describe('database integration migrations and RLS', () => {
     );
     expect(result.stdout).toContain('F-06 runtime denied SELECT platform_users');
     expect(result.stdout).toContain('F-06 runtime denied SELECT platform_sessions');
-    expect(result.stdout).toContain('(44 rows)');
+    expect(result.stdout).toContain('(48 rows)');
     expect(result.stderr).not.toContain('ERROR');
   });
 
@@ -667,6 +771,7 @@ describe('database integration migrations and RLS', () => {
       // rationale.
       'platform_search_agencies',
       'set_tenant_context',
+      'tenant_backup_sync_identity_sequences',
     ]);
   });
 
@@ -743,6 +848,26 @@ describe('database integration migrations and RLS', () => {
     `);
 
     expect(missingTenantGrants).toEqual([]);
+  });
+
+  it('exposes due backup candidate metadata to the platform role only', () => {
+    const runtimeGrants = queryAdminLines(`
+      SELECT privilege_type
+      FROM information_schema.routine_privileges
+      WHERE specific_schema = 'public'
+        AND grantee = '${runtimeUser}'
+        AND routine_name = 'list_due_tenant_backup_agencies';
+    `);
+    const platformGrants = queryAdminLines(`
+      SELECT privilege_type
+      FROM information_schema.routine_privileges
+      WHERE specific_schema = 'public'
+        AND grantee = '${platformUser}'
+        AND routine_name = 'list_due_tenant_backup_agencies';
+    `);
+
+    expect(runtimeGrants).toEqual([]);
+    expect(platformGrants).toEqual(['EXECUTE']);
   });
 });
 

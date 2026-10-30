@@ -1,0 +1,1142 @@
+{
+ "nodes": [
+  {
+   "id": "file:services/api/tests/document-attachments.test.ts",
+   "type": "file",
+   "name": "document-attachments.test.ts",
+   "filePath": "services/api/tests/document-attachments.test.ts",
+   "summary": "Testes de anexos de documentos: validação de tipo e tamanho, bloqueio de arquivos, geração de chave segura, hash e ciclo de criação e soft delete.",
+   "tags": [
+    "test",
+    "documents",
+    "attachments",
+    "validation",
+    "security"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/tests/document-attachments.test.ts:create",
+   "type": "function",
+   "name": "create",
+   "filePath": "services/api/tests/document-attachments.test.ts",
+   "lineRange": [
+    26,
+    40
+   ],
+   "summary": "Factory que monta linhas de anexo de documento com valores padrão para os testes.",
+   "tags": [
+    "test",
+    "factory",
+    "fixtures",
+    "documents"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:services/api/tests/document-audit.test.ts",
+   "type": "file",
+   "name": "document-audit.test.ts",
+   "filePath": "services/api/tests/document-audit.test.ts",
+   "summary": "Testes da trilha de auditoria de documentos: registro de eventos documentais e leitura dos logs de auditoria por escopo.",
+   "tags": [
+    "test",
+    "audit-log",
+    "documents",
+    "security"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/tests/document-audit.test.ts:captureClient",
+   "type": "function",
+   "name": "captureClient",
+   "filePath": "services/api/tests/document-audit.test.ts",
+   "lineRange": [
+    22,
+    35
+   ],
+   "summary": "Captura o client Prisma utilizado pela gravação de auditoria para asserções dos testes.",
+   "tags": [
+    "test",
+    "mock",
+    "audit",
+    "database"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:services/api/tests/document-extraction.test.ts",
+   "type": "file",
+   "name": "document-extraction.test.ts",
+   "filePath": "services/api/tests/document-extraction.test.ts",
+   "summary": "Testes do fluxo de extração documental: submissão, conclusão, falha, polling e leituras de extrações com escopo por tenant.",
+   "tags": [
+    "test",
+    "documents",
+    "extraction",
+    "ocr",
+    "state-machine"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:services/api/tests/document-masking.test.ts",
+   "type": "file",
+   "name": "document-masking.test.ts",
+   "filePath": "services/api/tests/document-masking.test.ts",
+   "summary": "Testes de mascaramento de dados sensíveis: número de documento, CPF e campos sensíveis protegidos em logs.",
+   "tags": [
+    "test",
+    "security",
+    "masking",
+    "privacy"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:services/api/tests/document-verification.test.ts",
+   "type": "file",
+   "name": "document-verification.test.ts",
+   "filePath": "services/api/tests/document-verification.test.ts",
+   "summary": "Testes de verificação documental: comparação da extração com dados do cliente, criação de verificações e revisão manual.",
+   "tags": [
+    "test",
+    "documents",
+    "verification",
+    "comparison",
+    "security"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/tests/document-verification.test.ts:extraction",
+   "type": "function",
+   "name": "extraction",
+   "filePath": "services/api/tests/document-verification.test.ts",
+   "lineRange": [
+    35,
+    46
+   ],
+   "summary": "Constrói fixture de extração documental para alimentar os testes de verificação.",
+   "tags": [
+    "test",
+    "factory",
+    "fixtures",
+    "extraction"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/document-verification.test.ts:comparisonDatabase",
+   "type": "function",
+   "name": "comparisonDatabase",
+   "filePath": "services/api/tests/document-verification.test.ts",
+   "lineRange": [
+    48,
+    58
+   ],
+   "summary": "Monta banco falso com cliente e documento para os testes de comparação de extração.",
+   "tags": [
+    "test",
+    "mock",
+    "database",
+    "verification"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:services/api/tests/employee-commission-rules.test.ts",
+   "type": "file",
+   "name": "employee-commission-rules.test.ts",
+   "filePath": "services/api/tests/employee-commission-rules.test.ts",
+   "summary": "Testes de regras de comissionamento por funcionário e produto: CRUD de regras, aplicabilidade, geração e cancelamento de comissões.",
+   "tags": [
+    "test",
+    "commissions",
+    "rules",
+    "crud",
+    "rbac"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/tests/employee-commission-rules.test.ts:assertSafeTestDatabase",
+   "type": "function",
+   "name": "assertSafeTestDatabase",
+   "filePath": "services/api/tests/employee-commission-rules.test.ts",
+   "lineRange": [
+    765,
+    784
+   ],
+   "summary": "Valida que a conexão de teste aponta para um database descartável, evitando executar contra dados reais.",
+   "tags": [
+    "test",
+    "safety-check",
+    "database",
+    "guardrail"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/tests/employee-commission-rules.test.ts:waitForHealthyContainer",
+   "type": "function",
+   "name": "waitForHealthyContainer",
+   "filePath": "services/api/tests/employee-commission-rules.test.ts",
+   "lineRange": [
+    796,
+    809
+   ],
+   "summary": "Aguarda o container local do Postgres ficar healthy antes de executar os testes.",
+   "tags": [
+    "test",
+    "docker",
+    "health-check",
+    "bootstrap"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/employee-commission-rules.test.ts:assertContainerIsLocal",
+   "type": "function",
+   "name": "assertContainerIsLocal",
+   "filePath": "services/api/tests/employee-commission-rules.test.ts",
+   "lineRange": [
+    811,
+    823
+   ],
+   "summary": "Garante que o container de Postgres de teste roda apenas em máquina local.",
+   "tags": [
+    "test",
+    "safety-check",
+    "docker",
+    "guardrail"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/employee-commission-rules.test.ts:run",
+   "type": "function",
+   "name": "run",
+   "filePath": "services/api/tests/employee-commission-rules.test.ts",
+   "lineRange": [
+    830,
+    846
+   ],
+   "summary": "Executa comandos externos síncronos (docker compose, psql) com captura de stdout/stderr para o harness de testes.",
+   "tags": [
+    "test",
+    "utility",
+    "spawnSync",
+    "docker"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:services/api/tests/enrollment.test.ts",
+   "type": "file",
+   "name": "enrollment.test.ts",
+   "filePath": "services/api/tests/enrollment.test.ts",
+   "summary": "Testes do fluxo de links de enrollment de clientes (onboarding): geração e revogação de tokens, submissão, pedidos de alteração e aprovação.",
+   "tags": [
+    "test",
+    "onboarding",
+    "enrollment",
+    "links",
+    "security"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/tests/enrollment.test.ts:assertSafeTestDatabase",
+   "type": "function",
+   "name": "assertSafeTestDatabase",
+   "filePath": "services/api/tests/enrollment.test.ts",
+   "lineRange": [
+    342,
+    361
+   ],
+   "summary": "Valida que a conexão de teste aponta para um database descartável, evitando executar contra dados reais.",
+   "tags": [
+    "test",
+    "safety-check",
+    "database",
+    "guardrail"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/tests/enrollment.test.ts:waitForHealthyContainer",
+   "type": "function",
+   "name": "waitForHealthyContainer",
+   "filePath": "services/api/tests/enrollment.test.ts",
+   "lineRange": [
+    373,
+    386
+   ],
+   "summary": "Aguarda o container local do Postgres ficar healthy antes de executar os testes.",
+   "tags": [
+    "test",
+    "docker",
+    "health-check",
+    "bootstrap"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/enrollment.test.ts:resetDatabase",
+   "type": "function",
+   "name": "resetDatabase",
+   "filePath": "services/api/tests/enrollment.test.ts",
+   "lineRange": [
+    396,
+    408
+   ],
+   "summary": "Recria o schema do banco de teste aplicando as migrações SQL antes de cada suíte.",
+   "tags": [
+    "test",
+    "database",
+    "schema-reset",
+    "migrations"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/enrollment.test.ts:seedAgenciesAndUsers",
+   "type": "function",
+   "name": "seedAgenciesAndUsers",
+   "filePath": "services/api/tests/enrollment.test.ts",
+   "lineRange": [
+    417,
+    436
+   ],
+   "summary": "Insere agências e usuários base necessários aos cenários de teste.",
+   "tags": [
+    "test",
+    "seed-data",
+    "fixtures",
+    "database"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/tests/enrollment.test.ts:run",
+   "type": "function",
+   "name": "run",
+   "filePath": "services/api/tests/enrollment.test.ts",
+   "lineRange": [
+    443,
+    459
+   ],
+   "summary": "Executa comandos externos síncronos (docker compose, psql) com captura de stdout/stderr para o harness de testes.",
+   "tags": [
+    "test",
+    "utility",
+    "spawnSync",
+    "docker"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:services/api/tests/env.test.ts",
+   "type": "file",
+   "name": "env.test.ts",
+   "filePath": "services/api/tests/env.test.ts",
+   "summary": "Testes de validação do ambiente: bloqueio de banco de produção em desenvolvimento, papéis e pools seguros do Postgres e validação de startup em produção.",
+   "tags": [
+    "test",
+    "environment",
+    "security",
+    "database",
+    "configuration"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:services/api/tests/feature-flags.test.ts",
+   "type": "file",
+   "name": "feature-flags.test.ts",
+   "filePath": "services/api/tests/feature-flags.test.ts",
+   "summary": "Testes do serviço de feature flags: listagem, kill switch isFeatureEnabled e ativação/desativação de flags.",
+   "tags": [
+    "test",
+    "feature-flags",
+    "service",
+    "kill-switch"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/tests/feature-flags.test.ts:buildFakeDatabase",
+   "type": "function",
+   "name": "buildFakeDatabase",
+   "filePath": "services/api/tests/feature-flags.test.ts",
+   "lineRange": [
+    28,
+    84
+   ],
+   "summary": "Cria um banco falso completo com feature flags para exercitar o serviço de flags.",
+   "tags": [
+    "test",
+    "mock",
+    "database",
+    "feature-flags"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/tests/feature-flags.test.ts:makeFlag",
+   "type": "function",
+   "name": "makeFlag",
+   "filePath": "services/api/tests/feature-flags.test.ts",
+   "lineRange": [
+    86,
+    100
+   ],
+   "summary": "Factory que gera linhas de feature flag com valores padrão.",
+   "tags": [
+    "test",
+    "factory",
+    "feature-flags",
+    "fixtures"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:services/api/tests/financial-http.test.ts",
+   "type": "file",
+   "name": "financial-http.test.ts",
+   "filePath": "services/api/tests/financial-http.test.ts",
+   "summary": "Testes HTTP das rotas financeiras: endpoints de receitas, despesas, caixa e relatórios com autenticação e RBAC.",
+   "tags": [
+    "test",
+    "http",
+    "financial",
+    "rbac",
+    "api-handler"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/tests/financial-http.test.ts:assertSafeTestDatabase",
+   "type": "function",
+   "name": "assertSafeTestDatabase",
+   "filePath": "services/api/tests/financial-http.test.ts",
+   "lineRange": [
+    746,
+    756
+   ],
+   "summary": "Valida que a conexão de teste aponta para um database descartável, evitando executar contra dados reais.",
+   "tags": [
+    "test",
+    "safety-check",
+    "database",
+    "guardrail"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/financial-http.test.ts:waitForHealthyContainer",
+   "type": "function",
+   "name": "waitForHealthyContainer",
+   "filePath": "services/api/tests/financial-http.test.ts",
+   "lineRange": [
+    768,
+    779
+   ],
+   "summary": "Aguarda o container local do Postgres ficar healthy antes de executar os testes.",
+   "tags": [
+    "test",
+    "docker",
+    "health-check",
+    "bootstrap"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/financial-http.test.ts:seedAgenciesAndUsers",
+   "type": "function",
+   "name": "seedAgenciesAndUsers",
+   "filePath": "services/api/tests/financial-http.test.ts",
+   "lineRange": [
+    805,
+    824
+   ],
+   "summary": "Insere agências e usuários base necessários aos cenários de teste.",
+   "tags": [
+    "test",
+    "seed-data",
+    "fixtures",
+    "database"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/tests/financial-http.test.ts:run",
+   "type": "function",
+   "name": "run",
+   "filePath": "services/api/tests/financial-http.test.ts",
+   "lineRange": [
+    831,
+    849
+   ],
+   "summary": "Executa comandos externos síncronos (docker compose, psql) com captura de stdout/stderr para o harness de testes.",
+   "tags": [
+    "test",
+    "utility",
+    "spawnSync",
+    "docker"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:services/api/tests/financial.test.ts",
+   "type": "file",
+   "name": "financial.test.ts",
+   "filePath": "services/api/tests/financial.test.ts",
+   "summary": "Testes da camada de dados financeiros: categorias, centros de custo, receitas, despesas, caixa e relatórios (DRE) com isolamento por tenant.",
+   "tags": [
+    "test",
+    "data-access",
+    "financial",
+    "reports",
+    "tenant-isolation"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/tests/financial.test.ts:assertSafeTestDatabase",
+   "type": "function",
+   "name": "assertSafeTestDatabase",
+   "filePath": "services/api/tests/financial.test.ts",
+   "lineRange": [
+    449,
+    468
+   ],
+   "summary": "Valida que a conexão de teste aponta para um database descartável, evitando executar contra dados reais.",
+   "tags": [
+    "test",
+    "safety-check",
+    "database",
+    "guardrail"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/tests/financial.test.ts:waitForHealthyContainer",
+   "type": "function",
+   "name": "waitForHealthyContainer",
+   "filePath": "services/api/tests/financial.test.ts",
+   "lineRange": [
+    480,
+    493
+   ],
+   "summary": "Aguarda o container local do Postgres ficar healthy antes de executar os testes.",
+   "tags": [
+    "test",
+    "docker",
+    "health-check",
+    "bootstrap"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/financial.test.ts:seedAgenciesAndUsers",
+   "type": "function",
+   "name": "seedAgenciesAndUsers",
+   "filePath": "services/api/tests/financial.test.ts",
+   "lineRange": [
+    519,
+    538
+   ],
+   "summary": "Insere agências e usuários base necessários aos cenários de teste.",
+   "tags": [
+    "test",
+    "seed-data",
+    "fixtures",
+    "database"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/tests/financial.test.ts:run",
+   "type": "function",
+   "name": "run",
+   "filePath": "services/api/tests/financial.test.ts",
+   "lineRange": [
+    545,
+    564
+   ],
+   "summary": "Executa comandos externos síncronos (docker compose, psql) com captura de stdout/stderr para o harness de testes.",
+   "tags": [
+    "test",
+    "utility",
+    "spawnSync",
+    "docker"
+   ],
+   "complexity": "moderate"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:services/api/tests/document-attachments.test.ts",
+   "target": "function:services/api/tests/document-attachments.test.ts:create",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/document-audit.test.ts",
+   "target": "function:services/api/tests/document-audit.test.ts:captureClient",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/document-verification.test.ts",
+   "target": "function:services/api/tests/document-verification.test.ts:extraction",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/document-verification.test.ts",
+   "target": "function:services/api/tests/document-verification.test.ts:comparisonDatabase",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/employee-commission-rules.test.ts",
+   "target": "function:services/api/tests/employee-commission-rules.test.ts:assertSafeTestDatabase",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/employee-commission-rules.test.ts",
+   "target": "function:services/api/tests/employee-commission-rules.test.ts:waitForHealthyContainer",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/employee-commission-rules.test.ts",
+   "target": "function:services/api/tests/employee-commission-rules.test.ts:assertContainerIsLocal",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/employee-commission-rules.test.ts",
+   "target": "function:services/api/tests/employee-commission-rules.test.ts:run",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/enrollment.test.ts",
+   "target": "function:services/api/tests/enrollment.test.ts:assertSafeTestDatabase",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/enrollment.test.ts",
+   "target": "function:services/api/tests/enrollment.test.ts:waitForHealthyContainer",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/enrollment.test.ts",
+   "target": "function:services/api/tests/enrollment.test.ts:resetDatabase",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/enrollment.test.ts",
+   "target": "function:services/api/tests/enrollment.test.ts:seedAgenciesAndUsers",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/enrollment.test.ts",
+   "target": "function:services/api/tests/enrollment.test.ts:run",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/feature-flags.test.ts",
+   "target": "function:services/api/tests/feature-flags.test.ts:buildFakeDatabase",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/feature-flags.test.ts",
+   "target": "function:services/api/tests/feature-flags.test.ts:makeFlag",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/financial-http.test.ts",
+   "target": "function:services/api/tests/financial-http.test.ts:assertSafeTestDatabase",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/financial-http.test.ts",
+   "target": "function:services/api/tests/financial-http.test.ts:waitForHealthyContainer",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/financial-http.test.ts",
+   "target": "function:services/api/tests/financial-http.test.ts:seedAgenciesAndUsers",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/financial-http.test.ts",
+   "target": "function:services/api/tests/financial-http.test.ts:run",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/financial.test.ts",
+   "target": "function:services/api/tests/financial.test.ts:assertSafeTestDatabase",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/financial.test.ts",
+   "target": "function:services/api/tests/financial.test.ts:waitForHealthyContainer",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/financial.test.ts",
+   "target": "function:services/api/tests/financial.test.ts:seedAgenciesAndUsers",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/financial.test.ts",
+   "target": "function:services/api/tests/financial.test.ts:run",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/document-attachments.test.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/document-attachments.test.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/document-attachments.test.ts",
+   "target": "file:services/api/src/document-attachments.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/document-attachments.test.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/document-attachments.test.ts",
+   "target": "file:services/api/tests/helpers/fake-database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/document-audit.test.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/document-audit.test.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/document-audit.test.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/document-audit.test.ts",
+   "target": "file:services/api/src/document-audit.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/document-audit.test.ts",
+   "target": "file:services/api/tests/helpers/fake-database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/document-extraction.test.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/document-extraction.test.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/document-extraction.test.ts",
+   "target": "file:services/api/src/document-extraction.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/document-extraction.test.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/document-extraction.test.ts",
+   "target": "file:services/api/src/ocr-provider.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/document-extraction.test.ts",
+   "target": "file:services/api/tests/helpers/fake-database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/document-masking.test.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/document-masking.test.ts",
+   "target": "file:services/api/src/document-masking.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/document-verification.test.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/document-verification.test.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/document-verification.test.ts",
+   "target": "file:services/api/src/document-verification.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/document-verification.test.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/document-verification.test.ts",
+   "target": "file:services/api/tests/helpers/fake-database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/employee-commission-rules.test.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/employee-commission-rules.test.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/employee-commission-rules.test.ts",
+   "target": "file:services/api/src/app.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/employee-commission-rules.test.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/employee-commission-rules.test.ts",
+   "target": "file:services/api/src/employee-commission-rules.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/employee-commission-rules.test.ts",
+   "target": "file:services/api/src/employee-commissions.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/employee-commission-rules.test.ts",
+   "target": "file:services/api/src/sales.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/enrollment.test.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/enrollment.test.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/enrollment.test.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/enrollment.test.ts",
+   "target": "file:services/api/src/enrollment.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/env.test.ts",
+   "target": "file:services/api/src/env.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/feature-flags.test.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/feature-flags.test.ts",
+   "target": "file:services/api/src/feature-flags.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/financial-http.test.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/financial-http.test.ts",
+   "target": "file:services/api/src/app.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/financial-http.test.ts",
+   "target": "file:services/api/src/auth.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/financial-http.test.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/financial.test.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/financial.test.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/financial.test.ts",
+   "target": "file:services/api/src/audit-log.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/financial.test.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/financial.test.ts",
+   "target": "file:services/api/src/financial.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/document-attachments.ts",
+   "target": "file:services/api/tests/document-attachments.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/document-audit.ts",
+   "target": "file:services/api/tests/document-audit.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/document-extraction.ts",
+   "target": "file:services/api/tests/document-extraction.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/document-masking.ts",
+   "target": "file:services/api/tests/document-masking.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/document-verification.ts",
+   "target": "file:services/api/tests/document-verification.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/employee-commission-rules.ts",
+   "target": "file:services/api/tests/employee-commission-rules.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/enrollment.ts",
+   "target": "file:services/api/tests/enrollment.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/env.ts",
+   "target": "file:services/api/tests/env.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/feature-flags.ts",
+   "target": "file:services/api/tests/feature-flags.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/financial.ts",
+   "target": "file:services/api/tests/financial.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/app.ts",
+   "target": "file:services/api/tests/financial-http.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  }
+ ]
+}

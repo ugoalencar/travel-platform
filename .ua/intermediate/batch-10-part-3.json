@@ -1,0 +1,1538 @@
+{
+ "nodes": [
+  {
+   "id": "file:services/api/src/routes/coupons.ts",
+   "type": "file",
+   "name": "coupons.ts",
+   "filePath": "services/api/src/routes/coupons.ts",
+   "summary": "Rotas de cupons: criação, listagem, concessão a clientes e registro de resgates, protegidas por entitlement e papel.",
+   "tags": [
+    "api-handler",
+    "routes",
+    "coupons",
+    "entitlements"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/routes/coupons.ts:registerCouponsRoutes",
+   "type": "function",
+   "name": "registerCouponsRoutes",
+   "filePath": "services/api/src/routes/coupons.ts",
+   "lineRange": [
+    36,
+    75
+   ],
+   "summary": "Registra as rotas de cupons, concessões e resgates no Fastify, aplicando validação de entrada e autorização por papel ou entitlement antes de delegar à camada de serviço.",
+   "tags": [
+    "api-handler",
+    "route-registration",
+    "authorization",
+    "fastify"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/routes/coupons.ts:parseCreateCouponInput",
+   "type": "function",
+   "name": "parseCreateCouponInput",
+   "filePath": "services/api/src/routes/coupons.ts",
+   "lineRange": [
+    77,
+    95
+   ],
+   "summary": "Valida e normaliza o corpo da requisição para criação de Coupon, verificando campos obrigatórios, tipos e valores permitidos.",
+   "tags": [
+    "validation",
+    "parsing",
+    "input-sanitization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/routes/coupons.ts:parseGrantCouponInput",
+   "type": "function",
+   "name": "parseGrantCouponInput",
+   "filePath": "services/api/src/routes/coupons.ts",
+   "lineRange": [
+    97,
+    111
+   ],
+   "summary": "Valida e normaliza os dados de Grant Coupon enviados na requisição.",
+   "tags": [
+    "validation",
+    "parsing",
+    "input-sanitization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/routes/coupons.ts:parseRecordRedemptionInput",
+   "type": "function",
+   "name": "parseRecordRedemptionInput",
+   "filePath": "services/api/src/routes/coupons.ts",
+   "lineRange": [
+    113,
+    126
+   ],
+   "summary": "Valida e normaliza os dados de Record Redemption enviados na requisição.",
+   "tags": [
+    "validation",
+    "parsing",
+    "input-sanitization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:services/api/src/routes/customer-auth.ts",
+   "type": "file",
+   "name": "customer-auth.ts",
+   "filePath": "services/api/src/routes/customer-auth.ts",
+   "summary": "Autenticação do portal do cliente: login com proteção contra abuso, recuperação de senha e logout via bearer token.",
+   "tags": [
+    "api-handler",
+    "authentication",
+    "routes",
+    "security"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/routes/customer-auth.ts:registerCustomerAuthRoutes",
+   "type": "function",
+   "name": "registerCustomerAuthRoutes",
+   "filePath": "services/api/src/routes/customer-auth.ts",
+   "lineRange": [
+    51,
+    128
+   ],
+   "summary": "Registra as rotas de autenticação de clientes do portal no Fastify, aplicando validação de entrada e autorização por papel ou entitlement antes de delegar à camada de serviço.",
+   "tags": [
+    "api-handler",
+    "route-registration",
+    "authorization",
+    "fastify"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:services/api/src/routes/customer-documents.ts",
+   "type": "file",
+   "name": "customer-documents.ts",
+   "filePath": "services/api/src/routes/customer-documents.ts",
+   "summary": "Maior módulo de rotas da API: CRUD de endereços, dependentes, documentos, anexos com OCR/verificação e requisitos de viagem, incluindo upload, extração e auditoria de documentos.",
+   "tags": [
+    "api-handler",
+    "routes",
+    "documents",
+    "ocr",
+    "upload"
+   ],
+   "complexity": "complex",
+   "languageNotes": "Combina rotas, validação manual de payload e orquestração de upload, OCR e verificação de documentos num único arquivo."
+  },
+  {
+   "id": "function:services/api/src/routes/customer-documents.ts:registerCustomerDocumentRoutes",
+   "type": "function",
+   "name": "registerCustomerDocumentRoutes",
+   "filePath": "services/api/src/routes/customer-documents.ts",
+   "lineRange": [
+    107,
+    766
+   ],
+   "summary": "Registra as rotas de documentos, endereços, dependentes e requisitos de viagem do cliente no Fastify, aplicando validação de entrada e autorização por papel ou entitlement antes de delegar à camada de serviço.",
+   "tags": [
+    "api-handler",
+    "route-registration",
+    "authorization",
+    "fastify"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/routes/customer-documents.ts:rejectUnknownFields",
+   "type": "function",
+   "name": "rejectUnknownFields",
+   "filePath": "services/api/src/routes/customer-documents.ts",
+   "lineRange": [
+    781,
+    790
+   ],
+   "summary": "Rejeita o payload quando contém campos fora da allowlist permitida.",
+   "tags": [
+    "validation",
+    "utility",
+    "input-sanitization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/routes/customer-documents.ts:optionalString",
+   "type": "function",
+   "name": "optionalString",
+   "filePath": "services/api/src/routes/customer-documents.ts",
+   "lineRange": [
+    800,
+    809
+   ],
+   "summary": "Extrai um campo string opcional, aplicando trim e convertendo valores vazios em undefined.",
+   "tags": [
+    "validation",
+    "utility",
+    "input-sanitization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/routes/customer-documents.ts:nullableString",
+   "type": "function",
+   "name": "nullableString",
+   "filePath": "services/api/src/routes/customer-documents.ts",
+   "lineRange": [
+    811,
+    826
+   ],
+   "summary": "Extrai um campo string opcional que pode ser null, aplicando trim quando presente.",
+   "tags": [
+    "validation",
+    "utility",
+    "input-sanitization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/routes/customer-documents.ts:optionalBoolean",
+   "type": "function",
+   "name": "optionalBoolean",
+   "filePath": "services/api/src/routes/customer-documents.ts",
+   "lineRange": [
+    828,
+    837
+   ],
+   "summary": "Extrai um campo booleano opcional, aceitando apenas valores booleanos.",
+   "tags": [
+    "validation",
+    "utility",
+    "input-sanitization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/routes/customer-documents.ts:optionalEnum",
+   "type": "function",
+   "name": "optionalEnum",
+   "filePath": "services/api/src/routes/customer-documents.ts",
+   "lineRange": [
+    839,
+    852
+   ],
+   "summary": "Extrai um campo opcional restrito a um conjunto fixo de valores permitidos.",
+   "tags": [
+    "validation",
+    "utility",
+    "input-sanitization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/routes/customer-documents.ts:requireEnum",
+   "type": "function",
+   "name": "requireEnum",
+   "filePath": "services/api/src/routes/customer-documents.ts",
+   "lineRange": [
+    854,
+    864
+   ],
+   "summary": "Exige um campo presente restrito a um conjunto fixo de valores, com mensagem de erro listando as opções.",
+   "tags": [
+    "validation",
+    "utility",
+    "input-sanitization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/routes/customer-documents.ts:parseCreateAddressInput",
+   "type": "function",
+   "name": "parseCreateAddressInput",
+   "filePath": "services/api/src/routes/customer-documents.ts",
+   "lineRange": [
+    871,
+    903
+   ],
+   "summary": "Valida e normaliza o corpo da requisição para criação de Address, verificando campos obrigatórios, tipos e valores permitidos.",
+   "tags": [
+    "validation",
+    "parsing",
+    "input-sanitization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/routes/customer-documents.ts:parseUpdateAddressInput",
+   "type": "function",
+   "name": "parseUpdateAddressInput",
+   "filePath": "services/api/src/routes/customer-documents.ts",
+   "lineRange": [
+    905,
+    929
+   ],
+   "summary": "Valida e normaliza o corpo da requisição para atualização de Address, verificando campos obrigatórios, tipos e valores permitidos.",
+   "tags": [
+    "validation",
+    "parsing",
+    "input-sanitization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/routes/customer-documents.ts:parseCreateDependentInput",
+   "type": "function",
+   "name": "parseCreateDependentInput",
+   "filePath": "services/api/src/routes/customer-documents.ts",
+   "lineRange": [
+    936,
+    963
+   ],
+   "summary": "Valida e normaliza o corpo da requisição para criação de Dependent, verificando campos obrigatórios, tipos e valores permitidos.",
+   "tags": [
+    "validation",
+    "parsing",
+    "input-sanitization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/routes/customer-documents.ts:parseUpdateDependentInput",
+   "type": "function",
+   "name": "parseUpdateDependentInput",
+   "filePath": "services/api/src/routes/customer-documents.ts",
+   "lineRange": [
+    965,
+    989
+   ],
+   "summary": "Valida e normaliza o corpo da requisição para atualização de Dependent, verificando campos obrigatórios, tipos e valores permitidos.",
+   "tags": [
+    "validation",
+    "parsing",
+    "input-sanitization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/routes/customer-documents.ts:parseCreateDocumentInput",
+   "type": "function",
+   "name": "parseCreateDocumentInput",
+   "filePath": "services/api/src/routes/customer-documents.ts",
+   "lineRange": [
+    1001,
+    1023
+   ],
+   "summary": "Valida e normaliza o corpo da requisição para criação de Document, verificando campos obrigatórios, tipos e valores permitidos.",
+   "tags": [
+    "validation",
+    "parsing",
+    "input-sanitization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/routes/customer-documents.ts:parseUpdateDocumentInput",
+   "type": "function",
+   "name": "parseUpdateDocumentInput",
+   "filePath": "services/api/src/routes/customer-documents.ts",
+   "lineRange": [
+    1025,
+    1053
+   ],
+   "summary": "Valida e normaliza o corpo da requisição para atualização de Document, verificando campos obrigatórios, tipos e valores permitidos.",
+   "tags": [
+    "validation",
+    "parsing",
+    "input-sanitization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/routes/customer-documents.ts:parseCreateTravelRequirementInput",
+   "type": "function",
+   "name": "parseCreateTravelRequirementInput",
+   "filePath": "services/api/src/routes/customer-documents.ts",
+   "lineRange": [
+    1064,
+    1091
+   ],
+   "summary": "Valida e normaliza o corpo da requisição para criação de Travel Requirement, verificando campos obrigatórios, tipos e valores permitidos.",
+   "tags": [
+    "validation",
+    "parsing",
+    "input-sanitization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/routes/customer-documents.ts:parseUpdateTravelRequirementInput",
+   "type": "function",
+   "name": "parseUpdateTravelRequirementInput",
+   "filePath": "services/api/src/routes/customer-documents.ts",
+   "lineRange": [
+    1093,
+    1111
+   ],
+   "summary": "Valida e normaliza o corpo da requisição para atualização de Travel Requirement, verificando campos obrigatórios, tipos e valores permitidos.",
+   "tags": [
+    "validation",
+    "parsing",
+    "input-sanitization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:services/api/src/routes/customer-portal.ts",
+   "type": "file",
+   "name": "customer-portal.ts",
+   "filePath": "services/api/src/routes/customer-portal.ts",
+   "summary": "Rotas do portal do cliente com validador de acesso próprio: perfil, viagens, ofertas, propostas, reservas, serviços, documentos e streaming de mídia.",
+   "tags": [
+    "api-handler",
+    "routes",
+    "customer-portal",
+    "self-service"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/routes/customer-portal.ts:registerCustomerPortalRoutes",
+   "type": "function",
+   "name": "registerCustomerPortalRoutes",
+   "filePath": "services/api/src/routes/customer-portal.ts",
+   "lineRange": [
+    53,
+    317
+   ],
+   "summary": "Registra as rotas de portal do cliente (perfil, viagens, ofertas, propostas, reservas e documentos) no Fastify, aplicando validação de entrada e autorização por papel ou entitlement antes de delegar à camada de serviço.",
+   "tags": [
+    "api-handler",
+    "route-registration",
+    "authorization",
+    "fastify"
+   ],
+   "complexity": "complex"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:services/api/src/routes/coupons.ts",
+   "target": "function:services/api/src/routes/coupons.ts:registerCouponsRoutes",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/coupons.ts",
+   "target": "function:services/api/src/routes/coupons.ts:registerCouponsRoutes",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/coupons.ts",
+   "target": "function:services/api/src/routes/coupons.ts:parseCreateCouponInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/coupons.ts",
+   "target": "function:services/api/src/routes/coupons.ts:parseGrantCouponInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/coupons.ts",
+   "target": "function:services/api/src/routes/coupons.ts:parseRecordRedemptionInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/customer-auth.ts",
+   "target": "function:services/api/src/routes/customer-auth.ts:registerCustomerAuthRoutes",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/customer-auth.ts",
+   "target": "function:services/api/src/routes/customer-auth.ts:registerCustomerAuthRoutes",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/customer-documents.ts",
+   "target": "function:services/api/src/routes/customer-documents.ts:registerCustomerDocumentRoutes",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/customer-documents.ts",
+   "target": "function:services/api/src/routes/customer-documents.ts:registerCustomerDocumentRoutes",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/customer-documents.ts",
+   "target": "function:services/api/src/routes/customer-documents.ts:rejectUnknownFields",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/customer-documents.ts",
+   "target": "function:services/api/src/routes/customer-documents.ts:optionalString",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/customer-documents.ts",
+   "target": "function:services/api/src/routes/customer-documents.ts:nullableString",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/customer-documents.ts",
+   "target": "function:services/api/src/routes/customer-documents.ts:optionalBoolean",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/customer-documents.ts",
+   "target": "function:services/api/src/routes/customer-documents.ts:optionalEnum",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/customer-documents.ts",
+   "target": "function:services/api/src/routes/customer-documents.ts:requireEnum",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/customer-documents.ts",
+   "target": "function:services/api/src/routes/customer-documents.ts:parseCreateAddressInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/customer-documents.ts",
+   "target": "function:services/api/src/routes/customer-documents.ts:parseCreateAddressInput",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/customer-documents.ts",
+   "target": "function:services/api/src/routes/customer-documents.ts:parseUpdateAddressInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/customer-documents.ts",
+   "target": "function:services/api/src/routes/customer-documents.ts:parseUpdateAddressInput",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/customer-documents.ts",
+   "target": "function:services/api/src/routes/customer-documents.ts:parseCreateDependentInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/customer-documents.ts",
+   "target": "function:services/api/src/routes/customer-documents.ts:parseCreateDependentInput",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/customer-documents.ts",
+   "target": "function:services/api/src/routes/customer-documents.ts:parseUpdateDependentInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/customer-documents.ts",
+   "target": "function:services/api/src/routes/customer-documents.ts:parseUpdateDependentInput",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/customer-documents.ts",
+   "target": "function:services/api/src/routes/customer-documents.ts:parseCreateDocumentInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/customer-documents.ts",
+   "target": "function:services/api/src/routes/customer-documents.ts:parseCreateDocumentInput",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/customer-documents.ts",
+   "target": "function:services/api/src/routes/customer-documents.ts:parseUpdateDocumentInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/customer-documents.ts",
+   "target": "function:services/api/src/routes/customer-documents.ts:parseUpdateDocumentInput",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/customer-documents.ts",
+   "target": "function:services/api/src/routes/customer-documents.ts:parseCreateTravelRequirementInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/customer-documents.ts",
+   "target": "function:services/api/src/routes/customer-documents.ts:parseCreateTravelRequirementInput",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/customer-documents.ts",
+   "target": "function:services/api/src/routes/customer-documents.ts:parseUpdateTravelRequirementInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/customer-documents.ts",
+   "target": "function:services/api/src/routes/customer-documents.ts:parseUpdateTravelRequirementInput",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/customer-portal.ts",
+   "target": "function:services/api/src/routes/customer-portal.ts:registerCustomerPortalRoutes",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/customer-portal.ts",
+   "target": "function:services/api/src/routes/customer-portal.ts:registerCustomerPortalRoutes",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/coupons.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/coupons.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/coupons.ts",
+   "target": "file:services/api/src/coupons.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/coupons.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/coupons.ts",
+   "target": "file:services/api/src/entitlements.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/coupons.ts",
+   "target": "file:services/api/src/request-parsing.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/customer-auth.ts",
+   "target": "file:services/api/src/customer-local-auth.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/customer-auth.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/customer-auth.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/customer-auth.ts",
+   "target": "file:services/api/src/rate-limit.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/customer-documents.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/customer-documents.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/customer-documents.ts",
+   "target": "file:services/api/src/customer-addresses.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/customer-documents.ts",
+   "target": "file:services/api/src/customer-dependents.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/customer-documents.ts",
+   "target": "file:services/api/src/customer-documents.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/customer-documents.ts",
+   "target": "file:services/api/src/customers.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/customer-documents.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/customer-documents.ts",
+   "target": "file:services/api/src/document-attachments.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/customer-documents.ts",
+   "target": "file:services/api/src/document-audit.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/customer-documents.ts",
+   "target": "file:services/api/src/document-extraction.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/customer-documents.ts",
+   "target": "file:services/api/src/document-verification.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/customer-documents.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/customer-documents.ts",
+   "target": "file:services/api/src/ocr-provider.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/customer-documents.ts",
+   "target": "file:services/api/src/storage.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/customer-documents.ts",
+   "target": "file:services/api/src/travel-requirements.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/customer-portal.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/customer-portal.ts",
+   "target": "file:services/api/src/agency-communications.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/customer-portal.ts",
+   "target": "file:services/api/src/customer-engagement.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/customer-portal.ts",
+   "target": "file:services/api/src/customer-portal.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/customer-portal.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/customer-portal.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/customer-portal.ts",
+   "target": "file:services/api/src/media-library.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/customer-portal.ts",
+   "target": "file:services/api/src/storage.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/customer-portal.ts",
+   "target": "file:services/api/src/trip-photos.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "function:services/api/src/routes/coupons.ts:registerCouponsRoutes",
+   "target": "function:services/api/src/entitlements.ts:requireEntitlement",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/coupons.ts:registerCouponsRoutes",
+   "target": "function:packages/domain/tenant-context.ts:requireRole",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/coupons.ts:registerCouponsRoutes",
+   "target": "function:services/api/src/coupons.ts:listCoupons",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/coupons.ts:registerCouponsRoutes",
+   "target": "function:services/api/src/coupons.ts:createCoupon",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/coupons.ts:registerCouponsRoutes",
+   "target": "function:services/api/src/coupons.ts:grantCoupon",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/coupons.ts:registerCouponsRoutes",
+   "target": "function:services/api/src/coupons.ts:recordRedemption",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/coupons.ts:parseCreateCouponInput",
+   "target": "function:services/api/src/request-parsing.ts:parseObjectBody",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/coupons.ts:parseCreateCouponInput",
+   "target": "function:services/api/src/request-parsing.ts:parseRequiredString",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/coupons.ts:parseCreateCouponInput",
+   "target": "function:services/api/src/request-parsing.ts:parseNonNegativeNumber",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/coupons.ts:parseCreateCouponInput",
+   "target": "function:services/api/src/request-parsing.ts:parseRequiredDate",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/coupons.ts:parseCreateCouponInput",
+   "target": "function:services/api/src/request-parsing.ts:parsePositiveNumber",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/coupons.ts:parseGrantCouponInput",
+   "target": "function:services/api/src/request-parsing.ts:parseObjectBody",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/coupons.ts:parseGrantCouponInput",
+   "target": "function:services/api/src/request-parsing.ts:parseRequiredString",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/coupons.ts:parseRecordRedemptionInput",
+   "target": "function:services/api/src/request-parsing.ts:parseObjectBody",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/coupons.ts:parseRecordRedemptionInput",
+   "target": "function:services/api/src/request-parsing.ts:parseRequiredString",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/coupons.ts:parseRecordRedemptionInput",
+   "target": "function:services/api/src/request-parsing.ts:parseNonNegativeNumber",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-auth.ts:registerCustomerAuthRoutes",
+   "target": "function:services/api/src/customer-local-auth.ts:customerLogin",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-auth.ts:registerCustomerAuthRoutes",
+   "target": "function:services/api/src/customer-local-auth.ts:customerForgotPassword",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-auth.ts:registerCustomerAuthRoutes",
+   "target": "function:services/api/src/customer-local-auth.ts:customerResetPassword",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-auth.ts:registerCustomerAuthRoutes",
+   "target": "function:services/api/src/customer-local-auth.ts:customerLogout",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-documents.ts:registerCustomerDocumentRoutes",
+   "target": "function:packages/domain/tenant-context.ts:requireRole",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-documents.ts:registerCustomerDocumentRoutes",
+   "target": "function:services/api/src/customer-addresses.ts:listAddresses",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-documents.ts:registerCustomerDocumentRoutes",
+   "target": "function:services/api/src/customer-addresses.ts:getAddressById",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-documents.ts:registerCustomerDocumentRoutes",
+   "target": "function:services/api/src/customer-addresses.ts:createAddress",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-documents.ts:registerCustomerDocumentRoutes",
+   "target": "function:services/api/src/customer-addresses.ts:updateAddress",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-documents.ts:registerCustomerDocumentRoutes",
+   "target": "function:services/api/src/customer-addresses.ts:deleteAddress",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-documents.ts:registerCustomerDocumentRoutes",
+   "target": "function:services/api/src/customer-dependents.ts:listDependents",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-documents.ts:registerCustomerDocumentRoutes",
+   "target": "function:services/api/src/customer-dependents.ts:getDependentById",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-documents.ts:registerCustomerDocumentRoutes",
+   "target": "function:services/api/src/customer-dependents.ts:createDependent",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-documents.ts:registerCustomerDocumentRoutes",
+   "target": "function:services/api/src/customer-dependents.ts:updateDependent",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-documents.ts:registerCustomerDocumentRoutes",
+   "target": "function:services/api/src/customer-dependents.ts:deleteDependent",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-documents.ts:registerCustomerDocumentRoutes",
+   "target": "function:services/api/src/customer-dependents.ts:convertDependentToCustomer",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-documents.ts:registerCustomerDocumentRoutes",
+   "target": "function:services/api/src/customer-documents.ts:listDocuments",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-documents.ts:registerCustomerDocumentRoutes",
+   "target": "function:services/api/src/customer-documents.ts:getDocumentById",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-documents.ts:registerCustomerDocumentRoutes",
+   "target": "function:services/api/src/customer-documents.ts:createDocument",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-documents.ts:registerCustomerDocumentRoutes",
+   "target": "function:services/api/src/customer-documents.ts:updateDocument",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-documents.ts:registerCustomerDocumentRoutes",
+   "target": "function:services/api/src/customer-documents.ts:deleteDocument",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-documents.ts:registerCustomerDocumentRoutes",
+   "target": "function:services/api/src/travel-requirements.ts:listTravelRequirements",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-documents.ts:registerCustomerDocumentRoutes",
+   "target": "function:services/api/src/travel-requirements.ts:createTravelRequirement",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-documents.ts:registerCustomerDocumentRoutes",
+   "target": "function:services/api/src/travel-requirements.ts:getTravelRequirementById",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-documents.ts:registerCustomerDocumentRoutes",
+   "target": "function:services/api/src/travel-requirements.ts:updateTravelRequirement",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-documents.ts:registerCustomerDocumentRoutes",
+   "target": "function:services/api/src/travel-requirements.ts:deleteTravelRequirement",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-documents.ts:registerCustomerDocumentRoutes",
+   "target": "function:services/api/src/document-attachments.ts:listAttachments",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-documents.ts:registerCustomerDocumentRoutes",
+   "target": "function:services/api/src/document-attachments.ts:isBlockedFileName",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-documents.ts:registerCustomerDocumentRoutes",
+   "target": "function:services/api/src/document-attachments.ts:validateFileType",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-documents.ts:registerCustomerDocumentRoutes",
+   "target": "function:services/api/src/document-attachments.ts:validateFileSize",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-documents.ts:registerCustomerDocumentRoutes",
+   "target": "function:services/api/src/document-attachments.ts:generateSecureFileKey",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-documents.ts:registerCustomerDocumentRoutes",
+   "target": "function:services/api/src/storage.ts:saveFile",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-documents.ts:registerCustomerDocumentRoutes",
+   "target": "function:services/api/src/document-attachments.ts:createAttachment",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-documents.ts:registerCustomerDocumentRoutes",
+   "target": "function:services/api/src/document-attachments.ts:calculateFileHash",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-documents.ts:registerCustomerDocumentRoutes",
+   "target": "function:services/api/src/document-attachments.ts:getAttachmentById",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-documents.ts:registerCustomerDocumentRoutes",
+   "target": "function:services/api/src/document-attachments.ts:deleteAttachment",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-documents.ts:registerCustomerDocumentRoutes",
+   "target": "function:services/api/src/storage.ts:deleteStoredFileAfterCommit",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-documents.ts:registerCustomerDocumentRoutes",
+   "target": "function:services/api/src/document-extraction.ts:submitDocumentForExtraction",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-documents.ts:registerCustomerDocumentRoutes",
+   "target": "function:services/api/src/document-extraction.ts:listExtractionsForDocument",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-documents.ts:registerCustomerDocumentRoutes",
+   "target": "function:services/api/src/document-extraction.ts:getExtraction",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-documents.ts:registerCustomerDocumentRoutes",
+   "target": "function:services/api/src/document-extraction.ts:pollExtraction",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-documents.ts:registerCustomerDocumentRoutes",
+   "target": "function:services/api/src/document-verification.ts:verifyAgainstCustomer",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-documents.ts:registerCustomerDocumentRoutes",
+   "target": "function:services/api/src/document-verification.ts:getLatestVerificationForDocument",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-documents.ts:registerCustomerDocumentRoutes",
+   "target": "function:services/api/src/document-verification.ts:getVerification",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-documents.ts:registerCustomerDocumentRoutes",
+   "target": "function:services/api/src/document-verification.ts:recordManualReview",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-documents.ts:registerCustomerDocumentRoutes",
+   "target": "function:services/api/src/document-audit.ts:getAuditLog",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-documents.ts:registerCustomerDocumentRoutes",
+   "target": "function:services/api/src/document-audit.ts:getDocumentAuditLog",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-portal.ts:registerCustomerPortalRoutes",
+   "target": "function:services/api/src/customer-portal.ts:getMyProfile",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-portal.ts:registerCustomerPortalRoutes",
+   "target": "function:services/api/src/customer-portal.ts:getMyAgencyContact",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-portal.ts:registerCustomerPortalRoutes",
+   "target": "function:services/api/src/customer-portal.ts:listMyTrips",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-portal.ts:registerCustomerPortalRoutes",
+   "target": "function:services/api/src/customer-portal.ts:getMyTripById",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-portal.ts:registerCustomerPortalRoutes",
+   "target": "function:services/api/src/customer-portal.ts:listAvailableOffers",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-portal.ts:registerCustomerPortalRoutes",
+   "target": "function:services/api/src/customer-portal.ts:getAvailableOfferById",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-portal.ts:registerCustomerPortalRoutes",
+   "target": "function:services/api/src/customer-portal.ts:recordMyOfferInterest",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-portal.ts:registerCustomerPortalRoutes",
+   "target": "function:services/api/src/customer-portal.ts:listMyProposals",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-portal.ts:registerCustomerPortalRoutes",
+   "target": "function:services/api/src/customer-portal.ts:getMyProposalDetailById",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-portal.ts:registerCustomerPortalRoutes",
+   "target": "function:services/api/src/customer-portal.ts:getMyProposalById",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-portal.ts:registerCustomerPortalRoutes",
+   "target": "function:services/api/src/media-library.ts:isMediaAssetLinkedToEntity",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-portal.ts:registerCustomerPortalRoutes",
+   "target": "function:services/api/src/media-library.ts:getMediaAssetById",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-portal.ts:registerCustomerPortalRoutes",
+   "target": "function:services/api/src/customer-portal.ts:listMyBookings",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-portal.ts:registerCustomerPortalRoutes",
+   "target": "function:services/api/src/customer-portal.ts:getMyBookingById",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-portal.ts:registerCustomerPortalRoutes",
+   "target": "function:services/api/src/customer-portal.ts:listMyTripAirServices",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-portal.ts:registerCustomerPortalRoutes",
+   "target": "function:services/api/src/customer-portal.ts:listMyTripLandServices",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-portal.ts:registerCustomerPortalRoutes",
+   "target": "function:services/api/src/customer-portal.ts:listMyTravelRequirements",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-portal.ts:registerCustomerPortalRoutes",
+   "target": "function:services/api/src/trip-photos.ts:listTripPhotos",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-portal.ts:registerCustomerPortalRoutes",
+   "target": "function:services/api/src/trip-photos.ts:getTripPhotoById",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-portal.ts:registerCustomerPortalRoutes",
+   "target": "function:services/api/src/customer-portal.ts:listMyDocuments",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-portal.ts:registerCustomerPortalRoutes",
+   "target": "function:services/api/src/customer-portal.ts:listMyPaymentSchedule",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-portal.ts:registerCustomerPortalRoutes",
+   "target": "function:services/api/src/agency-communications.ts:listVisibleCommunications",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-portal.ts:registerCustomerPortalRoutes",
+   "target": "function:services/api/src/customer-engagement.ts:recordOfferViewed",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-portal.ts:registerCustomerPortalRoutes",
+   "target": "function:services/api/src/customer-engagement.ts:recordProposalViewed",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-portal.ts:registerCustomerPortalRoutes",
+   "target": "function:services/api/src/customer-engagement.ts:recordTripViewed",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-portal.ts:registerCustomerPortalRoutes",
+   "target": "function:services/api/src/customer-engagement.ts:recordCommunicationViewed",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-portal.ts:registerCustomerPortalRoutes",
+   "target": "function:services/api/src/customer-engagement.ts:recordCommunicationCtaClicked",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/customer-portal.ts:registerCustomerPortalRoutes",
+   "target": "function:services/api/src/customer-engagement.ts:recordCustomerHomeViewed",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/customer-documents.ts",
+   "target": "file:services/api/tests/customer-documents-routes.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  }
+ ]
+}

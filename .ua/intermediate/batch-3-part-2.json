@@ -1,0 +1,1131 @@
+{
+ "nodes": [
+  {
+   "id": "file:apps/customer/src/pages/DepartureEditPage.test.tsx",
+   "type": "file",
+   "name": "DepartureEditPage.test.tsx",
+   "filePath": "apps/customer/src/pages/DepartureEditPage.test.tsx",
+   "summary": "Testes do formulário de edição de saída, verificando carga inicial e validações.",
+   "tags": [
+    "test",
+    "page",
+    "departure",
+    "form"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/pages/DepartureEditPage.test.tsx:renderRouted",
+   "type": "function",
+   "name": "renderRouted",
+   "filePath": "apps/customer/src/pages/DepartureEditPage.test.tsx",
+   "lineRange": [
+    30,
+    39
+   ],
+   "summary": "Helper de teste que renderiza a página dentro de um MemoryRouter com a rota da página sob teste.",
+   "tags": [
+    "test-helper",
+    "render",
+    "routing"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:apps/customer/src/pages/DepartureEditPage.tsx",
+   "type": "file",
+   "name": "DepartureEditPage.tsx",
+   "filePath": "apps/customer/src/pages/DepartureEditPage.tsx",
+   "summary": "Edição de saída com carga de dados e fornecedores, conversão de datas locais e validação de capacidade.",
+   "tags": [
+    "component",
+    "page",
+    "departure",
+    "form"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:apps/customer/src/pages/DepartureEditPage.tsx:mapSubmitErrorToMessage",
+   "type": "function",
+   "name": "mapSubmitErrorToMessage",
+   "filePath": "apps/customer/src/pages/DepartureEditPage.tsx",
+   "lineRange": [
+    56,
+    72
+   ],
+   "summary": "Converte erros de submissão (incluindo status HTTP da API) em mensagens amigáveis para o usuário.",
+   "tags": [
+    "error-handling",
+    "validation",
+    "utility"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/pages/DepartureEditPage.tsx:DepartureEditPage",
+   "type": "function",
+   "name": "DepartureEditPage",
+   "filePath": "apps/customer/src/pages/DepartureEditPage.tsx",
+   "lineRange": [
+    74,
+    324
+   ],
+   "summary": "Componente principal da edição de saída; carrega dados e fornecedores, aplica validações e submete via updateDeparture.",
+   "tags": [
+    "component",
+    "page",
+    "form",
+    "editing"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:apps/customer/src/pages/DepartureFormPage.test.tsx",
+   "type": "file",
+   "name": "DepartureFormPage.test.tsx",
+   "filePath": "apps/customer/src/pages/DepartureFormPage.test.tsx",
+   "summary": "Testes do formulário de criação de saída, incluindo validação de datas, capacidade e erros da API.",
+   "tags": [
+    "test",
+    "page",
+    "departure",
+    "form"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/pages/DepartureFormPage.test.tsx:renderRouted",
+   "type": "function",
+   "name": "renderRouted",
+   "filePath": "apps/customer/src/pages/DepartureFormPage.test.tsx",
+   "lineRange": [
+    45,
+    54
+   ],
+   "summary": "Helper de teste que renderiza a página dentro de um MemoryRouter com a rota da página sob teste.",
+   "tags": [
+    "test-helper",
+    "render",
+    "routing"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:apps/customer/src/pages/DepartureFormPage.tsx",
+   "type": "file",
+   "name": "DepartureFormPage.tsx",
+   "filePath": "apps/customer/src/pages/DepartureFormPage.tsx",
+   "summary": "Formulário de criação de saída com seleção de produto transportador e fornecedor e validação de campos.",
+   "tags": [
+    "component",
+    "page",
+    "departure",
+    "form"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:apps/customer/src/pages/DepartureFormPage.tsx:mapErrorToMessage",
+   "type": "function",
+   "name": "mapErrorToMessage",
+   "filePath": "apps/customer/src/pages/DepartureFormPage.tsx",
+   "lineRange": [
+    38,
+    54
+   ],
+   "summary": "Converte exceções da API em mensagens de erro exibíveis nos formulários.",
+   "tags": [
+    "error-handling",
+    "validation",
+    "utility"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/pages/DepartureFormPage.tsx:DepartureFormPage",
+   "type": "function",
+   "name": "DepartureFormPage",
+   "filePath": "apps/customer/src/pages/DepartureFormPage.tsx",
+   "lineRange": [
+    56,
+    301
+   ],
+   "summary": "Componente principal da criação de saída; carrega produtos e fornecedores, valida campos e submete via createDeparture.",
+   "tags": [
+    "component",
+    "page",
+    "form",
+    "validation"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:apps/customer/src/pages/DeparturesPage.test.tsx",
+   "type": "file",
+   "name": "DeparturesPage.test.tsx",
+   "filePath": "apps/customer/src/pages/DeparturesPage.test.tsx",
+   "summary": "Testes da listagem de saídas, cobrindo carregamento paralelo, estados de erro e navegação.",
+   "tags": [
+    "test",
+    "page",
+    "departure",
+    "list"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/pages/DeparturesPage.test.tsx:renderRouted",
+   "type": "function",
+   "name": "renderRouted",
+   "filePath": "apps/customer/src/pages/DeparturesPage.test.tsx",
+   "lineRange": [
+    31,
+    40
+   ],
+   "summary": "Helper de teste que renderiza a página dentro de um MemoryRouter com a rota da página sob teste.",
+   "tags": [
+    "test-helper",
+    "render",
+    "routing"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:apps/customer/src/pages/DeparturesPage.tsx",
+   "type": "file",
+   "name": "DeparturesPage.tsx",
+   "filePath": "apps/customer/src/pages/DeparturesPage.tsx",
+   "summary": "Listagem de saídas com enriquecimento por produto e fornecedor e tabela navegável.",
+   "tags": [
+    "component",
+    "page",
+    "departure",
+    "list"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/pages/DeparturesPage.tsx:DeparturesPage",
+   "type": "function",
+   "name": "DeparturesPage",
+   "filePath": "apps/customer/src/pages/DeparturesPage.tsx",
+   "lineRange": [
+    17,
+    78
+   ],
+   "summary": "Componente principal da listagem de saídas; carrega saídas, produtos e fornecedores em paralelo.",
+   "tags": [
+    "component",
+    "page",
+    "list",
+    "data-fetching"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/pages/DeparturesPage.tsx:DepartureTable",
+   "type": "function",
+   "name": "DepartureTable",
+   "filePath": "apps/customer/src/pages/DeparturesPage.tsx",
+   "lineRange": [
+    80,
+    147
+   ],
+   "summary": "Tabela de saídas com produto/fornecedor resolvidos e navegação para detalhes.",
+   "tags": [
+    "component",
+    "table",
+    "departure"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:apps/customer/src/pages/EnrollmentPage.tsx",
+   "type": "file",
+   "name": "EnrollmentPage.tsx",
+   "filePath": "apps/customer/src/pages/EnrollmentPage.tsx",
+   "summary": "Formulário público de cadastro acessível por token, com dependentes, consentimento e submissão à API dedicada de enrollment.",
+   "tags": [
+    "component",
+    "page",
+    "enrollment",
+    "form"
+   ],
+   "complexity": "complex",
+   "languageNotes": "Usa fetch direto em vez do client API compartilhado, pois é uma rota pública com token."
+  },
+  {
+   "id": "function:apps/customer/src/pages/EnrollmentPage.tsx:EnrollmentPage",
+   "type": "function",
+   "name": "EnrollmentPage",
+   "filePath": "apps/customer/src/pages/EnrollmentPage.tsx",
+   "lineRange": [
+    22,
+    222
+   ],
+   "summary": "Componente principal do cadastro público; valida o token, gerencia dependentes/consentimento e envia a submissão.",
+   "tags": [
+    "component",
+    "page",
+    "enrollment",
+    "form"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:apps/customer/src/pages/EnrollmentPage.tsx:CenteredMessage",
+   "type": "function",
+   "name": "CenteredMessage",
+   "filePath": "apps/customer/src/pages/EnrollmentPage.tsx",
+   "lineRange": [
+    224,
+    241
+   ],
+   "summary": "Mensagem centralizada para estados de carregamento, erro e êxito do cadastro.",
+   "tags": [
+    "component",
+    "ui",
+    "feedback"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:apps/customer/src/pages/FinancialPage.tsx",
+   "type": "file",
+   "name": "FinancialPage.tsx",
+   "filePath": "apps/customer/src/pages/FinancialPage.tsx",
+   "summary": "Painel financeiro com cards de fluxo de caixa, contas a receber e detalhamento de pagamentos parciais.",
+   "tags": [
+    "component",
+    "page",
+    "finance",
+    "dashboard"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:apps/customer/src/pages/FinancialPage.tsx:FinancialPage",
+   "type": "function",
+   "name": "FinancialPage",
+   "filePath": "apps/customer/src/pages/FinancialPage.tsx",
+   "lineRange": [
+    25,
+    159
+   ],
+   "summary": "Componente principal do painel financeiro; carrega fluxo de caixa e contas a receber e coordena expansão de alocações.",
+   "tags": [
+    "component",
+    "page",
+    "finance",
+    "dashboard"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/pages/FinancialPage.tsx:CashFlowCards",
+   "type": "function",
+   "name": "CashFlowCards",
+   "filePath": "apps/customer/src/pages/FinancialPage.tsx",
+   "lineRange": [
+    161,
+    188
+   ],
+   "summary": "Cards de resumo do fluxo de caixa exibidos no topo do painel financeiro.",
+   "tags": [
+    "component",
+    "ui",
+    "finance"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/pages/FinancialPage.tsx:ReceivablesTable",
+   "type": "function",
+   "name": "ReceivablesTable",
+   "filePath": "apps/customer/src/pages/FinancialPage.tsx",
+   "lineRange": [
+    190,
+    287
+   ],
+   "summary": "Tabela de contas a receber com status, datas, totais e controle de expansão de alocações.",
+   "tags": [
+    "component",
+    "table",
+    "finance"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/pages/FinancialPage.tsx:PartialPaymentDetail",
+   "type": "function",
+   "name": "PartialPaymentDetail",
+   "filePath": "apps/customer/src/pages/FinancialPage.tsx",
+   "lineRange": [
+    289,
+    338
+   ],
+   "summary": "Detalhe de pagamentos parciais de uma conta a receber, com soma das alocações por lançamento.",
+   "tags": [
+    "component",
+    "ui",
+    "finance"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:apps/customer/src/pages/OfferDetailsPage.test.tsx",
+   "type": "file",
+   "name": "OfferDetailsPage.test.tsx",
+   "filePath": "apps/customer/src/pages/OfferDetailsPage.test.tsx",
+   "summary": "Testes da página de detalhes de oferta, verificando exibição de status, preço e ações.",
+   "tags": [
+    "test",
+    "page",
+    "offer",
+    "details"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:apps/customer/src/pages/OfferDetailsPage.tsx",
+   "type": "file",
+   "name": "OfferDetailsPage.tsx",
+   "filePath": "apps/customer/src/pages/OfferDetailsPage.tsx",
+   "summary": "Detalhes de uma oferta com status, preço formatado e ações de edição/publicação.",
+   "tags": [
+    "component",
+    "page",
+    "offer",
+    "details"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/pages/OfferDetailsPage.tsx:OfferDetailsPage",
+   "type": "function",
+   "name": "OfferDetailsPage",
+   "filePath": "apps/customer/src/pages/OfferDetailsPage.tsx",
+   "lineRange": [
+    26,
+    136
+   ],
+   "summary": "Componente principal dos detalhes da oferta; carrega a oferta por id e exibe status, preço e ações.",
+   "tags": [
+    "component",
+    "page",
+    "offer",
+    "data-fetching"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/pages/OfferDetailsPage.tsx:Field",
+   "type": "function",
+   "name": "Field",
+   "filePath": "apps/customer/src/pages/OfferDetailsPage.tsx",
+   "lineRange": [
+    138,
+    147
+   ],
+   "summary": "Componente auxiliar que exibe um par rótulo/valor na página de detalhes da oferta.",
+   "tags": [
+    "component",
+    "ui",
+    "details"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:apps/customer/src/pages/OfferEditPage.test.tsx",
+   "type": "file",
+   "name": "OfferEditPage.test.tsx",
+   "filePath": "apps/customer/src/pages/OfferEditPage.test.tsx",
+   "summary": "Testes do formulário de edição de oferta, cobrindo validação de preço, datas e erros de submissão.",
+   "tags": [
+    "test",
+    "page",
+    "offer",
+    "form"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:apps/customer/src/pages/OfferEditPage.test.tsx:renderRouted",
+   "type": "function",
+   "name": "renderRouted",
+   "filePath": "apps/customer/src/pages/OfferEditPage.test.tsx",
+   "lineRange": [
+    48,
+    57
+   ],
+   "summary": "Helper de teste que renderiza a página dentro de um MemoryRouter com a rota da página sob teste.",
+   "tags": [
+    "test-helper",
+    "render",
+    "routing"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:apps/customer/src/pages/OfferEditPage.tsx",
+   "type": "file",
+   "name": "OfferEditPage.tsx",
+   "filePath": "apps/customer/src/pages/OfferEditPage.tsx",
+   "summary": "Edição de oferta com carga por id, validação de preço e datas de validade e submissão via updateOffer.",
+   "tags": [
+    "component",
+    "page",
+    "offer",
+    "form"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:apps/customer/src/pages/OfferEditPage.tsx:mapSubmitErrorToMessage",
+   "type": "function",
+   "name": "mapSubmitErrorToMessage",
+   "filePath": "apps/customer/src/pages/OfferEditPage.tsx",
+   "lineRange": [
+    31,
+    47
+   ],
+   "summary": "Converte erros de submissão (incluindo status HTTP da API) em mensagens amigáveis para o usuário.",
+   "tags": [
+    "error-handling",
+    "validation",
+    "utility"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/pages/OfferEditPage.tsx:OfferEditPage",
+   "type": "function",
+   "name": "OfferEditPage",
+   "filePath": "apps/customer/src/pages/OfferEditPage.tsx",
+   "lineRange": [
+    53,
+    298
+   ],
+   "summary": "Componente principal da edição de oferta; carrega a oferta, valida preço/datas e submete via updateOffer.",
+   "tags": [
+    "component",
+    "page",
+    "form",
+    "editing"
+   ],
+   "complexity": "complex"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:apps/customer/src/pages/DepartureEditPage.test.tsx",
+   "target": "function:apps/customer/src/pages/DepartureEditPage.test.tsx:renderRouted",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/DepartureEditPage.tsx",
+   "target": "function:apps/customer/src/pages/DepartureEditPage.tsx:mapSubmitErrorToMessage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/DepartureEditPage.tsx",
+   "target": "function:apps/customer/src/pages/DepartureEditPage.tsx:DepartureEditPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/DepartureEditPage.tsx",
+   "target": "function:apps/customer/src/pages/DepartureEditPage.tsx:DepartureEditPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/DepartureFormPage.test.tsx",
+   "target": "function:apps/customer/src/pages/DepartureFormPage.test.tsx:renderRouted",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/DepartureFormPage.tsx",
+   "target": "function:apps/customer/src/pages/DepartureFormPage.tsx:mapErrorToMessage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/DepartureFormPage.tsx",
+   "target": "function:apps/customer/src/pages/DepartureFormPage.tsx:DepartureFormPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/DepartureFormPage.tsx",
+   "target": "function:apps/customer/src/pages/DepartureFormPage.tsx:DepartureFormPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/DeparturesPage.test.tsx",
+   "target": "function:apps/customer/src/pages/DeparturesPage.test.tsx:renderRouted",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/DeparturesPage.tsx",
+   "target": "function:apps/customer/src/pages/DeparturesPage.tsx:DeparturesPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/DeparturesPage.tsx",
+   "target": "function:apps/customer/src/pages/DeparturesPage.tsx:DeparturesPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/DeparturesPage.tsx",
+   "target": "function:apps/customer/src/pages/DeparturesPage.tsx:DepartureTable",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/EnrollmentPage.tsx",
+   "target": "function:apps/customer/src/pages/EnrollmentPage.tsx:EnrollmentPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/EnrollmentPage.tsx",
+   "target": "function:apps/customer/src/pages/EnrollmentPage.tsx:EnrollmentPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/EnrollmentPage.tsx",
+   "target": "function:apps/customer/src/pages/EnrollmentPage.tsx:CenteredMessage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/FinancialPage.tsx",
+   "target": "function:apps/customer/src/pages/FinancialPage.tsx:FinancialPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/FinancialPage.tsx",
+   "target": "function:apps/customer/src/pages/FinancialPage.tsx:FinancialPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/FinancialPage.tsx",
+   "target": "function:apps/customer/src/pages/FinancialPage.tsx:CashFlowCards",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/FinancialPage.tsx",
+   "target": "function:apps/customer/src/pages/FinancialPage.tsx:ReceivablesTable",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/FinancialPage.tsx",
+   "target": "function:apps/customer/src/pages/FinancialPage.tsx:PartialPaymentDetail",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/OfferDetailsPage.tsx",
+   "target": "function:apps/customer/src/pages/OfferDetailsPage.tsx:OfferDetailsPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/OfferDetailsPage.tsx",
+   "target": "function:apps/customer/src/pages/OfferDetailsPage.tsx:OfferDetailsPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/OfferDetailsPage.tsx",
+   "target": "function:apps/customer/src/pages/OfferDetailsPage.tsx:Field",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/OfferEditPage.test.tsx",
+   "target": "function:apps/customer/src/pages/OfferEditPage.test.tsx:renderRouted",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/OfferEditPage.tsx",
+   "target": "function:apps/customer/src/pages/OfferEditPage.tsx:mapSubmitErrorToMessage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/OfferEditPage.tsx",
+   "target": "function:apps/customer/src/pages/OfferEditPage.tsx:OfferEditPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/OfferEditPage.tsx",
+   "target": "function:apps/customer/src/pages/OfferEditPage.tsx:OfferEditPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/DepartureEditPage.test.tsx",
+   "target": "file:apps/customer/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/DepartureEditPage.test.tsx",
+   "target": "file:apps/customer/src/pages/DepartureEditPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/DepartureEditPage.tsx",
+   "target": "file:apps/customer/src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/DepartureEditPage.tsx",
+   "target": "file:apps/customer/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/DepartureEditPage.tsx",
+   "target": "file:apps/customer/src/types/transport.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/DepartureFormPage.test.tsx",
+   "target": "file:apps/customer/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/DepartureFormPage.test.tsx",
+   "target": "file:apps/customer/src/pages/DepartureFormPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/DepartureFormPage.test.tsx",
+   "target": "file:apps/customer/src/types/transport.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/DepartureFormPage.tsx",
+   "target": "file:apps/customer/src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/DepartureFormPage.tsx",
+   "target": "file:apps/customer/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/DepartureFormPage.tsx",
+   "target": "file:apps/customer/src/types/transport.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/DeparturesPage.test.tsx",
+   "target": "file:apps/customer/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/DeparturesPage.test.tsx",
+   "target": "file:apps/customer/src/pages/DeparturesPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/DeparturesPage.test.tsx",
+   "target": "file:apps/customer/src/types/transport.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/DeparturesPage.tsx",
+   "target": "file:apps/customer/src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/DeparturesPage.tsx",
+   "target": "file:apps/customer/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/DeparturesPage.tsx",
+   "target": "file:apps/customer/src/types/transport.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/FinancialPage.tsx",
+   "target": "file:apps/customer/src/components/ui/StatusPill.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/FinancialPage.tsx",
+   "target": "file:apps/customer/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/FinancialPage.tsx",
+   "target": "file:apps/customer/src/lib/formatCurrency.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/FinancialPage.tsx",
+   "target": "file:apps/customer/src/lib/formatDateBR.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/FinancialPage.tsx",
+   "target": "file:apps/customer/src/lib/statusLabels.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/FinancialPage.tsx",
+   "target": "file:apps/customer/src/types/financial.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/OfferDetailsPage.test.tsx",
+   "target": "file:apps/customer/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/OfferDetailsPage.test.tsx",
+   "target": "file:apps/customer/src/pages/OfferDetailsPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/OfferDetailsPage.test.tsx",
+   "target": "file:apps/customer/src/types/offer.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/OfferDetailsPage.tsx",
+   "target": "file:apps/customer/src/components/ui/StatusPill.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/OfferDetailsPage.tsx",
+   "target": "file:apps/customer/src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/OfferDetailsPage.tsx",
+   "target": "file:apps/customer/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/OfferDetailsPage.tsx",
+   "target": "file:apps/customer/src/lib/formatCurrency.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/OfferDetailsPage.tsx",
+   "target": "file:apps/customer/src/lib/formatDateBR.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/OfferDetailsPage.tsx",
+   "target": "file:apps/customer/src/lib/statusLabels.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/OfferDetailsPage.tsx",
+   "target": "file:apps/customer/src/types/offer.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/OfferEditPage.test.tsx",
+   "target": "file:apps/customer/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/OfferEditPage.test.tsx",
+   "target": "file:apps/customer/src/pages/OfferDetailsPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/OfferEditPage.test.tsx",
+   "target": "file:apps/customer/src/pages/OfferEditPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/OfferEditPage.test.tsx",
+   "target": "file:apps/customer/src/types/offer.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/OfferEditPage.tsx",
+   "target": "file:apps/customer/src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/OfferEditPage.tsx",
+   "target": "file:apps/customer/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/OfferEditPage.tsx",
+   "target": "file:apps/customer/src/types/offer.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/DepartureEditPage.tsx",
+   "target": "file:apps/customer/src/pages/DepartureEditPage.test.tsx",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:apps/customer/src/pages/DepartureFormPage.tsx",
+   "target": "file:apps/customer/src/pages/DepartureFormPage.test.tsx",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:apps/customer/src/pages/DeparturesPage.tsx",
+   "target": "file:apps/customer/src/pages/DeparturesPage.test.tsx",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:apps/customer/src/pages/OfferDetailsPage.tsx",
+   "target": "file:apps/customer/src/pages/OfferDetailsPage.test.tsx",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:apps/customer/src/pages/OfferEditPage.tsx",
+   "target": "file:apps/customer/src/pages/OfferEditPage.test.tsx",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "function:apps/customer/src/pages/DepartureEditPage.tsx:DepartureEditPage",
+   "target": "function:apps/customer/src/lib/api.ts:getDeparture",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/pages/DepartureEditPage.tsx:DepartureEditPage",
+   "target": "function:apps/customer/src/lib/api.ts:listSuppliers",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/pages/DepartureEditPage.tsx:DepartureEditPage",
+   "target": "function:apps/customer/src/lib/api.ts:updateDeparture",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/pages/DepartureFormPage.tsx:DepartureFormPage",
+   "target": "function:apps/customer/src/lib/api.ts:listTransportProducts",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/pages/DepartureFormPage.tsx:DepartureFormPage",
+   "target": "function:apps/customer/src/lib/api.ts:listSuppliers",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/pages/DepartureFormPage.tsx:DepartureFormPage",
+   "target": "function:apps/customer/src/lib/api.ts:createDeparture",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/pages/DeparturesPage.tsx:DeparturesPage",
+   "target": "function:apps/customer/src/lib/api.ts:listDepartures",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/pages/DeparturesPage.tsx:DeparturesPage",
+   "target": "function:apps/customer/src/lib/api.ts:listTransportProducts",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/pages/DeparturesPage.tsx:DeparturesPage",
+   "target": "function:apps/customer/src/lib/api.ts:listSuppliers",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/pages/FinancialPage.tsx:FinancialPage",
+   "target": "function:apps/customer/src/lib/api.ts:getFinancialDashboard",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/pages/FinancialPage.tsx:FinancialPage",
+   "target": "function:apps/customer/src/lib/api.ts:listReceivables",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/pages/FinancialPage.tsx:FinancialPage",
+   "target": "function:apps/customer/src/lib/api.ts:listAllocationsForTarget",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/pages/OfferDetailsPage.tsx:OfferDetailsPage",
+   "target": "function:apps/customer/src/lib/api.ts:getOffer",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/pages/OfferEditPage.tsx:OfferEditPage",
+   "target": "function:apps/customer/src/lib/api.ts:getOffer",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/pages/OfferEditPage.tsx:OfferEditPage",
+   "target": "function:apps/customer/src/lib/api.ts:updateOffer",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  }
+ ]
+}

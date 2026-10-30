@@ -1,0 +1,14 @@
+aguardando 18:25 (15:05)
+tentativa 1 as 18:25
+limite ainda ativo as 18:47; nova tentativa em 10 min
+tentativa 2 as 18:57
+limite ainda ativo as 18:57; nova tentativa em 10 min
+tentativa 3 as 19:07
+limite ainda ativo as 19:07; nova tentativa em 10 min
+tentativa 4 as 19:17
+limite ainda ativo as 19:17; nova tentativa em 10 min
+tentativa 5 as 19:27
+limite ainda ativo as 19:27; nova tentativa em 10 min
+tentativa 6 as 19:37
+limite ainda ativo as 19:37; nova tentativa em 10 min
+desistiu apos 6 tentativas

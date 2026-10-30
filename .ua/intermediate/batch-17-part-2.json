@@ -1,0 +1,1179 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/agency/src/pages/operations/DocumentAlertsPage.tsx",
+      "type": "file",
+      "name": "DocumentAlertsPage.tsx",
+      "filePath": "apps/agency/src/pages/operations/DocumentAlertsPage.tsx",
+      "summary": "Página de alertas documentais operacionais exibindo vencimentos de documentos com distintivos de status.",
+      "tags": [
+        "component",
+        "operations",
+        "list-page",
+        "agency-ui"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/agency/src/pages/operations/DocumentAlertsPage.tsx:DocumentAlertsPage",
+      "type": "function",
+      "name": "DocumentAlertsPage",
+      "filePath": "apps/agency/src/pages/operations/DocumentAlertsPage.tsx",
+      "lineRange": [
+        44,
+        147
+      ],
+      "summary": "Componente que busca e exibe alertas de documentos com status de vencimento.",
+      "tags": [
+        "component",
+        "operations",
+        "list-page"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/agency/src/pages/operations/OccurrencesPage.tsx",
+      "type": "file",
+      "name": "OccurrencesPage.tsx",
+      "filePath": "apps/agency/src/pages/operations/OccurrencesPage.tsx",
+      "summary": "Gestão de ocorrências de viagem: listagem, criação em modal e atualização de status com filtros por tipo e severidade.",
+      "tags": [
+        "component",
+        "operations",
+        "crud",
+        "agency-ui"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/agency/src/pages/operations/OccurrencesPage.tsx:OccurrencesPage",
+      "type": "function",
+      "name": "OccurrencesPage",
+      "filePath": "apps/agency/src/pages/operations/OccurrencesPage.tsx",
+      "lineRange": [
+        76,
+        310
+      ],
+      "summary": "Componente de ocorrências de viagem com criação em modal e atualização de status.",
+      "tags": [
+        "component",
+        "operations",
+        "crud"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/agency/src/pages/operations/PassengersPage.tsx",
+      "type": "file",
+      "name": "PassengersPage.tsx",
+      "filePath": "apps/agency/src/pages/operations/PassengersPage.tsx",
+      "summary": "Visão operacional de passageiros agrupados por viagem, com filtro por viagem e tabela de embarques.",
+      "tags": [
+        "component",
+        "operations",
+        "list-page",
+        "agency-ui"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/agency/src/pages/operations/PassengersPage.tsx:PassengersPage",
+      "type": "function",
+      "name": "PassengersPage",
+      "filePath": "apps/agency/src/pages/operations/PassengersPage.tsx",
+      "lineRange": [
+        22,
+        172
+      ],
+      "summary": "Componente que lista passageiros operacionais com agrupamento por viagem e filtro.",
+      "tags": [
+        "component",
+        "operations",
+        "list-page"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/agency/src/pages/operations/PostTripPage.tsx",
+      "type": "file",
+      "name": "PostTripPage.tsx",
+      "filePath": "apps/agency/src/pages/operations/PostTripPage.tsx",
+      "summary": "Checklist pós-viagem: lista viagens concluídas e permite marcar itens do checklist com carimbo de data e hora.",
+      "tags": [
+        "component",
+        "operations",
+        "checklist",
+        "agency-ui"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/agency/src/pages/operations/PostTripPage.tsx:PostTripPage",
+      "type": "function",
+      "name": "PostTripPage",
+      "filePath": "apps/agency/src/pages/operations/PostTripPage.tsx",
+      "lineRange": [
+        26,
+        154
+      ],
+      "summary": "Componente de checklist pós-viagem que marca itens como concluídos com carimbo de data.",
+      "tags": [
+        "component",
+        "operations",
+        "checklist"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/agency/src/pages/proposals/ProposalEditorPage.test.tsx",
+      "type": "file",
+      "name": "ProposalEditorPage.test.tsx",
+      "filePath": "apps/agency/src/pages/proposals/ProposalEditorPage.test.tsx",
+      "summary": "Suíte de testes do editor de propostas validando carregamento e interações das abas.",
+      "tags": [
+        "test",
+        "vitest",
+        "react",
+        "editor"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/agency/src/pages/proposals/ProposalEditorPage.tsx",
+      "type": "file",
+      "name": "ProposalEditorPage.tsx",
+      "filePath": "apps/agency/src/pages/proposals/ProposalEditorPage.tsx",
+      "summary": "Editor de propostas multi-aba (capa, conteúdo, mídia, preview) com seções ordenáveis, itens editáveis e vinculação de mídia.",
+      "tags": [
+        "component",
+        "editor",
+        "forms",
+        "agency-ui",
+        "tabs"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/agency/src/pages/proposals/ProposalEditorPage.tsx:ProposalEditorPage",
+      "type": "function",
+      "name": "ProposalEditorPage",
+      "filePath": "apps/agency/src/pages/proposals/ProposalEditorPage.tsx",
+      "lineRange": [
+        70,
+        172
+      ],
+      "summary": "Componente raiz do editor que carrega proposta, seções, itens e mídia, alternando entre as abas.",
+      "tags": [
+        "component",
+        "editor",
+        "tabs",
+        "state-management"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/agency/src/pages/proposals/ProposalEditorPage.tsx:CoverTab",
+      "type": "function",
+      "name": "CoverTab",
+      "filePath": "apps/agency/src/pages/proposals/ProposalEditorPage.tsx",
+      "lineRange": [
+        174,
+        277
+      ],
+      "summary": "Aba de capa da proposta com formulário de metadados e gravação via API.",
+      "tags": [
+        "component",
+        "form",
+        "editor"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/agency/src/pages/proposals/ProposalEditorPage.tsx:ContentTab",
+      "type": "function",
+      "name": "ContentTab",
+      "filePath": "apps/agency/src/pages/proposals/ProposalEditorPage.tsx",
+      "lineRange": [
+        279,
+        367
+      ],
+      "summary": "Aba de conteúdo que lista seções ordenadas e permite adicionar novas seções.",
+      "tags": [
+        "component",
+        "editor",
+        "sections"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/agency/src/pages/proposals/ProposalEditorPage.tsx:SectionCard",
+      "type": "function",
+      "name": "SectionCard",
+      "filePath": "apps/agency/src/pages/proposals/ProposalEditorPage.tsx",
+      "lineRange": [
+        369,
+        507
+      ],
+      "summary": "Card de seção com ordenação, alternância de visibilidade, exclusão e gestão dos itens vinculados.",
+      "tags": [
+        "component",
+        "editor",
+        "sections",
+        "crud"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/agency/src/pages/proposals/ProposalEditorPage.tsx:ItemEditor",
+      "type": "function",
+      "name": "ItemEditor",
+      "filePath": "apps/agency/src/pages/proposals/ProposalEditorPage.tsx",
+      "lineRange": [
+        509,
+        594
+      ],
+      "summary": "Editor de item de seção com validação de preço/dia e criação ou atualização via API.",
+      "tags": [
+        "component",
+        "form",
+        "editor",
+        "validation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/agency/src/pages/proposals/ProposalEditorPage.tsx:MediaTab",
+      "type": "function",
+      "name": "MediaTab",
+      "filePath": "apps/agency/src/pages/proposals/ProposalEditorPage.tsx",
+      "lineRange": [
+        596,
+        649
+      ],
+      "summary": "Aba de mídia que vincula ativos da biblioteca à proposta e exibe as miniaturas.",
+      "tags": [
+        "component",
+        "editor",
+        "media"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/agency/src/pages/proposals/ProposalEditorPage.tsx:MediaThumb",
+      "type": "function",
+      "name": "MediaThumb",
+      "filePath": "apps/agency/src/pages/proposals/ProposalEditorPage.tsx",
+      "lineRange": [
+        651,
+        697
+      ],
+      "summary": "Miniatura de mídia que carrega o blob do ativo e oferece remoção do vínculo com a proposta.",
+      "tags": [
+        "component",
+        "media",
+        "thumbnail"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/agency/src/pages/proposals/ProposalVisualPreview.tsx",
+      "type": "file",
+      "name": "ProposalVisualPreview.tsx",
+      "filePath": "apps/agency/src/pages/proposals/ProposalVisualPreview.tsx",
+      "summary": "Pré-visualização visual da proposta para o cliente, renderizando capa, seções visíveis e itens com preços formatados.",
+      "tags": [
+        "component",
+        "preview",
+        "proposal",
+        "presentation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/agency/src/pages/proposals/ProposalVisualPreview.tsx:ProposalVisualPreview",
+      "type": "function",
+      "name": "ProposalVisualPreview",
+      "filePath": "apps/agency/src/pages/proposals/ProposalVisualPreview.tsx",
+      "lineRange": [
+        34,
+        100
+      ],
+      "summary": "Componente de pré-visualização que monta a proposta final com capa, seções visíveis e itens.",
+      "tags": [
+        "component",
+        "preview",
+        "presentation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/agency/src/pages/proposals/ProposalVisualPreview.tsx:ProposalCover",
+      "type": "function",
+      "name": "ProposalCover",
+      "filePath": "apps/agency/src/pages/proposals/ProposalVisualPreview.tsx",
+      "lineRange": [
+        102,
+        130
+      ],
+      "summary": "Renderiza a capa da proposta carregando a imagem do ativo de mídia vinculado.",
+      "tags": [
+        "component",
+        "media",
+        "cover"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/agency/src/pages/proposals/ProposalVisualPreview.tsx:ProposalSectionBlock",
+      "type": "function",
+      "name": "ProposalSectionBlock",
+      "filePath": "apps/agency/src/pages/proposals/ProposalVisualPreview.tsx",
+      "lineRange": [
+        132,
+        159
+      ],
+      "summary": "Renderiza um bloco de seção com itens ordenados e valores formatados.",
+      "tags": [
+        "component",
+        "presentation",
+        "sections"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/agency/src/test/render.tsx",
+      "type": "file",
+      "name": "render.tsx",
+      "filePath": "apps/agency/src/test/render.tsx",
+      "summary": "Utilitário de teste que renderiza componentes dentro do roteador da aplicação com entrada inicial configurável.",
+      "tags": [
+        "test",
+        "utility",
+        "render",
+        "routing"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/agency/src/test/render.tsx:renderRouted",
+      "type": "function",
+      "name": "renderRouted",
+      "filePath": "apps/agency/src/test/render.tsx",
+      "lineRange": [
+        6,
+        12
+      ],
+      "summary": "Renderiza um elemento dentro do provedor de rotas da aplicação com rota inicial configurável.",
+      "tags": [
+        "test",
+        "utility",
+        "render"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/agency/src/test/render.tsx:renderAt",
+      "type": "function",
+      "name": "renderAt",
+      "filePath": "apps/agency/src/test/render.tsx",
+      "lineRange": [
+        14,
+        26
+      ],
+      "summary": "Renderiza um elemento em uma rota específica com memória de navegação para testes.",
+      "tags": [
+        "test",
+        "utility",
+        "render",
+        "routing"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/agency/src/test/setup.ts",
+      "type": "file",
+      "name": "setup.ts",
+      "filePath": "apps/agency/src/test/setup.ts",
+      "summary": "Configuração global do Vitest: semente de sessão autenticada, stub do fetch para /api/me e limpeza entre testes.",
+      "tags": [
+        "test",
+        "configuration",
+        "vitest",
+        "setup"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/agency/src/types/booking.ts",
+      "type": "file",
+      "name": "booking.ts",
+      "filePath": "apps/agency/src/types/booking.ts",
+      "summary": "Interfaces TypeScript de Booking e BookingPassenger com campos de agência, cliente e passageiros.",
+      "tags": [
+        "type-definition",
+        "booking",
+        "data-model",
+        "typescript"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/agency/src/pages/operations/DocumentAlertsPage.tsx",
+      "target": "function:apps/agency/src/pages/operations/DocumentAlertsPage.tsx:DocumentAlertsPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/pages/operations/DocumentAlertsPage.tsx",
+      "target": "function:apps/agency/src/pages/operations/DocumentAlertsPage.tsx:DocumentAlertsPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/pages/operations/OccurrencesPage.tsx",
+      "target": "function:apps/agency/src/pages/operations/OccurrencesPage.tsx:OccurrencesPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/pages/operations/OccurrencesPage.tsx",
+      "target": "function:apps/agency/src/pages/operations/OccurrencesPage.tsx:OccurrencesPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/pages/operations/PassengersPage.tsx",
+      "target": "function:apps/agency/src/pages/operations/PassengersPage.tsx:PassengersPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/pages/operations/PassengersPage.tsx",
+      "target": "function:apps/agency/src/pages/operations/PassengersPage.tsx:PassengersPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/pages/operations/PostTripPage.tsx",
+      "target": "function:apps/agency/src/pages/operations/PostTripPage.tsx:PostTripPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/pages/operations/PostTripPage.tsx",
+      "target": "function:apps/agency/src/pages/operations/PostTripPage.tsx:PostTripPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/pages/proposals/ProposalEditorPage.tsx",
+      "target": "function:apps/agency/src/pages/proposals/ProposalEditorPage.tsx:ProposalEditorPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/pages/proposals/ProposalEditorPage.tsx",
+      "target": "function:apps/agency/src/pages/proposals/ProposalEditorPage.tsx:ProposalEditorPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/pages/proposals/ProposalEditorPage.tsx",
+      "target": "function:apps/agency/src/pages/proposals/ProposalEditorPage.tsx:CoverTab",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/pages/proposals/ProposalEditorPage.tsx",
+      "target": "function:apps/agency/src/pages/proposals/ProposalEditorPage.tsx:ContentTab",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/pages/proposals/ProposalEditorPage.tsx",
+      "target": "function:apps/agency/src/pages/proposals/ProposalEditorPage.tsx:SectionCard",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/pages/proposals/ProposalEditorPage.tsx",
+      "target": "function:apps/agency/src/pages/proposals/ProposalEditorPage.tsx:ItemEditor",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/pages/proposals/ProposalEditorPage.tsx",
+      "target": "function:apps/agency/src/pages/proposals/ProposalEditorPage.tsx:MediaTab",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/pages/proposals/ProposalEditorPage.tsx",
+      "target": "function:apps/agency/src/pages/proposals/ProposalEditorPage.tsx:MediaThumb",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/pages/proposals/ProposalVisualPreview.tsx",
+      "target": "function:apps/agency/src/pages/proposals/ProposalVisualPreview.tsx:ProposalVisualPreview",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/pages/proposals/ProposalVisualPreview.tsx",
+      "target": "function:apps/agency/src/pages/proposals/ProposalVisualPreview.tsx:ProposalVisualPreview",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/pages/proposals/ProposalVisualPreview.tsx",
+      "target": "function:apps/agency/src/pages/proposals/ProposalVisualPreview.tsx:ProposalCover",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/pages/proposals/ProposalVisualPreview.tsx",
+      "target": "function:apps/agency/src/pages/proposals/ProposalVisualPreview.tsx:ProposalSectionBlock",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/test/render.tsx",
+      "target": "function:apps/agency/src/test/render.tsx:renderRouted",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/test/render.tsx",
+      "target": "function:apps/agency/src/test/render.tsx:renderRouted",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/test/render.tsx",
+      "target": "function:apps/agency/src/test/render.tsx:renderAt",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/test/render.tsx",
+      "target": "function:apps/agency/src/test/render.tsx:renderAt",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/pages/operations/DocumentAlertsPage.tsx",
+      "target": "file:apps/agency/src/components/layout/PageHeader.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/operations/DocumentAlertsPage.tsx",
+      "target": "file:apps/agency/src/components/ui/card.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/operations/DocumentAlertsPage.tsx",
+      "target": "file:apps/agency/src/components/ui/empty-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/operations/DocumentAlertsPage.tsx",
+      "target": "file:apps/agency/src/components/ui/error-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/operations/DocumentAlertsPage.tsx",
+      "target": "file:apps/agency/src/components/ui/loading-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/operations/DocumentAlertsPage.tsx",
+      "target": "file:apps/agency/src/components/ui/status-badge.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/operations/DocumentAlertsPage.tsx",
+      "target": "file:apps/agency/src/components/ui/table.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/operations/DocumentAlertsPage.tsx",
+      "target": "file:apps/agency/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/operations/OccurrencesPage.tsx",
+      "target": "file:apps/agency/src/components/layout/PageHeader.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/operations/OccurrencesPage.tsx",
+      "target": "file:apps/agency/src/components/ui/button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/operations/OccurrencesPage.tsx",
+      "target": "file:apps/agency/src/components/ui/card.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/operations/OccurrencesPage.tsx",
+      "target": "file:apps/agency/src/components/ui/empty-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/operations/OccurrencesPage.tsx",
+      "target": "file:apps/agency/src/components/ui/error-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/operations/OccurrencesPage.tsx",
+      "target": "file:apps/agency/src/components/ui/loading-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/operations/OccurrencesPage.tsx",
+      "target": "file:apps/agency/src/components/ui/modal.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/operations/OccurrencesPage.tsx",
+      "target": "file:apps/agency/src/components/ui/select.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/operations/OccurrencesPage.tsx",
+      "target": "file:apps/agency/src/components/ui/status-badge.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/operations/OccurrencesPage.tsx",
+      "target": "file:apps/agency/src/components/ui/table.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/operations/OccurrencesPage.tsx",
+      "target": "file:apps/agency/src/components/ui/textarea.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/operations/OccurrencesPage.tsx",
+      "target": "file:apps/agency/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/operations/OccurrencesPage.tsx",
+      "target": "file:apps/agency/src/types/trip.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/operations/PassengersPage.tsx",
+      "target": "file:apps/agency/src/components/layout/PageHeader.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/operations/PassengersPage.tsx",
+      "target": "file:apps/agency/src/components/ui/card.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/operations/PassengersPage.tsx",
+      "target": "file:apps/agency/src/components/ui/empty-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/operations/PassengersPage.tsx",
+      "target": "file:apps/agency/src/components/ui/error-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/operations/PassengersPage.tsx",
+      "target": "file:apps/agency/src/components/ui/loading-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/operations/PassengersPage.tsx",
+      "target": "file:apps/agency/src/components/ui/select.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/operations/PassengersPage.tsx",
+      "target": "file:apps/agency/src/components/ui/status-badge.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/operations/PassengersPage.tsx",
+      "target": "file:apps/agency/src/components/ui/table.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/operations/PassengersPage.tsx",
+      "target": "file:apps/agency/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/operations/PostTripPage.tsx",
+      "target": "file:apps/agency/src/components/layout/PageHeader.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/operations/PostTripPage.tsx",
+      "target": "file:apps/agency/src/components/ui/card.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/operations/PostTripPage.tsx",
+      "target": "file:apps/agency/src/components/ui/checkbox.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/operations/PostTripPage.tsx",
+      "target": "file:apps/agency/src/components/ui/empty-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/operations/PostTripPage.tsx",
+      "target": "file:apps/agency/src/components/ui/error-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/operations/PostTripPage.tsx",
+      "target": "file:apps/agency/src/components/ui/loading-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/operations/PostTripPage.tsx",
+      "target": "file:apps/agency/src/components/ui/status-badge.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/operations/PostTripPage.tsx",
+      "target": "file:apps/agency/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/proposals/ProposalEditorPage.test.tsx",
+      "target": "file:apps/agency/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/proposals/ProposalEditorPage.test.tsx",
+      "target": "file:apps/agency/src/pages/proposals/ProposalEditorPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/proposals/ProposalEditorPage.tsx",
+      "target": "file:apps/agency/src/components/media/MediaAssetPicker.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/proposals/ProposalEditorPage.tsx",
+      "target": "file:apps/agency/src/components/ui/button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/proposals/ProposalEditorPage.tsx",
+      "target": "file:apps/agency/src/components/ui/card.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/proposals/ProposalEditorPage.tsx",
+      "target": "file:apps/agency/src/components/ui/error-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/proposals/ProposalEditorPage.tsx",
+      "target": "file:apps/agency/src/components/ui/input.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/proposals/ProposalEditorPage.tsx",
+      "target": "file:apps/agency/src/components/ui/loading-state.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/proposals/ProposalEditorPage.tsx",
+      "target": "file:apps/agency/src/components/ui/select.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/proposals/ProposalEditorPage.tsx",
+      "target": "file:apps/agency/src/components/ui/textarea.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/proposals/ProposalEditorPage.tsx",
+      "target": "file:apps/agency/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/proposals/ProposalEditorPage.tsx",
+      "target": "file:apps/agency/src/pages/proposals/ProposalVisualPreview.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/proposals/ProposalVisualPreview.tsx",
+      "target": "file:apps/agency/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/proposals/ProposalVisualPreview.tsx",
+      "target": "file:apps/agency/src/lib/formatCurrency.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/proposals/ProposalVisualPreview.tsx",
+      "target": "file:apps/agency/src/lib/formatDateBR.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/test/render.tsx",
+      "target": "file:apps/agency/src/App.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/test/setup.ts",
+      "target": "file:apps/agency/src/lib/session.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/pages/proposals/ProposalEditorPage.tsx",
+      "target": "file:apps/agency/src/pages/proposals/ProposalEditorPage.test.tsx",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "function:apps/agency/src/pages/operations/DocumentAlertsPage.tsx:DocumentAlertsPage",
+      "target": "function:apps/agency/src/lib/api.ts:listDocumentAlerts",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/operations/OccurrencesPage.tsx:OccurrencesPage",
+      "target": "function:apps/agency/src/lib/api.ts:listTripOccurrences",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/operations/OccurrencesPage.tsx:OccurrencesPage",
+      "target": "function:apps/agency/src/lib/api.ts:listTrips",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/operations/OccurrencesPage.tsx:OccurrencesPage",
+      "target": "function:apps/agency/src/lib/api.ts:createTripOccurrence",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/operations/OccurrencesPage.tsx:OccurrencesPage",
+      "target": "function:apps/agency/src/lib/api.ts:updateTripOccurrence",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/operations/PassengersPage.tsx:PassengersPage",
+      "target": "function:apps/agency/src/lib/api.ts:listOperationalPassengers",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/operations/PostTripPage.tsx:PostTripPage",
+      "target": "function:apps/agency/src/lib/api.ts:listCompletedTripsWithChecklist",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/operations/PostTripPage.tsx:PostTripPage",
+      "target": "function:apps/agency/src/lib/api.ts:setPostTripChecklistItem",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/proposals/ProposalEditorPage.tsx:ProposalEditorPage",
+      "target": "function:apps/agency/src/lib/api.ts:getProposal",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/proposals/ProposalEditorPage.tsx:ProposalEditorPage",
+      "target": "function:apps/agency/src/lib/api.ts:listProposalSections",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/proposals/ProposalEditorPage.tsx:ProposalEditorPage",
+      "target": "function:apps/agency/src/lib/api.ts:listProposalItems",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/proposals/ProposalEditorPage.tsx:ProposalEditorPage",
+      "target": "function:apps/agency/src/lib/api.ts:listProposalMedia",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/proposals/ProposalEditorPage.tsx:CoverTab",
+      "target": "function:apps/agency/src/lib/api.ts:updateProposal",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/proposals/ProposalEditorPage.tsx:ContentTab",
+      "target": "function:apps/agency/src/lib/api.ts:createProposalSection",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/proposals/ProposalEditorPage.tsx:SectionCard",
+      "target": "function:apps/agency/src/lib/api.ts:updateProposalSection",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/proposals/ProposalEditorPage.tsx:SectionCard",
+      "target": "function:apps/agency/src/lib/api.ts:deleteProposalSection",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/proposals/ProposalEditorPage.tsx:SectionCard",
+      "target": "function:apps/agency/src/lib/api.ts:deleteProposalItem",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/proposals/ProposalEditorPage.tsx:ItemEditor",
+      "target": "function:apps/agency/src/lib/api.ts:updateProposalItem",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/proposals/ProposalEditorPage.tsx:ItemEditor",
+      "target": "function:apps/agency/src/lib/api.ts:createProposalItem",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/proposals/ProposalEditorPage.tsx:MediaTab",
+      "target": "function:apps/agency/src/lib/api.ts:linkMediaAssetToProposal",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/proposals/ProposalEditorPage.tsx:MediaThumb",
+      "target": "function:apps/agency/src/lib/api.ts:loadMediaAssetBlobUrl",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/proposals/ProposalEditorPage.tsx:MediaThumb",
+      "target": "function:apps/agency/src/lib/api.ts:unlinkProposalMedia",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/proposals/ProposalVisualPreview.tsx:ProposalVisualPreview",
+      "target": "function:apps/agency/src/lib/formatCurrency.ts:formatBRL",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/proposals/ProposalVisualPreview.tsx:ProposalVisualPreview",
+      "target": "function:apps/agency/src/lib/formatDateBR.ts:formatDateBR",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/proposals/ProposalVisualPreview.tsx:ProposalCover",
+      "target": "function:apps/agency/src/lib/api.ts:loadMediaAssetBlobUrl",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/proposals/ProposalVisualPreview.tsx:ProposalSectionBlock",
+      "target": "function:apps/agency/src/lib/formatCurrency.ts:formatBRL",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/proposals/ProposalEditorPage.tsx:ProposalEditorPage",
+      "target": "function:apps/agency/src/pages/proposals/ProposalVisualPreview.tsx:ProposalVisualPreview",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/pages/proposals/ProposalEditorPage.tsx:MediaTab",
+      "target": "function:apps/agency/src/components/media/MediaAssetPicker.tsx:MediaAssetPicker",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

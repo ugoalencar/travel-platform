@@ -1,0 +1,13 @@
+{
+  "id": "P011",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Não tem nenhuma agência usando isso em produção pra eu olhar e dizer 'funciona de verdade', e eu não vou trocar o sistema da minha agência sem prova nenhuma. Testo de graça porque não custa nada, mas pagar sem desconto e sem referência não rola agora.",
+  "objection": "Não confio em colocar o histórico e os documentos dos meus clientes numa plataforma que eu nunca ouvi falar e que ninguém mais usa ainda — se perder dado ou der problema, quem me garante alguma coisa?",
+  "would_change_my_mind": "Ver 2 ou 3 agências do meu tamanho usando de verdade e falando bem, mais algum desconto ou cupom pra assinar — e também que terminem a cobrança automática e a nota fiscal, porque hoje isso continua tudo por fora.",
+  "price_too_cheap": 29,
+  "price_cheap": 59,
+  "price_expensive": 149,
+  "price_too_expensive": 249
+}

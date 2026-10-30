@@ -1,0 +1,13 @@
+{
+  "id": "P007",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Vou até testar de graça pra ver como funciona, mas pagar agora não. Ninguém usa isso em produção ainda, então eu seria cobaia, e justo entrando dezembro/janeiro não posso me arriscar a travar o funil de venda numa ferramenta sem histórico nenhum.",
+  "objection": "Não ter nenhuma agência de referência usando de verdade me deixa com pé atrás: e se trava, perde orçamento, ou some dado do cliente bem na alta temporada? E o financeiro ainda é só contas a pagar/receber manual, cobrança e nota eu continuo fazendo por fora do mesmo jeito que já faço hoje.",
+  "would_change_my_mind": "ver 2 ou 3 agências do meu tamanho usando de verdade há uns meses sem reclamação, e passar a alta temporada inteira no teste antes de qualquer cobrança",
+  "price_too_cheap": 20,
+  "price_cheap": 49,
+  "price_expensive": 150,
+  "price_too_expensive": 299
+}

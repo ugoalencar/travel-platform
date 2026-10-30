@@ -37,6 +37,30 @@ $$;
 
 SELECT set_tenant_context('10000000-0000-4000-8000-000000000001', '11000000-0000-4000-8000-000000000001');
 
+-- Agency module overrides remain tenant isolated and cannot be deleted by the runtime.
+INSERT INTO agency_module_settings (agency_id, module_key, enabled, updated_by)
+VALUES ('10000000-0000-4000-8000-000000000001', 'PIPELINE', FALSE, '11000000-0000-4000-8000-000000000001');
+SELECT pg_temp.local_record_rls_result('Module setting visible to owning agency', 'PASS', CASE WHEN EXISTS (
+  SELECT 1 FROM agency_module_settings WHERE agency_id = '10000000-0000-4000-8000-000000000001' AND module_key = 'PIPELINE' AND enabled = FALSE
+) THEN 'PASS' ELSE 'FAIL' END);
+
+SELECT set_tenant_context('20000000-0000-4000-8000-000000000001', '21000000-0000-4000-8000-000000000001');
+SELECT pg_temp.local_record_rls_result('Module setting hidden from another agency', 'PASS', CASE WHEN NOT EXISTS (
+  SELECT 1 FROM agency_module_settings WHERE module_key = 'PIPELINE'
+) THEN 'PASS' ELSE 'FAIL' END);
+SELECT set_tenant_context('10000000-0000-4000-8000-000000000001', '11000000-0000-4000-8000-000000000001');
+DO $$
+BEGIN
+  DELETE FROM agency_module_settings WHERE agency_id = '10000000-0000-4000-8000-000000000001' AND module_key = 'PIPELINE';
+  PERFORM pg_temp.local_record_rls_result('Runtime cannot delete agency module setting', 'FAIL', 'PASS', 'Unexpectedly deleted');
+EXCEPTION WHEN insufficient_privilege THEN
+  PERFORM pg_temp.local_record_rls_result('Runtime cannot delete agency module setting', 'PASS', 'PASS');
+END;
+$$;
+SELECT pg_temp.local_record_rls_result('Module setting survives restricted delete', 'PASS', CASE WHEN EXISTS (
+  SELECT 1 FROM agency_module_settings WHERE agency_id = '10000000-0000-4000-8000-000000000001' AND module_key = 'PIPELINE' AND enabled = FALSE
+) THEN 'PASS' ELSE 'FAIL' END);
+
 DO $$
 DECLARE
   v_count INTEGER;

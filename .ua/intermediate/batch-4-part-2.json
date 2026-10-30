@@ -1,0 +1,1189 @@
+{
+ "nodes": [
+  {
+   "id": "file:apps/customer/src/pages/SaleEditPage.test.tsx",
+   "type": "file",
+   "name": "SaleEditPage.test.tsx",
+   "filePath": "apps/customer/src/pages/SaleEditPage.test.tsx",
+   "summary": "Testes da página de edição de venda validando carregamento inicial e submissão do formulário.",
+   "tags": [
+    "test",
+    "component",
+    "sale",
+    "form"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/pages/SaleEditPage.test.tsx:renderRouted",
+   "type": "function",
+   "name": "renderRouted",
+   "filePath": "apps/customer/src/pages/SaleEditPage.test.tsx",
+   "lineRange": [
+    30,
+    39
+   ],
+   "summary": "Renderiza a página sob teste dentro de MemoryRouter com rota inicial e dependências mockadas.",
+   "tags": [
+    "test",
+    "helper",
+    "routing"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:apps/customer/src/pages/SaleEditPage.tsx",
+   "type": "file",
+   "name": "SaleEditPage.tsx",
+   "filePath": "apps/customer/src/pages/SaleEditPage.tsx",
+   "summary": "Página de edição de venda que carrega a venda existente, recalcula totais e envia alterações à API.",
+   "tags": [
+    "component",
+    "page",
+    "sale",
+    "form"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:apps/customer/src/pages/SaleEditPage.tsx:mapSubmitErrorToMessage",
+   "type": "function",
+   "name": "mapSubmitErrorToMessage",
+   "filePath": "apps/customer/src/pages/SaleEditPage.tsx",
+   "lineRange": [
+    32,
+    48
+   ],
+   "summary": "Traduz erros de submissão da API em mensagens exibidas no formulário de edição.",
+   "tags": [
+    "utility",
+    "error-handling",
+    "form"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/pages/SaleEditPage.tsx:previewTotal",
+   "type": "function",
+   "name": "previewTotal",
+   "filePath": "apps/customer/src/pages/SaleEditPage.tsx",
+   "lineRange": [
+    50,
+    60
+   ],
+   "summary": "Calcula o total preliminar dos itens do formulário para exibição imediata ao usuário.",
+   "tags": [
+    "utility",
+    "calculation",
+    "form"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/pages/SaleEditPage.tsx:SaleEditPage",
+   "type": "function",
+   "name": "SaleEditPage",
+   "filePath": "apps/customer/src/pages/SaleEditPage.tsx",
+   "lineRange": [
+    62,
+    241
+   ],
+   "summary": "Componente principal da edição de venda; carrega a venda, recalcula totais e envia atualizações.",
+   "tags": [
+    "component",
+    "page",
+    "sale",
+    "form"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:apps/customer/src/pages/SaleFormPage.test.tsx",
+   "type": "file",
+   "name": "SaleFormPage.test.tsx",
+   "filePath": "apps/customer/src/pages/SaleFormPage.test.tsx",
+   "summary": "Testes da página de criação de venda cobrindo seleção de cliente e envio do formulário com mocks da API.",
+   "tags": [
+    "test",
+    "component",
+    "sale",
+    "form"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/pages/SaleFormPage.test.tsx:renderRouted",
+   "type": "function",
+   "name": "renderRouted",
+   "filePath": "apps/customer/src/pages/SaleFormPage.test.tsx",
+   "lineRange": [
+    31,
+    41
+   ],
+   "summary": "Renderiza a página sob teste dentro de MemoryRouter com rota inicial e dependências mockadas.",
+   "tags": [
+    "test",
+    "helper",
+    "routing"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:apps/customer/src/pages/SaleFormPage.tsx",
+   "type": "file",
+   "name": "SaleFormPage.tsx",
+   "filePath": "apps/customer/src/pages/SaleFormPage.tsx",
+   "summary": "Página de criação de venda com seleção de cliente, cálculo prévio de totais e submissão para a API.",
+   "tags": [
+    "component",
+    "page",
+    "sale",
+    "form"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:apps/customer/src/pages/SaleFormPage.tsx:mapErrorToMessage",
+   "type": "function",
+   "name": "mapErrorToMessage",
+   "filePath": "apps/customer/src/pages/SaleFormPage.tsx",
+   "lineRange": [
+    35,
+    53
+   ],
+   "summary": "Mapeia erros retornados pela API em mensagens amigáveis exibidas no formulário.",
+   "tags": [
+    "utility",
+    "error-handling",
+    "form"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/pages/SaleFormPage.tsx:previewTotal",
+   "type": "function",
+   "name": "previewTotal",
+   "filePath": "apps/customer/src/pages/SaleFormPage.tsx",
+   "lineRange": [
+    56,
+    66
+   ],
+   "summary": "Calcula o total preliminar dos itens do formulário para exibição imediata ao usuário.",
+   "tags": [
+    "utility",
+    "calculation",
+    "form"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/pages/SaleFormPage.tsx:SaleFormPage",
+   "type": "function",
+   "name": "SaleFormPage",
+   "filePath": "apps/customer/src/pages/SaleFormPage.tsx",
+   "lineRange": [
+    68,
+    274
+   ],
+   "summary": "Componente principal da criação de venda; monta o formulário com cliente e itens e submete à API.",
+   "tags": [
+    "component",
+    "page",
+    "sale",
+    "form"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:apps/customer/src/pages/SaleMarginPage.tsx",
+   "type": "file",
+   "name": "SaleMarginPage.tsx",
+   "filePath": "apps/customer/src/pages/SaleMarginPage.tsx",
+   "summary": "Página de margem da venda que consulta o indicador de margem na API e detalha a composição do valor.",
+   "tags": [
+    "component",
+    "page",
+    "financial",
+    "margins"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/pages/SaleMarginPage.tsx:SaleMarginPage",
+   "type": "function",
+   "name": "SaleMarginPage",
+   "filePath": "apps/customer/src/pages/SaleMarginPage.tsx",
+   "lineRange": [
+    16,
+    70
+   ],
+   "summary": "Componente principal da página de margem; consulta o resumo de margem na API e exibe os indicadores.",
+   "tags": [
+    "component",
+    "page",
+    "financial"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/pages/SaleMarginPage.tsx:MarginDetail",
+   "type": "function",
+   "name": "MarginDetail",
+   "filePath": "apps/customer/src/pages/SaleMarginPage.tsx",
+   "lineRange": [
+    72,
+    117
+   ],
+   "summary": "Componente que detalha as linhas de composição da margem da venda.",
+   "tags": [
+    "component",
+    "table",
+    "financial"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:apps/customer/src/pages/SalesPage.test.tsx",
+   "type": "file",
+   "name": "SalesPage.test.tsx",
+   "filePath": "apps/customer/src/pages/SalesPage.test.tsx",
+   "summary": "Testes da listagem de vendas verificando carregamento e renderização da tabela de vendas.",
+   "tags": [
+    "test",
+    "component",
+    "list",
+    "sales"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/pages/SalesPage.test.tsx:renderRouted",
+   "type": "function",
+   "name": "renderRouted",
+   "filePath": "apps/customer/src/pages/SalesPage.test.tsx",
+   "lineRange": [
+    31,
+    40
+   ],
+   "summary": "Renderiza a página sob teste dentro de MemoryRouter com rota inicial e dependências mockadas.",
+   "tags": [
+    "test",
+    "helper",
+    "routing"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:apps/customer/src/pages/SalesPage.tsx",
+   "type": "file",
+   "name": "SalesPage.tsx",
+   "filePath": "apps/customer/src/pages/SalesPage.tsx",
+   "summary": "Listagem de vendas com StatusPill, valores formatados em BRL e navegação para os detalhes de cada venda.",
+   "tags": [
+    "component",
+    "page",
+    "list",
+    "sales"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/pages/SalesPage.tsx:SalesPage",
+   "type": "function",
+   "name": "SalesPage",
+   "filePath": "apps/customer/src/pages/SalesPage.tsx",
+   "lineRange": [
+    16,
+    73
+   ],
+   "summary": "Componente principal da listagem de vendas; carrega vendas da API e coordena a tabela navegável.",
+   "tags": [
+    "component",
+    "page",
+    "list"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/pages/SalesPage.tsx:SaleTable",
+   "type": "function",
+   "name": "SaleTable",
+   "filePath": "apps/customer/src/pages/SalesPage.tsx",
+   "lineRange": [
+    75,
+    130
+   ],
+   "summary": "Componente que renderiza a tabela de vendas com StatusPill, valores formatados e navegação por linha.",
+   "tags": [
+    "component",
+    "table",
+    "list"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:apps/customer/src/pages/SupplierDetailsPage.test.tsx",
+   "type": "file",
+   "name": "SupplierDetailsPage.test.tsx",
+   "filePath": "apps/customer/src/pages/SupplierDetailsPage.test.tsx",
+   "summary": "Testes da página de detalhes de fornecedor verificando a renderização com dados mockados.",
+   "tags": [
+    "test",
+    "component",
+    "supplier"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:apps/customer/src/pages/SupplierDetailsPage.tsx",
+   "type": "file",
+   "name": "SupplierDetailsPage.tsx",
+   "filePath": "apps/customer/src/pages/SupplierDetailsPage.tsx",
+   "summary": "Página de detalhes do fornecedor com dados cadastrais, contato e ação para edição.",
+   "tags": [
+    "component",
+    "page",
+    "supplier",
+    "details"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/pages/SupplierDetailsPage.tsx:SupplierDetailsPage",
+   "type": "function",
+   "name": "SupplierDetailsPage",
+   "filePath": "apps/customer/src/pages/SupplierDetailsPage.tsx",
+   "lineRange": [
+    19,
+    89
+   ],
+   "summary": "Componente principal da página de detalhes do fornecedor; exibe dados cadastrais e contato.",
+   "tags": [
+    "component",
+    "page",
+    "supplier"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:apps/customer/src/pages/SupplierEditPage.test.tsx",
+   "type": "file",
+   "name": "SupplierEditPage.test.tsx",
+   "filePath": "apps/customer/src/pages/SupplierEditPage.test.tsx",
+   "summary": "Testes da página de edição de fornecedor validando carregamento e submissão do formulário.",
+   "tags": [
+    "test",
+    "component",
+    "supplier",
+    "form"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/pages/SupplierEditPage.test.tsx:renderRouted",
+   "type": "function",
+   "name": "renderRouted",
+   "filePath": "apps/customer/src/pages/SupplierEditPage.test.tsx",
+   "lineRange": [
+    14,
+    23
+   ],
+   "summary": "Renderiza a página sob teste dentro de MemoryRouter com rota inicial e dependências mockadas.",
+   "tags": [
+    "test",
+    "helper",
+    "routing"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:apps/customer/src/pages/SupplierEditPage.tsx",
+   "type": "file",
+   "name": "SupplierEditPage.tsx",
+   "filePath": "apps/customer/src/pages/SupplierEditPage.tsx",
+   "summary": "Página de edição de fornecedor que carrega o registro, controla o formulário e envia atualizações à API.",
+   "tags": [
+    "component",
+    "page",
+    "supplier",
+    "form"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/pages/SupplierEditPage.tsx:mapSubmitErrorToMessage",
+   "type": "function",
+   "name": "mapSubmitErrorToMessage",
+   "filePath": "apps/customer/src/pages/SupplierEditPage.tsx",
+   "lineRange": [
+    26,
+    42
+   ],
+   "summary": "Traduz erros de submissão da API em mensagens exibidas no formulário de edição.",
+   "tags": [
+    "utility",
+    "error-handling",
+    "form"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/pages/SupplierEditPage.tsx:SupplierEditPage",
+   "type": "function",
+   "name": "SupplierEditPage",
+   "filePath": "apps/customer/src/pages/SupplierEditPage.tsx",
+   "lineRange": [
+    44,
+    214
+   ],
+   "summary": "Componente principal da edição de fornecedor; carrega o registro e submete alterações à API.",
+   "tags": [
+    "component",
+    "page",
+    "supplier",
+    "form"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:apps/customer/src/pages/SupplierFormPage.test.tsx",
+   "type": "file",
+   "name": "SupplierFormPage.test.tsx",
+   "filePath": "apps/customer/src/pages/SupplierFormPage.test.tsx",
+   "summary": "Testes da página de cadastro de fornecedor verificando a submissão do formulário.",
+   "tags": [
+    "test",
+    "component",
+    "supplier",
+    "form"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/pages/SupplierFormPage.test.tsx:renderRouted",
+   "type": "function",
+   "name": "renderRouted",
+   "filePath": "apps/customer/src/pages/SupplierFormPage.test.tsx",
+   "lineRange": [
+    14,
+    23
+   ],
+   "summary": "Renderiza a página sob teste dentro de MemoryRouter com rota inicial e dependências mockadas.",
+   "tags": [
+    "test",
+    "helper",
+    "routing"
+   ],
+   "complexity": "simple"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:apps/customer/src/pages/SaleEditPage.test.tsx",
+   "target": "function:apps/customer/src/pages/SaleEditPage.test.tsx:renderRouted",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleEditPage.tsx",
+   "target": "function:apps/customer/src/pages/SaleEditPage.tsx:mapSubmitErrorToMessage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleEditPage.tsx",
+   "target": "function:apps/customer/src/pages/SaleEditPage.tsx:previewTotal",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleEditPage.tsx",
+   "target": "function:apps/customer/src/pages/SaleEditPage.tsx:SaleEditPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleEditPage.tsx",
+   "target": "function:apps/customer/src/pages/SaleEditPage.tsx:SaleEditPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleFormPage.test.tsx",
+   "target": "function:apps/customer/src/pages/SaleFormPage.test.tsx:renderRouted",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleFormPage.tsx",
+   "target": "function:apps/customer/src/pages/SaleFormPage.tsx:mapErrorToMessage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleFormPage.tsx",
+   "target": "function:apps/customer/src/pages/SaleFormPage.tsx:previewTotal",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleFormPage.tsx",
+   "target": "function:apps/customer/src/pages/SaleFormPage.tsx:SaleFormPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleFormPage.tsx",
+   "target": "function:apps/customer/src/pages/SaleFormPage.tsx:SaleFormPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleMarginPage.tsx",
+   "target": "function:apps/customer/src/pages/SaleMarginPage.tsx:SaleMarginPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleMarginPage.tsx",
+   "target": "function:apps/customer/src/pages/SaleMarginPage.tsx:SaleMarginPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleMarginPage.tsx",
+   "target": "function:apps/customer/src/pages/SaleMarginPage.tsx:MarginDetail",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/SalesPage.test.tsx",
+   "target": "function:apps/customer/src/pages/SalesPage.test.tsx:renderRouted",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/SalesPage.tsx",
+   "target": "function:apps/customer/src/pages/SalesPage.tsx:SalesPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/SalesPage.tsx",
+   "target": "function:apps/customer/src/pages/SalesPage.tsx:SalesPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/SalesPage.tsx",
+   "target": "function:apps/customer/src/pages/SalesPage.tsx:SaleTable",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/SupplierDetailsPage.tsx",
+   "target": "function:apps/customer/src/pages/SupplierDetailsPage.tsx:SupplierDetailsPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/SupplierDetailsPage.tsx",
+   "target": "function:apps/customer/src/pages/SupplierDetailsPage.tsx:SupplierDetailsPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/SupplierEditPage.test.tsx",
+   "target": "function:apps/customer/src/pages/SupplierEditPage.test.tsx:renderRouted",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/SupplierEditPage.tsx",
+   "target": "function:apps/customer/src/pages/SupplierEditPage.tsx:mapSubmitErrorToMessage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/SupplierEditPage.tsx",
+   "target": "function:apps/customer/src/pages/SupplierEditPage.tsx:SupplierEditPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/SupplierEditPage.tsx",
+   "target": "function:apps/customer/src/pages/SupplierEditPage.tsx:SupplierEditPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/SupplierFormPage.test.tsx",
+   "target": "function:apps/customer/src/pages/SupplierFormPage.test.tsx:renderRouted",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleEditPage.test.tsx",
+   "target": "file:apps/customer/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleEditPage.test.tsx",
+   "target": "file:apps/customer/src/pages/SaleEditPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleEditPage.test.tsx",
+   "target": "file:apps/customer/src/types/sale.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleEditPage.tsx",
+   "target": "file:apps/customer/src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleEditPage.tsx",
+   "target": "file:apps/customer/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleEditPage.tsx",
+   "target": "file:apps/customer/src/types/sale.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleFormPage.test.tsx",
+   "target": "file:apps/customer/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleFormPage.test.tsx",
+   "target": "file:apps/customer/src/pages/SaleFormPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleFormPage.test.tsx",
+   "target": "file:apps/customer/src/types/customer.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleFormPage.test.tsx",
+   "target": "file:apps/customer/src/types/sale.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleFormPage.tsx",
+   "target": "file:apps/customer/src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleFormPage.tsx",
+   "target": "file:apps/customer/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleFormPage.tsx",
+   "target": "file:apps/customer/src/types/customer.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleFormPage.tsx",
+   "target": "file:apps/customer/src/types/sale.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleMarginPage.tsx",
+   "target": "file:apps/customer/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleMarginPage.tsx",
+   "target": "file:apps/customer/src/types/financial.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/SalesPage.test.tsx",
+   "target": "file:apps/customer/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/SalesPage.test.tsx",
+   "target": "file:apps/customer/src/pages/SalesPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/SalesPage.test.tsx",
+   "target": "file:apps/customer/src/types/customer.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/SalesPage.test.tsx",
+   "target": "file:apps/customer/src/types/sale.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/SalesPage.tsx",
+   "target": "file:apps/customer/src/components/ui/StatusPill.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/SalesPage.tsx",
+   "target": "file:apps/customer/src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/SalesPage.tsx",
+   "target": "file:apps/customer/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/SalesPage.tsx",
+   "target": "file:apps/customer/src/lib/formatCurrency.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/SalesPage.tsx",
+   "target": "file:apps/customer/src/lib/statusLabels.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/SalesPage.tsx",
+   "target": "file:apps/customer/src/types/customer.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/SalesPage.tsx",
+   "target": "file:apps/customer/src/types/sale.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/SupplierDetailsPage.test.tsx",
+   "target": "file:apps/customer/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/SupplierDetailsPage.test.tsx",
+   "target": "file:apps/customer/src/pages/SupplierDetailsPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/SupplierDetailsPage.tsx",
+   "target": "file:apps/customer/src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/SupplierDetailsPage.tsx",
+   "target": "file:apps/customer/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/SupplierDetailsPage.tsx",
+   "target": "file:apps/customer/src/types/transport.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/SupplierEditPage.test.tsx",
+   "target": "file:apps/customer/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/SupplierEditPage.test.tsx",
+   "target": "file:apps/customer/src/pages/SupplierEditPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/SupplierEditPage.tsx",
+   "target": "file:apps/customer/src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/SupplierEditPage.tsx",
+   "target": "file:apps/customer/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/SupplierEditPage.tsx",
+   "target": "file:apps/customer/src/types/transport.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/SupplierFormPage.test.tsx",
+   "target": "file:apps/customer/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/SupplierFormPage.test.tsx",
+   "target": "file:apps/customer/src/pages/SupplierFormPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleEditPage.tsx",
+   "target": "file:apps/customer/src/pages/SaleEditPage.test.tsx",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleFormPage.tsx",
+   "target": "file:apps/customer/src/pages/SaleFormPage.test.tsx",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:apps/customer/src/pages/SalesPage.tsx",
+   "target": "file:apps/customer/src/pages/SalesPage.test.tsx",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:apps/customer/src/pages/SupplierDetailsPage.tsx",
+   "target": "file:apps/customer/src/pages/SupplierDetailsPage.test.tsx",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:apps/customer/src/pages/SupplierEditPage.tsx",
+   "target": "file:apps/customer/src/pages/SupplierEditPage.test.tsx",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleEditPage.test.tsx",
+   "target": "class:apps/customer/src/lib/api.ts:ApiError",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleEditPage.test.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:getSale",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleEditPage.test.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:updateSale",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleEditPage.tsx",
+   "target": "class:apps/customer/src/lib/api.ts:ApiError",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleEditPage.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:getSale",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleEditPage.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:updateSale",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleFormPage.test.tsx",
+   "target": "class:apps/customer/src/lib/api.ts:ApiError",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleFormPage.test.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:listCustomers",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleFormPage.test.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:createSale",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleFormPage.tsx",
+   "target": "class:apps/customer/src/lib/api.ts:ApiError",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleFormPage.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:listCustomers",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleFormPage.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:listProposals",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleFormPage.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:createSale",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleMarginPage.tsx",
+   "target": "class:apps/customer/src/lib/api.ts:ApiError",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleMarginPage.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:getSaleMargin",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/SalesPage.test.tsx",
+   "target": "class:apps/customer/src/lib/api.ts:ApiError",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/SalesPage.test.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:listCustomers",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/SalesPage.test.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:listSales",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/SalesPage.tsx",
+   "target": "class:apps/customer/src/lib/api.ts:ApiError",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/SalesPage.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:listCustomers",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/SalesPage.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:listSales",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/SalesPage.tsx",
+   "target": "function:apps/customer/src/lib/formatCurrency.ts:formatBRL",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/SalesPage.tsx",
+   "target": "function:apps/customer/src/lib/statusLabels.ts:getSaleStatusLabel",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/SupplierDetailsPage.test.tsx",
+   "target": "class:apps/customer/src/lib/api.ts:ApiError",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/SupplierDetailsPage.test.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:getSupplier",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/SupplierDetailsPage.tsx",
+   "target": "class:apps/customer/src/lib/api.ts:ApiError",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/SupplierDetailsPage.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:getSupplier",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/SupplierEditPage.test.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:getSupplier",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/SupplierEditPage.test.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:updateSupplier",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/SupplierEditPage.tsx",
+   "target": "class:apps/customer/src/lib/api.ts:ApiError",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/SupplierEditPage.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:getSupplier",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/SupplierEditPage.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:updateSupplier",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/SupplierFormPage.test.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:createSupplier",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  }
+ ]
+}

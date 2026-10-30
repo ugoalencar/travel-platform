@@ -19,6 +19,10 @@ export const PERMISSIONS = [
   'customers.read_own',
   'customers.update_all',
   'customers.update_own',
+  'customers.fields_manage',
+  'revenue.rules_manage',
+  'revenue.read_all',
+  'revenue.receive',
   'sales.create',
   'sales.read_all',
   'sales.read_own',
@@ -30,6 +34,7 @@ export const PERMISSIONS = [
   'commissions.read_own',
   'commissions.approve',
   'commissions.pay',
+  'commissions.rules_manage',
   'finance.read',
   'finance.manage',
   'imports.manage',
@@ -171,4 +176,14 @@ export async function loadAccess(
     permissions: new Set(permissions),
     sellerId: sellerResult.rows[0]?.id ?? null,
   };
+}
+
+/**
+ * Category and sale-form configuration is reserved to administrators (decision Q4):
+ * `settings.manage` alone, which MANAGER also holds, is not enough.
+ */
+export function requireAdministrator(context: { role: string }): void {
+  if (context.role !== 'MASTER' && context.role !== 'ADMIN') {
+    throw new ForbiddenError('Somente administradores podem configurar categorias e formulários de venda');
+  }
 }

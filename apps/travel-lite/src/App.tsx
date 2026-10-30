@@ -5,6 +5,9 @@ import { BrandingProvider } from './BrandingProvider';
 import { menuPermissions } from './menu';
 import { Layout } from './Layout';
 import { CatalogPage } from './pages/CatalogPage';
+import { AgencyRevenuePage } from './pages/AgencyRevenuePage';
+import { ProjectionsPage } from './pages/ProjectionsPage';
+import { CommissionRulesPage } from './pages/CommissionRulesPage';
 import { CommissionsPage } from './pages/CommissionsPage';
 import { CustomersPage } from './pages/CustomersPage';
 import { DashboardPage } from './pages/DashboardPage';
@@ -68,9 +71,12 @@ export function App() {
               <Route path="/vendedores" element={<Allowed path="/vendedores"><SellersPage /></Allowed>} />
               <Route path="/vendas" element={<Allowed path="/vendas"><SalesPage /></Allowed>} />
               <Route path="/comissoes" element={<Allowed path="/comissoes"><CommissionsPage /></Allowed>} />
+              <Route path="/regras-comissao" element={<Allowed path="/regras-comissao"><CommissionRulesPage /></Allowed>} />
               <Route path="/financeiro" element={<Allowed path="/financeiro"><FinancePage /></Allowed>} />
               <Route path="/importacoes" element={<Allowed path="/importacoes"><ImportDataPage /></Allowed>} />
               <Route path="/relatorios" element={<Allowed path="/relatorios"><ReportsPage /></Allowed>} />
+              <Route path="/projecoes" element={<Allowed path="/projecoes"><ProjectionsPage /></Allowed>} />
+              <Route path="/receita-agencia" element={<Allowed path="/receita-agencia"><AgencyRevenuePage /></Allowed>} />
               <Route path="/cadastros" element={<Allowed path="/cadastros"><CatalogPage /></Allowed>} />
               <Route path="/configuracoes" element={<Allowed path="/configuracoes"><SettingsPage /></Allowed>} />
               <Route path="/ajuda" element={<HelpPage />} />

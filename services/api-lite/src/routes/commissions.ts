@@ -26,6 +26,8 @@ interface CommissionListItem {
   sale_number: string;
   payable_id: string | null;
   payable_status: string | null;
+  release_mode: string;
+  released_amount: string | null;
 }
 
 function serializeCommission(row: CommissionListItem) {
@@ -35,6 +37,7 @@ function serializeCommission(row: CommissionListItem) {
     percentage: row.percentage ? Number(row.percentage) : null,
     fixed_amount: row.fixed_amount ? Number(row.fixed_amount) : null,
     commission_amount: row.commission_amount !== null ? Number(row.commission_amount) : null,
+    released_amount: row.released_amount !== null ? Number(row.released_amount) : null,
   };
 }
 
@@ -108,8 +111,17 @@ export function registerCommissionRoutes(
                 sc.percentage, sc.fixed_amount, sc.commission_amount, sc.status, sc.paid_at,
                 sc.created_at,
                 se.name AS seller_name, s.sale_number,
-                p.id AS payable_id, p.status AS payable_status
+                p.id AS payable_id, p.status AS payable_status, sc.release_mode,
+                CASE WHEN sc.commission_amount IS NULL THEN NULL
+                     WHEN sc.release_mode = 'BLOCKED' THEN 0
+                     WHEN sc.release_mode = 'ON_SALE' THEN sc.commission_amount
+                     ELSE round(sc.commission_amount * LEAST(COALESCE(rc.received / NULLIF(rc.total, 0), 0), 1), 2)
+                END AS released_amount
            FROM seller_commissions sc
+           LEFT JOIN LATERAL (
+             SELECT sum(r.paid_amount) AS received, sum(r.amount) AS total FROM receivables r
+              WHERE r.tenant_id = sc.tenant_id AND r.sale_id = sc.sale_id AND r.status <> 'CANCELLED'
+           ) rc ON true
            JOIN sellers se ON se.tenant_id = sc.tenant_id AND se.id = sc.seller_id
            JOIN sales s ON s.tenant_id = sc.tenant_id AND s.id = sc.sale_id
            LEFT JOIN payables p ON p.tenant_id = sc.tenant_id AND p.commission_id = sc.id
@@ -220,8 +232,13 @@ export function registerCommissionRoutes(
 
     await database.withTenantTransaction(async (client) => {
       const commission = await loadCommissionForUpdate(client, context.tenantId, id);
-      if (commission.status === 'PAID' || commission.status === 'CANCELLED') {
-        throw new ConflictError(`A ${commission.status} commission cannot be overridden`);
+      // Once approved the amount is bound to a payment obligation; changing only the commission would let
+      // the payable (and the money paid) diverge from it. Adjusting an approved commission needs a
+      // traceable adjustment entry (spec section 6), which does not exist yet, so it is refused.
+      if (commission.status !== 'PENDING_RULE' && commission.status !== 'PENDING') {
+        throw new ConflictError(
+          `A ${commission.status} commission cannot be overridden; only PENDING or PENDING_RULE commissions can`,
+        );
       }
 
       await client.query(
@@ -231,18 +248,31 @@ export function registerCommissionRoutes(
                 calculation_base = NULL,
                 percentage = NULL,
                 fixed_amount = NULL,
-                rule_snapshot = $4::jsonb,
+                rule_snapshot = COALESCE(rule_snapshot, '{}'::jsonb) || $4::jsonb,
                 status = CASE WHEN status = 'PENDING_RULE' THEN 'PENDING' ELSE status END,
                 notes = COALESCE($5, notes),
                 updated_at = now()
           WHERE tenant_id = $1 AND id = $2`,
-        [context.tenantId, id, amount, JSON.stringify({ overridden: true, manual: true }), notes],
+        [
+          context.tenantId,
+          id,
+          amount,
+          JSON.stringify({
+            overridden: true,
+            manual: true,
+            previous_amount: commission.commission_amount !== null ? Number(commission.commission_amount) : null,
+          }),
+          notes,
+        ],
       );
       await recordAuditEvent(client, {
         eventType: AUDIT_EVENTS.COMMISSION_OVERRIDE,
         entityType: 'seller_commission',
         entityId: id,
-        metadata: { amount },
+        metadata: {
+          amount,
+          previous_amount: commission.commission_amount !== null ? Number(commission.commission_amount) : null,
+        },
       });
       await enqueueOutboxEvent(client, {
         eventType: 'COMMISSION_UPDATED',

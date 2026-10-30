@@ -284,7 +284,7 @@ Travel Platform multi-tenant SaaS application has successfully completed all dev
 - Node.js 24.x (LTS)
 - PostgreSQL 15+
 - Redis 4.7+
-- Modern browsers (Chrome, Firefox, Safari, Edge)
+- Modern browsers (Chrome, Firefox, Safari)
 - Mobile responsive (iOS, Android)
 
 ---

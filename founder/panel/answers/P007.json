@@ -1,0 +1,13 @@
+{
+  "id": "P007",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "price",
+  "reason": "A oferta até tenta resolver o risco de migração, mas R$99 ou R$299 por mês ainda pesa pro que minha agência fatura hoje. Nunca paguei por sistema de gestão nenhum, sempre deu pra ir no jeitinho com planilha e WhatsApp, e com dezembro chegando eu não vou arriscar trocar de ferramenta bem na época que não posso quebrar. No máximo testo de graça pra ver, mas assinar agora, não.",
+  "objection": "o medo de perder ou embolar histórico de cliente e orçamento no meio da troca, mesmo com a garantia de migração, e ainda ter que cobrar o cliente final e emitir nota por fora enquanto pago mensalidade por um sistema que não faz essa parte ainda.",
+  "would_change_my_mind": "ver outra agência do meu tamanho usando de verdade, com depoimento e caso real, e poder testar um mês inteiro de orçamento e venda sem travar, fora da alta temporada, antes de decidir pagar.",
+  "price_too_cheap": 29,
+  "price_cheap": 49,
+  "price_expensive": 99,
+  "price_too_expensive": 199
+}

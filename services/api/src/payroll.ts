@@ -1,3 +1,4 @@
+import { computeEntryRelease, filterFullyReleased, lockEntrySettlement } from './commission-release-service';
 import {
   EmployeeDeductionType,
   PayrollEntryStatus,
@@ -7,6 +8,8 @@ import {
 import { getAgencyId } from '../../../packages/domain/tenant-context';
 import type { DatabaseRuntime } from './database';
 import { NotFoundError, ValidationError } from './errors';
+import { getActiveCommissionPayPolicy } from './commission-payment-policies';
+import { expectedCommissionPayDate } from './commission-supplier-policy';
 
 // ============================================================
 // EMPLOYEE DEDUCTIONS
@@ -155,13 +158,19 @@ interface PayrollEntryRow {
   due_date: string | null;
   paid_at: string | null;
   notes: string | null;
+  payable_id: string | null;
   created_at: string;
   updated_at: string;
 }
 
+// `payable_id` is the live (non-cancelled) payment obligation of the entry.
 const PAYROLL_COLUMNS = `id, agency_id, employee_id, competence, base_salary, benefits, bonuses,
   commissions_total, reimbursements, additions, discounts_total, net_amount, status, due_date,
-  paid_at, notes, created_at, updated_at`;
+  paid_at, notes,
+  (SELECT p.id FROM payables p
+    WHERE p.agency_id = payroll_entries.agency_id AND p.payroll_entry_id = payroll_entries.id
+      AND p.status <> 'CANCELLED' LIMIT 1) AS payable_id,
+  created_at, updated_at`;
 
 function toPayrollEntry(row: PayrollEntryRow): PayrollEntry {
   return {
@@ -181,6 +190,7 @@ function toPayrollEntry(row: PayrollEntryRow): PayrollEntry {
     dueDate: row.due_date !== null ? new Date(row.due_date) : undefined,
     paidAt: row.paid_at !== null ? new Date(row.paid_at) : undefined,
     notes: row.notes ?? undefined,
+    payableId: row.payable_id ?? undefined,
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
   };
@@ -243,9 +253,10 @@ export interface GeneratePayrollInput {
 
 /**
  * Generates (or refreshes, while OPEN) a payroll entry for an employee +
- * competence month: snapshots base_salary, rolls up APPROVED/PAYABLE/PAID
- * commission_entries and employee_deductions for that month, and computes
- * net_amount.
+ * competence month: snapshots base_salary, reserves the APPROVED
+ * commission_entries of that month that are not yet committed to another
+ * payment channel (standalone payable, payroll) plus employee_deductions,
+ * and computes net_amount.
  */
 export async function generatePayrollEntry(
   database: DatabaseRuntime,
@@ -264,15 +275,68 @@ export async function generatePayrollEntry(
     }
     const baseSalary = employee.base_salary !== null ? Number(employee.base_salary) : 0;
 
-    const commissionsResult = await client.query<{ total: string }>(
-      `SELECT COALESCE(SUM(amount), 0)::text AS total
-       FROM commission_entries
-       WHERE agency_id = $1 AND employee_id = $2
-         AND status IN ('APPROVED', 'PAYABLE', 'PAID')
-         AND date_trunc('month', created_at) = date_trunc('month', $3::date)`,
+    // Serializes generation per employee+month and decides the entry's state before any
+    // commission is reserved, so a refresh and a first generation cannot interleave.
+    await client.query(`SELECT pg_advisory_xact_lock(hashtext($1 || ':' || $2 || ':' || to_char($3::date, 'YYYY-MM')))`, [
+      `payroll:${agencyId}`,
+      data.employeeId,
+      data.competence,
+    ]);
+    const existingResult = await client.query<{ id: string; status: PayrollEntryStatus }>(
+      `SELECT id, status FROM payroll_entries
+       WHERE agency_id = $1 AND employee_id = $2 AND date_trunc('month', competence) = date_trunc('month', $3::date)
+       FOR UPDATE`,
       [agencyId, data.employeeId, data.competence],
     );
-    const commissionsTotal = Number(commissionsResult.rows[0]?.total ?? 0);
+    const existing = existingResult.rows[0];
+    if (existing && existing.status !== PayrollEntryStatus.OPEN) {
+      throw new ValidationError(
+        `A payroll entry for this employee/month already exists with status ${existing.status}`,
+      );
+    }
+
+    // Single payment channel per commission (decision F3): the payroll RESERVES the entries it
+    // counts (commission_entries.payroll_entry_id). Only APPROVED entries that are neither in a
+    // standalone payable (PAYABLE), settled (PAID) nor reserved by another payroll are eligible.
+    // Refreshing an OPEN entry first releases its previous reservation, then reserves again.
+    if (existing) {
+      await client.query(
+        `UPDATE commission_entries SET payroll_entry_id = NULL, updated_at = now()
+         WHERE agency_id = $1 AND payroll_entry_id = $2`,
+        [agencyId, existing.id],
+      );
+    }
+    const payPolicy = await getActiveCommissionPayPolicy(client, agencyId, data.employeeId, data.competence);
+    const targetPayDate = payPolicy.mode === 'PER_ENTRY'
+      ? null
+      : data.dueDate ?? expectedCommissionPayDate(data.competence, payPolicy);
+    const eligibleResult = await client.query<{ id: string; amount: string }>(
+      `SELECT id, amount::text AS amount FROM commission_entries
+       WHERE agency_id = $1 AND employee_id = $2
+         AND status = 'APPROVED' AND payroll_entry_id IS NULL
+         AND (($4::date IS NULL AND date_trunc('month', created_at) = date_trunc('month', $3::date))
+           OR ($4::date IS NOT NULL AND created_at < $4::date + interval '1 day'))
+       ORDER BY id
+       FOR UPDATE`,
+      [agencyId, data.employeeId, data.competence, targetPayDate],
+    );
+    let releaseCandidates = eligibleResult.rows;
+    if (targetPayDate !== null) {
+      releaseCandidates = [];
+      for (const row of eligibleResult.rows) {
+        await lockEntrySettlement(client, agencyId, row.id);
+        const release = await computeEntryRelease(client, agencyId, row.id);
+        if (release.expectedPayDate === targetPayDate && Math.round(release.released * 100) >= Math.round(release.recognized * 100)) {
+          releaseCandidates.push(row);
+        }
+      }
+    }
+    // COM-03: payroll pays as a whole, so it only reserves entries already fully released by receipts.
+    const releasedIds = new Set(await filterFullyReleased(client, agencyId, releaseCandidates.map((r) => r.id)));
+    const eligibleRows = releaseCandidates.filter((r) => releasedIds.has(r.id));
+    const eligibleIds = eligibleRows.map((r) => r.id);
+    const commissionsTotal =
+      eligibleRows.reduce((cents, r) => cents + Math.round(Number(r.amount) * 100), 0) / 100;
 
     const deductionsResult = await client.query<{ total: string }>(
       `SELECT COALESCE(SUM(amount), 0)::text AS total
@@ -292,18 +356,6 @@ export async function generatePayrollEntry(
         (baseSalary + benefits + bonuses + commissionsTotal + reimbursements + additions - discountsTotal) *
           100,
       ) / 100;
-
-    const existingResult = await client.query<{ id: string; status: PayrollEntryStatus }>(
-      `SELECT id, status FROM payroll_entries
-       WHERE agency_id = $1 AND employee_id = $2 AND date_trunc('month', competence) = date_trunc('month', $3::date)`,
-      [agencyId, data.employeeId, data.competence],
-    );
-    const existing = existingResult.rows[0];
-    if (existing && existing.status !== PayrollEntryStatus.OPEN) {
-      throw new ValidationError(
-        `A payroll entry for this employee/month already exists with status ${existing.status}`,
-      );
-    }
 
     let row: PayrollEntryRow;
     if (existing) {
@@ -325,7 +377,7 @@ export async function generatePayrollEntry(
           additions,
           discountsTotal,
           netAmount,
-          data.dueDate ?? null,
+          data.dueDate ?? targetPayDate,
           data.notes ?? null,
         ],
       );
@@ -349,11 +401,19 @@ export async function generatePayrollEntry(
           additions,
           discountsTotal,
           netAmount,
-          data.dueDate ?? null,
+          data.dueDate ?? targetPayDate,
           data.notes ?? null,
         ],
       );
       row = result.rows[0]!;
+    }
+
+    if (eligibleIds.length > 0) {
+      await client.query(
+        `UPDATE commission_entries SET payroll_entry_id = $3, updated_at = now()
+         WHERE agency_id = $1 AND id = ANY($2::text[])`,
+        [agencyId, eligibleIds, row.id],
+      );
     }
 
     return toPayrollEntry(row);
@@ -367,7 +427,7 @@ export async function approvePayrollEntry(
   const agencyId = getAgencyId();
   return database.withTenantTransaction(async (client) => {
     const existingResult = await client.query<PayrollEntryRow>(
-      `SELECT ${PAYROLL_COLUMNS} FROM payroll_entries WHERE agency_id = $1 AND id = $2`,
+      `SELECT ${PAYROLL_COLUMNS} FROM payroll_entries WHERE agency_id = $1 AND id = $2 FOR UPDATE`,
       [agencyId, id],
     );
     const existing = existingResult.rows[0];
@@ -385,9 +445,14 @@ export async function approvePayrollEntry(
 }
 
 /**
- * Marks a payroll entry PAID and creates the corresponding `payables` row
- * (beneficiary_type = EMPLOYEE, PERSONNEL/SALARY category), converging
- * personnel payments into the same Accounts Payable / Cash flow.
+ * Creates the payment obligation (`payables` row, beneficiary_type =
+ * EMPLOYEE, PERSONNEL/SALARY category) of an APPROVED payroll entry,
+ * converging personnel payments into the same Accounts Payable / Cash flow.
+ *
+ * The entry stays APPROVED: creating an obligation is not paying it. It
+ * becomes PAID only when the payable is settled by payment allocations (see
+ * refreshPayableStatus in financial.ts) and returns to APPROVED if that
+ * settlement is undone. At most one live payable exists per entry.
  */
 export async function payPayrollEntry(
   database: DatabaseRuntime,
@@ -396,7 +461,7 @@ export async function payPayrollEntry(
   const agencyId = getAgencyId();
   return database.withTenantTransaction(async (client) => {
     const existingResult = await client.query<PayrollEntryRow>(
-      `SELECT ${PAYROLL_COLUMNS} FROM payroll_entries WHERE agency_id = $1 AND id = $2`,
+      `SELECT ${PAYROLL_COLUMNS} FROM payroll_entries WHERE agency_id = $1 AND id = $2 FOR UPDATE`,
       [agencyId, id],
     );
     const existing = existingResult.rows[0];
@@ -405,6 +470,12 @@ export async function payPayrollEntry(
     }
     if (existing.status !== PayrollEntryStatus.APPROVED) {
       throw new ValidationError(`Payroll entry must be APPROVED to pay (current: ${existing.status})`);
+    }
+    if (existing.payable_id !== null) {
+      throw new ValidationError('Payroll entry already has a payment obligation');
+    }
+    if (!(Number(existing.net_amount) > 0)) {
+      throw new ValidationError('Payroll entry net amount must be positive to create a payment obligation');
     }
 
     const employeeResult = await client.query<{ name: string }>(
@@ -438,12 +509,11 @@ export async function payPayrollEntry(
     );
     const payableId = payableResult.rows[0]!.id;
 
-    const updated = await client.query<PayrollEntryRow>(
-      `UPDATE payroll_entries SET status = 'PAID', paid_at = now(), updated_at = now()
-       WHERE agency_id = $1 AND id = $2 RETURNING ${PAYROLL_COLUMNS}`,
+    const refreshed = await client.query<PayrollEntryRow>(
+      `SELECT ${PAYROLL_COLUMNS} FROM payroll_entries WHERE agency_id = $1 AND id = $2`,
       [agencyId, id],
     );
 
-    return { payrollEntry: toPayrollEntry(updated.rows[0]!), payableId };
+    return { payrollEntry: toPayrollEntry(refreshed.rows[0]!), payableId };
   });
 }

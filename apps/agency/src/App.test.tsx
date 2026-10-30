@@ -6,11 +6,15 @@ import type { Customer } from './types/customer';
 import type { Wish } from './types/wish';
 import type { Trip } from './types/trip';
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
+const realGet = (await vi.importActual<typeof import('./lib/api')>('./lib/api')).api.get;
+
 vi.mock('./lib/api', async () => {
   // eslint-disable-next-line @typescript-eslint/consistent-type-imports
   const actual = await vi.importActual<typeof import('./lib/api')>('./lib/api');
   return {
     ...actual,
+    api: { ...actual.api, get: vi.fn() },
     listCustomers: vi.fn(),
     getCustomer: vi.fn(),
     listWishesByCustomer: vi.fn(),
@@ -138,6 +142,7 @@ beforeEach(() => {
     upcomingTripsCount: 0,
     postSalePendingCount: 0,
   });
+  vi.mocked(api.api.get).mockImplementation((path: string, ...rest: unknown[]) => path === '/dashboard/widgets' ? Promise.resolve({ data: { widgets: [{ key: 'commercial_overview', title: 'Visão comercial', data: { openOpportunitiesCount: 0, followUpsDueTodayCount: 0, overdueFollowUpsCount: 0, proposalsWaitingCount: 0, sentProposalsCount: 0, acceptedProposalsCount: 0, openProposalValueSum: '0', salesThisMonthCount: 0, salesThisMonthTotal: '0', pendingSalesCount: 0, confirmedSalesCount: 0, paidSalesCount: 0, overdueReceivablesCount: 0, cancelledBookingsCount: 0, pescadorReviewQueueCount: 0, upcomingTripsCount: 0, postSalePendingCount: 0 } }] } }) : (realGet as (...a: unknown[]) => Promise<never>)(path, ...rest));
   vi.mocked(api.getUpcomingTravel).mockResolvedValue({ operational: [], commercial: [] });
   vi.mocked(api.getSalesReportByPeriod).mockResolvedValue([]);
   vi.mocked(api.listPipelines).mockResolvedValue([]);
@@ -149,6 +154,23 @@ describe('App', () => {
   it('renders the dashboard by default', async () => {
     renderRouted('/');
     expect(await screen.findByRole('heading', { name: 'Painel' })).toBeInTheDocument();
+  });
+
+  it('opens the Full help center and filters its linked guidance', async () => {
+    renderRouted('/ajuda');
+
+    expect(await screen.findByRole('heading', { name: 'Aprenda o fluxo da sua agência' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Abrir ajuda' })).toHaveAttribute('href', '/ajuda');
+    expect(screen.queryByText(/avaliação local anterior/i)).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Receita da agência' })).toHaveAttribute('href', '/financial/agency-revenue');
+
+    fireEvent.change(screen.getByRole('textbox', { name: 'Buscar por área, tarefa ou informação' }), {
+      target: { value: 'comissao' },
+    });
+
+    expect(screen.getByRole('heading', { name: 'Funcionários, regras, liberação e folha' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Vendas, categorias e importação' })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Regras de comissão' })).toHaveAttribute('href', '/commission-rules');
   });
 
   it('renders the sidebar navigation links', async () => {

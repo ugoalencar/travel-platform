@@ -83,7 +83,7 @@ describe('Travel Lite sellers and categories', () => {
 
       const response = await postSeller(masterToken, { name: 'Cross Link', user_id: sellerB.id });
       expect(response.statusCode).toBe(400);
-      expect(response.json<{ error: string }>().error).toMatch(/user of this tenant/);
+      expect(response.json<{ error: string }>().error).toMatch(/referenciar um usuário/);
     });
 
     it('rejects a duplicate seller CPF and an invalid one', async () => {
@@ -139,14 +139,14 @@ describe('Travel Lite sellers and categories', () => {
 
   describe('categories', () => {
     it('creates categories and rejects duplicates', async () => {
-      const aereo = await postCategory(staffToken, { name: 'AÉREO', sort_order: 1 });
+      const aereo = await postCategory(masterToken, { name: 'AÉREO', sort_order: 1 });
       expect(aereo.statusCode).toBe(201);
       const { category } = aereo.json<{ category: { id: string; active: boolean } }>();
       expect(category.active).toBe(true);
 
-      await postCategory(staffToken, { name: 'TERRESTRE', sort_order: 2 });
+      await postCategory(masterToken, { name: 'TERRESTRE', sort_order: 2 });
 
-      const duplicate = await postCategory(staffToken, { name: 'AÉREO' });
+      const duplicate = await postCategory(masterToken, { name: 'AÉREO' });
       expect(duplicate.statusCode).toBe(409);
     });
 
@@ -170,13 +170,13 @@ describe('Travel Lite sellers and categories', () => {
     });
 
     it('patches active flag and deletes unused categories', async () => {
-      const created = await postCategory(staffToken, { name: 'EXCURSÃO' });
+      const created = await postCategory(masterToken, { name: 'EXCURSÃO' });
       const { category } = created.json<{ category: { id: string } }>();
 
       const deactivated = await lite.app.inject({
         method: 'PATCH',
         url: `/categories/${category.id}`,
-        headers: lite.headers(staffToken),
+        headers: lite.headers(masterToken),
         payload: { active: false },
       });
       expect(deactivated.statusCode).toBe(200);
@@ -185,14 +185,14 @@ describe('Travel Lite sellers and categories', () => {
       const removed = await lite.app.inject({
         method: 'DELETE',
         url: `/categories/${category.id}`,
-        headers: lite.headers(staffToken),
+        headers: lite.headers(masterToken),
       });
       expect(removed.statusCode).toBe(200);
 
       const again = await lite.app.inject({
         method: 'DELETE',
         url: `/categories/${category.id}`,
-        headers: lite.headers(staffToken),
+        headers: lite.headers(masterToken),
       });
       expect(again.statusCode).toBe(404);
 

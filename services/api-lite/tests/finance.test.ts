@@ -96,7 +96,7 @@ describe('Travel Lite financial catalog and cash flow', () => {
     const category = await lite.app.inject({
       method: 'POST',
       url: '/categories',
-      headers: lite.headers(staffToken),
+      headers: lite.headers(managerToken),
       payload: { name: 'PACOTE' },
     });
     categoryId = category.json<{ category: { id: string } }>().category.id;

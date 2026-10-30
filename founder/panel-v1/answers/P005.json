@@ -1,0 +1,13 @@
+{
+  "id": "P005",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "R$99 por mês nem é caro, é menos do que pago pro contador, mas ninguém está usando isso de verdade ainda. Eu não vou arriscar jogar meu financeiro e o histórico dos meus clientes num sistema sem nenhuma agência de referência.",
+  "objection": "Não ter nenhuma agência usando em produção me deixa com pé atrás. E cobrança automática e nota fiscal ainda nem existem, então eu continuaria fazendo isso tudo por fora do sistema do mesmo jeito que faço hoje, só que pagando mais uma mensalidade.",
+  "would_change_my_mind": "Ver pelo menos duas ou três agências parecidas com a minha usando de verdade, e ter a cobrança automática e a nota fiscal funcionando, não 'em desenvolvimento'.",
+  "price_too_cheap": 29,
+  "price_cheap": 59,
+  "price_expensive": 149,
+  "price_too_expensive": 220
+}

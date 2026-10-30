@@ -19,7 +19,7 @@ const prepareRolesSql = resolve(repoRoot, 'tests/integration/database/002_prepar
 const composeFile = resolve(repoRoot, 'infrastructure/docker-compose.local-postgres.yml');
 
 const projectName = 'travel-platform-sale-item-routes-postgres';
-const containerName = 'travel-platform-postgres-local';
+const containerName = process.env.DATABASE_TEST_CONTAINER_NAME ?? 'travel-platform-postgres-local';
 const postgresImage = 'postgres:15';
 const databaseHost = process.env.DATABASE_TEST_HOST ?? '127.0.0.1';
 const databasePort = Number(process.env.DATABASE_TEST_PORT ?? '55432');
@@ -229,6 +229,153 @@ describe('Sale item HTTP routes', () => {
       await app.close();
     });
 
+    it('validates productId inside the transaction: unknown, other-agency and inactive products -> 422, nothing written', async () => {
+      const saleId = await seedSale(agencyAId, customerAId, { amount: '100.00' });
+      const productB = await seedProduct(agencyBId, 'Produto B', true);
+      const inactiveA = await seedProduct(agencyAId, 'Produto inativo', false);
+      const activeA = await seedProduct(agencyAId, 'Produto ativo', true);
+      const app = buildTestApp(runtimePool);
+      const post = (productId: string) =>
+        app.inject({
+          method: 'POST',
+          url: `/sales/${saleId}/items`,
+          headers: { 'x-test-principal': 'agent' },
+          payload: { description: 'Com produto', unitPrice: 10, productId },
+        });
+      for (const productId of ['00000000-0000-4000-8000-00000000dead', productB, inactiveA]) {
+        const res = await post(productId);
+        expect(res.statusCode).toBe(422);
+        expect(res.json<{ code: string; field: string }>()).toMatchObject({ code: 'FIELD_INVALID', field: 'productId' });
+      }
+      expect((await adminPool.query<{ n: number }>('SELECT count(*)::int AS n FROM sale_items')).rows[0]!.n).toBe(0);
+      expect((await post(activeA)).statusCode).toBe(201);
+      await app.close();
+    });
+
+    it('two concurrent inclusions both land in the Sale total (no lost update)', async () => {
+      const saleId = await seedSale(agencyAId, customerAId, { amount: '100.00' });
+      const app = buildTestApp(runtimePool);
+      const add = (unitPrice: number) =>
+        app.inject({
+          method: 'POST',
+          url: `/sales/${saleId}/items`,
+          headers: { 'x-test-principal': 'agent' },
+          payload: { description: `Item ${unitPrice}`, unitPrice },
+        });
+      const results = await Promise.all([add(10), add(20), add(30), add(40)]);
+      expect(results.map((r) => r.statusCode)).toEqual([201, 201, 201, 201]);
+      const sale = await adminPool.query('SELECT amount::text AS amount, total::text AS total FROM sales WHERE id = $1', [saleId]);
+      expect(sale.rows[0]).toEqual({ amount: '200.00', total: '200.00' });
+      await app.close();
+    });
+
+    it('if the Sale update fails the item is not left behind (same transaction)', async () => {
+      const saleId = await seedSale(agencyAId, customerAId, { amount: '100.00' });
+      await adminPool.query(`
+        CREATE FUNCTION itemtest_block_sale_update() RETURNS trigger LANGUAGE plpgsql AS $$
+        BEGIN RAISE EXCEPTION 'sale update blocked for test'; END $$;
+        CREATE TRIGGER itemtest_block_sale_update BEFORE UPDATE ON sales
+          FOR EACH ROW EXECUTE FUNCTION itemtest_block_sale_update();
+      `);
+      const app = buildTestApp(runtimePool);
+      try {
+        const res = await app.inject({
+          method: 'POST',
+          url: `/sales/${saleId}/items`,
+          headers: { 'x-test-principal': 'agent' },
+          payload: { description: 'Nao pode ficar', unitPrice: 10 },
+        });
+        expect(res.statusCode).toBe(500);
+      } finally {
+        await adminPool.query('DROP TRIGGER itemtest_block_sale_update ON sales; DROP FUNCTION itemtest_block_sale_update();');
+        await app.close();
+      }
+      expect((await adminPool.query<{ n: number }>('SELECT count(*)::int AS n FROM sale_items')).rows[0]!.n).toBe(0);
+    });
+
+    it('refuses up front a supplier cost that rounds to zero, leaving nothing written', async () => {
+      const saleId = await seedSale(agencyAId, customerAId, { amount: '100.00' });
+      const app = buildTestApp(runtimePool);
+      const res = await app.inject({
+        method: 'POST',
+        url: `/sales/${saleId}/items`,
+        headers: { 'x-test-principal': 'agent' },
+        payload: { description: 'Custo minimo', unitPrice: 1, qty: 0.01, unitCost: 0.01, supplierId: supplierAId },
+      });
+      expect(res.statusCode).toBe(400);
+      expect((await adminPool.query<{ n: number }>('SELECT count(*)::int AS n FROM sale_items')).rows[0]!.n).toBe(0);
+      const sale = await adminPool.query<{ amount: string }>('SELECT amount::text AS amount FROM sales WHERE id = $1', [saleId]);
+      expect(sale.rows[0]!.amount).toBe('100.00');
+      await app.close();
+    });
+
+    it('enforces the shared column limits (2 decimals, no column overflow)', async () => {
+      const saleId = await seedSale(agencyAId, customerAId, { amount: '100.00' });
+      const app = buildTestApp(runtimePool);
+      const post = (payload: object) =>
+        app.inject({ method: 'POST', url: `/sales/${saleId}/items`, headers: { 'x-test-principal': 'agent' }, payload });
+      for (const bad of [
+        { description: 'x', unitPrice: 1000, qty: 1.001 },
+        { description: 'x', unitPrice: 10, qty: 0.001 },
+        { description: 'x', unitPrice: 10, qty: 100000000 },
+        { description: 'x', unitPrice: 10.005 },
+        { description: 'x', unitPrice: 10_000_000_000 },
+        { description: 'x', unitPrice: 10, taxes: 1.005 },
+        { description: 'x', unitPrice: 10, fees: 1.005 },
+        { description: 'x', unitPrice: 10, discount: 1.005 },
+        { description: 'x', unitPrice: 10, unitCost: 1.005 },
+        { description: 'x', unitPrice: 10, commission: 1.005 },
+        { description: 'x', unitPrice: 10, taxes: 10_000_000_000 },
+        { description: 'x', unitPrice: 10, fees: 10_000_000_000 },
+        { description: 'x', unitPrice: 10, discount: 10_000_000_000 },
+        { description: 'x', unitPrice: 10, unitCost: 10_000_000_000 },
+        { description: 'x', unitPrice: 10, commission: 10_000_000_000 },
+        { description: 'x', unitPrice: 9_999_999_999.99, qty: 2 },
+      ]) {
+        const response = await post(bad);
+        expect(response.statusCode).toBe(400);
+        const body = response.json<{ code: string; error: string }>();
+        expect(body.code).toBe('VALIDATION_ERROR');
+        expect(body.error).toMatch(/decimal places|allowed limit/);
+      }
+      const rejectedItems = await adminPool.query('SELECT id FROM sale_items WHERE sale_id = $1', [saleId]);
+      expect(rejectedItems.rows).toHaveLength(0);
+      const unchangedSale = await adminPool.query<{ amount: string; total: string }>(
+        'SELECT amount, total FROM sales WHERE agency_id = $1 AND id = $2', [agencyAId, saleId],
+      );
+      expect(unchangedSale.rows[0]).toMatchObject({ amount: '100.00', total: '100.00' });
+      for (const qty of [1.1, 2.3, 2.25]) {
+        expect((await post({ description: 'ok', unitPrice: 1.1, qty })).statusCode).toBe(201);
+      }
+      await app.close();
+    });
+
+    it('persists qty 1.25 and computes the matching line total', async () => {
+      const saleId = await seedSale(agencyAId, customerAId, { amount: '100.00' });
+      const app = buildTestApp(runtimePool);
+      try {
+        const response = await app.inject({
+          method: 'POST', url: `/sales/${saleId}/items`,
+          headers: { 'x-test-principal': 'agent' },
+          payload: { description: 'Quantidade fracionaria', qty: 1.25, unitPrice: 1000 },
+        });
+        expect(response.statusCode).toBe(201);
+        expect(response.json<{ saleItem: { qty: number; lineTotal: number } }>().saleItem)
+          .toMatchObject({ qty: 1.25, lineTotal: 1250 });
+        const items = await adminPool.query<{ qty: string; line_total: string }>(
+          'SELECT qty, line_total FROM sale_items WHERE agency_id = $1 AND sale_id = $2',
+          [agencyAId, saleId],
+        );
+        expect(items.rows).toEqual([{ qty: '1.25', line_total: '1250.00' }]);
+        const sale = await adminPool.query<{ amount: string; total: string }>(
+          'SELECT amount, total FROM sales WHERE agency_id = $1 AND id = $2', [agencyAId, saleId],
+        );
+        expect(sale.rows[0]).toMatchObject({ amount: '1350.00', total: '1350.00' });
+      } finally {
+        await app.close();
+      }
+    });
+
     it('rejects a supplierId belonging to another tenant with 404', async () => {
       const saleId = await seedSale(agencyAId, customerAId, { amount: '100.00' });
       const supplierBId = await seedSupplier(agencyBId, 'Supplier B');
@@ -348,6 +495,73 @@ describe('Sale item HTTP routes', () => {
     });
   });
 
+  describe('POST /sale-items/:id/cancel (atomicity)', () => {
+    async function addItem(app: ReturnType<typeof buildTestApp>, saleId: string, unitPrice: number): Promise<string> {
+      const res = await app.inject({
+        method: 'POST', url: `/sales/${saleId}/items`, headers: { 'x-test-principal': 'agent' },
+        payload: { description: `Item ${unitPrice}`, unitPrice },
+      });
+      expect(res.statusCode).toBe(201);
+      return res.json<{ saleItem: { id: string } }>().saleItem.id;
+    }
+
+    it('two concurrent cancellations of the same item reverse its total once', async () => {
+      const saleId = await seedSale(agencyAId, customerAId, { amount: '100.00' });
+      const app = buildTestApp(runtimePool);
+      await addItem(app, saleId, 20);
+      const target = await addItem(app, saleId, 30);
+      const cancel = () => app.inject({ method: 'POST', url: `/sale-items/${target}/cancel`, headers: { 'x-test-principal': 'manager' } });
+      const results = await Promise.all([cancel(), cancel(), cancel()]);
+      expect(results.map((r) => r.statusCode)).toEqual([200, 200, 200]);
+      const sale = await adminPool.query<{ amount: string; total: string }>(
+        'SELECT amount, total FROM sales WHERE agency_id = $1 AND id = $2', [agencyAId, saleId],
+      );
+      expect(sale.rows[0]).toMatchObject({ amount: '120.00', total: '120.00' });
+      const item = await adminPool.query<{ status: string }>(
+        'SELECT status FROM sale_items WHERE agency_id = $1 AND id = $2', [agencyAId, target],
+      );
+      expect(item.rows[0]?.status).toBe('CANCELLED');
+      const audit = await adminPool.query<{ n: number }>(
+        `SELECT count(*)::int AS n FROM audit_logs
+         WHERE agency_id = $1 AND entity_id = $2 AND event_type = 'SALE_ITEM_CANCELLED'`,
+        [agencyAId, target],
+      );
+      expect(audit.rows[0]?.n).toBe(1);
+      await app.close();
+    });
+
+    it('if the Sale update fails the cancellation is rolled back (item stays ACTIVE)', async () => {
+      const saleId = await seedSale(agencyAId, customerAId, { amount: '100.00' });
+      const app = buildTestApp(runtimePool);
+      const target = await addItem(app, saleId, 30);
+      await adminPool.query(`
+        CREATE FUNCTION itemtest_block_sale_update2() RETURNS trigger LANGUAGE plpgsql AS $$
+        BEGIN RAISE EXCEPTION 'sale update blocked for test'; END $$;
+        CREATE TRIGGER itemtest_block_sale_update2 BEFORE UPDATE ON sales
+          FOR EACH ROW EXECUTE FUNCTION itemtest_block_sale_update2();
+      `);
+      try {
+        const res = await app.inject({ method: 'POST', url: `/sale-items/${target}/cancel`, headers: { 'x-test-principal': 'manager' } });
+        expect(res.statusCode).toBe(500);
+      } finally {
+        await adminPool.query('DROP TRIGGER itemtest_block_sale_update2 ON sales; DROP FUNCTION itemtest_block_sale_update2();');
+        await app.close();
+      }
+      const item = await adminPool.query<{ status: string }>('SELECT status FROM sale_items WHERE id = $1', [target]);
+      expect(item.rows[0]!.status).toBe('ACTIVE');
+      const sale = await adminPool.query<{ amount: string; total: string }>(
+        'SELECT amount, total FROM sales WHERE agency_id = $1 AND id = $2', [agencyAId, saleId],
+      );
+      expect(sale.rows[0]).toMatchObject({ amount: '130.00', total: '130.00' });
+      const audit = await adminPool.query<{ n: number }>(
+        `SELECT count(*)::int AS n FROM audit_logs
+         WHERE agency_id = $1 AND entity_id = $2 AND event_type = 'SALE_ITEM_CANCELLED'`,
+        [agencyAId, target],
+      );
+      expect(audit.rows[0]?.n).toBe(0);
+    });
+  });
+
   describe('POST /sale-items/:id/cancel', () => {
     it('blocks AGENT with 403 (cancel floor is MANAGER, same as POST /sales/:id/cancel)', async () => {
       const saleId = await seedSale(agencyAId, customerAId, { amount: '100.00' });
@@ -456,6 +670,14 @@ describe('Sale item HTTP routes', () => {
     const id = result.rows[0]?.id;
     if (!id) throw new Error('Failed to seed customer');
     return id;
+  }
+
+  async function seedProduct(agencyId: string, title: string, active: boolean): Promise<string> {
+    const result = await adminPool.query<{ id: string }>(
+      `INSERT INTO travel_products (agency_id, category, title, active) VALUES ($1, 'OTHER', $2, $3) RETURNING id`,
+      [agencyId, title, active],
+    );
+    return result.rows[0]!.id;
   }
 
   async function seedSupplier(agencyId: string, name: string): Promise<string> {

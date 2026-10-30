@@ -1,0 +1,1505 @@
+{
+ "nodes": [
+  {
+   "id": "file:services/api/src/invitations.ts",
+   "type": "file",
+   "name": "invitations.ts",
+   "filePath": "services/api/src/invitations.ts",
+   "summary": "Convites de equipe por token hasheado com expiração, aceitação pública e envio de e-mail de convite.",
+   "tags": [
+    "invitations",
+    "authentication",
+    "security",
+    "email"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/invitations.ts:generateInvitationToken",
+   "type": "function",
+   "name": "generateInvitationToken",
+   "filePath": "services/api/src/invitations.ts",
+   "lineRange": [
+    53,
+    56
+   ],
+   "summary": "Gera token aleatório para convite de equipe.",
+   "tags": [
+    "security",
+    "token",
+    "utility"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/invitations.ts:hashInvitationToken",
+   "type": "function",
+   "name": "hashInvitationToken",
+   "filePath": "services/api/src/invitations.ts",
+   "lineRange": [
+    58,
+    60
+   ],
+   "summary": "Calcula hash SHA-256 do token de convite.",
+   "tags": [
+    "hash",
+    "security",
+    "utility"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/invitations.ts:toInvitation",
+   "type": "function",
+   "name": "toInvitation",
+   "filePath": "services/api/src/invitations.ts",
+   "lineRange": [
+    110,
+    128
+   ],
+   "summary": "Converte linha de banco no convite tipado.",
+   "tags": [
+    "serializacao",
+    "mapper",
+    "invitations"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/invitations.ts:createInvitation",
+   "type": "function",
+   "name": "createInvitation",
+   "filePath": "services/api/src/invitations.ts",
+   "lineRange": [
+    149,
+    239
+   ],
+   "summary": "Cria convite de equipe com expiração, auditoria e envio de e-mail.",
+   "tags": [
+    "invitations",
+    "workflow",
+    "email"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/invitations.ts:listInvitations",
+   "type": "function",
+   "name": "listInvitations",
+   "filePath": "services/api/src/invitations.ts",
+   "lineRange": [
+    249,
+    260
+   ],
+   "summary": "Lista convites da agência com paginação.",
+   "tags": [
+    "invitations",
+    "consulta",
+    "tenant-isolation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/invitations.ts:revokeInvitation",
+   "type": "function",
+   "name": "revokeInvitation",
+   "filePath": "services/api/src/invitations.ts",
+   "lineRange": [
+    262,
+    290
+   ],
+   "summary": "Revoga convite pendente registrando auditoria.",
+   "tags": [
+    "invitations",
+    "security",
+    "audit"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/invitations.ts:resolvePublicInvitationToken",
+   "type": "function",
+   "name": "resolvePublicInvitationToken",
+   "filePath": "services/api/src/invitations.ts",
+   "lineRange": [
+    309,
+    349
+   ],
+   "summary": "Resolve token público de convite validando hash e validade.",
+   "tags": [
+    "invitations",
+    "security",
+    "public-flow"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/invitations.ts:acceptInvitation",
+   "type": "function",
+   "name": "acceptInvitation",
+   "filePath": "services/api/src/invitations.ts",
+   "lineRange": [
+    367,
+    481
+   ],
+   "summary": "Aceita convite criando usuário, hash de senha e sessão inicial.",
+   "tags": [
+    "invitations",
+    "authentication",
+    "workflow"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:services/api/src/land-services.ts",
+   "type": "file",
+   "name": "land-services.ts",
+   "filePath": "services/api/src/land-services.ts",
+   "summary": "CRUD de serviços terrestres vinculados a viagens e clientes, com validação de campos obrigatórios.",
+   "tags": [
+    "crud",
+    "land-services",
+    "travel",
+    "tenant-isolation"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/land-services.ts:listLandServices",
+   "type": "function",
+   "name": "listLandServices",
+   "filePath": "services/api/src/land-services.ts",
+   "lineRange": [
+    71,
+    99
+   ],
+   "summary": "Lista serviços terrestres com filtros por viagem e cliente.",
+   "tags": [
+    "crud",
+    "consulta",
+    "tenant-isolation"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/land-services.ts:getLandServiceById",
+   "type": "function",
+   "name": "getLandServiceById",
+   "filePath": "services/api/src/land-services.ts",
+   "lineRange": [
+    101,
+    116
+   ],
+   "summary": "Busca serviço terrestre pelo id.",
+   "tags": [
+    "crud",
+    "lookup",
+    "tenant-isolation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/land-services.ts:assertRequiredFields",
+   "type": "function",
+   "name": "assertRequiredFields",
+   "filePath": "services/api/src/land-services.ts",
+   "lineRange": [
+    118,
+    134
+   ],
+   "summary": "Valida viagem, cliente e descrição obrigatórios.",
+   "tags": [
+    "validacao",
+    "regras",
+    "helper"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/land-services.ts:createLandService",
+   "type": "function",
+   "name": "createLandService",
+   "filePath": "services/api/src/land-services.ts",
+   "lineRange": [
+    136,
+    190
+   ],
+   "summary": "Cria serviço terrestre com validações obrigatórias.",
+   "tags": [
+    "crud",
+    "validacao",
+    "travel"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/land-services.ts:updateLandService",
+   "type": "function",
+   "name": "updateLandService",
+   "filePath": "services/api/src/land-services.ts",
+   "lineRange": [
+    216,
+    253
+   ],
+   "summary": "Atualiza serviço terrestre com vínculos verificados.",
+   "tags": [
+    "crud",
+    "atualizacao",
+    "travel"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/land-services.ts:deleteLandService",
+   "type": "function",
+   "name": "deleteLandService",
+   "filePath": "services/api/src/land-services.ts",
+   "lineRange": [
+    255,
+    267
+   ],
+   "summary": "Remove serviço terrestre do tenant.",
+   "tags": [
+    "crud",
+    "exclusao",
+    "travel"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/land-services.ts:toLandService",
+   "type": "function",
+   "name": "toLandService",
+   "filePath": "services/api/src/land-services.ts",
+   "lineRange": [
+    269,
+    297
+   ],
+   "summary": "Converte linha de banco no serviço terrestre tipado.",
+   "tags": [
+    "serializacao",
+    "mapper",
+    "dominio"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:services/api/src/media-library.ts",
+   "type": "file",
+   "name": "media-library.ts",
+   "filePath": "services/api/src/media-library.ts",
+   "summary": "Biblioteca de mídia multi-tenant com upload seguro, vínculo de assets a entidades e verificação de posse.",
+   "tags": [
+    "media",
+    "file-upload",
+    "tenant-isolation",
+    "crud"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/media-library.ts:validateMediaAssetFileType",
+   "type": "function",
+   "name": "validateMediaAssetFileType",
+   "filePath": "services/api/src/media-library.ts",
+   "lineRange": [
+    32,
+    36
+   ],
+   "summary": "Valida MIME type permitido para assets de mídia.",
+   "tags": [
+    "validation",
+    "media",
+    "security"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/media-library.ts:generateMediaAssetSecureFileKey",
+   "type": "function",
+   "name": "generateMediaAssetSecureFileKey",
+   "filePath": "services/api/src/media-library.ts",
+   "lineRange": [
+    38,
+    43
+   ],
+   "summary": "Gera chave segura de armazenamento para asset de mídia.",
+   "tags": [
+    "security",
+    "media",
+    "utility"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/media-library.ts:createMediaAsset",
+   "type": "function",
+   "name": "createMediaAsset",
+   "filePath": "services/api/src/media-library.ts",
+   "lineRange": [
+    87,
+    138
+   ],
+   "summary": "Cria asset de mídia com validações, auditoria e serialização.",
+   "tags": [
+    "media",
+    "crud",
+    "audit"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/media-library.ts:listMediaAssets",
+   "type": "function",
+   "name": "listMediaAssets",
+   "filePath": "services/api/src/media-library.ts",
+   "lineRange": [
+    146,
+    178
+   ],
+   "summary": "Lista assets de mídia com filtros de busca e tipo.",
+   "tags": [
+    "media",
+    "consulta",
+    "tenant-isolation"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/media-library.ts:getMediaAssetById",
+   "type": "function",
+   "name": "getMediaAssetById",
+   "filePath": "services/api/src/media-library.ts",
+   "lineRange": [
+    180,
+    190
+   ],
+   "summary": "Busca asset de mídia pelo id.",
+   "tags": [
+    "media",
+    "lookup",
+    "tenant-isolation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/media-library.ts:updateMediaAsset",
+   "type": "function",
+   "name": "updateMediaAsset",
+   "filePath": "services/api/src/media-library.ts",
+   "lineRange": [
+    199,
+    253
+   ],
+   "summary": "Atualiza metadados do asset de mídia.",
+   "tags": [
+    "media",
+    "crud",
+    "atualizacao"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/media-library.ts:archiveMediaAsset",
+   "type": "function",
+   "name": "archiveMediaAsset",
+   "filePath": "services/api/src/media-library.ts",
+   "lineRange": [
+    255,
+    274
+   ],
+   "summary": "Arquiva asset mantendo vínculos existentes.",
+   "tags": [
+    "media",
+    "workflow",
+    "status"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/media-library.ts:deleteMediaAsset",
+   "type": "function",
+   "name": "deleteMediaAsset",
+   "filePath": "services/api/src/media-library.ts",
+   "lineRange": [
+    290,
+    321
+   ],
+   "summary": "Remove asset não utilizado com verificação de vínculos.",
+   "tags": [
+    "media",
+    "crud",
+    "exclusao"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/media-library.ts:getMediaAssetUsage",
+   "type": "function",
+   "name": "getMediaAssetUsage",
+   "filePath": "services/api/src/media-library.ts",
+   "lineRange": [
+    328,
+    355
+   ],
+   "summary": "Lista uso de um asset por entidades vinculadas.",
+   "tags": [
+    "media",
+    "consulta",
+    "usage"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/media-library.ts:toAsset",
+   "type": "function",
+   "name": "toAsset",
+   "filePath": "services/api/src/media-library.ts",
+   "lineRange": [
+    357,
+    378
+   ],
+   "summary": "Converte linha de banco no asset de mídia tipado.",
+   "tags": [
+    "serializacao",
+    "mapper",
+    "media"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/media-library.ts:assertEntityOwnedByTenant",
+   "type": "function",
+   "name": "assertEntityOwnedByTenant",
+   "filePath": "services/api/src/media-library.ts",
+   "lineRange": [
+    384,
+    413
+   ],
+   "summary": "Garante que a entidade de vínculo pertence ao tenant.",
+   "tags": [
+    "security",
+    "tenant-isolation",
+    "validacao"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/media-library.ts:assertMediaAssetOwnedByTenantOnClient",
+   "type": "function",
+   "name": "assertMediaAssetOwnedByTenantOnClient",
+   "filePath": "services/api/src/media-library.ts",
+   "lineRange": [
+    434,
+    446
+   ],
+   "summary": "Valida posse do asset usando client de transação.",
+   "tags": [
+    "security",
+    "tenant-isolation",
+    "validacao"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/media-library.ts:linkMediaAsset",
+   "type": "function",
+   "name": "linkMediaAsset",
+   "filePath": "services/api/src/media-library.ts",
+   "lineRange": [
+    461,
+    530
+   ],
+   "summary": "Vincula asset a entidade (proposta, viagem etc.) com posse validada.",
+   "tags": [
+    "media",
+    "crud",
+    "workflow"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/media-library.ts:unlinkMediaAsset",
+   "type": "function",
+   "name": "unlinkMediaAsset",
+   "filePath": "services/api/src/media-library.ts",
+   "lineRange": [
+    532,
+    559
+   ],
+   "summary": "Remove vínculo de asset com entidade.",
+   "tags": [
+    "media",
+    "crud",
+    "exclusao"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/media-library.ts:listEntityMedia",
+   "type": "function",
+   "name": "listEntityMedia",
+   "filePath": "services/api/src/media-library.ts",
+   "lineRange": [
+    572,
+    608
+   ],
+   "summary": "Lista assets vinculados a uma entidade.",
+   "tags": [
+    "media",
+    "consulta",
+    "lookup"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/media-library.ts:isMediaAssetLinkedToEntity",
+   "type": "function",
+   "name": "isMediaAssetLinkedToEntity",
+   "filePath": "services/api/src/media-library.ts",
+   "lineRange": [
+    616,
+    631
+   ],
+   "summary": "Verifica se asset já está vinculado à entidade.",
+   "tags": [
+    "media",
+    "validacao",
+    "lookup"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/media-library.ts:toLink",
+   "type": "function",
+   "name": "toLink",
+   "filePath": "services/api/src/media-library.ts",
+   "lineRange": [
+    633,
+    644
+   ],
+   "summary": "Converte linha de banco no vínculo asset-entidade.",
+   "tags": [
+    "serializacao",
+    "mapper",
+    "media"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:services/api/src/observability.ts",
+   "type": "file",
+   "name": "observability.ts",
+   "filePath": "services/api/src/observability.ts",
+   "summary": "Hooks de observabilidade do Fastify com coletor de métricas de latência, contagem por rota e logs estruturados.",
+   "tags": [
+    "observability",
+    "metrics",
+    "middleware",
+    "monitoring"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/observability.ts:resolveDeploymentId",
+   "type": "function",
+   "name": "resolveDeploymentId",
+   "filePath": "services/api/src/observability.ts",
+   "lineRange": [
+    21,
+    23
+   ],
+   "summary": "Resolve identificador de deploy a partir do ambiente.",
+   "tags": [
+    "observability",
+    "utility",
+    "config"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/observability.ts:registerObservability",
+   "type": "function",
+   "name": "registerObservability",
+   "filePath": "services/api/src/observability.ts",
+   "lineRange": [
+    123,
+    184
+   ],
+   "summary": "Registra hooks de request/response com métricas, headers e logs.",
+   "tags": [
+    "observability",
+    "middleware",
+    "metrics"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "class:services/api/src/observability.ts:MetricsCollector",
+   "type": "class",
+   "name": "MetricsCollector",
+   "filePath": "services/api/src/observability.ts",
+   "lineRange": [
+    58,
+    98
+   ],
+   "summary": "Coletor de métricas com latência, contagens por rota e percentis.",
+   "tags": [
+    "observability",
+    "metrics",
+    "monitoring"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:services/api/src/ocr-provider.ts",
+   "type": "file",
+   "name": "ocr-provider.ts",
+   "filePath": "services/api/src/ocr-provider.ts",
+   "summary": "Provedor OCR mock para testes e desenvolvimento, implementando a interface de submissão e consulta de extrações.",
+   "tags": [
+    "ocr",
+    "mock",
+    "test-support",
+    "provider"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "class:services/api/src/ocr-provider.ts:MockOcrProvider",
+   "type": "class",
+   "name": "MockOcrProvider",
+   "filePath": "services/api/src/ocr-provider.ts",
+   "lineRange": [
+    97,
+    150
+   ],
+   "summary": "Provedor OCR mock que devolve dados fictícios para dev/testes.",
+   "tags": [
+    "ocr",
+    "mock",
+    "test-support"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:services/api/src/ocr-providers.ts",
+   "type": "file",
+   "name": "ocr-providers.ts",
+   "filePath": "services/api/src/ocr-providers.ts",
+   "summary": "Provedores OCR reais (Google Vision e Tesseract) com requisição HTTP/subprocess e timeout para extração.",
+   "tags": [
+    "ocr",
+    "provider",
+    "integration",
+    "document-processing"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "class:services/api/src/ocr-providers.ts:GoogleVisionOcrProvider",
+   "type": "class",
+   "name": "GoogleVisionOcrProvider",
+   "filePath": "services/api/src/ocr-providers.ts",
+   "lineRange": [
+    26,
+    94
+   ],
+   "summary": "Provedor OCR via API do Google Vision com timeout e fila de tarefas.",
+   "tags": [
+    "ocr",
+    "provider",
+    "integration"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "class:services/api/src/ocr-providers.ts:TesseractOcrProvider",
+   "type": "class",
+   "name": "TesseractOcrProvider",
+   "filePath": "services/api/src/ocr-providers.ts",
+   "lineRange": [
+    102,
+    126
+   ],
+   "summary": "Provedor OCR via subprocesso Tesseract com espera assíncrona.",
+   "tags": [
+    "ocr",
+    "provider",
+    "integration"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:services/api/src/offer-growth-audit.ts",
+   "type": "file",
+   "name": "offer-growth-audit.ts",
+   "filePath": "services/api/src/offer-growth-audit.ts",
+   "summary": "Auditoria de eventos de crescimento de ofertas: gravação e listagem de logs de ação por agência.",
+   "tags": [
+    "audit",
+    "growth",
+    "logging",
+    "tenant-isolation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/offer-growth-audit.ts:recordAuditLog",
+   "type": "function",
+   "name": "recordAuditLog",
+   "filePath": "services/api/src/offer-growth-audit.ts",
+   "lineRange": [
+    22,
+    39
+   ],
+   "summary": "Grava evento de auditoria de crescimento com contexto de tenant.",
+   "tags": [
+    "audit",
+    "growth",
+    "logging"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/offer-growth-audit.ts:listAuditLog",
+   "type": "function",
+   "name": "listAuditLog",
+   "filePath": "services/api/src/offer-growth-audit.ts",
+   "lineRange": [
+    41,
+    82
+   ],
+   "summary": "Lista eventos de auditoria de crescimento com filtros e limites.",
+   "tags": [
+    "audit",
+    "growth",
+    "consulta"
+   ],
+   "complexity": "moderate"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:services/api/src/invitations.ts",
+   "target": "function:services/api/src/invitations.ts:generateInvitationToken",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/invitations.ts",
+   "target": "function:services/api/src/invitations.ts:generateInvitationToken",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/invitations.ts",
+   "target": "function:services/api/src/invitations.ts:hashInvitationToken",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/invitations.ts",
+   "target": "function:services/api/src/invitations.ts:hashInvitationToken",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/invitations.ts",
+   "target": "function:services/api/src/invitations.ts:toInvitation",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/invitations.ts",
+   "target": "function:services/api/src/invitations.ts:createInvitation",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/invitations.ts",
+   "target": "function:services/api/src/invitations.ts:createInvitation",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/invitations.ts",
+   "target": "function:services/api/src/invitations.ts:listInvitations",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/invitations.ts",
+   "target": "function:services/api/src/invitations.ts:listInvitations",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/invitations.ts",
+   "target": "function:services/api/src/invitations.ts:revokeInvitation",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/invitations.ts",
+   "target": "function:services/api/src/invitations.ts:revokeInvitation",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/invitations.ts",
+   "target": "function:services/api/src/invitations.ts:resolvePublicInvitationToken",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/invitations.ts",
+   "target": "function:services/api/src/invitations.ts:resolvePublicInvitationToken",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/invitations.ts",
+   "target": "function:services/api/src/invitations.ts:acceptInvitation",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/invitations.ts",
+   "target": "function:services/api/src/invitations.ts:acceptInvitation",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/land-services.ts",
+   "target": "function:services/api/src/land-services.ts:listLandServices",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/land-services.ts",
+   "target": "function:services/api/src/land-services.ts:listLandServices",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/land-services.ts",
+   "target": "function:services/api/src/land-services.ts:getLandServiceById",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/land-services.ts",
+   "target": "function:services/api/src/land-services.ts:getLandServiceById",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/land-services.ts",
+   "target": "function:services/api/src/land-services.ts:assertRequiredFields",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/land-services.ts",
+   "target": "function:services/api/src/land-services.ts:createLandService",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/land-services.ts",
+   "target": "function:services/api/src/land-services.ts:createLandService",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/land-services.ts",
+   "target": "function:services/api/src/land-services.ts:updateLandService",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/land-services.ts",
+   "target": "function:services/api/src/land-services.ts:updateLandService",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/land-services.ts",
+   "target": "function:services/api/src/land-services.ts:deleteLandService",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/land-services.ts",
+   "target": "function:services/api/src/land-services.ts:deleteLandService",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/land-services.ts",
+   "target": "function:services/api/src/land-services.ts:toLandService",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/media-library.ts",
+   "target": "function:services/api/src/media-library.ts:validateMediaAssetFileType",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/media-library.ts",
+   "target": "function:services/api/src/media-library.ts:validateMediaAssetFileType",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/media-library.ts",
+   "target": "function:services/api/src/media-library.ts:generateMediaAssetSecureFileKey",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/media-library.ts",
+   "target": "function:services/api/src/media-library.ts:generateMediaAssetSecureFileKey",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/media-library.ts",
+   "target": "function:services/api/src/media-library.ts:createMediaAsset",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/media-library.ts",
+   "target": "function:services/api/src/media-library.ts:createMediaAsset",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/media-library.ts",
+   "target": "function:services/api/src/media-library.ts:listMediaAssets",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/media-library.ts",
+   "target": "function:services/api/src/media-library.ts:listMediaAssets",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/media-library.ts",
+   "target": "function:services/api/src/media-library.ts:getMediaAssetById",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/media-library.ts",
+   "target": "function:services/api/src/media-library.ts:getMediaAssetById",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/media-library.ts",
+   "target": "function:services/api/src/media-library.ts:updateMediaAsset",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/media-library.ts",
+   "target": "function:services/api/src/media-library.ts:updateMediaAsset",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/media-library.ts",
+   "target": "function:services/api/src/media-library.ts:archiveMediaAsset",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/media-library.ts",
+   "target": "function:services/api/src/media-library.ts:archiveMediaAsset",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/media-library.ts",
+   "target": "function:services/api/src/media-library.ts:deleteMediaAsset",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/media-library.ts",
+   "target": "function:services/api/src/media-library.ts:deleteMediaAsset",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/media-library.ts",
+   "target": "function:services/api/src/media-library.ts:getMediaAssetUsage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/media-library.ts",
+   "target": "function:services/api/src/media-library.ts:getMediaAssetUsage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/media-library.ts",
+   "target": "function:services/api/src/media-library.ts:toAsset",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/media-library.ts",
+   "target": "function:services/api/src/media-library.ts:assertEntityOwnedByTenant",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/media-library.ts",
+   "target": "function:services/api/src/media-library.ts:assertMediaAssetOwnedByTenantOnClient",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/media-library.ts",
+   "target": "function:services/api/src/media-library.ts:assertMediaAssetOwnedByTenantOnClient",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/media-library.ts",
+   "target": "function:services/api/src/media-library.ts:linkMediaAsset",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/media-library.ts",
+   "target": "function:services/api/src/media-library.ts:linkMediaAsset",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/media-library.ts",
+   "target": "function:services/api/src/media-library.ts:unlinkMediaAsset",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/media-library.ts",
+   "target": "function:services/api/src/media-library.ts:unlinkMediaAsset",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/media-library.ts",
+   "target": "function:services/api/src/media-library.ts:listEntityMedia",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/media-library.ts",
+   "target": "function:services/api/src/media-library.ts:listEntityMedia",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/media-library.ts",
+   "target": "function:services/api/src/media-library.ts:isMediaAssetLinkedToEntity",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/media-library.ts",
+   "target": "function:services/api/src/media-library.ts:isMediaAssetLinkedToEntity",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/media-library.ts",
+   "target": "function:services/api/src/media-library.ts:toLink",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/observability.ts",
+   "target": "function:services/api/src/observability.ts:resolveDeploymentId",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/observability.ts",
+   "target": "function:services/api/src/observability.ts:resolveDeploymentId",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/observability.ts",
+   "target": "function:services/api/src/observability.ts:registerObservability",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/observability.ts",
+   "target": "function:services/api/src/observability.ts:registerObservability",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/observability.ts",
+   "target": "class:services/api/src/observability.ts:MetricsCollector",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/observability.ts",
+   "target": "class:services/api/src/observability.ts:MetricsCollector",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/ocr-provider.ts",
+   "target": "class:services/api/src/ocr-provider.ts:MockOcrProvider",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/ocr-provider.ts",
+   "target": "class:services/api/src/ocr-provider.ts:MockOcrProvider",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/ocr-providers.ts",
+   "target": "class:services/api/src/ocr-providers.ts:GoogleVisionOcrProvider",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/ocr-providers.ts",
+   "target": "class:services/api/src/ocr-providers.ts:GoogleVisionOcrProvider",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/ocr-providers.ts",
+   "target": "class:services/api/src/ocr-providers.ts:TesseractOcrProvider",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/ocr-providers.ts",
+   "target": "class:services/api/src/ocr-providers.ts:TesseractOcrProvider",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/offer-growth-audit.ts",
+   "target": "function:services/api/src/offer-growth-audit.ts:recordAuditLog",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/offer-growth-audit.ts",
+   "target": "function:services/api/src/offer-growth-audit.ts:recordAuditLog",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/offer-growth-audit.ts",
+   "target": "function:services/api/src/offer-growth-audit.ts:listAuditLog",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/offer-growth-audit.ts",
+   "target": "function:services/api/src/offer-growth-audit.ts:listAuditLog",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/invitations.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/invitations.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/invitations.ts",
+   "target": "file:services/api/src/audit-log.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/invitations.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/invitations.ts",
+   "target": "file:services/api/src/email/index.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/invitations.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/invitations.ts",
+   "target": "file:services/api/src/password-hashing.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/land-services.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/land-services.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/land-services.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/land-services.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/media-library.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/media-library.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/media-library.ts",
+   "target": "file:services/api/src/audit-log.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/media-library.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/media-library.ts",
+   "target": "file:services/api/src/document-attachments.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/media-library.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/media-library.ts",
+   "target": "file:services/api/src/proposals.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/observability.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/ocr-providers.ts",
+   "target": "file:services/api/src/ocr-provider.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/offer-growth-audit.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/offer-growth-audit.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "function:services/api/src/invitations.ts:createInvitation",
+   "target": "function:services/api/src/audit-log.ts:recordAuditEvent",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/invitations.ts:createInvitation",
+   "target": "function:services/api/src/email/index.ts:sendEmployeeInvitationEmail",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/invitations.ts:acceptInvitation",
+   "target": "function:services/api/src/password-hashing.ts:hashPassword",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/invitations.ts:acceptInvitation",
+   "target": "function:services/api/src/audit-log.ts:recordAuditEvent",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/observability.ts:registerObservability",
+   "target": "function:packages/domain/tenant-context.ts:getOptionalTenantContext",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/offer-growth-audit.ts:recordAuditLog",
+   "target": "function:packages/domain/tenant-context.ts:getAgencyId",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/ocr-provider.ts",
+   "target": "file:services/api/tests/ocr-provider.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  }
+ ]
+}

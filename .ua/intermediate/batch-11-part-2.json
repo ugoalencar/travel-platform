@@ -1,0 +1,2084 @@
+{
+ "nodes": [
+  {
+   "id": "file:services/api/src/routes/transport-suppliers.ts",
+   "type": "file",
+   "name": "transport-suppliers.ts",
+   "filePath": "services/api/src/routes/transport-suppliers.ts",
+   "summary": "Registro extenso do domínio de transporte: rotas, pontos de rota, fornecedores, produtos de transporte e partidas programadas, com parsers de input dedicados por recurso.",
+   "tags": [
+    "api-handler",
+    "transport",
+    "routes",
+    "validation"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/routes/transport-suppliers.ts:registerTransportSuppliersRoutes",
+   "type": "function",
+   "name": "registerTransportSuppliersRoutes",
+   "filePath": "services/api/src/routes/transport-suppliers.ts",
+   "lineRange": [
+    66,
+    391
+   ],
+   "summary": "Registra todas as rotas de transporte (rotas, pontos, fornecedores, produtos e partidas) exigindo papel autorizado em cada endpoint.",
+   "tags": [
+    "api-handler",
+    "routes",
+    "transport"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/routes/transport-suppliers.ts:parseCreateRouteInput",
+   "type": "function",
+   "name": "parseCreateRouteInput",
+   "filePath": "services/api/src/routes/transport-suppliers.ts",
+   "lineRange": [
+    446,
+    498
+   ],
+   "summary": "Valida e converte o corpo da requisição para criação de rota de transporte.",
+   "tags": [
+    "validation",
+    "input-parsing",
+    "transport"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/routes/transport-suppliers.ts:parseUpdateRouteInput",
+   "type": "function",
+   "name": "parseUpdateRouteInput",
+   "filePath": "services/api/src/routes/transport-suppliers.ts",
+   "lineRange": [
+    500,
+    561
+   ],
+   "summary": "Valida campos enviados na atualização parcial de uma rota de transporte.",
+   "tags": [
+    "validation",
+    "input-parsing",
+    "transport"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/routes/transport-suppliers.ts:parseCreateRoutePointInput",
+   "type": "function",
+   "name": "parseCreateRoutePointInput",
+   "filePath": "services/api/src/routes/transport-suppliers.ts",
+   "lineRange": [
+    563,
+    618
+   ],
+   "summary": "Valida dados de ponto de rota na criação (nome, sequência e horários).",
+   "tags": [
+    "validation",
+    "input-parsing",
+    "transport"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/routes/transport-suppliers.ts:parseUpdateRoutePointInput",
+   "type": "function",
+   "name": "parseUpdateRoutePointInput",
+   "filePath": "services/api/src/routes/transport-suppliers.ts",
+   "lineRange": [
+    620,
+    677
+   ],
+   "summary": "Valida dados de ponto de rota enviados na atualização.",
+   "tags": [
+    "validation",
+    "input-parsing",
+    "transport"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/routes/transport-suppliers.ts:parseReorderRoutePointsInput",
+   "type": "function",
+   "name": "parseReorderRoutePointsInput",
+   "filePath": "services/api/src/routes/transport-suppliers.ts",
+   "lineRange": [
+    679,
+    693
+   ],
+   "summary": "Valida a lista ordenada de identificadores enviada para reordenar pontos de rota.",
+   "tags": [
+    "validation",
+    "input-parsing",
+    "transport"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/routes/transport-suppliers.ts:parseSupplierCategories",
+   "type": "function",
+   "name": "parseSupplierCategories",
+   "filePath": "services/api/src/routes/transport-suppliers.ts",
+   "lineRange": [
+    739,
+    749
+   ],
+   "summary": "Normaliza e valida a lista de categorias de um fornecedor.",
+   "tags": [
+    "validation",
+    "parsing",
+    "suppliers"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/routes/transport-suppliers.ts:parseCreateSupplierInput",
+   "type": "function",
+   "name": "parseCreateSupplierInput",
+   "filePath": "services/api/src/routes/transport-suppliers.ts",
+   "lineRange": [
+    751,
+    802
+   ],
+   "summary": "Valida e converte o corpo da requisição para criação de fornecedor de transporte.",
+   "tags": [
+    "validation",
+    "input-parsing",
+    "suppliers"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/routes/transport-suppliers.ts:parseUpdateSupplierInput",
+   "type": "function",
+   "name": "parseUpdateSupplierInput",
+   "filePath": "services/api/src/routes/transport-suppliers.ts",
+   "lineRange": [
+    804,
+    861
+   ],
+   "summary": "Valida campos enviados na atualização de fornecedor.",
+   "tags": [
+    "validation",
+    "input-parsing",
+    "suppliers"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/routes/transport-suppliers.ts:parseCreateTransportProductInput",
+   "type": "function",
+   "name": "parseCreateTransportProductInput",
+   "filePath": "services/api/src/routes/transport-suppliers.ts",
+   "lineRange": [
+    905,
+    971
+   ],
+   "summary": "Valida e converte o corpo da requisição para criação de produto de transporte.",
+   "tags": [
+    "validation",
+    "input-parsing",
+    "transport"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/routes/transport-suppliers.ts:parseUpdateTransportProductInput",
+   "type": "function",
+   "name": "parseUpdateTransportProductInput",
+   "filePath": "services/api/src/routes/transport-suppliers.ts",
+   "lineRange": [
+    973,
+    1028
+   ],
+   "summary": "Valida campos enviados na atualização de produto de transporte.",
+   "tags": [
+    "validation",
+    "input-parsing",
+    "transport"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/routes/transport-suppliers.ts:parseDepartureDate",
+   "type": "function",
+   "name": "parseDepartureDate",
+   "filePath": "services/api/src/routes/transport-suppliers.ts",
+   "lineRange": [
+    1062,
+    1071
+   ],
+   "summary": "Converte e valida uma data de partida no formato aceito, com erro nomeado por campo.",
+   "tags": [
+    "validation",
+    "date-parsing",
+    "transport"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/routes/transport-suppliers.ts:parseCreateScheduledDepartureInput",
+   "type": "function",
+   "name": "parseCreateScheduledDepartureInput",
+   "filePath": "services/api/src/routes/transport-suppliers.ts",
+   "lineRange": [
+    1073,
+    1132
+   ],
+   "summary": "Valida e converte o corpo da requisição para criação de partida programada.",
+   "tags": [
+    "validation",
+    "input-parsing",
+    "transport"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/routes/transport-suppliers.ts:parseUpdateScheduledDepartureInput",
+   "type": "function",
+   "name": "parseUpdateScheduledDepartureInput",
+   "filePath": "services/api/src/routes/transport-suppliers.ts",
+   "lineRange": [
+    1134,
+    1202
+   ],
+   "summary": "Valida campos enviados na atualização de partida programada.",
+   "tags": [
+    "validation",
+    "input-parsing",
+    "transport"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:services/api/src/routes/travel-products.ts",
+   "type": "file",
+   "name": "travel-products.ts",
+   "filePath": "services/api/src/routes/travel-products.ts",
+   "summary": "Registra rotas de produtos de viagem, aplicando parsing dedicado de entrada e delegando persistência ao serviço de travel-products.",
+   "tags": [
+    "api-handler",
+    "travel-products",
+    "routes"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/routes/travel-products.ts:registerTravelProductsRoutes",
+   "type": "function",
+   "name": "registerTravelProductsRoutes",
+   "filePath": "services/api/src/routes/travel-products.ts",
+   "lineRange": [
+    36,
+    142
+   ],
+   "summary": "Registra endpoints de produtos de viagem com parsing de entrada e autorização por papel.",
+   "tags": [
+    "api-handler",
+    "routes",
+    "travel-products"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:services/api/src/routes/trips.ts",
+   "type": "file",
+   "name": "trips.ts",
+   "filePath": "services/api/src/routes/trips.ts",
+   "summary": "Maior conjunto de rotas do domínio de viagens: trips, reservas, passageiros, serviços aéreos e terrestres, com parsers de input por recurso e validações de anexos.",
+   "tags": [
+    "api-handler",
+    "trips",
+    "routes",
+    "validation"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/routes/trips.ts:registerTripsRoutes",
+   "type": "function",
+   "name": "registerTripsRoutes",
+   "filePath": "services/api/src/routes/trips.ts",
+   "lineRange": [
+    66,
+    448
+   ],
+   "summary": "Registra o conjunto de rotas de viagens cobrindo trips, reservas, serviços aéreos/terrestres e fotos, com requireRole por endpoint.",
+   "tags": [
+    "api-handler",
+    "routes",
+    "trips"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/routes/trips.ts:parseTripDate",
+   "type": "function",
+   "name": "parseTripDate",
+   "filePath": "services/api/src/routes/trips.ts",
+   "lineRange": [
+    494,
+    505
+   ],
+   "summary": "Converte e valida datas de viagem produzindo erro nomeado por campo.",
+   "tags": [
+    "validation",
+    "date-parsing",
+    "trips"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/routes/trips.ts:parseCreateTripInput",
+   "type": "function",
+   "name": "parseCreateTripInput",
+   "filePath": "services/api/src/routes/trips.ts",
+   "lineRange": [
+    507,
+    563
+   ],
+   "summary": "Valida e converte o corpo da requisição para criação de viagem de cliente.",
+   "tags": [
+    "validation",
+    "input-parsing",
+    "trips"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/routes/trips.ts:parseUpdateTripInput",
+   "type": "function",
+   "name": "parseUpdateTripInput",
+   "filePath": "services/api/src/routes/trips.ts",
+   "lineRange": [
+    565,
+    622
+   ],
+   "summary": "Valida campos enviados na atualização de viagem.",
+   "tags": [
+    "validation",
+    "input-parsing",
+    "trips"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/routes/trips.ts:parseCreateBookingPassengerInput",
+   "type": "function",
+   "name": "parseCreateBookingPassengerInput",
+   "filePath": "services/api/src/routes/trips.ts",
+   "lineRange": [
+    671,
+    700
+   ],
+   "summary": "Valida dados de passageiro informados em uma reserva.",
+   "tags": [
+    "validation",
+    "input-parsing",
+    "bookings"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/routes/trips.ts:parseCreateBookingInput",
+   "type": "function",
+   "name": "parseCreateBookingInput",
+   "filePath": "services/api/src/routes/trips.ts",
+   "lineRange": [
+    702,
+    766
+   ],
+   "summary": "Valida e monta o payload de criação de reserva incluindo passageiros.",
+   "tags": [
+    "validation",
+    "input-parsing",
+    "bookings"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/routes/trips.ts:parseCancelBookingInput",
+   "type": "function",
+   "name": "parseCancelBookingInput",
+   "filePath": "services/api/src/routes/trips.ts",
+   "lineRange": [
+    768,
+    796
+   ],
+   "summary": "Valida os dados informados ao cancelar uma reserva.",
+   "tags": [
+    "validation",
+    "input-parsing",
+    "bookings"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/routes/trips.ts:parseCreateAirServiceInput",
+   "type": "function",
+   "name": "parseCreateAirServiceInput",
+   "filePath": "services/api/src/routes/trips.ts",
+   "lineRange": [
+    858,
+    910
+   ],
+   "summary": "Valida e converte o corpo da requisição para criação de serviço aéreo vinculado à viagem.",
+   "tags": [
+    "validation",
+    "input-parsing",
+    "air-services"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/routes/trips.ts:parseUpdateAirServiceInput",
+   "type": "function",
+   "name": "parseUpdateAirServiceInput",
+   "filePath": "services/api/src/routes/trips.ts",
+   "lineRange": [
+    912,
+    981
+   ],
+   "summary": "Valida campos enviados na atualização de serviço aéreo.",
+   "tags": [
+    "validation",
+    "input-parsing",
+    "air-services"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/routes/trips.ts:applyAirServiceOptionalFields",
+   "type": "function",
+   "name": "applyAirServiceOptionalFields",
+   "filePath": "services/api/src/routes/trips.ts",
+   "lineRange": [
+    983,
+    1050
+   ],
+   "summary": "Aplica condicionalmente campos opcionais de serviço aéreo sobre o registro persistido.",
+   "tags": [
+    "serialization",
+    "air-services",
+    "db-mapping"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/routes/trips.ts:parseCreateLandServiceInput",
+   "type": "function",
+   "name": "parseCreateLandServiceInput",
+   "filePath": "services/api/src/routes/trips.ts",
+   "lineRange": [
+    1101,
+    1145
+   ],
+   "summary": "Valida e converte o corpo da requisição para criação de serviço terrestre.",
+   "tags": [
+    "validation",
+    "input-parsing",
+    "land-services"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/routes/trips.ts:parseUpdateLandServiceInput",
+   "type": "function",
+   "name": "parseUpdateLandServiceInput",
+   "filePath": "services/api/src/routes/trips.ts",
+   "lineRange": [
+    1147,
+    1204
+   ],
+   "summary": "Valida campos enviados na atualização de serviço terrestre.",
+   "tags": [
+    "validation",
+    "input-parsing",
+    "land-services"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/routes/trips.ts:applyLandServiceOptionalFields",
+   "type": "function",
+   "name": "applyLandServiceOptionalFields",
+   "filePath": "services/api/src/routes/trips.ts",
+   "lineRange": [
+    1206,
+    1260
+   ],
+   "summary": "Aplica condicionalmente campos opcionais de serviço terrestre sobre o registro persistido.",
+   "tags": [
+    "serialization",
+    "land-services",
+    "db-mapping"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:services/api/src/routes/whatsapp.ts",
+   "type": "file",
+   "name": "whatsapp.ts",
+   "filePath": "services/api/src/routes/whatsapp.ts",
+   "summary": "Registra rotas de compartilhamento via WhatsApp, montando links e mensagens para ofertas, propostas e viagens com validação de telefone.",
+   "tags": [
+    "api-handler",
+    "whatsapp",
+    "routes"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/routes/whatsapp.ts:registerWhatsAppRoutes",
+   "type": "function",
+   "name": "registerWhatsAppRoutes",
+   "filePath": "services/api/src/routes/whatsapp.ts",
+   "lineRange": [
+    36,
+    181
+   ],
+   "summary": "Registra endpoints de compartilhamento por WhatsApp para ofertas, propostas e viagens.",
+   "tags": [
+    "api-handler",
+    "routes",
+    "whatsapp"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:services/api/src/routes/wishes.ts",
+   "type": "file",
+   "name": "wishes.ts",
+   "filePath": "services/api/src/routes/wishes.ts",
+   "summary": "Registra as rotas de desejos (wishes) de clientes com CRUD completo, parsing de datas e validação de entrada.",
+   "tags": [
+    "api-handler",
+    "wishes",
+    "routes",
+    "validation"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/routes/wishes.ts:registerWishesRoutes",
+   "type": "function",
+   "name": "registerWishesRoutes",
+   "filePath": "services/api/src/routes/wishes.ts",
+   "lineRange": [
+    28,
+    79
+   ],
+   "summary": "Registra endpoints de desejos de clientes com autorização por papel em cada rota.",
+   "tags": [
+    "api-handler",
+    "routes",
+    "wishes"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/routes/wishes.ts:parseWishDate",
+   "type": "function",
+   "name": "parseWishDate",
+   "filePath": "services/api/src/routes/wishes.ts",
+   "lineRange": [
+    123,
+    134
+   ],
+   "summary": "Converte e valida a data associada a um desejo.",
+   "tags": [
+    "validation",
+    "date-parsing",
+    "wishes"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/routes/wishes.ts:parseCreateWishInput",
+   "type": "function",
+   "name": "parseCreateWishInput",
+   "filePath": "services/api/src/routes/wishes.ts",
+   "lineRange": [
+    136,
+    193
+   ],
+   "summary": "Valida e converte o corpo da requisição para criação de desejo.",
+   "tags": [
+    "validation",
+    "input-parsing",
+    "wishes"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/routes/wishes.ts:parseUpdateWishInput",
+   "type": "function",
+   "name": "parseUpdateWishInput",
+   "filePath": "services/api/src/routes/wishes.ts",
+   "lineRange": [
+    195,
+    252
+   ],
+   "summary": "Valida campos enviados na atualização de desejo.",
+   "tags": [
+    "validation",
+    "input-parsing",
+    "wishes"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:services/api/src/sale-items.ts",
+   "type": "file",
+   "name": "sale-items.ts",
+   "filePath": "services/api/src/sale-items.ts",
+   "summary": "Camada de serviço de itens de venda: cálculo de totais e margens, criação/cancelamento com geração de contas a pagar e auditoria, sempre sob escopo de tenant.",
+   "tags": [
+    "service",
+    "sales",
+    "financial",
+    "domain-logic"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/sale-items.ts:computeLineTotal",
+   "type": "function",
+   "name": "computeLineTotal",
+   "filePath": "services/api/src/sale-items.ts",
+   "lineRange": [
+    104,
+    117
+   ],
+   "summary": "Calcula o total de um item de venda a partir de quantidade, preço unitário, desconto, taxas e encargos.",
+   "tags": [
+    "calculation",
+    "sales",
+    "money"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/sale-items.ts:computeLineMargin",
+   "type": "function",
+   "name": "computeLineMargin",
+   "filePath": "services/api/src/sale-items.ts",
+   "lineRange": [
+    119,
+    127
+   ],
+   "summary": "Calcula a margem bruta de um item de venda descontando custo e comissão.",
+   "tags": [
+    "calculation",
+    "sales",
+    "margin"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/sale-items.ts:listSaleItems",
+   "type": "function",
+   "name": "listSaleItems",
+   "filePath": "services/api/src/sale-items.ts",
+   "lineRange": [
+    129,
+    138
+   ],
+   "summary": "Lista os itens de uma venda específica dentro do escopo do tenant.",
+   "tags": [
+    "crud",
+    "sales",
+    "query"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/sale-items.ts:getSaleItemById",
+   "type": "function",
+   "name": "getSaleItemById",
+   "filePath": "services/api/src/sale-items.ts",
+   "lineRange": [
+    140,
+    150
+   ],
+   "summary": "Recupera um item de venda pelo identificador verificando existência.",
+   "tags": [
+    "crud",
+    "sales",
+    "query"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/sale-items.ts:createSaleItem",
+   "type": "function",
+   "name": "createSaleItem",
+   "filePath": "services/api/src/sale-items.ts",
+   "lineRange": [
+    152,
+    270
+   ],
+   "summary": "Cria item de venda validando referências, recalculando totais, gerando conta a pagar e registrando evento de auditoria.",
+   "tags": [
+    "crud",
+    "sales",
+    "financial",
+    "audit"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/sale-items.ts:cancelSaleItem",
+   "type": "function",
+   "name": "cancelSaleItem",
+   "filePath": "services/api/src/sale-items.ts",
+   "lineRange": [
+    280,
+    317
+   ],
+   "summary": "Cancela um item de venda existente revertendo efeitos financeiros e gravando auditoria.",
+   "tags": [
+    "crud",
+    "sales",
+    "financial"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/sale-items.ts:assertRef",
+   "type": "function",
+   "name": "assertRef",
+   "filePath": "services/api/src/sale-items.ts",
+   "lineRange": [
+    319,
+    333
+   ],
+   "summary": "Confere a existência de um registro referenciado na mesma agência ou lança erro de validação.",
+   "tags": [
+    "validation",
+    "db-check",
+    "authorization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/sale-items.ts:parseCreateSaleItemInput",
+   "type": "function",
+   "name": "parseCreateSaleItemInput",
+   "filePath": "services/api/src/sale-items.ts",
+   "lineRange": [
+    359,
+    431
+   ],
+   "summary": "Valida e converte o corpo da requisição para criação de item de venda incluindo cálculo do total.",
+   "tags": [
+    "validation",
+    "input-parsing",
+    "sales"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/sale-items.ts:toSaleItem",
+   "type": "function",
+   "name": "toSaleItem",
+   "filePath": "services/api/src/sale-items.ts",
+   "lineRange": [
+    433,
+    459
+   ],
+   "summary": "Converte a linha do banco no objeto de domínio de item de venda.",
+   "tags": [
+    "serialization",
+    "mapping",
+    "sales"
+   ],
+   "complexity": "moderate"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:services/api/src/routes/transport-suppliers.ts",
+   "target": "function:services/api/src/routes/transport-suppliers.ts:registerTransportSuppliersRoutes",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/transport-suppliers.ts",
+   "target": "function:services/api/src/routes/transport-suppliers.ts:registerTransportSuppliersRoutes",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/transport-suppliers.ts",
+   "target": "function:services/api/src/routes/transport-suppliers.ts:parseCreateRouteInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/transport-suppliers.ts",
+   "target": "function:services/api/src/routes/transport-suppliers.ts:parseUpdateRouteInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/transport-suppliers.ts",
+   "target": "function:services/api/src/routes/transport-suppliers.ts:parseCreateRoutePointInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/transport-suppliers.ts",
+   "target": "function:services/api/src/routes/transport-suppliers.ts:parseUpdateRoutePointInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/transport-suppliers.ts",
+   "target": "function:services/api/src/routes/transport-suppliers.ts:parseReorderRoutePointsInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/transport-suppliers.ts",
+   "target": "function:services/api/src/routes/transport-suppliers.ts:parseSupplierCategories",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/transport-suppliers.ts",
+   "target": "function:services/api/src/routes/transport-suppliers.ts:parseCreateSupplierInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/transport-suppliers.ts",
+   "target": "function:services/api/src/routes/transport-suppliers.ts:parseUpdateSupplierInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/transport-suppliers.ts",
+   "target": "function:services/api/src/routes/transport-suppliers.ts:parseCreateTransportProductInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/transport-suppliers.ts",
+   "target": "function:services/api/src/routes/transport-suppliers.ts:parseUpdateTransportProductInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/transport-suppliers.ts",
+   "target": "function:services/api/src/routes/transport-suppliers.ts:parseDepartureDate",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/transport-suppliers.ts",
+   "target": "function:services/api/src/routes/transport-suppliers.ts:parseCreateScheduledDepartureInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/transport-suppliers.ts",
+   "target": "function:services/api/src/routes/transport-suppliers.ts:parseUpdateScheduledDepartureInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/travel-products.ts",
+   "target": "function:services/api/src/routes/travel-products.ts:registerTravelProductsRoutes",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/travel-products.ts",
+   "target": "function:services/api/src/routes/travel-products.ts:registerTravelProductsRoutes",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/trips.ts",
+   "target": "function:services/api/src/routes/trips.ts:registerTripsRoutes",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/trips.ts",
+   "target": "function:services/api/src/routes/trips.ts:registerTripsRoutes",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/trips.ts",
+   "target": "function:services/api/src/routes/trips.ts:parseTripDate",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/trips.ts",
+   "target": "function:services/api/src/routes/trips.ts:parseCreateTripInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/trips.ts",
+   "target": "function:services/api/src/routes/trips.ts:parseUpdateTripInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/trips.ts",
+   "target": "function:services/api/src/routes/trips.ts:parseCreateBookingPassengerInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/trips.ts",
+   "target": "function:services/api/src/routes/trips.ts:parseCreateBookingInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/trips.ts",
+   "target": "function:services/api/src/routes/trips.ts:parseCancelBookingInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/trips.ts",
+   "target": "function:services/api/src/routes/trips.ts:parseCreateAirServiceInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/trips.ts",
+   "target": "function:services/api/src/routes/trips.ts:parseUpdateAirServiceInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/trips.ts",
+   "target": "function:services/api/src/routes/trips.ts:applyAirServiceOptionalFields",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/trips.ts",
+   "target": "function:services/api/src/routes/trips.ts:parseCreateLandServiceInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/trips.ts",
+   "target": "function:services/api/src/routes/trips.ts:parseUpdateLandServiceInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/trips.ts",
+   "target": "function:services/api/src/routes/trips.ts:applyLandServiceOptionalFields",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/whatsapp.ts",
+   "target": "function:services/api/src/routes/whatsapp.ts:registerWhatsAppRoutes",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/whatsapp.ts",
+   "target": "function:services/api/src/routes/whatsapp.ts:registerWhatsAppRoutes",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/wishes.ts",
+   "target": "function:services/api/src/routes/wishes.ts:registerWishesRoutes",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/wishes.ts",
+   "target": "function:services/api/src/routes/wishes.ts:registerWishesRoutes",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/wishes.ts",
+   "target": "function:services/api/src/routes/wishes.ts:parseWishDate",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/wishes.ts",
+   "target": "function:services/api/src/routes/wishes.ts:parseCreateWishInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/wishes.ts",
+   "target": "function:services/api/src/routes/wishes.ts:parseUpdateWishInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/sale-items.ts",
+   "target": "function:services/api/src/sale-items.ts:computeLineTotal",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/sale-items.ts",
+   "target": "function:services/api/src/sale-items.ts:computeLineTotal",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/sale-items.ts",
+   "target": "function:services/api/src/sale-items.ts:computeLineMargin",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/sale-items.ts",
+   "target": "function:services/api/src/sale-items.ts:computeLineMargin",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/sale-items.ts",
+   "target": "function:services/api/src/sale-items.ts:listSaleItems",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/sale-items.ts",
+   "target": "function:services/api/src/sale-items.ts:listSaleItems",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/sale-items.ts",
+   "target": "function:services/api/src/sale-items.ts:getSaleItemById",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/sale-items.ts",
+   "target": "function:services/api/src/sale-items.ts:getSaleItemById",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/sale-items.ts",
+   "target": "function:services/api/src/sale-items.ts:createSaleItem",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/sale-items.ts",
+   "target": "function:services/api/src/sale-items.ts:createSaleItem",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/sale-items.ts",
+   "target": "function:services/api/src/sale-items.ts:cancelSaleItem",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/sale-items.ts",
+   "target": "function:services/api/src/sale-items.ts:cancelSaleItem",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/sale-items.ts",
+   "target": "function:services/api/src/sale-items.ts:assertRef",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/sale-items.ts",
+   "target": "function:services/api/src/sale-items.ts:parseCreateSaleItemInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/sale-items.ts",
+   "target": "function:services/api/src/sale-items.ts:parseCreateSaleItemInput",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/sale-items.ts",
+   "target": "function:services/api/src/sale-items.ts:toSaleItem",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/transport-suppliers.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/transport-suppliers.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/transport-suppliers.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/transport-suppliers.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/transport-suppliers.ts",
+   "target": "file:services/api/src/route-points.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/transport-suppliers.ts",
+   "target": "file:services/api/src/scheduled-departures.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/transport-suppliers.ts",
+   "target": "file:services/api/src/suppliers.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/transport-suppliers.ts",
+   "target": "file:services/api/src/transport-products.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/transport-suppliers.ts",
+   "target": "file:services/api/src/transport-routes.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/travel-products.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/travel-products.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/travel-products.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/travel-products.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/travel-products.ts",
+   "target": "file:services/api/src/travel-product-input-parsing.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/travel-products.ts",
+   "target": "file:services/api/src/travel-products.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/trips.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/trips.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/trips.ts",
+   "target": "file:services/api/src/air-services.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/trips.ts",
+   "target": "file:services/api/src/bookings.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/trips.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/trips.ts",
+   "target": "file:services/api/src/document-attachments.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/trips.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/trips.ts",
+   "target": "file:services/api/src/land-services.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/trips.ts",
+   "target": "file:services/api/src/permission-restrictions.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/trips.ts",
+   "target": "file:services/api/src/storage.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/trips.ts",
+   "target": "file:services/api/src/trip-photos.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/trips.ts",
+   "target": "file:services/api/src/trips.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/whatsapp.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/whatsapp.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/whatsapp.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/whatsapp.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/whatsapp.ts",
+   "target": "file:services/api/src/offers.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/whatsapp.ts",
+   "target": "file:services/api/src/whatsapp-link.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/wishes.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/wishes.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/wishes.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/wishes.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/wishes.ts",
+   "target": "file:services/api/src/wishes.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/sale-items.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/sale-items.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/sale-items.ts",
+   "target": "file:services/api/src/audit-log.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/sale-items.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/sale-items.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/sale-items.ts",
+   "target": "file:services/api/src/financial.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/sale-items.ts",
+   "target": "file:services/api/src/sales.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/transport-suppliers.ts",
+   "target": "function:packages/domain/tenant-context.ts:requireRole",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/transport-suppliers.ts",
+   "target": "function:services/api/src/route-points.ts:listRoutePoints",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/transport-suppliers.ts",
+   "target": "function:services/api/src/route-points.ts:createRoutePoint",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/transport-suppliers.ts",
+   "target": "function:services/api/src/route-points.ts:updateRoutePoint",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/transport-suppliers.ts",
+   "target": "function:services/api/src/route-points.ts:reorderRoutePoints",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/transport-suppliers.ts",
+   "target": "function:services/api/src/scheduled-departures.ts:listScheduledDepartures",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/transport-suppliers.ts",
+   "target": "function:services/api/src/scheduled-departures.ts:getScheduledDepartureById",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/transport-suppliers.ts",
+   "target": "function:services/api/src/scheduled-departures.ts:createScheduledDeparture",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/transport-suppliers.ts",
+   "target": "function:services/api/src/scheduled-departures.ts:updateScheduledDeparture",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/transport-suppliers.ts",
+   "target": "function:services/api/src/scheduled-departures.ts:getAgenda",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/transport-suppliers.ts",
+   "target": "function:services/api/src/suppliers.ts:listSuppliers",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/transport-suppliers.ts",
+   "target": "function:services/api/src/suppliers.ts:getSupplierById",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/transport-suppliers.ts",
+   "target": "function:services/api/src/suppliers.ts:createSupplier",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/transport-suppliers.ts",
+   "target": "function:services/api/src/suppliers.ts:updateSupplier",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/transport-suppliers.ts",
+   "target": "function:services/api/src/transport-products.ts:listTransportProducts",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/transport-suppliers.ts",
+   "target": "function:services/api/src/transport-products.ts:getTransportProductById",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/transport-suppliers.ts",
+   "target": "function:services/api/src/transport-products.ts:createTransportProduct",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/transport-suppliers.ts",
+   "target": "function:services/api/src/transport-products.ts:updateTransportProduct",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/transport-suppliers.ts",
+   "target": "function:services/api/src/transport-routes.ts:listRoutes",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/transport-suppliers.ts",
+   "target": "function:services/api/src/transport-routes.ts:getRouteById",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/transport-suppliers.ts",
+   "target": "function:services/api/src/transport-routes.ts:createRoute",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/transport-suppliers.ts",
+   "target": "function:services/api/src/transport-routes.ts:updateRoute",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/travel-products.ts",
+   "target": "function:packages/domain/tenant-context.ts:requireRole",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/travel-products.ts",
+   "target": "function:services/api/src/travel-product-input-parsing.ts:parseCreateTravelProductInput",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/travel-products.ts",
+   "target": "function:services/api/src/travel-product-input-parsing.ts:parseUpdateTravelProductInput",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/travel-products.ts",
+   "target": "function:services/api/src/travel-products.ts:listTravelProducts",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/travel-products.ts",
+   "target": "function:services/api/src/travel-products.ts:getTravelProductById",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/travel-products.ts",
+   "target": "function:services/api/src/travel-products.ts:createTravelProduct",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/travel-products.ts",
+   "target": "function:services/api/src/travel-products.ts:updateTravelProduct",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/travel-products.ts",
+   "target": "function:services/api/src/travel-products.ts:deleteTravelProduct",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/travel-products.ts",
+   "target": "function:services/api/src/travel-products.ts:attachAssetToProduct",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/travel-products.ts",
+   "target": "function:services/api/src/travel-products.ts:listProductAssets",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/trips.ts",
+   "target": "function:packages/domain/tenant-context.ts:getTenantContext",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/trips.ts",
+   "target": "function:packages/domain/tenant-context.ts:getUserId",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/trips.ts",
+   "target": "function:packages/domain/tenant-context.ts:requireRole",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/trips.ts",
+   "target": "function:services/api/src/air-services.ts:listAirServices",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/trips.ts",
+   "target": "function:services/api/src/air-services.ts:getAirServiceById",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/trips.ts",
+   "target": "function:services/api/src/air-services.ts:createAirService",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/trips.ts",
+   "target": "function:services/api/src/air-services.ts:updateAirService",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/trips.ts",
+   "target": "function:services/api/src/air-services.ts:deleteAirService",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/trips.ts",
+   "target": "function:services/api/src/bookings.ts:createBooking",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/trips.ts",
+   "target": "function:services/api/src/bookings.ts:cancelBooking",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/trips.ts",
+   "target": "function:services/api/src/bookings.ts:listBookingsWithCustomer",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/trips.ts",
+   "target": "function:services/api/src/bookings.ts:getBookingWithCustomerById",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/trips.ts",
+   "target": "function:services/api/src/document-attachments.ts:isBlockedFileName",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/trips.ts",
+   "target": "function:services/api/src/document-attachments.ts:validateFileSize",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/trips.ts",
+   "target": "function:services/api/src/land-services.ts:listLandServices",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/trips.ts",
+   "target": "function:services/api/src/land-services.ts:getLandServiceById",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/trips.ts",
+   "target": "function:services/api/src/land-services.ts:createLandService",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/trips.ts",
+   "target": "function:services/api/src/land-services.ts:updateLandService",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/trips.ts",
+   "target": "function:services/api/src/land-services.ts:deleteLandService",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/trips.ts",
+   "target": "function:services/api/src/permission-restrictions.ts:assertNotRestricted",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/trips.ts",
+   "target": "function:services/api/src/storage.ts:saveFile",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/trips.ts",
+   "target": "function:services/api/src/storage.ts:deleteStoredFileAfterCommit",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/trips.ts",
+   "target": "function:services/api/src/trip-photos.ts:generateTripPhotoSecureFileKey",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/trips.ts",
+   "target": "function:services/api/src/trip-photos.ts:createTripPhoto",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/trips.ts",
+   "target": "function:services/api/src/trip-photos.ts:listTripPhotos",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/trips.ts",
+   "target": "function:services/api/src/trip-photos.ts:getTripPhotoById",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/trips.ts",
+   "target": "function:services/api/src/trip-photos.ts:deleteTripPhoto",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/trips.ts",
+   "target": "function:services/api/src/trips.ts:listTrips",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/trips.ts",
+   "target": "function:services/api/src/trips.ts:getTripById",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/trips.ts",
+   "target": "function:services/api/src/trips.ts:createTrip",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/trips.ts",
+   "target": "function:services/api/src/trips.ts:updateTrip",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/whatsapp.ts",
+   "target": "function:packages/domain/tenant-context.ts:requireRole",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/whatsapp.ts",
+   "target": "function:services/api/src/offers.ts:getOfferById",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/whatsapp.ts",
+   "target": "function:services/api/src/whatsapp-link.ts:isValidPhone",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/whatsapp.ts",
+   "target": "function:services/api/src/whatsapp-link.ts:generateWhatsAppLink",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/whatsapp.ts",
+   "target": "function:services/api/src/whatsapp-link.ts:generateWhatsAppChatLink",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/whatsapp.ts",
+   "target": "function:services/api/src/whatsapp-link.ts:buildOfferShareMessage",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/whatsapp.ts",
+   "target": "function:services/api/src/whatsapp-link.ts:buildProposalShareMessage",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/whatsapp.ts",
+   "target": "function:services/api/src/whatsapp-link.ts:buildTripShareMessage",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/wishes.ts",
+   "target": "function:packages/domain/tenant-context.ts:requireRole",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/wishes.ts",
+   "target": "function:services/api/src/wishes.ts:listWishes",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/wishes.ts",
+   "target": "function:services/api/src/wishes.ts:getWishById",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/wishes.ts",
+   "target": "function:services/api/src/wishes.ts:createWish",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/wishes.ts",
+   "target": "function:services/api/src/wishes.ts:updateWish",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/sale-items.ts",
+   "target": "function:packages/domain/tenant-context.ts:getAgencyId",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/sale-items.ts",
+   "target": "function:packages/domain/tenant-context.ts:getUserId",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/sale-items.ts",
+   "target": "function:services/api/src/audit-log.ts:recordAuditEvent",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/sale-items.ts",
+   "target": "function:services/api/src/financial.ts:createPayable",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/sale-items.ts",
+   "target": "function:services/api/src/financial.ts:getSaleMargin",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/sale-items.ts",
+   "target": "function:services/api/src/sales.ts:computeTotal",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/sale-items.ts",
+   "target": "function:services/api/src/sales.ts:getSaleById",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/sale-items.ts",
+   "target": "function:services/api/src/sales.ts:updateSale",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  }
+ ]
+}

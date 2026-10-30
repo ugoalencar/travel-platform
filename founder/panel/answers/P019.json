@@ -1,0 +1,13 @@
+{
+  "id": "P019",
+  "buys": true,
+  "purchases_first_month": 1,
+  "reason_code": "trust",
+  "reason": "Já estou cansado do sistema que uso hoje, mas o que me travava sempre foi o medo de perder dado de cliente no meio da migração justamente na alta temporada. Vocês resolveram isso de um jeito que eu não via por aí: agendam fora de dezembro-janeiro e julho, conferem a integridade antes de confirmar, e se perder algo devolvem o dinheiro e me ajudam a voltar atrás. Isso tira o maior medo da mesa, então eu testo.",
+  "objection": "Minha operação real roda no WhatsApp pessoal, não em sistema nenhum. Treino minha equipe, ela usa por uma semana e depois volta pro WhatsApp porque é mais rápido no dia a dia. O checklist de 30 dias ajuda, mas não sei se aguenta até a alta temporada chegar de verdade.",
+  "would_change_my_mind": "Ver uma agência do meu tamanho, com meu perfil, usando o sistema por uns 3-4 meses sem ter perdido venda nem dado na migração e sem voltar pro WhatsApp depois da primeira semana.",
+  "price_too_cheap": 49,
+  "price_cheap": 79,
+  "price_expensive": 199,
+  "price_too_expensive": 350
+}

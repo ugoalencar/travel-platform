@@ -1,0 +1,574 @@
+{
+ "nodes": [
+  {
+   "id": "file:services/api/src/routes/infrastructure.ts",
+   "type": "file",
+   "name": "infrastructure.ts",
+   "filePath": "services/api/src/routes/infrastructure.ts",
+   "summary": "Endpoints de infraestrutura: versão aplicada, snapshot de métricas, pool de conexões, readiness, contexto de tenant e verificação de integridade do tenant.",
+   "tags": [
+    "api-handler",
+    "routes",
+    "observability",
+    "health-check"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/routes/infrastructure.ts:registerInfrastructureRoutes",
+   "type": "function",
+   "name": "registerInfrastructureRoutes",
+   "filePath": "services/api/src/routes/infrastructure.ts",
+   "lineRange": [
+    28,
+    104
+   ],
+   "summary": "Registra as rotas de health checks, métricas e informações de infraestrutura no Fastify, aplicando validação de entrada e autorização por papel ou entitlement antes de delegar à camada de serviço.",
+   "tags": [
+    "api-handler",
+    "route-registration",
+    "authorization",
+    "fastify"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:services/api/src/routes/insurance.ts",
+   "type": "file",
+   "name": "insurance.ts",
+   "filePath": "services/api/src/routes/insurance.ts",
+   "summary": "Rotas de seguros: produtos, apólices, viajantes e documentos, sempre com transação de tenant e registro em audit log.",
+   "tags": [
+    "api-handler",
+    "routes",
+    "insurance",
+    "audit"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/routes/insurance.ts:registerInsuranceRoutes",
+   "type": "function",
+   "name": "registerInsuranceRoutes",
+   "filePath": "services/api/src/routes/insurance.ts",
+   "lineRange": [
+    43,
+    206
+   ],
+   "summary": "Registra as rotas de produtos e apólices de seguro no Fastify, aplicando validação de entrada e autorização por papel ou entitlement antes de delegar à camada de serviço.",
+   "tags": [
+    "api-handler",
+    "route-registration",
+    "authorization",
+    "fastify"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:services/api/src/routes/media-library.ts",
+   "type": "file",
+   "name": "media-library.ts",
+   "filePath": "services/api/src/routes/media-library.ts",
+   "summary": "Rotas da biblioteca de mídia: upload com validação de tipo e tamanho, CRUD de assets, arquivamento, uso e vínculo com entidades.",
+   "tags": [
+    "api-handler",
+    "routes",
+    "media",
+    "file-upload"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/routes/media-library.ts:registerMediaLibraryRoutes",
+   "type": "function",
+   "name": "registerMediaLibraryRoutes",
+   "filePath": "services/api/src/routes/media-library.ts",
+   "lineRange": [
+    40,
+    178
+   ],
+   "summary": "Registra as rotas de biblioteca de mídia no Fastify, aplicando validação de entrada e autorização por papel ou entitlement antes de delegar à camada de serviço.",
+   "tags": [
+    "api-handler",
+    "route-registration",
+    "authorization",
+    "fastify"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:services/api/src/routes/offer-growth-audit.ts",
+   "type": "file",
+   "name": "offer-growth-audit.ts",
+   "filePath": "services/api/src/routes/offer-growth-audit.ts",
+   "summary": "Rota de listagem do audit log de crescimento de ofertas, protegida por papel.",
+   "tags": [
+    "api-handler",
+    "routes",
+    "audit"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/routes/offer-growth-audit.ts:registerOfferGrowthAuditRoutes",
+   "type": "function",
+   "name": "registerOfferGrowthAuditRoutes",
+   "filePath": "services/api/src/routes/offer-growth-audit.ts",
+   "lineRange": [
+    20,
+    31
+   ],
+   "summary": "Registra as rotas de audit log de crescimento de ofertas no Fastify, aplicando validação de entrada e autorização por papel ou entitlement antes de delegar à camada de serviço.",
+   "tags": [
+    "api-handler",
+    "route-registration",
+    "authorization",
+    "fastify"
+   ],
+   "complexity": "simple"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:services/api/src/routes/infrastructure.ts",
+   "target": "function:services/api/src/routes/infrastructure.ts:registerInfrastructureRoutes",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/infrastructure.ts",
+   "target": "function:services/api/src/routes/infrastructure.ts:registerInfrastructureRoutes",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/insurance.ts",
+   "target": "function:services/api/src/routes/insurance.ts:registerInsuranceRoutes",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/insurance.ts",
+   "target": "function:services/api/src/routes/insurance.ts:registerInsuranceRoutes",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/media-library.ts",
+   "target": "function:services/api/src/routes/media-library.ts:registerMediaLibraryRoutes",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/media-library.ts",
+   "target": "function:services/api/src/routes/media-library.ts:registerMediaLibraryRoutes",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/offer-growth-audit.ts",
+   "target": "function:services/api/src/routes/offer-growth-audit.ts:registerOfferGrowthAuditRoutes",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/offer-growth-audit.ts",
+   "target": "function:services/api/src/routes/offer-growth-audit.ts:registerOfferGrowthAuditRoutes",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/infrastructure.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/infrastructure.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/infrastructure.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/infrastructure.ts",
+   "target": "file:services/api/src/observability.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/infrastructure.ts",
+   "target": "file:services/api/src/version.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/insurance.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/insurance.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/insurance.ts",
+   "target": "file:services/api/src/audit-log.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/insurance.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/insurance.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/insurance.ts",
+   "target": "file:services/api/src/insurance.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/media-library.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/media-library.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/media-library.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/media-library.ts",
+   "target": "file:services/api/src/document-attachments.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/media-library.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/media-library.ts",
+   "target": "file:services/api/src/media-library.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/media-library.ts",
+   "target": "file:services/api/src/storage.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/offer-growth-audit.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/offer-growth-audit.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/offer-growth-audit.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/offer-growth-audit.ts",
+   "target": "file:services/api/src/offer-growth-audit.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "function:services/api/src/routes/infrastructure.ts:registerInfrastructureRoutes",
+   "target": "function:services/api/src/version.ts:resolveVersionInfo",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/infrastructure.ts:registerInfrastructureRoutes",
+   "target": "function:services/api/src/version.ts:readAppliedMigrationVersion",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/infrastructure.ts:registerInfrastructureRoutes",
+   "target": "function:packages/domain/tenant-context.ts:getTenantContext",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/infrastructure.ts:registerInfrastructureRoutes",
+   "target": "function:packages/domain/tenant-context.ts:getAgencyId",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/insurance.ts:registerInsuranceRoutes",
+   "target": "function:packages/domain/tenant-context.ts:requireRole",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/insurance.ts:registerInsuranceRoutes",
+   "target": "function:services/api/src/insurance.ts:listInsuranceProducts",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/insurance.ts:registerInsuranceRoutes",
+   "target": "function:services/api/src/insurance.ts:getInsuranceProductById",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/insurance.ts:registerInsuranceRoutes",
+   "target": "function:services/api/src/insurance.ts:createInsuranceProduct",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/insurance.ts:registerInsuranceRoutes",
+   "target": "function:services/api/src/audit-log.ts:recordAuditEvent",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/insurance.ts:registerInsuranceRoutes",
+   "target": "function:services/api/src/insurance.ts:listInsurancePolicies",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/insurance.ts:registerInsuranceRoutes",
+   "target": "function:services/api/src/insurance.ts:getInsurancePolicyById",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/insurance.ts:registerInsuranceRoutes",
+   "target": "function:services/api/src/insurance.ts:createInsurancePolicy",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/insurance.ts:registerInsuranceRoutes",
+   "target": "function:services/api/src/insurance.ts:updateInsurancePolicyStatus",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/insurance.ts:registerInsuranceRoutes",
+   "target": "function:services/api/src/insurance.ts:listInsuranceTravelers",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/insurance.ts:registerInsuranceRoutes",
+   "target": "function:services/api/src/insurance.ts:addInsuranceTraveler",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/insurance.ts:registerInsuranceRoutes",
+   "target": "function:services/api/src/insurance.ts:listInsuranceDocuments",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/insurance.ts:registerInsuranceRoutes",
+   "target": "function:services/api/src/insurance.ts:createInsuranceDocument",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/media-library.ts:registerMediaLibraryRoutes",
+   "target": "function:packages/domain/tenant-context.ts:requireRole",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/media-library.ts:registerMediaLibraryRoutes",
+   "target": "function:services/api/src/media-library.ts:listMediaAssets",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/media-library.ts:registerMediaLibraryRoutes",
+   "target": "function:services/api/src/document-attachments.ts:isBlockedFileName",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/media-library.ts:registerMediaLibraryRoutes",
+   "target": "function:services/api/src/document-attachments.ts:validateFileSize",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/media-library.ts:registerMediaLibraryRoutes",
+   "target": "function:services/api/src/media-library.ts:generateMediaAssetSecureFileKey",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/media-library.ts:registerMediaLibraryRoutes",
+   "target": "function:packages/domain/tenant-context.ts:getAgencyId",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/media-library.ts:registerMediaLibraryRoutes",
+   "target": "function:services/api/src/storage.ts:saveFile",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/media-library.ts:registerMediaLibraryRoutes",
+   "target": "function:services/api/src/media-library.ts:createMediaAsset",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/media-library.ts:registerMediaLibraryRoutes",
+   "target": "function:services/api/src/media-library.ts:getMediaAssetById",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/media-library.ts:registerMediaLibraryRoutes",
+   "target": "function:services/api/src/media-library.ts:updateMediaAsset",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/media-library.ts:registerMediaLibraryRoutes",
+   "target": "function:services/api/src/media-library.ts:archiveMediaAsset",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/media-library.ts:registerMediaLibraryRoutes",
+   "target": "function:services/api/src/media-library.ts:deleteMediaAsset",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/media-library.ts:registerMediaLibraryRoutes",
+   "target": "function:services/api/src/storage.ts:deleteStoredFileAfterCommit",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/media-library.ts:registerMediaLibraryRoutes",
+   "target": "function:services/api/src/media-library.ts:getMediaAssetUsage",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/offer-growth-audit.ts:registerOfferGrowthAuditRoutes",
+   "target": "function:packages/domain/tenant-context.ts:requireRole",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/offer-growth-audit.ts:registerOfferGrowthAuditRoutes",
+   "target": "function:services/api/src/offer-growth-audit.ts:listAuditLog",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  }
+ ]
+}

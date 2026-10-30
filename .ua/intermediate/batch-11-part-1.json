@@ -1,0 +1,903 @@
+{
+ "nodes": [
+  {
+   "id": "file:services/api/src/routes/reports.ts",
+   "type": "file",
+   "name": "reports.ts",
+   "filePath": "services/api/src/routes/reports.ts",
+   "summary": "Registra as rotas HTTP de relatórios da agência, expondo endpoints financeiros e operacionais (vendas, aging, exposição de fornecedores, fluxo de caixa) com autorização por papel.",
+   "tags": [
+    "api-handler",
+    "reports",
+    "routes",
+    "authorization"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/routes/reports.ts:registerReportsRoutes",
+   "type": "function",
+   "name": "registerReportsRoutes",
+   "filePath": "services/api/src/routes/reports.ts",
+   "lineRange": [
+    33,
+    127
+   ],
+   "summary": "Registra os endpoints de relatórios exigindo papel autorizado em cada rota e delegando consultas ao serviço de relatórios.",
+   "tags": [
+    "api-handler",
+    "routes",
+    "reports"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:services/api/src/routes/sale-items.ts",
+   "type": "file",
+   "name": "sale-items.ts",
+   "filePath": "services/api/src/routes/sale-items.ts",
+   "summary": "Registra as rotas CRUD de itens de venda, conectando parsing de entrada e camada de serviço de sale-items ao Fastify com controle de papel.",
+   "tags": [
+    "api-handler",
+    "sales",
+    "routes"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/routes/sale-items.ts:registerSaleItemsRoutes",
+   "type": "function",
+   "name": "registerSaleItemsRoutes",
+   "filePath": "services/api/src/routes/sale-items.ts",
+   "lineRange": [
+    32,
+    71
+   ],
+   "summary": "Registra endpoints de listagem, criação e cancelamento de itens de venda com autorização por função.",
+   "tags": [
+    "api-handler",
+    "routes",
+    "sales"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:services/api/src/routes/sales.ts",
+   "type": "file",
+   "name": "sales.ts",
+   "filePath": "services/api/src/routes/sales.ts",
+   "summary": "Registra as rotas de vendas (criação, consulta e edição) usando parsing dedicado de input comercial e autorização server-side por papel.",
+   "tags": [
+    "api-handler",
+    "sales",
+    "routes"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/routes/sales.ts:registerSalesRoutes",
+   "type": "function",
+   "name": "registerSalesRoutes",
+   "filePath": "services/api/src/routes/sales.ts",
+   "lineRange": [
+    30,
+    114
+   ],
+   "summary": "Registra endpoints de vendas aplicando parsing de entrada comercial e requireRole antes de chamar o serviço.",
+   "tags": [
+    "api-handler",
+    "routes",
+    "sales"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:services/api/src/routes/settings-expanded.ts",
+   "type": "file",
+   "name": "settings-expanded.ts",
+   "filePath": "services/api/src/routes/settings-expanded.ts",
+   "summary": "Registra rotas avançadas de configuração da agência: convites de equipe, restrições de permissão, áreas de acesso e auditoria, com gating por papel e registro em audit log.",
+   "tags": [
+    "api-handler",
+    "settings",
+    "routes",
+    "audit"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/routes/settings-expanded.ts:registerSettingsExpandedRoutes",
+   "type": "function",
+   "name": "registerSettingsExpandedRoutes",
+   "filePath": "services/api/src/routes/settings-expanded.ts",
+   "lineRange": [
+    42,
+    306
+   ],
+   "summary": "Registra rotas expandidas de settings cobrindo convites, restrições de permissão e áreas, registrando alterações em auditoria.",
+   "tags": [
+    "api-handler",
+    "routes",
+    "settings"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:services/api/src/routes/settings.ts",
+   "type": "file",
+   "name": "settings.ts",
+   "filePath": "services/api/src/routes/settings.ts",
+   "summary": "Registra as rotas principais de configuração da agência, incluindo perfil, permissões de área (area grants) e consulta de settings com autorização server-side.",
+   "tags": [
+    "api-handler",
+    "settings",
+    "routes",
+    "authorization"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/routes/settings.ts:registerSettingsRoutes",
+   "type": "function",
+   "name": "registerSettingsRoutes",
+   "filePath": "services/api/src/routes/settings.ts",
+   "lineRange": [
+    28,
+    120
+   ],
+   "summary": "Registra endpoints de configuração aplicando requireRole ou area grants conforme a rota.",
+   "tags": [
+    "api-handler",
+    "routes",
+    "settings"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:services/api/src/routes/support.ts",
+   "type": "file",
+   "name": "support.ts",
+   "filePath": "services/api/src/routes/support.ts",
+   "summary": "Registra rotas de suporte da plataforma, permitindo que agências abram e acompanhem tickets por meio do módulo de platform-services.",
+   "tags": [
+    "api-handler",
+    "support",
+    "routes"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/routes/support.ts:registerSupportRoutes",
+   "type": "function",
+   "name": "registerSupportRoutes",
+   "filePath": "services/api/src/routes/support.ts",
+   "lineRange": [
+    20,
+    61
+   ],
+   "summary": "Registra endpoints de suporte delegando criação e consulta de tickets ao serviço de platform-services.",
+   "tags": [
+    "api-handler",
+    "routes",
+    "support"
+   ],
+   "complexity": "moderate"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:services/api/src/routes/reports.ts",
+   "target": "function:services/api/src/routes/reports.ts:registerReportsRoutes",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/reports.ts",
+   "target": "function:services/api/src/routes/reports.ts:registerReportsRoutes",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/sale-items.ts",
+   "target": "function:services/api/src/routes/sale-items.ts:registerSaleItemsRoutes",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/sale-items.ts",
+   "target": "function:services/api/src/routes/sale-items.ts:registerSaleItemsRoutes",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/sales.ts",
+   "target": "function:services/api/src/routes/sales.ts:registerSalesRoutes",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/sales.ts",
+   "target": "function:services/api/src/routes/sales.ts:registerSalesRoutes",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/settings-expanded.ts",
+   "target": "function:services/api/src/routes/settings-expanded.ts:registerSettingsExpandedRoutes",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/settings-expanded.ts",
+   "target": "function:services/api/src/routes/settings-expanded.ts:registerSettingsExpandedRoutes",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/settings.ts",
+   "target": "function:services/api/src/routes/settings.ts:registerSettingsRoutes",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/settings.ts",
+   "target": "function:services/api/src/routes/settings.ts:registerSettingsRoutes",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/support.ts",
+   "target": "function:services/api/src/routes/support.ts:registerSupportRoutes",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/support.ts",
+   "target": "function:services/api/src/routes/support.ts:registerSupportRoutes",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/reports.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/reports.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/reports.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/reports.ts",
+   "target": "file:services/api/src/reports.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/sale-items.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/sale-items.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/sale-items.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/sale-items.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/sale-items.ts",
+   "target": "file:services/api/src/sale-items.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/sales.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/sales.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/sales.ts",
+   "target": "file:services/api/src/commercial-input-parsing.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/sales.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/sales.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/sales.ts",
+   "target": "file:services/api/src/sales.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/settings-expanded.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/settings-expanded.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/settings-expanded.ts",
+   "target": "file:services/api/src/audit-log.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/settings-expanded.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/settings-expanded.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/settings-expanded.ts",
+   "target": "file:services/api/src/invitations.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/settings-expanded.ts",
+   "target": "file:services/api/src/permission-restrictions.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/settings-expanded.ts",
+   "target": "file:services/api/src/settings-queries.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/settings.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/settings.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/settings.ts",
+   "target": "file:services/api/src/area-grants.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/settings.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/settings.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/settings.ts",
+   "target": "file:services/api/src/settings-queries.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/support.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/support.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/support.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/support.ts",
+   "target": "file:services/api/src/platform-services.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/reports.ts",
+   "target": "function:packages/domain/tenant-context.ts:requireRole",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/reports.ts",
+   "target": "function:services/api/src/reports.ts:getSalesReport",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/reports.ts",
+   "target": "function:services/api/src/reports.ts:getReceivablesAging",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/reports.ts",
+   "target": "function:services/api/src/reports.ts:getPayablesAging",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/reports.ts",
+   "target": "function:services/api/src/reports.ts:getSupplierExposure",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/reports.ts",
+   "target": "function:services/api/src/reports.ts:getEmployeeExpenses",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/reports.ts",
+   "target": "function:services/api/src/reports.ts:getOperationalExpensesBreakdown",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/reports.ts",
+   "target": "function:services/api/src/reports.ts:getExpectedVsActual",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/reports.ts",
+   "target": "function:services/api/src/reports.ts:getCashFlowByPeriod",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/reports.ts",
+   "target": "function:services/api/src/reports.ts:getProfitabilityReport",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/reports.ts",
+   "target": "function:services/api/src/reports.ts:getPersonnelReport",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/sale-items.ts",
+   "target": "function:packages/domain/tenant-context.ts:requireRole",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/sale-items.ts",
+   "target": "function:services/api/src/sale-items.ts:listSaleItems",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/sale-items.ts",
+   "target": "function:services/api/src/sale-items.ts:createSaleItem",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/sale-items.ts",
+   "target": "function:services/api/src/sale-items.ts:cancelSaleItem",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/sale-items.ts",
+   "target": "function:services/api/src/sale-items.ts:parseCreateSaleItemInput",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/sales.ts",
+   "target": "function:packages/domain/tenant-context.ts:requireRole",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/sales.ts",
+   "target": "function:services/api/src/commercial-input-parsing.ts:parseCreateSaleInput",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/sales.ts",
+   "target": "function:services/api/src/commercial-input-parsing.ts:parseUpdateSaleInput",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/sales.ts",
+   "target": "function:services/api/src/sales.ts:createSale",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/sales.ts",
+   "target": "function:services/api/src/sales.ts:updateSale",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/sales.ts",
+   "target": "function:services/api/src/sales.ts:confirmSale",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/sales.ts",
+   "target": "function:services/api/src/sales.ts:cancelSale",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/sales.ts",
+   "target": "function:services/api/src/sales.ts:markSalePaid",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/sales.ts",
+   "target": "function:services/api/src/sales.ts:listSalesWithCustomer",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/sales.ts",
+   "target": "function:services/api/src/sales.ts:getSaleWithCustomerById",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/settings-expanded.ts",
+   "target": "function:packages/domain/tenant-context.ts:getTenantContext",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/settings-expanded.ts",
+   "target": "function:packages/domain/tenant-context.ts:requireRole",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/settings-expanded.ts",
+   "target": "function:services/api/src/audit-log.ts:recordAuditEvent",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/settings-expanded.ts",
+   "target": "function:services/api/src/invitations.ts:createInvitation",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/settings-expanded.ts",
+   "target": "function:services/api/src/invitations.ts:listInvitations",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/settings-expanded.ts",
+   "target": "function:services/api/src/invitations.ts:revokeInvitation",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/settings-expanded.ts",
+   "target": "function:services/api/src/invitations.ts:resolvePublicInvitationToken",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/settings-expanded.ts",
+   "target": "function:services/api/src/invitations.ts:acceptInvitation",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/settings-expanded.ts",
+   "target": "function:services/api/src/permission-restrictions.ts:createPermissionRestriction",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/settings-expanded.ts",
+   "target": "function:services/api/src/permission-restrictions.ts:listPermissionRestrictions",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/settings-expanded.ts",
+   "target": "function:services/api/src/permission-restrictions.ts:deletePermissionRestriction",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/settings-expanded.ts",
+   "target": "function:services/api/src/settings-queries.ts:updateAgencyProfile",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/settings-expanded.ts",
+   "target": "function:services/api/src/settings-queries.ts:updateAgencyBranding",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/settings-expanded.ts",
+   "target": "function:services/api/src/settings-queries.ts:isValidOnboardingStep",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/settings-expanded.ts",
+   "target": "function:services/api/src/settings-queries.ts:updateOnboardingStep",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/settings-expanded.ts",
+   "target": "function:services/api/src/settings-queries.ts:completeOnboarding",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/settings-expanded.ts",
+   "target": "function:services/api/src/settings-queries.ts:listDepartments",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/settings-expanded.ts",
+   "target": "function:services/api/src/settings-queries.ts:createDepartment",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/settings-expanded.ts",
+   "target": "function:services/api/src/settings-queries.ts:updateDepartment",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/settings-expanded.ts",
+   "target": "function:services/api/src/settings-queries.ts:deleteDepartment",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/settings.ts",
+   "target": "function:packages/domain/tenant-context.ts:requireRole",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/settings.ts",
+   "target": "function:services/api/src/area-grants.ts:listAreaGrants",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/settings.ts",
+   "target": "function:services/api/src/area-grants.ts:setAreaGrants",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/settings.ts",
+   "target": "function:services/api/src/area-grants.ts:getMyAreaGrants",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/settings.ts",
+   "target": "function:services/api/src/settings-queries.ts:getAgencyProfile",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/settings.ts",
+   "target": "function:services/api/src/settings-queries.ts:getTeamMembers",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/settings.ts",
+   "target": "function:services/api/src/settings-queries.ts:updateTeamMemberRole",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/settings.ts",
+   "target": "function:services/api/src/settings-queries.ts:getNotificationSettings",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/settings.ts",
+   "target": "function:services/api/src/settings-queries.ts:updateNotificationSettings",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/support.ts",
+   "target": "function:packages/domain/tenant-context.ts:getTenantContext",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/support.ts",
+   "target": "function:services/api/src/platform-services.ts:createAgencySupportTicket",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  }
+ ]
+}

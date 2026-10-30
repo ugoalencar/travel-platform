@@ -30,7 +30,7 @@ const prepareRolesSql = resolve(repoRoot, 'tests/integration/database/002_prepar
 const composeFile = resolve(repoRoot, 'infrastructure/docker-compose.local-postgres.yml');
 
 const projectName = 'travel-platform-employee-commission-rules-postgres';
-const containerName = 'travel-platform-postgres-local';
+const containerName = process.env.DATABASE_TEST_CONTAINER_NAME ?? 'travel-platform-postgres-local';
 const postgresImage = 'postgres:15';
 const databaseHost = process.env.DATABASE_TEST_HOST ?? '127.0.0.1';
 const databasePort = Number(process.env.DATABASE_TEST_PORT ?? '55432');
@@ -86,6 +86,7 @@ describe('Employee Commission Rules (Comissionamento por Funcionário e Produto)
   });
 
   beforeEach(async () => {
+    await adminPool.query('DELETE FROM agency_commission_engine_settings');
     await adminPool.query('TRUNCATE TABLE commission_entries RESTART IDENTITY CASCADE');
     await adminPool.query('TRUNCATE TABLE employee_commission_rules RESTART IDENTITY CASCADE');
     await adminPool.query('DELETE FROM insurance_policies');
@@ -257,6 +258,21 @@ describe('Employee Commission Rules (Comissionamento por Funcionário e Produto)
     expect(commission.calculationBase).toBe(5800);
     expect(commission.amount).toBe(290);
     expect(commission.quantity).toBe(3);
+  });
+
+  it('the legacy engine refuses sales on or after the agency cutover date', async () => {
+    await createRule(employeeAId, EmployeeCommissionProductType.AIR, { percentageRate: 3 });
+    const saleId = await seedSale(1000);
+    const tripId = await seedTrip(saleId);
+    const airServiceId = await seedAirService(tripId, 1000);
+    await adminPool.query(`INSERT INTO agency_commission_engine_settings (agency_id,cutover_date)
+      VALUES ($1,current_date - 1)`, [agencyId]);
+
+    await expect(runWithTenantContext(ownerContext, () => generateEmployeeCommission(database, {
+      saleId, employeeId: employeeAId, productType: EmployeeCommissionProductType.AIR, sourceItemId: airServiceId,
+    }))).rejects.toMatchObject({ statusCode: 409, message: 'This sale is within the versioned commission engine period' });
+    const entries = await adminPool.query<{ count: number }>('SELECT count(*)::int AS count FROM commission_entries WHERE agency_id=$1 AND sale_id=$2', [agencyId,saleId]);
+    expect(entries.rows[0]!.count).toBe(0);
   });
 
   // ------------------------------------------------------------

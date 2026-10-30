@@ -1,0 +1,13 @@
+{
+  "id": "P013",
+  "buys": true,
+  "purchases_first_month": 1,
+  "reason_code": "need",
+  "reason": "Eu já tô cansada de perder venda porque ninguém viu a planilha a tempo, então se dá pra testar antes de assinar eu testo sim, sem contrato longo não tenho muito a perder.",
+  "objection": "Minha equipe não vai usar, vai voltar pro WhatsApp em uma semana — e ninguém me mostrou nenhuma agência de verdade usando isso pra eu saber que funciona.",
+  "would_change_my_mind": "Ver pelo menos duas ou três agências parecidas com a minha usando de verdade, e algum suporte na migração pra garantir que a equipe realmente troca de hábito",
+  "price_too_cheap": 49,
+  "price_cheap": 99,
+  "price_expensive": 299,
+  "price_too_expensive": 600
+}

@@ -1,0 +1,13 @@
+{
+  "id": "P009",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Aqui a gente só troca de sistema depois de ver outra agência do nosso grupo usando e falando bem, e o anúncio diz claramente que ainda não tem nenhuma agência em produção. Sem essa referência eu nem levo a proposta pra discutir com meus sócios.",
+  "objection": "Não ter nenhuma agência de verdade usando o sistema hoje para eu perguntar como está sendo na prática - e cobrança automática e nota fiscal, que resolveriam parte da dor, ainda não existem.",
+  "would_change_my_mind": "Um dono de agência do nosso sindicato, parecido com a minha em tamanho e faturamento, usando o sistema e recomendando de boca - e fora da alta temporada de dezembro-janeiro ou julho, porque nesse período eu não arrisco trocar nada.",
+  "price_too_cheap": 29,
+  "price_cheap": 49,
+  "price_expensive": 99,
+  "price_too_expensive": 180
+}

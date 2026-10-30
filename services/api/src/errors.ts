@@ -25,6 +25,71 @@ export class ConflictError extends Error {
   readonly statusCode = 409;
 }
 
+export class AgencyModuleDependencyConflictError extends Error {
+  readonly code = 'MODULE_DEPENDENCY_CONFLICT';
+  readonly statusCode = 409;
+
+  constructor(readonly moduleKey: string, readonly requiredBy: string[]) {
+    super(`Cannot change ${moduleKey} while dependent modules remain enabled: ${requiredBy.join(', ')}`);
+  }
+}
+
+export class AgencyModuleDisabledError extends TenantError {
+  constructor(label: string) {
+    super(`O módulo ${label} está desativado para esta agência.`, 'MODULE_DISABLED');
+  }
+}
+
+export class AgencyModuleEntitlementRequiredError extends TenantError {
+  constructor(feature: string) {
+    super(`O plano da agência não habilita o módulo ${feature}.`, 'ENTITLEMENT_REQUIRED');
+  }
+}
+
+export class CommissionPaidExceedsReleasedError extends Error {
+  readonly code = 'COMMISSION_PAID_EXCEEDS_RELEASED';
+  readonly statusCode = 409;
+  constructor() {
+    super('The reversal would leave paid commission above the amount currently released');
+  }
+}
+
+export class CommissionExceedsAgencyRevenueError extends Error {
+  readonly code = 'COMMISSION_EXCEEDS_AGENCY_REVENUE';
+  readonly statusCode = 409;
+  constructor() { super('The employee commission exceeds the agency revenue received from this supplier'); }
+}
+
+/** COM-03: the commission cannot be released/paid because the release policy is not configured. */
+export class ReleasePolicyMissingError extends Error {
+  readonly code = 'COMMISSION_RELEASE_POLICY_MISSING';
+  readonly statusCode = 409;
+  constructor(readonly missing: string[]) {
+    super(`Commission release configuration missing: ${missing.join(', ')}`);
+  }
+}
+
+export type FormFieldErrorCode =
+  | 'FIELD_REQUIRED'
+  | 'FIELD_DISABLED'
+  | 'FIELD_UNKNOWN'
+  | 'FIELD_INVALID'
+  | 'FIELD_NOT_ALLOWED'
+  | 'CATEGORY_INACTIVE';
+
+/** 422 for a configurable-form rule violation; `fieldKey` names the offending field when there is one. */
+export class FormFieldError extends Error {
+  readonly statusCode = 422;
+
+  constructor(
+    readonly code: FormFieldErrorCode,
+    readonly fieldKey: string | undefined,
+    message: string,
+  ) {
+    super(message);
+  }
+}
+
 // SEC-E: thrown by the @fastify/cors `origin` callback for a rejected
 // Origin. Given its own class (rather than falling through to the
 // generic 500 branch) so a blocked CORS preflight/request gets a clean,
@@ -36,7 +101,7 @@ export class CorsOriginNotAllowedError extends Error {
 
 interface ErrorResponse {
   status: number;
-  body: { error: string; code: string };
+  body: { error: string; code: string; field?: string; missing?: string[]; moduleKey?: string; requiredBy?: string[] };
 }
 
 export function registerErrorHandler(app: FastifyInstance): void {
@@ -102,12 +167,31 @@ function resolveErrorResponse(error: unknown): ErrorResponse {
     };
   }
 
+  if (error instanceof ReleasePolicyMissingError) {
+    return { status: 409, body: { error: error.message, code: error.code, missing: error.missing } };
+  }
+
+  if (error instanceof CommissionPaidExceedsReleasedError) {
+    return { status: 409, body: { error: error.message, code: error.code } };
+  }
+
+  if (error instanceof FormFieldError) {
+    return {
+      status: error.statusCode,
+      body: { error: error.message, code: error.code, ...(error.fieldKey !== undefined ? { field: error.fieldKey } : {}) },
+    };
+  }
+
   if (
     error instanceof ValidationError ||
     error instanceof NotFoundError ||
     error instanceof ConflictError
   ) {
     return { status: error.statusCode, body: { error: error.message, code: error.code } };
+  }
+
+  if (error instanceof AgencyModuleDependencyConflictError) {
+    return { status: error.statusCode, body: { error: error.message, code: error.code, moduleKey: error.moduleKey, requiredBy: error.requiredBy } };
   }
 
   return { status: 500, body: { error: 'Internal server error', code: 'INTERNAL_ERROR' } };

@@ -277,17 +277,22 @@ describe('Travel Lite access control, seller scope and dashboard', () => {
   });
 
   it('persists the MASTER dashboard configuration and refuses it to others', async () => {
-    const settings = await json<{ widgets: Array<{ key: string; enabled: boolean }> }>(
+    const settings = await json<{ version: number; widgets: Array<{ key: string; enabled: boolean }> }>(
       masterToken,
       '/dashboard/settings',
     );
     expect(settings.widgets).toHaveLength(12);
+    expect(settings.version).toBe(0);
 
     const reordered = [
       { key: 'result', enabled: true },
       ...settings.widgets.filter((w) => w.key !== 'result').map((w) => ({ key: w.key, enabled: w.key !== 'cash_flow' })),
     ];
-    expect((await call(masterToken, 'PUT', '/dashboard/settings', { widgets: reordered })).statusCode).toBe(200);
+    expect((await call(masterToken, 'PUT', '/dashboard/settings', { version: settings.version, widgets: reordered })).statusCode).toBe(200);
+    // the same (now stale) version is refused: the last write no longer wins silently
+    expect((await call(masterToken, 'PUT', '/dashboard/settings', { version: settings.version, widgets: reordered })).statusCode).toBe(409);
+    // the version is mandatory
+    expect((await call(masterToken, 'PUT', '/dashboard/settings', { widgets: reordered })).statusCode).toBe(400);
 
     const reloaded = await json<DashboardJson>(masterToken, '/dashboard');
     expect(reloaded.widgets[0]!.key).toBe('result');
@@ -300,10 +305,10 @@ describe('Travel Lite access control, seller scope and dashboard', () => {
     const sellerView = await json<DashboardJson>(seller1Token, '/dashboard');
     expect(sellerView.widgets.map((w) => w.key)).not.toContain('cash_flow');
 
-    expect((await call(seller1Token, 'PUT', '/dashboard/settings', { widgets: reordered })).statusCode).toBe(403);
+    expect((await call(seller1Token, 'PUT', '/dashboard/settings', { version: 1, widgets: reordered })).statusCode).toBe(403);
     expect((await call(staffToken, 'GET', '/dashboard/settings')).statusCode).toBe(403);
     const missing = reordered.slice(1);
-    expect((await call(masterToken, 'PUT', '/dashboard/settings', { widgets: missing })).statusCode).toBe(400);
+    expect((await call(masterToken, 'PUT', '/dashboard/settings', { version: 1, widgets: missing })).statusCode).toBe(400);
 
     const audit = await lite.adminPool.query(`SELECT 1 FROM audit_logs WHERE event_type = 'DASHBOARD_CONFIGURED'`);
     expect(audit.rowCount).toBe(1);

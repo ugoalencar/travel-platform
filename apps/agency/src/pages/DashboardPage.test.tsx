@@ -1,6 +1,15 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, screen, waitFor } from '@testing-library/react';
 import { renderRouted } from '../test/render';
+
+vi.mock('../lib/customerLookup', () => ({
+  lookupCustomers: vi.fn().mockResolvedValue([
+    { id: 'c1', name: 'Carla Mendes', cpf_masked: null, birth_date: null, status: 'ACTIVE' },
+  ]),
+}));
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
+const realGet = (await vi.importActual<typeof import('../lib/api')>('../lib/api')).api.get;
 
 vi.mock('../lib/api', async () => {
   // eslint-disable-next-line @typescript-eslint/consistent-type-imports
@@ -16,6 +25,7 @@ vi.mock('../lib/api', async () => {
   }
   return {
     ...actual,
+    api:{...actual.api,get:vi.fn()},
     getDashboardSummary: vi.fn().mockResolvedValue({
       openOpportunitiesCount: 2,
       followUpsDueTodayCount: 3,
@@ -79,17 +89,6 @@ vi.mock('../lib/api', async () => {
         updatedAt: '2026-08-01T00:00:00.000Z',
       },
     ]),
-    listCustomers: vi.fn().mockResolvedValue([
-      {
-        id: 'c1',
-        agencyId: 'a1',
-        protocolNumber: 'CLI-2026-000001',
-        name: 'Carla Mendes',
-        status: 'ACTIVE',
-        createdAt: '2026-01-01T00:00:00.000Z',
-        updatedAt: '2026-01-01T00:00:00.000Z',
-      },
-    ]),
     createProposal: vi.fn().mockResolvedValue({
       id: 'proposal-1',
       agencyId: 'a1',
@@ -109,10 +108,16 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
+beforeEach(async () => {
+  const lib = await import('../lib/api');
+  vi.mocked(lib.api.get).mockImplementation((path: string, ...rest: unknown[]) => path === '/dashboard/widgets' ? Promise.resolve({ data: { widgets: [{ key: 'commercial_overview', title: 'Visão comercial', data: { openOpportunitiesCount: 2, followUpsDueTodayCount: 3, overdueFollowUpsCount: 1, proposalsWaitingCount: 4, sentProposalsCount: 5, acceptedProposalsCount: 6, openProposalValueSum: '1200.00', salesThisMonthCount: 7, salesThisMonthTotal: '45000.00', pendingSalesCount: 8, confirmedSalesCount: 9, paidSalesCount: 10, overdueReceivablesCount: 0, cancelledBookingsCount: 0, pescadorReviewQueueCount: 0, upcomingTripsCount: 11, postSalePendingCount: 0 } }] } }) : (realGet as (...a: unknown[]) => Promise<never>)(path, ...rest));
+});
+
 describe('DashboardPage', () => {
   it('shows KPI chips populated from the real dashboard aggregate', async () => {
     renderRouted('/');
-    expect(await screen.findByText('Vendas (mês)')).toBeInTheDocument();
+    expect(await screen.findByText('Volume vendido (mês)')).toBeInTheDocument();
+    expect(screen.getByText(/Base para metas; não representa a receita da agência/i)).toBeInTheDocument();
     expect(screen.getByText('Propostas aguardando resposta')).toBeInTheDocument();
     const upcomingTripsLabel = screen.getByText('Viagens futuras');
     // Scoped to the KPI chip itself (sidebar group-count badges can
@@ -137,7 +142,8 @@ describe('DashboardPage', () => {
     expect(screen.getByText('Cancún tudo incluído')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Ofertar ao cliente' }));
-    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'c1' } });
+    fireEvent.change(screen.getByRole('combobox', { name: 'Cliente' }), { target: { value: 'Carla' } });
+    fireEvent.mouseDown(await screen.findByRole('option', { name: /Carla Mendes/ }));
     fireEvent.click(screen.getByRole('button', { name: 'Criar proposta' }));
 
     await waitFor(() =>

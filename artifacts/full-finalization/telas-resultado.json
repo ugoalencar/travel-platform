@@ -1,0 +1,627 @@
+{
+  "at": "2026-10-26T04:22:22.361Z",
+  "results": [
+    {
+      "route": "/",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": 6
+    },
+    {
+      "route": "/customers",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": 34
+    },
+    {
+      "route": "/enrollment-links",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": 1
+    },
+    {
+      "route": "/tasks",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": 3
+    },
+    {
+      "route": "/pipeline",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": 3
+    },
+    {
+      "route": "/segments",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": 1
+    },
+    {
+      "route": "/wishes",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": 3
+    },
+    {
+      "route": "/pescador",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": 1
+    },
+    {
+      "route": "/offers",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": 3
+    },
+    {
+      "route": "/insurance",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": 1
+    },
+    {
+      "route": "/proposals",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": 3
+    },
+    {
+      "route": "/bookings",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": 1
+    },
+    {
+      "route": "/sales",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": 42
+    },
+    {
+      "route": "/sales/import",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": 2
+    },
+    {
+      "route": "/trips",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": 8
+    },
+    {
+      "route": "/excursions",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": 2
+    },
+    {
+      "route": "/operations/air",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": 2
+    },
+    {
+      "route": "/operations/land",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": 2
+    },
+    {
+      "route": "/operations/passengers",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": 7
+    },
+    {
+      "route": "/operations/documents",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": 1
+    },
+    {
+      "route": "/operations/occurrences",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": 1
+    },
+    {
+      "route": "/operations/post-trip",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": 1
+    },
+    {
+      "route": "/financial",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": null
+    },
+    {
+      "route": "/financial/receivables",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": 79
+    },
+    {
+      "route": "/financial/payables",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": 48
+    },
+    {
+      "route": "/financial/cash-transactions",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": 1
+    },
+    {
+      "route": "/financial/reconciliation",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": 1
+    },
+    {
+      "route": "/financial/revenues",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": 1
+    },
+    {
+      "route": "/financial/expenses",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": 1
+    },
+    {
+      "route": "/financial/dre",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": null
+    },
+    {
+      "route": "/financial/reports",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": 1
+    },
+    {
+      "route": "/financial/projections",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": null
+    },
+    {
+      "route": "/financial/settings",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": 7
+    },
+    {
+      "route": "/suppliers",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": 5
+    },
+    {
+      "route": "/financial/cost-centers",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": 1
+    },
+    {
+      "route": "/financial/categories",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": 2
+    },
+    {
+      "route": "/employees",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": 7
+    },
+    {
+      "route": "/commission-plans",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": 1
+    },
+    {
+      "route": "/payroll",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": 2
+    },
+    {
+      "route": "/media-library",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": 1
+    },
+    {
+      "route": "/communications",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": 1
+    },
+    {
+      "route": "/campaigns",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": 1
+    },
+    {
+      "route": "/coupons",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": 1
+    },
+    {
+      "route": "/settings?tab=invitations",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": 7
+    },
+    {
+      "route": "/settings?tab=permissions",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": 1
+    },
+    {
+      "route": "/settings",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": null
+    },
+    {
+      "route": "/sale-categories",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": 5
+    },
+    {
+      "route": "/financial/agency-revenue",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": 31
+    },
+    {
+      "route": "/settings/dashboard",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": 6
+    },
+    {
+      "route": "/reports",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": 1
+    },
+    {
+      "route": "/commission-rules",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": 9
+    },
+    {
+      "route": "/payment-conditions",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": 7
+    },
+    {
+      "route": "/commission-release",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": 3
+    },
+    {
+      "route": "/customers/469790d9-2512-480e-a05e-e9b264d52027",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": null
+    },
+    {
+      "route": "/wishes/f48ddf9d-2dbe-4fcc-9d1e-c8fdcb4fbadb",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": null
+    },
+    {
+      "route": "/trips/5419f8f3-117b-460e-b663-e91dbc2b9027",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": null
+    },
+    {
+      "route": "/proposals/85e5ea5c-1c50-4e81-a6cf-60fe303af90b",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": null
+    },
+    {
+      "route": "/proposals/85e5ea5c-1c50-4e81-a6cf-60fe303af90b/edit",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": true,
+      "apiCount": null
+    },
+    {
+      "route": "/proposals/85e5ea5c-1c50-4e81-a6cf-60fe303af90b/preview",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": true,
+      "apiCount": null
+    },
+    {
+      "route": "/proposals/85e5ea5c-1c50-4e81-a6cf-60fe303af90b/editor",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": true,
+      "apiCount": null
+    },
+    {
+      "route": "/bookings/4b1d3396-c595-45e5-9b79-e63a85557206",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": null
+    },
+    {
+      "route": "/sales/new",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": true,
+      "apiCount": null
+    },
+    {
+      "route": "/sales/58afbb4c-2695-47b3-87fb-79d39f6c1019",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": null
+    },
+    {
+      "route": "/offers/d90b034a-51f7-438c-8b91-ae287040c6a5",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": null
+    },
+    {
+      "route": "/communications/new",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": true,
+      "apiCount": null
+    },
+    {
+      "route": "/communications/d233ee8e-77cb-4e5d-b591-0555a9f66bad/edit",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": true,
+      "apiCount": null
+    },
+    {
+      "route": "/tasks/new",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": true,
+      "apiCount": null
+    },
+    {
+      "route": "/financial/sales/58afbb4c-2695-47b3-87fb-79d39f6c1019/story",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": null
+    },
+    {
+      "route": "/employees/5b1a32ef-fca7-4028-b838-c4f5c926e113",
+      "ok": true,
+      "errors": [],
+      "httpFailures": [],
+      "empty": [],
+      "form": false,
+      "apiCount": null
+    }
+  ],
+  "skipped": []
+}

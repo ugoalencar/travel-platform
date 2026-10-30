@@ -1,0 +1,138 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/agency/src/types/campaign.ts",
+      "type": "file",
+      "name": "campaign.ts",
+      "filePath": "apps/agency/src/types/campaign.ts",
+      "summary": "Tipos TypeScript de campanhas de marketing usados pela página de campanhas.",
+      "tags": [
+        "type-definition",
+        "campaign",
+        "data-model"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/agency/src/types/coupon.ts",
+      "type": "file",
+      "name": "coupon.ts",
+      "filePath": "apps/agency/src/types/coupon.ts",
+      "summary": "Tipos TypeScript de cupons de desconto (Coupon e CouponType) usados pela página de cupons.",
+      "tags": [
+        "type-definition",
+        "coupon",
+        "data-model"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/agency/src/types/customer.ts",
+      "type": "file",
+      "name": "customer.ts",
+      "filePath": "apps/agency/src/types/customer.ts",
+      "summary": "Tipos TypeScript do domínio de cliente, incluindo status, endereços e dependentes.",
+      "tags": [
+        "type-definition",
+        "customer",
+        "data-model"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/agency/src/types/customer360.ts",
+      "type": "file",
+      "name": "customer360.ts",
+      "filePath": "apps/agency/src/types/customer360.ts",
+      "summary": "Tipos TypeScript da visão 360 do cliente agregando perfil, documentos, viagens e interações.",
+      "tags": [
+        "type-definition",
+        "customer",
+        "data-model",
+        "customer360"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/agency/src/types/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "apps/agency/src/types/index.ts",
+      "summary": "Barrel de re-exportação dos tipos de domínio (cliente, wish, viagem, proposta, booking, oferta, campanha e cupom).",
+      "tags": [
+        "type-definition",
+        "barrel",
+        "entry-point",
+        "domain-types"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Re-exportações type-only com `export type`, mantendo tipos erased no build JavaScript."
+    },
+    {
+      "id": "file:apps/agency/src/types/offer.ts",
+      "type": "file",
+      "name": "offer.ts",
+      "filePath": "apps/agency/src/types/offer.ts",
+      "summary": "Tipos TypeScript de ofertas e seus status usados pelas páginas de ofertas.",
+      "tags": [
+        "type-definition",
+        "offer",
+        "data-model"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/agency/src/types/proposal.ts",
+      "type": "file",
+      "name": "proposal.ts",
+      "filePath": "apps/agency/src/types/proposal.ts",
+      "summary": "Tipos TypeScript de proposta comercial e seus status para o fluxo de vendas.",
+      "tags": [
+        "type-definition",
+        "proposal",
+        "data-model"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/agency/src/types/sale.ts",
+      "type": "file",
+      "name": "sale.ts",
+      "filePath": "apps/agency/src/types/sale.ts",
+      "summary": "Tipos TypeScript de venda e status de venda para o módulo financeiro de vendas.",
+      "tags": [
+        "type-definition",
+        "sale",
+        "data-model"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/agency/src/types/trip.ts",
+      "type": "file",
+      "name": "trip.ts",
+      "filePath": "apps/agency/src/types/trip.ts",
+      "summary": "Tipos TypeScript de viagem, incluindo status, tipo e serviços de transporte associados.",
+      "tags": [
+        "type-definition",
+        "trip",
+        "data-model"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/agency/src/types/wish.ts",
+      "type": "file",
+      "name": "wish.ts",
+      "filePath": "apps/agency/src/types/wish.ts",
+      "summary": "Tipos TypeScript de wish e seus status para o funil de desejos de clientes.",
+      "tags": [
+        "type-definition",
+        "wish",
+        "data-model"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": []
+}

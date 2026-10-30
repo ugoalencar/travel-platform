@@ -1,0 +1,1490 @@
+{
+ "nodes": [
+  {
+   "id": "file:services/api/src/document-masking.ts",
+   "type": "file",
+   "name": "document-masking.ts",
+   "filePath": "services/api/src/document-masking.ts",
+   "summary": "Mascaramento de CPF e números de documento para logs e payloads, seguindo diretrizes de privacidade/LGPD.",
+   "tags": [
+    "security",
+    "privacy",
+    "lgpd",
+    "utility"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/document-masking.ts:maskDocumentNumber",
+   "type": "function",
+   "name": "maskDocumentNumber",
+   "filePath": "services/api/src/document-masking.ts",
+   "lineRange": [
+    51,
+    79
+   ],
+   "summary": "Mascara número de documento preservando apenas dígitos finais.",
+   "tags": [
+    "security",
+    "privacy",
+    "utility"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/document-masking.ts:maskCPF",
+   "type": "function",
+   "name": "maskCPF",
+   "filePath": "services/api/src/document-masking.ts",
+   "lineRange": [
+    88,
+    104
+   ],
+   "summary": "Mascara CPF mantendo os dígitos iniciais visíveis.",
+   "tags": [
+    "security",
+    "privacy",
+    "cpf"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/document-masking.ts:shouldMaskInLogs",
+   "type": "function",
+   "name": "shouldMaskInLogs",
+   "filePath": "services/api/src/document-masking.ts",
+   "lineRange": [
+    110,
+    121
+   ],
+   "summary": "Decide se um campo deve ser mascarado em logs.",
+   "tags": [
+    "security",
+    "logging",
+    "privacy"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/document-masking.ts:maskSensitiveFields",
+   "type": "function",
+   "name": "maskSensitiveFields",
+   "filePath": "services/api/src/document-masking.ts",
+   "lineRange": [
+    131,
+    160
+   ],
+   "summary": "Aplica mascaramento a todos os campos sensíveis de um objeto.",
+   "tags": [
+    "security",
+    "privacy",
+    "utility"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:services/api/src/document-verification.ts",
+   "type": "file",
+   "name": "document-verification.ts",
+   "filePath": "services/api/src/document-verification.ts",
+   "summary": "Verificação de documentos contra dados do cliente com comparação campo a campo, status derivado e revisão manual.",
+   "tags": [
+    "verification",
+    "document-processing",
+    "compliance",
+    "workflow"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/document-verification.ts:createVerification",
+   "type": "function",
+   "name": "createVerification",
+   "filePath": "services/api/src/document-verification.ts",
+   "lineRange": [
+    68,
+    93
+   ],
+   "summary": "Cria registro de verificação de documento vinculado ao tenant.",
+   "tags": [
+    "verification",
+    "crud",
+    "documentos"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/document-verification.ts:verifyAgainstCustomer",
+   "type": "function",
+   "name": "verifyAgainstCustomer",
+   "filePath": "services/api/src/document-verification.ts",
+   "lineRange": [
+    99,
+    166
+   ],
+   "summary": "Compara extração com dados do cliente e deriva status de verificação.",
+   "tags": [
+    "verification",
+    "workflow",
+    "compliance"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/document-verification.ts:getVerification",
+   "type": "function",
+   "name": "getVerification",
+   "filePath": "services/api/src/document-verification.ts",
+   "lineRange": [
+    168,
+    185
+   ],
+   "summary": "Busca verificação pelo id dentro do tenant.",
+   "tags": [
+    "verification",
+    "lookup",
+    "tenant-isolation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/document-verification.ts:getLatestVerificationForDocument",
+   "type": "function",
+   "name": "getLatestVerificationForDocument",
+   "filePath": "services/api/src/document-verification.ts",
+   "lineRange": [
+    188,
+    207
+   ],
+   "summary": "Retorna a verificação mais recente de um documento.",
+   "tags": [
+    "verification",
+    "consulta",
+    "documentos"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/document-verification.ts:recordManualReview",
+   "type": "function",
+   "name": "recordManualReview",
+   "filePath": "services/api/src/document-verification.ts",
+   "lineRange": [
+    213,
+    260
+   ],
+   "summary": "Registra revisão manual aplicando status e auditoria.",
+   "tags": [
+    "verification",
+    "workflow",
+    "audit"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/document-verification.ts:compareExtraction",
+   "type": "function",
+   "name": "compareExtraction",
+   "filePath": "services/api/src/document-verification.ts",
+   "lineRange": [
+    270,
+    315
+   ],
+   "summary": "Compara campos extraídos com campos de referência do cliente.",
+   "tags": [
+    "verification",
+    "comparacao",
+    "compliance"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/document-verification.ts:deriveStatus",
+   "type": "function",
+   "name": "deriveStatus",
+   "filePath": "services/api/src/document-verification.ts",
+   "lineRange": [
+    323,
+    338
+   ],
+   "summary": "Deriva o status da verificação a partir dos resultados por campo.",
+   "tags": [
+    "verification",
+    "regras",
+    "workflow"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/document-verification.ts:applyDocumentStatus",
+   "type": "function",
+   "name": "applyDocumentStatus",
+   "filePath": "services/api/src/document-verification.ts",
+   "lineRange": [
+    340,
+    358
+   ],
+   "summary": "Aplica status resultante à verificação com transação de tenant.",
+   "tags": [
+    "verification",
+    "database",
+    "workflow"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/document-verification.ts:compareField",
+   "type": "function",
+   "name": "compareField",
+   "filePath": "services/api/src/document-verification.ts",
+   "lineRange": [
+    360,
+    384
+   ],
+   "summary": "Compara um campo individual com estratégia de igualdade normalizada.",
+   "tags": [
+    "comparacao",
+    "validacao",
+    "utility"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/document-verification.ts:readString",
+   "type": "function",
+   "name": "readString",
+   "filePath": "services/api/src/document-verification.ts",
+   "lineRange": [
+    386,
+    397
+   ],
+   "summary": "Extrai valor string segura de objeto de entrada ou extração.",
+   "tags": [
+    "utility",
+    "validacao",
+    "helper"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/document-verification.ts:normalizeDate",
+   "type": "function",
+   "name": "normalizeDate",
+   "filePath": "services/api/src/document-verification.ts",
+   "lineRange": [
+    412,
+    425
+   ],
+   "summary": "Normaliza datas nos formatos brasileiro e ISO.",
+   "tags": [
+    "utility",
+    "datas",
+    "normalizacao"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/document-verification.ts:toDocumentVerification",
+   "type": "function",
+   "name": "toDocumentVerification",
+   "filePath": "services/api/src/document-verification.ts",
+   "lineRange": [
+    433,
+    460
+   ],
+   "summary": "Converte linha de banco no domínio DocumentVerification.",
+   "tags": [
+    "serializacao",
+    "mapper",
+    "dominio"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:services/api/src/employee-commission-rules.ts",
+   "type": "file",
+   "name": "employee-commission-rules.ts",
+   "filePath": "services/api/src/employee-commission-rules.ts",
+   "summary": "Regras configuráveis de comissão de funcionários por produto, tipo de cálculo e vigência, com seleção da regra aplicável.",
+   "tags": [
+    "commission",
+    "business-rules",
+    "crud",
+    "database"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/employee-commission-rules.ts:toRule",
+   "type": "function",
+   "name": "toRule",
+   "filePath": "services/api/src/employee-commission-rules.ts",
+   "lineRange": [
+    52,
+    70
+   ],
+   "summary": "Converte linha de banco na regra de comissão tipada.",
+   "tags": [
+    "serializacao",
+    "mapper",
+    "commission"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/employee-commission-rules.ts:listEmployeeCommissionRules",
+   "type": "function",
+   "name": "listEmployeeCommissionRules",
+   "filePath": "services/api/src/employee-commission-rules.ts",
+   "lineRange": [
+    76,
+    104
+   ],
+   "summary": "Lista regras de comissão com filtros opcionais por tipo e status.",
+   "tags": [
+    "commission",
+    "consulta",
+    "tenant-isolation"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/employee-commission-rules.ts:getEmployeeCommissionRuleById",
+   "type": "function",
+   "name": "getEmployeeCommissionRuleById",
+   "filePath": "services/api/src/employee-commission-rules.ts",
+   "lineRange": [
+    106,
+    119
+   ],
+   "summary": "Busca regra de comissão pelo id dentro do tenant.",
+   "tags": [
+    "commission",
+    "lookup",
+    "tenant-isolation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/employee-commission-rules.ts:validateInput",
+   "type": "function",
+   "name": "validateInput",
+   "filePath": "services/api/src/employee-commission-rules.ts",
+   "lineRange": [
+    121,
+    150
+   ],
+   "summary": "Valida produto, tipo de cálculo e base contra catálogos permitidos.",
+   "tags": [
+    "validacao",
+    "commission",
+    "regras"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/employee-commission-rules.ts:createEmployeeCommissionRule",
+   "type": "function",
+   "name": "createEmployeeCommissionRule",
+   "filePath": "services/api/src/employee-commission-rules.ts",
+   "lineRange": [
+    166,
+    220
+   ],
+   "summary": "Cria regra de comissão com vigência e grava auditoria de criação.",
+   "tags": [
+    "commission",
+    "crud",
+    "audit"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/employee-commission-rules.ts:updateEmployeeCommissionRuleStatus",
+   "type": "function",
+   "name": "updateEmployeeCommissionRuleStatus",
+   "filePath": "services/api/src/employee-commission-rules.ts",
+   "lineRange": [
+    222,
+    242
+   ],
+   "summary": "Altera status de uma regra de comissão (ativa/inativa).",
+   "tags": [
+    "commission",
+    "crud",
+    "status"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/employee-commission-rules.ts:findApplicableRule",
+   "type": "function",
+   "name": "findApplicableRule",
+   "filePath": "services/api/src/employee-commission-rules.ts",
+   "lineRange": [
+    252,
+    272
+   ],
+   "summary": "Seleciona a regra vigente aplicável para produto e data de reconhecimento.",
+   "tags": [
+    "commission",
+    "regras",
+    "lookup"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:services/api/src/employee-commissions.ts",
+   "type": "file",
+   "name": "employee-commissions.ts",
+   "filePath": "services/api/src/employee-commissions.ts",
+   "summary": "Geração, listagem e relatório de comissões de funcionários, resolvendo bases de cálculo por venda e serviços.",
+   "tags": [
+    "commission",
+    "finance",
+    "reporting",
+    "database"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/employee-commissions.ts:toCommissionEntry",
+   "type": "function",
+   "name": "toCommissionEntry",
+   "filePath": "services/api/src/employee-commissions.ts",
+   "lineRange": [
+    56,
+    80
+   ],
+   "summary": "Converte linha de banco na entrada de comissão tipada.",
+   "tags": [
+    "serializacao",
+    "mapper",
+    "commission"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/employee-commissions.ts:resolveBase",
+   "type": "function",
+   "name": "resolveBase",
+   "filePath": "services/api/src/employee-commissions.ts",
+   "lineRange": [
+    102,
+    240
+   ],
+   "summary": "Resolve a base de cálculo da comissão consultando venda, itens e serviços.",
+   "tags": [
+    "commission",
+    "finance",
+    "database"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/employee-commissions.ts:generateEmployeeCommission",
+   "type": "function",
+   "name": "generateEmployeeCommission",
+   "filePath": "services/api/src/employee-commissions.ts",
+   "lineRange": [
+    252,
+    354
+   ],
+   "summary": "Gera comissão para um funcionário aplicando regra vigente e base resolvida.",
+   "tags": [
+    "commission",
+    "workflow",
+    "finance"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/employee-commissions.ts:listMyCommissionEntries",
+   "type": "function",
+   "name": "listMyCommissionEntries",
+   "filePath": "services/api/src/employee-commissions.ts",
+   "lineRange": [
+    364,
+    386
+   ],
+   "summary": "Lista comissões do usuário autenticado agrupadas por período.",
+   "tags": [
+    "commission",
+    "consulta",
+    "tenant-isolation"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/employee-commissions.ts:getEmployeeCommissionsReport",
+   "type": "function",
+   "name": "getEmployeeCommissionsReport",
+   "filePath": "services/api/src/employee-commissions.ts",
+   "lineRange": [
+    415,
+    485
+   ],
+   "summary": "Gera relatório de comissões por funcionário com filtros de período.",
+   "tags": [
+    "commission",
+    "reporting",
+    "finance"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/employee-commissions.ts:cancelCommissionsForSale",
+   "type": "function",
+   "name": "cancelCommissionsForSale",
+   "filePath": "services/api/src/employee-commissions.ts",
+   "lineRange": [
+    497,
+    509
+   ],
+   "summary": "Cancela comissões vinculadas a uma venda cancelada.",
+   "tags": [
+    "commission",
+    "workflow",
+    "cancelamento"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:services/api/src/employees.ts",
+   "type": "file",
+   "name": "employees.ts",
+   "filePath": "services/api/src/employees.ts",
+   "summary": "CRUD de funcionários da agência com validação de tipo de contratação, status e campos obrigatórios.",
+   "tags": [
+    "crud",
+    "hr",
+    "validation",
+    "tenant-isolation"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/employees.ts:assertRequiredFields",
+   "type": "function",
+   "name": "assertRequiredFields",
+   "filePath": "services/api/src/employees.ts",
+   "lineRange": [
+    79,
+    89
+   ],
+   "summary": "Valida nome, tipo de contratação e status obrigatórios do funcionário.",
+   "tags": [
+    "validacao",
+    "hr",
+    "regras"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/employees.ts:listEmployees",
+   "type": "function",
+   "name": "listEmployees",
+   "filePath": "services/api/src/employees.ts",
+   "lineRange": [
+    91,
+    113
+   ],
+   "summary": "Lista funcionários da agência com filtros de busca e status.",
+   "tags": [
+    "crud",
+    "hr",
+    "tenant-isolation"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/employees.ts:getEmployeeById",
+   "type": "function",
+   "name": "getEmployeeById",
+   "filePath": "services/api/src/employees.ts",
+   "lineRange": [
+    115,
+    127
+   ],
+   "summary": "Busca funcionário pelo id dentro do tenant.",
+   "tags": [
+    "crud",
+    "hr",
+    "lookup"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/employees.ts:createEmployee",
+   "type": "function",
+   "name": "createEmployee",
+   "filePath": "services/api/src/employees.ts",
+   "lineRange": [
+    129,
+    187
+   ],
+   "summary": "Cria funcionário com validações e serialização final tipada.",
+   "tags": [
+    "crud",
+    "hr",
+    "validacao"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/employees.ts:updateEmployee",
+   "type": "function",
+   "name": "updateEmployee",
+   "filePath": "services/api/src/employees.ts",
+   "lineRange": [
+    218,
+    264
+   ],
+   "summary": "Atualiza campos do funcionário preservando os obrigatórios.",
+   "tags": [
+    "crud",
+    "hr",
+    "atualizacao"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/employees.ts:deleteEmployee",
+   "type": "function",
+   "name": "deleteEmployee",
+   "filePath": "services/api/src/employees.ts",
+   "lineRange": [
+    266,
+    278
+   ],
+   "summary": "Remove funcionário do tenant atual.",
+   "tags": [
+    "crud",
+    "hr",
+    "exclusao"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/employees.ts:toEmployee",
+   "type": "function",
+   "name": "toEmployee",
+   "filePath": "services/api/src/employees.ts",
+   "lineRange": [
+    280,
+    313
+   ],
+   "summary": "Converte linha de banco no domínio Employee com números normalizados.",
+   "tags": [
+    "serializacao",
+    "mapper",
+    "dominio"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:services/api/src/engagements.ts",
+   "type": "file",
+   "name": "engagements.ts",
+   "filePath": "services/api/src/engagements.ts",
+   "summary": "Registro e consulta de engajamentos omnichannel de clientes, incluindo conversão de eventos vindos de conectores.",
+   "tags": [
+    "engagement",
+    "event-tracking",
+    "crud",
+    "connector"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/engagements.ts:recordEngagement",
+   "type": "function",
+   "name": "recordEngagement",
+   "filePath": "services/api/src/engagements.ts",
+   "lineRange": [
+    47,
+    55
+   ],
+   "summary": "Valida e grava um engajamento de cliente em transação de tenant.",
+   "tags": [
+    "engagement",
+    "crud",
+    "validacao"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/engagements.ts:insertEngagement",
+   "type": "function",
+   "name": "insertEngagement",
+   "filePath": "services/api/src/engagements.ts",
+   "lineRange": [
+    57,
+    88
+   ],
+   "summary": "Insere registro de engajamento com payload JSON e retorna domínio.",
+   "tags": [
+    "engagement",
+    "database",
+    "crud"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/engagements.ts:connectorEventToEngagementInput",
+   "type": "function",
+   "name": "connectorEventToEngagementInput",
+   "filePath": "services/api/src/engagements.ts",
+   "lineRange": [
+    94,
+    103
+   ],
+   "summary": "Converte evento de conector em input de engajamento tipado.",
+   "tags": [
+    "connector",
+    "engagement",
+    "serializacao"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/engagements.ts:listEngagements",
+   "type": "function",
+   "name": "listEngagements",
+   "filePath": "services/api/src/engagements.ts",
+   "lineRange": [
+    105,
+    114
+   ],
+   "summary": "Lista engajamentos da agência com filtro por cliente e tipo.",
+   "tags": [
+    "engagement",
+    "consulta",
+    "tenant-isolation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/engagements.ts:listCustomerEngagements",
+   "type": "function",
+   "name": "listCustomerEngagements",
+   "filePath": "services/api/src/engagements.ts",
+   "lineRange": [
+    122,
+    135
+   ],
+   "summary": "Lista engajamentos de um cliente específico ordenados por data.",
+   "tags": [
+    "engagement",
+    "consulta",
+    "customer"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/engagements.ts:toEngagement",
+   "type": "function",
+   "name": "toEngagement",
+   "filePath": "services/api/src/engagements.ts",
+   "lineRange": [
+    146,
+    166
+   ],
+   "summary": "Converte linha de banco no domínio Engagement.",
+   "tags": [
+    "serializacao",
+    "mapper",
+    "dominio"
+   ],
+   "complexity": "moderate"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:services/api/src/document-masking.ts",
+   "target": "function:services/api/src/document-masking.ts:maskDocumentNumber",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/document-masking.ts",
+   "target": "function:services/api/src/document-masking.ts:maskDocumentNumber",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/document-masking.ts",
+   "target": "function:services/api/src/document-masking.ts:maskCPF",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/document-masking.ts",
+   "target": "function:services/api/src/document-masking.ts:maskCPF",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/document-masking.ts",
+   "target": "function:services/api/src/document-masking.ts:shouldMaskInLogs",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/document-masking.ts",
+   "target": "function:services/api/src/document-masking.ts:shouldMaskInLogs",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/document-masking.ts",
+   "target": "function:services/api/src/document-masking.ts:maskSensitiveFields",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/document-masking.ts",
+   "target": "function:services/api/src/document-masking.ts:maskSensitiveFields",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/document-verification.ts",
+   "target": "function:services/api/src/document-verification.ts:createVerification",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/document-verification.ts",
+   "target": "function:services/api/src/document-verification.ts:createVerification",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/document-verification.ts",
+   "target": "function:services/api/src/document-verification.ts:verifyAgainstCustomer",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/document-verification.ts",
+   "target": "function:services/api/src/document-verification.ts:verifyAgainstCustomer",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/document-verification.ts",
+   "target": "function:services/api/src/document-verification.ts:getVerification",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/document-verification.ts",
+   "target": "function:services/api/src/document-verification.ts:getVerification",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/document-verification.ts",
+   "target": "function:services/api/src/document-verification.ts:getLatestVerificationForDocument",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/document-verification.ts",
+   "target": "function:services/api/src/document-verification.ts:getLatestVerificationForDocument",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/document-verification.ts",
+   "target": "function:services/api/src/document-verification.ts:recordManualReview",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/document-verification.ts",
+   "target": "function:services/api/src/document-verification.ts:recordManualReview",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/document-verification.ts",
+   "target": "function:services/api/src/document-verification.ts:compareExtraction",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/document-verification.ts",
+   "target": "function:services/api/src/document-verification.ts:compareExtraction",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/document-verification.ts",
+   "target": "function:services/api/src/document-verification.ts:deriveStatus",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/document-verification.ts",
+   "target": "function:services/api/src/document-verification.ts:applyDocumentStatus",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/document-verification.ts",
+   "target": "function:services/api/src/document-verification.ts:compareField",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/document-verification.ts",
+   "target": "function:services/api/src/document-verification.ts:readString",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/document-verification.ts",
+   "target": "function:services/api/src/document-verification.ts:normalizeDate",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/document-verification.ts",
+   "target": "function:services/api/src/document-verification.ts:toDocumentVerification",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/employee-commission-rules.ts",
+   "target": "function:services/api/src/employee-commission-rules.ts:toRule",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/employee-commission-rules.ts",
+   "target": "function:services/api/src/employee-commission-rules.ts:listEmployeeCommissionRules",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/employee-commission-rules.ts",
+   "target": "function:services/api/src/employee-commission-rules.ts:listEmployeeCommissionRules",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/employee-commission-rules.ts",
+   "target": "function:services/api/src/employee-commission-rules.ts:getEmployeeCommissionRuleById",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/employee-commission-rules.ts",
+   "target": "function:services/api/src/employee-commission-rules.ts:getEmployeeCommissionRuleById",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/employee-commission-rules.ts",
+   "target": "function:services/api/src/employee-commission-rules.ts:validateInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/employee-commission-rules.ts",
+   "target": "function:services/api/src/employee-commission-rules.ts:createEmployeeCommissionRule",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/employee-commission-rules.ts",
+   "target": "function:services/api/src/employee-commission-rules.ts:createEmployeeCommissionRule",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/employee-commission-rules.ts",
+   "target": "function:services/api/src/employee-commission-rules.ts:updateEmployeeCommissionRuleStatus",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/employee-commission-rules.ts",
+   "target": "function:services/api/src/employee-commission-rules.ts:updateEmployeeCommissionRuleStatus",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/employee-commission-rules.ts",
+   "target": "function:services/api/src/employee-commission-rules.ts:findApplicableRule",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/employee-commission-rules.ts",
+   "target": "function:services/api/src/employee-commission-rules.ts:findApplicableRule",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/employee-commissions.ts",
+   "target": "function:services/api/src/employee-commissions.ts:toCommissionEntry",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/employee-commissions.ts",
+   "target": "function:services/api/src/employee-commissions.ts:resolveBase",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/employee-commissions.ts",
+   "target": "function:services/api/src/employee-commissions.ts:generateEmployeeCommission",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/employee-commissions.ts",
+   "target": "function:services/api/src/employee-commissions.ts:generateEmployeeCommission",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/employee-commissions.ts",
+   "target": "function:services/api/src/employee-commissions.ts:listMyCommissionEntries",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/employee-commissions.ts",
+   "target": "function:services/api/src/employee-commissions.ts:listMyCommissionEntries",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/employee-commissions.ts",
+   "target": "function:services/api/src/employee-commissions.ts:getEmployeeCommissionsReport",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/employee-commissions.ts",
+   "target": "function:services/api/src/employee-commissions.ts:getEmployeeCommissionsReport",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/employee-commissions.ts",
+   "target": "function:services/api/src/employee-commissions.ts:cancelCommissionsForSale",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/employee-commissions.ts",
+   "target": "function:services/api/src/employee-commissions.ts:cancelCommissionsForSale",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/employees.ts",
+   "target": "function:services/api/src/employees.ts:assertRequiredFields",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/employees.ts",
+   "target": "function:services/api/src/employees.ts:listEmployees",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/employees.ts",
+   "target": "function:services/api/src/employees.ts:listEmployees",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/employees.ts",
+   "target": "function:services/api/src/employees.ts:getEmployeeById",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/employees.ts",
+   "target": "function:services/api/src/employees.ts:getEmployeeById",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/employees.ts",
+   "target": "function:services/api/src/employees.ts:createEmployee",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/employees.ts",
+   "target": "function:services/api/src/employees.ts:createEmployee",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/employees.ts",
+   "target": "function:services/api/src/employees.ts:updateEmployee",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/employees.ts",
+   "target": "function:services/api/src/employees.ts:updateEmployee",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/employees.ts",
+   "target": "function:services/api/src/employees.ts:deleteEmployee",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/employees.ts",
+   "target": "function:services/api/src/employees.ts:deleteEmployee",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/employees.ts",
+   "target": "function:services/api/src/employees.ts:toEmployee",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/engagements.ts",
+   "target": "function:services/api/src/engagements.ts:recordEngagement",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/engagements.ts",
+   "target": "function:services/api/src/engagements.ts:recordEngagement",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/engagements.ts",
+   "target": "function:services/api/src/engagements.ts:insertEngagement",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/engagements.ts",
+   "target": "function:services/api/src/engagements.ts:insertEngagement",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/engagements.ts",
+   "target": "function:services/api/src/engagements.ts:connectorEventToEngagementInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/engagements.ts",
+   "target": "function:services/api/src/engagements.ts:connectorEventToEngagementInput",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/engagements.ts",
+   "target": "function:services/api/src/engagements.ts:listEngagements",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/engagements.ts",
+   "target": "function:services/api/src/engagements.ts:listEngagements",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/engagements.ts",
+   "target": "function:services/api/src/engagements.ts:listCustomerEngagements",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/engagements.ts",
+   "target": "function:services/api/src/engagements.ts:listCustomerEngagements",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/engagements.ts",
+   "target": "function:services/api/src/engagements.ts:toEngagement",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/document-masking.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/document-verification.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/document-verification.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/document-verification.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/document-verification.ts",
+   "target": "file:services/api/src/document-audit.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/document-verification.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/employee-commission-rules.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/employee-commission-rules.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/employee-commission-rules.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/employee-commission-rules.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/employee-commissions.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/employee-commissions.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/employee-commissions.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/employee-commissions.ts",
+   "target": "file:services/api/src/employee-commission-rules.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/employee-commissions.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/employees.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/employees.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/employees.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/employees.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/engagements.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/engagements.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/engagements.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/engagements.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "function:services/api/src/employee-commissions.ts:generateEmployeeCommission",
+   "target": "function:services/api/src/employee-commission-rules.ts:findApplicableRule",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/document-masking.ts",
+   "target": "file:services/api/tests/document-masking.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/document-verification.ts",
+   "target": "file:services/api/tests/document-verification.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/employee-commission-rules.ts",
+   "target": "file:services/api/tests/employee-commission-rules.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  }
+ ]
+}

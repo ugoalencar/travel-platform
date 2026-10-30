@@ -3,6 +3,7 @@ import type {
   FastifyInstance,
   FastifyReply,
   FastifyRequest,
+  preHandlerHookHandler,
   HookHandlerDoneFunction,
 } from 'fastify';
 import {
@@ -17,6 +18,7 @@ import {
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import multipart from '@fastify/multipart';
+import { CepLookup } from './cep';
 import { MAX_ATTACHMENT_BYTES } from './document-attachments';
 import { createAuthenticateHook, type AuthProvider } from './auth';
 import { createCustomerAuthenticateHook, type CustomerAuthProvider } from './customer-auth';
@@ -25,8 +27,11 @@ import type { DatabaseRuntime } from './database';
 import { registerAssetsRoutes } from './routes/assets';
 import { registerAutomationsRoutes } from './routes/automations';
 import { registerCampaignsRoutes } from './routes/campaigns';
+import { registerCepRoutes } from './routes/cep';
 import { registerCommercialCockpitRoutes } from './routes/commercial-cockpit';
 import { registerCommissionsRoutes } from './routes/commissions';
+import { registerCommissionRuleVersionsRoutes } from './routes/commission-rule-versions';
+import { registerCommissionReleaseRoutes } from './routes/commission-release';
 import { registerConnectorsRoutes } from './routes/connectors';
 import { registerCostCentersRoutes } from './routes/cost-centers';
 import { registerCouponsRoutes } from './routes/coupons';
@@ -66,10 +71,19 @@ import { registerProposalsRoutes } from './routes/proposals';
 import { registerMediaLibraryRoutes } from './routes/media-library';
 import { registerReportsRoutes } from './routes/reports';
 import { registerSalesRoutes } from './routes/sales';
+import { registerSaleCategoriesRoutes } from './routes/sale-categories';
 import { registerSaleItemsRoutes } from './routes/sale-items';
+import { registerSalePaymentSchedulesRoutes } from './routes/sale-payment-schedules';
 import { registerTravelProductsRoutes } from './routes/travel-products';
 import { registerSettingsExpandedRoutes } from './routes/settings-expanded';
 import { registerSettingsRoutes } from './routes/settings';
+import { registerAgencyModuleRoutes } from './routes/agency-modules';
+import { registerPermissionOverrideRoutes } from './routes/permission-overrides';
+import { registerAgencyRevenueRoutes } from './routes/agency-revenue';
+import { registerReportProjectionRoutes } from './routes/report-projections';
+import { registerDashboardWidgetRoutes } from './routes/dashboard-widgets';
+import { registerBackupRoutes } from './routes/backup';
+import { registerSalesImportRoutes } from './routes/sales-import';
 import { registerSupportRoutes } from './routes/support';
 import { registerTransportSuppliersRoutes } from './routes/transport-suppliers';
 import { registerTripsRoutes } from './routes/trips';
@@ -99,6 +113,7 @@ import {
   type RateLimitRuntimeEnvironment,
   type RateLimitStore,
 } from './rate-limit';
+import { requireAgencyModuleEnabled, resolveAgencyModuleForPath } from './agency-modules';
 import {
   setAgencyEntitlementViaPlatformStopgap,
   type SetAgencyEntitlementInput,
@@ -132,6 +147,7 @@ export interface BuildAppOptions {
   // exercisable but 401ing on every request rather than unmounted.
   partnerAuthProvider?: PartnerAuthProvider;
   validatePartnerAgencyAccess?: ValidatePartnerAgencyAccess;
+  cepLookup?: Pick<CepLookup, 'lookup'>;
   ocrProvider?: OcrProviderContract;
   readinessCheck?: () => Promise<void>;
   rateLimit?: RateLimitOptions;
@@ -234,7 +250,10 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     frameguard: { action: 'deny' },
   });
 
-  app.addHook('onSend', (_request, reply, payload, done) => {
+  app.addHook('onSend', (request, reply, payload, done) => {
+    if (request.url.startsWith('/cep/')) {
+      reply.header('cache-control', 'no-store');
+    }
     reply.header(
       'Permissions-Policy',
       'geolocation=(), camera=(), microphone=(), payment=(), usb=(), fullscreen=()'
@@ -258,7 +277,15 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     validateUserAgencyAccess: options.validateUserAgencyAccess,
   });
   const rateLimits = createRateLimitHooks(options.rateLimit);
-  const protectedHooks = [authenticate, establishTenant, rateLimits.onTrustedTenant];
+  const checkAgencyModule: preHandlerHookHandler = (request, _reply, done) => {
+    const moduleKey = resolveAgencyModuleForPath(request.url);
+    if (moduleKey === 'CORE') {
+      done();
+      return;
+    }
+    void requireAgencyModuleEnabled(options.database, moduleKey).then(() => done(), done);
+  };
+  const protectedHooks = [authenticate, establishTenant, rateLimits.onTrustedTenant, checkAgencyModule];
   app.addHook('onRequest', rateLimits.onRequest);
 
   // Fail-closed default: never fall back to header-based dev auth. Callers
@@ -326,6 +353,11 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
 
   registerCustomerRoutes(app, { database: options.database, protectedHooks });
 
+  registerCepRoutes(app, {
+    lookup: options.cepLookup ?? new CepLookup({ enabled: false }),
+    protectedHooks,
+  });
+
   // Enrollment (staff + public)
   registerEnrollmentRoutes(app, { database: options.database, protectedHooks });
 
@@ -369,13 +401,22 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
   registerCommercialCockpitRoutes(app, { database: options.database, protectedHooks });
   registerCustomerSegmentRoutes(app, { database: options.database, protectedHooks });
   registerSettingsRoutes(app, { database: options.database, protectedHooks });
+  registerAgencyModuleRoutes(app, { database: options.database, protectedHooks });
+  registerPermissionOverrideRoutes(app, { database: options.database, protectedHooks });
+  registerAgencyRevenueRoutes(app, { database: options.database, protectedHooks });
+  registerReportProjectionRoutes(app, { database: options.database, protectedHooks });
+  registerDashboardWidgetRoutes(app, { database: options.database, protectedHooks });
+  registerBackupRoutes(app, { database: options.database, protectedHooks });
+  registerSalesImportRoutes(app, { database: options.database, protectedHooks });
 
   // Settings expanded (agency profile, branding, onboarding, departments, invitations, permissions)
   registerSettingsExpandedRoutes(app, { database: options.database, protectedHooks });
 
   // Sales
   registerSalesRoutes(app, { database: options.database, protectedHooks });
+  registerSaleCategoriesRoutes(app, { database: options.database, protectedHooks });
   registerSaleItemsRoutes(app, { database: options.database, protectedHooks });
+  registerSalePaymentSchedulesRoutes(app, { database: options.database, protectedHooks });
 
   // Financial (receivables, payables, payments, costs, categories, revenues, expenses, cash, reconciliations, reports)
   registerFinancialRoutes(app, { database: options.database, protectedHooks });
@@ -385,6 +426,8 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
 
   // Commissions (plans, employees, entries, deductions, payroll)
   registerCommissionsRoutes(app, { database: options.database, protectedHooks });
+  registerCommissionRuleVersionsRoutes(app, { database: options.database, protectedHooks });
+  registerCommissionReleaseRoutes(app, { database: options.database, protectedHooks });
 
   // Reports (sales, financial aging, profitability, personnel)
   registerReportsRoutes(app, { database: options.database, protectedHooks });

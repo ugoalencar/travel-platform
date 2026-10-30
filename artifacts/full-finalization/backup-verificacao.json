@@ -1,0 +1,1008 @@
+{
+  "ok": true,
+  "schemaVersion": "cols:dc4cecd1b95ee275",
+  "tables": [
+    {
+      "table": "customers",
+      "rows": 34,
+      "hashOk": true,
+      "existingRows": 34,
+      "conflict": true
+    },
+    {
+      "table": "suppliers",
+      "rows": 5,
+      "hashOk": true,
+      "existingRows": 5,
+      "conflict": true
+    },
+    {
+      "table": "payments",
+      "rows": 33,
+      "hashOk": true,
+      "existingRows": 33,
+      "conflict": true
+    },
+    {
+      "table": "customer_field_settings",
+      "rows": 2,
+      "hashOk": true,
+      "existingRows": 2,
+      "conflict": true
+    },
+    {
+      "table": "dashboard_layouts",
+      "rows": 1,
+      "hashOk": true,
+      "existingRows": 1,
+      "conflict": true
+    },
+    {
+      "table": "agency_entitlements",
+      "rows": 3,
+      "hashOk": true,
+      "existingRows": 3,
+      "conflict": true
+    },
+    {
+      "table": "agent_area_grants",
+      "rows": 0,
+      "hashOk": true,
+      "existingRows": 0,
+      "conflict": false
+    },
+    {
+      "table": "brokers",
+      "rows": 0,
+      "hashOk": true,
+      "existingRows": 0,
+      "conflict": false
+    },
+    {
+      "table": "campaign_partner_stubs",
+      "rows": 0,
+      "hashOk": true,
+      "existingRows": 0,
+      "conflict": false
+    },
+    {
+      "table": "campaigns",
+      "rows": 1,
+      "hashOk": true,
+      "existingRows": 1,
+      "conflict": true
+    },
+    {
+      "table": "cash_transactions",
+      "rows": 1,
+      "hashOk": true,
+      "existingRows": 1,
+      "conflict": true
+    },
+    {
+      "table": "commercial_partners",
+      "rows": 1,
+      "hashOk": true,
+      "existingRows": 1,
+      "conflict": true
+    },
+    {
+      "table": "commission_categories",
+      "rows": 5,
+      "hashOk": true,
+      "existingRows": 5,
+      "conflict": true
+    },
+    {
+      "table": "commission_financial_profiles",
+      "rows": 2,
+      "hashOk": true,
+      "existingRows": 2,
+      "conflict": true
+    },
+    {
+      "table": "commission_plans",
+      "rows": 1,
+      "hashOk": true,
+      "existingRows": 1,
+      "conflict": true
+    },
+    {
+      "table": "contract_templates",
+      "rows": 0,
+      "hashOk": true,
+      "existingRows": 0,
+      "conflict": false
+    },
+    {
+      "table": "cost_centers",
+      "rows": 1,
+      "hashOk": true,
+      "existingRows": 1,
+      "conflict": true
+    },
+    {
+      "table": "departments",
+      "rows": 1,
+      "hashOk": true,
+      "existingRows": 1,
+      "conflict": true
+    },
+    {
+      "table": "excursions",
+      "rows": 2,
+      "hashOk": true,
+      "existingRows": 2,
+      "conflict": true
+    },
+    {
+      "table": "financial_categories",
+      "rows": 2,
+      "hashOk": true,
+      "existingRows": 2,
+      "conflict": true
+    },
+    {
+      "table": "import_jobs",
+      "rows": 0,
+      "hashOk": true,
+      "existingRows": 0,
+      "conflict": false
+    },
+    {
+      "table": "import_mapping_templates",
+      "rows": 0,
+      "hashOk": true,
+      "existingRows": 0,
+      "conflict": false
+    },
+    {
+      "table": "media_assets",
+      "rows": 1,
+      "hashOk": true,
+      "existingRows": 1,
+      "conflict": true
+    },
+    {
+      "table": "notification_preferences",
+      "rows": 0,
+      "hashOk": true,
+      "existingRows": 0,
+      "conflict": false
+    },
+    {
+      "table": "offers",
+      "rows": 3,
+      "hashOk": true,
+      "existingRows": 3,
+      "conflict": true
+    },
+    {
+      "table": "operational_staff",
+      "rows": 0,
+      "hashOk": true,
+      "existingRows": 0,
+      "conflict": false
+    },
+    {
+      "table": "payment_conditions",
+      "rows": 7,
+      "hashOk": true,
+      "existingRows": 7,
+      "conflict": true
+    },
+    {
+      "table": "payment_method_receipt_rules",
+      "rows": 3,
+      "hashOk": true,
+      "existingRows": 3,
+      "conflict": true
+    },
+    {
+      "table": "permission_restrictions",
+      "rows": 1,
+      "hashOk": true,
+      "existingRows": 1,
+      "conflict": true
+    },
+    {
+      "table": "pescador_searches",
+      "rows": 0,
+      "hashOk": true,
+      "existingRows": 0,
+      "conflict": false
+    },
+    {
+      "table": "pescador_sources",
+      "rows": 1,
+      "hashOk": true,
+      "existingRows": 1,
+      "conflict": true
+    },
+    {
+      "table": "pipelines",
+      "rows": 1,
+      "hashOk": true,
+      "existingRows": 1,
+      "conflict": true
+    },
+    {
+      "table": "routes",
+      "rows": 1,
+      "hashOk": true,
+      "existingRows": 1,
+      "conflict": true
+    },
+    {
+      "table": "sale_import_batches",
+      "rows": 4,
+      "hashOk": true,
+      "existingRows": 4,
+      "conflict": true
+    },
+    {
+      "table": "agency_revenue_settlement_settings",
+      "rows": 1,
+      "hashOk": true,
+      "existingRows": 1,
+      "conflict": true
+    },
+    {
+      "table": "agency_revenue_batches",
+      "rows": 4,
+      "hashOk": true,
+      "existingRows": 4,
+      "conflict": true
+    },
+    {
+      "table": "agency_commission_engine_settings",
+      "rows": 1,
+      "hashOk": true,
+      "existingRows": 1,
+      "conflict": true
+    },
+    {
+      "table": "agency_commission_cost_policies",
+      "rows": 1,
+      "hashOk": true,
+      "existingRows": 1,
+      "conflict": true
+    },
+    {
+      "table": "upsell_rules",
+      "rows": 0,
+      "hashOk": true,
+      "existingRows": 0,
+      "conflict": false
+    },
+    {
+      "table": "user_permission_overrides",
+      "rows": 4,
+      "hashOk": true,
+      "existingRows": 4,
+      "conflict": true
+    },
+    {
+      "table": "campaign_offers",
+      "rows": 0,
+      "hashOk": true,
+      "existingRows": 0,
+      "conflict": false
+    },
+    {
+      "table": "coupons",
+      "rows": 1,
+      "hashOk": true,
+      "existingRows": 1,
+      "conflict": true
+    },
+    {
+      "table": "customer_addresses",
+      "rows": 0,
+      "hashOk": true,
+      "existingRows": 0,
+      "conflict": false
+    },
+    {
+      "table": "customer_dependents",
+      "rows": 3,
+      "hashOk": true,
+      "existingRows": 3,
+      "conflict": true
+    },
+    {
+      "table": "customer_documents",
+      "rows": 3,
+      "hashOk": true,
+      "existingRows": 3,
+      "conflict": true
+    },
+    {
+      "table": "employees",
+      "rows": 7,
+      "hashOk": true,
+      "existingRows": 7,
+      "conflict": true
+    },
+    {
+      "table": "enrollment_submissions",
+      "rows": 0,
+      "hashOk": true,
+      "existingRows": 0,
+      "conflict": false
+    },
+    {
+      "table": "excursion_departures",
+      "rows": 2,
+      "hashOk": true,
+      "existingRows": 2,
+      "conflict": true
+    },
+    {
+      "table": "expenses",
+      "rows": 1,
+      "hashOk": true,
+      "existingRows": 1,
+      "conflict": true
+    },
+    {
+      "table": "external_offer_captures",
+      "rows": 1,
+      "hashOk": true,
+      "existingRows": 1,
+      "conflict": true
+    },
+    {
+      "table": "insurance_products",
+      "rows": 1,
+      "hashOk": true,
+      "existingRows": 1,
+      "conflict": true
+    },
+    {
+      "table": "media_asset_links",
+      "rows": 0,
+      "hashOk": true,
+      "existingRows": 0,
+      "conflict": false
+    },
+    {
+      "table": "operational_staff_capabilities",
+      "rows": 0,
+      "hashOk": true,
+      "existingRows": 0,
+      "conflict": false
+    },
+    {
+      "table": "partner_campaigns",
+      "rows": 0,
+      "hashOk": true,
+      "existingRows": 0,
+      "conflict": false
+    },
+    {
+      "table": "partner_contracts",
+      "rows": 0,
+      "hashOk": true,
+      "existingRows": 0,
+      "conflict": false
+    },
+    {
+      "table": "payment_condition_categories",
+      "rows": 0,
+      "hashOk": true,
+      "existingRows": 0,
+      "conflict": false
+    },
+    {
+      "table": "payment_condition_methods",
+      "rows": 15,
+      "hashOk": true,
+      "existingRows": 15,
+      "conflict": true
+    },
+    {
+      "table": "pescador_search_results",
+      "rows": 0,
+      "hashOk": true,
+      "existingRows": 0,
+      "conflict": false
+    },
+    {
+      "table": "pipeline_access",
+      "rows": 0,
+      "hashOk": true,
+      "existingRows": 0,
+      "conflict": false
+    },
+    {
+      "table": "pipeline_stages",
+      "rows": 1,
+      "hashOk": true,
+      "existingRows": 1,
+      "conflict": true
+    },
+    {
+      "table": "publications",
+      "rows": 0,
+      "hashOk": true,
+      "existingRows": 0,
+      "conflict": false
+    },
+    {
+      "table": "reconciliations",
+      "rows": 1,
+      "hashOk": true,
+      "existingRows": 1,
+      "conflict": true
+    },
+    {
+      "table": "route_points",
+      "rows": 0,
+      "hashOk": true,
+      "existingRows": 0,
+      "conflict": false
+    },
+    {
+      "table": "sale_category_fields",
+      "rows": 30,
+      "hashOk": true,
+      "existingRows": 30,
+      "conflict": true
+    },
+    {
+      "table": "agency_revenue_batch_receipts",
+      "rows": 3,
+      "hashOk": true,
+      "existingRows": 3,
+      "conflict": true
+    },
+    {
+      "table": "supplier_category_links",
+      "rows": 0,
+      "hashOk": true,
+      "existingRows": 0,
+      "conflict": false
+    },
+    {
+      "table": "transport_products",
+      "rows": 1,
+      "hashOk": true,
+      "existingRows": 1,
+      "conflict": true
+    },
+    {
+      "table": "travel_products",
+      "rows": 5,
+      "hashOk": true,
+      "existingRows": 5,
+      "conflict": true
+    },
+    {
+      "table": "wishes",
+      "rows": 3,
+      "hashOk": true,
+      "existingRows": 3,
+      "conflict": true
+    },
+    {
+      "table": "agency_revenue_scopes",
+      "rows": 9,
+      "hashOk": true,
+      "existingRows": 9,
+      "conflict": true
+    },
+    {
+      "table": "assets",
+      "rows": 0,
+      "hashOk": true,
+      "existingRows": 0,
+      "conflict": false
+    },
+    {
+      "table": "automations",
+      "rows": 0,
+      "hashOk": true,
+      "existingRows": 0,
+      "conflict": false
+    },
+    {
+      "table": "campaign_placements",
+      "rows": 0,
+      "hashOk": true,
+      "existingRows": 0,
+      "conflict": false
+    },
+    {
+      "table": "campaign_products",
+      "rows": 0,
+      "hashOk": true,
+      "existingRows": 0,
+      "conflict": false
+    },
+    {
+      "table": "customer_segments",
+      "rows": 1,
+      "hashOk": true,
+      "existingRows": 1,
+      "conflict": true
+    },
+    {
+      "table": "document_attachments",
+      "rows": 0,
+      "hashOk": true,
+      "existingRows": 0,
+      "conflict": false
+    },
+    {
+      "table": "document_extractions",
+      "rows": 0,
+      "hashOk": true,
+      "existingRows": 0,
+      "conflict": false
+    },
+    {
+      "table": "employee_commission_rule_scopes",
+      "rows": 8,
+      "hashOk": true,
+      "existingRows": 8,
+      "conflict": true
+    },
+    {
+      "table": "employee_commission_payment_policies",
+      "rows": 1,
+      "hashOk": true,
+      "existingRows": 1,
+      "conflict": true
+    },
+    {
+      "table": "employee_commission_rules",
+      "rows": 0,
+      "hashOk": true,
+      "existingRows": 0,
+      "conflict": false
+    },
+    {
+      "table": "employee_deductions",
+      "rows": 0,
+      "hashOk": true,
+      "existingRows": 0,
+      "conflict": false
+    },
+    {
+      "table": "engagements",
+      "rows": 0,
+      "hashOk": true,
+      "existingRows": 0,
+      "conflict": false
+    },
+    {
+      "table": "enrollment_documents",
+      "rows": 0,
+      "hashOk": true,
+      "existingRows": 0,
+      "conflict": false
+    },
+    {
+      "table": "payment_condition_products",
+      "rows": 0,
+      "hashOk": true,
+      "existingRows": 0,
+      "conflict": false
+    },
+    {
+      "table": "payroll_entries",
+      "rows": 1,
+      "hashOk": true,
+      "existingRows": 1,
+      "conflict": true
+    },
+    {
+      "table": "proposals",
+      "rows": 3,
+      "hashOk": true,
+      "existingRows": 3,
+      "conflict": true
+    },
+    {
+      "table": "scheduled_departures",
+      "rows": 1,
+      "hashOk": true,
+      "existingRows": 1,
+      "conflict": true
+    },
+    {
+      "table": "travel_requirements",
+      "rows": 1,
+      "hashOk": true,
+      "existingRows": 1,
+      "conflict": true
+    },
+    {
+      "table": "sales",
+      "rows": 20,
+      "hashOk": true,
+      "existingRows": 20,
+      "conflict": true
+    },
+    {
+      "table": "agency_revenue_rule_versions",
+      "rows": 10,
+      "hashOk": true,
+      "existingRows": 10,
+      "conflict": true
+    },
+    {
+      "table": "agency_communications",
+      "rows": 1,
+      "hashOk": true,
+      "existingRows": 1,
+      "conflict": true
+    },
+    {
+      "table": "automation_executions",
+      "rows": 0,
+      "hashOk": true,
+      "existingRows": 0,
+      "conflict": false
+    },
+    {
+      "table": "bookings",
+      "rows": 1,
+      "hashOk": true,
+      "existingRows": 1,
+      "conflict": true
+    },
+    {
+      "table": "campaign_attributions",
+      "rows": 0,
+      "hashOk": true,
+      "existingRows": 0,
+      "conflict": false
+    },
+    {
+      "table": "connector_actions",
+      "rows": 0,
+      "hashOk": true,
+      "existingRows": 0,
+      "conflict": false
+    },
+    {
+      "table": "coupon_grants",
+      "rows": 0,
+      "hashOk": true,
+      "existingRows": 0,
+      "conflict": false
+    },
+    {
+      "table": "document_verifications",
+      "rows": 0,
+      "hashOk": true,
+      "existingRows": 0,
+      "conflict": false
+    },
+    {
+      "table": "employee_commission_rule_versions",
+      "rows": 9,
+      "hashOk": true,
+      "existingRows": 9,
+      "conflict": true
+    },
+    {
+      "table": "product_assets",
+      "rows": 0,
+      "hashOk": true,
+      "existingRows": 0,
+      "conflict": false
+    },
+    {
+      "table": "proposal_optional_items",
+      "rows": 0,
+      "hashOk": true,
+      "existingRows": 0,
+      "conflict": false
+    },
+    {
+      "table": "proposal_sections",
+      "rows": 0,
+      "hashOk": true,
+      "existingRows": 0,
+      "conflict": false
+    },
+    {
+      "table": "transport_operations",
+      "rows": 0,
+      "hashOk": true,
+      "existingRows": 0,
+      "conflict": false
+    },
+    {
+      "table": "receivables",
+      "rows": 52,
+      "hashOk": true,
+      "existingRows": 52,
+      "conflict": true
+    },
+    {
+      "table": "booking_passengers",
+      "rows": 2,
+      "hashOk": true,
+      "existingRows": 2,
+      "conflict": true
+    },
+    {
+      "table": "commercial_opportunities",
+      "rows": 3,
+      "hashOk": true,
+      "existingRows": 3,
+      "conflict": true
+    },
+    {
+      "table": "commission_entries",
+      "rows": 12,
+      "hashOk": true,
+      "existingRows": 12,
+      "conflict": true
+    },
+    {
+      "table": "commissions",
+      "rows": 0,
+      "hashOk": true,
+      "existingRows": 0,
+      "conflict": false
+    },
+    {
+      "table": "contract_documents",
+      "rows": 0,
+      "hashOk": true,
+      "existingRows": 0,
+      "conflict": false
+    },
+    {
+      "table": "coupon_redemptions",
+      "rows": 0,
+      "hashOk": true,
+      "existingRows": 0,
+      "conflict": false
+    },
+    {
+      "table": "employee_commission_rule_tiers",
+      "rows": 6,
+      "hashOk": true,
+      "existingRows": 6,
+      "conflict": true
+    },
+    {
+      "table": "operation_assignments",
+      "rows": 0,
+      "hashOk": true,
+      "existingRows": 0,
+      "conflict": false
+    },
+    {
+      "table": "operation_checkpoints",
+      "rows": 0,
+      "hashOk": true,
+      "existingRows": 0,
+      "conflict": false
+    },
+    {
+      "table": "operational_costs",
+      "rows": 1,
+      "hashOk": true,
+      "existingRows": 1,
+      "conflict": true
+    },
+    {
+      "table": "partner_attributions",
+      "rows": 0,
+      "hashOk": true,
+      "existingRows": 0,
+      "conflict": false
+    },
+    {
+      "table": "proposal_items",
+      "rows": 0,
+      "hashOk": true,
+      "existingRows": 0,
+      "conflict": false
+    },
+    {
+      "table": "revenues",
+      "rows": 1,
+      "hashOk": true,
+      "existingRows": 1,
+      "conflict": true
+    },
+    {
+      "table": "sale_commission_attributions",
+      "rows": 12,
+      "hashOk": true,
+      "existingRows": 12,
+      "conflict": true
+    },
+    {
+      "table": "sale_import_keys",
+      "rows": 3,
+      "hashOk": true,
+      "existingRows": 3,
+      "conflict": true
+    },
+    {
+      "table": "sale_payment_reversals",
+      "rows": 6,
+      "hashOk": true,
+      "existingRows": 6,
+      "conflict": true
+    },
+    {
+      "table": "sale_payment_condition_versions",
+      "rows": 13,
+      "hashOk": true,
+      "existingRows": 13,
+      "conflict": true
+    },
+    {
+      "table": "sale_payment_requests",
+      "rows": 22,
+      "hashOk": true,
+      "existingRows": 22,
+      "conflict": true
+    },
+    {
+      "table": "trips",
+      "rows": 8,
+      "hashOk": true,
+      "existingRows": 8,
+      "conflict": true
+    },
+    {
+      "table": "air_services",
+      "rows": 2,
+      "hashOk": true,
+      "existingRows": 2,
+      "conflict": true
+    },
+    {
+      "table": "commercial_tasks",
+      "rows": 3,
+      "hashOk": true,
+      "existingRows": 3,
+      "conflict": true
+    },
+    {
+      "table": "commission_release_events",
+      "rows": 9,
+      "hashOk": true,
+      "existingRows": 9,
+      "conflict": true
+    },
+    {
+      "table": "contract_parties",
+      "rows": 0,
+      "hashOk": true,
+      "existingRows": 0,
+      "conflict": false
+    },
+    {
+      "table": "customer_interactions",
+      "rows": 3,
+      "hashOk": true,
+      "existingRows": 3,
+      "conflict": true
+    },
+    {
+      "table": "excursion_customers",
+      "rows": 4,
+      "hashOk": true,
+      "existingRows": 4,
+      "conflict": true
+    },
+    {
+      "table": "insurance_policies",
+      "rows": 1,
+      "hashOk": true,
+      "existingRows": 1,
+      "conflict": true
+    },
+    {
+      "table": "land_services",
+      "rows": 2,
+      "hashOk": true,
+      "existingRows": 2,
+      "conflict": true
+    },
+    {
+      "table": "partner_commissions",
+      "rows": 0,
+      "hashOk": true,
+      "existingRows": 0,
+      "conflict": false
+    },
+    {
+      "table": "payables",
+      "rows": 21,
+      "hashOk": true,
+      "existingRows": 21,
+      "conflict": true
+    },
+    {
+      "table": "post_trip_checklist",
+      "rows": 1,
+      "hashOk": true,
+      "existingRows": 1,
+      "conflict": true
+    },
+    {
+      "table": "trip_occurrences",
+      "rows": 1,
+      "hashOk": true,
+      "existingRows": 1,
+      "conflict": true
+    },
+    {
+      "table": "trip_photos",
+      "rows": 0,
+      "hashOk": true,
+      "existingRows": 0,
+      "conflict": false
+    },
+    {
+      "table": "sale_items",
+      "rows": 16,
+      "hashOk": true,
+      "existingRows": 16,
+      "conflict": true
+    },
+    {
+      "table": "payment_allocations",
+      "rows": 39,
+      "hashOk": true,
+      "existingRows": 39,
+      "conflict": true
+    },
+    {
+      "table": "contract_signature_evidence",
+      "rows": 0,
+      "hashOk": true,
+      "existingRows": 0,
+      "conflict": false
+    },
+    {
+      "table": "insurance_documents",
+      "rows": 0,
+      "hashOk": true,
+      "existingRows": 0,
+      "conflict": false
+    },
+    {
+      "table": "insurance_travelers",
+      "rows": 0,
+      "hashOk": true,
+      "existingRows": 0,
+      "conflict": false
+    },
+    {
+      "table": "agency_revenue_entries",
+      "rows": 12,
+      "hashOk": true,
+      "existingRows": 12,
+      "conflict": true
+    },
+    {
+      "table": "upsell_suggestions",
+      "rows": 0,
+      "hashOk": true,
+      "existingRows": 0,
+      "conflict": false
+    },
+    {
+      "table": "agency_revenue_batch_entries",
+      "rows": 4,
+      "hashOk": true,
+      "existingRows": 4,
+      "conflict": true
+    }
+  ],
+  "reportHash": "d2405f5d49b4ce2ac7c35c14d999ef29361689539e623776a7d6e3a4e9f2b815"
+}

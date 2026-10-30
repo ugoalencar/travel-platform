@@ -1,0 +1,1695 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/travel-lite/src/App.test.tsx",
+      "type": "file",
+      "name": "App.test.tsx",
+      "filePath": "apps/travel-lite/src/App.test.tsx",
+      "summary": "Suite de testes de integração do componente App, com mocks de fetch e rotas da API cobrindo navegação, permissões e fluxos principais do travel-lite.",
+      "tags": [
+        "test",
+        "react",
+        "integration",
+        "mock"
+      ],
+      "complexity": "complex",
+      "languageNotes": "usa vi.fn e stubs globais de fetch para simular respostas da API sem rede real."
+    },
+    {
+      "id": "file:apps/travel-lite/src/App.tsx",
+      "type": "file",
+      "name": "App.tsx",
+      "filePath": "apps/travel-lite/src/App.tsx",
+      "summary": "Componente raiz que configura as rotas do travel-lite, aplica guarda de permissão por rota e monta o shell com AuthProvider e BrandingProvider.",
+      "tags": [
+        "entry-point",
+        "routing",
+        "component",
+        "authorization"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/travel-lite/src/BrandingProvider.tsx",
+      "type": "file",
+      "name": "BrandingProvider.tsx",
+      "filePath": "apps/travel-lite/src/BrandingProvider.tsx",
+      "summary": "Provider React que busca o branding da agência na API, aplica as variáveis CSS de cores no documento e injeta o favicon.",
+      "tags": [
+        "context-provider",
+        "branding",
+        "react",
+        "css"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/travel-lite/src/FirstRunChecklist.tsx",
+      "type": "file",
+      "name": "FirstRunChecklist.tsx",
+      "filePath": "apps/travel-lite/src/FirstRunChecklist.tsx",
+      "summary": "Checklist de primeira execução que consulta a API para verificar dados iniciais (vendedores, contas, categorias, clientes, vendas) e orienta a configuração inicial da agência.",
+      "tags": [
+        "component",
+        "onboarding",
+        "checklist",
+        "api"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/travel-lite/src/Layout.tsx",
+      "type": "file",
+      "name": "Layout.tsx",
+      "filePath": "apps/travel-lite/src/Layout.tsx",
+      "summary": "Layout principal da aplicação com menu lateral filtrado por permissões, header com branding e ação de logout.",
+      "tags": [
+        "component",
+        "layout",
+        "navigation",
+        "authorization"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/travel-lite/src/api.ts",
+      "type": "file",
+      "name": "api.ts",
+      "filePath": "apps/travel-lite/src/api.ts",
+      "summary": "Cliente HTTP central do app: gerencia a sessão em sessionStorage, injeta headers de autenticação, trata 401 com logout global e oferece download de arquivos CSV.",
+      "tags": [
+        "api-client",
+        "http",
+        "session",
+        "utility"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Sessão em sessionStorage com limpeza de dados legados no localStorage; status 401 dispara um evento global de não autorizado."
+    },
+    {
+      "id": "file:apps/travel-lite/src/auth.tsx",
+      "type": "file",
+      "name": "auth.tsx",
+      "filePath": "apps/travel-lite/src/auth.tsx",
+      "summary": "Contexto de autenticação com login/logout, validação de troca de senha obrigatória e hooks de sessão (useAuth) e permissões (useCan).",
+      "tags": [
+        "auth",
+        "context-provider",
+        "security",
+        "react"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/travel-lite/src/branding.test.tsx",
+      "type": "file",
+      "name": "branding.test.tsx",
+      "filePath": "apps/travel-lite/src/branding.test.tsx",
+      "summary": "Testes do fluxo de branding com mock global da API, cobrindo login e aplicação da customização visual no App.",
+      "tags": [
+        "test",
+        "branding",
+        "react",
+        "mock"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/travel-lite/src/branding.ts",
+      "type": "file",
+      "name": "branding.ts",
+      "filePath": "apps/travel-lite/src/branding.ts",
+      "summary": "Normalização, validação e utilitários de branding (cores, logo, slug de tenant), incluindo geração de variáveis CSS e resolução de slug por hostname/caminho.",
+      "tags": [
+        "branding",
+        "validation",
+        "multi-tenant",
+        "utility"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Slug de tenant resolvido por hostname ou pathname, com listas de segmentos e subdomínios reservados (multi-tenancy)."
+    },
+    {
+      "id": "file:apps/travel-lite/src/charts.tsx",
+      "type": "file",
+      "name": "charts.tsx",
+      "filePath": "apps/travel-lite/src/charts.tsx",
+      "summary": "Componentes de gráficos de barras e linhas sobre Recharts, com formatação monetária em BRL, tooltips e eixos compactos.",
+      "tags": [
+        "component",
+        "charts",
+        "visualization",
+        "recharts"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/travel-lite/src/App.test.tsx:dashboard",
+      "type": "function",
+      "name": "dashboard",
+      "filePath": "apps/travel-lite/src/App.test.tsx",
+      "lineRange": [
+        40,
+        54
+      ],
+      "summary": "Monta o payload simulado de dashboard com KPIs e widgets usado nos testes.",
+      "tags": [
+        "test",
+        "fixture",
+        "mock"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/travel-lite/src/App.test.tsx:mockFetch",
+      "type": "function",
+      "name": "mockFetch",
+      "filePath": "apps/travel-lite/src/App.test.tsx",
+      "lineRange": [
+        56,
+        76
+      ],
+      "summary": "Substitui o fetch global por um roteador de mocks que responde às rotas de API consumidas pelo App nos testes.",
+      "tags": [
+        "test",
+        "mock",
+        "fetch"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/travel-lite/src/App.tsx:AccessDenied",
+      "type": "function",
+      "name": "AccessDenied",
+      "filePath": "apps/travel-lite/src/App.tsx",
+      "lineRange": [
+        24,
+        40
+      ],
+      "summary": "Tela exibida quando o usuário não possui permissão para a rota solicitada.",
+      "tags": [
+        "component",
+        "authorization",
+        "ui"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/travel-lite/src/App.tsx:App",
+      "type": "function",
+      "name": "App",
+      "filePath": "apps/travel-lite/src/App.tsx",
+      "lineRange": [
+        49,
+        85
+      ],
+      "summary": "Componente principal que declara as rotas do app, protege cada rota por permissão via menuPermissions/useCan e envolve tudo nos providers de autenticação e branding.",
+      "tags": [
+        "entry-point",
+        "routing",
+        "component"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/travel-lite/src/BrandingProvider.tsx:BrandingProvider",
+      "type": "function",
+      "name": "BrandingProvider",
+      "filePath": "apps/travel-lite/src/BrandingProvider.tsx",
+      "lineRange": [
+        25,
+        75
+      ],
+      "summary": "Provider que carrega o branding autenticado da agência, normaliza a resposta, aplica as variáveis CSS no :root e controla estados de carregamento/erro.",
+      "tags": [
+        "context-provider",
+        "branding",
+        "side-effect",
+        "react"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/travel-lite/src/BrandingProvider.tsx:useBranding",
+      "type": "function",
+      "name": "useBranding",
+      "filePath": "apps/travel-lite/src/BrandingProvider.tsx",
+      "lineRange": [
+        78,
+        80
+      ],
+      "summary": "Hook que expõe o contexto de branding para os componentes consumidores.",
+      "tags": [
+        "hook",
+        "context",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/travel-lite/src/FirstRunChecklist.tsx:helpLine",
+      "type": "function",
+      "name": "helpLine",
+      "filePath": "apps/travel-lite/src/FirstRunChecklist.tsx",
+      "lineRange": [
+        20,
+        32
+      ],
+      "summary": "Gera uma linha de ajuda do checklist, marcando como concluída quando a ação já foi registrada no localStorage.",
+      "tags": [
+        "utility",
+        "checklist",
+        "storage"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/travel-lite/src/FirstRunChecklist.tsx:FirstRunChecklist",
+      "type": "function",
+      "name": "FirstRunChecklist",
+      "filePath": "apps/travel-lite/src/FirstRunChecklist.tsx",
+      "lineRange": [
+        34,
+        186
+      ],
+      "summary": "Componente que consulta vários endpoints em paralelo para verificar se os dados iniciais existem e renderiza o checklist com progresso e atalhos de configuração.",
+      "tags": [
+        "component",
+        "onboarding",
+        "api",
+        "checklist"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/travel-lite/src/Layout.tsx:Layout",
+      "type": "function",
+      "name": "Layout",
+      "filePath": "apps/travel-lite/src/Layout.tsx",
+      "lineRange": [
+        7,
+        95
+      ],
+      "summary": "Shell da aplicação com menu lateral filtrado por permissões, toggle responsivo com fechamento por teclado, header com branding e logout.",
+      "tags": [
+        "component",
+        "layout",
+        "navigation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/travel-lite/src/api.ts:loadSession",
+      "type": "function",
+      "name": "loadSession",
+      "filePath": "apps/travel-lite/src/api.ts",
+      "lineRange": [
+        31,
+        33
+      ],
+      "summary": "Lê a sessão persistida validando o formato salvo.",
+      "tags": [
+        "session",
+        "utility",
+        "auth"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/travel-lite/src/api.ts:saveSession",
+      "type": "function",
+      "name": "saveSession",
+      "filePath": "apps/travel-lite/src/api.ts",
+      "lineRange": [
+        35,
+        42
+      ],
+      "summary": "Persiste token e usuário em sessionStorage e remove dados legados de sessão no localStorage.",
+      "tags": [
+        "session",
+        "storage",
+        "auth"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/travel-lite/src/api.ts:clearSession",
+      "type": "function",
+      "name": "clearSession",
+      "filePath": "apps/travel-lite/src/api.ts",
+      "lineRange": [
+        44,
+        51
+      ],
+      "summary": "Remove a sessão atual e os resíduos legados de autenticação.",
+      "tags": [
+        "session",
+        "storage",
+        "auth"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/travel-lite/src/api.ts:readSession",
+      "type": "function",
+      "name": "readSession",
+      "filePath": "apps/travel-lite/src/api.ts",
+      "lineRange": [
+        53,
+        64
+      ],
+      "summary": "Carrega e valida a sessão do sessionStorage, limpando dados inválidos ou legados antes de retornar.",
+      "tags": [
+        "session",
+        "validation",
+        "auth"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/travel-lite/src/api.ts:api",
+      "type": "function",
+      "name": "api",
+      "filePath": "apps/travel-lite/src/api.ts",
+      "lineRange": [
+        87,
+        125
+      ],
+      "summary": "Função central de requisição HTTP que injeta headers de autenticação, serializa o corpo, trata 401 com logout global e converte falhas em ApiError.",
+      "tags": [
+        "api-client",
+        "http",
+        "error-handling"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/travel-lite/src/api.ts:apiCsv",
+      "type": "function",
+      "name": "apiCsv",
+      "filePath": "apps/travel-lite/src/api.ts",
+      "lineRange": [
+        127,
+        134
+      ],
+      "summary": "Requisição autenticada que retorna a resposta como Blob para downloads de relatórios CSV.",
+      "tags": [
+        "api-client",
+        "http",
+        "csv"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/travel-lite/src/api.ts:downloadBlob",
+      "type": "function",
+      "name": "downloadBlob",
+      "filePath": "apps/travel-lite/src/api.ts",
+      "lineRange": [
+        136,
+        145
+      ],
+      "summary": "Cria um link temporário no DOM para baixar um Blob no navegador e revoga o object URL em seguida.",
+      "tags": [
+        "utility",
+        "download",
+        "browser"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:apps/travel-lite/src/api.ts:ApiError",
+      "type": "class",
+      "name": "ApiError",
+      "filePath": "apps/travel-lite/src/api.ts",
+      "lineRange": [
+        21,
+        29
+      ],
+      "summary": "Erro de API que carrega o status HTTP para permitir tratamento específico pelos consumidores das requisições.",
+      "tags": [
+        "error-handling",
+        "class",
+        "api-client"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/travel-lite/src/auth.tsx:AuthProvider",
+      "type": "function",
+      "name": "AuthProvider",
+      "filePath": "apps/travel-lite/src/auth.tsx",
+      "lineRange": [
+        46,
+        148
+      ],
+      "summary": "Contexto de autenticação que restaura sessão via /auth/me, executa login/logout, controla o desafio de troca de senha e escuta o evento global de não autorizado.",
+      "tags": [
+        "context-provider",
+        "auth",
+        "security",
+        "react"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/travel-lite/src/auth.tsx:useAuth",
+      "type": "function",
+      "name": "useAuth",
+      "filePath": "apps/travel-lite/src/auth.tsx",
+      "lineRange": [
+        150,
+        154
+      ],
+      "summary": "Hook que consome o contexto de autenticação, falhando fora do provider.",
+      "tags": [
+        "hook",
+        "context",
+        "auth"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/travel-lite/src/auth.tsx:useCan",
+      "type": "function",
+      "name": "useCan",
+      "filePath": "apps/travel-lite/src/auth.tsx",
+      "lineRange": [
+        160,
+        164
+      ],
+      "summary": "Hook de autorização que indica se o usuário possui alguma das permissões informadas.",
+      "tags": [
+        "hook",
+        "authorization",
+        "security"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/travel-lite/src/auth.tsx:ProtectedRoute",
+      "type": "function",
+      "name": "ProtectedRoute",
+      "filePath": "apps/travel-lite/src/auth.tsx",
+      "lineRange": [
+        166,
+        173
+      ],
+      "summary": "Wrapper de rota que redireciona para o login quando não há sessão ativa.",
+      "tags": [
+        "routing",
+        "auth",
+        "component"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/travel-lite/src/branding.test.tsx:mockApi",
+      "type": "function",
+      "name": "mockApi",
+      "filePath": "apps/travel-lite/src/branding.test.tsx",
+      "lineRange": [
+        45,
+        64
+      ],
+      "summary": "Instala um mock global de fetch que registra as chamadas e responde às rotas de API usadas nos testes de branding.",
+      "tags": [
+        "test",
+        "mock",
+        "fetch"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/travel-lite/src/branding.ts:safeColor",
+      "type": "function",
+      "name": "safeColor",
+      "filePath": "apps/travel-lite/src/branding.ts",
+      "lineRange": [
+        56,
+        58
+      ],
+      "summary": "Valida e normaliza uma cor hexadecimal, retornando o valor padrão quando inválida.",
+      "tags": [
+        "validation",
+        "color",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/travel-lite/src/branding.ts:normalizeBranding",
+      "type": "function",
+      "name": "normalizeBranding",
+      "filePath": "apps/travel-lite/src/branding.ts",
+      "lineRange": [
+        67,
+        79
+      ],
+      "summary": "Sanitiza o objeto de branding vindo da API aplicando limites de texto, validação de cores e formato de logo.",
+      "tags": [
+        "validation",
+        "branding",
+        "security"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/travel-lite/src/branding.ts:darken",
+      "type": "function",
+      "name": "darken",
+      "filePath": "apps/travel-lite/src/branding.ts",
+      "lineRange": [
+        82,
+        88
+      ],
+      "summary": "Escurece uma cor hexadecimal proporcionalmente à fração informada.",
+      "tags": [
+        "utility",
+        "color",
+        "math"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/travel-lite/src/branding.ts:brandingVars",
+      "type": "function",
+      "name": "brandingVars",
+      "filePath": "apps/travel-lite/src/branding.ts",
+      "lineRange": [
+        91,
+        100
+      ],
+      "summary": "Converte o branding em variáveis CSS (cor primária e derivadas escurecidas) para aplicação no documento.",
+      "tags": [
+        "branding",
+        "css",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/travel-lite/src/branding.ts:brandingStyle",
+      "type": "function",
+      "name": "brandingStyle",
+      "filePath": "apps/travel-lite/src/branding.ts",
+      "lineRange": [
+        102,
+        104
+      ],
+      "summary": "Monta o objeto de estilo React a partir das variáveis de branding.",
+      "tags": [
+        "branding",
+        "css",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/travel-lite/src/branding.ts:isValidSlug",
+      "type": "function",
+      "name": "isValidSlug",
+      "filePath": "apps/travel-lite/src/branding.ts",
+      "lineRange": [
+        106,
+        108
+      ],
+      "summary": "Valida um slug de tenant contra o formato permitido.",
+      "tags": [
+        "validation",
+        "multi-tenant",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/travel-lite/src/branding.ts:slugFromHostname",
+      "type": "function",
+      "name": "slugFromHostname",
+      "filePath": "apps/travel-lite/src/branding.ts",
+      "lineRange": [
+        110,
+        128
+      ],
+      "summary": "Extrai o slug do tenant a partir do hostname, descartando IPs, domínios raiz e subdomínios reservados.",
+      "tags": [
+        "multi-tenant",
+        "routing",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/travel-lite/src/branding.ts:slugFromCurrentHostname",
+      "type": "function",
+      "name": "slugFromCurrentHostname",
+      "filePath": "apps/travel-lite/src/branding.ts",
+      "lineRange": [
+        130,
+        132
+      ],
+      "summary": "Atalho que resolve o slug do tenant a partir do hostname atual.",
+      "tags": [
+        "multi-tenant",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/travel-lite/src/branding.ts:slugFromPathname",
+      "type": "function",
+      "name": "slugFromPathname",
+      "filePath": "apps/travel-lite/src/branding.ts",
+      "lineRange": [
+        134,
+        138
+      ],
+      "summary": "Extrai o slug do tenant do primeiro segmento do caminho, ignorando segmentos reservados.",
+      "tags": [
+        "multi-tenant",
+        "routing",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/travel-lite/src/branding.ts:slugFromCurrentPathname",
+      "type": "function",
+      "name": "slugFromCurrentPathname",
+      "filePath": "apps/travel-lite/src/branding.ts",
+      "lineRange": [
+        140,
+        142
+      ],
+      "summary": "Atalho que resolve o slug do tenant a partir do caminho atual.",
+      "tags": [
+        "multi-tenant",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/travel-lite/src/branding.ts:fetchPublicBranding",
+      "type": "function",
+      "name": "fetchPublicBranding",
+      "filePath": "apps/travel-lite/src/branding.ts",
+      "lineRange": [
+        145,
+        157
+      ],
+      "summary": "Busca o branding público de um tenant na API e normaliza a resposta antes de retornar.",
+      "tags": [
+        "api-client",
+        "branding",
+        "multi-tenant"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/travel-lite/src/branding.ts:rememberSlug",
+      "type": "function",
+      "name": "rememberSlug",
+      "filePath": "apps/travel-lite/src/branding.ts",
+      "lineRange": [
+        159,
+        165
+      ],
+      "summary": "Persiste o slug do tenant no localStorage para reuso entre sessões.",
+      "tags": [
+        "storage",
+        "multi-tenant",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/travel-lite/src/branding.ts:recallSlug",
+      "type": "function",
+      "name": "recallSlug",
+      "filePath": "apps/travel-lite/src/branding.ts",
+      "lineRange": [
+        167,
+        174
+      ],
+      "summary": "Recupera o slug do tenant do localStorage, validando-o antes de retornar.",
+      "tags": [
+        "storage",
+        "multi-tenant",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/travel-lite/src/charts.tsx:ChartCard",
+      "type": "function",
+      "name": "ChartCard",
+      "filePath": "apps/travel-lite/src/charts.tsx",
+      "lineRange": [
+        51,
+        58
+      ],
+      "summary": "Card container que envolve um gráfico com título.",
+      "tags": [
+        "component",
+        "charts",
+        "ui"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/travel-lite/src/charts.tsx:SeriesBarChart",
+      "type": "function",
+      "name": "SeriesBarChart",
+      "filePath": "apps/travel-lite/src/charts.tsx",
+      "lineRange": [
+        60,
+        86
+      ],
+      "summary": "Gráfico de barras agrupadas com cores por série e tooltips de valores formatados em BRL.",
+      "tags": [
+        "component",
+        "charts",
+        "recharts"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/travel-lite/src/charts.tsx:SeriesLineChart",
+      "type": "function",
+      "name": "SeriesLineChart",
+      "filePath": "apps/travel-lite/src/charts.tsx",
+      "lineRange": [
+        88,
+        121
+      ],
+      "summary": "Gráfico de linhas com eixo de valores compacto e tooltips formatados em BRL.",
+      "tags": [
+        "component",
+        "charts",
+        "recharts"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/travel-lite/src/charts.tsx:monthLabel",
+      "type": "function",
+      "name": "monthLabel",
+      "filePath": "apps/travel-lite/src/charts.tsx",
+      "lineRange": [
+        124,
+        128
+      ],
+      "summary": "Converte uma chave de mês AAAA-MM em rótulo curto com ano de dois dígitos.",
+      "tags": [
+        "utility",
+        "date",
+        "formatting"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/travel-lite/src/App.test.tsx",
+      "target": "file:apps/travel-lite/src/App.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/travel-lite/src/App.tsx",
+      "target": "file:apps/travel-lite/src/BrandingProvider.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/travel-lite/src/App.tsx",
+      "target": "file:apps/travel-lite/src/Layout.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/travel-lite/src/App.tsx",
+      "target": "file:apps/travel-lite/src/auth.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/travel-lite/src/App.tsx",
+      "target": "file:apps/travel-lite/src/menu.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/travel-lite/src/App.tsx",
+      "target": "file:apps/travel-lite/src/pages/CatalogPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/travel-lite/src/App.tsx",
+      "target": "file:apps/travel-lite/src/pages/CommissionsPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/travel-lite/src/App.tsx",
+      "target": "file:apps/travel-lite/src/pages/CustomersPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/travel-lite/src/App.tsx",
+      "target": "file:apps/travel-lite/src/pages/DashboardPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/travel-lite/src/App.tsx",
+      "target": "file:apps/travel-lite/src/pages/FinancePage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/travel-lite/src/App.tsx",
+      "target": "file:apps/travel-lite/src/pages/ForgotPasswordPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/travel-lite/src/App.tsx",
+      "target": "file:apps/travel-lite/src/pages/HelpPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/travel-lite/src/App.tsx",
+      "target": "file:apps/travel-lite/src/pages/ImportDataPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/travel-lite/src/App.tsx",
+      "target": "file:apps/travel-lite/src/pages/LoginPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/travel-lite/src/App.tsx",
+      "target": "file:apps/travel-lite/src/pages/PlanPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/travel-lite/src/App.tsx",
+      "target": "file:apps/travel-lite/src/pages/ReportsPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/travel-lite/src/App.tsx",
+      "target": "file:apps/travel-lite/src/pages/ResetPasswordPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/travel-lite/src/App.tsx",
+      "target": "file:apps/travel-lite/src/pages/SalesPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/travel-lite/src/App.tsx",
+      "target": "file:apps/travel-lite/src/pages/SellersPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/travel-lite/src/App.tsx",
+      "target": "file:apps/travel-lite/src/pages/SettingsPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/travel-lite/src/BrandingProvider.tsx",
+      "target": "file:apps/travel-lite/src/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/travel-lite/src/BrandingProvider.tsx",
+      "target": "file:apps/travel-lite/src/auth.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/travel-lite/src/BrandingProvider.tsx",
+      "target": "file:apps/travel-lite/src/branding.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/travel-lite/src/FirstRunChecklist.tsx",
+      "target": "file:apps/travel-lite/src/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/travel-lite/src/FirstRunChecklist.tsx",
+      "target": "file:apps/travel-lite/src/auth.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/travel-lite/src/Layout.tsx",
+      "target": "file:apps/travel-lite/src/BrandingProvider.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/travel-lite/src/Layout.tsx",
+      "target": "file:apps/travel-lite/src/auth.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/travel-lite/src/Layout.tsx",
+      "target": "file:apps/travel-lite/src/menu.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/travel-lite/src/auth.tsx",
+      "target": "file:apps/travel-lite/src/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/travel-lite/src/branding.test.tsx",
+      "target": "file:apps/travel-lite/src/App.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/travel-lite/src/branding.test.tsx",
+      "target": "file:apps/travel-lite/src/branding.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/travel-lite/src/branding.ts",
+      "target": "file:apps/travel-lite/src/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/travel-lite/src/charts.tsx",
+      "target": "file:apps/travel-lite/src/ui.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/travel-lite/src/App.test.tsx",
+      "target": "function:apps/travel-lite/src/App.test.tsx:dashboard",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/travel-lite/src/App.test.tsx",
+      "target": "function:apps/travel-lite/src/App.test.tsx:mockFetch",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/travel-lite/src/App.tsx",
+      "target": "function:apps/travel-lite/src/App.tsx:AccessDenied",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/travel-lite/src/App.tsx",
+      "target": "function:apps/travel-lite/src/App.tsx:App",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/travel-lite/src/App.tsx",
+      "target": "function:apps/travel-lite/src/App.tsx:App",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/travel-lite/src/BrandingProvider.tsx",
+      "target": "function:apps/travel-lite/src/BrandingProvider.tsx:BrandingProvider",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/travel-lite/src/BrandingProvider.tsx",
+      "target": "function:apps/travel-lite/src/BrandingProvider.tsx:BrandingProvider",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/travel-lite/src/BrandingProvider.tsx",
+      "target": "function:apps/travel-lite/src/BrandingProvider.tsx:useBranding",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/travel-lite/src/BrandingProvider.tsx",
+      "target": "function:apps/travel-lite/src/BrandingProvider.tsx:useBranding",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/travel-lite/src/FirstRunChecklist.tsx",
+      "target": "function:apps/travel-lite/src/FirstRunChecklist.tsx:helpLine",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/travel-lite/src/FirstRunChecklist.tsx",
+      "target": "function:apps/travel-lite/src/FirstRunChecklist.tsx:FirstRunChecklist",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/travel-lite/src/FirstRunChecklist.tsx",
+      "target": "function:apps/travel-lite/src/FirstRunChecklist.tsx:FirstRunChecklist",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/travel-lite/src/Layout.tsx",
+      "target": "function:apps/travel-lite/src/Layout.tsx:Layout",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/travel-lite/src/Layout.tsx",
+      "target": "function:apps/travel-lite/src/Layout.tsx:Layout",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/travel-lite/src/api.ts",
+      "target": "function:apps/travel-lite/src/api.ts:loadSession",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/travel-lite/src/api.ts",
+      "target": "function:apps/travel-lite/src/api.ts:loadSession",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/travel-lite/src/api.ts",
+      "target": "function:apps/travel-lite/src/api.ts:saveSession",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/travel-lite/src/api.ts",
+      "target": "function:apps/travel-lite/src/api.ts:saveSession",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/travel-lite/src/api.ts",
+      "target": "function:apps/travel-lite/src/api.ts:clearSession",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/travel-lite/src/api.ts",
+      "target": "function:apps/travel-lite/src/api.ts:clearSession",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/travel-lite/src/api.ts",
+      "target": "function:apps/travel-lite/src/api.ts:readSession",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/travel-lite/src/api.ts",
+      "target": "function:apps/travel-lite/src/api.ts:readSession",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/travel-lite/src/api.ts",
+      "target": "function:apps/travel-lite/src/api.ts:api",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/travel-lite/src/api.ts",
+      "target": "function:apps/travel-lite/src/api.ts:api",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/travel-lite/src/api.ts",
+      "target": "function:apps/travel-lite/src/api.ts:apiCsv",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/travel-lite/src/api.ts",
+      "target": "function:apps/travel-lite/src/api.ts:apiCsv",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/travel-lite/src/api.ts",
+      "target": "function:apps/travel-lite/src/api.ts:downloadBlob",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/travel-lite/src/api.ts",
+      "target": "function:apps/travel-lite/src/api.ts:downloadBlob",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/travel-lite/src/api.ts",
+      "target": "class:apps/travel-lite/src/api.ts:ApiError",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/travel-lite/src/api.ts",
+      "target": "class:apps/travel-lite/src/api.ts:ApiError",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/travel-lite/src/auth.tsx",
+      "target": "function:apps/travel-lite/src/auth.tsx:AuthProvider",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/travel-lite/src/auth.tsx",
+      "target": "function:apps/travel-lite/src/auth.tsx:AuthProvider",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/travel-lite/src/auth.tsx",
+      "target": "function:apps/travel-lite/src/auth.tsx:useAuth",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/travel-lite/src/auth.tsx",
+      "target": "function:apps/travel-lite/src/auth.tsx:useAuth",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/travel-lite/src/auth.tsx",
+      "target": "function:apps/travel-lite/src/auth.tsx:useCan",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/travel-lite/src/auth.tsx",
+      "target": "function:apps/travel-lite/src/auth.tsx:useCan",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/travel-lite/src/auth.tsx",
+      "target": "function:apps/travel-lite/src/auth.tsx:ProtectedRoute",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/travel-lite/src/auth.tsx",
+      "target": "function:apps/travel-lite/src/auth.tsx:ProtectedRoute",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/travel-lite/src/branding.test.tsx",
+      "target": "function:apps/travel-lite/src/branding.test.tsx:mockApi",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/travel-lite/src/branding.ts",
+      "target": "function:apps/travel-lite/src/branding.ts:safeColor",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/travel-lite/src/branding.ts",
+      "target": "function:apps/travel-lite/src/branding.ts:safeColor",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/travel-lite/src/branding.ts",
+      "target": "function:apps/travel-lite/src/branding.ts:normalizeBranding",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/travel-lite/src/branding.ts",
+      "target": "function:apps/travel-lite/src/branding.ts:normalizeBranding",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/travel-lite/src/branding.ts",
+      "target": "function:apps/travel-lite/src/branding.ts:darken",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/travel-lite/src/branding.ts",
+      "target": "function:apps/travel-lite/src/branding.ts:darken",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/travel-lite/src/branding.ts",
+      "target": "function:apps/travel-lite/src/branding.ts:brandingVars",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/travel-lite/src/branding.ts",
+      "target": "function:apps/travel-lite/src/branding.ts:brandingVars",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/travel-lite/src/branding.ts",
+      "target": "function:apps/travel-lite/src/branding.ts:brandingStyle",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/travel-lite/src/branding.ts",
+      "target": "function:apps/travel-lite/src/branding.ts:brandingStyle",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/travel-lite/src/branding.ts",
+      "target": "function:apps/travel-lite/src/branding.ts:isValidSlug",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/travel-lite/src/branding.ts",
+      "target": "function:apps/travel-lite/src/branding.ts:isValidSlug",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/travel-lite/src/branding.ts",
+      "target": "function:apps/travel-lite/src/branding.ts:slugFromHostname",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/travel-lite/src/branding.ts",
+      "target": "function:apps/travel-lite/src/branding.ts:slugFromHostname",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/travel-lite/src/branding.ts",
+      "target": "function:apps/travel-lite/src/branding.ts:slugFromCurrentHostname",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/travel-lite/src/branding.ts",
+      "target": "function:apps/travel-lite/src/branding.ts:slugFromCurrentHostname",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/travel-lite/src/branding.ts",
+      "target": "function:apps/travel-lite/src/branding.ts:slugFromPathname",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/travel-lite/src/branding.ts",
+      "target": "function:apps/travel-lite/src/branding.ts:slugFromPathname",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/travel-lite/src/branding.ts",
+      "target": "function:apps/travel-lite/src/branding.ts:slugFromCurrentPathname",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/travel-lite/src/branding.ts",
+      "target": "function:apps/travel-lite/src/branding.ts:slugFromCurrentPathname",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/travel-lite/src/branding.ts",
+      "target": "function:apps/travel-lite/src/branding.ts:fetchPublicBranding",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/travel-lite/src/branding.ts",
+      "target": "function:apps/travel-lite/src/branding.ts:fetchPublicBranding",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/travel-lite/src/branding.ts",
+      "target": "function:apps/travel-lite/src/branding.ts:rememberSlug",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/travel-lite/src/branding.ts",
+      "target": "function:apps/travel-lite/src/branding.ts:rememberSlug",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/travel-lite/src/branding.ts",
+      "target": "function:apps/travel-lite/src/branding.ts:recallSlug",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/travel-lite/src/branding.ts",
+      "target": "function:apps/travel-lite/src/branding.ts:recallSlug",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/travel-lite/src/charts.tsx",
+      "target": "function:apps/travel-lite/src/charts.tsx:ChartCard",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/travel-lite/src/charts.tsx",
+      "target": "function:apps/travel-lite/src/charts.tsx:ChartCard",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/travel-lite/src/charts.tsx",
+      "target": "function:apps/travel-lite/src/charts.tsx:SeriesBarChart",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/travel-lite/src/charts.tsx",
+      "target": "function:apps/travel-lite/src/charts.tsx:SeriesBarChart",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/travel-lite/src/charts.tsx",
+      "target": "function:apps/travel-lite/src/charts.tsx:SeriesLineChart",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/travel-lite/src/charts.tsx",
+      "target": "function:apps/travel-lite/src/charts.tsx:SeriesLineChart",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/travel-lite/src/charts.tsx",
+      "target": "function:apps/travel-lite/src/charts.tsx:monthLabel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/travel-lite/src/charts.tsx",
+      "target": "function:apps/travel-lite/src/charts.tsx:monthLabel",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/travel-lite/src/App.tsx",
+      "target": "file:apps/travel-lite/src/App.test.tsx",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/travel-lite/src/App.tsx",
+      "target": "file:apps/travel-lite/src/branding.test.tsx",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/travel-lite/src/App.tsx",
+      "target": "file:apps/travel-lite/src/mobile.test.tsx",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/travel-lite/src/branding.ts",
+      "target": "file:apps/travel-lite/src/branding.test.tsx",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/travel-lite/src/App.tsx",
+      "target": "function:apps/travel-lite/src/pages/FinancePage.tsx:FinancePage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/travel-lite/src/App.tsx",
+      "target": "function:apps/travel-lite/src/pages/ForgotPasswordPage.tsx:ForgotPasswordPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/travel-lite/src/App.tsx",
+      "target": "function:apps/travel-lite/src/pages/HelpPage.tsx:HelpPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/travel-lite/src/App.tsx",
+      "target": "function:apps/travel-lite/src/pages/ImportDataPage.tsx:ImportDataPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/travel-lite/src/App.tsx",
+      "target": "function:apps/travel-lite/src/pages/LoginPage.tsx:LoginPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/travel-lite/src/App.tsx",
+      "target": "function:apps/travel-lite/src/pages/PlanPage.tsx:PlanPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/travel-lite/src/App.tsx",
+      "target": "function:apps/travel-lite/src/pages/ReportsPage.tsx:ReportsPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/travel-lite/src/App.tsx",
+      "target": "function:apps/travel-lite/src/pages/ResetPasswordPage.tsx:ResetPasswordPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/travel-lite/src/App.tsx",
+      "target": "function:apps/travel-lite/src/pages/SalesPage.tsx:SalesPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/travel-lite/src/App.tsx",
+      "target": "function:apps/travel-lite/src/pages/SellersPage.tsx:SellersPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/travel-lite/src/App.tsx",
+      "target": "function:apps/travel-lite/src/pages/SettingsPage.tsx:SettingsPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/travel-lite/src/charts.tsx",
+      "target": "function:apps/travel-lite/src/ui.tsx:formatBRL",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/travel-lite/src/BrandingProvider.tsx:BrandingProvider",
+      "target": "function:apps/travel-lite/src/branding.ts:normalizeBranding",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/travel-lite/src/auth.tsx:AuthProvider",
+      "target": "function:apps/travel-lite/src/api.ts:api",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/travel-lite/src/FirstRunChecklist.tsx:FirstRunChecklist",
+      "target": "function:apps/travel-lite/src/api.ts:api",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/travel-lite/src/Layout.tsx:Layout",
+      "target": "function:apps/travel-lite/src/menu.ts:menuPermissions",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

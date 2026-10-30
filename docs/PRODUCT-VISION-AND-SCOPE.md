@@ -1,5 +1,10 @@
 # Travel Platform — Visão do Produto e Escopo
 
+> **Diretriz Full/Lite vigente:** Full primeiro; Lite como subconjunto
+> funcional, sem funcionalidades exclusivas. Consulte o
+> [escopo oficial](00-product/scope.md) e a
+> [DEC-007](decisions/DEC-007-full-first-lite-parity.md).
+
 > **Nota para agentes de IA:** Este documento descreve a visão e o escopo do
 > produto. Não substitui ADRs, schema, migrations ou documentação específica de
 > domínio. Em conflito sobre comportamento implementado, consultar as fontes

@@ -1,4 +1,4 @@
-import { Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
 import { AppShell } from './components/layout/AppShell';
 import { RequireAuth } from './components/auth/RequireAuth';
 import { LoginPage } from './pages/LoginPage';
@@ -38,6 +38,12 @@ import { SaleFinancialStoryPage } from './pages/SaleFinancialStoryPage';
 import { RevenuesPage } from './pages/RevenuesPage';
 import { ExpensesPage } from './pages/ExpensesPage';
 import { CategoriesPage } from './pages/CategoriesPage';
+import { NewSalePage } from './pages/NewSalePage';
+import { CommissionReleasePage } from './pages/CommissionReleasePage';
+import { CommissionRulesPage } from './pages/CommissionRulesPage';
+import { FinancialSettingsPage } from './pages/FinancialSettingsPage';
+import { PaymentConditionsPage } from './pages/PaymentConditionsPage';
+import { SaleCategoriesPage } from './pages/SaleCategoriesPage';
 import { CostCentersPage } from './pages/CostCentersPage';
 import { CashTransactionsPage } from './pages/CashTransactionsPage';
 import { ReconciliationPage } from './pages/ReconciliationPage';
@@ -53,6 +59,10 @@ import { DocumentAlertsPage } from './pages/operations/DocumentAlertsPage';
 import { OccurrencesPage } from './pages/operations/OccurrencesPage';
 import { PostTripPage } from './pages/operations/PostTripPage';
 import { ReportsPage } from './pages/ReportsPage';
+import { AgencyRevenuePage } from './pages/AgencyRevenuePage';
+import { ProjectionsPage } from './pages/ProjectionsPage';
+import { DashboardSettingsPage } from './pages/DashboardSettingsPage';
+import { SalesImportPage } from './pages/SalesImportPage';
 import { CommunicationPage } from './pages/CommunicationPage';
 import { CommunicationFormPage } from './pages/CommunicationFormPage';
 import { MediaLibraryPage } from './pages/MediaLibraryPage';
@@ -63,8 +73,9 @@ import { SettingsPage } from './pages/SettingsPage';
 import { EnrollmentLinksPage } from './pages/EnrollmentLinksPage';
 import { EmployeesPage } from './pages/EmployeesPage';
 import { EmployeeDetailPage } from './pages/EmployeeDetailPage';
-import { CommissionPlansPage } from './pages/CommissionPlansPage';
 import { PayrollPage } from './pages/PayrollPage';
+import { AgencyModulesPage } from './pages/AgencyModulesPage';
+import { HelpPage } from './pages/HelpPage';
 
 export function App() {
   return (
@@ -82,6 +93,7 @@ export function App() {
         <Route path="onboarding" element={<OnboardingWizardPage />} />
 
         <Route element={<AppShell />}>
+        <Route path="ajuda" element={<HelpPage />} />
         <Route index element={<DashboardPage />} />
         <Route path="customers" element={<CustomersPage />} />
         <Route path="customers/:id" element={<CustomerDetailPage />} />
@@ -101,6 +113,8 @@ export function App() {
         <Route path="bookings" element={<BookingListPage />} />
         <Route path="bookings/:id" element={<BookingDetailPage />} />
         <Route path="sales" element={<SalesListPage />} />
+        <Route path="sales/new" element={<NewSalePage />} />
+        <Route path="sale-categories" element={<SaleCategoriesPage />} />
         <Route path="sales/:id" element={<SaleSummaryPage />} />
         <Route path="offers" element={<OffersPage />} />
         <Route path="offers/:id" element={<OfferDetailPage />} />
@@ -124,6 +138,10 @@ export function App() {
         <Route path="financial/cash-transactions" element={<CashTransactionsPage />} />
         <Route path="financial/reconciliation" element={<ReconciliationPage />} />
         <Route path="financial/reports" element={<DetailedReportsPage />} />
+        <Route path="financial/agency-revenue" element={<AgencyRevenuePage />} />
+        <Route path="financial/projections" element={<ProjectionsPage />} />
+        <Route path="settings/dashboard" element={<DashboardSettingsPage />} />
+        <Route path="sales/import" element={<SalesImportPage />} />
         <Route path="pescador" element={<PescadorPage />} />
         <Route path="suppliers" element={<SuppliersPage />} />
         <Route path="operations/air" element={<AirServicesPage />} />
@@ -136,9 +154,14 @@ export function App() {
         <Route path="enrollment-links" element={<EnrollmentLinksPage />} />
         <Route path="employees" element={<EmployeesPage />} />
         <Route path="employees/:id" element={<EmployeeDetailPage />} />
-        <Route path="commission-plans" element={<CommissionPlansPage />} />
+        <Route path="commission-plans" element={<Navigate to="/commission-rules" replace />} />
+        <Route path="commission-rules" element={<CommissionRulesPage />} />
+        <Route path="financial/settings" element={<FinancialSettingsPage />} />
+        <Route path="payment-conditions" element={<PaymentConditionsPage />} />
+        <Route path="commission-release" element={<CommissionReleasePage />} />
         <Route path="payroll" element={<PayrollPage />} />
         <Route path="settings" element={<SettingsPage />} />
+        <Route path="settings/modules" element={<AgencyModulesPage />} />
         <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Route>

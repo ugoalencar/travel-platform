@@ -1,0 +1,10 @@
+Tarefa SOMENTE LEITURA (nao altere arquivos, nao rode migrations, nao acesse rede). Responda em portugues, objetivo, em Markdown.
+
+Contexto: repositorio D:\travel-platform (Travel Platform Full e baseline; Lite e subconjunto; Full primeiro, DEC-007). Leia: .claude/PLANO-MESTRE-ENTREGA-DEMO-2026-10-24.md, docs/00-product/FULL-LITE-ALIGNMENT-PLAN.md, .claude/RELATORIO-ONDA-E-2026-10-24.md, .claude/RELATORIO-ONDA-D-2026-10-24.md, .claude/RELATORIO-CORRECOES-ONDA-D-2026-10-24.md, .claude/RELATORIO-ONDA-F1-2026-10-24.md, .claude/RELATORIO-ONDA-F2-BAK01-2026-10-24.md, .claude/RELATORIO-ONDA-F3-IMP01-2026-10-24.md e o estado real do codigo (migrations 100..110 em infrastructure/migrations, services/api/src, apps/agency/src).
+
+Entregue:
+1. LISTA OBJETIVA DO QUE FALTA para o Full ficar pronto para teste local do usuario (Full somente; Lite fica para depois, quando o Full for aprovado). Para cada item: id, o que falta, arquivos provaveis, criterio de pronto, esforco (P/M/G), dependencia. Verifique no codigo; nao confie so nos relatorios. Marque o que os relatorios dizem concluido mas voce nao confirmou.
+2. AREA DE COMISSOES (prioridade): estado real de COM-01/02/03, liberacao por recebimento, folha, canal avulso, estorno, metas (META_E_LIBERACAO). O que falta implementar e o que depende de decisao humana.
+3. DECISOES HUMANAS pendentes de comissoes: para cada uma, escreva a pergunta em linguagem simples (sem jargao), as opcoes, a RECOMENDACAO e o impacto de cada opcao. Maximo 10, ordenadas por impacto. Inclua as decisoes "adotadas por padrao" que precisam de confirmacao (ex.: perfil financeiro inicial SOMENTE_LIBERACAO no Lite, venda sem forma de pagamento = bloqueada, efeito de META_E_LIBERACAO em metas, arredondamento legado 0,55 x 0,56, estorno de recebimento inexistente no Full).
+4. RISCOS que impedem o teste local (bloqueantes do Codex em aberto na Onda D, suites que falham, tabelas pendentes de backup etc.).
+5. ORDEM RECOMENDADA de execucao em demandas curtas, cada uma com: titulo, escopo exclusivo de arquivos, gates a rodar, e quem executa (Claude/Codex). Maximo 12 demandas.

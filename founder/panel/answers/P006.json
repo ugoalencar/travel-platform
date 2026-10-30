@@ -1,0 +1,13 @@
+{
+  "id": "P006",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Já estou insatisfeita com o sistema que uso, então a dor é real, mas trocar de sistema sem ninguém do meu tamanho já usando e recomendando é arriscado demais pra agência pequena como a minha. Vou testar de graça, sem compromisso, antes de pensar em pagar qualquer coisa.",
+  "objection": "Não vi nenhuma agência conhecida usando isso. Quem já testou e recomenda? E se a migração travar minha operação bem na alta temporada?",
+  "would_change_my_mind": "Ver pelo menos uma ou duas agências do meu porte, de verdade, usando o sistema há alguns meses e falando bem — não um depoimento genérico, caso de uso real com nome.",
+  "price_too_cheap": 40,
+  "price_cheap": 79,
+  "price_expensive": 150,
+  "price_too_expensive": 250
+}

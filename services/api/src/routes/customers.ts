@@ -8,13 +8,22 @@
 
 import type { FastifyInstance } from 'fastify';
 import type { preHandlerHookHandler } from 'fastify';
-import { requireRole } from '../../../../packages/domain/tenant-context';
+import {
+  assertCustomerFieldRules,
+  listCustomerFieldSettings,
+  parseFieldSettingsInput,
+  saveCustomerFieldSettings,
+} from '../customer-field-settings';
+import { getTenantContext, requireRole } from '../../../../packages/domain/tenant-context';
 import { UserRole } from '../../../../packages/domain/types';
 import type { DatabaseRuntime } from '../database';
 import {
+  CUSTOMER_LOOKUP_DEFAULT_LIMIT,
+  CUSTOMER_LOOKUP_MAX_LIMIT,
   createCustomer,
   getCustomerById,
   listCustomers,
+  lookupCustomers,
   updateCustomer,
   type CreateCustomerInput,
   type UpdateCustomerInput,
@@ -23,6 +32,7 @@ import { listWishesByCustomer } from '../wishes';
 import { listTripsByCustomer } from '../trips';
 import { NotFoundError, ValidationError } from '../errors';
 import { grantCustomerPortalAccess, sendCustomerPortalActivationEmail } from '../customer-portal-access';
+import { assertNotRestricted } from '../permission-restrictions';
 
 export interface CustomerRoutesOptions {
   database: DatabaseRuntime;
@@ -41,6 +51,23 @@ export function registerCustomerRoutes(
     return { customers };
   });
 
+  // Search-as-you-type for the sale form. Returns a minimal, masked shape so
+  // the picker never ships the full customer list to the browser.
+  app.get<{ Querystring: { q?: unknown; limit?: unknown } }>(
+    '/customers/lookup',
+    { preHandler: protectedHooks },
+    async (request) => {
+      requireRole(UserRole.VIEWER);
+      const { term, limit } = parseCustomerLookupQuery(request.query);
+      const restrictionContext = getTenantContext();
+      await database.withTenantTransaction((client) =>
+        assertNotRestricted(client, restrictionContext.userRole, 'customers', 'read'),
+      );
+      const items = await lookupCustomers(database, term, limit);
+      return { items };
+    },
+  );
+
   app.get<{ Params: { id: string } }>(
     '/customers/:id',
     { preHandler: protectedHooks },
@@ -56,9 +83,22 @@ export function registerCustomerRoutes(
     }
   );
 
+  // Registry + current configuration of the registration form (UI reflects it; the server enforces it).
+  app.get('/customers/field-settings', { preHandler: protectedHooks }, async () => {
+    requireRole(UserRole.VIEWER);
+    return { fields: await listCustomerFieldSettings(database) };
+  });
+
+  app.put('/settings/customers/field-settings', { preHandler: protectedHooks }, async (request) => {
+    requireRole(UserRole.ADMIN);
+    const inputs = parseFieldSettingsInput(request.body);
+    return { fields: await saveCustomerFieldSettings(database, inputs) };
+  });
+
   app.post('/customers', { preHandler: protectedHooks }, async (request, reply) => {
     requireRole(UserRole.AGENT);
     const data = parseCreateCustomerInput(request.body);
+    await assertCustomerFieldRules(database, { ...data }, 'create');
     const customer = await createCustomer(database, data);
 
     reply.code(201);
@@ -71,6 +111,7 @@ export function registerCustomerRoutes(
     async (request) => {
       requireRole(UserRole.AGENT);
       const data = parseUpdateCustomerInput(request.body);
+      await assertCustomerFieldRules(database, { ...data }, 'update');
       const customer = await updateCustomer(database, request.params.id, data);
 
       if (!customer) {
@@ -147,6 +188,24 @@ export function registerCustomerRoutes(
 // ============================================================
 // INPUT PARSERS
 // ============================================================
+
+const LOOKUP_MIN_TERM_LENGTH = 2;
+
+function parseCustomerLookupQuery(query: { q?: unknown; limit?: unknown }): { term: string; limit: number } {
+  if (typeof query.q !== 'string' || query.q.trim().length < LOOKUP_MIN_TERM_LENGTH) {
+    throw new ValidationError(`Query "q" must have at least ${LOOKUP_MIN_TERM_LENGTH} characters`);
+  }
+
+  let limit = CUSTOMER_LOOKUP_DEFAULT_LIMIT;
+  if (query.limit !== undefined) {
+    if (typeof query.limit !== 'string' || !/^\d+$/.test(query.limit)) {
+      throw new ValidationError('Query "limit" must be a positive integer');
+    }
+    limit = Math.min(CUSTOMER_LOOKUP_MAX_LIMIT, Math.max(1, Number(query.limit)));
+  }
+
+  return { term: query.q.trim(), limit };
+}
 
 const FORBIDDEN_CREATE_FIELDS = [
   'agencyId',

@@ -1,0 +1,647 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/agency/src/lib/formatCurrency.test.ts",
+      "type": "file",
+      "name": "formatCurrency.test.ts",
+      "filePath": "apps/agency/src/lib/formatCurrency.test.ts",
+      "summary": "Testes unitários do formatBRL cobrindo valores válidos, inválidos e o placeholder de fallback.",
+      "tags": [
+        "teste",
+        "utilitário",
+        "formatação",
+        "moeda"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/agency/src/lib/formatCurrency.ts",
+      "type": "file",
+      "name": "formatCurrency.ts",
+      "filePath": "apps/agency/src/lib/formatCurrency.ts",
+      "summary": "Exporta o formatBRL, utilitário que formata valores numéricos em Real brasileiro para exibição na interface.",
+      "tags": [
+        "utilitário",
+        "formatação",
+        "moeda",
+        "brl"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/agency/src/lib/formatDateBR.test.ts",
+      "type": "file",
+      "name": "formatDateBR.test.ts",
+      "filePath": "apps/agency/src/lib/formatDateBR.test.ts",
+      "summary": "Testes unitários do formatDateBR verificando formatação de datas, horários e placeholders.",
+      "tags": [
+        "teste",
+        "utilitário",
+        "formatação",
+        "data"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/agency/src/lib/formatDateBR.ts",
+      "type": "file",
+      "name": "formatDateBR.ts",
+      "filePath": "apps/agency/src/lib/formatDateBR.ts",
+      "summary": "Exporta o formatDateBR, utilitário que converte datas para o padrão brasileiro dd/mm/aaaa com opções de horário.",
+      "tags": [
+        "utilitário",
+        "formatação",
+        "data",
+        "brl"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/agency/src/lib/session.ts",
+      "type": "file",
+      "name": "session.ts",
+      "filePath": "apps/agency/src/lib/session.ts",
+      "summary": "Gerencia a sessão de autenticação: persiste token e expiração no localStorage e controla o slug de agência lembrado no login.",
+      "tags": [
+        "autenticação",
+        "sessão",
+        "localStorage",
+        "segurança"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Estado de sessão armazenado no localStorage; a validação de expiração é feita de forma síncrona em cada leitura."
+    },
+    {
+      "id": "file:apps/agency/src/lib/statusLabels.ts",
+      "type": "file",
+      "name": "statusLabels.ts",
+      "filePath": "apps/agency/src/lib/statusLabels.ts",
+      "summary": "Mapeia os status de clientes, wishes, viagens, propostas e reservas para rótulos em português usados nos badges da UI.",
+      "tags": [
+        "rótulos",
+        "status",
+        "domínio",
+        "ui"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/agency/src/lib/utils.ts",
+      "type": "file",
+      "name": "utils.ts",
+      "filePath": "apps/agency/src/lib/utils.ts",
+      "summary": "Expõe o cn, helper que combina class names condicionais com clsx e tailwind-merge para os componentes de UI.",
+      "tags": [
+        "utilitário",
+        "class-names",
+        "tailwind",
+        "ui"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/agency/src/main.tsx",
+      "type": "file",
+      "name": "main.tsx",
+      "filePath": "apps/agency/src/main.tsx",
+      "summary": "Ponto de entrada da SPA da agência: monta o componente App e carrega os estilos globais.",
+      "tags": [
+        "ponto-de-entrada",
+        "react",
+        "spa",
+        "bootstrap"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/agency/src/lib/formatCurrency.ts:formatBRL",
+      "type": "function",
+      "name": "formatBRL",
+      "filePath": "apps/agency/src/lib/formatCurrency.ts",
+      "lineRange": [
+        16,
+        21
+      ],
+      "summary": "Formata um valor numérico em reais com símbolo de moeda e separadores brasileiros, retornando um placeholder quando o valor é inválido.",
+      "tags": [
+        "utilitário",
+        "formatação",
+        "moeda"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/agency/src/lib/formatDateBR.ts:formatDateBR",
+      "type": "function",
+      "name": "formatDateBR",
+      "filePath": "apps/agency/src/lib/formatDateBR.ts",
+      "lineRange": [
+        46,
+        73
+      ],
+      "summary": "Converte datas (string, Date ou número) para o padrão brasileiro dd/mm/aaaa, com opções de horário e fallback para placeholder.",
+      "tags": [
+        "utilitário",
+        "formatação",
+        "data"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/agency/src/lib/session.ts:loadFromStorage",
+      "type": "function",
+      "name": "loadFromStorage",
+      "filePath": "apps/agency/src/lib/session.ts",
+      "lineRange": [
+        30,
+        45
+      ],
+      "summary": "Lê e valida o token de sessão no localStorage, descartando entradas expiradas ou malformadas.",
+      "tags": [
+        "autenticação",
+        "localStorage",
+        "persistência"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/agency/src/lib/session.ts:getSessionToken",
+      "type": "function",
+      "name": "getSessionToken",
+      "filePath": "apps/agency/src/lib/session.ts",
+      "lineRange": [
+        49,
+        55
+      ],
+      "summary": "Devolve o token de sessão armazenado, desde que ainda não tenha expirado.",
+      "tags": [
+        "autenticação",
+        "token",
+        "getter"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/agency/src/lib/session.ts:setSession",
+      "type": "function",
+      "name": "setSession",
+      "filePath": "apps/agency/src/lib/session.ts",
+      "lineRange": [
+        57,
+        66
+      ],
+      "summary": "Persiste o token e a data de expiração da sessão no localStorage.",
+      "tags": [
+        "autenticação",
+        "token",
+        "persistência"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/agency/src/lib/session.ts:clearSession",
+      "type": "function",
+      "name": "clearSession",
+      "filePath": "apps/agency/src/lib/session.ts",
+      "lineRange": [
+        68,
+        76
+      ],
+      "summary": "Remove o token e a expiração da sessão do localStorage, encerrando a sessão local.",
+      "tags": [
+        "autenticação",
+        "logout",
+        "limpeza"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/agency/src/lib/session.ts:hasSession",
+      "type": "function",
+      "name": "hasSession",
+      "filePath": "apps/agency/src/lib/session.ts",
+      "lineRange": [
+        78,
+        80
+      ],
+      "summary": "Indica de forma síncrona se existe uma sessão vigente (token presente e não expirado).",
+      "tags": [
+        "autenticação",
+        "predicate",
+        "sessão"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/agency/src/lib/session.ts:rememberAgencySlug",
+      "type": "function",
+      "name": "rememberAgencySlug",
+      "filePath": "apps/agency/src/lib/session.ts",
+      "lineRange": [
+        93,
+        99
+      ],
+      "summary": "Grava o slug da agência no localStorage para pré-preencher o formulário de login.",
+      "tags": [
+        "autenticação",
+        "login",
+        "persistência"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/agency/src/lib/session.ts:getRememberedAgencySlug",
+      "type": "function",
+      "name": "getRememberedAgencySlug",
+      "filePath": "apps/agency/src/lib/session.ts",
+      "lineRange": [
+        101,
+        107
+      ],
+      "summary": "Recupera o slug da agência lembrado para exibir no formulário de login.",
+      "tags": [
+        "autenticação",
+        "login",
+        "getter"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/agency/src/lib/statusLabels.ts:getCustomerStatusLabel",
+      "type": "function",
+      "name": "getCustomerStatusLabel",
+      "filePath": "apps/agency/src/lib/statusLabels.ts",
+      "lineRange": [
+        12,
+        14
+      ],
+      "summary": "Retorna o rótulo em português para o status de um cliente.",
+      "tags": [
+        "rótulos",
+        "status",
+        "clientes"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/agency/src/lib/statusLabels.ts:getWishStatusLabel",
+      "type": "function",
+      "name": "getWishStatusLabel",
+      "filePath": "apps/agency/src/lib/statusLabels.ts",
+      "lineRange": [
+        25,
+        27
+      ],
+      "summary": "Retorna o rótulo em português para o status de um wish (desejo de viagem).",
+      "tags": [
+        "rótulos",
+        "status",
+        "domínio"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/agency/src/lib/statusLabels.ts:getTripStatusLabel",
+      "type": "function",
+      "name": "getTripStatusLabel",
+      "filePath": "apps/agency/src/lib/statusLabels.ts",
+      "lineRange": [
+        37,
+        39
+      ],
+      "summary": "Retorna o rótulo em português para o status de uma viagem.",
+      "tags": [
+        "rótulos",
+        "status",
+        "viagens"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/agency/src/lib/statusLabels.ts:getProposalStatusLabel",
+      "type": "function",
+      "name": "getProposalStatusLabel",
+      "filePath": "apps/agency/src/lib/statusLabels.ts",
+      "lineRange": [
+        50,
+        52
+      ],
+      "summary": "Retorna o rótulo em português para o status de uma proposta comercial.",
+      "tags": [
+        "rótulos",
+        "status",
+        "propostas"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/agency/src/lib/statusLabels.ts:getBookingStatusLabel",
+      "type": "function",
+      "name": "getBookingStatusLabel",
+      "filePath": "apps/agency/src/lib/statusLabels.ts",
+      "lineRange": [
+        54,
+        56
+      ],
+      "summary": "Retorna o rótulo em português informando se uma reserva foi cancelada.",
+      "tags": [
+        "rótulos",
+        "status",
+        "reservas"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/agency/src/lib/utils.ts:cn",
+      "type": "function",
+      "name": "cn",
+      "filePath": "apps/agency/src/lib/utils.ts",
+      "lineRange": [
+        5,
+        7
+      ],
+      "summary": "Combina class names condicionais com clsx e tailwind-merge para gerar as classes finais dos componentes.",
+      "tags": [
+        "utilitário",
+        "class-names",
+        "tailwind"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/agency/src/lib/formatCurrency.ts",
+      "target": "function:apps/agency/src/lib/formatCurrency.ts:formatBRL",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/lib/formatDateBR.ts",
+      "target": "function:apps/agency/src/lib/formatDateBR.ts:formatDateBR",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/lib/session.ts",
+      "target": "function:apps/agency/src/lib/session.ts:loadFromStorage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/lib/session.ts",
+      "target": "function:apps/agency/src/lib/session.ts:getSessionToken",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/lib/session.ts",
+      "target": "function:apps/agency/src/lib/session.ts:setSession",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/lib/session.ts",
+      "target": "function:apps/agency/src/lib/session.ts:clearSession",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/lib/session.ts",
+      "target": "function:apps/agency/src/lib/session.ts:hasSession",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/lib/session.ts",
+      "target": "function:apps/agency/src/lib/session.ts:rememberAgencySlug",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/lib/session.ts",
+      "target": "function:apps/agency/src/lib/session.ts:getRememberedAgencySlug",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/lib/statusLabels.ts",
+      "target": "function:apps/agency/src/lib/statusLabels.ts:getCustomerStatusLabel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/lib/statusLabels.ts",
+      "target": "function:apps/agency/src/lib/statusLabels.ts:getWishStatusLabel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/lib/statusLabels.ts",
+      "target": "function:apps/agency/src/lib/statusLabels.ts:getTripStatusLabel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/lib/statusLabels.ts",
+      "target": "function:apps/agency/src/lib/statusLabels.ts:getProposalStatusLabel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/lib/statusLabels.ts",
+      "target": "function:apps/agency/src/lib/statusLabels.ts:getBookingStatusLabel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/lib/utils.ts",
+      "target": "function:apps/agency/src/lib/utils.ts:cn",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/lib/formatCurrency.test.ts",
+      "target": "file:apps/agency/src/lib/formatCurrency.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/lib/formatDateBR.test.ts",
+      "target": "file:apps/agency/src/lib/formatDateBR.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/lib/statusLabels.ts",
+      "target": "file:apps/agency/src/types/customer.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/lib/statusLabels.ts",
+      "target": "file:apps/agency/src/types/proposal.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/lib/statusLabels.ts",
+      "target": "file:apps/agency/src/types/trip.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/lib/statusLabels.ts",
+      "target": "file:apps/agency/src/types/wish.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/main.tsx",
+      "target": "file:apps/agency/src/App.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/main.tsx",
+      "target": "file:apps/agency/src/index.css",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/lib/formatCurrency.ts",
+      "target": "function:apps/agency/src/lib/formatCurrency.ts:formatBRL",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/lib/formatDateBR.ts",
+      "target": "function:apps/agency/src/lib/formatDateBR.ts:formatDateBR",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/lib/session.ts",
+      "target": "function:apps/agency/src/lib/session.ts:getSessionToken",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/lib/session.ts",
+      "target": "function:apps/agency/src/lib/session.ts:setSession",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/lib/session.ts",
+      "target": "function:apps/agency/src/lib/session.ts:clearSession",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/lib/session.ts",
+      "target": "function:apps/agency/src/lib/session.ts:hasSession",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/lib/session.ts",
+      "target": "function:apps/agency/src/lib/session.ts:rememberAgencySlug",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/lib/session.ts",
+      "target": "function:apps/agency/src/lib/session.ts:getRememberedAgencySlug",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/lib/statusLabels.ts",
+      "target": "function:apps/agency/src/lib/statusLabels.ts:getCustomerStatusLabel",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/lib/statusLabels.ts",
+      "target": "function:apps/agency/src/lib/statusLabels.ts:getWishStatusLabel",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/lib/statusLabels.ts",
+      "target": "function:apps/agency/src/lib/statusLabels.ts:getTripStatusLabel",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/lib/statusLabels.ts",
+      "target": "function:apps/agency/src/lib/statusLabels.ts:getProposalStatusLabel",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/lib/statusLabels.ts",
+      "target": "function:apps/agency/src/lib/statusLabels.ts:getBookingStatusLabel",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/lib/utils.ts",
+      "target": "function:apps/agency/src/lib/utils.ts:cn",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/lib/formatCurrency.ts",
+      "target": "file:apps/agency/src/lib/formatCurrency.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:apps/agency/src/lib/formatDateBR.ts",
+      "target": "file:apps/agency/src/lib/formatDateBR.test.ts",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    }
+  ]
+}

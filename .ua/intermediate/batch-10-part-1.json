@@ -1,0 +1,1032 @@
+{
+ "nodes": [
+  {
+   "id": "file:services/api/src/routes/auth.ts",
+   "type": "file",
+   "name": "auth.ts",
+   "filePath": "services/api/src/routes/auth.ts",
+   "summary": "Registra as rotas de autenticação da plataforma: login com proteção contra abuso, verificação MFA, sessões bearer, recuperação e redefinição de senha.",
+   "tags": [
+    "api-handler",
+    "authentication",
+    "routes",
+    "security",
+    "rate-limiting"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/routes/auth.ts:registerAuthRoutes",
+   "type": "function",
+   "name": "registerAuthRoutes",
+   "filePath": "services/api/src/routes/auth.ts",
+   "lineRange": [
+    67,
+    244
+   ],
+   "summary": "Registra as rotas de autenticação de usuários da plataforma (login, MFA, sessões e recuperação de senha) no Fastify, aplicando validação de entrada e autorização por papel ou entitlement antes de delegar à camada de serviço.",
+   "tags": [
+    "api-handler",
+    "route-registration",
+    "authorization",
+    "fastify"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:services/api/src/routes/automations.ts",
+   "type": "file",
+   "name": "automations.ts",
+   "filePath": "services/api/src/routes/automations.ts",
+   "summary": "Expõe endpoints REST para listar, criar e alterar o status de automações, com verificação de entitlement e papel do usuário antes de cada operação.",
+   "tags": [
+    "api-handler",
+    "routes",
+    "automation",
+    "entitlements"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/routes/automations.ts:registerAutomationsRoutes",
+   "type": "function",
+   "name": "registerAutomationsRoutes",
+   "filePath": "services/api/src/routes/automations.ts",
+   "lineRange": [
+    35,
+    97
+   ],
+   "summary": "Registra as rotas de automações no Fastify, aplicando validação de entrada e autorização por papel ou entitlement antes de delegar à camada de serviço.",
+   "tags": [
+    "api-handler",
+    "route-registration",
+    "authorization",
+    "fastify"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/routes/automations.ts:parseCreateAutomationInput",
+   "type": "function",
+   "name": "parseCreateAutomationInput",
+   "filePath": "services/api/src/routes/automations.ts",
+   "lineRange": [
+    99,
+    128
+   ],
+   "summary": "Valida e normaliza o corpo da requisição para criação de Automation, verificando campos obrigatórios, tipos e valores permitidos.",
+   "tags": [
+    "validation",
+    "parsing",
+    "input-sanitization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:services/api/src/routes/campaigns.ts",
+   "type": "file",
+   "name": "campaigns.ts",
+   "filePath": "services/api/src/routes/campaigns.ts",
+   "summary": "Rotas REST para gestão de campanhas: listagem, detalhe, criação, vínculo de ofertas e transições de status autorizadas.",
+   "tags": [
+    "api-handler",
+    "routes",
+    "campaign",
+    "marketing"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/routes/campaigns.ts:registerCampaignsRoutes",
+   "type": "function",
+   "name": "registerCampaignsRoutes",
+   "filePath": "services/api/src/routes/campaigns.ts",
+   "lineRange": [
+    35,
+    91
+   ],
+   "summary": "Registra as rotas de campanhas comerciais no Fastify, aplicando validação de entrada e autorização por papel ou entitlement antes de delegar à camada de serviço.",
+   "tags": [
+    "api-handler",
+    "route-registration",
+    "authorization",
+    "fastify"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/routes/campaigns.ts:parseCreateCampaignInput",
+   "type": "function",
+   "name": "parseCreateCampaignInput",
+   "filePath": "services/api/src/routes/campaigns.ts",
+   "lineRange": [
+    104,
+    143
+   ],
+   "summary": "Valida e normaliza o corpo da requisição para criação de Campaign, verificando campos obrigatórios, tipos e valores permitidos.",
+   "tags": [
+    "validation",
+    "parsing",
+    "input-sanitization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:services/api/src/routes/commercial-cockpit.ts",
+   "type": "file",
+   "name": "commercial-cockpit.ts",
+   "filePath": "services/api/src/routes/commercial-cockpit.ts",
+   "summary": "Registra as rotas do cockpit comercial — oportunidades, tarefas, interações, busca de clientes, pipelines e painéis de vendas — com autorização por papel e parsers dedicados.",
+   "tags": [
+    "api-handler",
+    "routes",
+    "sales",
+    "dashboard",
+    "pipeline"
+   ],
+   "complexity": "complex",
+   "languageNotes": "Um único handler registerCommercialCockpitRoutes registra dezenas de endpoints; padrão comum dos módulos de rota deste serviço."
+  },
+  {
+   "id": "function:services/api/src/routes/commercial-cockpit.ts:registerCommercialCockpitRoutes",
+   "type": "function",
+   "name": "registerCommercialCockpitRoutes",
+   "filePath": "services/api/src/routes/commercial-cockpit.ts",
+   "lineRange": [
+    77,
+    460
+   ],
+   "summary": "Registra as rotas de cockpit comercial (oportunidades, tarefas, interações, pipelines e painéis de vendas) no Fastify, aplicando validação de entrada e autorização por papel ou entitlement antes de delegar à camada de serviço.",
+   "tags": [
+    "api-handler",
+    "route-registration",
+    "authorization",
+    "fastify"
+   ],
+   "complexity": "complex"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:services/api/src/routes/auth.ts",
+   "target": "function:services/api/src/routes/auth.ts:registerAuthRoutes",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/auth.ts",
+   "target": "function:services/api/src/routes/auth.ts:registerAuthRoutes",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/automations.ts",
+   "target": "function:services/api/src/routes/automations.ts:registerAutomationsRoutes",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/automations.ts",
+   "target": "function:services/api/src/routes/automations.ts:registerAutomationsRoutes",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/automations.ts",
+   "target": "function:services/api/src/routes/automations.ts:parseCreateAutomationInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/campaigns.ts",
+   "target": "function:services/api/src/routes/campaigns.ts:registerCampaignsRoutes",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/campaigns.ts",
+   "target": "function:services/api/src/routes/campaigns.ts:registerCampaignsRoutes",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/campaigns.ts",
+   "target": "function:services/api/src/routes/campaigns.ts:parseCreateCampaignInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/commercial-cockpit.ts",
+   "target": "function:services/api/src/routes/commercial-cockpit.ts:registerCommercialCockpitRoutes",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/commercial-cockpit.ts",
+   "target": "function:services/api/src/routes/commercial-cockpit.ts:registerCommercialCockpitRoutes",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/auth.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/auth.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/auth.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/auth.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/auth.ts",
+   "target": "file:services/api/src/local-auth.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/auth.ts",
+   "target": "file:services/api/src/rate-limit.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/automations.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/automations.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/automations.ts",
+   "target": "file:services/api/src/automations.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/automations.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/automations.ts",
+   "target": "file:services/api/src/entitlements.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/automations.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/automations.ts",
+   "target": "file:services/api/src/request-parsing.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/campaigns.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/campaigns.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/campaigns.ts",
+   "target": "file:services/api/src/campaigns.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/campaigns.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/campaigns.ts",
+   "target": "file:services/api/src/entitlements.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/campaigns.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/campaigns.ts",
+   "target": "file:services/api/src/request-parsing.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/commercial-cockpit.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/commercial-cockpit.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/commercial-cockpit.ts",
+   "target": "file:services/api/src/commercial-cockpit-parsers.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/commercial-cockpit.ts",
+   "target": "file:services/api/src/commercial-cockpit.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/commercial-cockpit.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/commercial-cockpit.ts",
+   "target": "file:services/api/src/engagements.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/commercial-cockpit.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/commercial-cockpit.ts",
+   "target": "file:services/api/src/pipeline-config-parsers.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/commercial-cockpit.ts",
+   "target": "file:services/api/src/pipeline-config.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/commercial-cockpit.ts",
+   "target": "file:services/api/src/reporting-queries.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "function:services/api/src/routes/auth.ts:registerAuthRoutes",
+   "target": "function:services/api/src/local-auth.ts:createTotpProviderFromEnv",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/auth.ts:registerAuthRoutes",
+   "target": "function:services/api/src/local-auth.ts:login",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/auth.ts:registerAuthRoutes",
+   "target": "function:services/api/src/local-auth.ts:verifyMfaAndCompleteLogin",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/auth.ts:registerAuthRoutes",
+   "target": "function:services/api/src/local-auth.ts:forgotPassword",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/auth.ts:registerAuthRoutes",
+   "target": "function:services/api/src/local-auth.ts:resetPassword",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/auth.ts:registerAuthRoutes",
+   "target": "function:services/api/src/local-auth.ts:resolveSessionByToken",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/auth.ts:registerAuthRoutes",
+   "target": "function:services/api/src/local-auth.ts:revokeSession",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/auth.ts:registerAuthRoutes",
+   "target": "function:services/api/src/local-auth.ts:listMySessions",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/auth.ts:registerAuthRoutes",
+   "target": "function:services/api/src/local-auth.ts:startMfaEnrollment",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/auth.ts:registerAuthRoutes",
+   "target": "function:services/api/src/local-auth.ts:confirmMfaEnrollment",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/auth.ts:registerAuthRoutes",
+   "target": "function:services/api/src/local-auth.ts:disableMfa",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/auth.ts:registerAuthRoutes",
+   "target": "function:packages/domain/tenant-context.ts:requireRole",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/auth.ts:registerAuthRoutes",
+   "target": "function:services/api/src/local-auth.ts:setUserStatus",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/automations.ts:registerAutomationsRoutes",
+   "target": "function:services/api/src/entitlements.ts:requireEntitlement",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/automations.ts:registerAutomationsRoutes",
+   "target": "function:packages/domain/tenant-context.ts:requireRole",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/automations.ts:registerAutomationsRoutes",
+   "target": "function:services/api/src/automations.ts:listAutomations",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/automations.ts:registerAutomationsRoutes",
+   "target": "function:services/api/src/automations.ts:getAutomationById",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/automations.ts:registerAutomationsRoutes",
+   "target": "function:services/api/src/automations.ts:createAutomation",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/automations.ts:registerAutomationsRoutes",
+   "target": "function:services/api/src/automations.ts:setAutomationStatus",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/automations.ts:parseCreateAutomationInput",
+   "target": "function:services/api/src/request-parsing.ts:parseObjectBody",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/automations.ts:parseCreateAutomationInput",
+   "target": "function:services/api/src/request-parsing.ts:parseRequiredString",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/automations.ts:parseCreateAutomationInput",
+   "target": "function:services/api/src/request-parsing.ts:parseRequiredDate",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/automations.ts:parseCreateAutomationInput",
+   "target": "function:services/api/src/request-parsing.ts:parseNonNegativeNumber",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/automations.ts:parseCreateAutomationInput",
+   "target": "function:services/api/src/request-parsing.ts:parsePositiveNumber",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/campaigns.ts:registerCampaignsRoutes",
+   "target": "function:services/api/src/entitlements.ts:requireEntitlement",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/campaigns.ts:registerCampaignsRoutes",
+   "target": "function:packages/domain/tenant-context.ts:requireRole",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/campaigns.ts:registerCampaignsRoutes",
+   "target": "function:services/api/src/campaigns.ts:listCampaigns",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/campaigns.ts:registerCampaignsRoutes",
+   "target": "function:services/api/src/campaigns.ts:getCampaignById",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/campaigns.ts:registerCampaignsRoutes",
+   "target": "function:services/api/src/campaigns.ts:createCampaign",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/campaigns.ts:registerCampaignsRoutes",
+   "target": "function:services/api/src/request-parsing.ts:requireStringField",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/campaigns.ts:registerCampaignsRoutes",
+   "target": "function:services/api/src/campaigns.ts:linkOfferToCampaign",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/campaigns.ts:registerCampaignsRoutes",
+   "target": "function:services/api/src/campaigns.ts:transitionCampaignStatus",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/campaigns.ts:parseCreateCampaignInput",
+   "target": "function:services/api/src/request-parsing.ts:parseObjectBody",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/campaigns.ts:parseCreateCampaignInput",
+   "target": "function:services/api/src/request-parsing.ts:parseRequiredString",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/campaigns.ts:parseCreateCampaignInput",
+   "target": "function:services/api/src/request-parsing.ts:parseRequiredDate",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/commercial-cockpit.ts:registerCommercialCockpitRoutes",
+   "target": "function:packages/domain/tenant-context.ts:requireRole",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/commercial-cockpit.ts:registerCommercialCockpitRoutes",
+   "target": "function:services/api/src/commercial-cockpit-parsers.ts:parseOpportunityFilters",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/commercial-cockpit.ts:registerCommercialCockpitRoutes",
+   "target": "function:services/api/src/commercial-cockpit.ts:parsePagination",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/commercial-cockpit.ts:registerCommercialCockpitRoutes",
+   "target": "function:services/api/src/commercial-cockpit.ts:listOpportunities",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/commercial-cockpit.ts:registerCommercialCockpitRoutes",
+   "target": "function:services/api/src/commercial-cockpit.ts:getOpportunityById",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/commercial-cockpit.ts:registerCommercialCockpitRoutes",
+   "target": "function:services/api/src/commercial-cockpit-parsers.ts:parseCreateOpportunityInput",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/commercial-cockpit.ts:registerCommercialCockpitRoutes",
+   "target": "function:services/api/src/commercial-cockpit.ts:createOpportunity",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/commercial-cockpit.ts:registerCommercialCockpitRoutes",
+   "target": "function:services/api/src/commercial-cockpit-parsers.ts:parseUpdateOpportunityInput",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/commercial-cockpit.ts:registerCommercialCockpitRoutes",
+   "target": "function:services/api/src/commercial-cockpit.ts:updateOpportunity",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/commercial-cockpit.ts:registerCommercialCockpitRoutes",
+   "target": "function:services/api/src/commercial-cockpit-parsers.ts:parseTaskFilters",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/commercial-cockpit.ts:registerCommercialCockpitRoutes",
+   "target": "function:services/api/src/commercial-cockpit.ts:listTasks",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/commercial-cockpit.ts:registerCommercialCockpitRoutes",
+   "target": "function:services/api/src/commercial-cockpit.ts:getTaskById",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/commercial-cockpit.ts:registerCommercialCockpitRoutes",
+   "target": "function:services/api/src/commercial-cockpit-parsers.ts:parseCreateTaskInput",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/commercial-cockpit.ts:registerCommercialCockpitRoutes",
+   "target": "function:services/api/src/commercial-cockpit.ts:createTask",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/commercial-cockpit.ts:registerCommercialCockpitRoutes",
+   "target": "function:packages/domain/tenant-context.ts:getUserId",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/commercial-cockpit.ts:registerCommercialCockpitRoutes",
+   "target": "function:services/api/src/commercial-cockpit-parsers.ts:parseUpdateTaskInput",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/commercial-cockpit.ts:registerCommercialCockpitRoutes",
+   "target": "function:services/api/src/commercial-cockpit.ts:updateTask",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/commercial-cockpit.ts:registerCommercialCockpitRoutes",
+   "target": "function:services/api/src/commercial-cockpit-parsers.ts:parseInteractionFilters",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/commercial-cockpit.ts:registerCommercialCockpitRoutes",
+   "target": "function:services/api/src/commercial-cockpit.ts:listInteractions",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/commercial-cockpit.ts:registerCommercialCockpitRoutes",
+   "target": "function:services/api/src/commercial-cockpit-parsers.ts:parseCreateInteractionInput",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/commercial-cockpit.ts:registerCommercialCockpitRoutes",
+   "target": "function:services/api/src/commercial-cockpit.ts:createInteraction",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/commercial-cockpit.ts:registerCommercialCockpitRoutes",
+   "target": "function:services/api/src/engagements.ts:listCustomerEngagements",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/commercial-cockpit.ts:registerCommercialCockpitRoutes",
+   "target": "function:services/api/src/commercial-cockpit.ts:searchCustomers",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/commercial-cockpit.ts:registerCommercialCockpitRoutes",
+   "target": "function:services/api/src/commercial-cockpit-parsers.ts:parseTravelSearchRange",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/commercial-cockpit.ts:registerCommercialCockpitRoutes",
+   "target": "function:services/api/src/commercial-cockpit.ts:travelSearch",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/commercial-cockpit.ts:registerCommercialCockpitRoutes",
+   "target": "function:services/api/src/commercial-cockpit.ts:getDashboardSummary",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/commercial-cockpit.ts:registerCommercialCockpitRoutes",
+   "target": "function:services/api/src/commercial-cockpit.ts:getProposalsWaiting",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/commercial-cockpit.ts:registerCommercialCockpitRoutes",
+   "target": "function:services/api/src/commercial-cockpit.ts:getPostSaleCandidates",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/commercial-cockpit.ts:registerCommercialCockpitRoutes",
+   "target": "function:services/api/src/pipeline-config.ts:listPipelines",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/commercial-cockpit.ts:registerCommercialCockpitRoutes",
+   "target": "function:services/api/src/pipeline-config-parsers.ts:parseCreatePipelineInput",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/commercial-cockpit.ts:registerCommercialCockpitRoutes",
+   "target": "function:services/api/src/pipeline-config.ts:createPipeline",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/commercial-cockpit.ts:registerCommercialCockpitRoutes",
+   "target": "function:services/api/src/pipeline-config.ts:getPipelineById",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/commercial-cockpit.ts:registerCommercialCockpitRoutes",
+   "target": "function:services/api/src/pipeline-config-parsers.ts:parseUpdatePipelineInput",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/commercial-cockpit.ts:registerCommercialCockpitRoutes",
+   "target": "function:services/api/src/pipeline-config.ts:updatePipeline",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/commercial-cockpit.ts:registerCommercialCockpitRoutes",
+   "target": "function:services/api/src/pipeline-config.ts:listStages",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/commercial-cockpit.ts:registerCommercialCockpitRoutes",
+   "target": "function:services/api/src/pipeline-config-parsers.ts:parseCreateStageInput",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/commercial-cockpit.ts:registerCommercialCockpitRoutes",
+   "target": "function:services/api/src/pipeline-config.ts:createStage",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/commercial-cockpit.ts:registerCommercialCockpitRoutes",
+   "target": "function:services/api/src/pipeline-config-parsers.ts:parseUpdateStageInput",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/commercial-cockpit.ts:registerCommercialCockpitRoutes",
+   "target": "function:services/api/src/pipeline-config.ts:updateStage",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/commercial-cockpit.ts:registerCommercialCockpitRoutes",
+   "target": "function:services/api/src/pipeline-config.ts:listPipelineAccess",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/commercial-cockpit.ts:registerCommercialCockpitRoutes",
+   "target": "function:services/api/src/pipeline-config-parsers.ts:parseGrantAccessInput",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/commercial-cockpit.ts:registerCommercialCockpitRoutes",
+   "target": "function:services/api/src/pipeline-config.ts:grantPipelineAccess",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/commercial-cockpit.ts:registerCommercialCockpitRoutes",
+   "target": "function:services/api/src/pipeline-config.ts:revokePipelineAccess",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/commercial-cockpit.ts:registerCommercialCockpitRoutes",
+   "target": "function:services/api/src/reporting-queries.ts:getSalesByPeriod",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/commercial-cockpit.ts:registerCommercialCockpitRoutes",
+   "target": "function:services/api/src/reporting-queries.ts:getBookingsByStatus",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/commercial-cockpit.ts:registerCommercialCockpitRoutes",
+   "target": "function:services/api/src/reporting-queries.ts:getProposalConversion",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/commercial-cockpit.ts:registerCommercialCockpitRoutes",
+   "target": "function:services/api/src/reporting-queries.ts:getTopDestinations",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/commercial-cockpit.ts:registerCommercialCockpitRoutes",
+   "target": "function:services/api/src/reporting-queries.ts:getTripsByStatus",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  }
+ ]
+}

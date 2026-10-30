@@ -395,6 +395,38 @@ function ManagementReportsSection() {
   const [rows, setRows] = useState<GenericReportRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
+
+  // Table and CSV export share this path, so the file always matches the view.
+  const reportPath =
+    tab === 'sales'
+      ? `/reports/sales?groupBy=${salesGroupBy}`
+      : tab === 'financial'
+        ? `/reports/financial/${financialView}`
+        : tab === 'profitability'
+          ? `/reports/profitability?groupBy=${profitGroupBy}`
+          : `/reports/personnel?groupBy=${personnelGroupBy}`;
+
+  async function exportCsv() {
+    setExporting(true);
+    setExportError(null);
+    try {
+      const { blob, filename } = await api.downloadCsv(reportPath);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      setExportError(err instanceof Error ? err.message : 'Não foi possível exportar o relatório.');
+    } finally {
+      setExporting(false);
+    }
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -402,17 +434,7 @@ function ManagementReportsSection() {
       setLoading(true);
       setError(null);
       try {
-        let path = '';
-        if (tab === 'sales') {
-          path = `/reports/sales?groupBy=${salesGroupBy}`;
-        } else if (tab === 'financial') {
-          path = `/reports/financial/${financialView}`;
-        } else if (tab === 'profitability') {
-          path = `/reports/profitability?groupBy=${profitGroupBy}`;
-        } else {
-          path = `/reports/personnel?groupBy=${personnelGroupBy}`;
-        }
-        const resp = await api.get(path);
+        const resp = await api.get(reportPath);
         const data = resp.data as { rows?: GenericReportRow[] };
         if (!cancelled) setRows(data.rows ?? []);
       } catch (err) {
@@ -426,7 +448,7 @@ function ManagementReportsSection() {
     return () => {
       cancelled = true;
     };
-  }, [tab, salesGroupBy, profitGroupBy, financialView, personnelGroupBy]);
+  }, [reportPath]);
 
   const tabs: { id: ReportTab; label: string }[] = [
     { id: 'sales', label: 'Vendas' },
@@ -510,6 +532,22 @@ function ManagementReportsSection() {
             <option value="month">Por mês</option>
           </select>
         )}
+
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => void exportCsv()}
+            disabled={loading || exporting}
+            className="rounded-md border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 disabled:opacity-50"
+          >
+            {exporting ? 'Exportando...' : 'Exportar CSV'}
+          </button>
+          {exportError && (
+            <p role="alert" className="text-sm text-red-700">
+              {exportError}
+            </p>
+          )}
+        </div>
 
         {loading && <p className="text-sm text-slate-500">Carregando...</p>}
         {error && <p className="text-sm text-red-700">{error}</p>}

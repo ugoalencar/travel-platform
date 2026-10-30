@@ -10,6 +10,9 @@ vi.mock('../lib/api', async () => {
     ...actual,
     listReceivables: vi.fn(),
     listCustomers: vi.fn(),
+    listSuppliers: vi.fn(),
+    listEmployees: vi.fn(),
+    listCustomerSegments: vi.fn(),
     recordPayment: vi.fn(),
     allocatePayment: vi.fn(),
   };
@@ -43,6 +46,9 @@ const openReceivable = {
 beforeEach(() => {
   vi.mocked(api.listCustomers).mockResolvedValue([customer]);
   vi.mocked(api.listReceivables).mockResolvedValue([openReceivable]);
+  vi.mocked(api.listSuppliers).mockResolvedValue([]);
+  vi.mocked(api.listEmployees).mockResolvedValue([]);
+  vi.mocked(api.listCustomerSegments).mockResolvedValue([]);
   vi.mocked(api.recordPayment).mockResolvedValue({
     id: 'payment-1',
     agencyId: 'agency-1',
@@ -73,10 +79,26 @@ describe('ReceivablesPage', () => {
     renderPage();
 
     expect(await screen.findByRole('heading', { name: 'Contas a Receber' })).toBeInTheDocument();
-    expect(screen.getByText('Marina Costa')).toBeInTheDocument();
+    expect(await screen.findByText('Marina Costa')).toBeInTheDocument();
     expect(screen.getByText('Pacote Lisboa')).toBeInTheDocument();
-    expect(screen.getByText('Aberto')).toBeInTheDocument();
+    expect(screen.getByRole('cell', { name: 'Aberto' })).toBeInTheDocument();
     expect(api.listReceivables).toHaveBeenCalledTimes(1);
+  });
+
+  it('applies due date and status filters through the receivables API', async () => {
+    renderPage();
+    await screen.findByText('Pacote Lisboa');
+
+    fireEvent.change(screen.getByLabelText('Data inicial'), { target: { value: '2026-09-01' } });
+    fireEvent.change(screen.getByLabelText('Data final'), { target: { value: '2026-09-30' } });
+    fireEvent.change(screen.getByLabelText('Status das contas'), { target: { value: 'OPEN' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Aplicar filtros' }));
+
+    await waitFor(() => expect(api.listReceivables).toHaveBeenLastCalledWith({
+      dateFrom: '2026-09-01',
+      dateTo: '2026-09-30',
+      status: 'OPEN',
+    }));
   });
 
   it('records an inbound payment and allocates it to the receivable', async () => {

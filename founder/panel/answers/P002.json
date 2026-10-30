@@ -1,0 +1,13 @@
+{
+  "id": "P002",
+  "buys": true,
+  "purchases_first_month": 1,
+  "reason_code": "trust",
+  "reason": "Já uso outro sistema e tô insatisfeito, mas trocar me dá medo de bagunçar o cadastro dos clientes no meio da alta temporada. Como eles prometem migrar com confirmação de integridade e agendar fora de dezembro-janeiro e julho, e ainda dá pra testar antes de assinar, acho que vale arriscar entrando no plano Pioneira por R$ 79.",
+  "objection": "O que mais pesa é não ter cobrança automática nem emissão de nota fiscal ainda — isso é trabalho que eu já faço por fora hoje, então não resolve o que mais me dói. E ser \"referência pública\" pra ganhar o desconto me deixa meio desconfortável, não gosto de expor minha agência como cobaia.",
+  "would_change_my_mind": "Se a migração atrasar ou perder algum dado de cliente durante o teste, ou se descobrir que preciso aparecer com nome e depoimento antes de ter certeza que o sistema funciona, eu cancelo e volto pro que já uso.",
+  "price_too_cheap": 39,
+  "price_cheap": 79,
+  "price_expensive": 150,
+  "price_too_expensive": 250
+}

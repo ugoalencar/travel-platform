@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>Travel Platform - Travel Lite</title>
+    <script src="assets/gsap.min.js"></script>
+    <script src="assets/audio-data.js"></script>
+    <style>
+      :root {
+        --bg: #f4f6f8;
+        --surface: #ffffff;
+        --fg: #1a1d21;
+        --muted: #5b6370;
+        --border: #e2e6ea;
+        --primary: #1554d1;
+        --primary-dark: #1043a8;
+        --navy: #0f2a4a;
+        --cyan: #06b6d4;
+        --success: #157347;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--fg);
+        font-family: system-ui, sans-serif;
+      }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; }
+      .clip { position: absolute; inset: 0; }
+      .scene { position: absolute; inset: 0; overflow: hidden; }
+      .abs { position: absolute; }
+
+      /* ---------- Cena 1: planilha ---------- */
+      #s1-scene {
+        background-color: #eceff3;
+        background-image:
+          linear-gradient(#d5dae1 2px, transparent 2px),
+          linear-gradient(90deg, #d5dae1 2px, transparent 2px);
+        background-size: 240px 72px;
+      }
+      .cell {
+        position: absolute;
+        background: var(--surface);
+        border: 2px solid #c5ccd6;
+        color: var(--muted);
+        font-size: 30px;
+        padding: 10px 22px;
+        white-space: nowrap;
+      }
+      #s1-card {
+        position: absolute;
+        left: 260px; top: 300px; width: 1400px; height: 400px;
+        background: var(--surface);
+        border-radius: 24px;
+        box-shadow: 0 30px 80px rgba(15, 42, 74, 0.25);
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+      }
+      #s1-card h1 { margin: 0; font-size: 104px; line-height: 1.12; font-weight: 800; color: var(--fg); text-align: center; }
+      #s1-card h1 span { display: block; }
+      #s1-card h1 .q { color: var(--primary); }
+
+      /* ---------- Cenas navy (2, 3, 5) ---------- */
+      .navy { background: linear-gradient(135deg, #0f2a4a 0%, #12365f 55%, #0e5b7a 100%); }
+      .glow {
+        position: absolute; width: 1100px; height: 1100px; border-radius: 50%;
+        background: radial-gradient(circle, rgba(6, 182, 212, 0.5) 0%, rgba(6, 182, 212, 0) 65%);
+      }
+
+      /* Cena 2 */
+      #s2-brand { position: absolute; left: 0; right: 0; top: 96px; text-align: center; }
+      #s2-brand h1 { margin: 0; font-size: 140px; line-height: 1.25; font-weight: 800; color: #fff; }
+      #s2-brand p { margin: 14px 0 0; font-size: 38px; color: #bfe9f2; font-weight: 600; letter-spacing: 1px; }
+      #s2-head { position: absolute; left: 160px; right: 160px; top: 372px; text-align: center; margin: 0; font-size: 62px; line-height: 1.2; font-weight: 700; color: #fff; }
+      .area-col { position: absolute; top: 590px; width: 520px; }
+      .area {
+        height: 168px; margin-bottom: 28px; padding: 32px 36px;
+        background: rgba(255, 255, 255, 0.13);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 20px;
+      }
+      .area i { display: block; width: 72px; height: 8px; border-radius: 4px; background: var(--cyan); margin-bottom: 22px; }
+      .area b { display: block; font-size: 42px; line-height: 1.15; color: #fff; font-weight: 700; }
+
+      /* Cena 3: janela do Travel Lite */
+      #s3-chip {
+        position: absolute; left: 140px; top: 70px; height: 78px; padding: 0 40px;
+        display: flex; align-items: center;
+        background: #fff; color: var(--primary-dark); font-size: 40px; font-weight: 800;
+        border-radius: 39px;
+      }
+      #s3-win {
+        position: absolute; left: 140px; top: 170px; width: 1640px; height: 820px;
+        background: var(--bg); border-radius: 16px; overflow: hidden;
+        box-shadow: 0 40px 120px rgba(0, 0, 0, 0.45);
+      }
+      #s3-side { position: absolute; left: 0; top: 0; width: 300px; height: 820px; background: var(--surface); border-right: 2px solid var(--border); }
+      #s3-side .logo { position: absolute; left: 36px; top: 30px; font-size: 38px; font-weight: 800; color: var(--primary); }
+      .nav { position: absolute; left: 20px; width: 260px; height: 64px; padding: 0 20px; display: flex; align-items: center; font-size: 30px; color: var(--fg); border-radius: 8px; }
+      .nav.on { background: #e6eeff; color: var(--primary-dark); font-weight: 800; }
+      #s3-title { position: absolute; left: 340px; top: 36px; margin: 0; font-size: 52px; font-weight: 800; }
+      .panel {
+        position: absolute; top: 130px; width: 408px; height: 640px;
+        background: var(--surface); border: 2px solid var(--border); border-radius: 12px;
+      }
+      .panel .lbl { position: absolute; left: 28px; top: 24px; font-size: 36px; font-weight: 800; color: var(--primary); }
+      #p1 { left: 340px; }
+      #p2 { left: 770px; }
+      #p3 { left: 1200px; width: 408px; }
+      .avatar { position: absolute; left: 28px; top: 110px; width: 96px; height: 96px; border-radius: 50%; background: #e6eeff; color: var(--primary-dark); font-size: 38px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+      .p1-name { position: absolute; left: 28px; top: 230px; font-size: 40px; font-weight: 700; }
+      .p1-sub { position: absolute; left: 28px; top: 292px; font-size: 30px; color: var(--muted); }
+      #btn { position: absolute; left: 28px; top: 100px; width: 352px; height: 72px; background: var(--primary); color: #fff; font-size: 32px; font-weight: 800; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+      .th, .tr { position: absolute; left: 28px; width: 352px; height: 64px; }
+      .th span, .tr span { position: absolute; top: 0; height: 64px; display: flex; align-items: center; }
+      .th span { font-size: 24px; color: var(--muted); font-weight: 700; }
+      .tr { border-top: 2px solid var(--border); }
+      .tr span { font-size: 28px; }
+      .c1 { left: 0; } .c2 { left: 100px; } .c3 { right: 0; justify-content: flex-end; }
+      .total { position: absolute; left: 28px; width: 352px; top: 536px; height: 64px; border-top: 2px solid var(--fg); font-size: 30px; font-weight: 800; }
+      .total span { position: absolute; top: 0; height: 64px; display: flex; align-items: center; }
+      .p3-who { position: absolute; left: 28px; top: 110px; font-size: 32px; color: var(--muted); }
+      .p3-name { position: absolute; left: 28px; top: 156px; font-size: 44px; font-weight: 800; }
+      .p3-val { position: absolute; left: 28px; top: 270px; font-size: 64px; font-weight: 800; color: var(--success); }
+      #cursor { position: absolute; left: 0; top: 0; width: 60px; height: 60px; }
+
+      /* Cena 4: dashboard */
+      #s4-scene { background: var(--bg); }
+      #s4-title { position: absolute; left: 80px; top: 56px; margin: 0; font-size: 68px; font-weight: 800; }
+      #s4-sub { position: absolute; left: 80px; top: 142px; margin: 0; font-size: 30px; color: var(--muted); }
+      .card { position: absolute; background: var(--surface); border: 2px solid var(--border); border-radius: 12px; }
+      .stat .l { position: absolute; left: 36px; top: 28px; font-size: 32px; color: var(--muted); font-weight: 700; }
+      .stat .v { position: absolute; left: 36px; top: 88px; font-size: 80px; font-weight: 800; color: var(--primary); }
+      #st2 .v { color: var(--success); }
+      #chart .l { position: absolute; left: 36px; top: 28px; font-size: 32px; font-weight: 800; }
+      .leg { position: absolute; top: 80px; font-size: 26px; color: var(--muted); }
+      .bar { position: absolute; width: 34px; bottom: 40px; border-radius: 4px 4px 0 0; transform-origin: 50% 100%; }
+      .bar.in { background: var(--primary); }
+      .bar.out { background: #9a6700; }
+      #rank .l { position: absolute; left: 36px; top: 28px; font-size: 32px; font-weight: 800; }
+      .rh, .rr { position: absolute; left: 36px; right: 36px; height: 84px; }
+      .rh span, .rr span { position: absolute; top: 0; height: 84px; display: flex; align-items: center; }
+      .rh span { font-size: 26px; color: var(--muted); font-weight: 700; }
+      .rr { border-top: 2px solid var(--border); }
+      .rr span { font-size: 34px; }
+      .rc1 { left: 0; font-weight: 700; } .rc2 { left: 330px; } .rc3 { left: 560px; } .rc4 { right: 0; color: var(--success); font-weight: 700; }
+
+      /* Cena 5 */
+      #s5-l1, #s5-l2 { position: absolute; left: 0; right: 0; text-align: center; margin: 0; font-weight: 800; color: #fff; font-size: 100px; line-height: 1.1; }
+      #s5-l2 { color: #bfe9f2; }
+      #s5-brand { position: absolute; left: 0; right: 0; top: 330px; text-align: center; font-size: 150px; font-weight: 800; color: #fff; margin: 0; line-height: 1.05; }
+      #s5-cta { position: absolute; left: 660px; top: 600px; width: 600px; height: 110px; background: #fff; color: var(--navy); font-size: 48px; font-weight: 800; border-radius: 55px; display: flex; align-items: center; justify-content: center; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-width="1920" data-height="1080" data-duration="24">
+
+      <!-- Cena 1: gancho -->
+      <section id="s1" class="clip" data-start="0" data-duration="3.4" data-track-index="1">
+        <div id="s1-scene" class="scene">
+          <div class="cell" style="left: 60px; top: 108px;">pago?</div>
+          <div class="cell" style="left: 1380px; top: 36px;">confirmar com o cliente</div>
+          <div class="cell" style="left: 120px; top: 828px;">parcela 2 ???</div>
+          <div class="cell" style="left: 1320px; top: 756px;">R$ ??</div>
+          <div class="cell" style="left: 700px; top: 900px;">ver comissão</div>
+          <div class="cell" style="left: 760px; top: 60px;">vendedor?</div>
+          <div id="s1-card">
+            <h1><span id="s1-a">Sua agência ainda</span><span id="s1-b">vive de <span class="q" style="display:inline">planilha?</span></span></h1>
+          </div>
+        </div>
+      </section>
+
+      <!-- Cena 2: Travel Platform -->
+      <section id="s2" class="clip" data-start="3" data-duration="5.9" data-track-index="2">
+        <div id="s2-scene" class="scene navy">
+          <div id="s2-glow" data-layout-allow-overflow class="glow" style="left: 1100px; top: -420px;"></div>
+          <div id="s2-brand">
+            <h1 id="s2-name">Travel Platform</h1>
+            <p id="s2-tag">para agências de viagem</p>
+          </div>
+          <p id="s2-head">Transforme sua agência em uma operação mais inteligente.</p>
+
+          <div class="area-col" style="left: 160px;">
+            <div class="area" id="a1"><i></i><b>CRM / Cliente 360</b></div>
+            <div class="area" id="a2"><i></i><b>Pipeline comercial</b></div>
+          </div>
+          <div class="area-col" style="left: 700px;">
+            <div class="area" id="a3"><i></i><b>Viagens e operação</b></div>
+            <div class="area" id="a4"><i></i><b>Financeiro</b></div>
+          </div>
+          <div class="area-col" style="left: 1240px;">
+            <div class="area" id="a5"><i></i><b>Equipe</b></div>
+            <div class="area" id="a6"><i></i><b>Portal do cliente</b></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Cena 3: módulo Travel Lite -->
+      <section id="s3" class="clip" data-start="8.5" data-duration="7.9" data-track-index="3">
+        <div id="s3-scene" class="scene navy">
+          <div id="s3-chip" data-layout-allow-overlap>Módulo Travel Lite</div>
+          <div id="s3-win">
+            <div id="s3-side">
+              <div class="logo">Travel Lite</div>
+              <div class="nav" style="top: 110px;">Dashboard</div>
+              <div class="nav on" style="top: 182px;">Vendas</div>
+              <div class="nav" style="top: 254px;">Financeiro</div>
+              <div class="nav" style="top: 326px;">Importações</div>
+              <div class="nav" style="top: 398px;">Clientes</div>
+              <div class="nav" style="top: 470px;">Vendedores</div>
+              <div class="nav" style="top: 542px;">Comissões</div>
+              <div class="nav" style="top: 614px;">Relatórios</div>
+            </div>
+            <h2 id="s3-title">Vendas</h2>
+
+            <div id="p1" class="panel">
+              <div class="lbl">Cliente</div>
+              <div class="avatar">FS</div>
+              <div class="p1-name">Família Souza</div>
+              <div class="p1-sub">Destino: Cancún</div>
+            </div>
+
+            <div id="p2" class="panel">
+              <div class="lbl">Venda</div>
+              <div id="btn">Registrar venda</div>
+              <div id="p2-table">
+                <div class="th" style="top: 210px;"><span class="c1">Parcela</span><span class="c2">Vencimento</span><span class="c3">Valor</span></div>
+                <div class="tr" id="r1" style="top: 274px;"><span class="c1">1/3</span><span class="c2">10/12</span><span class="c3">R$ 4.200</span></div>
+                <div class="tr" id="r2" style="top: 338px;"><span class="c1">2/3</span><span class="c2">10/01</span><span class="c3">R$ 4.200</span></div>
+                <div class="tr" id="r3" style="top: 402px;"><span class="c1">3/3</span><span class="c2">10/02</span><span class="c3">R$ 4.200</span></div>
+                <div class="total" id="r4" style="top: 486px;"><span style="left:0">Total</span><span style="right:0">R$ 12.600</span></div>
+              </div>
+            </div>
+
+            <div id="p3" class="panel">
+              <div class="lbl">Comissão</div>
+              <div class="p3-who">Vendedora</div>
+              <div class="p3-name">Ana</div>
+              <div class="p3-val" id="p3v">R$ 1.260</div>
+            </div>
+          </div>
+          <svg id="cursor" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 2 L4 19 L8.6 14.8 L11.6 21.6 L14.2 20.5 L11.2 13.8 L17.5 13.8 Z" fill="#1a1d21" stroke="#ffffff" stroke-width="1.6" stroke-linejoin="round"/></svg>
+        </div>
+      </section>
+
+      <!-- Cena 4: dashboard -->
+      <section id="s4" class="clip" data-start="16" data-duration="4.4" data-track-index="4">
+        <div id="s4-scene" class="scene">
+          <h2 id="s4-title" data-layout-allow-overlap>Dashboard</h2>
+          <p id="s4-sub">Agência Horizonte</p>
+
+          <div id="st1" class="card stat" style="left: 80px; top: 210px; width: 540px; height: 220px;">
+            <div class="l">Vendido</div><div class="v" id="v1">R$ 0</div>
+          </div>
+          <div id="st2" class="card stat" style="left: 660px; top: 210px; width: 540px; height: 220px;">
+            <div class="l">Margem</div><div class="v" id="v2">R$ 0</div>
+          </div>
+
+          <div id="chart" class="card" style="left: 1240px; top: 210px; width: 600px; height: 720px;">
+            <div class="l">Entradas × Saídas</div>
+            <div class="leg" style="left: 36px;"><span style="color:#1554d1">■</span> Entradas</div>
+            <div class="leg" style="left: 220px;"><span style="color:#9a6700">■</span> Saídas</div>
+            <div id="bars"></div>
+          </div>
+
+          <div id="rank" class="card" style="left: 80px; top: 470px; width: 1120px; height: 460px;">
+            <div class="l">Ranking de vendedores</div>
+            <div class="rh" style="top: 84px;"><span class="rc1">Vendedor</span><span class="rc2">Vendas</span><span class="rc3">Vendido</span><span class="rc4">Margem</span></div>
+            <div class="rr" id="rk1" style="top: 168px;"><span class="rc1">Ana</span><span class="rc2">14</span><span class="rc3">R$ 96.400</span><span class="rc4">R$ 16.100</span></div>
+            <div class="rr" id="rk2" style="top: 252px;"><span class="rc1">Bruno</span><span class="rc2">11</span><span class="rc3">R$ 78.200</span><span class="rc4">R$ 12.900</span></div>
+            <div class="rr" id="rk3" style="top: 336px;"><span class="rc1">Carla</span><span class="rc2">9</span><span class="rc3">R$ 74.300</span><span class="rc4">R$ 12.300</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Cena 5: outro -->
+      <section id="s5" class="clip" data-start="20" data-duration="4" data-track-index="5">
+        <div id="s5-scene" class="scene navy">
+          <div id="s5-glow" data-layout-allow-overflow class="glow" style="left: -300px; top: 400px;"></div>
+          <p id="s5-l1" style="top: 330px;">Comece pelo Travel Lite.</p>
+          <p id="s5-l2" style="top: 480px;">Cresça no Travel Platform.</p>
+          <p id="s5-brand" data-layout-allow-overlap>Travel Platform</p>
+          <div id="s5-cta">Solicitar acesso</div>
+        </div>
+      </section>
+
+      <!-- Áudio -->
+      <audio id="bgm" data-start="0" data-duration="24" data-track-index="10" data-volume="0.35" src="assets/music/music.mp3"
+        data-automation='{"version":1,"lanes":[{"target":"volume","points":[{"t":0,"v":0.55},{"t":3,"v":0.55},{"t":4,"v":1},{"t":22.4,"v":1},{"t":24,"v":0}]}]}'></audio>
+      <audio id="sx-s2" data-start="3.6" data-duration="0.19" data-track-index="11" data-volume="0.7" src="assets/sfx/impactSoft_medium_001.ogg"></audio>
+      <audio id="sx-a1" data-start="5.2" data-duration="0.11" data-track-index="12" data-volume="0.6" src="assets/sfx/drop_001.ogg"></audio>
+      <audio id="sx-a2" data-start="6.26" data-duration="0.11" data-track-index="13" data-volume="0.6" src="assets/sfx/drop_001.ogg"></audio>
+      <audio id="sx-a3" data-start="7.32" data-duration="0.11" data-track-index="14" data-volume="0.6" src="assets/sfx/drop_001.ogg"></audio>
+      <audio id="sx-p1" data-start="9.45" data-duration="0.69" data-track-index="15" data-volume="0.65" src="assets/sfx/card-place-1.ogg"></audio>
+      <audio id="sx-click" data-start="10.5" data-duration="0.01" data-track-index="16" data-volume="0.8" src="assets/sfx/click_002.ogg"></audio>
+      <audio id="sx-r1" data-start="11.55" data-duration="0.19" data-track-index="17" data-volume="0.55" src="assets/sfx/drop_002.ogg"></audio>
+      <audio id="sx-r2" data-start="12.6" data-duration="0.19" data-track-index="18" data-volume="0.55" src="assets/sfx/drop_002.ogg"></audio>
+      <audio id="sx-r3" data-start="13.65" data-duration="0.19" data-track-index="19" data-volume="0.55" src="assets/sfx/drop_002.ogg"></audio>
+      <audio id="sx-p3" data-start="14.7" data-duration="0.29" data-track-index="20" data-volume="0.7" src="assets/sfx/chips-stack-1.ogg"></audio>
+      <audio id="sx-d1" data-start="16.3" data-duration="0.69" data-track-index="21" data-volume="0.6" src="assets/sfx/card-place-1.ogg"></audio>
+      <audio id="sx-d2" data-start="17.33" data-duration="0.11" data-track-index="22" data-volume="0.6" src="assets/sfx/drop_001.ogg"></audio>
+      <audio id="sx-d3" data-start="18.4" data-duration="0.11" data-track-index="23" data-volume="0.6" src="assets/sfx/drop_001.ogg"></audio>
+      <audio id="sx-end" data-start="23.12" data-duration="0.88" data-track-index="24" data-volume="0.7" src="assets/sfx/impactBell_heavy_000.ogg"></audio>
+    </div>
+
+    <script>
+      var tl = gsap.timeline({ paused: true });
+      var E = "power3.out";
+
+      /* ===== Cena 1 (0 - 3.4) ===== */
+      tl.fromTo("#s1-card", { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: E }, 0.2);
+      tl.fromTo("#s1-a", { x: -60, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, ease: E }, 0.35);
+      tl.fromTo("#s1-b", { x: 60, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, ease: E }, 0.75);
+      tl.fromTo(".cell", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5, stagger: 0.12, ease: E }, 0.1);
+
+      /* ===== Cena 2 (3.0 - 8.9) ===== */
+      tl.fromTo("#s2-scene", { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power2.out" }, 3.0);
+      // beat-locked: 3.70s
+      tl.fromTo("#s2-name", { y: 50, scale: 0.92, opacity: 0 }, { y: 0, scale: 1, opacity: 1, duration: 0.6, ease: E }, 3.62);
+      tl.fromTo("#s2-tag", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5, ease: E }, 4.0);
+      tl.fromTo("#s2-head", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6, ease: E }, 4.45);
+      // beat-grid: colunas em 5.28, 6.34, 7.40 (a cada dois beats)
+      tl.fromTo(["#a1", "#a2"], { y: 60, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, stagger: 0.12, ease: E }, 5.28);
+      tl.fromTo(["#a3", "#a4"], { y: 60, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, stagger: 0.12, ease: E }, 6.34);
+      tl.fromTo(["#a5", "#a6"], { y: 60, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, stagger: 0.12, ease: E }, 7.40);
+
+      /* ===== Cena 3 (8.5 - 16.4) ===== */
+      tl.fromTo("#s3-scene", { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power2.out" }, 8.5);
+      tl.fromTo("#s3-win", { y: 200, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: E }, 8.6);
+      tl.fromTo("#s3-chip", { y: -30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: E }, 9.0);
+      tl.fromTo(".nav", { x: -30, opacity: 0 }, { x: 0, opacity: 1, duration: 0.4, stagger: 0.05, ease: E }, 8.9);
+      tl.fromTo("#s3-title", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 9.0);
+      // beat-grid: Cliente 9.50
+      tl.fromTo("#p1", { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: E }, 9.50);
+      tl.fromTo("#p2", { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: E }, 9.85);
+      tl.set(["#r1", "#r2", "#r3", "#r4", "#p2 .th"], { opacity: 0 }, 0);
+      tl.fromTo("#p3", { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: E }, 14.76);
+      tl.set("#p3", { opacity: 0 }, 0);
+      tl.set(["#p3 .p3-who", "#p3 .p3-name", "#p3 .p3-val"], { opacity: 1 }, 0);
+      // cursor simulado: clique no botão em 10.54 (cue forte)
+      tl.fromTo("#cursor", { x: 1500, y: 800, opacity: 0 }, { x: 1085, y: 405, opacity: 1, duration: 0.7, ease: "power2.inOut" }, 9.8);
+      tl.to("#cursor", { scale: 0.85, duration: 0.07, ease: "power1.in" }, 10.52);
+      tl.to("#cursor", { scale: 1, duration: 0.12, ease: "power1.out" }, 10.6);
+      tl.to("#btn", { scale: 0.96, duration: 0.07, ease: "power1.in" }, 10.52);
+      tl.to("#btn", { scale: 1, duration: 0.15, ease: "power1.out" }, 10.6);
+      tl.to("#cursor", { x: 1500, y: 880, opacity: 0, duration: 0.6, ease: "power2.in" }, 11.0);
+      // beat-grid: tabela de parcelas a cada dois beats (11.60, 12.65, 13.70)
+      tl.fromTo("#p2 .th", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 11.1);
+      tl.fromTo("#r1", { x: 40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.45, ease: E }, 11.60);
+      tl.fromTo("#r2", { x: 40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.45, ease: E }, 12.65);
+      tl.fromTo("#r3", { x: 40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.45, ease: E }, 13.70);
+      tl.fromTo("#r4", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 14.22);
+      tl.fromTo("#p3v", { scale: 0.85, transformOrigin: "0% 50%" }, { scale: 1, duration: 0.5, ease: "back.out(1.6)" }, 14.9);
+
+      /* ===== Cena 4 (16.0 - 20.4) ===== */
+      tl.fromTo("#s4-scene", { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power2.out" }, 16.0);
+      tl.fromTo(["#s4-title", "#s4-sub"], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.4, stagger: 0.08, ease: E }, 16.2);
+      // beat-grid: 16.34 (stats), 17.38 (grafico), 18.44 (ranking)
+      tl.set(["#st1", "#st2", "#chart", "#rank"], { opacity: 0 }, 0);
+      tl.fromTo("#st1", { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: E }, 16.34);
+      tl.fromTo("#st2", { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: E }, 16.56);
+      var cnt = { a: 0, b: 0 };
+      function brl(n) { return "R$ " + Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, "."); }
+      tl.to(cnt, { a: 248900, duration: 0.9, ease: "power2.out", onUpdate: function () { document.getElementById("v1").textContent = brl(cnt.a); } }, 16.45);
+      tl.to(cnt, { b: 41300, duration: 0.9, ease: "power2.out", onUpdate: function () { document.getElementById("v2").textContent = brl(cnt.b); } }, 16.67);
+      tl.fromTo("#chart", { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: E }, 17.38);
+      tl.fromTo("#rank", { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: E }, 18.44);
+      tl.fromTo(["#rk1", "#rk2", "#rk3"], { opacity: 0, x: 30 }, { opacity: 1, x: 0, duration: 0.35, stagger: 0.18, ease: E }, 18.7);
+
+      // barras do gráfico (altura fixa; animamos scaleY)
+      var ins = [150, 190, 170, 230, 210, 260, 290];
+      var outs = [110, 140, 150, 160, 170, 190, 200];
+      var bars = document.getElementById("bars");
+      var html = "";
+      for (var i = 0; i < ins.length; i++) {
+        var x = 36 + i * 78;
+        html += '<div class="bar in" style="left:' + x + 'px;height:' + (ins[i]*1.7) + 'px"></div>';
+        html += '<div class="bar out" style="left:' + (x + 36) + 'px;height:' + (outs[i]*1.7) + 'px"></div>';
+      }
+      bars.innerHTML = html;
+      tl.fromTo("#bars .bar", { scaleY: 0 }, { scaleY: 1, duration: 0.6, stagger: 0.04, ease: E }, 17.5);
+
+      /* ===== Cena 5 (20.0 - 24.0) ===== */
+      tl.fromTo("#s5-scene", { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power2.out" }, 20.0);
+      tl.fromTo("#s5-l1", { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: E }, 20.5);
+      tl.fromTo("#s5-l2", { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: E }, 21.5);
+      tl.to(["#s5-l1", "#s5-l2"], { opacity: 0, y: -30, duration: 0.3, ease: "power2.in" }, 22.1);
+      // beat-grid: marca 22.64 ; beat-locked: CTA 23.17
+      tl.fromTo("#s5-brand", { y: 40, scale: 0.94, opacity: 0 }, { y: 0, scale: 1, opacity: 1, duration: 0.55, ease: E }, 22.6);
+      tl.fromTo("#s5-cta", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: E }, 23.15);
+
+      /* ===== Reatividade ao áudio (sutil): brilho dos fundos navy ===== */
+      for (var f = 0; f < AUDIO_DATA.totalFrames; f++) {
+        tl.call((function (fr) {
+          return function () {
+            var bass = fr.bands[0], amp = fr.bands[1];
+            gsap.set(["#s2-glow", "#s5-glow"], { scale: 0.94 + bass * 0.14, opacity: 0.55 + amp * 0.35 });
+          };
+        })(AUDIO_DATA.frames[f]), [], f / AUDIO_DATA.fps);
+      }
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

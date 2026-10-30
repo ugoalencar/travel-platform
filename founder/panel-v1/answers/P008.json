@@ -1,0 +1,13 @@
+{
+  "id": "P008",
+  "buys": true,
+  "purchases_first_month": 1,
+  "reason_code": "need",
+  "reason": "Hoje eu controlo cliente, orçamento e financeiro em planilha e grupo de WhatsApp, é uma bagunça. O preço de R$99 é baixo pra testar e não tem contrato longo, então eu assino o plano menor pra ver se resolve antes de empurrar pra equipe toda.",
+  "objection": "Não tem nenhuma agência conhecida usando isso pra me mostrar que funciona de verdade no dia a dia. Cobrança automática e nota fiscal ainda nem saíram do papel, então na prática eu continuo fazendo isso por fora, o que reduz o valor do sistema pra mim agora.",
+  "would_change_my_mind": "Ver pelo menos duas ou três agências parecidas com a minha usando e falando bem, com caso real, não só print de tela",
+  "price_too_cheap": 30,
+  "price_cheap": 99,
+  "price_expensive": 250,
+  "price_too_expensive": 500
+}

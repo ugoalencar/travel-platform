@@ -126,7 +126,7 @@ export async function createTripOccurrence(
     const inserted = await client.query<{ id: string }>(
       `INSERT INTO trip_occurrences
          (agency_id, trip_id, booking_id, type, description, severity, reported_by, notes)
-       VALUES ($1, $2, $3, $4, $5, COALESCE($6, 'MEDIA'), $7, $8)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
        RETURNING id`,
       [
         agencyId,
@@ -134,7 +134,7 @@ export async function createTripOccurrence(
         data.bookingId ?? null,
         data.type,
         data.description,
-        data.severity ?? null,
+        data.severity ?? 'MEDIA',
         data.reportedBy,
         data.notes ?? null,
       ],

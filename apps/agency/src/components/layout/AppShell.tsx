@@ -4,6 +4,7 @@ import { Sidebar } from './Sidebar';
 import { Topbar } from './Topbar';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
 import { api } from '../../lib/api';
+import { AgencyModulesProvider, AgencyModuleRouteBoundary } from '../../modules/AgencyModulesContext';
 
 // Sends a brand-new agency's OWNER/ADMIN into the onboarding wizard exactly
 // once, on first load after their profile shows no onboardingCompletedAt --
@@ -54,18 +55,20 @@ export function AppShell() {
   }
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-(--color-canvas)">
-      <Sidebar
-        mobileOpen={mobileNavOpen}
-        onClose={() => setMobileNavOpen(false)}
-        role={user?.role}
-      />
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <Topbar onMenuClick={() => setMobileNavOpen(true)} user={user} />
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
-          <Outlet />
-        </main>
+    <AgencyModulesProvider>
+      <div className="flex h-screen w-full overflow-hidden bg-(--color-canvas)">
+        <Sidebar
+          mobileOpen={mobileNavOpen}
+          onClose={() => setMobileNavOpen(false)}
+          role={user?.role}
+        />
+        <div className="flex flex-1 flex-col overflow-hidden">
+          <Topbar onMenuClick={() => setMobileNavOpen(true)} user={user} />
+          <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+            <AgencyModuleRouteBoundary><Outlet /></AgencyModuleRouteBoundary>
+          </main>
+        </div>
       </div>
-    </div>
+    </AgencyModulesProvider>
   );
 }

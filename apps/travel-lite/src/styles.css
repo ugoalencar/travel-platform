@@ -212,6 +212,21 @@ h2 {
   color: var(--lite-muted);
 }
 
+.lite-form:has(.lite-cep-field) {
+  align-items: start;
+}
+
+.lite-cep-field > label {
+  color: var(--lite-muted);
+}
+
+.lite-cep-status {
+  min-height: 2.8em;
+  font-size: 12px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
 input,
 select,
 textarea {
@@ -985,3 +1000,106 @@ tr.row-selected td {
   margin-top: 0.25rem;
 }
 
+
+/* Commission rules: progressive tier editor */
+.lite-form h2 {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+.lite-form .field-check {
+  flex-direction: row;
+  align-items: center;
+}
+
+.lite-form .field-check input {
+  width: auto;
+}
+
+.lite-form .tier-editor {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0.75rem;
+  min-width: 0;
+  border: 1px solid var(--lite-border);
+  border-radius: var(--lite-radius);
+}
+
+.lite-form .tier-editor legend {
+  padding: 0 0.35rem;
+  font-size: 0.9rem;
+  color: var(--lite-muted);
+}
+
+.tier-row {
+  display: grid;
+  grid-template-columns: minmax(9rem, 12rem) minmax(7rem, 1fr) minmax(5rem, 8rem) auto;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.tier-row input {
+  min-width: 0;
+  width: 100%;
+}
+
+.tier-row .btn {
+  white-space: nowrap;
+}
+
+.lite-form .tier-add {
+  align-self: flex-start;
+}
+
+@media (max-width: 640px) {
+  .tier-row {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .tier-row .tier-label {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Seller form: pointer to the commission rules */
+.commission-pointer-list {
+  margin: 0 0 0.5rem;
+  padding-left: 1.1rem;
+}
+
+.commission-pointer .btn {
+  align-self: flex-start;
+}
+
+.lite-form .field-check > span {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: inherit;
+}
+
+.lite-form .field-check input[type='checkbox'] {
+  width: auto;
+  margin: 0;
+  flex: none;
+}
+.backup-section { border-top: 1px solid #dce1e8; padding-block: 24px; margin-block: 24px; }
+.backup-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 16px; }
+.backup-summary dt { color: #526077; font-size: 13px; }
+.backup-summary dd { margin: 4px 0 0; font-weight: 600; }
+.backup-filename { overflow-wrap: anywhere; max-width: 320px; }
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

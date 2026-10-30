@@ -1,0 +1,1785 @@
+{
+ "nodes": [
+  {
+   "id": "file:services/api/tests/helpers/fake-database.ts",
+   "type": "file",
+   "name": "fake-database.ts",
+   "filePath": "services/api/tests/helpers/fake-database.ts",
+   "summary": "Banco de dados falso em memória para testes unitários: responde queries SQL por tabela e expõe factories de linhas, contextos de tenant e constantes de agência/usuário.",
+   "tags": [
+    "test",
+    "utility",
+    "fake-database",
+    "unit-test",
+    "helper"
+   ],
+   "complexity": "complex",
+   "languageNotes": "Intercepta query.text para rotear SQL por tabela, evitando dependência de PostgreSQL nos testes de unidade."
+  },
+  {
+   "id": "function:services/api/tests/helpers/fake-database.ts:createFakeDatabase",
+   "type": "function",
+   "name": "createFakeDatabase",
+   "filePath": "services/api/tests/helpers/fake-database.ts",
+   "lineRange": [
+    46,
+    101
+   ],
+   "summary": "Cria um banco de dados falso em memória que responde queries SQL por tabela, permitindo testar serviços sem PostgreSQL.",
+   "tags": [
+    "test-helper",
+    "fake-database",
+    "sql-mock",
+    "unit-test"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/tests/helpers/fake-database.ts:contextFor",
+   "type": "function",
+   "name": "contextFor",
+   "filePath": "services/api/tests/helpers/fake-database.ts",
+   "lineRange": [
+    109,
+    116
+   ],
+   "summary": "Monta um contexto de tenant com agencyId e userId para simular requisições autenticadas nos testes.",
+   "tags": [
+    "test-helper",
+    "tenant-context",
+    "multi-tenant"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/helpers/fake-database.ts:addressRow",
+   "type": "function",
+   "name": "addressRow",
+   "filePath": "services/api/tests/helpers/fake-database.ts",
+   "lineRange": [
+    124,
+    144
+   ],
+   "summary": "Gera uma linha de endereço de cliente com valores padrão sobrescrevíveis para fixtures de teste.",
+   "tags": [
+    "test-helper",
+    "fixture",
+    "customer"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/helpers/fake-database.ts:dependentRow",
+   "type": "function",
+   "name": "dependentRow",
+   "filePath": "services/api/tests/helpers/fake-database.ts",
+   "lineRange": [
+    147,
+    163
+   ],
+   "summary": "Gera uma linha de dependente de cliente com valores padrão sobrescrevíveis para fixtures de teste.",
+   "tags": [
+    "test-helper",
+    "fixture",
+    "customer"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/helpers/fake-database.ts:documentRow",
+   "type": "function",
+   "name": "documentRow",
+   "filePath": "services/api/tests/helpers/fake-database.ts",
+   "lineRange": [
+    166,
+    190
+   ],
+   "summary": "Gera uma linha de documento de cliente com campos padrão sobrescrevíveis para fixtures de teste.",
+   "tags": [
+    "test-helper",
+    "fixture",
+    "documents"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/helpers/fake-database.ts:attachmentRow",
+   "type": "function",
+   "name": "attachmentRow",
+   "filePath": "services/api/tests/helpers/fake-database.ts",
+   "lineRange": [
+    193,
+    208
+   ],
+   "summary": "Gera uma linha de anexo de documento com valores padrão sobrescrevíveis para fixtures de teste.",
+   "tags": [
+    "test-helper",
+    "fixture",
+    "documents"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/helpers/fake-database.ts:extractionRow",
+   "type": "function",
+   "name": "extractionRow",
+   "filePath": "services/api/tests/helpers/fake-database.ts",
+   "lineRange": [
+    211,
+    227
+   ],
+   "summary": "Gera uma linha de resultado de extração (OCR) de documento com valores padrão sobrescrevíveis.",
+   "tags": [
+    "test-helper",
+    "fixture",
+    "ocr"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/helpers/fake-database.ts:verificationRow",
+   "type": "function",
+   "name": "verificationRow",
+   "filePath": "services/api/tests/helpers/fake-database.ts",
+   "lineRange": [
+    230,
+    250
+   ],
+   "summary": "Gera uma linha de verificação de documento com valores padrão sobrescrevíveis para fixtures de teste.",
+   "tags": [
+    "test-helper",
+    "fixture",
+    "documents"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/helpers/fake-database.ts:auditEventRow",
+   "type": "function",
+   "name": "auditEventRow",
+   "filePath": "services/api/tests/helpers/fake-database.ts",
+   "lineRange": [
+    253,
+    266
+   ],
+   "summary": "Gera uma linha de evento de auditoria com valores padrão sobrescrevíveis para fixtures de teste.",
+   "tags": [
+    "test-helper",
+    "fixture",
+    "audit"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/helpers/fake-database.ts:respondByTable",
+   "type": "function",
+   "name": "respondByTable",
+   "filePath": "services/api/tests/helpers/fake-database.ts",
+   "lineRange": [
+    272,
+    277
+   ],
+   "summary": "Roteia cada query SQL recebida para as linhas da tabela correspondente no banco falso.",
+   "tags": [
+    "test-helper",
+    "sql-mock",
+    "router"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:services/api/tests/import-routes-http.test.ts",
+   "type": "file",
+   "name": "import-routes-http.test.ts",
+   "filePath": "services/api/tests/import-routes-http.test.ts",
+   "summary": "Testes HTTP do endpoint de importação em massa: cobrem upload multipart, dry-run, execução e cancelamento de jobs de importação.",
+   "tags": [
+    "test",
+    "api-handler",
+    "http",
+    "import",
+    "integration"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/tests/import-routes-http.test.ts:buildTestApp",
+   "type": "function",
+   "name": "buildTestApp",
+   "filePath": "services/api/tests/import-routes-http.test.ts",
+   "lineRange": [
+    77,
+    102
+   ],
+   "summary": "Monta a aplicação Fastify de teste com as rotas de importação e autenticação configuradas.",
+   "tags": [
+    "test-helper",
+    "fastify",
+    "http",
+    "setup"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/import-routes-http.test.ts:multipartBody",
+   "type": "function",
+   "name": "multipartBody",
+   "filePath": "services/api/tests/import-routes-http.test.ts",
+   "lineRange": [
+    104,
+    118
+   ],
+   "summary": "Constrói um corpo multipart/form-data com CSV de exemplo para testar upload de importação.",
+   "tags": [
+    "test-helper",
+    "multipart",
+    "upload"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:services/api/tests/insurance.test.ts",
+   "type": "file",
+   "name": "insurance.test.ts",
+   "filePath": "services/api/tests/insurance.test.ts",
+   "summary": "Testes de unidade do módulo de seguros: produtos, apólices, viajantes e documentos usando banco falso e contexto de tenant.",
+   "tags": [
+    "test",
+    "insurance",
+    "unit-test",
+    "domain",
+    "multi-tenant"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/tests/insurance.test.ts:productRow",
+   "type": "function",
+   "name": "productRow",
+   "filePath": "services/api/tests/insurance.test.ts",
+   "lineRange": [
+    25,
+    43
+   ],
+   "summary": "Gera um produto de seguro de exemplo com campos obrigatórios padrão para os testes.",
+   "tags": [
+    "test-helper",
+    "fixture",
+    "insurance"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/insurance.test.ts:policyRow",
+   "type": "function",
+   "name": "policyRow",
+   "filePath": "services/api/tests/insurance.test.ts",
+   "lineRange": [
+    45,
+    70
+   ],
+   "summary": "Monta uma apólice de seguro de exemplo com valores padrão sobrescrevíveis.",
+   "tags": [
+    "test-helper",
+    "fixture",
+    "insurance"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/insurance.test.ts:receivableRow",
+   "type": "function",
+   "name": "receivableRow",
+   "filePath": "services/api/tests/insurance.test.ts",
+   "lineRange": [
+    72,
+    87
+   ],
+   "summary": "Cria um registro de receita vinculado à apólice para testar o financeiro do módulo de seguros.",
+   "tags": [
+    "test-helper",
+    "fixture",
+    "financial"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:services/api/tests/invitations-permission-restrictions.test.ts",
+   "type": "file",
+   "name": "invitations-permission-restrictions.test.ts",
+   "filePath": "services/api/tests/invitations-permission-restrictions.test.ts",
+   "summary": "Testes de restrições de permissão sobre convites: validam bloqueio por função, criação e aceite com banco PostgreSQL descartável.",
+   "tags": [
+    "test",
+    "permissions",
+    "invitations",
+    "security",
+    "integration"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/tests/invitations-permission-restrictions.test.ts:assertSafeTestDatabase",
+   "type": "function",
+   "name": "assertSafeTestDatabase",
+   "filePath": "services/api/tests/invitations-permission-restrictions.test.ts",
+   "lineRange": [
+    451,
+    474
+   ],
+   "summary": "Valida que o banco alvo é local e descartável antes de liberar operações destrutivas nos testes.",
+   "tags": [
+    "test-helper",
+    "safety",
+    "database",
+    "docker"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/invitations-permission-restrictions.test.ts:waitForHealthyContainer",
+   "type": "function",
+   "name": "waitForHealthyContainer",
+   "filePath": "services/api/tests/invitations-permission-restrictions.test.ts",
+   "lineRange": [
+    486,
+    503
+   ],
+   "summary": "Aguarda o container Docker ficar saudável com timeout, inspecionando o estado reportado pelo docker compose.",
+   "tags": [
+    "test-helper",
+    "docker",
+    "containerization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/invitations-permission-restrictions.test.ts:assertContainerIsLocal",
+   "type": "function",
+   "name": "assertContainerIsLocal",
+   "filePath": "services/api/tests/invitations-permission-restrictions.test.ts",
+   "lineRange": [
+    505,
+    518
+   ],
+   "summary": "Confere que o host do banco aponta para 127.0.0.1/localhost e que o nome do schema é descartável.",
+   "tags": [
+    "test-helper",
+    "safety",
+    "database"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/invitations-permission-restrictions.test.ts:run",
+   "type": "function",
+   "name": "run",
+   "filePath": "services/api/tests/invitations-permission-restrictions.test.ts",
+   "lineRange": [
+    525,
+    544
+   ],
+   "summary": "Executa um comando via spawnSync e falha com stdout/stderr detalhados quando o exit code é diferente de zero.",
+   "tags": [
+    "test-helper",
+    "shell",
+    "process"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:services/api/tests/media-library-http.test.ts",
+   "type": "file",
+   "name": "media-library-http.test.ts",
+   "filePath": "services/api/tests/media-library-http.test.ts",
+   "summary": "Testes HTTP da biblioteca de mídia: upload de arquivos, listagem, permissões e acesso do portal do cliente com banco PostgreSQL real.",
+   "tags": [
+    "test",
+    "api-handler",
+    "http",
+    "media",
+    "customer-portal"
+   ],
+   "complexity": "complex",
+   "languageNotes": "Maior suíte do lote: combina app.inject com harness Docker/PostgreSQL descartável e seed por SQL."
+  },
+  {
+   "id": "function:services/api/tests/media-library-http.test.ts:assertSafeTestDatabase",
+   "type": "function",
+   "name": "assertSafeTestDatabase",
+   "filePath": "services/api/tests/media-library-http.test.ts",
+   "lineRange": [
+    1100,
+    1119
+   ],
+   "summary": "Valida que o banco alvo é local e descartável antes de liberar operações destrutivas nos testes.",
+   "tags": [
+    "test-helper",
+    "safety",
+    "database",
+    "docker"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/media-library-http.test.ts:resetDisposableDatabase",
+   "type": "function",
+   "name": "resetDisposableDatabase",
+   "filePath": "services/api/tests/media-library-http.test.ts",
+   "lineRange": [
+    1121,
+    1133
+   ],
+   "summary": "Reseta o banco descartável recriando o schema a partir dos arquivos SQL de migração.",
+   "tags": [
+    "test-helper",
+    "database",
+    "reset"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/media-library-http.test.ts:waitForHealthyContainer",
+   "type": "function",
+   "name": "waitForHealthyContainer",
+   "filePath": "services/api/tests/media-library-http.test.ts",
+   "lineRange": [
+    1139,
+    1152
+   ],
+   "summary": "Aguarda o container Docker ficar saudável com timeout, inspecionando o estado reportado pelo docker compose.",
+   "tags": [
+    "test-helper",
+    "docker",
+    "containerization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/media-library-http.test.ts:assertContainerIsLocal",
+   "type": "function",
+   "name": "assertContainerIsLocal",
+   "filePath": "services/api/tests/media-library-http.test.ts",
+   "lineRange": [
+    1154,
+    1166
+   ],
+   "summary": "Confere que o host do banco aponta para 127.0.0.1/localhost e que o nome do schema é descartável.",
+   "tags": [
+    "test-helper",
+    "safety",
+    "database"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/media-library-http.test.ts:run",
+   "type": "function",
+   "name": "run",
+   "filePath": "services/api/tests/media-library-http.test.ts",
+   "lineRange": [
+    1173,
+    1189
+   ],
+   "summary": "Executa um comando via spawnSync e falha com stdout/stderr detalhados quando o exit code é diferente de zero.",
+   "tags": [
+    "test-helper",
+    "shell",
+    "process"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:services/api/tests/observability.test.ts",
+   "type": "file",
+   "name": "observability.test.ts",
+   "filePath": "services/api/tests/observability.test.ts",
+   "summary": "Testes de observabilidade da aplicação Fastify: verificam logs estruturados e o comportamento do error handler.",
+   "tags": [
+    "test",
+    "observability",
+    "logging",
+    "http"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/tests/observability.test.ts:buildTestApp",
+   "type": "function",
+   "name": "buildTestApp",
+   "filePath": "services/api/tests/observability.test.ts",
+   "lineRange": [
+    5,
+    20
+   ],
+   "summary": "Cria a aplicação Fastify de teste usada para verificar logs e o tratamento de erros.",
+   "tags": [
+    "test-helper",
+    "fastify",
+    "http",
+    "setup"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:services/api/tests/ocr-provider.test.ts",
+   "type": "file",
+   "name": "ocr-provider.test.ts",
+   "filePath": "services/api/tests/ocr-provider.test.ts",
+   "summary": "Testes do provedor OCR em modo mock: validam submissão e consulta de resultados de extração de documentos.",
+   "tags": [
+    "test",
+    "ocr",
+    "document-extraction",
+    "unit-test"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:services/api/tests/offer-e2e.test.ts",
+   "type": "file",
+   "name": "offer-e2e.test.ts",
+   "filePath": "services/api/tests/offer-e2e.test.ts",
+   "summary": "Teste end-to-end do ciclo de ofertas: criação, publicação e navegação contra a API real com banco PostgreSQL descartável.",
+   "tags": [
+    "test",
+    "e2e",
+    "offers",
+    "integration",
+    "docker"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/tests/offer-e2e.test.ts:assertSafeTestDatabase",
+   "type": "function",
+   "name": "assertSafeTestDatabase",
+   "filePath": "services/api/tests/offer-e2e.test.ts",
+   "lineRange": [
+    476,
+    499
+   ],
+   "summary": "Valida que o banco alvo é local e descartável antes de liberar operações destrutivas nos testes.",
+   "tags": [
+    "test-helper",
+    "safety",
+    "database",
+    "docker"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/offer-e2e.test.ts:waitForHealthyContainer",
+   "type": "function",
+   "name": "waitForHealthyContainer",
+   "filePath": "services/api/tests/offer-e2e.test.ts",
+   "lineRange": [
+    511,
+    532
+   ],
+   "summary": "Aguarda o container Docker ficar saudável com timeout, inspecionando o estado reportado pelo docker compose.",
+   "tags": [
+    "test-helper",
+    "docker",
+    "containerization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/offer-e2e.test.ts:assertContainerIsLocal",
+   "type": "function",
+   "name": "assertContainerIsLocal",
+   "filePath": "services/api/tests/offer-e2e.test.ts",
+   "lineRange": [
+    534,
+    547
+   ],
+   "summary": "Confere que o host do banco aponta para 127.0.0.1/localhost e que o nome do schema é descartável.",
+   "tags": [
+    "test-helper",
+    "safety",
+    "database"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/offer-e2e.test.ts:seedAgenciesAndUsers",
+   "type": "function",
+   "name": "seedAgenciesAndUsers",
+   "filePath": "services/api/tests/offer-e2e.test.ts",
+   "lineRange": [
+    565,
+    584
+   ],
+   "summary": "Insere agências e usuários de exemplo via SQL para semear os cenários de teste.",
+   "tags": [
+    "test-helper",
+    "seed",
+    "database"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/offer-e2e.test.ts:run",
+   "type": "function",
+   "name": "run",
+   "filePath": "services/api/tests/offer-e2e.test.ts",
+   "lineRange": [
+    591,
+    619
+   ],
+   "summary": "Executa um comando via spawnSync e falha com stdout/stderr detalhados quando o exit code é diferente de zero.",
+   "tags": [
+    "test-helper",
+    "shell",
+    "process"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:services/api/tests/offer-growth-cancun-e2e.test.ts",
+   "type": "file",
+   "name": "offer-growth-cancun-e2e.test.ts",
+   "filePath": "services/api/tests/offer-growth-cancun-e2e.test.ts",
+   "summary": "Teste end-to-end do fluxo de crescimento em Cancún: campanhas, entitlements e automação habilitados na base de teste.",
+   "tags": [
+    "test",
+    "e2e",
+    "growth",
+    "campaigns",
+    "entitlements"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/tests/offer-growth-cancun-e2e.test.ts:enableCampaignsAndAutomationEntitlements",
+   "type": "function",
+   "name": "enableCampaignsAndAutomationEntitlements",
+   "filePath": "services/api/tests/offer-growth-cancun-e2e.test.ts",
+   "lineRange": [
+    276,
+    286
+   ],
+   "summary": "Ativa as entitle de campanhas e automação na base de teste para habilitar o fluxo de crescimento.",
+   "tags": [
+    "test-helper",
+    "entitlements",
+    "campaigns"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/offer-growth-cancun-e2e.test.ts:seedDefaultPipeline",
+   "type": "function",
+   "name": "seedDefaultPipeline",
+   "filePath": "services/api/tests/offer-growth-cancun-e2e.test.ts",
+   "lineRange": [
+    288,
+    299
+   ],
+   "summary": "Popula o funil padrão de ofertas e propostas usado no cenário end-to-end de Cancún.",
+   "tags": [
+    "test-helper",
+    "seed",
+    "growth"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/offer-growth-cancun-e2e.test.ts:assertSafeTestDatabase",
+   "type": "function",
+   "name": "assertSafeTestDatabase",
+   "filePath": "services/api/tests/offer-growth-cancun-e2e.test.ts",
+   "lineRange": [
+    301,
+    311
+   ],
+   "summary": "Valida que o banco alvo é local e descartável antes de liberar operações destrutivas nos testes.",
+   "tags": [
+    "test-helper",
+    "safety",
+    "database",
+    "docker"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/offer-growth-cancun-e2e.test.ts:waitForHealthyContainer",
+   "type": "function",
+   "name": "waitForHealthyContainer",
+   "filePath": "services/api/tests/offer-growth-cancun-e2e.test.ts",
+   "lineRange": [
+    323,
+    337
+   ],
+   "summary": "Aguarda o container Docker ficar saudável com timeout, inspecionando o estado reportado pelo docker compose.",
+   "tags": [
+    "test-helper",
+    "docker",
+    "containerization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/offer-growth-cancun-e2e.test.ts:seedAgenciesAndUsers",
+   "type": "function",
+   "name": "seedAgenciesAndUsers",
+   "filePath": "services/api/tests/offer-growth-cancun-e2e.test.ts",
+   "lineRange": [
+    364,
+    375
+   ],
+   "summary": "Insere agências e usuários de exemplo via SQL para semear os cenários de teste.",
+   "tags": [
+    "test-helper",
+    "seed",
+    "database"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/offer-growth-cancun-e2e.test.ts:run",
+   "type": "function",
+   "name": "run",
+   "filePath": "services/api/tests/offer-growth-cancun-e2e.test.ts",
+   "lineRange": [
+    382,
+    401
+   ],
+   "summary": "Executa um comando via spawnSync e falha com stdout/stderr detalhados quando o exit code é diferente de zero.",
+   "tags": [
+    "test-helper",
+    "shell",
+    "process"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:services/api/tests/offer-growth-entitlement-isolation.test.ts",
+   "type": "file",
+   "name": "offer-growth-entitlement-isolation.test.ts",
+   "filePath": "services/api/tests/offer-growth-entitlement-isolation.test.ts",
+   "summary": "Testes de isolamento de entitlements entre agências no fluxo de crescimento, impedindo que acessos vazem entre tenants.",
+   "tags": [
+    "test",
+    "e2e",
+    "entitlements",
+    "multi-tenant",
+    "isolation"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/tests/offer-growth-entitlement-isolation.test.ts:assertSafeTestDatabase",
+   "type": "function",
+   "name": "assertSafeTestDatabase",
+   "filePath": "services/api/tests/offer-growth-entitlement-isolation.test.ts",
+   "lineRange": [
+    278,
+    288
+   ],
+   "summary": "Valida que o banco alvo é local e descartável antes de liberar operações destrutivas nos testes.",
+   "tags": [
+    "test-helper",
+    "safety",
+    "database",
+    "docker"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/offer-growth-entitlement-isolation.test.ts:waitForHealthyContainer",
+   "type": "function",
+   "name": "waitForHealthyContainer",
+   "filePath": "services/api/tests/offer-growth-entitlement-isolation.test.ts",
+   "lineRange": [
+    300,
+    311
+   ],
+   "summary": "Aguarda o container Docker ficar saudável com timeout, inspecionando o estado reportado pelo docker compose.",
+   "tags": [
+    "test-helper",
+    "docker",
+    "containerization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/offer-growth-entitlement-isolation.test.ts:seedAgenciesAndUsers",
+   "type": "function",
+   "name": "seedAgenciesAndUsers",
+   "filePath": "services/api/tests/offer-growth-entitlement-isolation.test.ts",
+   "lineRange": [
+    338,
+    353
+   ],
+   "summary": "Insere agências e usuários de exemplo via SQL para semear os cenários de teste.",
+   "tags": [
+    "test-helper",
+    "seed",
+    "database"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/offer-growth-entitlement-isolation.test.ts:run",
+   "type": "function",
+   "name": "run",
+   "filePath": "services/api/tests/offer-growth-entitlement-isolation.test.ts",
+   "lineRange": [
+    360,
+    379
+   ],
+   "summary": "Executa um comando via spawnSync e falha com stdout/stderr detalhados quando o exit code é diferente de zero.",
+   "tags": [
+    "test-helper",
+    "shell",
+    "process"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:services/api/tests/offer-routes.test.ts",
+   "type": "file",
+   "name": "offer-routes.test.ts",
+   "filePath": "services/api/tests/offer-routes.test.ts",
+   "summary": "Testes HTTP das rotas de ofertas: CRUD, publicação e regras de estado com autenticação e banco descartável.",
+   "tags": [
+    "test",
+    "api-handler",
+    "http",
+    "offers",
+    "rest"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/tests/offer-routes.test.ts:assertSafeTestDatabase",
+   "type": "function",
+   "name": "assertSafeTestDatabase",
+   "filePath": "services/api/tests/offer-routes.test.ts",
+   "lineRange": [
+    645,
+    668
+   ],
+   "summary": "Valida que o banco alvo é local e descartável antes de liberar operações destrutivas nos testes.",
+   "tags": [
+    "test-helper",
+    "safety",
+    "database",
+    "docker"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/offer-routes.test.ts:waitForHealthyContainer",
+   "type": "function",
+   "name": "waitForHealthyContainer",
+   "filePath": "services/api/tests/offer-routes.test.ts",
+   "lineRange": [
+    680,
+    701
+   ],
+   "summary": "Aguarda o container Docker ficar saudável com timeout, inspecionando o estado reportado pelo docker compose.",
+   "tags": [
+    "test-helper",
+    "docker",
+    "containerization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/offer-routes.test.ts:assertContainerIsLocal",
+   "type": "function",
+   "name": "assertContainerIsLocal",
+   "filePath": "services/api/tests/offer-routes.test.ts",
+   "lineRange": [
+    703,
+    716
+   ],
+   "summary": "Confere que o host do banco aponta para 127.0.0.1/localhost e que o nome do schema é descartável.",
+   "tags": [
+    "test-helper",
+    "safety",
+    "database"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/offer-routes.test.ts:seedAgenciesAndUsers",
+   "type": "function",
+   "name": "seedAgenciesAndUsers",
+   "filePath": "services/api/tests/offer-routes.test.ts",
+   "lineRange": [
+    734,
+    753
+   ],
+   "summary": "Insere agências e usuários de exemplo via SQL para semear os cenários de teste.",
+   "tags": [
+    "test-helper",
+    "seed",
+    "database"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/offer-routes.test.ts:run",
+   "type": "function",
+   "name": "run",
+   "filePath": "services/api/tests/offer-routes.test.ts",
+   "lineRange": [
+    760,
+    788
+   ],
+   "summary": "Executa um comando via spawnSync e falha com stdout/stderr detalhados quando o exit code é diferente de zero.",
+   "tags": [
+    "test-helper",
+    "shell",
+    "process"
+   ],
+   "complexity": "simple"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:services/api/tests/helpers/fake-database.ts",
+   "target": "function:services/api/tests/helpers/fake-database.ts:createFakeDatabase",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/helpers/fake-database.ts",
+   "target": "function:services/api/tests/helpers/fake-database.ts:createFakeDatabase",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/tests/helpers/fake-database.ts",
+   "target": "function:services/api/tests/helpers/fake-database.ts:contextFor",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/helpers/fake-database.ts",
+   "target": "function:services/api/tests/helpers/fake-database.ts:contextFor",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/tests/helpers/fake-database.ts",
+   "target": "function:services/api/tests/helpers/fake-database.ts:addressRow",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/helpers/fake-database.ts",
+   "target": "function:services/api/tests/helpers/fake-database.ts:addressRow",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/tests/helpers/fake-database.ts",
+   "target": "function:services/api/tests/helpers/fake-database.ts:dependentRow",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/helpers/fake-database.ts",
+   "target": "function:services/api/tests/helpers/fake-database.ts:dependentRow",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/tests/helpers/fake-database.ts",
+   "target": "function:services/api/tests/helpers/fake-database.ts:documentRow",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/helpers/fake-database.ts",
+   "target": "function:services/api/tests/helpers/fake-database.ts:documentRow",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/tests/helpers/fake-database.ts",
+   "target": "function:services/api/tests/helpers/fake-database.ts:attachmentRow",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/helpers/fake-database.ts",
+   "target": "function:services/api/tests/helpers/fake-database.ts:attachmentRow",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/tests/helpers/fake-database.ts",
+   "target": "function:services/api/tests/helpers/fake-database.ts:extractionRow",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/helpers/fake-database.ts",
+   "target": "function:services/api/tests/helpers/fake-database.ts:extractionRow",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/tests/helpers/fake-database.ts",
+   "target": "function:services/api/tests/helpers/fake-database.ts:verificationRow",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/helpers/fake-database.ts",
+   "target": "function:services/api/tests/helpers/fake-database.ts:verificationRow",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/tests/helpers/fake-database.ts",
+   "target": "function:services/api/tests/helpers/fake-database.ts:auditEventRow",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/helpers/fake-database.ts",
+   "target": "function:services/api/tests/helpers/fake-database.ts:auditEventRow",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/tests/helpers/fake-database.ts",
+   "target": "function:services/api/tests/helpers/fake-database.ts:respondByTable",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/helpers/fake-database.ts",
+   "target": "function:services/api/tests/helpers/fake-database.ts:respondByTable",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/tests/import-routes-http.test.ts",
+   "target": "function:services/api/tests/import-routes-http.test.ts:buildTestApp",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/import-routes-http.test.ts",
+   "target": "function:services/api/tests/import-routes-http.test.ts:multipartBody",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/insurance.test.ts",
+   "target": "function:services/api/tests/insurance.test.ts:productRow",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/insurance.test.ts",
+   "target": "function:services/api/tests/insurance.test.ts:policyRow",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/insurance.test.ts",
+   "target": "function:services/api/tests/insurance.test.ts:receivableRow",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/invitations-permission-restrictions.test.ts",
+   "target": "function:services/api/tests/invitations-permission-restrictions.test.ts:assertSafeTestDatabase",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/invitations-permission-restrictions.test.ts",
+   "target": "function:services/api/tests/invitations-permission-restrictions.test.ts:waitForHealthyContainer",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/invitations-permission-restrictions.test.ts",
+   "target": "function:services/api/tests/invitations-permission-restrictions.test.ts:assertContainerIsLocal",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/invitations-permission-restrictions.test.ts",
+   "target": "function:services/api/tests/invitations-permission-restrictions.test.ts:run",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/media-library-http.test.ts",
+   "target": "function:services/api/tests/media-library-http.test.ts:assertSafeTestDatabase",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/media-library-http.test.ts",
+   "target": "function:services/api/tests/media-library-http.test.ts:resetDisposableDatabase",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/media-library-http.test.ts",
+   "target": "function:services/api/tests/media-library-http.test.ts:waitForHealthyContainer",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/media-library-http.test.ts",
+   "target": "function:services/api/tests/media-library-http.test.ts:assertContainerIsLocal",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/media-library-http.test.ts",
+   "target": "function:services/api/tests/media-library-http.test.ts:run",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/observability.test.ts",
+   "target": "function:services/api/tests/observability.test.ts:buildTestApp",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/offer-e2e.test.ts",
+   "target": "function:services/api/tests/offer-e2e.test.ts:assertSafeTestDatabase",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/offer-e2e.test.ts",
+   "target": "function:services/api/tests/offer-e2e.test.ts:waitForHealthyContainer",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/offer-e2e.test.ts",
+   "target": "function:services/api/tests/offer-e2e.test.ts:assertContainerIsLocal",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/offer-e2e.test.ts",
+   "target": "function:services/api/tests/offer-e2e.test.ts:seedAgenciesAndUsers",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/offer-e2e.test.ts",
+   "target": "function:services/api/tests/offer-e2e.test.ts:run",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/offer-growth-cancun-e2e.test.ts",
+   "target": "function:services/api/tests/offer-growth-cancun-e2e.test.ts:enableCampaignsAndAutomationEntitlements",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/offer-growth-cancun-e2e.test.ts",
+   "target": "function:services/api/tests/offer-growth-cancun-e2e.test.ts:seedDefaultPipeline",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/offer-growth-cancun-e2e.test.ts",
+   "target": "function:services/api/tests/offer-growth-cancun-e2e.test.ts:assertSafeTestDatabase",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/offer-growth-cancun-e2e.test.ts",
+   "target": "function:services/api/tests/offer-growth-cancun-e2e.test.ts:waitForHealthyContainer",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/offer-growth-cancun-e2e.test.ts",
+   "target": "function:services/api/tests/offer-growth-cancun-e2e.test.ts:seedAgenciesAndUsers",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/offer-growth-cancun-e2e.test.ts",
+   "target": "function:services/api/tests/offer-growth-cancun-e2e.test.ts:run",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/offer-growth-entitlement-isolation.test.ts",
+   "target": "function:services/api/tests/offer-growth-entitlement-isolation.test.ts:assertSafeTestDatabase",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/offer-growth-entitlement-isolation.test.ts",
+   "target": "function:services/api/tests/offer-growth-entitlement-isolation.test.ts:waitForHealthyContainer",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/offer-growth-entitlement-isolation.test.ts",
+   "target": "function:services/api/tests/offer-growth-entitlement-isolation.test.ts:seedAgenciesAndUsers",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/offer-growth-entitlement-isolation.test.ts",
+   "target": "function:services/api/tests/offer-growth-entitlement-isolation.test.ts:run",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/offer-routes.test.ts",
+   "target": "function:services/api/tests/offer-routes.test.ts:assertSafeTestDatabase",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/offer-routes.test.ts",
+   "target": "function:services/api/tests/offer-routes.test.ts:waitForHealthyContainer",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/offer-routes.test.ts",
+   "target": "function:services/api/tests/offer-routes.test.ts:assertContainerIsLocal",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/offer-routes.test.ts",
+   "target": "function:services/api/tests/offer-routes.test.ts:seedAgenciesAndUsers",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/offer-routes.test.ts",
+   "target": "function:services/api/tests/offer-routes.test.ts:run",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/helpers/fake-database.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/helpers/fake-database.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/import-routes-http.test.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/import-routes-http.test.ts",
+   "target": "file:services/api/src/app.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/import-routes-http.test.ts",
+   "target": "file:services/api/src/auth.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/import-routes-http.test.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/import-routes-http.test.ts",
+   "target": "file:services/api/src/import/service.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/import-routes-http.test.ts",
+   "target": "file:services/api/src/import/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/insurance.test.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/insurance.test.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/insurance.test.ts",
+   "target": "file:services/api/src/insurance.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/insurance.test.ts",
+   "target": "file:services/api/tests/helpers/fake-database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/invitations-permission-restrictions.test.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/invitations-permission-restrictions.test.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/invitations-permission-restrictions.test.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/invitations-permission-restrictions.test.ts",
+   "target": "file:services/api/src/invitations.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/invitations-permission-restrictions.test.ts",
+   "target": "file:services/api/src/permission-restrictions.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/invitations-permission-restrictions.test.ts",
+   "target": "file:services/api/src/settings-queries.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/media-library-http.test.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/media-library-http.test.ts",
+   "target": "file:services/api/src/app.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/media-library-http.test.ts",
+   "target": "file:services/api/src/customer-auth.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/media-library-http.test.ts",
+   "target": "file:services/api/src/customer-portal.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/media-library-http.test.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/observability.test.ts",
+   "target": "file:services/api/src/app.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/observability.test.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/ocr-provider.test.ts",
+   "target": "file:services/api/src/ocr-provider.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/offer-e2e.test.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/offer-e2e.test.ts",
+   "target": "file:services/api/src/app.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/offer-e2e.test.ts",
+   "target": "file:services/api/src/auth.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/offer-e2e.test.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/offer-growth-cancun-e2e.test.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/offer-growth-cancun-e2e.test.ts",
+   "target": "file:services/api/src/app.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/offer-growth-cancun-e2e.test.ts",
+   "target": "file:services/api/src/auth.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/offer-growth-cancun-e2e.test.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/offer-growth-entitlement-isolation.test.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/offer-growth-entitlement-isolation.test.ts",
+   "target": "file:services/api/src/app.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/offer-growth-entitlement-isolation.test.ts",
+   "target": "file:services/api/src/auth.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/offer-growth-entitlement-isolation.test.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/offer-routes.test.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/offer-routes.test.ts",
+   "target": "file:services/api/src/app.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/offer-routes.test.ts",
+   "target": "file:services/api/src/auth.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/offer-routes.test.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/import-routes-http.test.ts",
+   "target": "function:services/api/src/app.ts:buildApp",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/tests/media-library-http.test.ts",
+   "target": "function:services/api/src/app.ts:buildApp",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/tests/media-library-http.test.ts",
+   "target": "function:services/api/src/customer-portal.ts:createCustomerAccessValidator",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/tests/observability.test.ts",
+   "target": "function:services/api/src/app.ts:buildApp",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/tests/offer-e2e.test.ts",
+   "target": "function:services/api/src/app.ts:buildApp",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/tests/offer-e2e.test.ts",
+   "target": "function:services/api/src/database.ts:createDatabaseRuntime",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/tests/offer-growth-entitlement-isolation.test.ts",
+   "target": "function:services/api/src/app.ts:buildApp",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/tests/offer-growth-entitlement-isolation.test.ts",
+   "target": "function:services/api/src/database.ts:createDatabaseRuntime",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/tests/offer-growth-entitlement-isolation.test.ts",
+   "target": "function:services/api/src/database.ts:createPlatformDatabaseRuntime",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/tests/offer-routes.test.ts",
+   "target": "function:services/api/src/app.ts:buildApp",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/tests/offer-routes.test.ts",
+   "target": "function:services/api/src/database.ts:createDatabaseRuntime",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/app.ts",
+   "target": "file:services/api/tests/import-routes-http.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/app.ts",
+   "target": "file:services/api/tests/media-library-http.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/app.ts",
+   "target": "file:services/api/tests/observability.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/app.ts",
+   "target": "file:services/api/tests/offer-e2e.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/app.ts",
+   "target": "file:services/api/tests/offer-growth-cancun-e2e.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/app.ts",
+   "target": "file:services/api/tests/offer-growth-entitlement-isolation.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/app.ts",
+   "target": "file:services/api/tests/offer-routes.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/insurance.ts",
+   "target": "file:services/api/tests/insurance.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/invitations.ts",
+   "target": "file:services/api/tests/invitations-permission-restrictions.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/permission-restrictions.ts",
+   "target": "file:services/api/tests/invitations-permission-restrictions.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/settings-queries.ts",
+   "target": "file:services/api/tests/invitations-permission-restrictions.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/ocr-provider.ts",
+   "target": "file:services/api/tests/ocr-provider.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  }
+ ]
+}

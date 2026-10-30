@@ -251,12 +251,17 @@ Manter os catálogos básicos usados em vendas e financeiro.
 ### Quem pode acessar
 MASTER, ADMIN e MANAGER (permissão de cadastros). O menu **Cadastros** não aparece para os demais.
 
-### As cinco seções
+### As seções
 1. **Categorias de venda** (por exemplo, "Passagens aéreas").
-2. **Favorecidos financeiros** (para quem se paga ou de quem se recebe).
-3. **Contas financeiras** (por exemplo, "Banco do Brasil — CC 1234"), com o saldo inicial.
-4. **Categorias financeiras** (por exemplo, "Despesas fixas").
-5. **Formas de pagamento.**
+2. **Formulário de venda**: para cada categoria, marque quais campos a venda mostra (origem, destino, datas da viagem, passageiros, localizador…) e quais são obrigatórios. Vendas já feitas mantêm o formulário com que foram registradas.
+3. **Produtos**: nome, categoria e fornecedor padrão. Produto inativo não pode ser usado em uma venda.
+4. **Favorecidos financeiros** (para quem se paga ou de quem se recebe).
+5. **Contas financeiras** (por exemplo, "Banco do Brasil — CC 1234"), com o saldo inicial.
+6. **Categorias financeiras** (por exemplo, "Despesas fixas").
+7. **Formas de pagamento.**
+
+### Itens da venda
+No rascunho da venda, a seção **Itens da venda** lista os componentes (tarifa, taxas, seguro…). Cada item tem quantidade, valor unitário, taxas, tarifas e desconto; o total do item é calculado pelo sistema. Enquanto houver itens ativos, o **valor bruto da venda é a soma dos itens** e não pode ser digitado. Sem itens, o valor bruto continua sendo o informado na venda.
 
 ### Passo a passo
 1. Menu **Cadastros** e escolha a seção.
@@ -284,7 +289,7 @@ Lançar vendas em **rascunho**, **confirmar** (isso gera as parcelas a receber e
 
 ### Passo a passo
 1. Menu **Vendas** → **Nova venda**.
-2. Escolha **cliente**, **vendedor** e **categoria**.
+2. Escolha **cliente**, **vendedor** e **categoria**. Para o cliente, digite parte do nome e escolha na lista, ou cole o CPF com ou sem pontuação: se houver um único cliente com esse CPF, ele é selecionado sozinho. Clientes inativos aparecem na lista, mas não podem ser escolhidos. Só aparecem clientes da sua carteira (ou de todas, se o seu perfil permitir).
 3. Informe **valor bruto**, **data da venda**, **vencimento** e **número de parcelas**.
 4. Salve: a venda nasce como **rascunho** ("Venda criada como rascunho.").
 5. Abra a venda em **Detalhe**, lance os **custos diretos** (se houver) com **Adicionar custo** e revise as parcelas.

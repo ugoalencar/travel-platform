@@ -46,6 +46,30 @@ export interface Department {
 }
 
 const hexColorPattern = /^#[0-9a-fA-F]{6}$/;
+const MAX_LOGO_BYTES = 150 * 1024;
+const LOGO_DATA_URL_PATTERN = /^data:(image\/(?:png|jpeg|webp));base64,([A-Za-z0-9+/]+={0,2})$/;
+
+function hasValidImageSignature(mime: string, data: Buffer): boolean {
+  if (mime === 'image/png') {
+    return data.length >= 8 && data.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]));
+  }
+  if (mime === 'image/jpeg') {
+    return data.length >= 3 && data[0] === 0xff && data[1] === 0xd8 && data[2] === 0xff;
+  }
+  return (
+    mime === 'image/webp' && data.length >= 12 &&
+    data.toString('ascii', 0, 4) === 'RIFF' && data.toString('ascii', 8, 12) === 'WEBP'
+  );
+}
+
+function isValidLogoDataUrl(value: string): boolean {
+  if (value.length > Math.ceil((MAX_LOGO_BYTES * 4) / 3) + 64) return false;
+  const match = LOGO_DATA_URL_PATTERN.exec(value);
+  if (!match) return false;
+  const data = Buffer.from(match[2]!, 'base64');
+  return data.length > 0 && data.length <= MAX_LOGO_BYTES && data.toString('base64') === match[2] &&
+    hasValidImageSignature(match[1]!, data);
+}
 
 function assertValidBrandingInput(input: AgencyBrandingUpdate): void {
   if (input.primaryColor !== undefined && input.primaryColor !== null) {
@@ -54,13 +78,19 @@ function assertValidBrandingInput(input: AgencyBrandingUpdate): void {
     }
   }
   if (input.logoUrl !== undefined && input.logoUrl !== null && input.logoUrl.length > 0) {
-    try {
-      const parsed = new URL(input.logoUrl);
-      if (!['http:', 'https:'].includes(parsed.protocol)) {
-        throw new Error('invalid');
+    if (input.logoUrl.startsWith('data:')) {
+      if (!isValidLogoDataUrl(input.logoUrl)) {
+        throw new ValidationError('O logo deve ser PNG, JPEG ou WebP válido e ter até 150 KB');
       }
-    } catch {
-      throw new Error('logoUrl deve ser uma URL http(s) válida');
+    } else {
+      try {
+        const parsed = new URL(input.logoUrl);
+        if (!['http:', 'https:'].includes(parsed.protocol)) {
+          throw new Error('invalid');
+        }
+      } catch {
+        throw new ValidationError('logoUrl deve ser uma URL http(s) válida');
+      }
     }
   }
   if (input.displayName !== undefined && input.displayName !== null && input.displayName.length > 200) {

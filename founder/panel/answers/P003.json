@@ -1,0 +1,13 @@
+{
+  "id": "P003",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Já vi um sistema parecido travar e perder dado de cliente no meio da migração, e isso não é coisa que se esquece. A garantia de devolução é bonita no papel, mas o outro fornecedor também prometia segurança e não entregou. Entrar como 'Agência Pioneira' significa eu ser a cobaia sem ter nenhum caso real pra olhar antes - prefiro ver outras agências como a minha usando por uns meses primeiro.",
+  "objection": "O medo de perder ou corromper histórico e dado de cliente na migração de novo, igual já aconteceu antes - nenhuma garantia de reembolso devolve o tempo perdido nem conserta a confiança do cliente final que ficou sem atendimento.",
+  "would_change_my_mind": "Ver 2 ou 3 agências pequenas parecidas com a minha, não só o depoimento no site, já usando o sistema há alguns meses sem history de perda de dado - aí eu entraria no teste pra ver com meus próprios olhos antes de migrar de verdade.",
+  "price_too_cheap": 30,
+  "price_cheap": 50,
+  "price_expensive": 150,
+  "price_too_expensive": 220
+}

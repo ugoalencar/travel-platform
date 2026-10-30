@@ -1,9 +1,22 @@
+import {remainingImportFields} from './sales-import-completion';
 import { SaleStatus, type Sale } from '../../../packages/domain/types';
 import { getAgencyId, getUserId } from '../../../packages/domain/tenant-context';
 import type { DatabaseRuntime, TenantTransactionClient } from './database';
-import { ConflictError, NotFoundError, ValidationError } from './errors';
+import { ConflictError, FormFieldError, NotFoundError, ValidationError } from './errors';
 import { AuditEventType, recordAuditEvent } from './audit-log';
 import { cancelCommissionsForSale } from './employee-commissions';
+import { cancelRevenueForSale, syncRevenueEntitlement } from './agency-revenue';
+import { loadCategoryWithRules } from './sale-categories';
+import type { CreateSaleItemInput } from './sale-items';
+import { compileCustomerFilter } from './customer-segmentation';
+import {
+  assertTravelDateOrder,
+  buildFormSnapshot,
+  getSaleFormField,
+  validateSaleFormValues,
+  type FormSnapshot,
+  type SaleFormRule,
+} from './sale-form-fields';
 
 interface SaleRow {
   id: string;
@@ -20,6 +33,16 @@ interface SaleRow {
   paid_at: string | null;
   created_at: string;
   updated_at: string;
+  category_id: string | null;
+  sale_date: string;
+  travel_start_date: string | null;
+  travel_end_date: string | null;
+  origin_text: string | null;
+  destination_text: string | null;
+  passenger_count: number | null;
+  modality_data: Record<string, string> | null;
+  form_snapshot: FormSnapshot | null;
+  import_supplier_present?: boolean;
 }
 
 interface ReceivableSyncRow {
@@ -36,16 +59,73 @@ export interface CreateSaleInput {
   amount: number;
   discount?: number;
   notes?: string;
+  categoryId?: string;
+  /** Form values keyed by registry field_key (ADR-008); validated against the category profile. */
+  formValues?: Record<string, unknown>;
+  items?: Array<Omit<CreateSaleItemInput, 'saleId'>>;
 }
 
 export interface UpdateSaleInput {
   amount?: number;
   discount?: number;
   notes?: string;
+  /** Only while the sale is PENDING: revalidates the whole sale against the new category profile. */
+  categoryId?: string;
+  formValues?: Record<string, unknown>;
 }
 
 const SALE_COLUMNS = `id, agency_id, customer_id, proposal_id, broker_id, user_id, amount,
-              discount, total, status, notes, paid_at, created_at, updated_at`;
+              discount, total, status, notes, paid_at, created_at, updated_at,
+              category_id, sale_date::text AS sale_date, travel_start_date::text AS travel_start_date,
+              travel_end_date::text AS travel_end_date, origin_text, destination_text,
+              passenger_count, modality_data, form_snapshot`;
+
+/**
+ * Imported sales listed as "to complete" need to know whether a supplier item exists now. Only those rows
+ * query sale_items, so ordinary sales (and schemas without sale_items) never touch it.
+ */
+async function hydrateImportSupplier<T extends { id: string; form_snapshot: SaleRow['form_snapshot']; import_supplier_present?: boolean }>(
+  client: TenantTransactionClient,
+  agencyId: string,
+  rows: T[],
+): Promise<T[]> {
+  const ids = rows.filter((row) => row.form_snapshot?.importPending?.includes('supplier')).map((row) => row.id);
+  if (ids.length === 0) return rows;
+  const found = await client.query<{ sale_id: string }>(
+    `SELECT DISTINCT sale_id FROM sale_items
+      WHERE agency_id = $1 AND sale_id = ANY($2::text[]) AND status = 'ACTIVE' AND supplier_id IS NOT NULL`,
+    [agencyId, ids],
+  );
+  const present = new Set(found.rows.map((row) => row.sale_id));
+  for (const row of rows) if (ids.includes(row.id)) row.import_supplier_present = present.has(row.id);
+  return rows;
+}
+
+function splitFormValues(values: Record<string, string | number | null>) {
+  const columns: Record<string, string | number | null> = {};
+  const modality: Record<string, string | number | null> = {};
+  for (const [key, value] of Object.entries(values)) {
+    if (getSaleFormField(key)?.storage === 'column') columns[key] = value;
+    else modality[key] = value;
+  }
+  return { columns, modality };
+}
+
+const COLUMN_FORM_KEYS = ['travel_start_date', 'travel_end_date', 'origin_text', 'destination_text', 'passenger_count'] as const;
+
+/** Form values currently stored on a sale, keyed by field_key (nulls omitted). */
+function currentFormValues(row: SaleRow): Record<string, unknown> {
+  const values: Record<string, unknown> = { ...(row.modality_data ?? {}) };
+  for (const key of COLUMN_FORM_KEYS) {
+    const value = row[key];
+    if (value !== null) values[key] = value;
+  }
+  return values;
+}
+
+function rulesFromSnapshot(snapshot: FormSnapshot | null): SaleFormRule[] {
+  return (snapshot?.fields ?? []).map((f) => ({ fieldKey: f.fieldKey, enabled: f.enabled, required: f.required }));
+}
 
 // Postgres unique_violation error code (23505), used to translate the
 // sales_agency_proposal_key UNIQUE constraint into a clean domain error
@@ -87,14 +167,18 @@ export async function listSales(database: DatabaseRuntime): Promise<Sale[]> {
       [agencyId],
     );
 
-    return result.rows.map(toSale);
+    return (await hydrateImportSupplier(client, agencyId, result.rows)).map(toSale);
   });
 }
 
-export async function getSaleById(database: DatabaseRuntime, id: string): Promise<Sale | null> {
+export async function getSaleById(
+  database: DatabaseRuntime,
+  id: string,
+  existingClient?: TenantTransactionClient,
+): Promise<Sale | null> {
   const agencyId = getAgencyId();
 
-  return database.withTenantTransaction(async (client) => {
+  return inTransaction(database, existingClient, async (client) => {
     const result = await client.query<SaleRow>(
       `SELECT ${SALE_COLUMNS}
        FROM sales
@@ -102,12 +186,16 @@ export async function getSaleById(database: DatabaseRuntime, id: string): Promis
       [agencyId, id],
     );
 
-    const row = result.rows[0];
+    const [row] = await hydrateImportSupplier(client, agencyId, result.rows.slice(0, 1));
     return row ? toSale(row) : null;
   });
 }
 
-export async function createSale(database: DatabaseRuntime, data: CreateSaleInput): Promise<Sale> {
+export async function createSale(
+  database: DatabaseRuntime,
+  data: CreateSaleInput,
+  existingClient?: TenantTransactionClient,
+): Promise<Sale> {
   const agencyId = getAgencyId();
 
   if (data.amount < 0) {
@@ -126,7 +214,7 @@ export async function createSale(database: DatabaseRuntime, data: CreateSaleInpu
     throw new ValidationError('Computed "total" must not be negative');
   }
 
-  return database.withTenantTransaction(async (client) => {
+  return inTransaction(database, existingClient, async (client) => {
     const customerCheck = await client.query(
       `SELECT 1 FROM customers WHERE agency_id = $1 AND id = $2 AND deleted_at IS NULL`,
       [agencyId, data.customerId],
@@ -155,6 +243,22 @@ export async function createSale(database: DatabaseRuntime, data: CreateSaleInpu
       }
     }
 
+    let categoryId: string | null = null;
+    let snapshot: FormSnapshot | null = null;
+    let rules: SaleFormRule[] = [];
+    if (data.categoryId !== undefined) {
+      const loaded = await loadCategoryWithRules(client, agencyId, data.categoryId, 'share');
+      if (!loaded) throw new NotFoundError('Category not found');
+      if (!loaded.category.active) {
+        throw new FormFieldError('CATEGORY_INACTIVE', undefined, 'A categoria está inativa');
+      }
+      categoryId = loaded.category.id;
+      rules = loaded.rules;
+      snapshot = buildFormSnapshot(loaded.category, rules);
+    }
+    const parsedForm = validateSaleFormValues(rules, data.formValues ?? {}, 'create');
+    const { columns: formColumns, modality: modalityData } = splitFormValues(parsedForm);
+
     // user_id is NOT NULL + FK-constrained at the SQL level (unlike Proposal's
     // optional userId), so it must be populated. It is taken from the
     // authenticated session's own tenant context (getUserId()), never from
@@ -164,8 +268,11 @@ export async function createSale(database: DatabaseRuntime, data: CreateSaleInpu
 
     try {
       const result = await client.query<SaleRow>(
-        `INSERT INTO sales (agency_id, customer_id, proposal_id, broker_id, user_id, amount, discount, total, notes)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        `INSERT INTO sales (agency_id, customer_id, proposal_id, broker_id, user_id, amount, discount, total, notes,
+                            category_id, sale_date, travel_start_date, travel_end_date, origin_text,
+                            destination_text, passenger_count, modality_data, form_snapshot)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, COALESCE($11::date, (now() AT TIME ZONE 'America/Sao_Paulo')::date), $12::date, $13::date,
+                 $14, $15, $16, $17::jsonb, $18::jsonb)
          RETURNING ${SALE_COLUMNS}`,
         [
           agencyId,
@@ -177,6 +284,15 @@ export async function createSale(database: DatabaseRuntime, data: CreateSaleInpu
           discount,
           total,
           data.notes ?? null,
+          categoryId,
+          formColumns.sale_date ?? null,
+          formColumns.travel_start_date ?? null,
+          formColumns.travel_end_date ?? null,
+          formColumns.origin_text ?? null,
+          formColumns.destination_text ?? null,
+          formColumns.passenger_count ?? null,
+          JSON.stringify(modalityData),
+          snapshot === null ? null : JSON.stringify(snapshot),
         ],
       );
 
@@ -222,10 +338,20 @@ export async function createSale(database: DatabaseRuntime, data: CreateSaleInpu
   });
 }
 
+/** Runs inside the caller's transaction when one is given, otherwise opens its own. */
+function inTransaction<T>(
+  database: DatabaseRuntime,
+  client: TenantTransactionClient | undefined,
+  fn: (client: TenantTransactionClient) => Promise<T>,
+): Promise<T> {
+  return client ? fn(client) : database.withTenantTransaction(fn);
+}
+
 export async function updateSale(
   database: DatabaseRuntime,
   id: string,
   data: UpdateSaleInput,
+  existingClient?: TenantTransactionClient,
 ): Promise<Sale | null> {
   const agencyId = getAgencyId();
 
@@ -269,11 +395,84 @@ export async function updateSale(
     fields.push(`total = ${amountExpr} - ${discountExpr}`);
   }
 
-  if (fields.length === 0) {
-    return getSaleById(database, id);
+  if (fields.length === 0 && data.formValues === undefined && data.categoryId === undefined) {
+    return getSaleById(database, id, existingClient);
   }
 
-  return database.withTenantTransaction(async (client) => {
+  return inTransaction(database, existingClient, async (client) => {
+    if (data.formValues !== undefined || data.categoryId !== undefined) {
+      const current = await client.query<SaleRow & { schedule_applied: boolean }>(
+        `SELECT ${SALE_COLUMNS},
+          to_jsonb(sales)->>'payment_condition_snapshot' IS NOT NULL AS schedule_applied
+         FROM sales WHERE agency_id = $1 AND id = $2 FOR UPDATE`,
+        [agencyId, id],
+      );
+      const currentRow = current.rows[0];
+      if (!currentRow) return null;
+
+      const cast: Record<string, string> = { sale_date: '::date', travel_start_date: '::date', travel_end_date: '::date' };
+
+      if (data.categoryId !== undefined && data.categoryId !== currentRow.category_id) {
+        if (currentRow.schedule_applied) {
+          throw new ConflictError('Changing category requires an explicit revision of the payment condition');
+        }
+        // New category: the whole sale is validated against the new profile and re-snapshotted.
+        const completingImport = currentRow.category_id === null && currentRow.form_snapshot?.importPending?.includes('category') && currentRow.status === SaleStatus.CONFIRMED;
+        if (currentRow.status !== SaleStatus.PENDING && !completingImport) {
+          throw new ConflictError('The category can only change while the sale is PENDING');
+        }
+        const loaded = await loadCategoryWithRules(client, agencyId, data.categoryId, 'share');
+        if (!loaded) throw new NotFoundError('Category not found');
+        if (!loaded.category.active) {
+          throw new FormFieldError('CATEGORY_INACTIVE', undefined, 'A categoria está inativa');
+        }
+        const merged: Record<string, unknown> = { ...currentFormValues(currentRow), ...(data.formValues ?? {}) };
+        for (const key of Object.keys(merged)) {
+          if (merged[key] === null || merged[key] === '') delete merged[key];
+        }
+        const parsed = validateSaleFormValues(completingImport ? rulesFromSnapshot(currentRow.form_snapshot) : loaded.rules, merged, 'create');
+        const { columns, modality } = splitFormValues(parsed);
+        fields.push(`category_id = $${++index}`);
+        values.push(loaded.category.id);
+        for (const key of COLUMN_FORM_KEYS) {
+          fields.push(`${key} = $${++index}${cast[key] ?? ''}`);
+          values.push(columns[key] ?? null);
+        }
+        if (columns.sale_date) {
+          fields.push(`sale_date = $${++index}::date`);
+          values.push(columns.sale_date);
+        }
+        fields.push(`modality_data = $${++index}::jsonb`);
+        values.push(JSON.stringify(modality));
+        fields.push(`form_snapshot = $${++index}::jsonb`);
+        values.push(JSON.stringify(completingImport ? {...currentRow.form_snapshot,categoryId:loaded.category.id,categoryName:loaded.category.name} : buildFormSnapshot(loaded.category, loaded.rules)));
+      } else if (data.formValues !== undefined) {
+        // An existing sale is edited under the profile it was sold with (snapshot), not the live one.
+        const parsedForm = validateSaleFormValues(rulesFromSnapshot(currentRow.form_snapshot), data.formValues, 'update');
+        const { columns, modality } = splitFormValues(parsedForm);
+        assertTravelDateOrder(
+          columns.travel_start_date !== undefined ? columns.travel_start_date : currentRow.travel_start_date,
+          columns.travel_end_date !== undefined ? columns.travel_end_date : currentRow.travel_end_date,
+        );
+        for (const [column, value] of Object.entries(columns)) {
+          fields.push(`${column} = $${++index}${cast[column] ?? ''}`);
+          values.push(value);
+        }
+        if (Object.keys(modality).length > 0) {
+          fields.push(`modality_data = jsonb_strip_nulls(modality_data || $${++index}::jsonb)`);
+          values.push(JSON.stringify(modality));
+        }
+      }
+    }
+
+    if (fields.length === 0) {
+      const unchanged = await client.query<SaleRow>(
+        `SELECT ${SALE_COLUMNS} FROM sales WHERE agency_id = $1 AND id = $2`,
+        [agencyId, id],
+      );
+      return unchanged.rows[0] ? toSale(unchanged.rows[0]) : null;
+    }
+
     let receivableToSync: ReceivableSyncRow | null = null;
     let nextTotal: number | null = null;
     let nextCustomerId: string | null = null;
@@ -293,6 +492,15 @@ export async function updateSale(
       const nextDiscount = data.discount ?? Number(currentRow.discount);
       if (nextDiscount > nextAmount) {
         throw new ValidationError('Field "discount" must not exceed "amount"');
+      }
+
+      const applied = await client.query<{ applied: boolean }>(
+        `SELECT to_jsonb(s)->>'payment_condition_snapshot' IS NOT NULL AS applied
+         FROM sales s WHERE agency_id=$1 AND id=$2`,
+        [agencyId,id],
+      );
+      if (applied.rows[0]?.applied) {
+        throw new ConflictError('Cannot change financial fields after applying a payment schedule');
       }
 
       receivableToSync = await getReceivableSyncState(client, agencyId, id);
@@ -392,6 +600,8 @@ export async function cancelSale(
     // left untouched -- reversing disbursed money is a real financial-policy
     // decision outside this fix's scope.
     await cancelCommissionsForSale(client, agencyId, id);
+    // ADR-007 / D6: agency revenue already received from the supplier blocks the cancellation (409).
+    await cancelRevenueForSale(client, id);
 
     const row = updated.rows[0];
     if (!row) throw new Error('Sale cancellation did not return a row');
@@ -417,6 +627,7 @@ export async function markSalePaid(
     if (!currentRow) return null;
 
     if (currentRow.status === SaleStatus.PAID) {
+      await syncRevenueEntitlement(client, id);
       return toSale(currentRow);
     }
 
@@ -442,6 +653,7 @@ export async function markSalePaid(
 
     const row = updated.rows[0];
     if (!row) throw new Error('Sale payment transition did not return a row');
+    await syncRevenueEntitlement(client, id);
     return toSale(row);
   });
 }
@@ -466,6 +678,7 @@ async function transitionSale(
     if (!currentRow) return null;
 
     if (currentRow.status === targetStatus) {
+      await syncRevenueEntitlement(client, id);
       return toSale(currentRow);
     }
 
@@ -483,6 +696,7 @@ async function transitionSale(
 
     const row = updated.rows[0];
     if (!row) throw new Error('Sale transition did not return a row');
+    await syncRevenueEntitlement(client, id);
     return toSale(row);
   });
 }
@@ -497,6 +711,7 @@ async function getAllocatedReceivableAmount(
      FROM receivables r
      LEFT JOIN payment_allocations pa
        ON pa.agency_id = r.agency_id AND pa.receivable_id = r.id
+      AND NOT EXISTS (SELECT 1 FROM sale_payment_reversals spr WHERE spr.agency_id=pa.agency_id AND spr.original_payment_id=pa.payment_id)
      WHERE r.agency_id = $1 AND r.sale_id = $2`,
     [agencyId, saleId],
   );
@@ -509,12 +724,15 @@ async function getReceivablePaymentSummary(
   saleId: string,
 ): Promise<{ amount: number; paidAmount: number } | null> {
   const result = await client.query<{ amount: string; paid_amount: string }>(
-    `SELECT r.amount, COALESCE(sum(pa.amount), 0)::numeric(12,2) AS paid_amount
+    `SELECT sum(r.amount) AS amount, COALESCE(sum(a.paid_amount), 0) AS paid_amount
      FROM receivables r
-     LEFT JOIN payment_allocations pa
-       ON pa.agency_id = r.agency_id AND pa.receivable_id = r.id
-     WHERE r.agency_id = $1 AND r.sale_id = $2
-     GROUP BY r.id, r.amount`,
+     LEFT JOIN LATERAL (
+       SELECT sum(pa.amount) AS paid_amount FROM payment_allocations pa
+       WHERE pa.agency_id=r.agency_id AND pa.receivable_id=r.id
+         AND NOT EXISTS (SELECT 1 FROM sale_payment_reversals spr WHERE spr.agency_id=pa.agency_id AND spr.original_payment_id=pa.payment_id)
+     ) a ON true
+     WHERE r.agency_id = $1 AND r.sale_id = $2 AND r.status <> 'CANCELLED'
+     HAVING count(*) > 0`,
     [agencyId, saleId],
   );
   const row = result.rows[0];
@@ -535,7 +753,7 @@ async function getReceivableSyncState(
      LEFT JOIN (
        SELECT agency_id, receivable_id, sum(amount) AS paid_amount
        FROM payment_allocations
-       WHERE agency_id = $1
+       WHERE agency_id = $1 AND NOT EXISTS (SELECT 1 FROM sale_payment_reversals spr WHERE spr.agency_id=payment_allocations.agency_id AND spr.original_payment_id=payment_allocations.payment_id)
        GROUP BY agency_id, receivable_id
      ) allocations
        ON allocations.agency_id = r.agency_id AND allocations.receivable_id = r.id
@@ -615,13 +833,24 @@ async function getOrCreateDefaultRevenueCategory(
 }
 
 export interface SaleWithCustomer extends Sale {
+  categoryName: string | null;
   customerName: string;
   salespersonName: string | null;
   tripId: string | null;
   tripName: string | null;
 }
 
+export interface ListSalesWithCustomerFilters {
+  dateFrom?: string;
+  dateTo?: string;
+  status?: SaleStatus;
+  employeeId?: string;
+  supplierId?: string;
+  customerFilterDefinition?: unknown;
+}
+
 interface SaleWithCustomerRow extends SaleRow {
+  category_name: string | null;
   customer_name: string;
   salesperson_name: string | null;
   trip_id: string | null;
@@ -631,6 +860,10 @@ interface SaleWithCustomerRow extends SaleRow {
 const SALE_WITH_CUSTOMER_QUERY = `
   SELECT s.id, s.agency_id, s.customer_id, s.proposal_id, s.broker_id, s.user_id, s.amount,
          s.discount, s.total, s.status, s.notes, s.paid_at, s.created_at, s.updated_at,
+         s.category_id, s.sale_date::text AS sale_date, s.travel_start_date::text AS travel_start_date,
+         s.travel_end_date::text AS travel_end_date, s.origin_text, s.destination_text,
+         s.passenger_count, s.modality_data, s.form_snapshot,
+         cc.name AS category_name,
          c.name AS customer_name,
          u.name AS salesperson_name,
          t.id AS trip_id,
@@ -638,6 +871,7 @@ const SALE_WITH_CUSTOMER_QUERY = `
   FROM sales s
   JOIN customers c ON c.agency_id = s.agency_id AND c.id = s.customer_id
   LEFT JOIN users u ON u.agency_id = s.agency_id AND u.id = s.user_id
+  LEFT JOIN commission_categories cc ON cc.agency_id = s.agency_id AND cc.id = s.category_id
   LEFT JOIN trips t ON t.agency_id = s.agency_id AND t.sale_id = s.id
 `;
 
@@ -645,18 +879,52 @@ const SALE_WITH_CUSTOMER_QUERY = `
 // customer/salesperson/trip label alongside the sale, without forcing every
 // other listSales/getSaleById caller (confirmSale, cancelSale, ...) to carry
 // the extra joins. One query, no N+1: the join happens in SQL, not per-row.
-export async function listSalesWithCustomer(database: DatabaseRuntime): Promise<SaleWithCustomer[]> {
+export async function listSalesWithCustomer(
+  database: DatabaseRuntime,
+  filters: ListSalesWithCustomerFilters = {},
+): Promise<SaleWithCustomer[]> {
   const agencyId = getAgencyId();
 
   return database.withTenantTransaction(async (client) => {
+    const conditions = ['s.agency_id = $1'];
+    let values: unknown[] = [agencyId];
+    const addFilter = (column: string, value: unknown, cast = '') => {
+      values = [...values, value];
+      conditions.push(`${column} = $${values.length}${cast}`);
+    };
+
+    if (filters.dateFrom) {
+      values.push(filters.dateFrom);
+      conditions.push(`s.sale_date >= $${values.length}::date`);
+    }
+    if (filters.dateTo) {
+      values.push(filters.dateTo);
+      conditions.push(`s.sale_date <= $${values.length}::date`);
+    }
+    if (filters.status) addFilter('s.status', filters.status);
+    if (filters.employeeId) addFilter('s.user_id', filters.employeeId);
+    if (filters.supplierId) {
+      values.push(filters.supplierId);
+      conditions.push(`EXISTS (
+        SELECT 1 FROM sale_items si
+        WHERE si.agency_id = s.agency_id AND si.sale_id = s.id
+          AND si.supplier_id = $${values.length} AND si.status = 'ACTIVE'
+      )`);
+    }
+    if (filters.customerFilterDefinition !== undefined) {
+      const compiled = compileCustomerFilter(filters.customerFilterDefinition, values);
+      values = compiled.values;
+      conditions.push(`c.deleted_at IS NULL AND (${compiled.whereSql})`);
+    }
+
     const result = await client.query<SaleWithCustomerRow>(
       `${SALE_WITH_CUSTOMER_QUERY}
-       WHERE s.agency_id = $1
+       WHERE ${conditions.join(' AND ')}
        ORDER BY s.created_at DESC`,
-      [agencyId],
+      values,
     );
 
-    return result.rows.map(toSaleWithCustomer);
+    return (await hydrateImportSupplier(client, agencyId, result.rows)).map(toSaleWithCustomer);
   });
 }
 
@@ -673,7 +941,7 @@ export async function getSaleWithCustomerById(
       [agencyId, id],
     );
 
-    const row = result.rows[0];
+    const [row] = await hydrateImportSupplier(client, agencyId, result.rows.slice(0, 1));
     return row ? toSaleWithCustomer(row) : null;
   });
 }
@@ -681,11 +949,23 @@ export async function getSaleWithCustomerById(
 function toSaleWithCustomer(row: SaleWithCustomerRow): SaleWithCustomer {
   return {
     ...toSale(row),
+    categoryName: row.category_name,
     customerName: row.customer_name,
     salespersonName: row.salesperson_name,
     tripId: row.trip_id,
     tripName: row.trip_name,
   };
+}
+
+/**
+ * Required fields of the profile the sale was made with that are still empty (derived, no column).
+ * A sale made through the form is always complete; imports/migrated rows can be "to complete".
+ */
+function missingRequiredFields(row: SaleRow): string[] {
+  const values = currentFormValues(row);
+  return [...remainingImportFields(row.form_snapshot,row.category_id,row.destination_text,row.import_supplier_present),...(row.form_snapshot?.fields ?? [])
+    .filter((f) => f.enabled && f.required && (values[f.fieldKey] === undefined || values[f.fieldKey] === null || (typeof values[f.fieldKey] === 'string' && (values[f.fieldKey] as string).trim() === '')))
+    .map((f) => f.fieldKey)];
 }
 
 function toSale(row: SaleRow): Sale {
@@ -706,5 +986,15 @@ function toSale(row: SaleRow): Sale {
     ...(row.broker_id !== null ? { brokerId: row.broker_id } : {}),
     ...(row.notes !== null ? { notes: row.notes } : {}),
     ...(row.paid_at !== null ? { paidAt: new Date(row.paid_at) } : {}),
+    saleDate: row.sale_date,
+    modalityData: row.modality_data ?? {},
+    ...(row.category_id !== null ? { categoryId: row.category_id } : {}),
+    ...(row.travel_start_date !== null ? { travelStartDate: row.travel_start_date } : {}),
+    ...(row.travel_end_date !== null ? { travelEndDate: row.travel_end_date } : {}),
+    ...(row.origin_text !== null ? { originText: row.origin_text } : {}),
+    ...(row.destination_text !== null ? { destinationText: row.destination_text } : {}),
+    ...(row.passenger_count !== null ? { passengerCount: row.passenger_count } : {}),
+    ...(row.form_snapshot !== null ? { formSnapshot: row.form_snapshot } : {}),
+    missingRequiredFields: missingRequiredFields(row),
   };
 }

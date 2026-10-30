@@ -1,0 +1,1410 @@
+{
+ "nodes": [
+  {
+   "id": "file:services/api/src/routes/partners.ts",
+   "type": "file",
+   "name": "partners.ts",
+   "filePath": "services/api/src/routes/partners.ts",
+   "summary": "Rotas de parceiros: perfil do parceiro, contratos, links públicos de indicação, atribuições e ciclo de comissões de parceiros.",
+   "tags": [
+    "api-handler",
+    "routes",
+    "partners",
+    "affiliate",
+    "commissions"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/routes/partners.ts:registerPartnersRoutes",
+   "type": "function",
+   "name": "registerPartnersRoutes",
+   "filePath": "services/api/src/routes/partners.ts",
+   "lineRange": [
+    67,
+    273
+   ],
+   "summary": "Registra as rotas de parceiros, contratos, links de indicação e comissões no Fastify, aplicando validação de entrada e autorização por papel ou entitlement antes de delegar à camada de serviço.",
+   "tags": [
+    "api-handler",
+    "route-registration",
+    "authorization",
+    "fastify"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/routes/partners.ts:parseCreatePartnerInput",
+   "type": "function",
+   "name": "parseCreatePartnerInput",
+   "filePath": "services/api/src/routes/partners.ts",
+   "lineRange": [
+    278,
+    306
+   ],
+   "summary": "Valida e normaliza o corpo da requisição para criação de Partner, verificando campos obrigatórios, tipos e valores permitidos.",
+   "tags": [
+    "validation",
+    "parsing",
+    "input-sanitization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/routes/partners.ts:parseUpdatePartnerInput",
+   "type": "function",
+   "name": "parseUpdatePartnerInput",
+   "filePath": "services/api/src/routes/partners.ts",
+   "lineRange": [
+    308,
+    338
+   ],
+   "summary": "Valida e normaliza o corpo da requisição para atualização de Partner, verificando campos obrigatórios, tipos e valores permitidos.",
+   "tags": [
+    "validation",
+    "parsing",
+    "input-sanitization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/routes/partners.ts:parseCreatePartnerContractInput",
+   "type": "function",
+   "name": "parseCreatePartnerContractInput",
+   "filePath": "services/api/src/routes/partners.ts",
+   "lineRange": [
+    340,
+    355
+   ],
+   "summary": "Valida e normaliza o corpo da requisição para criação de Partner Contract, verificando campos obrigatórios, tipos e valores permitidos.",
+   "tags": [
+    "validation",
+    "parsing",
+    "input-sanitization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/routes/partners.ts:parseCreatePartnerLinkInput",
+   "type": "function",
+   "name": "parseCreatePartnerLinkInput",
+   "filePath": "services/api/src/routes/partners.ts",
+   "lineRange": [
+    357,
+    381
+   ],
+   "summary": "Valida e normaliza o corpo da requisição para criação de Partner Link, verificando campos obrigatórios, tipos e valores permitidos.",
+   "tags": [
+    "validation",
+    "parsing",
+    "input-sanitization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/routes/partners.ts:parseConvertPartnerLinkInput",
+   "type": "function",
+   "name": "parseConvertPartnerLinkInput",
+   "filePath": "services/api/src/routes/partners.ts",
+   "lineRange": [
+    383,
+    397
+   ],
+   "summary": "Valida e normaliza o corpo da requisição para conversão de Partner Link, verificando campos obrigatórios, tipos e valores permitidos.",
+   "tags": [
+    "validation",
+    "parsing",
+    "input-sanitization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/routes/partners.ts:parseGeneratePartnerCommissionInput",
+   "type": "function",
+   "name": "parseGeneratePartnerCommissionInput",
+   "filePath": "services/api/src/routes/partners.ts",
+   "lineRange": [
+    399,
+    415
+   ],
+   "summary": "Valida e normaliza o corpo da requisição para geração de Partner Commission, verificando campos obrigatórios, tipos e valores permitidos.",
+   "tags": [
+    "validation",
+    "parsing",
+    "input-sanitization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:services/api/src/routes/pescador.ts",
+   "type": "file",
+   "name": "pescador.ts",
+   "filePath": "services/api/src/routes/pescador.ts",
+   "summary": "Rotas do Pescador: captura de ofertas externas com extração por URL, revisão, aprovação, rejeição e publicação, além do motor de busca de ofertas.",
+   "tags": [
+    "api-handler",
+    "routes",
+    "lead-capture",
+    "offers",
+    "entitlements"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/routes/pescador.ts:registerPescadorRoutes",
+   "type": "function",
+   "name": "registerPescadorRoutes",
+   "filePath": "services/api/src/routes/pescador.ts",
+   "lineRange": [
+    47,
+    241
+   ],
+   "summary": "Registra as rotas de captura e curadoria de ofertas externas (Pescador) no Fastify, aplicando validação de entrada e autorização por papel ou entitlement antes de delegar à camada de serviço.",
+   "tags": [
+    "api-handler",
+    "route-registration",
+    "authorization",
+    "fastify"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/routes/pescador.ts:parseRunSearchInput",
+   "type": "function",
+   "name": "parseRunSearchInput",
+   "filePath": "services/api/src/routes/pescador.ts",
+   "lineRange": [
+    252,
+    271
+   ],
+   "summary": "Valida e normaliza os dados de Run Search enviados na requisição.",
+   "tags": [
+    "validation",
+    "parsing",
+    "input-sanitization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/routes/pescador.ts:parseCreateExternalOfferCaptureInput",
+   "type": "function",
+   "name": "parseCreateExternalOfferCaptureInput",
+   "filePath": "services/api/src/routes/pescador.ts",
+   "lineRange": [
+    277,
+    331
+   ],
+   "summary": "Valida e normaliza o corpo da requisição para criação de External Offer Capture, verificando campos obrigatórios, tipos e valores permitidos.",
+   "tags": [
+    "validation",
+    "parsing",
+    "input-sanitization"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/routes/pescador.ts:parseUpdateExternalOfferCaptureInput",
+   "type": "function",
+   "name": "parseUpdateExternalOfferCaptureInput",
+   "filePath": "services/api/src/routes/pescador.ts",
+   "lineRange": [
+    333,
+    372
+   ],
+   "summary": "Valida e normaliza o corpo da requisição para atualização de External Offer Capture, verificando campos obrigatórios, tipos e valores permitidos.",
+   "tags": [
+    "validation",
+    "parsing",
+    "input-sanitization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:services/api/src/routes/platform-auth.ts",
+   "type": "file",
+   "name": "platform-auth.ts",
+   "filePath": "services/api/src/routes/platform-auth.ts",
+   "summary": "Autenticação de operadores da plataforma: login com rate limiting, MFA (enrollment, status e reset), sessões e recuperação de senha no runtime de plataforma.",
+   "tags": [
+    "api-handler",
+    "authentication",
+    "routes",
+    "mfa"
+   ],
+   "complexity": "moderate",
+   "languageNotes": "Opera sobre o runtime de banco da plataforma (platformDatabase) em vez do cliente de tenant."
+  },
+  {
+   "id": "function:services/api/src/routes/platform-auth.ts:registerPlatformAuthRoutes",
+   "type": "function",
+   "name": "registerPlatformAuthRoutes",
+   "filePath": "services/api/src/routes/platform-auth.ts",
+   "lineRange": [
+    64,
+    220
+   ],
+   "summary": "Registra as rotas de autenticação de operadores da plataforma (login, MFA e sessões) no Fastify, aplicando validação de entrada e autorização por papel ou entitlement antes de delegar à camada de serviço.",
+   "tags": [
+    "api-handler",
+    "route-registration",
+    "authorization",
+    "fastify"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:services/api/src/routes/proposals.ts",
+   "type": "file",
+   "name": "proposals.ts",
+   "filePath": "services/api/src/routes/proposals.ts",
+   "summary": "Rotas de propostas: ciclo de vida completo (criar, enviar, cancelar, aceitar, recusar, duplicar), seções, itens e mídia vinculada.",
+   "tags": [
+    "api-handler",
+    "routes",
+    "proposals",
+    "sales"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/routes/proposals.ts:registerProposalsRoutes",
+   "type": "function",
+   "name": "registerProposalsRoutes",
+   "filePath": "services/api/src/routes/proposals.ts",
+   "lineRange": [
+    59,
+    376
+   ],
+   "summary": "Registra as rotas de propostas comerciais e seu conteúdo (seções, itens e mídia) no Fastify, aplicando validação de entrada e autorização por papel ou entitlement antes de delegar à camada de serviço.",
+   "tags": [
+    "api-handler",
+    "route-registration",
+    "authorization",
+    "fastify"
+   ],
+   "complexity": "complex"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:services/api/src/routes/partners.ts",
+   "target": "function:services/api/src/routes/partners.ts:registerPartnersRoutes",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/partners.ts",
+   "target": "function:services/api/src/routes/partners.ts:registerPartnersRoutes",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/partners.ts",
+   "target": "function:services/api/src/routes/partners.ts:parseCreatePartnerInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/partners.ts",
+   "target": "function:services/api/src/routes/partners.ts:parseUpdatePartnerInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/partners.ts",
+   "target": "function:services/api/src/routes/partners.ts:parseCreatePartnerContractInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/partners.ts",
+   "target": "function:services/api/src/routes/partners.ts:parseCreatePartnerLinkInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/partners.ts",
+   "target": "function:services/api/src/routes/partners.ts:parseConvertPartnerLinkInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/partners.ts",
+   "target": "function:services/api/src/routes/partners.ts:parseGeneratePartnerCommissionInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/pescador.ts",
+   "target": "function:services/api/src/routes/pescador.ts:registerPescadorRoutes",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/pescador.ts",
+   "target": "function:services/api/src/routes/pescador.ts:registerPescadorRoutes",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/pescador.ts",
+   "target": "function:services/api/src/routes/pescador.ts:parseRunSearchInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/pescador.ts",
+   "target": "function:services/api/src/routes/pescador.ts:parseCreateExternalOfferCaptureInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/pescador.ts",
+   "target": "function:services/api/src/routes/pescador.ts:parseUpdateExternalOfferCaptureInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/platform-auth.ts",
+   "target": "function:services/api/src/routes/platform-auth.ts:registerPlatformAuthRoutes",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/platform-auth.ts",
+   "target": "function:services/api/src/routes/platform-auth.ts:registerPlatformAuthRoutes",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/proposals.ts",
+   "target": "function:services/api/src/routes/proposals.ts:registerProposalsRoutes",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/proposals.ts",
+   "target": "function:services/api/src/routes/proposals.ts:registerProposalsRoutes",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/partners.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/partners.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/partners.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/partners.ts",
+   "target": "file:services/api/src/partner-commissions.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/partners.ts",
+   "target": "file:services/api/src/partner-links.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/partners.ts",
+   "target": "file:services/api/src/partner-portal.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/partners.ts",
+   "target": "file:services/api/src/partners.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/partners.ts",
+   "target": "file:services/api/src/request-parsing.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/pescador.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/pescador.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/pescador.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/pescador.ts",
+   "target": "file:services/api/src/entitlements.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/pescador.ts",
+   "target": "file:services/api/src/pescador.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/pescador.ts",
+   "target": "file:services/api/src/request-parsing.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/platform-auth.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/platform-auth.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/platform-auth.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/platform-auth.ts",
+   "target": "file:services/api/src/platform-local-auth.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/platform-auth.ts",
+   "target": "file:services/api/src/rate-limit.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/proposals.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/proposals.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/proposals.ts",
+   "target": "file:services/api/src/commercial-input-parsing.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/proposals.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/proposals.ts",
+   "target": "file:services/api/src/document-attachments.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/proposals.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/proposals.ts",
+   "target": "file:services/api/src/media-library.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/proposals.ts",
+   "target": "file:services/api/src/proposal-content.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/proposals.ts",
+   "target": "file:services/api/src/proposals.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/proposals.ts",
+   "target": "file:services/api/src/storage.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "function:services/api/src/routes/partners.ts:registerPartnersRoutes",
+   "target": "function:services/api/src/partner-portal.ts:getMyPartnerProfile",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/partners.ts:registerPartnersRoutes",
+   "target": "function:services/api/src/partner-portal.ts:getMyPartnerContracts",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/partners.ts:registerPartnersRoutes",
+   "target": "function:services/api/src/partner-portal.ts:getMyPartnerAttributions",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/partners.ts:registerPartnersRoutes",
+   "target": "function:services/api/src/partner-portal.ts:getMyPartnerCommissions",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/partners.ts:registerPartnersRoutes",
+   "target": "function:services/api/src/partner-portal.ts:getMyPartnerLinks",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/partners.ts:registerPartnersRoutes",
+   "target": "function:services/api/src/partner-links.ts:resolvePublicPartnerLink",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/partners.ts:registerPartnersRoutes",
+   "target": "function:services/api/src/partner-links.ts:convertPartnerLink",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/partners.ts:registerPartnersRoutes",
+   "target": "function:services/api/src/partners.ts:createPartner",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/partners.ts:registerPartnersRoutes",
+   "target": "function:services/api/src/partners.ts:listPartners",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/partners.ts:registerPartnersRoutes",
+   "target": "function:services/api/src/partners.ts:getPartnerById",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/partners.ts:registerPartnersRoutes",
+   "target": "function:services/api/src/partners.ts:updatePartner",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/partners.ts:registerPartnersRoutes",
+   "target": "function:services/api/src/partners.ts:createPartnerContract",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/partners.ts:registerPartnersRoutes",
+   "target": "function:services/api/src/partners.ts:listPartnerContracts",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/partners.ts:registerPartnersRoutes",
+   "target": "function:services/api/src/partner-links.ts:createPartnerLink",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/partners.ts:registerPartnersRoutes",
+   "target": "function:services/api/src/partner-links.ts:listPartnerLinks",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/partners.ts:registerPartnersRoutes",
+   "target": "function:services/api/src/partner-links.ts:revokePartnerLink",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/partners.ts:registerPartnersRoutes",
+   "target": "function:services/api/src/partner-links.ts:attachSaleToAttribution",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/partners.ts:registerPartnersRoutes",
+   "target": "function:services/api/src/partner-commissions.ts:generatePartnerCommission",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/partners.ts:registerPartnersRoutes",
+   "target": "function:services/api/src/partner-commissions.ts:listPartnerCommissions",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/partners.ts:registerPartnersRoutes",
+   "target": "function:packages/domain/tenant-context.ts:getUserId",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/partners.ts:registerPartnersRoutes",
+   "target": "function:services/api/src/partner-commissions.ts:approvePartnerCommission",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/partners.ts:registerPartnersRoutes",
+   "target": "function:services/api/src/partner-commissions.ts:createPayableFromPartnerCommission",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/partners.ts:parseCreatePartnerInput",
+   "target": "function:services/api/src/request-parsing.ts:parseObjectBody",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/partners.ts:parseCreatePartnerInput",
+   "target": "function:services/api/src/request-parsing.ts:parseRequiredString",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/partners.ts:parseUpdatePartnerInput",
+   "target": "function:services/api/src/request-parsing.ts:parseObjectBody",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/partners.ts:parseCreatePartnerContractInput",
+   "target": "function:services/api/src/request-parsing.ts:parseObjectBody",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/partners.ts:parseCreatePartnerContractInput",
+   "target": "function:services/api/src/request-parsing.ts:parseRequiredString",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/partners.ts:parseCreatePartnerContractInput",
+   "target": "function:services/api/src/request-parsing.ts:parseNonNegativeNumber",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/partners.ts:parseCreatePartnerLinkInput",
+   "target": "function:services/api/src/request-parsing.ts:parseObjectBody",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/partners.ts:parseCreatePartnerLinkInput",
+   "target": "function:services/api/src/request-parsing.ts:parseRequiredString",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/partners.ts:parseConvertPartnerLinkInput",
+   "target": "function:services/api/src/request-parsing.ts:parseObjectBody",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/partners.ts:parseConvertPartnerLinkInput",
+   "target": "function:services/api/src/request-parsing.ts:parseRequiredString",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/partners.ts:parseGeneratePartnerCommissionInput",
+   "target": "function:services/api/src/request-parsing.ts:parseObjectBody",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/partners.ts:parseGeneratePartnerCommissionInput",
+   "target": "function:services/api/src/request-parsing.ts:parseRequiredString",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/partners.ts:parseGeneratePartnerCommissionInput",
+   "target": "function:services/api/src/request-parsing.ts:parseNonNegativeNumber",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/pescador.ts:registerPescadorRoutes",
+   "target": "function:services/api/src/entitlements.ts:requireEntitlement",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/pescador.ts:registerPescadorRoutes",
+   "target": "function:packages/domain/tenant-context.ts:requireRole",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/pescador.ts:registerPescadorRoutes",
+   "target": "function:services/api/src/pescador.ts:listExternalOfferCaptures",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/pescador.ts:registerPescadorRoutes",
+   "target": "function:services/api/src/pescador.ts:createExternalOfferCapture",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/pescador.ts:registerPescadorRoutes",
+   "target": "function:services/api/src/pescador.ts:updateExternalOfferCapture",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/pescador.ts:registerPescadorRoutes",
+   "target": "function:services/api/src/request-parsing.ts:parseObjectBody",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/pescador.ts:registerPescadorRoutes",
+   "target": "function:services/api/src/request-parsing.ts:parseRequiredString",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/pescador.ts:registerPescadorRoutes",
+   "target": "function:services/api/src/pescador.ts:extractOfferFromUrl",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/pescador.ts:registerPescadorRoutes",
+   "target": "function:services/api/src/pescador.ts:moveCaptureToReview",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/pescador.ts:registerPescadorRoutes",
+   "target": "function:packages/domain/tenant-context.ts:getUserId",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/pescador.ts:registerPescadorRoutes",
+   "target": "function:services/api/src/pescador.ts:approveCapture",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/pescador.ts:registerPescadorRoutes",
+   "target": "function:services/api/src/pescador.ts:rejectCapture",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/pescador.ts:registerPescadorRoutes",
+   "target": "function:services/api/src/pescador.ts:publishCapture",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/pescador.ts:registerPescadorRoutes",
+   "target": "function:services/api/src/pescador.ts:listSources",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/pescador.ts:registerPescadorRoutes",
+   "target": "function:services/api/src/pescador.ts:createSource",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/pescador.ts:registerPescadorRoutes",
+   "target": "function:services/api/src/pescador.ts:deleteSource",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/pescador.ts:registerPescadorRoutes",
+   "target": "function:services/api/src/pescador.ts:listSearches",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/pescador.ts:registerPescadorRoutes",
+   "target": "function:services/api/src/pescador.ts:runSearch",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/pescador.ts:registerPescadorRoutes",
+   "target": "function:services/api/src/pescador.ts:deleteSearch",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/pescador.ts:registerPescadorRoutes",
+   "target": "function:services/api/src/pescador.ts:listSearchResults",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/pescador.ts:registerPescadorRoutes",
+   "target": "function:services/api/src/pescador.ts:deleteSearchResult",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/pescador.ts:registerPescadorRoutes",
+   "target": "function:services/api/src/pescador.ts:publishSearchResult",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/pescador.ts:parseRunSearchInput",
+   "target": "function:services/api/src/request-parsing.ts:parseObjectBody",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/pescador.ts:parseRunSearchInput",
+   "target": "function:services/api/src/request-parsing.ts:assertAllowedFields",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/pescador.ts:parseRunSearchInput",
+   "target": "function:services/api/src/request-parsing.ts:parseRequiredString",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/pescador.ts:parseRunSearchInput",
+   "target": "function:services/api/src/request-parsing.ts:parseRequiredDate",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/pescador.ts:parseRunSearchInput",
+   "target": "function:services/api/src/request-parsing.ts:parseNonNegativeNumber",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/pescador.ts:parseCreateExternalOfferCaptureInput",
+   "target": "function:services/api/src/request-parsing.ts:parseObjectBody",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/pescador.ts:parseCreateExternalOfferCaptureInput",
+   "target": "function:services/api/src/request-parsing.ts:assertAllowedFields",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/pescador.ts:parseCreateExternalOfferCaptureInput",
+   "target": "function:services/api/src/request-parsing.ts:parseRequiredString",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/pescador.ts:parseCreateExternalOfferCaptureInput",
+   "target": "function:services/api/src/request-parsing.ts:parseNonNegativeNumber",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/pescador.ts:parseCreateExternalOfferCaptureInput",
+   "target": "function:services/api/src/request-parsing.ts:parseRequiredDate",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/pescador.ts:parseUpdateExternalOfferCaptureInput",
+   "target": "function:services/api/src/request-parsing.ts:parseObjectBody",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/pescador.ts:parseUpdateExternalOfferCaptureInput",
+   "target": "function:services/api/src/request-parsing.ts:assertAllowedFields",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/pescador.ts:parseUpdateExternalOfferCaptureInput",
+   "target": "function:services/api/src/request-parsing.ts:parseRequiredString",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/pescador.ts:parseUpdateExternalOfferCaptureInput",
+   "target": "function:services/api/src/request-parsing.ts:parseNonNegativeNumber",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/pescador.ts:parseUpdateExternalOfferCaptureInput",
+   "target": "function:services/api/src/request-parsing.ts:parseRequiredDate",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/platform-auth.ts:registerPlatformAuthRoutes",
+   "target": "function:services/api/src/platform-local-auth.ts:platformLogin",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/platform-auth.ts:registerPlatformAuthRoutes",
+   "target": "function:services/api/src/platform-local-auth.ts:verifyPlatformMfaAndCompleteLogin",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/platform-auth.ts:registerPlatformAuthRoutes",
+   "target": "function:services/api/src/platform-local-auth.ts:startPlatformMfaEnrollment",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/platform-auth.ts:registerPlatformAuthRoutes",
+   "target": "function:services/api/src/platform-local-auth.ts:confirmPlatformMfaEnrollment",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/platform-auth.ts:registerPlatformAuthRoutes",
+   "target": "function:services/api/src/platform-local-auth.ts:getPlatformMfaStatus",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/platform-auth.ts:registerPlatformAuthRoutes",
+   "target": "function:services/api/src/platform-local-auth.ts:resetPlatformMfa",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/platform-auth.ts:registerPlatformAuthRoutes",
+   "target": "function:services/api/src/platform-local-auth.ts:platformForgotPassword",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/platform-auth.ts:registerPlatformAuthRoutes",
+   "target": "function:services/api/src/platform-local-auth.ts:platformResetPassword",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/platform-auth.ts:registerPlatformAuthRoutes",
+   "target": "function:services/api/src/platform-local-auth.ts:platformLogout",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/proposals.ts:registerProposalsRoutes",
+   "target": "function:packages/domain/tenant-context.ts:requireRole",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/proposals.ts:registerProposalsRoutes",
+   "target": "function:services/api/src/proposals.ts:listProposalsWithCustomer",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/proposals.ts:registerProposalsRoutes",
+   "target": "function:services/api/src/proposals.ts:getProposalWithCustomerById",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/proposals.ts:registerProposalsRoutes",
+   "target": "function:services/api/src/commercial-input-parsing.ts:parseCreateProposalInput",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/proposals.ts:registerProposalsRoutes",
+   "target": "function:services/api/src/proposals.ts:createProposal",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/proposals.ts:registerProposalsRoutes",
+   "target": "function:services/api/src/commercial-input-parsing.ts:parseUpdateProposalInput",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/proposals.ts:registerProposalsRoutes",
+   "target": "function:services/api/src/proposals.ts:updateProposal",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/proposals.ts:registerProposalsRoutes",
+   "target": "function:services/api/src/proposals.ts:sendProposal",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/proposals.ts:registerProposalsRoutes",
+   "target": "function:services/api/src/proposals.ts:cancelProposal",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/proposals.ts:registerProposalsRoutes",
+   "target": "function:services/api/src/proposals.ts:acceptProposal",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/proposals.ts:registerProposalsRoutes",
+   "target": "function:services/api/src/proposals.ts:declineProposal",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/proposals.ts:registerProposalsRoutes",
+   "target": "function:services/api/src/proposal-content.ts:duplicateProposal",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/proposals.ts:registerProposalsRoutes",
+   "target": "function:services/api/src/proposal-content.ts:listProposalSections",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/proposals.ts:registerProposalsRoutes",
+   "target": "function:services/api/src/proposal-content.ts:parseCreateProposalSectionInput",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/proposals.ts:registerProposalsRoutes",
+   "target": "function:services/api/src/proposal-content.ts:createProposalSection",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/proposals.ts:registerProposalsRoutes",
+   "target": "function:services/api/src/proposal-content.ts:parseUpdateProposalSectionInput",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/proposals.ts:registerProposalsRoutes",
+   "target": "function:services/api/src/proposal-content.ts:updateProposalSection",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/proposals.ts:registerProposalsRoutes",
+   "target": "function:services/api/src/proposal-content.ts:deleteProposalSection",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/proposals.ts:registerProposalsRoutes",
+   "target": "function:services/api/src/proposal-content.ts:listProposalItems",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/proposals.ts:registerProposalsRoutes",
+   "target": "function:services/api/src/proposal-content.ts:parseCreateProposalItemInput",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/proposals.ts:registerProposalsRoutes",
+   "target": "function:services/api/src/proposal-content.ts:createProposalItem",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/proposals.ts:registerProposalsRoutes",
+   "target": "function:services/api/src/proposal-content.ts:parseUpdateProposalItemInput",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/proposals.ts:registerProposalsRoutes",
+   "target": "function:services/api/src/proposal-content.ts:updateProposalItem",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/proposals.ts:registerProposalsRoutes",
+   "target": "function:services/api/src/proposal-content.ts:deleteProposalItem",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/proposals.ts:registerProposalsRoutes",
+   "target": "function:services/api/src/media-library.ts:listEntityMedia",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/proposals.ts:registerProposalsRoutes",
+   "target": "function:services/api/src/document-attachments.ts:isBlockedFileName",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/proposals.ts:registerProposalsRoutes",
+   "target": "function:services/api/src/document-attachments.ts:validateFileSize",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/proposals.ts:registerProposalsRoutes",
+   "target": "function:services/api/src/media-library.ts:generateMediaAssetSecureFileKey",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/proposals.ts:registerProposalsRoutes",
+   "target": "function:packages/domain/tenant-context.ts:getAgencyId",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/proposals.ts:registerProposalsRoutes",
+   "target": "function:services/api/src/storage.ts:saveFile",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/proposals.ts:registerProposalsRoutes",
+   "target": "function:services/api/src/media-library.ts:createMediaAsset",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/proposals.ts:registerProposalsRoutes",
+   "target": "function:services/api/src/media-library.ts:linkMediaAsset",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/proposals.ts:registerProposalsRoutes",
+   "target": "function:services/api/src/media-library.ts:unlinkMediaAsset",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  }
+ ]
+}

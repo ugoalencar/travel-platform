@@ -134,6 +134,75 @@ export async function getCustomerById(
   });
 }
 
+export interface CustomerLookupItem {
+  id: string;
+  name: string;
+  cpf_masked: string | null;
+  birth_date: string | null;
+  status: string;
+}
+
+export const CUSTOMER_LOOKUP_DEFAULT_LIMIT = 10;
+export const CUSTOMER_LOOKUP_MAX_LIMIT = 20;
+
+/**
+ * Names are matched as a contains pattern; a CPF typed with or without the
+ * mask (or pasted with spaces) is matched by its digits. The CPF column is
+ * stored as typed, so both sides are compared digits-only.
+ */
+function lookupCondition(term: string): { sql: string; value: string } {
+  const digits = term.replace(/\D/g, '');
+  const isCpfLike = /^[\d\s.-]+$/.test(term) && digits.length >= 4;
+  if (isCpfLike && digits.length === 11) {
+    return { sql: "regexp_replace(cpf, '[^0-9]', '', 'g') = $2", value: digits };
+  }
+  if (isCpfLike) {
+    return { sql: "regexp_replace(cpf, '[^0-9]', '', 'g') LIKE $2", value: `${digits}%` };
+  }
+  const escaped = term.replace(/[\\%_]/g, (char) => `\\${char}`);
+  return { sql: 'name ILIKE $2', value: `%${escaped}%` };
+}
+
+export function maskCpf(cpf: string | null): string | null {
+  const digits = cpf?.replace(/\D/g, '') ?? '';
+  if (digits.length !== 11) return null;
+  return `***.${digits.slice(3, 6)}.${digits.slice(6, 9)}-**`;
+}
+
+export async function lookupCustomers(
+  database: DatabaseRuntime,
+  term: string,
+  limit: number,
+): Promise<CustomerLookupItem[]> {
+  const agencyId = getAgencyId();
+  const condition = lookupCondition(term);
+
+  return database.withTenantTransaction(async (client) => {
+    const result = await client.query<{
+      id: string;
+      name: string;
+      cpf: string | null;
+      birth_date: string | null;
+      status: string;
+    }>(
+      `SELECT id, name, cpf, to_char(birth_date, 'YYYY-MM-DD') AS birth_date, status
+       FROM customers
+       WHERE agency_id = $1 AND deleted_at IS NULL AND ${condition.sql}
+       ORDER BY name
+       LIMIT $3`,
+      [agencyId, condition.value, limit],
+    );
+
+    return result.rows.map((row) => ({
+      id: row.id,
+      name: row.name,
+      cpf_masked: maskCpf(row.cpf),
+      birth_date: row.birth_date,
+      status: row.status,
+    }));
+  });
+}
+
 export async function createCustomer(
   database: DatabaseRuntime,
   data: CreateCustomerInput,

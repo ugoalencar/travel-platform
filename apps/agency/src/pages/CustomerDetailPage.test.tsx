@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { CustomerDetailPage } from './CustomerDetailPage';
 import * as api from '../lib/api';
@@ -27,6 +27,8 @@ vi.mock('../lib/api', async () => {
     listBookings: vi.fn(),
     listTasks: vi.fn(),
     listEmployees: vi.fn(),
+    lookupCep: vi.fn(),
+    createCustomerAddress: vi.fn(),
   };
 });
 
@@ -173,5 +175,144 @@ describe('CustomerDetailPage — Propostas/Reservas/Tarefas tabs', () => {
       expect(screen.getByText(`#${proposal.id.slice(0, 8)}`)).toBeInTheDocument();
     });
     expect(screen.queryByText('#proposal-')).not.toBeInTheDocument();
+  });
+});
+
+describe('CustomerDetailPage - CEP lookup', () => {
+  it('fills the address from the CEP without overwriting manual fields', async () => {
+    vi.mocked(api.lookupCep).mockClear();
+    vi.mocked(api.createCustomerAddress)
+      .mockClear()
+      .mockResolvedValue({} as Awaited<ReturnType<typeof api.createCustomerAddress>>);
+    renderPage('addresses');
+
+    fireEvent.click(await screen.findByRole('button', { name: /Novo endereço/i }));
+    const cep = await screen.findByLabelText('CEP');
+    let resolveLookup: (value: api.CepLookupResult) => void = () => undefined;
+    vi.mocked(api.lookupCep).mockReturnValue(
+      new Promise((resolve) => {
+        resolveLookup = resolve;
+      }),
+    );
+
+    fireEvent.change(cep, { target: { value: '01001-000' } });
+    await waitFor(() => expect(api.lookupCep).toHaveBeenCalled(), { timeout: 2000 });
+    fireEvent.change(screen.getByLabelText('Número'), { target: { value: '100' } });
+    fireEvent.change(screen.getByLabelText('Complemento'), { target: { value: 'Apto 1' } });
+
+    await act(async () => {
+      resolveLookup({
+        status: 'ok',
+        street: 'Praça da Sé',
+        neighborhood: 'Sé',
+        city: 'São Paulo',
+        state: 'SP',
+        source: 'viacep',
+      });
+      await Promise.resolve();
+    });
+
+    await waitFor(() => expect(screen.getByLabelText('Rua')).toHaveValue('Praça da Sé'));
+    expect(screen.getByLabelText('Bairro')).toHaveValue('Sé');
+    expect(screen.getByLabelText('Cidade')).toHaveValue('São Paulo');
+    expect(screen.getByLabelText('Estado')).toHaveValue('SP');
+    expect(screen.getByLabelText('Número')).toHaveValue('100');
+    expect(screen.getByLabelText('Complemento')).toHaveValue('Apto 1');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar' }));
+    await waitFor(() => {
+      expect(api.createCustomerAddress).toHaveBeenCalledWith('customer-1', {
+        type: 'RESIDENTIAL',
+        isPrimary: false,
+        cep: '01001-000',
+        street: 'Praça da Sé',
+        number: '100',
+        complement: 'Apto 1',
+        district: 'Sé',
+        city: 'São Paulo',
+        state: 'SP',
+        country: 'Brazil',
+      });
+    });
+  });
+
+  it('lets the user save a manually typed address after the provider fails', async () => {
+    vi.mocked(api.lookupCep)
+      .mockClear()
+      .mockRejectedValue(
+        new api.ApiError('Consulta de CEP indisponível.', 'CEP_UNAVAILABLE', 502),
+      );
+    vi.mocked(api.createCustomerAddress)
+      .mockClear()
+      .mockResolvedValue({} as Awaited<ReturnType<typeof api.createCustomerAddress>>);
+    renderPage('addresses');
+
+    fireEvent.click(await screen.findByRole('button', { name: /Novo endereço/i }));
+    fireEvent.change(await screen.findByLabelText('CEP'), { target: { value: '01001-000' } });
+    expect(await screen.findByText('Consulta de CEP indisponível.', {}, { timeout: 2000 }))
+      .toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Tentar novamente' })).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText('Rua'), { target: { value: 'Rua Manual' } });
+    fireEvent.change(screen.getByLabelText('Número'), { target: { value: '7' } });
+    fireEvent.change(screen.getByLabelText('Bairro'), { target: { value: 'Centro' } });
+    fireEvent.change(screen.getByLabelText('Cidade'), { target: { value: 'Curitiba' } });
+    fireEvent.change(screen.getByLabelText('Estado'), { target: { value: 'PR' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar' }));
+
+    await waitFor(() => {
+      expect(api.createCustomerAddress).toHaveBeenCalledWith('customer-1', {
+        type: 'RESIDENTIAL',
+        isPrimary: false,
+        cep: '01001-000',
+        street: 'Rua Manual',
+        number: '7',
+        complement: undefined,
+        district: 'Centro',
+        city: 'Curitiba',
+        state: 'PR',
+        country: 'Brazil',
+      });
+    });
+    expect(api.lookupCep).toHaveBeenCalledTimes(1);
+  });
+
+  it('aborts a pending lookup when the modal is closed and ignores it after reopening', async () => {
+    let signal: AbortSignal | undefined;
+    let resolveLookup: (value: api.CepLookupResult) => void = () => undefined;
+    vi.mocked(api.lookupCep)
+      .mockClear()
+      .mockImplementation((_cep, abortSignal) => {
+        signal = abortSignal;
+        return new Promise((resolve) => {
+          resolveLookup = resolve;
+        });
+      });
+    renderPage('addresses');
+
+    fireEvent.click(await screen.findByRole('button', { name: /Novo endereço/i }));
+    fireEvent.change(await screen.findByLabelText('CEP'), { target: { value: '01001-000' } });
+    await waitFor(() => expect(api.lookupCep).toHaveBeenCalledTimes(1), { timeout: 2000 });
+    expect(signal?.aborted).toBe(false);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
+    await waitFor(() => expect(signal?.aborted).toBe(true));
+
+    fireEvent.click(screen.getByRole('button', { name: /Novo endereço/i }));
+    expect(await screen.findByLabelText('CEP')).toHaveValue('');
+    await act(async () => {
+      resolveLookup({
+        status: 'ok',
+        street: 'Praça da Sé',
+        neighborhood: 'Sé',
+        city: 'São Paulo',
+        state: 'SP',
+        source: 'viacep',
+      });
+      await Promise.resolve();
+    });
+    expect(screen.getByLabelText('Rua')).toHaveValue('');
+    expect(screen.getByLabelText('Cidade')).toHaveValue('');
+    expect(api.lookupCep).toHaveBeenCalledTimes(1);
   });
 });

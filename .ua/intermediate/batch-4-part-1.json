@@ -1,0 +1,1926 @@
+{
+ "nodes": [
+  {
+   "id": "file:apps/customer/src/pages/PaymentsPage.tsx",
+   "type": "file",
+   "name": "PaymentsPage.tsx",
+   "filePath": "apps/customer/src/pages/PaymentsPage.tsx",
+   "summary": "Página de pagamentos do portal do cliente: lista pagamentos e alocações financeiras com carregamento, estados vazios e tratamento de erros via API.",
+   "tags": [
+    "component",
+    "page",
+    "payments",
+    "financial"
+   ],
+   "complexity": "moderate",
+   "languageNotes": "Define helpers locais formatCurrency/formatDate em vez dos utilitários compartilhados de lib."
+  },
+  {
+   "id": "function:apps/customer/src/pages/PaymentsPage.tsx:PaymentsPage",
+   "type": "function",
+   "name": "PaymentsPage",
+   "filePath": "apps/customer/src/pages/PaymentsPage.tsx",
+   "lineRange": [
+    32,
+    207
+   ],
+   "summary": "Componente principal da página de pagamentos; gerencia estado, consulta a API financeira e renderiza a visão de pagamentos.",
+   "tags": [
+    "component",
+    "page",
+    "state-management"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:apps/customer/src/pages/PescadorPage.tsx",
+   "type": "file",
+   "name": "PescadorPage.tsx",
+   "filePath": "apps/customer/src/pages/PescadorPage.tsx",
+   "summary": "Página do Pescador para gestão de capturas externas de ofertas: métricas, tabela de revisão com aprovação/rejeição e criação de capturas via API.",
+   "tags": [
+    "component",
+    "page",
+    "external-offers",
+    "review-flow"
+   ],
+   "complexity": "complex",
+   "languageNotes": "Combina componentes React e funções puras de transformação de dados no mesmo arquivo."
+  },
+  {
+   "id": "function:apps/customer/src/pages/PescadorPage.tsx:PescadorPage",
+   "type": "function",
+   "name": "PescadorPage",
+   "filePath": "apps/customer/src/pages/PescadorPage.tsx",
+   "lineRange": [
+    56,
+    294
+   ],
+   "summary": "Componente principal da página do Pescador; orquestra carregamento, revisão, aprovação e criação de capturas externas.",
+   "tags": [
+    "component",
+    "page",
+    "external-offers",
+    "state-management"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:apps/customer/src/pages/PescadorPage.tsx:MetricCard",
+   "type": "function",
+   "name": "MetricCard",
+   "filePath": "apps/customer/src/pages/PescadorPage.tsx",
+   "lineRange": [
+    296,
+    305
+   ],
+   "summary": "Componente que renderiza um cartão de métrica com rótulo, valor e destaque.",
+   "tags": [
+    "component",
+    "ui",
+    "metric"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/pages/PescadorPage.tsx:CapturesTable",
+   "type": "function",
+   "name": "CapturesTable",
+   "filePath": "apps/customer/src/pages/PescadorPage.tsx",
+   "lineRange": [
+    307,
+    398
+   ],
+   "summary": "Componente que renderiza a tabela de capturas externas com ações de revisão por linha.",
+   "tags": [
+    "component",
+    "table",
+    "review-flow"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/pages/PescadorPage.tsx:ActionButtons",
+   "type": "function",
+   "name": "ActionButtons",
+   "filePath": "apps/customer/src/pages/PescadorPage.tsx",
+   "lineRange": [
+    400,
+    463
+   ],
+   "summary": "Componente que agrupa os botões de ação de revisão (aprovar, rejeitar, publicar) de uma captura.",
+   "tags": [
+    "component",
+    "actions",
+    "review-flow"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/pages/PescadorPage.tsx:TextField",
+   "type": "function",
+   "name": "TextField",
+   "filePath": "apps/customer/src/pages/PescadorPage.tsx",
+   "lineRange": [
+    465,
+    498
+   ],
+   "summary": "Componente de campo de texto controlado usado nos formulários da página.",
+   "tags": [
+    "component",
+    "form",
+    "ui"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/pages/PescadorPage.tsx:CaptureReview",
+   "type": "function",
+   "name": "CaptureReview",
+   "filePath": "apps/customer/src/pages/PescadorPage.tsx",
+   "lineRange": [
+    508,
+    544
+   ],
+   "summary": "Componente de painel que exibe o conteúdo bruto de uma captura e os botões de revisão.",
+   "tags": [
+    "component",
+    "review-flow",
+    "details"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/pages/PescadorPage.tsx:buildCaptureDetails",
+   "type": "function",
+   "name": "buildCaptureDetails",
+   "filePath": "apps/customer/src/pages/PescadorPage.tsx",
+   "lineRange": [
+    546,
+    564
+   ],
+   "summary": "Função que monta o payload de detalhes de uma captura a partir dos dados brutos extraídos.",
+   "tags": [
+    "utility",
+    "serialization",
+    "external-offers"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/pages/PescadorPage.tsx:buildCreateInput",
+   "type": "function",
+   "name": "buildCreateInput",
+   "filePath": "apps/customer/src/pages/PescadorPage.tsx",
+   "lineRange": [
+    585,
+    611
+   ],
+   "summary": "Função que transforma o estado do formulário no payload de criação de captura externa.",
+   "tags": [
+    "utility",
+    "serialization",
+    "form"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/pages/PescadorPage.tsx:buildStats",
+   "type": "function",
+   "name": "buildStats",
+   "filePath": "apps/customer/src/pages/PescadorPage.tsx",
+   "lineRange": [
+    613,
+    626
+   ],
+   "summary": "Função que agrega totalizadores e contagens por status das capturas para os cartões de métricas.",
+   "tags": [
+    "utility",
+    "metrics",
+    "aggregation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:apps/customer/src/pages/ProposalDetailsPage.test.tsx",
+   "type": "file",
+   "name": "ProposalDetailsPage.test.tsx",
+   "filePath": "apps/customer/src/pages/ProposalDetailsPage.test.tsx",
+   "summary": "Suíte de testes da página de detalhes da proposta cobrindo carregamento, estados vazios, erros e as ações de envio/aceite/recusa com mocks da API.",
+   "tags": [
+    "test",
+    "component",
+    "proposal",
+    "react-testing-library"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:apps/customer/src/pages/ProposalDetailsPage.test.tsx:renderRouted",
+   "type": "function",
+   "name": "renderRouted",
+   "filePath": "apps/customer/src/pages/ProposalDetailsPage.test.tsx",
+   "lineRange": [
+    46,
+    56
+   ],
+   "summary": "Renderiza a página sob teste dentro de MemoryRouter com rota inicial e dependências mockadas.",
+   "tags": [
+    "test",
+    "helper",
+    "routing"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:apps/customer/src/pages/ProposalDetailsPage.tsx",
+   "type": "file",
+   "name": "ProposalDetailsPage.tsx",
+   "filePath": "apps/customer/src/pages/ProposalDetailsPage.tsx",
+   "summary": "Página de detalhes da proposta com resumo do cliente e da oferta, itens, StatusPill e ações de envio, aceite, recusa e cancelamento.",
+   "tags": [
+    "component",
+    "page",
+    "proposal",
+    "status-handling"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:apps/customer/src/pages/ProposalDetailsPage.tsx:mapActionErrorToMessage",
+   "type": "function",
+   "name": "mapActionErrorToMessage",
+   "filePath": "apps/customer/src/pages/ProposalDetailsPage.tsx",
+   "lineRange": [
+    69,
+    85
+   ],
+   "summary": "Converte erros de ações de status da API em mensagens compreensíveis para o usuário.",
+   "tags": [
+    "utility",
+    "error-handling",
+    "ux"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/pages/ProposalDetailsPage.tsx:ProposalDetailsPage",
+   "type": "function",
+   "name": "ProposalDetailsPage",
+   "filePath": "apps/customer/src/pages/ProposalDetailsPage.tsx",
+   "lineRange": [
+    94,
+    259
+   ],
+   "summary": "Componente principal da página de detalhes da proposta; exibe resumo, itens e executa ações de status.",
+   "tags": [
+    "component",
+    "page",
+    "proposal",
+    "state-management"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/pages/ProposalDetailsPage.tsx:Field",
+   "type": "function",
+   "name": "Field",
+   "filePath": "apps/customer/src/pages/ProposalDetailsPage.tsx",
+   "lineRange": [
+    261,
+    270
+   ],
+   "summary": "Componente leve que exibe um rótulo com o valor de um campo na visão de detalhes.",
+   "tags": [
+    "component",
+    "ui",
+    "details"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:apps/customer/src/pages/ProposalEditPage.test.tsx",
+   "type": "file",
+   "name": "ProposalEditPage.test.tsx",
+   "filePath": "apps/customer/src/pages/ProposalEditPage.test.tsx",
+   "summary": "Testes da página de edição de proposta validando roteamento, carregamento inicial e submissão do formulário.",
+   "tags": [
+    "test",
+    "component",
+    "proposal",
+    "form"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/pages/ProposalEditPage.test.tsx:renderRouted",
+   "type": "function",
+   "name": "renderRouted",
+   "filePath": "apps/customer/src/pages/ProposalEditPage.test.tsx",
+   "lineRange": [
+    30,
+    39
+   ],
+   "summary": "Renderiza a página sob teste dentro de MemoryRouter com rota inicial e dependências mockadas.",
+   "tags": [
+    "test",
+    "helper",
+    "routing"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:apps/customer/src/pages/ProposalEditPage.tsx",
+   "type": "file",
+   "name": "ProposalEditPage.tsx",
+   "filePath": "apps/customer/src/pages/ProposalEditPage.tsx",
+   "summary": "Página de edição de proposta que carrega os dados existentes, pré-calcula o total e envia atualizações à API com mapeamento de erros.",
+   "tags": [
+    "component",
+    "page",
+    "proposal",
+    "form"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:apps/customer/src/pages/ProposalEditPage.tsx:mapSubmitErrorToMessage",
+   "type": "function",
+   "name": "mapSubmitErrorToMessage",
+   "filePath": "apps/customer/src/pages/ProposalEditPage.tsx",
+   "lineRange": [
+    36,
+    52
+   ],
+   "summary": "Traduz erros de submissão da API em mensagens exibidas no formulário de edição.",
+   "tags": [
+    "utility",
+    "error-handling",
+    "form"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/pages/ProposalEditPage.tsx:previewTotal",
+   "type": "function",
+   "name": "previewTotal",
+   "filePath": "apps/customer/src/pages/ProposalEditPage.tsx",
+   "lineRange": [
+    54,
+    64
+   ],
+   "summary": "Calcula o total preliminar dos itens do formulário para exibição imediata ao usuário.",
+   "tags": [
+    "utility",
+    "calculation",
+    "form"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/pages/ProposalEditPage.tsx:ProposalEditPage",
+   "type": "function",
+   "name": "ProposalEditPage",
+   "filePath": "apps/customer/src/pages/ProposalEditPage.tsx",
+   "lineRange": [
+    66,
+    279
+   ],
+   "summary": "Componente principal da edição de proposta; carrega dados, mantém o formulário e submete alterações.",
+   "tags": [
+    "component",
+    "page",
+    "proposal",
+    "form"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:apps/customer/src/pages/ProposalFormPage.test.tsx",
+   "type": "file",
+   "name": "ProposalFormPage.test.tsx",
+   "filePath": "apps/customer/src/pages/ProposalFormPage.test.tsx",
+   "summary": "Testes da página de criação de proposta cobrindo seleção de cliente e oferta, cálculo de totais e envio com mocks da API.",
+   "tags": [
+    "test",
+    "component",
+    "proposal",
+    "form"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:apps/customer/src/pages/ProposalFormPage.test.tsx:renderRouted",
+   "type": "function",
+   "name": "renderRouted",
+   "filePath": "apps/customer/src/pages/ProposalFormPage.test.tsx",
+   "lineRange": [
+    39,
+    49
+   ],
+   "summary": "Renderiza a página sob teste dentro de MemoryRouter com rota inicial e dependências mockadas.",
+   "tags": [
+    "test",
+    "helper",
+    "routing"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:apps/customer/src/pages/ProposalFormPage.tsx",
+   "type": "file",
+   "name": "ProposalFormPage.tsx",
+   "filePath": "apps/customer/src/pages/ProposalFormPage.tsx",
+   "summary": "Página de criação de proposta: seleção de cliente, oferta e desejos (wish), pré-visualização de totais e envio para a API.",
+   "tags": [
+    "component",
+    "page",
+    "proposal",
+    "form"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:apps/customer/src/pages/ProposalFormPage.tsx:mapErrorToMessage",
+   "type": "function",
+   "name": "mapErrorToMessage",
+   "filePath": "apps/customer/src/pages/ProposalFormPage.tsx",
+   "lineRange": [
+    39,
+    55
+   ],
+   "summary": "Mapeia erros retornados pela API em mensagens amigáveis exibidas no formulário.",
+   "tags": [
+    "utility",
+    "error-handling",
+    "form"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/pages/ProposalFormPage.tsx:previewTotal",
+   "type": "function",
+   "name": "previewTotal",
+   "filePath": "apps/customer/src/pages/ProposalFormPage.tsx",
+   "lineRange": [
+    58,
+    68
+   ],
+   "summary": "Calcula o total preliminar dos itens do formulário para exibição imediata ao usuário.",
+   "tags": [
+    "utility",
+    "calculation",
+    "form"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/pages/ProposalFormPage.tsx:ProposalFormPage",
+   "type": "function",
+   "name": "ProposalFormPage",
+   "filePath": "apps/customer/src/pages/ProposalFormPage.tsx",
+   "lineRange": [
+    70,
+    375
+   ],
+   "summary": "Componente principal da criação de proposta; seleciona cliente e oferta, calcula totais e envia a proposta.",
+   "tags": [
+    "component",
+    "page",
+    "proposal",
+    "form"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:apps/customer/src/pages/ProposalsPage.test.tsx",
+   "type": "file",
+   "name": "ProposalsPage.test.tsx",
+   "filePath": "apps/customer/src/pages/ProposalsPage.test.tsx",
+   "summary": "Testes da listagem de propostas verificando carregamento, filtragem e renderização da tabela.",
+   "tags": [
+    "test",
+    "component",
+    "list",
+    "filters"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/pages/ProposalsPage.test.tsx:renderRouted",
+   "type": "function",
+   "name": "renderRouted",
+   "filePath": "apps/customer/src/pages/ProposalsPage.test.tsx",
+   "lineRange": [
+    31,
+    40
+   ],
+   "summary": "Renderiza a página sob teste dentro de MemoryRouter com rota inicial e dependências mockadas.",
+   "tags": [
+    "test",
+    "helper",
+    "routing"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:apps/customer/src/pages/ProposalsPage.tsx",
+   "type": "file",
+   "name": "ProposalsPage.tsx",
+   "filePath": "apps/customer/src/pages/ProposalsPage.tsx",
+   "summary": "Listagem de propostas com filtros por cliente e status, tabela navegável e atalho para criar novas propostas.",
+   "tags": [
+    "component",
+    "page",
+    "list",
+    "filters"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:apps/customer/src/pages/ProposalsPage.tsx:ProposalsPage",
+   "type": "function",
+   "name": "ProposalsPage",
+   "filePath": "apps/customer/src/pages/ProposalsPage.tsx",
+   "lineRange": [
+    25,
+    104
+   ],
+   "summary": "Componente principal da listagem de propostas; carrega dados da API, aplica filtros e coordena a tabela.",
+   "tags": [
+    "component",
+    "page",
+    "list",
+    "state-management"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/pages/ProposalsPage.tsx:ProposalFilters",
+   "type": "function",
+   "name": "ProposalFilters",
+   "filePath": "apps/customer/src/pages/ProposalsPage.tsx",
+   "lineRange": [
+    106,
+    180
+   ],
+   "summary": "Componente de filtros da listagem (cliente, status) que controla o estado de filtragem.",
+   "tags": [
+    "component",
+    "filters",
+    "list"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/pages/ProposalsPage.tsx:FilteredProposalTable",
+   "type": "function",
+   "name": "FilteredProposalTable",
+   "filePath": "apps/customer/src/pages/ProposalsPage.tsx",
+   "lineRange": [
+    182,
+    206
+   ],
+   "summary": "Componente que renderiza a tabela de propostas já filtradas com StatusPill e atalhos por linha.",
+   "tags": [
+    "component",
+    "table",
+    "list"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/pages/ProposalsPage.tsx:ProposalTable",
+   "type": "function",
+   "name": "ProposalTable",
+   "filePath": "apps/customer/src/pages/ProposalsPage.tsx",
+   "lineRange": [
+    208,
+    265
+   ],
+   "summary": "Componente que renderiza a tabela completa de propostas com navegação para os detalhes.",
+   "tags": [
+    "component",
+    "table",
+    "list"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:apps/customer/src/pages/SaleDetailsPage.test.tsx",
+   "type": "file",
+   "name": "SaleDetailsPage.test.tsx",
+   "filePath": "apps/customer/src/pages/SaleDetailsPage.test.tsx",
+   "summary": "Testes da página de detalhes da venda cobrindo carregamento, ações de confirmação/pagamento e tradução de erros da API.",
+   "tags": [
+    "test",
+    "component",
+    "sale"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:apps/customer/src/pages/SaleDetailsPage.test.tsx:renderRouted",
+   "type": "function",
+   "name": "renderRouted",
+   "filePath": "apps/customer/src/pages/SaleDetailsPage.test.tsx",
+   "lineRange": [
+    34,
+    44
+   ],
+   "summary": "Renderiza a página sob teste dentro de MemoryRouter com rota inicial e dependências mockadas.",
+   "tags": [
+    "test",
+    "helper",
+    "routing"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:apps/customer/src/pages/SaleDetailsPage.tsx",
+   "type": "file",
+   "name": "SaleDetailsPage.tsx",
+   "filePath": "apps/customer/src/pages/SaleDetailsPage.tsx",
+   "summary": "Página de detalhes da venda com valores, StatusPill, datas e ações de confirmar, marcar como paga e cancelar.",
+   "tags": [
+    "component",
+    "page",
+    "sale",
+    "status-handling"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:apps/customer/src/pages/SaleDetailsPage.tsx:mapActionErrorToMessage",
+   "type": "function",
+   "name": "mapActionErrorToMessage",
+   "filePath": "apps/customer/src/pages/SaleDetailsPage.tsx",
+   "lineRange": [
+    55,
+    71
+   ],
+   "summary": "Converte erros de ações de status da API em mensagens compreensíveis para o usuário.",
+   "tags": [
+    "utility",
+    "error-handling",
+    "ux"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/pages/SaleDetailsPage.tsx:SaleDetailsPage",
+   "type": "function",
+   "name": "SaleDetailsPage",
+   "filePath": "apps/customer/src/pages/SaleDetailsPage.tsx",
+   "lineRange": [
+    79,
+    222
+   ],
+   "summary": "Componente principal da página de detalhes da venda; exibe valores, status e ações financeiras.",
+   "tags": [
+    "component",
+    "page",
+    "sale",
+    "state-management"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/pages/SaleDetailsPage.tsx:Field",
+   "type": "function",
+   "name": "Field",
+   "filePath": "apps/customer/src/pages/SaleDetailsPage.tsx",
+   "lineRange": [
+    224,
+    233
+   ],
+   "summary": "Componente leve que exibe um rótulo com o valor de um campo na visão de detalhes.",
+   "tags": [
+    "component",
+    "ui",
+    "details"
+   ],
+   "complexity": "simple"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:apps/customer/src/pages/PaymentsPage.tsx",
+   "target": "function:apps/customer/src/pages/PaymentsPage.tsx:PaymentsPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/PaymentsPage.tsx",
+   "target": "function:apps/customer/src/pages/PaymentsPage.tsx:PaymentsPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/PescadorPage.tsx",
+   "target": "function:apps/customer/src/pages/PescadorPage.tsx:PescadorPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/PescadorPage.tsx",
+   "target": "function:apps/customer/src/pages/PescadorPage.tsx:PescadorPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/PescadorPage.tsx",
+   "target": "function:apps/customer/src/pages/PescadorPage.tsx:MetricCard",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/PescadorPage.tsx",
+   "target": "function:apps/customer/src/pages/PescadorPage.tsx:CapturesTable",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/PescadorPage.tsx",
+   "target": "function:apps/customer/src/pages/PescadorPage.tsx:ActionButtons",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/PescadorPage.tsx",
+   "target": "function:apps/customer/src/pages/PescadorPage.tsx:TextField",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/PescadorPage.tsx",
+   "target": "function:apps/customer/src/pages/PescadorPage.tsx:CaptureReview",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/PescadorPage.tsx",
+   "target": "function:apps/customer/src/pages/PescadorPage.tsx:buildCaptureDetails",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/PescadorPage.tsx",
+   "target": "function:apps/customer/src/pages/PescadorPage.tsx:buildCreateInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/PescadorPage.tsx",
+   "target": "function:apps/customer/src/pages/PescadorPage.tsx:buildStats",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalDetailsPage.test.tsx",
+   "target": "function:apps/customer/src/pages/ProposalDetailsPage.test.tsx:renderRouted",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalDetailsPage.tsx",
+   "target": "function:apps/customer/src/pages/ProposalDetailsPage.tsx:mapActionErrorToMessage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalDetailsPage.tsx",
+   "target": "function:apps/customer/src/pages/ProposalDetailsPage.tsx:ProposalDetailsPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalDetailsPage.tsx",
+   "target": "function:apps/customer/src/pages/ProposalDetailsPage.tsx:ProposalDetailsPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalDetailsPage.tsx",
+   "target": "function:apps/customer/src/pages/ProposalDetailsPage.tsx:Field",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalEditPage.test.tsx",
+   "target": "function:apps/customer/src/pages/ProposalEditPage.test.tsx:renderRouted",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalEditPage.tsx",
+   "target": "function:apps/customer/src/pages/ProposalEditPage.tsx:mapSubmitErrorToMessage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalEditPage.tsx",
+   "target": "function:apps/customer/src/pages/ProposalEditPage.tsx:previewTotal",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalEditPage.tsx",
+   "target": "function:apps/customer/src/pages/ProposalEditPage.tsx:ProposalEditPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalEditPage.tsx",
+   "target": "function:apps/customer/src/pages/ProposalEditPage.tsx:ProposalEditPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalFormPage.test.tsx",
+   "target": "function:apps/customer/src/pages/ProposalFormPage.test.tsx:renderRouted",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalFormPage.tsx",
+   "target": "function:apps/customer/src/pages/ProposalFormPage.tsx:mapErrorToMessage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalFormPage.tsx",
+   "target": "function:apps/customer/src/pages/ProposalFormPage.tsx:previewTotal",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalFormPage.tsx",
+   "target": "function:apps/customer/src/pages/ProposalFormPage.tsx:ProposalFormPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalFormPage.tsx",
+   "target": "function:apps/customer/src/pages/ProposalFormPage.tsx:ProposalFormPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalsPage.test.tsx",
+   "target": "function:apps/customer/src/pages/ProposalsPage.test.tsx:renderRouted",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalsPage.tsx",
+   "target": "function:apps/customer/src/pages/ProposalsPage.tsx:ProposalsPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalsPage.tsx",
+   "target": "function:apps/customer/src/pages/ProposalsPage.tsx:ProposalsPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalsPage.tsx",
+   "target": "function:apps/customer/src/pages/ProposalsPage.tsx:ProposalFilters",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalsPage.tsx",
+   "target": "function:apps/customer/src/pages/ProposalsPage.tsx:FilteredProposalTable",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalsPage.tsx",
+   "target": "function:apps/customer/src/pages/ProposalsPage.tsx:ProposalTable",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleDetailsPage.test.tsx",
+   "target": "function:apps/customer/src/pages/SaleDetailsPage.test.tsx:renderRouted",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleDetailsPage.tsx",
+   "target": "function:apps/customer/src/pages/SaleDetailsPage.tsx:mapActionErrorToMessage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleDetailsPage.tsx",
+   "target": "function:apps/customer/src/pages/SaleDetailsPage.tsx:SaleDetailsPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleDetailsPage.tsx",
+   "target": "function:apps/customer/src/pages/SaleDetailsPage.tsx:SaleDetailsPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleDetailsPage.tsx",
+   "target": "function:apps/customer/src/pages/SaleDetailsPage.tsx:Field",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/PaymentsPage.tsx",
+   "target": "file:apps/customer/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/PaymentsPage.tsx",
+   "target": "file:apps/customer/src/types/financial.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/PescadorPage.tsx",
+   "target": "file:apps/customer/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/PescadorPage.tsx",
+   "target": "file:apps/customer/src/lib/formatCurrency.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/PescadorPage.tsx",
+   "target": "file:apps/customer/src/lib/formatDateBR.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/PescadorPage.tsx",
+   "target": "file:apps/customer/src/types/pescador.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalDetailsPage.test.tsx",
+   "target": "file:apps/customer/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalDetailsPage.test.tsx",
+   "target": "file:apps/customer/src/pages/ProposalDetailsPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalDetailsPage.test.tsx",
+   "target": "file:apps/customer/src/types/customer.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalDetailsPage.test.tsx",
+   "target": "file:apps/customer/src/types/offer.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalDetailsPage.test.tsx",
+   "target": "file:apps/customer/src/types/proposal.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalDetailsPage.tsx",
+   "target": "file:apps/customer/src/components/ui/StatusPill.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalDetailsPage.tsx",
+   "target": "file:apps/customer/src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalDetailsPage.tsx",
+   "target": "file:apps/customer/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalDetailsPage.tsx",
+   "target": "file:apps/customer/src/lib/formatCurrency.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalDetailsPage.tsx",
+   "target": "file:apps/customer/src/lib/formatDateBR.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalDetailsPage.tsx",
+   "target": "file:apps/customer/src/lib/statusLabels.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalDetailsPage.tsx",
+   "target": "file:apps/customer/src/types/proposal.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalEditPage.test.tsx",
+   "target": "file:apps/customer/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalEditPage.test.tsx",
+   "target": "file:apps/customer/src/pages/ProposalEditPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalEditPage.test.tsx",
+   "target": "file:apps/customer/src/types/proposal.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalEditPage.tsx",
+   "target": "file:apps/customer/src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalEditPage.tsx",
+   "target": "file:apps/customer/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalEditPage.tsx",
+   "target": "file:apps/customer/src/types/proposal.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalFormPage.test.tsx",
+   "target": "file:apps/customer/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalFormPage.test.tsx",
+   "target": "file:apps/customer/src/pages/ProposalFormPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalFormPage.test.tsx",
+   "target": "file:apps/customer/src/types/customer.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalFormPage.test.tsx",
+   "target": "file:apps/customer/src/types/offer.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalFormPage.test.tsx",
+   "target": "file:apps/customer/src/types/proposal.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalFormPage.tsx",
+   "target": "file:apps/customer/src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalFormPage.tsx",
+   "target": "file:apps/customer/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalFormPage.tsx",
+   "target": "file:apps/customer/src/lib/formatCurrency.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalFormPage.tsx",
+   "target": "file:apps/customer/src/types/customer.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalFormPage.tsx",
+   "target": "file:apps/customer/src/types/offer.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalFormPage.tsx",
+   "target": "file:apps/customer/src/types/proposal.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalFormPage.tsx",
+   "target": "file:apps/customer/src/types/wish.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalsPage.test.tsx",
+   "target": "file:apps/customer/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalsPage.test.tsx",
+   "target": "file:apps/customer/src/pages/ProposalsPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalsPage.test.tsx",
+   "target": "file:apps/customer/src/types/customer.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalsPage.test.tsx",
+   "target": "file:apps/customer/src/types/proposal.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalsPage.tsx",
+   "target": "file:apps/customer/src/components/ui/StatusPill.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalsPage.tsx",
+   "target": "file:apps/customer/src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalsPage.tsx",
+   "target": "file:apps/customer/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalsPage.tsx",
+   "target": "file:apps/customer/src/lib/formatCurrency.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalsPage.tsx",
+   "target": "file:apps/customer/src/lib/statusLabels.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalsPage.tsx",
+   "target": "file:apps/customer/src/types/customer.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalsPage.tsx",
+   "target": "file:apps/customer/src/types/proposal.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleDetailsPage.test.tsx",
+   "target": "file:apps/customer/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleDetailsPage.test.tsx",
+   "target": "file:apps/customer/src/pages/SaleDetailsPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleDetailsPage.test.tsx",
+   "target": "file:apps/customer/src/types/customer.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleDetailsPage.test.tsx",
+   "target": "file:apps/customer/src/types/sale.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleDetailsPage.tsx",
+   "target": "file:apps/customer/src/components/ui/StatusPill.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleDetailsPage.tsx",
+   "target": "file:apps/customer/src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleDetailsPage.tsx",
+   "target": "file:apps/customer/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleDetailsPage.tsx",
+   "target": "file:apps/customer/src/lib/formatCurrency.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleDetailsPage.tsx",
+   "target": "file:apps/customer/src/lib/formatDateBR.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleDetailsPage.tsx",
+   "target": "file:apps/customer/src/lib/statusLabels.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleDetailsPage.tsx",
+   "target": "file:apps/customer/src/types/sale.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalDetailsPage.tsx",
+   "target": "file:apps/customer/src/pages/ProposalDetailsPage.test.tsx",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalEditPage.tsx",
+   "target": "file:apps/customer/src/pages/ProposalEditPage.test.tsx",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalFormPage.tsx",
+   "target": "file:apps/customer/src/pages/ProposalFormPage.test.tsx",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalsPage.tsx",
+   "target": "file:apps/customer/src/pages/ProposalsPage.test.tsx",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleDetailsPage.tsx",
+   "target": "file:apps/customer/src/pages/SaleDetailsPage.test.tsx",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:apps/customer/src/pages/PaymentsPage.tsx",
+   "target": "class:apps/customer/src/lib/api.ts:ApiError",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/PaymentsPage.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:listPayments",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/PaymentsPage.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:listPaymentAllocations",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/PescadorPage.tsx",
+   "target": "class:apps/customer/src/lib/api.ts:ApiError",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/PescadorPage.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:listExternalOfferCaptures",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/PescadorPage.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:createExternalOfferCapture",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/PescadorPage.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:reviewExternalOfferCapture",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/PescadorPage.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:approveExternalOfferCapture",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/PescadorPage.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:rejectExternalOfferCapture",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/PescadorPage.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:publishExternalOfferCapture",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/PescadorPage.tsx",
+   "target": "function:apps/customer/src/lib/formatCurrency.ts:formatBRL",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/PescadorPage.tsx",
+   "target": "function:apps/customer/src/lib/formatDateBR.ts:formatDateBR",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalDetailsPage.test.tsx",
+   "target": "class:apps/customer/src/lib/api.ts:ApiError",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalDetailsPage.test.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:getCustomer",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalDetailsPage.test.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:getWish",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalDetailsPage.test.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:getOffer",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalDetailsPage.test.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:getProposal",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalDetailsPage.test.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:sendProposal",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalDetailsPage.test.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:acceptProposal",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalDetailsPage.test.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:declineProposal",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalDetailsPage.test.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:cancelProposal",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalDetailsPage.tsx",
+   "target": "class:apps/customer/src/lib/api.ts:ApiError",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalDetailsPage.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:getCustomer",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalDetailsPage.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:getWish",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalDetailsPage.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:getOffer",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalDetailsPage.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:getProposal",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalDetailsPage.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:sendProposal",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalDetailsPage.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:acceptProposal",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalDetailsPage.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:declineProposal",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalDetailsPage.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:cancelProposal",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalDetailsPage.tsx",
+   "target": "function:apps/customer/src/lib/formatCurrency.ts:formatBRL",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalDetailsPage.tsx",
+   "target": "function:apps/customer/src/lib/formatDateBR.ts:formatDateBR",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalDetailsPage.tsx",
+   "target": "function:apps/customer/src/lib/statusLabels.ts:getProposalStatusLabel",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalEditPage.test.tsx",
+   "target": "class:apps/customer/src/lib/api.ts:ApiError",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalEditPage.test.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:getProposal",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalEditPage.test.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:updateProposal",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalEditPage.tsx",
+   "target": "class:apps/customer/src/lib/api.ts:ApiError",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalEditPage.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:getProposal",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalEditPage.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:updateProposal",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalFormPage.test.tsx",
+   "target": "class:apps/customer/src/lib/api.ts:ApiError",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalFormPage.test.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:listCustomers",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalFormPage.test.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:listWishes",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalFormPage.test.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:listOffers",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalFormPage.test.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:createProposal",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalFormPage.tsx",
+   "target": "class:apps/customer/src/lib/api.ts:ApiError",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalFormPage.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:listCustomers",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalFormPage.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:listWishes",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalFormPage.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:listOffers",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalFormPage.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:createProposal",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalFormPage.tsx",
+   "target": "function:apps/customer/src/lib/formatCurrency.ts:formatBRL",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalsPage.test.tsx",
+   "target": "class:apps/customer/src/lib/api.ts:ApiError",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalsPage.test.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:listCustomers",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalsPage.test.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:listProposals",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalsPage.tsx",
+   "target": "class:apps/customer/src/lib/api.ts:ApiError",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalsPage.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:listCustomers",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalsPage.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:listProposals",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalsPage.tsx",
+   "target": "function:apps/customer/src/lib/formatCurrency.ts:formatBRL",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/ProposalsPage.tsx",
+   "target": "function:apps/customer/src/lib/statusLabels.ts:getProposalStatusLabel",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleDetailsPage.test.tsx",
+   "target": "class:apps/customer/src/lib/api.ts:ApiError",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleDetailsPage.test.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:getCustomer",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleDetailsPage.test.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:getSale",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleDetailsPage.test.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:confirmSale",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleDetailsPage.test.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:cancelSale",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleDetailsPage.test.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:markSalePaid",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleDetailsPage.tsx",
+   "target": "class:apps/customer/src/lib/api.ts:ApiError",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleDetailsPage.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:getCustomer",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleDetailsPage.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:getSale",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleDetailsPage.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:confirmSale",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleDetailsPage.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:cancelSale",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleDetailsPage.tsx",
+   "target": "function:apps/customer/src/lib/api.ts:markSalePaid",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleDetailsPage.tsx",
+   "target": "function:apps/customer/src/lib/formatCurrency.ts:formatBRL",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleDetailsPage.tsx",
+   "target": "function:apps/customer/src/lib/formatDateBR.ts:formatDateBR",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/SaleDetailsPage.tsx",
+   "target": "function:apps/customer/src/lib/statusLabels.ts:getSaleStatusLabel",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  }
+ ]
+}

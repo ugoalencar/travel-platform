@@ -1,0 +1,108 @@
+{
+  "sales": [
+    {
+      "status": "PENDING",
+      "n": 3
+    },
+    {
+      "status": "CONFIRMED",
+      "n": 33
+    },
+    {
+      "status": "PAID",
+      "n": 3
+    },
+    {
+      "status": "CANCELLED",
+      "n": 3
+    }
+  ],
+  "commission_entries": [
+    {
+      "status": "APPROVED",
+      "n": 8
+    },
+    {
+      "status": "PAID",
+      "n": 1
+    },
+    {
+      "status": "PAYABLE",
+      "n": 9
+    },
+    {
+      "status": "PENDING",
+      "n": 18
+    },
+    {
+      "status": "PENDING_RULE",
+      "n": 1
+    }
+  ],
+  "agency_revenue_entries": [
+    {
+      "status": "AVAILABLE",
+      "n": 1
+    },
+    {
+      "status": "CANCELLED",
+      "n": 1
+    },
+    {
+      "status": "ENTITLED",
+      "n": 1
+    },
+    {
+      "status": "FORECAST",
+      "n": 5
+    },
+    {
+      "status": "PENDING_RULE",
+      "n": 1
+    },
+    {
+      "status": "RECEIVED",
+      "n": 22
+    }
+  ],
+  "payroll_entries": [
+    {
+      "status": "OPEN",
+      "n": 1
+    },
+    {
+      "status": "PAID",
+      "n": 1
+    }
+  ],
+  "suppliers": [
+    {
+      "n": 5
+    }
+  ],
+  "travel_products": [
+    {
+      "n": 5
+    }
+  ],
+  "sale_payment_reversals": [
+    {
+      "n": 11
+    }
+  ],
+  "sale_import_batches": [
+    {
+      "n": 4
+    }
+  ],
+  "customers": [
+    {
+      "n": 34
+    }
+  ],
+  "employee_commission_rule_versions": [
+    {
+      "n": 10
+    }
+  ]
+}

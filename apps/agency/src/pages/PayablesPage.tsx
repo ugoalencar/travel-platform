@@ -27,18 +27,23 @@ import {
   createPayable,
   listPayables,
   listSuppliers,
+  listEmployees,
+  listCustomerSegments,
   recordPayment,
   type CreatePayableInput,
   type Payable,
   type PayableStatus,
   type Supplier,
+  type Employee,
+  type CustomerSegment,
+  type FinancialObligationListFilters,
 } from '../lib/api';
 
 type VisibleStatus = PayableStatus | 'OVERDUE';
 type LoadState =
   | { status: 'loading' }
   | { status: 'error'; message: string }
-  | { status: 'success'; payables: Payable[]; suppliers: Supplier[] };
+  | { status: 'success'; payables: Payable[]; suppliers: Supplier[]; employees: Employee[]; segments: CustomerSegment[] };
 type ModalState = { type: 'closed' } | { type: 'create' } | { type: 'pay'; payable: Payable };
 
 const PAYABLE_STATUS_LABELS: Record<VisibleStatus, string> = {
@@ -73,7 +78,8 @@ const emptyPaymentForm = {
 
 export function PayablesPage() {
   const [state, setState] = useState<LoadState>({ status: 'loading' });
-  const [statusFilter, setStatusFilter] = useState<'ALL' | VisibleStatus>('ALL');
+  const [draftFilters, setDraftFilters] = useState<FinancialObligationListFilters>({});
+  const [appliedFilters, setAppliedFilters] = useState<FinancialObligationListFilters>({});
   const [query, setQuery] = useState('');
   const [modal, setModal] = useState<ModalState>({ type: 'closed' });
   const [payableForm, setPayableForm] = useState<CreatePayableInput>(emptyPayableForm);
@@ -83,13 +89,18 @@ export function PayablesPage() {
 
   const load = useCallback(() => {
     setState({ status: 'loading' });
-    Promise.all([listPayables(), listSuppliers()])
-      .then(([payables, suppliers]) => setState({ status: 'success', payables, suppliers }))
+    Promise.all([
+      listPayables(appliedFilters),
+      listSuppliers(),
+      listEmployees().catch(() => []),
+      listCustomerSegments().catch(() => []),
+    ])
+      .then(([payables, suppliers, employees, segments]) => setState({ status: 'success', payables, suppliers, employees, segments }))
       .catch((err: unknown) => {
         const message = err instanceof ApiError ? err.message : 'Não foi possível carregar as contas a pagar.';
         setState({ status: 'error', message });
       });
-  }, []);
+  }, [appliedFilters]);
 
   useEffect(() => {
     load();
@@ -179,15 +190,13 @@ export function PayablesPage() {
   }
 
   const filtered = state.payables.filter((payable) => {
-    const visibleStatus = getVisibleStatus(payable);
     const supplierName = payable.supplierId ? supplierNames.get(payable.supplierId) ?? '' : '';
-    const matchesStatus = statusFilter === 'ALL' || visibleStatus === statusFilter;
     const normalizedQuery = query.trim().toLowerCase();
     const matchesQuery =
       normalizedQuery.length === 0 ||
       payable.description.toLowerCase().includes(normalizedQuery) ||
       supplierName.toLowerCase().includes(normalizedQuery);
-    return matchesStatus && matchesQuery;
+    return matchesQuery;
   });
 
   return (
@@ -204,7 +213,7 @@ export function PayablesPage() {
         }
       />
 
-      <div className="flex flex-col gap-3 rounded-lg border border-slate-200 bg-white p-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="max-w-md">
         <div className="min-w-0 flex-1">
           <label htmlFor="payables-search" className="sr-only">Buscar contas a pagar</label>
           <Input
@@ -215,18 +224,47 @@ export function PayablesPage() {
             className="max-w-md"
           />
         </div>
-        <Select
-          aria-label="Filtrar por status"
-          value={statusFilter}
-          onChange={(event) => setStatusFilter(event.target.value as 'ALL' | VisibleStatus)}
-          className="sm:w-52"
-        >
-          <option value="ALL">Todos os status</option>
-          {Object.entries(PAYABLE_STATUS_LABELS).map(([value, label]) => (
-            <option key={value} value={value}>{label}</option>
-          ))}
-        </Select>
       </div>
+
+      <fieldset className="grid gap-3 rounded-lg border border-slate-200 bg-white p-4 sm:grid-cols-2 xl:grid-cols-4">
+        <legend className="px-1 text-sm font-semibold text-slate-800">Filtrar contas a pagar</legend>
+        <label className="flex flex-col gap-1 text-sm text-slate-700" htmlFor="payables-date-from">Data inicial
+          <Input id="payables-date-from" type="date" value={draftFilters.dateFrom ?? ''} onChange={(event) => setDraftFilters({ ...draftFilters, dateFrom: event.target.value || undefined })} />
+        </label>
+        <label className="flex flex-col gap-1 text-sm text-slate-700" htmlFor="payables-date-to">Data final
+          <Input id="payables-date-to" type="date" value={draftFilters.dateTo ?? ''} onChange={(event) => setDraftFilters({ ...draftFilters, dateTo: event.target.value || undefined })} />
+        </label>
+        <label className="flex flex-col gap-1 text-sm text-slate-700" htmlFor="payables-status">Status
+          <Select id="payables-status" value={draftFilters.status ?? ''} onChange={(event) => setDraftFilters({ ...draftFilters, status: event.target.value || undefined })}>
+            <option value="">Todos os status</option>
+            {Object.entries(PAYABLE_STATUS_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+          </Select>
+        </label>
+        {state.status === 'success' && <>
+          <label className="flex flex-col gap-1 text-sm text-slate-700" htmlFor="payables-supplier">Filtrar por fornecedor
+              <Select id="payables-supplier" aria-label="Filtrar por fornecedor" value={draftFilters.supplierId ?? ''} onChange={(event) => setDraftFilters({ ...draftFilters, supplierId: event.target.value || undefined })}>
+              <option value="">Todos os fornecedores</option>
+              {state.suppliers.map((supplier) => <option key={supplier.id} value={supplier.id}>{supplier.name}</option>)}
+            </Select>
+          </label>
+          <label className="flex flex-col gap-1 text-sm text-slate-700" htmlFor="payables-employee">Funcionário
+            <Select id="payables-employee" value={draftFilters.employeeId ?? ''} onChange={(event) => setDraftFilters({ ...draftFilters, employeeId: event.target.value || undefined })}>
+              <option value="">Todos os funcionários</option>
+              {state.employees.map((employee) => <option key={employee.id} value={employee.id}>{employee.name}</option>)}
+            </Select>
+          </label>
+          <label className="flex flex-col gap-1 text-sm text-slate-700" htmlFor="payables-segment">Segmentação
+            <Select id="payables-segment" value={draftFilters.segmentId ?? ''} onChange={(event) => setDraftFilters({ ...draftFilters, segmentId: event.target.value || undefined })}>
+              <option value="">Todos os lançamentos</option>
+              {state.segments.map((segment) => <option key={segment.id} value={segment.id}>{segment.name}</option>)}
+            </Select>
+          </label>
+        </>}
+        <div className="flex flex-wrap items-end gap-2 sm:col-span-2 xl:col-span-4">
+          <Button type="button" size="sm" onClick={() => setAppliedFilters(draftFilters)}>Aplicar filtros</Button>
+          <Button type="button" size="sm" variant="outline" onClick={() => { setDraftFilters({}); setAppliedFilters({}); }}>Limpar filtros</Button>
+        </div>
+      </fieldset>
 
       <Card>
         <CardHeader>

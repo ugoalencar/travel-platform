@@ -676,6 +676,8 @@ export function registerImportRoutes(
             payment_method_id: null,
             gross_amount: Number(normalized.gross_amount),
             cost_amount: 0,
+            // imported rows carry no configurable form values yet (mapping them is a later step)
+            enforce_required: false,
             sale_date: nullableString(normalized.sale_date),
             due_date: String(normalized.due_date),
             installment_count: 1,

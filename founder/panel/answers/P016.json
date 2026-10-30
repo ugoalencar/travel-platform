@@ -1,0 +1,13 @@
+{
+  "id": "P016",
+  "buys": true,
+  "purchases_first_month": 1,
+  "reason_code": "price",
+  "reason": "Só assino depois de negociar desconto ou pegar uma promoção de verdade, e o programa Agência Pioneira (R$ 79 por 12 meses) é exatamente isso, além da migração sem risco tirar o medo de perder cadastro de cliente.",
+  "objection": "Cobrança automática do cliente e emissão de nota fiscal ainda não existem, que é a parte que mais me dá dor de cabeça hoje; vou continuar fazendo isso por fora, então não sei se R$ 79 já compensa.",
+  "would_change_my_mind": "Se a cobrança automática e a nota fiscal já estivessem funcionando, ou se eu não precisasse virar referência pública (depoimento com meu nome) pra garantir o desconto.",
+  "price_too_cheap": 19,
+  "price_cheap": 49,
+  "price_expensive": 99,
+  "price_too_expensive": 199
+}

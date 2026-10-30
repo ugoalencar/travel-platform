@@ -1,0 +1,1637 @@
+{
+ "nodes": [
+  {
+   "id": "file:services/api/src/file-storage.ts",
+   "type": "file",
+   "name": "file-storage.ts",
+   "filePath": "services/api/src/file-storage.ts",
+   "summary": "Fachada de armazenamento local de arquivos com resolução segura de caminho restrita à área de uploads.",
+   "tags": [
+    "file-storage",
+    "filesystem",
+    "security",
+    "utility"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/file-storage.ts:saveFile",
+   "type": "function",
+   "name": "saveFile",
+   "filePath": "services/api/src/file-storage.ts",
+   "lineRange": [
+    41,
+    45
+   ],
+   "summary": "Grava arquivo em disco sob a área segura de uploads.",
+   "tags": [
+    "file-storage",
+    "filesystem",
+    "utility"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/file-storage.ts:readFile",
+   "type": "function",
+   "name": "readFile",
+   "filePath": "services/api/src/file-storage.ts",
+   "lineRange": [
+    47,
+    49
+   ],
+   "summary": "Lê arquivo de disco pelo caminho validado.",
+   "tags": [
+    "file-storage",
+    "filesystem",
+    "utility"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/file-storage.ts:deleteFile",
+   "type": "function",
+   "name": "deleteFile",
+   "filePath": "services/api/src/file-storage.ts",
+   "lineRange": [
+    52,
+    54
+   ],
+   "summary": "Remove arquivo de disco pelo caminho validado.",
+   "tags": [
+    "file-storage",
+    "filesystem",
+    "utility"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:services/api/src/import/allowlist.ts",
+   "type": "file",
+   "name": "allowlist.ts",
+   "filePath": "services/api/src/import/allowlist.ts",
+   "summary": "Allowlist de campos importáveis por entidade, validando mapeamentos contra colunas de sistema e união de campos.",
+   "tags": [
+    "validation",
+    "import",
+    "security",
+    "allowlist"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/import/allowlist.ts:getAllowedImportFields",
+   "type": "function",
+   "name": "getAllowedImportFields",
+   "filePath": "services/api/src/import/allowlist.ts",
+   "lineRange": [
+    67,
+    73
+   ],
+   "summary": "Retorna a allowlist de campos importáveis para uma entidade.",
+   "tags": [
+    "import",
+    "allowlist",
+    "security"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/import/allowlist.ts:getImportMappingUnion",
+   "type": "function",
+   "name": "getImportMappingUnion",
+   "filePath": "services/api/src/import/allowlist.ts",
+   "lineRange": [
+    76,
+    82
+   ],
+   "summary": "Monta a união de campos permitidos entre entidades.",
+   "tags": [
+    "import",
+    "allowlist",
+    "utility"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/import/allowlist.ts:isAllowedImportField",
+   "type": "function",
+   "name": "isAllowedImportField",
+   "filePath": "services/api/src/import/allowlist.ts",
+   "lineRange": [
+    84,
+    89
+   ],
+   "summary": "Verifica se um campo pode ser importado para a entidade.",
+   "tags": [
+    "import",
+    "allowlist",
+    "validacao"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/import/allowlist.ts:assertMappingInUnion",
+   "type": "function",
+   "name": "assertMappingInUnion",
+   "filePath": "services/api/src/import/allowlist.ts",
+   "lineRange": [
+    96,
+    109
+   ],
+   "summary": "Garante que o mapeamento respeita a união de campos permitidos.",
+   "tags": [
+    "import",
+    "validacao",
+    "security"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/import/allowlist.ts:assertMappingAllowed",
+   "type": "function",
+   "name": "assertMappingAllowed",
+   "filePath": "services/api/src/import/allowlist.ts",
+   "lineRange": [
+    116,
+    132
+   ],
+   "summary": "Garante que mapeamento de colunas respeita a allowlist da entidade.",
+   "tags": [
+    "import",
+    "validacao",
+    "security"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:services/api/src/import/parser.ts",
+   "type": "file",
+   "name": "parser.ts",
+   "filePath": "services/api/src/import/parser.ts",
+   "summary": "Parser CSV tolerante a aspas e quebras de linha, com auto-mapeamento de colunas por aliases normalizados.",
+   "tags": [
+    "parser",
+    "csv",
+    "import",
+    "utility"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/import/parser.ts:parseCsv",
+   "type": "function",
+   "name": "parseCsv",
+   "filePath": "services/api/src/import/parser.ts",
+   "lineRange": [
+    41,
+    89
+   ],
+   "summary": "Parseia conteúdo CSV em linhas e cabeçalhos com avisos.",
+   "tags": [
+    "parser",
+    "csv",
+    "import"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/import/parser.ts:splitCsvLines",
+   "type": "function",
+   "name": "splitCsvLines",
+   "filePath": "services/api/src/import/parser.ts",
+   "lineRange": [
+    94,
+    141
+   ],
+   "summary": "Divide CSV em linhas tratando aspas e quebras internas.",
+   "tags": [
+    "parser",
+    "csv",
+    "utility"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/import/parser.ts:parseCsvLine",
+   "type": "function",
+   "name": "parseCsvLine",
+   "filePath": "services/api/src/import/parser.ts",
+   "lineRange": [
+    146,
+    180
+   ],
+   "summary": "Parseia uma linha CSV respeitando delimitadores e aspas.",
+   "tags": [
+    "parser",
+    "csv",
+    "utility"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/import/parser.ts:autoMapColumns",
+   "type": "function",
+   "name": "autoMapColumns",
+   "filePath": "services/api/src/import/parser.ts",
+   "lineRange": [
+    198,
+    233
+   ],
+   "summary": "Mapeia automaticamente cabeçalhos para campos da entidade por alias.",
+   "tags": [
+    "import",
+    "auto-map",
+    "utility"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/import/parser.ts:isAliasFor",
+   "type": "function",
+   "name": "isAliasFor",
+   "filePath": "services/api/src/import/parser.ts",
+   "lineRange": [
+    250,
+    265
+   ],
+   "summary": "Verifica se um cabeçalho é alias conhecido de um campo.",
+   "tags": [
+    "import",
+    "auto-map",
+    "regras"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:services/api/src/import/service.ts",
+   "type": "file",
+   "name": "service.ts",
+   "filePath": "services/api/src/import/service.ts",
+   "summary": "Serviços de importação em lote: jobs, parse de arquivo, dry-run, execução e cancelamento com auditoria.",
+   "tags": [
+    "import",
+    "batch-processing",
+    "workflow",
+    "audit"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/import/service.ts:createImportJob",
+   "type": "function",
+   "name": "createImportJob",
+   "filePath": "services/api/src/import/service.ts",
+   "lineRange": [
+    45,
+    82
+   ],
+   "summary": "Cria job de importação registrando autor e auditoria.",
+   "tags": [
+    "import",
+    "crud",
+    "audit"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/import/service.ts:parseImportFile",
+   "type": "function",
+   "name": "parseImportFile",
+   "filePath": "services/api/src/import/service.ts",
+   "lineRange": [
+    99,
+    159
+   ],
+   "summary": "Parseia arquivo do job, grava linhas e gera auto-mapeamento.",
+   "tags": [
+    "import",
+    "parser",
+    "workflow"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/import/service.ts:dryRunImport",
+   "type": "function",
+   "name": "dryRunImport",
+   "filePath": "services/api/src/import/service.ts",
+   "lineRange": [
+    179,
+    249
+   ],
+   "summary": "Executa simulação validando mapeamento e linhas sem gravar.",
+   "tags": [
+    "import",
+    "validacao",
+    "workflow"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/import/service.ts:executeImport",
+   "type": "function",
+   "name": "executeImport",
+   "filePath": "services/api/src/import/service.ts",
+   "lineRange": [
+    267,
+    332
+   ],
+   "summary": "Executa a importação inserindo entidades válidas em transação.",
+   "tags": [
+    "import",
+    "batch-processing",
+    "workflow"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/import/service.ts:cancelImport",
+   "type": "function",
+   "name": "cancelImport",
+   "filePath": "services/api/src/import/service.ts",
+   "lineRange": [
+    338,
+    351
+   ],
+   "summary": "Cancela job de importação pendente com auditoria.",
+   "tags": [
+    "import",
+    "workflow",
+    "cancelamento"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/import/service.ts:getImportJob",
+   "type": "function",
+   "name": "getImportJob",
+   "filePath": "services/api/src/import/service.ts",
+   "lineRange": [
+    367,
+    377
+   ],
+   "summary": "Busca job de importação pelo id dentro do tenant.",
+   "tags": [
+    "import",
+    "lookup",
+    "tenant-isolation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/import/service.ts:insertEntity",
+   "type": "function",
+   "name": "insertEntity",
+   "filePath": "services/api/src/import/service.ts",
+   "lineRange": [
+    383,
+    434
+   ],
+   "summary": "Insere entidade da linha respeitando allowlist de campos.",
+   "tags": [
+    "import",
+    "database",
+    "security"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/import/service.ts:getTableName",
+   "type": "function",
+   "name": "getTableName",
+   "filePath": "services/api/src/import/service.ts",
+   "lineRange": [
+    436,
+    449
+   ],
+   "summary": "Resolve a tabela de destino para cada tipo de entidade.",
+   "tags": [
+    "import",
+    "mapping",
+    "database"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/import/service.ts:listImportJobs",
+   "type": "function",
+   "name": "listImportJobs",
+   "filePath": "services/api/src/import/service.ts",
+   "lineRange": [
+    458,
+    490
+   ],
+   "summary": "Lista jobs de importação da agência com paginação.",
+   "tags": [
+    "import",
+    "consulta",
+    "tenant-isolation"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/import/service.ts:getImportJobById",
+   "type": "function",
+   "name": "getImportJobById",
+   "filePath": "services/api/src/import/service.ts",
+   "lineRange": [
+    495,
+    506
+   ],
+   "summary": "Busca job de importação pelo id para leitura.",
+   "tags": [
+    "import",
+    "lookup",
+    "tenant-isolation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:services/api/src/import/types.ts",
+   "type": "file",
+   "name": "types.ts",
+   "filePath": "services/api/src/import/types.ts",
+   "summary": "Tipos, limites e campos permitidos para importação de clientes, fornecedores, funcionários e tags.",
+   "tags": [
+    "type-definition",
+    "import",
+    "configuration"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/import/types.ts:getEntityFields",
+   "type": "function",
+   "name": "getEntityFields",
+   "filePath": "services/api/src/import/types.ts",
+   "lineRange": [
+    183,
+    196
+   ],
+   "summary": "Retorna os campos importáveis de uma entidade pelo catálogo.",
+   "tags": [
+    "type-definition",
+    "import",
+    "lookup"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:services/api/src/import/validator.ts",
+   "type": "file",
+   "name": "validator.ts",
+   "filePath": "services/api/src/import/validator.ts",
+   "summary": "Validação de linhas importadas com regras de e-mail, telefone, CPF/CNPJ, datas e detecção de duplicatas.",
+   "tags": [
+    "validation",
+    "import",
+    "data-quality",
+    "cpf-cnpj"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/import/validator.ts:isValidCpf",
+   "type": "function",
+   "name": "isValidCpf",
+   "filePath": "services/api/src/import/validator.ts",
+   "lineRange": [
+    59,
+    80
+   ],
+   "summary": "Valida CPF pelos dígitos verificadores.",
+   "tags": [
+    "validacao",
+    "cpf",
+    "utility"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/import/validator.ts:isValidCnpj",
+   "type": "function",
+   "name": "isValidCnpj",
+   "filePath": "services/api/src/import/validator.ts",
+   "lineRange": [
+    82,
+    106
+   ],
+   "summary": "Valida CNPJ pelos dígitos verificadores.",
+   "tags": [
+    "validacao",
+    "cnpj",
+    "utility"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/import/validator.ts:isValidDate",
+   "type": "function",
+   "name": "isValidDate",
+   "filePath": "services/api/src/import/validator.ts",
+   "lineRange": [
+    108,
+    120
+   ],
+   "summary": "Valida data nos formatos ISO ou brasileiro.",
+   "tags": [
+    "validacao",
+    "datas",
+    "utility"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/import/validator.ts:validateSingleRow",
+   "type": "function",
+   "name": "validateSingleRow",
+   "filePath": "services/api/src/import/validator.ts",
+   "lineRange": [
+    136,
+    219
+   ],
+   "summary": "Valida uma linha de importação campo a campo.",
+   "tags": [
+    "import",
+    "validacao",
+    "data-quality"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/import/validator.ts:validateImportRows",
+   "type": "function",
+   "name": "validateImportRows",
+   "filePath": "services/api/src/import/validator.ts",
+   "lineRange": [
+    229,
+    304
+   ],
+   "summary": "Valida todas as linhas e coleta erros, duplicatas e normalizações.",
+   "tags": [
+    "import",
+    "validacao",
+    "batch-processing"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/import/validator.ts:detectDuplicates",
+   "type": "function",
+   "name": "detectDuplicates",
+   "filePath": "services/api/src/import/validator.ts",
+   "lineRange": [
+    321,
+    412
+   ],
+   "summary": "Detecta duplicatas dentro do arquivo e contra dados existentes.",
+   "tags": [
+    "import",
+    "validacao",
+    "data-quality"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/import/validator.ts:getTableName",
+   "type": "function",
+   "name": "getTableName",
+   "filePath": "services/api/src/import/validator.ts",
+   "lineRange": [
+    417,
+    430
+   ],
+   "summary": "Resolve tabela de destino para checagem de duplicidade.",
+   "tags": [
+    "import",
+    "mapping",
+    "database"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:services/api/src/insurance.ts",
+   "type": "file",
+   "name": "insurance.ts",
+   "filePath": "services/api/src/insurance.ts",
+   "summary": "Gestão de seguros viagem: produtos, apólices, viajantes e documentos com validação de referências de tenant.",
+   "tags": [
+    "insurance",
+    "crud",
+    "travel",
+    "tenant-isolation"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/insurance.ts:toInsuranceProduct",
+   "type": "function",
+   "name": "toInsuranceProduct",
+   "filePath": "services/api/src/insurance.ts",
+   "lineRange": [
+    81,
+    98
+   ],
+   "summary": "Converte linha de banco em produto de seguro tipado.",
+   "tags": [
+    "serializacao",
+    "mapper",
+    "insurance"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/insurance.ts:listInsuranceProducts",
+   "type": "function",
+   "name": "listInsuranceProducts",
+   "filePath": "services/api/src/insurance.ts",
+   "lineRange": [
+    112,
+    124
+   ],
+   "summary": "Lista produtos de seguro da agência.",
+   "tags": [
+    "insurance",
+    "consulta",
+    "tenant-isolation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/insurance.ts:getInsuranceProductById",
+   "type": "function",
+   "name": "getInsuranceProductById",
+   "filePath": "services/api/src/insurance.ts",
+   "lineRange": [
+    126,
+    141
+   ],
+   "summary": "Busca produto de seguro pelo id.",
+   "tags": [
+    "insurance",
+    "lookup",
+    "tenant-isolation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/insurance.ts:createInsuranceProduct",
+   "type": "function",
+   "name": "createInsuranceProduct",
+   "filePath": "services/api/src/insurance.ts",
+   "lineRange": [
+    143,
+    182
+   ],
+   "summary": "Cria produto de seguro com validações de valores.",
+   "tags": [
+    "insurance",
+    "crud",
+    "validacao"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/insurance.ts:toInsurancePolicy",
+   "type": "function",
+   "name": "toInsurancePolicy",
+   "filePath": "services/api/src/insurance.ts",
+   "lineRange": [
+    263,
+    287
+   ],
+   "summary": "Converte linha de banco em apólice tipada.",
+   "tags": [
+    "serializacao",
+    "mapper",
+    "insurance"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/insurance.ts:assertTenantRef",
+   "type": "function",
+   "name": "assertTenantRef",
+   "filePath": "services/api/src/insurance.ts",
+   "lineRange": [
+    289,
+    303
+   ],
+   "summary": "Garante que referências pertencem ao tenant via transação.",
+   "tags": [
+    "insurance",
+    "tenant-isolation",
+    "validacao"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/insurance.ts:listInsurancePolicies",
+   "type": "function",
+   "name": "listInsurancePolicies",
+   "filePath": "services/api/src/insurance.ts",
+   "lineRange": [
+    305,
+    317
+   ],
+   "summary": "Lista apólices com filtros de status e produto.",
+   "tags": [
+    "insurance",
+    "consulta",
+    "tenant-isolation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/insurance.ts:getInsurancePolicyById",
+   "type": "function",
+   "name": "getInsurancePolicyById",
+   "filePath": "services/api/src/insurance.ts",
+   "lineRange": [
+    319,
+    334
+   ],
+   "summary": "Busca apólice pelo id dentro do tenant.",
+   "tags": [
+    "insurance",
+    "lookup",
+    "tenant-isolation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/insurance.ts:createInsurancePolicy",
+   "type": "function",
+   "name": "createInsurancePolicy",
+   "filePath": "services/api/src/insurance.ts",
+   "lineRange": [
+    342,
+    433
+   ],
+   "summary": "Cria apólice com viajantes e valores validados.",
+   "tags": [
+    "insurance",
+    "crud",
+    "validacao"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/insurance.ts:updateInsurancePolicyStatus",
+   "type": "function",
+   "name": "updateInsurancePolicyStatus",
+   "filePath": "services/api/src/insurance.ts",
+   "lineRange": [
+    435,
+    467
+   ],
+   "summary": "Atualiza status da apólice com transição validada.",
+   "tags": [
+    "insurance",
+    "workflow",
+    "status"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/insurance.ts:toInsuranceTraveler",
+   "type": "function",
+   "name": "toInsuranceTraveler",
+   "filePath": "services/api/src/insurance.ts",
+   "lineRange": [
+    497,
+    506
+   ],
+   "summary": "Converte linha de banco em viajante de apólice.",
+   "tags": [
+    "serializacao",
+    "mapper",
+    "insurance"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/insurance.ts:listInsuranceTravelers",
+   "type": "function",
+   "name": "listInsuranceTravelers",
+   "filePath": "services/api/src/insurance.ts",
+   "lineRange": [
+    508,
+    524
+   ],
+   "summary": "Lista viajantes de uma apólice.",
+   "tags": [
+    "insurance",
+    "consulta",
+    "tenant-isolation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/insurance.ts:addInsuranceTraveler",
+   "type": "function",
+   "name": "addInsuranceTraveler",
+   "filePath": "services/api/src/insurance.ts",
+   "lineRange": [
+    526,
+    570
+   ],
+   "summary": "Adiciona viajante a apólice validando dados pessoais.",
+   "tags": [
+    "insurance",
+    "crud",
+    "validacao"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/insurance.ts:toInsuranceDocument",
+   "type": "function",
+   "name": "toInsuranceDocument",
+   "filePath": "services/api/src/insurance.ts",
+   "lineRange": [
+    613,
+    626
+   ],
+   "summary": "Converte linha de banco em documento de apólice.",
+   "tags": [
+    "serializacao",
+    "mapper",
+    "insurance"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/insurance.ts:listInsuranceDocuments",
+   "type": "function",
+   "name": "listInsuranceDocuments",
+   "filePath": "services/api/src/insurance.ts",
+   "lineRange": [
+    628,
+    643
+   ],
+   "summary": "Lista documentos vinculados a uma apólice.",
+   "tags": [
+    "insurance",
+    "consulta",
+    "tenant-isolation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/insurance.ts:createInsuranceDocument",
+   "type": "function",
+   "name": "createInsuranceDocument",
+   "filePath": "services/api/src/insurance.ts",
+   "lineRange": [
+    645,
+    681
+   ],
+   "summary": "Cria documento vinculado à apólice.",
+   "tags": [
+    "insurance",
+    "crud",
+    "documentos"
+   ],
+   "complexity": "moderate"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:services/api/src/file-storage.ts",
+   "target": "function:services/api/src/file-storage.ts:saveFile",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/file-storage.ts",
+   "target": "function:services/api/src/file-storage.ts:saveFile",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/file-storage.ts",
+   "target": "function:services/api/src/file-storage.ts:readFile",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/file-storage.ts",
+   "target": "function:services/api/src/file-storage.ts:readFile",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/file-storage.ts",
+   "target": "function:services/api/src/file-storage.ts:deleteFile",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/file-storage.ts",
+   "target": "function:services/api/src/file-storage.ts:deleteFile",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/import/allowlist.ts",
+   "target": "function:services/api/src/import/allowlist.ts:getAllowedImportFields",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/import/allowlist.ts",
+   "target": "function:services/api/src/import/allowlist.ts:getAllowedImportFields",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/import/allowlist.ts",
+   "target": "function:services/api/src/import/allowlist.ts:getImportMappingUnion",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/import/allowlist.ts",
+   "target": "function:services/api/src/import/allowlist.ts:getImportMappingUnion",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/import/allowlist.ts",
+   "target": "function:services/api/src/import/allowlist.ts:isAllowedImportField",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/import/allowlist.ts",
+   "target": "function:services/api/src/import/allowlist.ts:isAllowedImportField",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/import/allowlist.ts",
+   "target": "function:services/api/src/import/allowlist.ts:assertMappingInUnion",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/import/allowlist.ts",
+   "target": "function:services/api/src/import/allowlist.ts:assertMappingInUnion",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/import/allowlist.ts",
+   "target": "function:services/api/src/import/allowlist.ts:assertMappingAllowed",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/import/allowlist.ts",
+   "target": "function:services/api/src/import/allowlist.ts:assertMappingAllowed",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/import/parser.ts",
+   "target": "function:services/api/src/import/parser.ts:parseCsv",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/import/parser.ts",
+   "target": "function:services/api/src/import/parser.ts:parseCsv",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/import/parser.ts",
+   "target": "function:services/api/src/import/parser.ts:splitCsvLines",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/import/parser.ts",
+   "target": "function:services/api/src/import/parser.ts:parseCsvLine",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/import/parser.ts",
+   "target": "function:services/api/src/import/parser.ts:autoMapColumns",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/import/parser.ts",
+   "target": "function:services/api/src/import/parser.ts:autoMapColumns",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/import/parser.ts",
+   "target": "function:services/api/src/import/parser.ts:isAliasFor",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/import/service.ts",
+   "target": "function:services/api/src/import/service.ts:createImportJob",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/import/service.ts",
+   "target": "function:services/api/src/import/service.ts:createImportJob",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/import/service.ts",
+   "target": "function:services/api/src/import/service.ts:parseImportFile",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/import/service.ts",
+   "target": "function:services/api/src/import/service.ts:parseImportFile",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/import/service.ts",
+   "target": "function:services/api/src/import/service.ts:dryRunImport",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/import/service.ts",
+   "target": "function:services/api/src/import/service.ts:dryRunImport",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/import/service.ts",
+   "target": "function:services/api/src/import/service.ts:executeImport",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/import/service.ts",
+   "target": "function:services/api/src/import/service.ts:executeImport",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/import/service.ts",
+   "target": "function:services/api/src/import/service.ts:cancelImport",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/import/service.ts",
+   "target": "function:services/api/src/import/service.ts:cancelImport",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/import/service.ts",
+   "target": "function:services/api/src/import/service.ts:getImportJob",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/import/service.ts",
+   "target": "function:services/api/src/import/service.ts:insertEntity",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/import/service.ts",
+   "target": "function:services/api/src/import/service.ts:getTableName",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/import/service.ts",
+   "target": "function:services/api/src/import/service.ts:listImportJobs",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/import/service.ts",
+   "target": "function:services/api/src/import/service.ts:listImportJobs",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/import/service.ts",
+   "target": "function:services/api/src/import/service.ts:getImportJobById",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/import/service.ts",
+   "target": "function:services/api/src/import/service.ts:getImportJobById",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/import/types.ts",
+   "target": "function:services/api/src/import/types.ts:getEntityFields",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/import/types.ts",
+   "target": "function:services/api/src/import/types.ts:getEntityFields",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/import/validator.ts",
+   "target": "function:services/api/src/import/validator.ts:isValidCpf",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/import/validator.ts",
+   "target": "function:services/api/src/import/validator.ts:isValidCnpj",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/import/validator.ts",
+   "target": "function:services/api/src/import/validator.ts:isValidDate",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/import/validator.ts",
+   "target": "function:services/api/src/import/validator.ts:validateSingleRow",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/import/validator.ts",
+   "target": "function:services/api/src/import/validator.ts:validateImportRows",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/import/validator.ts",
+   "target": "function:services/api/src/import/validator.ts:validateImportRows",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/import/validator.ts",
+   "target": "function:services/api/src/import/validator.ts:detectDuplicates",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/import/validator.ts",
+   "target": "function:services/api/src/import/validator.ts:getTableName",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/insurance.ts",
+   "target": "function:services/api/src/insurance.ts:toInsuranceProduct",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/insurance.ts",
+   "target": "function:services/api/src/insurance.ts:listInsuranceProducts",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/insurance.ts",
+   "target": "function:services/api/src/insurance.ts:listInsuranceProducts",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/insurance.ts",
+   "target": "function:services/api/src/insurance.ts:getInsuranceProductById",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/insurance.ts",
+   "target": "function:services/api/src/insurance.ts:getInsuranceProductById",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/insurance.ts",
+   "target": "function:services/api/src/insurance.ts:createInsuranceProduct",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/insurance.ts",
+   "target": "function:services/api/src/insurance.ts:createInsuranceProduct",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/insurance.ts",
+   "target": "function:services/api/src/insurance.ts:toInsurancePolicy",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/insurance.ts",
+   "target": "function:services/api/src/insurance.ts:assertTenantRef",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/insurance.ts",
+   "target": "function:services/api/src/insurance.ts:listInsurancePolicies",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/insurance.ts",
+   "target": "function:services/api/src/insurance.ts:listInsurancePolicies",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/insurance.ts",
+   "target": "function:services/api/src/insurance.ts:getInsurancePolicyById",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/insurance.ts",
+   "target": "function:services/api/src/insurance.ts:getInsurancePolicyById",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/insurance.ts",
+   "target": "function:services/api/src/insurance.ts:createInsurancePolicy",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/insurance.ts",
+   "target": "function:services/api/src/insurance.ts:createInsurancePolicy",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/insurance.ts",
+   "target": "function:services/api/src/insurance.ts:updateInsurancePolicyStatus",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/insurance.ts",
+   "target": "function:services/api/src/insurance.ts:updateInsurancePolicyStatus",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/insurance.ts",
+   "target": "function:services/api/src/insurance.ts:toInsuranceTraveler",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/insurance.ts",
+   "target": "function:services/api/src/insurance.ts:listInsuranceTravelers",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/insurance.ts",
+   "target": "function:services/api/src/insurance.ts:listInsuranceTravelers",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/insurance.ts",
+   "target": "function:services/api/src/insurance.ts:addInsuranceTraveler",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/insurance.ts",
+   "target": "function:services/api/src/insurance.ts:addInsuranceTraveler",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/insurance.ts",
+   "target": "function:services/api/src/insurance.ts:toInsuranceDocument",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/insurance.ts",
+   "target": "function:services/api/src/insurance.ts:listInsuranceDocuments",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/insurance.ts",
+   "target": "function:services/api/src/insurance.ts:listInsuranceDocuments",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/insurance.ts",
+   "target": "function:services/api/src/insurance.ts:createInsuranceDocument",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/insurance.ts",
+   "target": "function:services/api/src/insurance.ts:createInsuranceDocument",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/import/allowlist.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/import/allowlist.ts",
+   "target": "file:services/api/src/import/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/import/parser.ts",
+   "target": "file:services/api/src/import/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/import/service.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/import/service.ts",
+   "target": "file:services/api/src/audit-log.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/import/service.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/import/service.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/import/service.ts",
+   "target": "file:services/api/src/import/allowlist.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/import/service.ts",
+   "target": "file:services/api/src/import/parser.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/import/service.ts",
+   "target": "file:services/api/src/import/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/import/service.ts",
+   "target": "file:services/api/src/import/validator.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/import/validator.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/import/validator.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/import/validator.ts",
+   "target": "file:services/api/src/import/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/insurance.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/insurance.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/insurance.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/insurance.ts",
+   "target": "file:services/api/src/financial.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "function:services/api/src/import/service.ts:createImportJob",
+   "target": "function:services/api/src/audit-log.ts:recordAuditEvent",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/import/service.ts:executeImport",
+   "target": "function:services/api/src/audit-log.ts:recordAuditEvent",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/import/service.ts:parseImportFile",
+   "target": "function:services/api/src/import/parser.ts:parseCsv",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/import/service.ts:dryRunImport",
+   "target": "function:services/api/src/import/allowlist.ts:assertMappingAllowed",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/import/service.ts:dryRunImport",
+   "target": "function:services/api/src/import/validator.ts:validateImportRows",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/import/service.ts:insertEntity",
+   "target": "function:services/api/src/import/allowlist.ts:isAllowedImportField",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/import/parser.ts:autoMapColumns",
+   "target": "function:services/api/src/import/types.ts:getEntityFields",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/import/validator.ts:validateImportRows",
+   "target": "function:services/api/src/import/types.ts:getEntityFields",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/import/allowlist.ts",
+   "target": "file:tests/security/import-allowlist.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/insurance.ts",
+   "target": "file:services/api/tests/insurance.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  }
+ ]
+}

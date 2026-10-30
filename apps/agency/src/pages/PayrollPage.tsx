@@ -15,7 +15,10 @@ import {
   approvePayrollEntry,
   createEmployeeDeduction,
   createPayableFromCommission,
+  createCommissionAttribution,
   generateCommission,
+  generateVersionedCommission,
+  getCommissionEntryRelease,
   generatePayrollEntry,
   listCommissionPlans,
   listCommissions,
@@ -23,14 +26,19 @@ import {
   listEmployees,
   listPayrollEntries,
   listSales,
+  listSaleCategories,
+  listSuppliers,
   payPayrollEntry,
   type CommissionEntry,
+  type CommissionEntryRelease,
   type CommissionPlan,
+  type SaleCategory,
   type Employee,
   type EmployeeDeduction,
   type EmployeeDeductionType,
   type PayrollEntry,
   type Sale,
+  type Supplier,
 } from '../lib/api';
 
 type LoadState =
@@ -44,6 +52,9 @@ type LoadState =
       payrollEntries: PayrollEntry[];
       deductions: EmployeeDeduction[];
       sales: Sale[];
+      categories: SaleCategory[];
+      suppliers: Supplier[];
+      releases: Record<string, CommissionEntryRelease | null>;
     };
 
 const CURRENCY = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -51,6 +62,7 @@ const MONTH_FORMAT = new Intl.DateTimeFormat('pt-BR', { month: 'short', year: 'n
 
 const COMMISSION_STATUS_LABEL: Record<string, string> = {
   PENDING: 'Pendente',
+  PENDING_RULE: 'Pendente de regra',
   APPROVED: 'Aprovada',
   PAYABLE: 'Em Contas a Pagar',
   PAID: 'Paga',
@@ -81,6 +93,9 @@ export function PayrollPage() {
   const [state, setState] = useState<LoadState>({ status: 'loading' });
   const [actionError, setActionError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [employeeFilter, setEmployeeFilter] = useState('');
+  const [attributionForm, setAttributionForm] = useState({ saleId: '', employeeId: '', supplierId: '', categoryId: '', recognitionDate: '' });
+  const [showAttributionForm, setShowAttributionForm] = useState(false);
 
   const [showCommissionForm, setShowCommissionForm] = useState(false);
   const [commissionForm, setCommissionForm] = useState({ employeeId: '', saleId: '', commissionPlanId: '' });
@@ -106,9 +121,15 @@ export function PayrollPage() {
       listPayrollEntries(),
       listEmployeeDeductions(),
       listSales(),
+      listSaleCategories(),
+      listSuppliers(),
     ])
-      .then(([employees, commissionPlans, commissions, payrollEntries, deductions, sales]) => {
-        setState({ status: 'success', employees, commissionPlans, commissions, payrollEntries, deductions, sales });
+      .then(async ([employees, commissionPlans, commissions, payrollEntries, deductions, sales, categories, suppliers]) => {
+        const releases = Object.fromEntries(await Promise.all(commissions.map(async (commission) => {
+          try { return [commission.id, await getCommissionEntryRelease(commission.id)] as const; }
+          catch { return [commission.id, null] as const; }
+        })));
+        setState({ status: 'success', employees, commissionPlans, commissions, payrollEntries, deductions, sales, categories, suppliers, releases });
       })
       .catch((err: unknown) => {
         const message = err instanceof ApiError ? err.message : 'Não foi possível carregar a folha de pagamento.';
@@ -133,6 +154,10 @@ export function PayrollPage() {
     return <ErrorState description={state.message} onRetry={load} />;
   }
 
+  const visibleCommissions = state.commissions.filter((entry) => !employeeFilter || entry.employeeId === employeeFilter);
+  const visiblePayrollEntries = state.payrollEntries.filter((entry) => !employeeFilter || entry.employeeId === employeeFilter);
+  const visibleDeductions = state.deductions.filter((entry) => !employeeFilter || entry.employeeId === employeeFilter);
+
   const employeeName = (id: string) => state.employees.find((e) => e.id === id)?.name ?? id;
   const saleLabel = (id: string) => {
     const sale = state.sales.find((s) => s.id === id);
@@ -144,11 +169,12 @@ export function PayrollPage() {
     if (!commissionForm.employeeId || !commissionForm.saleId) return;
     setActionError(null);
     setBusyId('generate-commission');
-    generateCommission({
+    const generation = generateCommission({
       employeeId: commissionForm.employeeId,
       saleId: commissionForm.saleId,
       commissionPlanId: commissionForm.commissionPlanId || undefined,
-    })
+    });
+    generation
       .then(() => {
         setShowCommissionForm(false);
         setCommissionForm({ employeeId: '', saleId: '', commissionPlanId: '' });
@@ -157,6 +183,29 @@ export function PayrollPage() {
       .catch((err: unknown) => {
         setActionError(err instanceof ApiError ? err.message : 'Não foi possível gerar a comissão.');
       })
+      .finally(() => setBusyId(null));
+  };
+
+  const handleAttribution = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!attributionForm.saleId || !attributionForm.employeeId) return;
+    setActionError(null); setBusyId('attribute-sale');
+    createCommissionAttribution(attributionForm.saleId, {
+      employeeId: attributionForm.employeeId,
+      supplierId: attributionForm.supplierId || null,
+      categoryId: attributionForm.categoryId || null,
+      ...(attributionForm.recognitionDate ? { recognitionDate: attributionForm.recognitionDate } : {}),
+    }).then(() => generateVersionedCommission(attributionForm.saleId, attributionForm.employeeId, attributionForm.supplierId || null))
+      .then(() => { setShowAttributionForm(false); setAttributionForm({ saleId: '', employeeId: '', supplierId: '', categoryId: '', recognitionDate: '' }); load(); })
+      .catch((err: unknown) => setActionError(err instanceof ApiError ? err.message : 'Não foi possível atribuir e gerar a comissão versionada.'))
+      .finally(() => setBusyId(null));
+  };
+
+  const handleResolvePendingRule = (commission: CommissionEntry) => {
+    setActionError(null); setBusyId(commission.id);
+    generateVersionedCommission(commission.saleId, commission.employeeId, commission.supplierId ?? null)
+      .then(() => load())
+      .catch((err: unknown) => setActionError(err instanceof ApiError ? err.message : 'Não foi possível resolver a comissão pendente.'))
       .finally(() => setBusyId(null));
   };
 
@@ -246,21 +295,51 @@ export function PayrollPage() {
         </p>
       ) : null}
 
+      <div className="max-w-sm">
+        <LabeledSelect id="payroll-employee-filter" label="Acompanhar funcionário" value={employeeFilter} onChange={(event) => setEmployeeFilter(event.target.value)}>
+          <option value="">Todos os funcionários</option>
+          {state.employees.map((employee) => <option key={employee.id} value={employee.id}>{employee.name}</option>)}
+        </LabeledSelect>
+      </div>
+
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
           <CardTitle>Comissões Geradas</CardTitle>
+          <div className="flex gap-2">
+          <Button size="sm" variant="outline" onClick={() => setShowAttributionForm((v) => !v)}>
+            {showAttributionForm ? 'Cancelar atribuição' : 'Atribuir a funcionário'}
+          </Button>
           <Button size="sm" onClick={() => setShowCommissionForm((v) => !v)}>
             <Plus className="mr-2 h-4 w-4" />
             {showCommissionForm ? 'Cancelar' : 'Gerar Comissão'}
           </Button>
+          </div>
         </CardHeader>
+        {showAttributionForm ? <CardContent className="border-b pb-6">
+          <form onSubmit={handleAttribution} className="flex flex-wrap items-end gap-3">
+            <LabeledSelect id="attribution-sale" label="Venda" value={attributionForm.saleId} onChange={(e) => setAttributionForm((f) => ({ ...f, saleId: e.target.value }))}>
+              <option value="">Selecione</option>{state.sales.map((sale) => <option key={sale.id} value={sale.id}>{CURRENCY.format(sale.total)} — {sale.id.slice(0, 8)}</option>)}
+            </LabeledSelect>
+            <LabeledSelect id="attribution-employee" label="Funcionário" value={attributionForm.employeeId} onChange={(e) => setAttributionForm((f) => ({ ...f, employeeId: e.target.value }))}>
+              <option value="">Selecione</option>{state.employees.map((emp) => <option key={emp.id} value={emp.id}>{emp.name}</option>)}
+            </LabeledSelect>
+            <LabeledSelect id="attribution-supplier" label="Fornecedor (opcional)" value={attributionForm.supplierId} onChange={(e) => setAttributionForm((f) => ({ ...f, supplierId: e.target.value }))}>
+              <option value="">Venda inteira / regra geral</option>{state.suppliers.map((supplier) => <option key={supplier.id} value={supplier.id}>{supplier.name}</option>)}
+            </LabeledSelect>
+            <LabeledSelect id="attribution-category" label="Categoria (opcional)" value={attributionForm.categoryId} onChange={(e) => setAttributionForm((f) => ({ ...f, categoryId: e.target.value }))}>
+              <option value="">Usar categoria da venda</option>{state.categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
+            </LabeledSelect>
+            <LabeledInput id="attribution-date" label="Data de reconhecimento (opcional)" type="date" value={attributionForm.recognitionDate} onChange={(e) => setAttributionForm((f) => ({ ...f, recognitionDate: e.target.value }))} />
+            <Button type="submit" size="sm" disabled={busyId === 'attribute-sale' || !attributionForm.saleId || !attributionForm.employeeId}>{busyId === 'attribute-sale' ? 'Gerando…' : 'Atribuir e gerar comissão'}</Button>
+          </form>
+        </CardContent> : null}
         {showCommissionForm ? (
           <CardContent className="space-y-3 border-b pb-6">
             {state.commissionPlans.length === 0 ? (
               <p className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900">
                 Nenhum plano de comissão cadastrado ainda. Gerar uma comissão exige um plano (percentual ou valor
                 fixo) — crie um em{' '}
-                <Link to="/commission-plans" className="font-medium underline">
+                <Link to="/commission-rules" className="font-medium underline">
                   Planos de Comissão
                 </Link>{' '}
                 antes de continuar.
@@ -311,7 +390,7 @@ export function PayrollPage() {
           </CardContent>
         ) : null}
         <CardContent className="p-0">
-          {state.commissions.length === 0 ? (
+          {visibleCommissions.length === 0 ? (
             <EmptyState title="Nenhuma comissão gerada" description="Gere uma comissão a partir de uma venda." />
           ) : (
             <Table>
@@ -319,28 +398,35 @@ export function PayrollPage() {
                 <TableRow>
                   <TableHead>Funcionário</TableHead>
                   <TableHead>Venda</TableHead>
+                  <TableHead>Fornecedor</TableHead>
                   <TableHead>Base de Cálculo</TableHead>
                   <TableHead>Taxa</TableHead>
                   <TableHead>Valor</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Previsão de pagamento</TableHead>
+                  <TableHead>Reconhecido · Liberado · Pago · Saldo</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {state.commissions.map((c) => (
+                {visibleCommissions.map((c) => (
                   <TableRow key={c.id}>
                     <TableCell className="font-medium">{employeeName(c.employeeId)}</TableCell>
                     <TableCell>{saleLabel(c.saleId)}</TableCell>
+                    <TableCell>{c.supplierId ? state.suppliers.find(supplier => supplier.id === c.supplierId)?.name ?? c.supplierId : '—'}</TableCell>
                     <TableCell>{CURRENCY.format(c.calculationBase)}</TableCell>
                     <TableCell>{c.rate !== undefined ? `${c.rate}%` : '-'}</TableCell>
-                    <TableCell className="font-semibold">{CURRENCY.format(c.amount)}</TableCell>
+                    <TableCell className="font-semibold">{CURRENCY.format(c.amount)}{c.agencyRevenueWarning && <span className="ml-2 rounded bg-amber-100 px-2 py-1 text-xs font-medium text-amber-900">Acima da receita</span>}</TableCell>
                     <TableCell>{COMMISSION_STATUS_LABEL[c.status] ?? c.status}</TableCell>
+                    <TableCell>{state.releases[c.id]?.expectedPayDate ?? 'Aguardando liberação'}</TableCell>
+                    <TableCell>{state.releases[c.id] ? `${CURRENCY.format(state.releases[c.id]!.recognized)} · ${CURRENCY.format(state.releases[c.id]!.released)} · ${CURRENCY.format(state.releases[c.id]!.paid)} · ${CURRENCY.format(state.releases[c.id]!.allocable)}` : 'Indisponível'}</TableCell>
                     <TableCell className="text-right space-x-2">
                       {c.status === 'PENDING' ? (
                         <Button size="sm" variant="outline" disabled={busyId === c.id} onClick={() => handleApproveCommission(c.id)}>
                           Aprovar
                         </Button>
                       ) : null}
+                      {c.status === 'PENDING_RULE' ? <div className="inline-flex items-center gap-2"><Button size="sm" variant="outline" disabled={busyId === c.id} onClick={() => handleResolvePendingRule(c)}>Resolver</Button><Link to="/commission-rules" className="text-xs underline">Criar regra</Link></div> : null}
                       {c.status === 'APPROVED' ? (
                         <Button size="sm" variant="outline" disabled={busyId === c.id} onClick={() => handleCreatePayableFromCommission(c.id)}>
                           Gerar Conta a Pagar
@@ -363,6 +449,9 @@ export function PayrollPage() {
             {showPayrollForm ? 'Cancelar' : 'Gerar Folha'}
           </Button>
         </CardHeader>
+        <CardContent className="border-b py-3 text-sm text-muted-foreground">
+          A folha inclui somente comissões integralmente liberadas. Comissões parcialmente liberadas devem ser pagas pelo canal avulso.
+        </CardContent>
         {showPayrollForm ? (
           <CardContent className="space-y-3 border-b pb-6">
             <form onSubmit={handleGeneratePayroll} className="flex flex-wrap items-end gap-3">
@@ -391,7 +480,7 @@ export function PayrollPage() {
           </CardContent>
         ) : null}
         <CardContent className="p-0">
-          {state.payrollEntries.length === 0 ? (
+          {visiblePayrollEntries.length === 0 ? (
             <EmptyState title="Nenhuma folha gerada" description="Gere a folha de um funcionário para um mês." />
           ) : (
             <Table>
@@ -408,7 +497,7 @@ export function PayrollPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {state.payrollEntries.map((p) => (
+                {visiblePayrollEntries.map((p) => (
                   <TableRow key={p.id}>
                     <TableCell className="font-medium">{employeeName(p.employeeId)}</TableCell>
                     <TableCell>{monthLabel(p.competence)}</TableCell>
@@ -416,16 +505,20 @@ export function PayrollPage() {
                     <TableCell>{CURRENCY.format(p.commissionsTotal)}</TableCell>
                     <TableCell>{CURRENCY.format(p.discountsTotal)}</TableCell>
                     <TableCell className="font-semibold">{CURRENCY.format(p.netAmount)}</TableCell>
-                    <TableCell>{PAYROLL_STATUS_LABEL[p.status] ?? p.status}</TableCell>
+                    <TableCell>
+                      {p.status === 'APPROVED' && p.payableId
+                        ? 'Aguardando pagamento'
+                        : (PAYROLL_STATUS_LABEL[p.status] ?? p.status)}
+                    </TableCell>
                     <TableCell className="text-right space-x-2">
                       {p.status === 'OPEN' ? (
                         <Button size="sm" variant="outline" disabled={busyId === p.id} onClick={() => handleApprovePayroll(p.id)}>
                           Aprovar
                         </Button>
                       ) : null}
-                      {p.status === 'APPROVED' ? (
+                      {p.status === 'APPROVED' && !p.payableId ? (
                         <Button size="sm" variant="outline" disabled={busyId === p.id} onClick={() => handlePayPayroll(p.id)}>
-                          Pagar
+                          Gerar conta a pagar
                         </Button>
                       ) : null}
                     </TableCell>
@@ -497,7 +590,7 @@ export function PayrollPage() {
           </CardContent>
         ) : null}
         <CardContent className="p-0">
-          {state.deductions.length === 0 ? (
+          {visibleDeductions.length === 0 ? (
             <EmptyState title="Nenhum desconto registrado" description="Adicione um desconto para um funcionário." />
           ) : (
             <Table>
@@ -511,7 +604,7 @@ export function PayrollPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {state.deductions.map((d) => (
+                {visibleDeductions.map((d) => (
                   <TableRow key={d.id}>
                     <TableCell className="font-medium">{employeeName(d.employeeId)}</TableCell>
                     <TableCell>{monthLabel(d.competence)}</TableCell>

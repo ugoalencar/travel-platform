@@ -21,6 +21,22 @@ npm run secrets:scan
 npm run migrations:validate
 ```
 
+### Full managed backup worker
+
+Build the API and run the dedicated persistent worker under a process
+supervisor after the release environment, private storage bucket, keyring, and
+migration 118 have been configured:
+
+```powershell
+npm run build --workspace=@travel-platform/api
+npm run start:backup-worker --workspace=@travel-platform/api
+```
+
+The worker is separate from the web API and polls durable schedules. Do not
+start it against a database or provider that has not been explicitly approved.
+See [the managed backup runbook](docs/08-devops/FULL-MANAGED-BACKUP-RUNBOOK.md)
+for prerequisites and restore-drill steps.
+
 ## PowerShell Scripts
 
 ### `pre-commit.ps1`

@@ -20,6 +20,55 @@ import {
  * Called once during app initialization.
  */
 export function registerAllRoutes(): void {
+  for (const [method,path,role] of [
+    ['GET','/settings/modules','VIEWER'],
+    ['PATCH','/settings/modules/:key','ADMIN'],
+    ['GET','/reports/receivables-projection','MANAGER'],
+    ['GET','/reports/revenue-forecast','MANAGER'],
+    ['GET','/reports/supplier-balances','MANAGER'],
+    ['GET','/reports/commissions-projection','MANAGER'],
+    ['GET','/dashboard/widgets','VIEWER'],
+    ['GET','/settings/dashboard','ADMIN'],
+    ['PUT','/settings/dashboard','ADMIN'],
+    ['POST','/imports/sales/dry-run','MANAGER'],
+    ['POST','/imports/sales/confirm','MANAGER'],
+    ['GET','/agency-revenue/rules','MANAGER'],
+    ['POST','/agency-revenue/rules','ADMIN'],
+    ['GET','/sales/:id/agency-revenue','MANAGER'],
+    ['POST','/sales/:id/agency-revenue/calculate','MANAGER'],
+    ['POST','/agency-revenue/entries/:id/receive','ADMIN'],
+    ['POST','/agency-revenue/entries/:id/cancel','ADMIN'],
+    ['POST','/agency-revenue/entries/:id/reactivate','ADMIN'],
+    ['GET','/settings/backup/status','OWNER'],
+    ['PUT','/settings/backup/schedule','OWNER'],
+    ['POST','/settings/backup/export','OWNER'],
+    ['POST','/settings/backup/verify','OWNER'],
+    ['POST','/settings/backup/restore','OWNER'],
+    ['POST','/settings/backup/runs/:runId/download','OWNER'],
+    ['POST','/settings/backup/runs/:runId/verify','OWNER'],
+    ['POST','/settings/backup/runs/:runId/restore','OWNER'],
+    ['GET','/reports/export/catalog','OWNER'],
+    ['POST','/reports/export','OWNER'],
+    ['GET','/agency-revenue/settlement-policy','MANAGER'],
+    ['PUT','/agency-revenue/settlement-policy','ADMIN'],
+    ['GET','/agency-revenue/batches','MANAGER'],
+    ['POST','/agency-revenue/batches/close','ADMIN'],
+    ['POST','/agency-revenue/batches/:id/receive','ADMIN'],
+    ['GET','/commission-engine-settings','MANAGER'],
+    ['PUT','/commission-engine-settings','ADMIN'],
+    ['GET','/payment-conditions','MANAGER'],
+    ['POST','/payment-conditions','ADMIN'],
+    ['PUT','/payment-conditions/:id','ADMIN'],
+    ['POST','/payment-conditions/:id/deactivate','ADMIN'],
+    ['GET','/sales/:id/balance','MANAGER'],
+    ['GET','/sales/:id/payment-schedule','MANAGER'],
+    ['POST','/sales/:id/payment-schedule','MANAGER'],
+    ['POST','/sales/:id/payments','MANAGER'],
+    ['POST','/sales/:id/payments/:paymentId/reverse','MANAGER'],
+    ['POST','/sales/:id/payment-schedule/revise','ADMIN'],
+  ] as const) {
+    registerRoute({ method,path,role,classification: RouteClassification.STAFF_SCOPED,authPipeline: 'protectedHooks' });
+  }
   // ============================================================
   // PUBLIC ROUTES (no auth required)
   // ============================================================
@@ -985,6 +1034,169 @@ export function registerAllRoutes(): void {
   registerRoute({
     method: 'DELETE',
     path: '/commercial/pipelines/:id/access/:userId',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'ADMIN',
+    publicJustification: undefined,
+  });
+
+  // ============================================================
+  // COMMISSION RULE VERSIONS / ATTRIBUTIONS (Onda E1)
+  // ============================================================
+
+  // COMMISSION RELEASE POLICY (Onda E2, COM-03)
+
+  registerRoute({
+    method: 'GET',
+    path: '/agency-revenue/entries',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'MANAGER',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'GET',
+    path: '/commission-release/config',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'MANAGER',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'PUT',
+    path: '/commission-release/receipt-rules',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'ADMIN',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'POST',
+    path: '/commission-release/financial-profiles',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'ADMIN',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'GET',
+    path: '/commission-entries/:id/release',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'MANAGER',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'GET',
+    path: '/commission-rule-scopes',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'MANAGER',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'POST',
+    path: '/commission-rule-scopes',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'ADMIN',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'POST',
+    path: '/commission-rule-scopes/:id/versions',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'ADMIN',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'POST',
+    path: '/sales/:saleId/commission-attributions',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'MANAGER',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'POST',
+    path: '/commission-attributions/:id/cancel',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'MANAGER',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'POST',
+    path: '/sales/:saleId/commission-entries/versioned',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'MANAGER',
+    publicJustification: undefined,
+  });
+
+  // ============================================================
+  // SALE CATEGORIES / FORM PROFILE (Onda B, ADR-008)
+  // ============================================================
+
+  registerRoute({
+    method: 'GET',
+    path: '/sale-form-fields',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'VIEWER',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'GET',
+    path: '/sale-categories',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'VIEWER',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'POST',
+    path: '/sale-categories',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'ADMIN',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'PATCH',
+    path: '/sale-categories/:id',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'ADMIN',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'GET',
+    path: '/sale-categories/:id/form',
+    classification: RouteClassification.STAFF_SCOPED,
+    authPipeline: 'protectedHooks',
+    role: 'VIEWER',
+    publicJustification: undefined,
+  });
+
+  registerRoute({
+    method: 'PUT',
+    path: '/sale-categories/:id/form',
     classification: RouteClassification.STAFF_SCOPED,
     authPipeline: 'protectedHooks',
     role: 'ADMIN',

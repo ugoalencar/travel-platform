@@ -1,3 +1,4 @@
+import { cancelRevenueForItem } from './agency-revenue';
 // ============================================================
 // SALE ITEMS (Agent 08 -- Upsell)
 // ============================================================
@@ -24,28 +25,20 @@
 //     (financial.ts). getSaleMargin() already sums `payables` by
 //     sale_id, so the Sale's authoritative margin reflects the new
 //     SaleItem automatically, with zero changes to getSaleMargin()
-//     itself.
+//     itself. Both writes use the same tenant transaction.
 //
-// This is the intended, non-parallel integration the mission brief
-// requires ("Se exigir formula paralela, parar e escalar ao
-// Integrator"): reuse via composition (call the real functions with the
-// right inputs), not reimplementation.
-//
-// Each cross-module call (updateSale, createPayable) runs in its own
-// withTenantTransaction -- the same pattern app.ts's route handlers
-// already use to compose sales.ts + financial.ts (see e.g. the
-// PATCH /sales/:id and POST /financial/payables routes). True
-// cross-table atomicity is not available with this codebase's
-// per-call-transaction DatabaseRuntime -- this module reuses the
-// codebase's existing composition pattern, not a new one.
+// createSaleItemInTransaction() is also called by POST /sales when the
+// request contains multiple items. The outer route transaction then
+// includes the Sale, every SaleItem, audit records, receivable, revenue
+// projection and supplier payables; any item failure rolls them all back.
 // ============================================================
 
 import { getAgencyId, getUserId } from '../../../packages/domain/tenant-context';
 import type { SaleItem, LineItemSource } from '../../../packages/domain/types';
 import type { DatabaseRuntime, TenantTransactionClient } from './database';
-import { NotFoundError, ValidationError } from './errors';
+import { FormFieldError, NotFoundError, ValidationError } from './errors';
 import { AuditEventType, recordAuditEvent } from './audit-log';
-import { updateSale, getSaleById } from './sales';
+import { updateSale } from './sales';
 import { createPayable } from './financial';
 
 interface SaleItemRow {
@@ -93,6 +86,57 @@ export interface CreateSaleItemInput {
   commission?: number;
   currency?: string;
   source?: LineItemSource;
+}
+
+/**
+ * Column limits of a sale item. Same as the Full (migration 055): qty NUMERIC(10,2), money NUMERIC(12,2).
+ * tests/sale-form-fields.test.ts compares both products.
+ */
+export const SALE_ITEM_LIMITS = {
+  qtyDecimals: 2,
+  moneyDecimals: 2,
+  maxQty: 99_999_999.99,
+  maxMoney: 9_999_999_999.99,
+} as const;
+
+/**
+ * Validates the amounts of a sale item against the column limits shared by Full and Lite
+ * (qty NUMERIC(10,2), money NUMERIC(12,2)). Returns a message, or null when valid.
+ * The Lite has an identical function; tests/sale-form-fields.test.ts runs both over one table.
+ */
+export function saleItemAmountsError(v: {
+  qty: number;
+  unitPrice: number;
+  unitCost?: number;
+  taxes: number;
+  fees: number;
+  discount: number;
+  commission?: number;
+}): string | null {
+  if (!Number.isFinite(v.qty) || v.qty <= 0) return 'qty must be greater than zero';
+  if (v.qty > SALE_ITEM_LIMITS.maxQty) return 'qty exceeds the allowed limit';
+  if (Number(v.qty.toFixed(SALE_ITEM_LIMITS.qtyDecimals)) !== v.qty) {
+    return 'qty must have at most 2 decimal places';
+  }
+  const money: Record<string, number> = {
+    unitPrice: v.unitPrice,
+    unitCost: v.unitCost ?? 0,
+    taxes: v.taxes,
+    fees: v.fees,
+    discount: v.discount,
+    commission: v.commission ?? 0,
+  };
+  for (const [field, value] of Object.entries(money)) {
+    if (!Number.isFinite(value) || value < 0) return `${field} must not be negative`;
+    if (value > SALE_ITEM_LIMITS.maxMoney) return `${field} exceeds the allowed limit`;
+    if (Number(value.toFixed(SALE_ITEM_LIMITS.moneyDecimals)) !== value) {
+      return `${field} must have at most 2 decimal places`;
+    }
+  }
+  const total = computeLineTotal(v.qty, v.unitPrice, v.discount, v.taxes, v.fees);
+  if (total < 0) return 'line total must not be negative';
+  if (total > SALE_ITEM_LIMITS.maxMoney) return 'line total exceeds the allowed limit';
+  return null;
 }
 
 /** Cents-based rounding, same technique as sales.ts/proposals.ts computeTotal(). */
@@ -153,8 +197,18 @@ export async function createSaleItem(
   database: DatabaseRuntime,
   data: CreateSaleItemInput,
 ): Promise<SaleItem> {
+  return database.withTenantTransaction((client) => createSaleItemInTransaction(database, client, data));
+}
+
+export async function createSaleItemInTransaction(
+  database: DatabaseRuntime,
+  client: TenantTransactionClient,
+  data: CreateSaleItemInput,
+  options: { updateSaleTotal?: boolean } = {},
+): Promise<SaleItem> {
   const agencyId = getAgencyId();
   const userId = getUserId();
+  const updateTotal = options.updateSaleTotal ?? true;
 
   if (!data.description || data.description.trim().length === 0) {
     throw new ValidationError('Field "description" is required');
@@ -167,6 +221,16 @@ export async function createSaleItem(
   if (qty <= 0) {
     throw new ValidationError('Field "qty" must be positive');
   }
+  const amountsError = saleItemAmountsError({
+    qty,
+    unitPrice: data.unitPrice,
+    unitCost: data.unitCost ?? 0,
+    taxes: data.taxes ?? 0,
+    fees: data.fees ?? 0,
+    discount: data.discount ?? 0,
+    commission: data.commission ?? 0,
+  });
+  if (amountsError) throw new ValidationError(amountsError);
   const unitCost = data.unitCost ?? 0;
   const taxes = data.taxes ?? 0;
   const fees = data.fees ?? 0;
@@ -183,15 +247,27 @@ export async function createSaleItem(
     throw new ValidationError('Computed line total must not be negative');
   }
   const lineMargin = computeLineMargin(lineTotal, qty, unitCost, commission);
-
-  const sale = await getSaleById(database, data.saleId);
-  if (!sale) {
-    throw new NotFoundError('Sale not found');
+  if (data.supplierId !== undefined && unitCost > 0 && roundMoney(qty * unitCost) <= 0) {
+    throw new ValidationError('The supplier cost (qty x unitCost) must be at least 0.01');
   }
 
-  const row = await database.withTenantTransaction(async (client) => {
+  const locked = await client.query<{ amount: string }>(
+    `SELECT amount FROM sales WHERE agency_id = $1 AND id = $2 ${updateTotal ? 'FOR UPDATE' : ''}`,
+    [agencyId, data.saleId],
+  );
+  const saleAmount = locked.rows[0] ? Number(locked.rows[0].amount) : null;
+  if (saleAmount === null) throw new NotFoundError('Sale not found');
     if (data.supplierId !== undefined) {
       await assertRef(client, agencyId, 'suppliers', data.supplierId, 'Supplier not found');
+    }
+    if (data.productId !== undefined) {
+      const product = await client.query<{ active: boolean }>(
+        `SELECT active FROM travel_products WHERE agency_id = $1 AND id = $2`,
+        [agencyId, data.productId],
+      );
+      if (!product.rows[0] || !product.rows[0].active) {
+        throw new FormFieldError('FIELD_INVALID', 'productId', 'Produto inexistente ou inativo');
+      }
     }
 
     const result = await client.query<SaleItemRow>(
@@ -232,20 +308,6 @@ export async function createSaleItem(
       metadata: { saleId: data.saleId, lineTotal, source: data.source ?? 'MANUAL' },
     });
 
-    return inserted;
-  });
-
-  // --- Fold into the Sale's AUTHORITATIVE total via the EXISTING path ---
-  // updateSale() recomputes `total` with the existing computeTotal()
-  // (amount - discount) and syncs the receivable via the existing
-  // syncUnallocatedSaleReceivable() -- no new formula introduced here.
-  await updateSale(database, data.saleId, { amount: roundMoney(sale.amount + lineTotal) });
-
-  // --- Fold supplier cost into the Sale's AUTHORITATIVE margin via the
-  // EXISTING path --- getSaleMargin() (financial.ts) already sums
-  // `payables` by sale_id; creating a real Payable here (via the
-  // existing createPayable()) is enough for the margin to reflect this
-  // SaleItem, with zero changes to getSaleMargin()'s formula.
   let payableId: string | null = null;
   if (data.supplierId !== undefined && unitCost > 0) {
     const payable = await createPayable(database, {
@@ -254,19 +316,16 @@ export async function createSaleItem(
       description: `SaleItem: ${data.description}`,
       amount: roundMoney(qty * unitCost),
       dueAt: new Date(),
-    });
+    }, client);
     payableId = payable.id;
-
-    await database.withTenantTransaction(async (client) => {
-      await client.query(`UPDATE sale_items SET payable_id = $3 WHERE agency_id = $1 AND id = $2`, [
-        agencyId,
-        row.id,
-        payableId,
-      ]);
-    });
+    await client.query(`UPDATE sale_items SET payable_id = $3 WHERE agency_id = $1 AND id = $2`, [agencyId, inserted.id, payableId]);
   }
 
-  return toSaleItem({ ...row, payable_id: payableId ?? row.payable_id });
+  if (updateTotal) {
+    await updateSale(database, data.saleId, { amount: roundMoney(saleAmount + lineTotal) }, client);
+  }
+
+  return toSaleItem({ ...inserted, payable_id: payableId ?? inserted.payable_id });
 }
 
 /**
@@ -284,10 +343,14 @@ export async function cancelSaleItem(database: DatabaseRuntime, id: string): Pro
   if (!existing) return null;
   if (existing.status === 'CANCELLED') return existing;
 
-  const sale = await getSaleById(database, existing.saleId);
-  if (!sale) throw new NotFoundError('Sale not found');
-
   const row = await database.withTenantTransaction(async (client) => {
+    const locked = await client.query<{ amount: string }>(
+      `SELECT amount FROM sales WHERE agency_id = $1 AND id = $2 FOR UPDATE`,
+      [agencyId, existing.saleId],
+    );
+    if (!locked.rows[0]) throw new NotFoundError('Sale not found');
+    const saleAmount = Number(locked.rows[0].amount);
+    await cancelRevenueForItem(client, existing.saleId, id);
     const result = await client.query<SaleItemRow>(
       `UPDATE sale_items SET status = 'CANCELLED', updated_at = now()
        WHERE agency_id = $1 AND id = $2 AND status = 'ACTIVE'
@@ -304,14 +367,17 @@ export async function cancelSaleItem(database: DatabaseRuntime, id: string): Pro
       metadata: { saleId: updated.sale_id },
     });
 
+    await updateSale(
+      database,
+      existing.saleId,
+      { amount: roundMoney(Math.max(0, saleAmount - existing.lineTotal)) },
+      client,
+    );
+
     return updated;
   });
 
   if (!row) return getSaleItemById(database, id);
-
-  await updateSale(database, existing.saleId, {
-    amount: roundMoney(Math.max(0, sale.amount - existing.lineTotal)),
-  });
 
   return toSaleItem(row);
 }

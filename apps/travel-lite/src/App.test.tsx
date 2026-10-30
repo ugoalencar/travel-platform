@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { App } from './App';
 
 const ALL_PERMISSIONS = [
-  'users.manage', 'permissions.manage', 'customers.create', 'customers.read_all', 'customers.read_own',
+  'users.manage', 'permissions.manage', 'commissions.rules_manage', 'customers.create', 'customers.read_all', 'customers.read_own',
   'customers.update_all', 'customers.update_own', 'sales.create', 'sales.read_all', 'sales.read_own',
   'sales.update_all', 'sales.update_own', 'sellers.read', 'sellers.manage', 'commissions.read_all',
   'commissions.read_own', 'commissions.approve', 'commissions.pay', 'finance.read', 'finance.manage',
@@ -127,7 +127,9 @@ describe('App shell', () => {
       'Clientes',
       'Vendedores',
       'Comissões',
+      'Regras de comissão',
       'Relatórios',
+      'Projeções',
       'Cadastros',
       'Configurações',
       'Ajuda',
@@ -213,6 +215,7 @@ describe('App shell', () => {
       'Vendas',
       'Clientes',
       'Comissões',
+      'Regras de comissão',
       'Relatórios',
       'Ajuda',
       // Quiet plan hint at the end of the dashboard (Lite shows an essential dashboard).
@@ -860,7 +863,7 @@ describe('forgot/reset password (public flow)', () => {
     fireEvent.change(screen.getByLabelText('Nova senha'), { target: { value: 'curta' } });
     fireEvent.change(screen.getByLabelText('Confirmar nova senha'), { target: { value: 'curta' } });
     fireEvent.click(screen.getByRole('button', { name: 'Definir nova senha' }));
-    expect(await screen.findByText('A nova senha deve ter no mínimo 8 caracteres.')).toBeInTheDocument();
+    expect(await screen.findByText('A nova senha deve ter no mínimo 12 caracteres.')).toBeInTheDocument();
 
     fireEvent.change(screen.getByLabelText('Nova senha'), { target: { value: 'senha-longa-123' } });
     fireEvent.change(screen.getByLabelText('Confirmar nova senha'), { target: { value: 'outra-coisa-123' } });

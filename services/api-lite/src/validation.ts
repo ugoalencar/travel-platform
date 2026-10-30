@@ -84,7 +84,7 @@ export function requiredAmount(source: Record<string, unknown>, field: string): 
   if (num < 0) {
     throw new ValidationError(`Field ${field} must not be negative`);
   }
-  if (Math.round(num * 100) !== num * 100) {
+  if (Math.abs(num * 100 - Math.round(num * 100)) > 1e-6) {
     throw new ValidationError(`Field ${field} must have at most 2 decimal places`);
   }
   return num;

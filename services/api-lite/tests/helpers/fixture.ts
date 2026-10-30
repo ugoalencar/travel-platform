@@ -47,6 +47,12 @@ export async function createLiteFixture(): Promise<LiteFixture> {
 
   const tenantA = await createTenantFixture(pools.adminPool, { slug: 'tenant-a', name: 'Tenant A' });
   const tenantB = await createTenantFixture(pools.adminPool, { slug: 'tenant-b', name: 'Tenant B' });
+  // COM-03: tenants start with an active financial profile (what the migration seeds for existing tenants).
+  await pools.adminPool.query(
+    `INSERT INTO commission_financial_profiles (tenant_id, effect, effective_from, reason)
+     SELECT id, 'SOMENTE_LIBERACAO', DATE '2000-01-01', 'fixture' FROM tenants WHERE id = ANY($1::uuid[])`,
+    [[tenantA, tenantB]],
+  );
 
   const adminA = await createUserFixture(pools.adminPool, {
     tenantId: tenantA,

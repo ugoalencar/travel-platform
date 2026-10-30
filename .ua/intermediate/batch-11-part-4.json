@@ -1,0 +1,1737 @@
+{
+ "nodes": [
+  {
+   "id": "file:services/api/src/ssrf-guard.ts",
+   "type": "file",
+   "name": "ssrf-guard.ts",
+   "filePath": "services/api/src/ssrf-guard.ts",
+   "summary": "Proteção contra SSRF: bloqueio de IPs privados e reservados (IPv4/IPv6), resolução DNS segura de hosts e asserção de URLs HTTP públicas.",
+   "tags": [
+    "security",
+    "ssrf",
+    "validation"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/ssrf-guard.ts:isBlockedIPv6",
+   "type": "function",
+   "name": "isBlockedIPv6",
+   "filePath": "services/api/src/ssrf-guard.ts",
+   "lineRange": [
+    56,
+    67
+   ],
+   "summary": "Verifica se um endereço IPv6 pertence a faixas privadas, loopback ou reservadas.",
+   "tags": [
+    "security",
+    "ssrf",
+    "validation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/ssrf-guard.ts:isBlockedIp",
+   "type": "function",
+   "name": "isBlockedIp",
+   "filePath": "services/api/src/ssrf-guard.ts",
+   "lineRange": [
+    69,
+    74
+   ],
+   "summary": "Verifica de forma unificada se um IP (IPv4 ou IPv6) é bloqueado por segurança.",
+   "tags": [
+    "security",
+    "ssrf",
+    "validation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/ssrf-guard.ts:resolveAndValidateHost",
+   "type": "function",
+   "name": "resolveAndValidateHost",
+   "filePath": "services/api/src/ssrf-guard.ts",
+   "lineRange": [
+    88,
+    109
+   ],
+   "summary": "Resolve o DNS de um hostname e garante que nenhum endereço resultante é interno.",
+   "tags": [
+    "security",
+    "ssrf",
+    "dns"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/ssrf-guard.ts:assertPublicHttpUrl",
+   "type": "function",
+   "name": "assertPublicHttpUrl",
+   "filePath": "services/api/src/ssrf-guard.ts",
+   "lineRange": [
+    111,
+    119
+   ],
+   "summary": "Garante que uma URL usa HTTP(S) público antes de permitir requisição externa.",
+   "tags": [
+    "security",
+    "ssrf",
+    "validation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "class:services/api/src/ssrf-guard.ts:SsrfBlockedError",
+   "type": "class",
+   "name": "SsrfBlockedError",
+   "filePath": "services/api/src/ssrf-guard.ts",
+   "lineRange": [
+    15,
+    20
+   ],
+   "summary": "Erro lançado quando uma URL ou IP é bloqueado pela proteção SSRF.",
+   "tags": [
+    "security",
+    "error",
+    "ssrf"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:services/api/src/storage.ts",
+   "type": "file",
+   "name": "storage.ts",
+   "filePath": "services/api/src/storage.ts",
+   "summary": "Fachada de armazenamento de arquivos que seleciona o provedor (Supabase ou disco local) pela configuração de ambiente e expõe save/read/delete uniformes.",
+   "tags": [
+    "storage",
+    "facade",
+    "file-upload"
+   ],
+   "complexity": "moderate",
+   "languageNotes": "Padrão facade: o provedor é escolhido em runtime, mantendo a mesma API para o restante do código."
+  },
+  {
+   "id": "function:services/api/src/storage.ts:resolveStorageProvider",
+   "type": "function",
+   "name": "resolveStorageProvider",
+   "filePath": "services/api/src/storage.ts",
+   "lineRange": [
+    37,
+    50
+   ],
+   "summary": "Escolhe o provedor de arquivos (Supabase ou disco local) conforme o ambiente.",
+   "tags": [
+    "storage",
+    "factory",
+    "configuration"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/storage.ts:saveFile",
+   "type": "function",
+   "name": "saveFile",
+   "filePath": "services/api/src/storage.ts",
+   "lineRange": [
+    58,
+    60
+   ],
+   "summary": "Salva conteúdo binário usando o provedor de armazenamento ativo.",
+   "tags": [
+    "storage",
+    "file-upload",
+    "facade"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/storage.ts:readFile",
+   "type": "function",
+   "name": "readFile",
+   "filePath": "services/api/src/storage.ts",
+   "lineRange": [
+    62,
+    64
+   ],
+   "summary": "Lê o conteúdo binário salvo pelo provedor ativo.",
+   "tags": [
+    "storage",
+    "file-read",
+    "facade"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/storage.ts:deleteFile",
+   "type": "function",
+   "name": "deleteFile",
+   "filePath": "services/api/src/storage.ts",
+   "lineRange": [
+    66,
+    68
+   ],
+   "summary": "Remove o arquivo do armazenamento ativo pela chave segura.",
+   "tags": [
+    "storage",
+    "file-delete",
+    "facade"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/storage.ts:deleteStoredFileAfterCommit",
+   "type": "function",
+   "name": "deleteStoredFileAfterCommit",
+   "filePath": "services/api/src/storage.ts",
+   "lineRange": [
+    82,
+    102
+   ],
+   "summary": "Remove o arquivo do armazenamento somente após a confirmação da transação, registrando falhas em log.",
+   "tags": [
+    "storage",
+    "transaction",
+    "file-delete"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:services/api/src/supabase-storage.ts",
+   "type": "file",
+   "name": "supabase-storage.ts",
+   "filePath": "services/api/src/supabase-storage.ts",
+   "summary": "Implementação do armazenamento no Supabase Storage: upload, download e remoção de arquivos, URLs assinadas, verificação de existência e criação de bucket.",
+   "tags": [
+    "storage",
+    "supabase",
+    "file-upload"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/supabase-storage.ts:resolveOptions",
+   "type": "function",
+   "name": "resolveOptions",
+   "filePath": "services/api/src/supabase-storage.ts",
+   "lineRange": [
+    41,
+    53
+   ],
+   "summary": "Resolve as opções do cliente Supabase a partir das variáveis de ambiente.",
+   "tags": [
+    "configuration",
+    "supabase",
+    "storage"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/supabase-storage.ts:parseBucketAndPath",
+   "type": "function",
+   "name": "parseBucketAndPath",
+   "filePath": "services/api/src/supabase-storage.ts",
+   "lineRange": [
+    59,
+    70
+   ],
+   "summary": "Divide a chave segura de arquivo em bucket e caminho interno.",
+   "tags": [
+    "parsing",
+    "storage",
+    "utility"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/supabase-storage.ts:saveFile",
+   "type": "function",
+   "name": "saveFile",
+   "filePath": "services/api/src/supabase-storage.ts",
+   "lineRange": [
+    78,
+    91
+   ],
+   "summary": "Envia o arquivo para o bucket do Supabase Storage com o contentType detectado.",
+   "tags": [
+    "storage",
+    "supabase",
+    "file-upload"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/supabase-storage.ts:readFile",
+   "type": "function",
+   "name": "readFile",
+   "filePath": "services/api/src/supabase-storage.ts",
+   "lineRange": [
+    99,
+    111
+   ],
+   "summary": "Baixa o conteúdo de um arquivo do Supabase Storage.",
+   "tags": [
+    "storage",
+    "supabase",
+    "file-read"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/supabase-storage.ts:deleteFile",
+   "type": "function",
+   "name": "deleteFile",
+   "filePath": "services/api/src/supabase-storage.ts",
+   "lineRange": [
+    118,
+    128
+   ],
+   "summary": "Remove o arquivo do Supabase Storage pelo bucket e caminho.",
+   "tags": [
+    "storage",
+    "supabase",
+    "file-delete"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/supabase-storage.ts:fileExists",
+   "type": "function",
+   "name": "fileExists",
+   "filePath": "services/api/src/supabase-storage.ts",
+   "lineRange": [
+    135,
+    155
+   ],
+   "summary": "Verifica se um objeto existe no bucket sem baixar seu conteúdo.",
+   "tags": [
+    "storage",
+    "supabase",
+    "query"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/supabase-storage.ts:getSignedUrl",
+   "type": "function",
+   "name": "getSignedUrl",
+   "filePath": "services/api/src/supabase-storage.ts",
+   "lineRange": [
+    164,
+    179
+   ],
+   "summary": "Gera URL assinada temporária para acesso direto ao arquivo.",
+   "tags": [
+    "storage",
+    "supabase",
+    "security"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/supabase-storage.ts:ensureBucket",
+   "type": "function",
+   "name": "ensureBucket",
+   "filePath": "services/api/src/supabase-storage.ts",
+   "lineRange": [
+    186,
+    200
+   ],
+   "summary": "Cria o bucket indicado caso ainda não exista.",
+   "tags": [
+    "storage",
+    "supabase",
+    "setup"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/supabase-storage.ts:detectContentType",
+   "type": "function",
+   "name": "detectContentType",
+   "filePath": "services/api/src/supabase-storage.ts",
+   "lineRange": [
+    205,
+    221
+   ],
+   "summary": "Infere o MIME type do arquivo a partir da extensão do nome.",
+   "tags": [
+    "storage",
+    "utility",
+    "mime"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:services/api/src/suppliers.ts",
+   "type": "file",
+   "name": "suppliers.ts",
+   "filePath": "services/api/src/suppliers.ts",
+   "summary": "CRUD de fornecedores com categorias associadas, mapeamento de linhas e operações sempre escopadas por agencyId.",
+   "tags": [
+    "service",
+    "suppliers",
+    "crud"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/suppliers.ts:fetchCategories",
+   "type": "function",
+   "name": "fetchCategories",
+   "filePath": "services/api/src/suppliers.ts",
+   "lineRange": [
+    65,
+    86
+   ],
+   "summary": "Busca as categorias vinculadas a um conjunto de fornecedores da agência.",
+   "tags": [
+    "query",
+    "suppliers",
+    "categories"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/suppliers.ts:replaceCategories",
+   "type": "function",
+   "name": "replaceCategories",
+   "filePath": "services/api/src/suppliers.ts",
+   "lineRange": [
+    88,
+    108
+   ],
+   "summary": "Substitui as categorias de um fornecedor removendo as antigas e inserindo as novas.",
+   "tags": [
+    "crud",
+    "suppliers",
+    "categories"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/suppliers.ts:listSuppliers",
+   "type": "function",
+   "name": "listSuppliers",
+   "filePath": "services/api/src/suppliers.ts",
+   "lineRange": [
+    110,
+    127
+   ],
+   "summary": "Lista os fornecedores do tenant junto com suas categorias.",
+   "tags": [
+    "crud",
+    "suppliers",
+    "query"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/suppliers.ts:getSupplierById",
+   "type": "function",
+   "name": "getSupplierById",
+   "filePath": "services/api/src/suppliers.ts",
+   "lineRange": [
+    129,
+    146
+   ],
+   "summary": "Recupera um fornecedor pelo id incluindo suas categorias.",
+   "tags": [
+    "crud",
+    "suppliers",
+    "query"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/suppliers.ts:createSupplier",
+   "type": "function",
+   "name": "createSupplier",
+   "filePath": "services/api/src/suppliers.ts",
+   "lineRange": [
+    148,
+    204
+   ],
+   "summary": "Cria fornecedor validando documento único e persistindo as categorias.",
+   "tags": [
+    "crud",
+    "suppliers",
+    "validation"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/suppliers.ts:updateSupplier",
+   "type": "function",
+   "name": "updateSupplier",
+   "filePath": "services/api/src/suppliers.ts",
+   "lineRange": [
+    206,
+    273
+   ],
+   "summary": "Atualiza fornecedor e suas categorias de forma atômica.",
+   "tags": [
+    "crud",
+    "suppliers",
+    "persistence"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/suppliers.ts:toSupplier",
+   "type": "function",
+   "name": "toSupplier",
+   "filePath": "services/api/src/suppliers.ts",
+   "lineRange": [
+    275,
+    303
+   ],
+   "summary": "Converte a linha do banco e suas categorias no objeto de domínio de fornecedor.",
+   "tags": [
+    "serialization",
+    "mapping",
+    "suppliers"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:services/api/src/transport-operations.ts",
+   "type": "file",
+   "name": "transport-operations.ts",
+   "filePath": "services/api/src/transport-operations.ts",
+   "summary": "Operações de transporte: criação de operações, equipes operacionais, atribuições e checkpoints de saída/chegada com validação de capacidades por papel.",
+   "tags": [
+    "service",
+    "transport",
+    "operations",
+    "workflow"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/transport-operations.ts:listOperations",
+   "type": "function",
+   "name": "listOperations",
+   "filePath": "services/api/src/transport-operations.ts",
+   "lineRange": [
+    117,
+    143
+   ],
+   "summary": "Lista operações de transporte do tenant com filtros básicos.",
+   "tags": [
+    "crud",
+    "transport",
+    "query"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/transport-operations.ts:getOperationById",
+   "type": "function",
+   "name": "getOperationById",
+   "filePath": "services/api/src/transport-operations.ts",
+   "lineRange": [
+    145,
+    180
+   ],
+   "summary": "Recupera uma operação pelo id com checkpoints e atribuições.",
+   "tags": [
+    "crud",
+    "transport",
+    "query"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/transport-operations.ts:createOperation",
+   "type": "function",
+   "name": "createOperation",
+   "filePath": "services/api/src/transport-operations.ts",
+   "lineRange": [
+    191,
+    265
+   ],
+   "summary": "Cria operação de transporte validando rota, partida e equipe envolvida.",
+   "tags": [
+    "crud",
+    "transport",
+    "validation"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/transport-operations.ts:createOperationalStaff",
+   "type": "function",
+   "name": "createOperationalStaff",
+   "filePath": "services/api/src/transport-operations.ts",
+   "lineRange": [
+    267,
+    302
+   ],
+   "summary": "Cadastra membro da equipe operacional com capacidades por papel.",
+   "tags": [
+    "crud",
+    "transport",
+    "staff"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/transport-operations.ts:createOperationAssignment",
+   "type": "function",
+   "name": "createOperationAssignment",
+   "filePath": "services/api/src/transport-operations.ts",
+   "lineRange": [
+    304,
+    337
+   ],
+   "summary": "Atribui profissional a uma operação validando capacidade e conflito de horário.",
+   "tags": [
+    "crud",
+    "transport",
+    "staff"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/transport-operations.ts:confirmArrival",
+   "type": "function",
+   "name": "confirmArrival",
+   "filePath": "services/api/src/transport-operations.ts",
+   "lineRange": [
+    345,
+    351
+   ],
+   "summary": "Registra a confirmação de chegada em um checkpoint da operação.",
+   "tags": [
+    "transport",
+    "checkpoint",
+    "workflow"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/transport-operations.ts:confirmDeparture",
+   "type": "function",
+   "name": "confirmDeparture",
+   "filePath": "services/api/src/transport-operations.ts",
+   "lineRange": [
+    353,
+    359
+   ],
+   "summary": "Registra a confirmação de saída em um checkpoint da operação.",
+   "tags": [
+    "transport",
+    "checkpoint",
+    "workflow"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/transport-operations.ts:confirmCheckpoint",
+   "type": "function",
+   "name": "confirmCheckpoint",
+   "filePath": "services/api/src/transport-operations.ts",
+   "lineRange": [
+    361,
+    422
+   ],
+   "summary": "Fluxo comum de confirmação de checkpoint validando operação, staff e capacidade exigida.",
+   "tags": [
+    "transport",
+    "checkpoint",
+    "workflow"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/transport-operations.ts:loadOperationalStaff",
+   "type": "function",
+   "name": "loadOperationalStaff",
+   "filePath": "services/api/src/transport-operations.ts",
+   "lineRange": [
+    424,
+    444
+   ],
+   "summary": "Carrega um membro da equipe operacional da agência pelo id.",
+   "tags": [
+    "query",
+    "transport",
+    "staff"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/transport-operations.ts:findOperationalStaffIdForUser",
+   "type": "function",
+   "name": "findOperationalStaffIdForUser",
+   "filePath": "services/api/src/transport-operations.ts",
+   "lineRange": [
+    446,
+    457
+   ],
+   "summary": "Mapeia um usuário autenticado para seu registro de equipe operacional.",
+   "tags": [
+    "query",
+    "transport",
+    "staff"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/transport-operations.ts:resolveConfirmationStaffId",
+   "type": "function",
+   "name": "resolveConfirmationStaffId",
+   "filePath": "services/api/src/transport-operations.ts",
+   "lineRange": [
+    459,
+    480
+   ],
+   "summary": "Resolve o id de equipe válido para confirmar checkpoint dado papel e usuário.",
+   "tags": [
+    "authorization",
+    "transport",
+    "staff"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/transport-operations.ts:assertOperationExists",
+   "type": "function",
+   "name": "assertOperationExists",
+   "filePath": "services/api/src/transport-operations.ts",
+   "lineRange": [
+    482,
+    494
+   ],
+   "summary": "Garante que a operação existe na agência ou lança erro de domínio.",
+   "tags": [
+    "validation",
+    "transport",
+    "db-check"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/transport-operations.ts:assertStaffHasCapability",
+   "type": "function",
+   "name": "assertStaffHasCapability",
+   "filePath": "services/api/src/transport-operations.ts",
+   "lineRange": [
+    496,
+    512
+   ],
+   "summary": "Valida se o membro da equipe possui a capacidade requerida para a ação.",
+   "tags": [
+    "authorization",
+    "validation",
+    "staff"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/transport-operations.ts:loadCheckpointForOperation",
+   "type": "function",
+   "name": "loadCheckpointForOperation",
+   "filePath": "services/api/src/transport-operations.ts",
+   "lineRange": [
+    514,
+    538
+   ],
+   "summary": "Carrega um checkpoint vinculado à operação ou lança erro de não encontrado.",
+   "tags": [
+    "query",
+    "transport",
+    "checkpoint"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/transport-operations.ts:mapUniqueViolation",
+   "type": "function",
+   "name": "mapUniqueViolation",
+   "filePath": "services/api/src/transport-operations.ts",
+   "lineRange": [
+    540,
+    550
+   ],
+   "summary": "Converte violação de unique constraint em erro de domínio amigável.",
+   "tags": [
+    "error-handling",
+    "db",
+    "utility"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/transport-operations.ts:toCheckpoint",
+   "type": "function",
+   "name": "toCheckpoint",
+   "filePath": "services/api/src/transport-operations.ts",
+   "lineRange": [
+    562,
+    590
+   ],
+   "summary": "Converte uma linha de checkpoint em objeto de domínio.",
+   "tags": [
+    "serialization",
+    "mapping",
+    "transport"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/transport-operations.ts:toOperationalStaff",
+   "type": "function",
+   "name": "toOperationalStaff",
+   "filePath": "services/api/src/transport-operations.ts",
+   "lineRange": [
+    592,
+    605
+   ],
+   "summary": "Converte uma linha de equipe operacional em objeto de domínio.",
+   "tags": [
+    "serialization",
+    "mapping",
+    "staff"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/transport-operations.ts:parseCapabilities",
+   "type": "function",
+   "name": "parseCapabilities",
+   "filePath": "services/api/src/transport-operations.ts",
+   "lineRange": [
+    607,
+    618
+   ],
+   "summary": "Converte a coluna de capacidades em lista de capacidades válidas.",
+   "tags": [
+    "parsing",
+    "serialization",
+    "staff"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/transport-operations.ts:toAssignment",
+   "type": "function",
+   "name": "toAssignment",
+   "filePath": "services/api/src/transport-operations.ts",
+   "lineRange": [
+    620,
+    630
+   ],
+   "summary": "Converte uma linha de atribuição em objeto de domínio.",
+   "tags": [
+    "serialization",
+    "mapping",
+    "staff"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/transport-operations.ts:toCheckpointWithExpected",
+   "type": "function",
+   "name": "toCheckpointWithExpected",
+   "filePath": "services/api/src/transport-operations.ts",
+   "lineRange": [
+    632,
+    644
+   ],
+   "summary": "Converte checkpoint incluindo o horário previsto de passagem.",
+   "tags": [
+    "serialization",
+    "mapping",
+    "transport"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:services/api/src/transport-products.ts",
+   "type": "file",
+   "name": "transport-products.ts",
+   "filePath": "services/api/src/transport-products.ts",
+   "summary": "CRUD de produtos de transporte com mapeamento de linhas e operações escopadas por tenant.",
+   "tags": [
+    "service",
+    "transport",
+    "crud"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/transport-products.ts:listTransportProducts",
+   "type": "function",
+   "name": "listTransportProducts",
+   "filePath": "services/api/src/transport-products.ts",
+   "lineRange": [
+    44,
+    56
+   ],
+   "summary": "Lista os produtos de transporte do tenant.",
+   "tags": [
+    "crud",
+    "transport",
+    "query"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/transport-products.ts:getTransportProductById",
+   "type": "function",
+   "name": "getTransportProductById",
+   "filePath": "services/api/src/transport-products.ts",
+   "lineRange": [
+    58,
+    72
+   ],
+   "summary": "Recupera um produto de transporte pelo id.",
+   "tags": [
+    "crud",
+    "transport",
+    "query"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/transport-products.ts:createTransportProduct",
+   "type": "function",
+   "name": "createTransportProduct",
+   "filePath": "services/api/src/transport-products.ts",
+   "lineRange": [
+    74,
+    139
+   ],
+   "summary": "Cria produto de transporte validando dados e escopo de agência.",
+   "tags": [
+    "crud",
+    "transport",
+    "validation"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/transport-products.ts:updateTransportProduct",
+   "type": "function",
+   "name": "updateTransportProduct",
+   "filePath": "services/api/src/transport-products.ts",
+   "lineRange": [
+    141,
+    199
+   ],
+   "summary": "Atualiza um produto de transporte existente.",
+   "tags": [
+    "crud",
+    "transport",
+    "persistence"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/transport-products.ts:toProduct",
+   "type": "function",
+   "name": "toProduct",
+   "filePath": "services/api/src/transport-products.ts",
+   "lineRange": [
+    201,
+    216
+   ],
+   "summary": "Converte a linha do banco no objeto de produto de transporte.",
+   "tags": [
+    "serialization",
+    "mapping",
+    "transport"
+   ],
+   "complexity": "simple"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:services/api/src/ssrf-guard.ts",
+   "target": "function:services/api/src/ssrf-guard.ts:isBlockedIPv6",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/ssrf-guard.ts",
+   "target": "function:services/api/src/ssrf-guard.ts:isBlockedIp",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/ssrf-guard.ts",
+   "target": "function:services/api/src/ssrf-guard.ts:isBlockedIp",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/ssrf-guard.ts",
+   "target": "function:services/api/src/ssrf-guard.ts:resolveAndValidateHost",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/ssrf-guard.ts",
+   "target": "function:services/api/src/ssrf-guard.ts:resolveAndValidateHost",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/ssrf-guard.ts",
+   "target": "function:services/api/src/ssrf-guard.ts:assertPublicHttpUrl",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/ssrf-guard.ts",
+   "target": "function:services/api/src/ssrf-guard.ts:assertPublicHttpUrl",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/ssrf-guard.ts",
+   "target": "class:services/api/src/ssrf-guard.ts:SsrfBlockedError",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/ssrf-guard.ts",
+   "target": "class:services/api/src/ssrf-guard.ts:SsrfBlockedError",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/storage.ts",
+   "target": "function:services/api/src/storage.ts:resolveStorageProvider",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/storage.ts",
+   "target": "function:services/api/src/storage.ts:resolveStorageProvider",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/storage.ts",
+   "target": "function:services/api/src/storage.ts:saveFile",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/storage.ts",
+   "target": "function:services/api/src/storage.ts:saveFile",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/storage.ts",
+   "target": "function:services/api/src/storage.ts:readFile",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/storage.ts",
+   "target": "function:services/api/src/storage.ts:readFile",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/storage.ts",
+   "target": "function:services/api/src/storage.ts:deleteFile",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/storage.ts",
+   "target": "function:services/api/src/storage.ts:deleteFile",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/storage.ts",
+   "target": "function:services/api/src/storage.ts:deleteStoredFileAfterCommit",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/storage.ts",
+   "target": "function:services/api/src/storage.ts:deleteStoredFileAfterCommit",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/supabase-storage.ts",
+   "target": "function:services/api/src/supabase-storage.ts:resolveOptions",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/supabase-storage.ts",
+   "target": "function:services/api/src/supabase-storage.ts:parseBucketAndPath",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/supabase-storage.ts",
+   "target": "function:services/api/src/supabase-storage.ts:saveFile",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/supabase-storage.ts",
+   "target": "function:services/api/src/supabase-storage.ts:saveFile",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/supabase-storage.ts",
+   "target": "function:services/api/src/supabase-storage.ts:readFile",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/supabase-storage.ts",
+   "target": "function:services/api/src/supabase-storage.ts:readFile",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/supabase-storage.ts",
+   "target": "function:services/api/src/supabase-storage.ts:deleteFile",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/supabase-storage.ts",
+   "target": "function:services/api/src/supabase-storage.ts:deleteFile",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/supabase-storage.ts",
+   "target": "function:services/api/src/supabase-storage.ts:fileExists",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/supabase-storage.ts",
+   "target": "function:services/api/src/supabase-storage.ts:fileExists",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/supabase-storage.ts",
+   "target": "function:services/api/src/supabase-storage.ts:getSignedUrl",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/supabase-storage.ts",
+   "target": "function:services/api/src/supabase-storage.ts:getSignedUrl",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/supabase-storage.ts",
+   "target": "function:services/api/src/supabase-storage.ts:ensureBucket",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/supabase-storage.ts",
+   "target": "function:services/api/src/supabase-storage.ts:ensureBucket",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/supabase-storage.ts",
+   "target": "function:services/api/src/supabase-storage.ts:detectContentType",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/suppliers.ts",
+   "target": "function:services/api/src/suppliers.ts:fetchCategories",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/suppliers.ts",
+   "target": "function:services/api/src/suppliers.ts:replaceCategories",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/suppliers.ts",
+   "target": "function:services/api/src/suppliers.ts:listSuppliers",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/suppliers.ts",
+   "target": "function:services/api/src/suppliers.ts:listSuppliers",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/suppliers.ts",
+   "target": "function:services/api/src/suppliers.ts:getSupplierById",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/suppliers.ts",
+   "target": "function:services/api/src/suppliers.ts:getSupplierById",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/suppliers.ts",
+   "target": "function:services/api/src/suppliers.ts:createSupplier",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/suppliers.ts",
+   "target": "function:services/api/src/suppliers.ts:createSupplier",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/suppliers.ts",
+   "target": "function:services/api/src/suppliers.ts:updateSupplier",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/suppliers.ts",
+   "target": "function:services/api/src/suppliers.ts:updateSupplier",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/suppliers.ts",
+   "target": "function:services/api/src/suppliers.ts:toSupplier",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/transport-operations.ts",
+   "target": "function:services/api/src/transport-operations.ts:listOperations",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/transport-operations.ts",
+   "target": "function:services/api/src/transport-operations.ts:listOperations",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/transport-operations.ts",
+   "target": "function:services/api/src/transport-operations.ts:getOperationById",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/transport-operations.ts",
+   "target": "function:services/api/src/transport-operations.ts:getOperationById",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/transport-operations.ts",
+   "target": "function:services/api/src/transport-operations.ts:createOperation",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/transport-operations.ts",
+   "target": "function:services/api/src/transport-operations.ts:createOperation",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/transport-operations.ts",
+   "target": "function:services/api/src/transport-operations.ts:createOperationalStaff",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/transport-operations.ts",
+   "target": "function:services/api/src/transport-operations.ts:createOperationalStaff",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/transport-operations.ts",
+   "target": "function:services/api/src/transport-operations.ts:createOperationAssignment",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/transport-operations.ts",
+   "target": "function:services/api/src/transport-operations.ts:createOperationAssignment",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/transport-operations.ts",
+   "target": "function:services/api/src/transport-operations.ts:confirmArrival",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/transport-operations.ts",
+   "target": "function:services/api/src/transport-operations.ts:confirmArrival",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/transport-operations.ts",
+   "target": "function:services/api/src/transport-operations.ts:confirmDeparture",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/transport-operations.ts",
+   "target": "function:services/api/src/transport-operations.ts:confirmDeparture",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/transport-operations.ts",
+   "target": "function:services/api/src/transport-operations.ts:confirmCheckpoint",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/transport-operations.ts",
+   "target": "function:services/api/src/transport-operations.ts:loadOperationalStaff",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/transport-operations.ts",
+   "target": "function:services/api/src/transport-operations.ts:findOperationalStaffIdForUser",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/transport-operations.ts",
+   "target": "function:services/api/src/transport-operations.ts:resolveConfirmationStaffId",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/transport-operations.ts",
+   "target": "function:services/api/src/transport-operations.ts:assertOperationExists",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/transport-operations.ts",
+   "target": "function:services/api/src/transport-operations.ts:assertStaffHasCapability",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/transport-operations.ts",
+   "target": "function:services/api/src/transport-operations.ts:loadCheckpointForOperation",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/transport-operations.ts",
+   "target": "function:services/api/src/transport-operations.ts:mapUniqueViolation",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/transport-operations.ts",
+   "target": "function:services/api/src/transport-operations.ts:toCheckpoint",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/transport-operations.ts",
+   "target": "function:services/api/src/transport-operations.ts:toOperationalStaff",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/transport-operations.ts",
+   "target": "function:services/api/src/transport-operations.ts:parseCapabilities",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/transport-operations.ts",
+   "target": "function:services/api/src/transport-operations.ts:toAssignment",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/transport-operations.ts",
+   "target": "function:services/api/src/transport-operations.ts:toCheckpointWithExpected",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/transport-products.ts",
+   "target": "function:services/api/src/transport-products.ts:listTransportProducts",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/transport-products.ts",
+   "target": "function:services/api/src/transport-products.ts:listTransportProducts",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/transport-products.ts",
+   "target": "function:services/api/src/transport-products.ts:getTransportProductById",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/transport-products.ts",
+   "target": "function:services/api/src/transport-products.ts:getTransportProductById",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/transport-products.ts",
+   "target": "function:services/api/src/transport-products.ts:createTransportProduct",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/transport-products.ts",
+   "target": "function:services/api/src/transport-products.ts:createTransportProduct",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/transport-products.ts",
+   "target": "function:services/api/src/transport-products.ts:updateTransportProduct",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/transport-products.ts",
+   "target": "function:services/api/src/transport-products.ts:updateTransportProduct",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/transport-products.ts",
+   "target": "function:services/api/src/transport-products.ts:toProduct",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/ssrf-guard.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/storage.ts",
+   "target": "file:services/api/src/file-storage.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/storage.ts",
+   "target": "file:services/api/src/supabase-storage.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/suppliers.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/suppliers.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/suppliers.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/suppliers.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/transport-operations.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/transport-operations.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/transport-operations.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/transport-operations.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/transport-products.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/transport-products.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/transport-products.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/transport-products.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/storage.ts",
+   "target": "function:services/api/src/file-storage.ts:saveFile",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/storage.ts",
+   "target": "function:services/api/src/file-storage.ts:readFile",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/storage.ts",
+   "target": "function:services/api/src/file-storage.ts:deleteFile",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/storage.ts",
+   "target": "function:services/api/src/supabase-storage.ts:saveFile",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/storage.ts",
+   "target": "function:services/api/src/supabase-storage.ts:readFile",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/storage.ts",
+   "target": "function:services/api/src/supabase-storage.ts:deleteFile",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/suppliers.ts",
+   "target": "function:packages/domain/tenant-context.ts:getAgencyId",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/transport-operations.ts",
+   "target": "function:packages/domain/tenant-context.ts:getTenantContext",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/transport-operations.ts",
+   "target": "function:packages/domain/tenant-context.ts:getAgencyId",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/transport-operations.ts",
+   "target": "function:packages/domain/tenant-context.ts:getUserId",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/transport-products.ts",
+   "target": "function:packages/domain/tenant-context.ts:getAgencyId",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/storage.ts",
+   "target": "file:services/api/tests/storage-delete.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/storage.ts",
+   "target": "file:tests/security/storage-provider.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/suppliers.ts",
+   "target": "file:services/api/tests/suppliers.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/transport-operations.ts",
+   "target": "file:services/api/tests/transport-operations.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/transport-products.ts",
+   "target": "file:services/api/tests/transport-products.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  }
+ ]
+}

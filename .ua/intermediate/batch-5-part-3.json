@@ -1,0 +1,1145 @@
+{
+ "nodes": [
+  {
+   "id": "file:apps/customer/src/pages/WishFormPage.tsx",
+   "type": "file",
+   "name": "WishFormPage.tsx",
+   "filePath": "apps/customer/src/pages/WishFormPage.tsx",
+   "summary": "Formulário de criação de wish com seleção de cliente, estados de carregamento e validação de campos.",
+   "tags": [
+    "component",
+    "form",
+    "validation",
+    "wish"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:apps/customer/src/pages/WishesPage.test.tsx",
+   "type": "file",
+   "name": "WishesPage.test.tsx",
+   "filePath": "apps/customer/src/pages/WishesPage.test.tsx",
+   "summary": "Testes da listagem de wishes com renderização roteada e navegação.",
+   "tags": [
+    "test",
+    "react",
+    "component"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:apps/customer/src/pages/WishesPage.tsx",
+   "type": "file",
+   "name": "WishesPage.tsx",
+   "filePath": "apps/customer/src/pages/WishesPage.tsx",
+   "summary": "Listagem de wishes com carregamento assíncrono e tabela navegável de desejos de viagem.",
+   "tags": [
+    "component",
+    "page",
+    "list-view",
+    "wish"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:apps/customer/src/pages/commercial/CommercialAgendaPage.test.tsx",
+   "type": "file",
+   "name": "CommercialAgendaPage.test.tsx",
+   "filePath": "apps/customer/src/pages/commercial/CommercialAgendaPage.test.tsx",
+   "summary": "Testes da agenda comercial mockando tarefas, propostas aguardando, busca de viagens, pós-venda e dashboard.",
+   "tags": [
+    "test",
+    "react",
+    "component",
+    "crm"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:apps/customer/src/pages/commercial/CommercialAgendaPage.tsx",
+   "type": "file",
+   "name": "CommercialAgendaPage.tsx",
+   "filePath": "apps/customer/src/pages/commercial/CommercialAgendaPage.tsx",
+   "summary": "Agenda comercial que agrega follow-ups pendentes, propostas aguardando, agenda da semana, candidatos pós-venda e resumo do dashboard.",
+   "tags": [
+    "component",
+    "page",
+    "crm",
+    "dashboard",
+    "data-fetching"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:apps/customer/src/pages/commercial/CommercialDashboardPage.tsx",
+   "type": "file",
+   "name": "CommercialDashboardPage.tsx",
+   "filePath": "apps/customer/src/pages/commercial/CommercialDashboardPage.tsx",
+   "summary": "Dashboard comercial com KPIs de vendas, filtros rápidos e navegação para as áreas financeiras.",
+   "tags": [
+    "component",
+    "page",
+    "dashboard",
+    "crm"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:apps/customer/src/pages/commercial/CommercialPipelinePage.tsx",
+   "type": "file",
+   "name": "CommercialPipelinePage.tsx",
+   "filePath": "apps/customer/src/pages/commercial/CommercialPipelinePage.tsx",
+   "summary": "Pipeline comercial em kanban: gerencia pipelines, etapas e oportunidades com drag-and-drop, filtros por URL e ações rápidas.",
+   "tags": [
+    "component",
+    "kanban",
+    "crm",
+    "pipeline",
+    "drag-and-drop"
+   ],
+   "complexity": "complex",
+   "languageNotes": "Combina useSearchParams para persistir filtros na URL com drag-and-drop nativo do HTML5 entre colunas do kanban."
+  },
+  {
+   "id": "file:apps/customer/src/pages/commercial/PipelineConfigPage.tsx",
+   "type": "file",
+   "name": "PipelineConfigPage.tsx",
+   "filePath": "apps/customer/src/pages/commercial/PipelineConfigPage.tsx",
+   "summary": "Configuração de pipelines comerciais: criação e edição de pipelines e etapas, cores, ordenação e controle de acesso por usuário.",
+   "tags": [
+    "component",
+    "page",
+    "crm",
+    "pipeline",
+    "configuration"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:apps/customer/src/pages/financial-pages.test.tsx",
+   "type": "file",
+   "name": "financial-pages.test.tsx",
+   "filePath": "apps/customer/src/pages/financial-pages.test.tsx",
+   "summary": "Suíte de testes das páginas financeiras (dashboard, custos operacionais, contas a pagar e margem de venda) com mocks de API.",
+   "tags": [
+    "test",
+    "react",
+    "component",
+    "financial"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:apps/customer/src/pages/offer-growth/AssetsPage.test.tsx",
+   "type": "file",
+   "name": "AssetsPage.test.tsx",
+   "filePath": "apps/customer/src/pages/offer-growth/AssetsPage.test.tsx",
+   "summary": "Testes da página de ativos de ofertas com mocks das APIs de assets e offer-growth.",
+   "tags": [
+    "test",
+    "react",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/pages/WishFormPage.tsx:mapErrorToMessage",
+   "type": "function",
+   "name": "mapErrorToMessage",
+   "filePath": "apps/customer/src/pages/WishFormPage.tsx",
+   "lineRange": [
+    35,
+    51
+   ],
+   "summary": "Converte erros da API em mensagens exibidas no formulário de wish.",
+   "tags": [
+    "utility",
+    "error-handling"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/pages/WishFormPage.tsx:WishFormPage",
+   "type": "function",
+   "name": "WishFormPage",
+   "filePath": "apps/customer/src/pages/WishFormPage.tsx",
+   "lineRange": [
+    53,
+    303
+   ],
+   "summary": "Cria wish com seleção de cliente, estados de carregamento e validação de campos.",
+   "tags": [
+    "component",
+    "form",
+    "validation",
+    "wish"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:apps/customer/src/pages/WishesPage.test.tsx:renderRouted",
+   "type": "function",
+   "name": "renderRouted",
+   "filePath": "apps/customer/src/pages/WishesPage.test.tsx",
+   "lineRange": [
+    34,
+    44
+   ],
+   "summary": "Helper de teste que renderiza a listagem de wishes dentro do roteador.",
+   "tags": [
+    "test",
+    "helper",
+    "routing"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/pages/WishesPage.tsx:WishesPage",
+   "type": "function",
+   "name": "WishesPage",
+   "filePath": "apps/customer/src/pages/WishesPage.tsx",
+   "lineRange": [
+    12,
+    63
+   ],
+   "summary": "Listagem de wishes com carregamento assíncrono e navegação para detalhe e criação.",
+   "tags": [
+    "component",
+    "page",
+    "list-view",
+    "wish"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/pages/WishesPage.tsx:WishTable",
+   "type": "function",
+   "name": "WishTable",
+   "filePath": "apps/customer/src/pages/WishesPage.tsx",
+   "lineRange": [
+    65,
+    118
+   ],
+   "summary": "Tabela de wishes com navegação para a página de detalhes de cada desejo.",
+   "tags": [
+    "component",
+    "table",
+    "list-view"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/pages/commercial/CommercialAgendaPage.test.tsx:setupSuccess",
+   "type": "function",
+   "name": "setupSuccess",
+   "filePath": "apps/customer/src/pages/commercial/CommercialAgendaPage.test.tsx",
+   "lineRange": [
+    64,
+    80
+   ],
+   "summary": "Configura mocks que resolvem com sucesso para tarefas, propostas, agenda, pós-venda e dashboard.",
+   "tags": [
+    "test",
+    "helper",
+    "mocking"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/pages/commercial/CommercialAgendaPage.tsx:CommercialAgendaPage",
+   "type": "function",
+   "name": "CommercialAgendaPage",
+   "filePath": "apps/customer/src/pages/commercial/CommercialAgendaPage.tsx",
+   "lineRange": [
+    32,
+    184
+   ],
+   "summary": "Carrega em paralelo follow-ups, propostas, agenda semanal, pós-venda e dashboard e renderiza as seções da agenda.",
+   "tags": [
+    "component",
+    "page",
+    "crm",
+    "data-fetching"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/pages/commercial/CommercialAgendaPage.tsx:PostSaleItem",
+   "type": "function",
+   "name": "PostSaleItem",
+   "filePath": "apps/customer/src/pages/commercial/CommercialAgendaPage.tsx",
+   "lineRange": [
+    200,
+    280
+   ],
+   "summary": "Item de pós-venda expansível que cria uma tarefa de acompanhamento atribuída a um usuário.",
+   "tags": [
+    "component",
+    "form",
+    "crm",
+    "task"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/pages/commercial/CommercialDashboardPage.tsx:CommercialDashboardPage",
+   "type": "function",
+   "name": "CommercialDashboardPage",
+   "filePath": "apps/customer/src/pages/commercial/CommercialDashboardPage.tsx",
+   "lineRange": [
+    28,
+    80
+   ],
+   "summary": "Dashboard comercial que carrega o resumo de vendas e oferece filtros rápidos de navegação.",
+   "tags": [
+    "component",
+    "page",
+    "dashboard",
+    "crm"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/pages/commercial/CommercialDashboardPage.tsx:KpiGrid",
+   "type": "function",
+   "name": "KpiGrid",
+   "filePath": "apps/customer/src/pages/commercial/CommercialDashboardPage.tsx",
+   "lineRange": [
+    82,
+    115
+   ],
+   "summary": "Grade de KPIs do dashboard com formatação de valores monetários.",
+   "tags": [
+    "component",
+    "dashboard",
+    "display"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/pages/commercial/CommercialPipelinePage.tsx:CommercialPipelinePage",
+   "type": "function",
+   "name": "CommercialPipelinePage",
+   "filePath": "apps/customer/src/pages/commercial/CommercialPipelinePage.tsx",
+   "lineRange": [
+    42,
+    231
+   ],
+   "summary": "Tela principal do pipeline: gerencia pipelines, etapas e oportunidades, filtros persistidos na URL e ações rápidas.",
+   "tags": [
+    "component",
+    "page",
+    "kanban",
+    "crm"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:apps/customer/src/pages/commercial/CommercialPipelinePage.tsx:PipelineSelector",
+   "type": "function",
+   "name": "PipelineSelector",
+   "filePath": "apps/customer/src/pages/commercial/CommercialPipelinePage.tsx",
+   "lineRange": [
+    234,
+    283
+   ],
+   "summary": "Seletor de pipelines com layout adaptativo para telas estreitas.",
+   "tags": [
+    "component",
+    "navigation",
+    "crm"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/pages/commercial/CommercialPipelinePage.tsx:KanbanBoard",
+   "type": "function",
+   "name": "KanbanBoard",
+   "filePath": "apps/customer/src/pages/commercial/CommercialPipelinePage.tsx",
+   "lineRange": [
+    285,
+    332
+   ],
+   "summary": "Quadro kanban com drag-and-drop de oportunidades entre etapas do pipeline.",
+   "tags": [
+    "component",
+    "kanban",
+    "drag-and-drop"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/pages/commercial/CommercialPipelinePage.tsx:MobileStageList",
+   "type": "function",
+   "name": "MobileStageList",
+   "filePath": "apps/customer/src/pages/commercial/CommercialPipelinePage.tsx",
+   "lineRange": [
+    334,
+    372
+   ],
+   "summary": "Lista de etapas para telas estreitas com movimentação manual de oportunidades.",
+   "tags": [
+    "component",
+    "kanban",
+    "responsive"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/pages/commercial/CommercialPipelinePage.tsx:OpportunityCard",
+   "type": "function",
+   "name": "OpportunityCard",
+   "filePath": "apps/customer/src/pages/commercial/CommercialPipelinePage.tsx",
+   "lineRange": [
+    374,
+    439
+   ],
+   "summary": "Card de oportunidade com dados do cliente, valor esperado, próxima ação e ações rápidas.",
+   "tags": [
+    "component",
+    "card",
+    "crm"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/pages/commercial/CommercialPipelinePage.tsx:QuickActionForm",
+   "type": "function",
+   "name": "QuickActionForm",
+   "filePath": "apps/customer/src/pages/commercial/CommercialPipelinePage.tsx",
+   "lineRange": [
+    441,
+    554
+   ],
+   "summary": "Formulário de ações rápidas que registra interações ou cria tarefas vinculadas à oportunidade.",
+   "tags": [
+    "component",
+    "form",
+    "crm",
+    "task"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/pages/commercial/PipelineConfigPage.tsx:PipelineConfigPage",
+   "type": "function",
+   "name": "PipelineConfigPage",
+   "filePath": "apps/customer/src/pages/commercial/PipelineConfigPage.tsx",
+   "lineRange": [
+    29,
+    119
+   ],
+   "summary": "Lista e cria pipelines comerciais, alternando o estado ativo e selecionando um pipeline para configuração.",
+   "tags": [
+    "component",
+    "page",
+    "crm",
+    "configuration"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/pages/commercial/PipelineConfigPage.tsx:PipelineDetail",
+   "type": "function",
+   "name": "PipelineDetail",
+   "filePath": "apps/customer/src/pages/commercial/PipelineConfigPage.tsx",
+   "lineRange": [
+    121,
+    366
+   ],
+   "summary": "Editor de etapas do pipeline: cria, reordena, colore e ativa etapas e gerencia o acesso de usuários.",
+   "tags": [
+    "component",
+    "form",
+    "crm",
+    "pipeline",
+    "access-control"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:apps/customer/src/pages/financial-pages.test.tsx:renderPage",
+   "type": "function",
+   "name": "renderPage",
+   "filePath": "apps/customer/src/pages/financial-pages.test.tsx",
+   "lineRange": [
+    116,
+    127
+   ],
+   "summary": "Helper de teste que renderiza uma página financeira dentro do roteador.",
+   "tags": [
+    "test",
+    "helper",
+    "routing"
+   ],
+   "complexity": "simple"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:apps/customer/src/pages/WishFormPage.tsx",
+   "target": "file:apps/customer/src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/WishFormPage.tsx",
+   "target": "file:apps/customer/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/WishFormPage.tsx",
+   "target": "file:apps/customer/src/types/customer.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/WishFormPage.tsx",
+   "target": "file:apps/customer/src/types/wish.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/WishesPage.test.tsx",
+   "target": "file:apps/customer/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/WishesPage.test.tsx",
+   "target": "file:apps/customer/src/pages/WishDetailsPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/WishesPage.test.tsx",
+   "target": "file:apps/customer/src/pages/WishFormPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/WishesPage.test.tsx",
+   "target": "file:apps/customer/src/pages/WishesPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/WishesPage.test.tsx",
+   "target": "file:apps/customer/src/types/wish.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/WishesPage.tsx",
+   "target": "file:apps/customer/src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/WishesPage.tsx",
+   "target": "file:apps/customer/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/WishesPage.tsx",
+   "target": "file:apps/customer/src/types/wish.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/commercial/CommercialAgendaPage.test.tsx",
+   "target": "file:apps/customer/src/lib/commercialApi.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/commercial/CommercialAgendaPage.test.tsx",
+   "target": "file:apps/customer/src/pages/commercial/CommercialAgendaPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/commercial/CommercialAgendaPage.test.tsx",
+   "target": "file:apps/customer/src/types/commercial.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/commercial/CommercialAgendaPage.tsx",
+   "target": "file:apps/customer/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/commercial/CommercialAgendaPage.tsx",
+   "target": "file:apps/customer/src/lib/commercialApi.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/commercial/CommercialAgendaPage.tsx",
+   "target": "file:apps/customer/src/types/commercial.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/commercial/CommercialDashboardPage.tsx",
+   "target": "file:apps/customer/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/commercial/CommercialDashboardPage.tsx",
+   "target": "file:apps/customer/src/lib/commercialApi.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/commercial/CommercialDashboardPage.tsx",
+   "target": "file:apps/customer/src/types/commercial.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/commercial/CommercialPipelinePage.tsx",
+   "target": "file:apps/customer/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/commercial/CommercialPipelinePage.tsx",
+   "target": "file:apps/customer/src/lib/commercialApi.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/commercial/CommercialPipelinePage.tsx",
+   "target": "file:apps/customer/src/types/commercial.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/commercial/PipelineConfigPage.tsx",
+   "target": "file:apps/customer/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/commercial/PipelineConfigPage.tsx",
+   "target": "file:apps/customer/src/lib/commercialApi.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/commercial/PipelineConfigPage.tsx",
+   "target": "file:apps/customer/src/types/commercial.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/financial-pages.test.tsx",
+   "target": "file:apps/customer/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/financial-pages.test.tsx",
+   "target": "file:apps/customer/src/pages/FinancialPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/financial-pages.test.tsx",
+   "target": "file:apps/customer/src/pages/OperationalCostsPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/financial-pages.test.tsx",
+   "target": "file:apps/customer/src/pages/PayablesPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/financial-pages.test.tsx",
+   "target": "file:apps/customer/src/pages/SaleMarginPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/financial-pages.test.tsx",
+   "target": "file:apps/customer/src/types/financial.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/offer-growth/AssetsPage.test.tsx",
+   "target": "file:apps/customer/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/offer-growth/AssetsPage.test.tsx",
+   "target": "file:apps/customer/src/lib/offerGrowthApi.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/offer-growth/AssetsPage.test.tsx",
+   "target": "file:apps/customer/src/pages/offer-growth/AssetsPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/offer-growth/AssetsPage.test.tsx",
+   "target": "file:apps/customer/src/types/offerGrowth.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/pages/WishFormPage.tsx",
+   "target": "function:apps/customer/src/pages/WishFormPage.tsx:mapErrorToMessage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/WishFormPage.tsx",
+   "target": "function:apps/customer/src/pages/WishFormPage.tsx:WishFormPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/WishFormPage.tsx",
+   "target": "function:apps/customer/src/pages/WishFormPage.tsx:WishFormPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/WishesPage.test.tsx",
+   "target": "function:apps/customer/src/pages/WishesPage.test.tsx:renderRouted",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/WishesPage.tsx",
+   "target": "function:apps/customer/src/pages/WishesPage.tsx:WishesPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/WishesPage.tsx",
+   "target": "function:apps/customer/src/pages/WishesPage.tsx:WishesPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/WishesPage.tsx",
+   "target": "function:apps/customer/src/pages/WishesPage.tsx:WishTable",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/commercial/CommercialAgendaPage.test.tsx",
+   "target": "function:apps/customer/src/pages/commercial/CommercialAgendaPage.test.tsx:setupSuccess",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/commercial/CommercialAgendaPage.tsx",
+   "target": "function:apps/customer/src/pages/commercial/CommercialAgendaPage.tsx:CommercialAgendaPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/commercial/CommercialAgendaPage.tsx",
+   "target": "function:apps/customer/src/pages/commercial/CommercialAgendaPage.tsx:CommercialAgendaPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/commercial/CommercialAgendaPage.tsx",
+   "target": "function:apps/customer/src/pages/commercial/CommercialAgendaPage.tsx:PostSaleItem",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/commercial/CommercialDashboardPage.tsx",
+   "target": "function:apps/customer/src/pages/commercial/CommercialDashboardPage.tsx:CommercialDashboardPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/commercial/CommercialDashboardPage.tsx",
+   "target": "function:apps/customer/src/pages/commercial/CommercialDashboardPage.tsx:CommercialDashboardPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/commercial/CommercialDashboardPage.tsx",
+   "target": "function:apps/customer/src/pages/commercial/CommercialDashboardPage.tsx:KpiGrid",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/commercial/CommercialPipelinePage.tsx",
+   "target": "function:apps/customer/src/pages/commercial/CommercialPipelinePage.tsx:CommercialPipelinePage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/commercial/CommercialPipelinePage.tsx",
+   "target": "function:apps/customer/src/pages/commercial/CommercialPipelinePage.tsx:CommercialPipelinePage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/commercial/CommercialPipelinePage.tsx",
+   "target": "function:apps/customer/src/pages/commercial/CommercialPipelinePage.tsx:PipelineSelector",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/commercial/CommercialPipelinePage.tsx",
+   "target": "function:apps/customer/src/pages/commercial/CommercialPipelinePage.tsx:KanbanBoard",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/commercial/CommercialPipelinePage.tsx",
+   "target": "function:apps/customer/src/pages/commercial/CommercialPipelinePage.tsx:MobileStageList",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/commercial/CommercialPipelinePage.tsx",
+   "target": "function:apps/customer/src/pages/commercial/CommercialPipelinePage.tsx:OpportunityCard",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/commercial/CommercialPipelinePage.tsx",
+   "target": "function:apps/customer/src/pages/commercial/CommercialPipelinePage.tsx:QuickActionForm",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/commercial/PipelineConfigPage.tsx",
+   "target": "function:apps/customer/src/pages/commercial/PipelineConfigPage.tsx:PipelineConfigPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/commercial/PipelineConfigPage.tsx",
+   "target": "function:apps/customer/src/pages/commercial/PipelineConfigPage.tsx:PipelineConfigPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/pages/commercial/PipelineConfigPage.tsx",
+   "target": "function:apps/customer/src/pages/commercial/PipelineConfigPage.tsx:PipelineDetail",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/financial-pages.test.tsx",
+   "target": "function:apps/customer/src/pages/financial-pages.test.tsx:renderPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/pages/WishesPage.test.tsx",
+   "target": "file:apps/customer/src/pages/WishesPage.tsx",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:apps/customer/src/pages/commercial/CommercialAgendaPage.test.tsx",
+   "target": "file:apps/customer/src/pages/commercial/CommercialAgendaPage.tsx",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:apps/customer/src/pages/financial-pages.test.tsx",
+   "target": "file:apps/customer/src/pages/FinancialPage.tsx",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:apps/customer/src/pages/financial-pages.test.tsx",
+   "target": "file:apps/customer/src/pages/OperationalCostsPage.tsx",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:apps/customer/src/pages/financial-pages.test.tsx",
+   "target": "file:apps/customer/src/pages/PayablesPage.tsx",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:apps/customer/src/pages/financial-pages.test.tsx",
+   "target": "file:apps/customer/src/pages/SaleMarginPage.tsx",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:apps/customer/src/pages/offer-growth/AssetsPage.test.tsx",
+   "target": "file:apps/customer/src/pages/offer-growth/AssetsPage.tsx",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "function:apps/customer/src/pages/WishFormPage.tsx:WishFormPage",
+   "target": "function:apps/customer/src/lib/api.ts:listCustomers",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/pages/WishFormPage.tsx:WishFormPage",
+   "target": "function:apps/customer/src/lib/api.ts:createWish",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/pages/WishesPage.tsx:WishesPage",
+   "target": "function:apps/customer/src/lib/api.ts:listWishes",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/pages/commercial/CommercialAgendaPage.tsx:CommercialAgendaPage",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:listTasks",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/pages/commercial/CommercialAgendaPage.tsx:CommercialAgendaPage",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:getProposalsWaiting",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/pages/commercial/CommercialAgendaPage.tsx:CommercialAgendaPage",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:travelSearch",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/pages/commercial/CommercialAgendaPage.tsx:CommercialAgendaPage",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:getPostSaleCandidates",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/pages/commercial/CommercialAgendaPage.tsx:CommercialAgendaPage",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:getDashboardSummary",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/pages/commercial/CommercialAgendaPage.tsx:CommercialAgendaPage",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:updateTask",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/pages/commercial/CommercialAgendaPage.tsx:PostSaleItem",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:createTask",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/pages/commercial/CommercialDashboardPage.tsx:CommercialDashboardPage",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:getDashboardSummary",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/pages/commercial/CommercialPipelinePage.tsx:CommercialPipelinePage",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:listPipelines",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/pages/commercial/CommercialPipelinePage.tsx:CommercialPipelinePage",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:listStages",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/pages/commercial/CommercialPipelinePage.tsx:CommercialPipelinePage",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:listOpportunities",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/pages/commercial/CommercialPipelinePage.tsx:CommercialPipelinePage",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:updateOpportunity",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/pages/commercial/CommercialPipelinePage.tsx:QuickActionForm",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:createInteraction",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/pages/commercial/CommercialPipelinePage.tsx:QuickActionForm",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:createTask",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/pages/commercial/PipelineConfigPage.tsx:PipelineConfigPage",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:listPipelines",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/pages/commercial/PipelineConfigPage.tsx:PipelineConfigPage",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:createPipeline",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/pages/commercial/PipelineConfigPage.tsx:PipelineConfigPage",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:updatePipeline",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/pages/commercial/PipelineConfigPage.tsx:PipelineDetail",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:listStages",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/pages/commercial/PipelineConfigPage.tsx:PipelineDetail",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:listPipelineAccess",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/pages/commercial/PipelineConfigPage.tsx:PipelineDetail",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:createStage",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/pages/commercial/PipelineConfigPage.tsx:PipelineDetail",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:updateStage",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/pages/commercial/PipelineConfigPage.tsx:PipelineDetail",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:grantPipelineAccess",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/pages/commercial/PipelineConfigPage.tsx:PipelineDetail",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:revokePipelineAccess",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  }
+ ]
+}

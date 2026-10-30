@@ -7,6 +7,10 @@ import { LoadingState } from '../components/ui/loading-state';
 import { StatusBadge } from '../components/ui/status-badge';
 import { Modal } from '../components/ui/modal';
 import { api } from '../lib/api';
+import { PermissionOverridesEditor } from '../components/settings/PermissionOverridesEditor';
+import { TenantBackupTab } from '../components/settings/TenantBackupTab';
+import { CustomerFieldSettingsTab } from '../components/settings/CustomerFieldSettingsTab';
+import { LogoFilePicker } from '../components/settings/LogoFilePicker';
 
 interface AgencyProfile {
   id: string;
@@ -104,14 +108,16 @@ function getRoleColor(role: string): string {
   }
 }
 
-type SettingsTab = 'profile' | 'branding' | 'departments' | 'team' | 'invitations' | 'permissions' | 'notifications';
+type SettingsTab = 'backup' | 'profile' | 'branding' | 'departments' | 'team' | 'invitations' | 'permissions' | 'customers' | 'notifications';
 const SETTINGS_TABS: SettingsTab[] = [
+  'backup',
   'profile',
   'branding',
   'departments',
   'team',
   'invitations',
   'permissions',
+  'customers',
   'notifications',
 ];
 
@@ -517,6 +523,20 @@ export function SettingsPage() {
               Restrições
             </button>
           )}
+          {canManageRestrictions && (
+            <button
+              onClick={() => setActiveTab('customers')}
+              className={`px-4 py-2 border-b-2 font-medium transition-colors ${
+                activeTab === 'customers'
+                  ? 'border-slate-900 text-slate-900'
+                  : 'border-transparent text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Users className="inline-block mr-2 h-4 w-4" />
+              Cadastro de cliente
+            </button>
+          )}
+          {userRole === 'OWNER' && <button onClick={() => setActiveTab('backup')} className="px-4 py-2 border-b-2 font-medium">Backup</button>}
           <button
             onClick={() => setActiveTab('notifications')}
             className={`px-4 py-2 border-b-2 font-medium transition-colors ${
@@ -531,6 +551,7 @@ export function SettingsPage() {
         </div>
       </div>
 
+      {activeTab === 'backup' && userRole === 'OWNER' && <TenantBackupTab />}
       {/* Profile Tab */}
       {activeTab === 'profile' && (
         <div className="space-y-6">
@@ -613,19 +634,12 @@ export function SettingsPage() {
                   className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 disabled:bg-slate-50"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700">URL do logo</label>
-                <input
-                  type="text"
-                  disabled={!canManageBranding}
-                  value={brandingForm.logoUrl}
-                  onChange={(e) =>
-                    setBrandingForm((prev) => ({ ...prev, logoUrl: e.target.value }))
-                  }
-                  placeholder="https://..."
-                  className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 disabled:bg-slate-50"
-                />
-              </div>
+              <LogoFilePicker
+                id="agency-logo-file"
+                disabled={!canManageBranding}
+                value={brandingForm.logoUrl}
+                onChange={(logoUrl) => setBrandingForm((prev) => ({ ...prev, logoUrl }))}
+              />
               <div>
                 <label className="block text-sm font-medium text-slate-700">Cor primária</label>
                 <div className="mt-1 flex items-center gap-3">
@@ -851,6 +865,9 @@ export function SettingsPage() {
                     </select>
                   </div>
                   {member.role === 'AGENT' && <AreaGrantsEditor memberId={member.id} />}
+                  {(member.role === 'AGENT' || member.role === 'MANAGER' || member.role === 'VIEWER') && (
+                    <PermissionOverridesEditor memberId={member.id} memberRole={member.role} />
+                  )}
                 </div>
               );
             })()}
@@ -1035,6 +1052,17 @@ export function SettingsPage() {
             </CardContent>
           </Card>
         </div>
+      )}
+
+      {activeTab === 'customers' && canManageRestrictions && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Cadastro de cliente</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <CustomerFieldSettingsTab />
+          </CardContent>
+        </Card>
       )}
 
       {/* Permission Restrictions Tab */}

@@ -1,5 +1,5 @@
 import type { FastifyInstance, preHandlerHookHandler } from 'fastify';
-import { requirePermission } from '../access';
+import { requireAdministrator, requirePermission } from '../access';
 import { AUDIT_EVENTS, recordAuditEvent } from '../audit-log';
 import type { LiteDatabase } from '../database';
 import { ConflictError, NotFoundError, ValidationError } from '../errors';
@@ -25,7 +25,7 @@ export function registerCategoryRoutes(
     const context = getTenantContext();
     const result = await database.withTenantTransaction((client) =>
       client.query<CategoryRow>(
-        `SELECT id, name, active, sort_order, created_at, updated_at
+        `SELECT id, name, active, sort_order, form_revision, created_at, updated_at
            FROM sale_categories WHERE tenant_id = $1
           ORDER BY sort_order, name`,
         [context.tenantId],
@@ -37,6 +37,7 @@ export function registerCategoryRoutes(
   app.post('/categories', { preHandler: protectedHooks }, async (request, reply) => {
     const context = getTenantContext();
     requirePermission(context, 'settings.manage');
+    requireAdministrator(context);
     const body = parseObjectBody(request.body);
 
     const name = requiredString(body, 'name', { max: 100 });
@@ -78,6 +79,7 @@ export function registerCategoryRoutes(
   app.patch('/categories/:id', { preHandler: protectedHooks }, async (request) => {
     const context = getTenantContext();
     requirePermission(context, 'settings.manage');
+    requireAdministrator(context);
     const { id } = request.params as { id: string };
     const body = parseObjectBody(request.body);
 
@@ -136,6 +138,7 @@ export function registerCategoryRoutes(
   app.delete('/categories/:id', { preHandler: protectedHooks }, async (request) => {
     const context = getTenantContext();
     requirePermission(context, 'settings.manage');
+    requireAdministrator(context);
     const { id } = request.params as { id: string };
 
     await database.withTenantTransaction(async (client) => {

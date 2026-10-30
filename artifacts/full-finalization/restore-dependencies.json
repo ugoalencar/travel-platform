@@ -1,0 +1,486 @@
+{
+  "customers": [],
+  "suppliers": [],
+  "sales": [
+    "customers",
+    "proposals",
+    "brokers",
+    "commission_categories"
+  ],
+  "sale_items": [
+    "sales",
+    "suppliers",
+    "payables"
+  ],
+  "receivables": [
+    "sales",
+    "customers",
+    "financial_categories",
+    "cost_centers"
+  ],
+  "payments": [],
+  "payment_allocations": [
+    "payments",
+    "receivables",
+    "payables"
+  ],
+  "agency_revenue_scopes": [
+    "suppliers",
+    "travel_products",
+    "commission_categories"
+  ],
+  "agency_revenue_rule_versions": [
+    "agency_revenue_scopes"
+  ],
+  "agency_revenue_entries": [
+    "sales",
+    "sale_items",
+    "suppliers",
+    "agency_revenue_rule_versions"
+  ],
+  "customer_field_settings": [],
+  "dashboard_layouts": [],
+  "agency_communications": [
+    "customer_segments",
+    "media_assets"
+  ],
+  "agency_entitlements": [],
+  "agent_area_grants": [],
+  "air_services": [
+    "trips",
+    "bookings",
+    "suppliers",
+    "customers",
+    "customer_dependents",
+    "cost_centers"
+  ],
+  "assets": [
+    "external_offer_captures"
+  ],
+  "automation_executions": [
+    "automations",
+    "engagements"
+  ],
+  "automations": [
+    "campaigns",
+    "publications"
+  ],
+  "booking_passengers": [
+    "bookings"
+  ],
+  "bookings": [
+    "customers",
+    "scheduled_departures"
+  ],
+  "brokers": [],
+  "campaign_attributions": [
+    "partner_campaigns",
+    "campaign_placements"
+  ],
+  "campaign_offers": [
+    "campaigns",
+    "offers"
+  ],
+  "campaign_partner_stubs": [],
+  "campaign_placements": [
+    "partner_campaigns"
+  ],
+  "campaign_products": [
+    "partner_campaigns"
+  ],
+  "campaigns": [],
+  "cash_transactions": [],
+  "commercial_opportunities": [
+    "customers",
+    "wishes",
+    "proposals",
+    "sales",
+    "pipelines",
+    "pipeline_stages",
+    "campaigns",
+    "publications",
+    "offers",
+    "automations"
+  ],
+  "commercial_partners": [],
+  "commercial_tasks": [
+    "customers",
+    "commercial_opportunities"
+  ],
+  "commission_categories": [],
+  "commission_entries": [
+    "employees",
+    "sales",
+    "commission_plans",
+    "employee_commission_rules",
+    "payroll_entries",
+    "agency_revenue_entries",
+    "employee_commission_rule_versions"
+  ],
+  "commission_financial_profiles": [],
+  "commission_plans": [],
+  "commission_release_events": [
+    "commission_entries"
+  ],
+  "commissions": [
+    "sales",
+    "brokers"
+  ],
+  "connector_actions": [
+    "automations",
+    "publications",
+    "engagements"
+  ],
+  "contract_documents": [
+    "contract_templates",
+    "sales",
+    "customers"
+  ],
+  "contract_parties": [
+    "contract_documents"
+  ],
+  "contract_signature_evidence": [
+    "contract_parties"
+  ],
+  "contract_templates": [],
+  "cost_centers": [],
+  "coupon_grants": [
+    "coupons",
+    "campaigns",
+    "publications",
+    "automations",
+    "customers"
+  ],
+  "coupon_redemptions": [
+    "coupons",
+    "coupon_grants",
+    "customers",
+    "proposals",
+    "sales"
+  ],
+  "coupons": [
+    "campaigns",
+    "offers"
+  ],
+  "customer_addresses": [
+    "customers"
+  ],
+  "customer_dependents": [
+    "customers"
+  ],
+  "customer_documents": [
+    "customers"
+  ],
+  "customer_interactions": [
+    "customers",
+    "commercial_opportunities",
+    "proposals",
+    "sales"
+  ],
+  "customer_segments": [
+    "employees"
+  ],
+  "departments": [],
+  "document_attachments": [
+    "customer_documents"
+  ],
+  "document_extractions": [
+    "customer_documents"
+  ],
+  "document_verifications": [
+    "customer_documents",
+    "document_extractions"
+  ],
+  "employee_commission_rule_scopes": [
+    "employees",
+    "commission_categories"
+  ],
+  "employee_commission_rule_tiers": [
+    "employee_commission_rule_versions"
+  ],
+  "employee_commission_rule_versions": [
+    "employee_commission_rule_scopes"
+  ],
+  "employee_commission_rules": [
+    "employees"
+  ],
+  "employee_deductions": [
+    "employees"
+  ],
+  "employees": [
+    "cost_centers",
+    "commission_plans"
+  ],
+  "engagements": [
+    "campaigns",
+    "publications",
+    "offers",
+    "customers",
+    "commercial_opportunities",
+    "proposals",
+    "trips",
+    "agency_communications"
+  ],
+  "enrollment_documents": [
+    "enrollment_submissions"
+  ],
+  "enrollment_submissions": [
+    "customers"
+  ],
+  "excursion_customers": [
+    "excursions",
+    "customers",
+    "trips",
+    "excursion_departures"
+  ],
+  "excursion_departures": [
+    "excursions"
+  ],
+  "excursions": [],
+  "expenses": [
+    "suppliers",
+    "financial_categories",
+    "cost_centers"
+  ],
+  "external_offer_captures": [
+    "offers"
+  ],
+  "financial_categories": [],
+  "import_jobs": [],
+  "import_mapping_templates": [],
+  "insurance_documents": [
+    "insurance_policies"
+  ],
+  "insurance_policies": [
+    "insurance_products",
+    "customers",
+    "sales",
+    "receivables",
+    "sale_items"
+  ],
+  "insurance_products": [
+    "suppliers"
+  ],
+  "insurance_travelers": [
+    "insurance_policies",
+    "customers",
+    "customer_dependents"
+  ],
+  "land_services": [
+    "trips",
+    "bookings",
+    "suppliers",
+    "customers",
+    "customer_dependents",
+    "cost_centers"
+  ],
+  "media_asset_links": [
+    "media_assets"
+  ],
+  "media_assets": [],
+  "notification_preferences": [],
+  "offers": [
+    "customer_segments",
+    "media_assets"
+  ],
+  "operation_assignments": [
+    "transport_operations",
+    "operational_staff"
+  ],
+  "operation_checkpoints": [
+    "transport_operations",
+    "route_points",
+    "operational_staff"
+  ],
+  "operational_costs": [
+    "sales",
+    "transport_operations",
+    "suppliers"
+  ],
+  "operational_staff": [],
+  "operational_staff_capabilities": [
+    "operational_staff"
+  ],
+  "partner_attributions": [
+    "commercial_partners",
+    "customers",
+    "sales"
+  ],
+  "partner_campaigns": [
+    "campaign_partner_stubs",
+    "commercial_partners"
+  ],
+  "partner_commissions": [
+    "commercial_partners",
+    "partner_attributions",
+    "sales",
+    "partner_contracts"
+  ],
+  "partner_contracts": [
+    "commercial_partners"
+  ],
+  "payables": [
+    "sales",
+    "suppliers",
+    "commissions",
+    "transport_operations",
+    "operational_costs",
+    "financial_categories",
+    "cost_centers",
+    "employees",
+    "commission_entries",
+    "payroll_entries",
+    "commercial_partners",
+    "partner_commissions"
+  ],
+  "payment_condition_categories": [
+    "payment_conditions",
+    "commission_categories"
+  ],
+  "payment_condition_methods": [
+    "payment_conditions"
+  ],
+  "payment_condition_products": [
+    "payment_conditions",
+    "travel_products"
+  ],
+  "payment_conditions": [],
+  "payment_method_receipt_rules": [],
+  "payroll_entries": [
+    "employees"
+  ],
+  "permission_restrictions": [],
+  "pescador_search_results": [
+    "pescador_searches",
+    "pescador_sources"
+  ],
+  "pescador_searches": [],
+  "pescador_sources": [],
+  "pipeline_access": [
+    "pipelines"
+  ],
+  "pipeline_stages": [
+    "pipelines"
+  ],
+  "pipelines": [],
+  "post_trip_checklist": [
+    "trips"
+  ],
+  "product_assets": [
+    "travel_products",
+    "assets"
+  ],
+  "proposal_items": [
+    "proposal_sections"
+  ],
+  "proposal_optional_items": [
+    "proposals",
+    "suppliers"
+  ],
+  "proposal_sections": [
+    "proposals"
+  ],
+  "proposals": [
+    "customers",
+    "offers",
+    "wishes"
+  ],
+  "publications": [
+    "campaigns",
+    "offers"
+  ],
+  "reconciliations": [
+    "payments"
+  ],
+  "revenues": [
+    "sales",
+    "bookings",
+    "customers",
+    "financial_categories",
+    "cost_centers"
+  ],
+  "route_points": [
+    "routes"
+  ],
+  "routes": [],
+  "sale_category_fields": [
+    "commission_categories"
+  ],
+  "sale_commission_attributions": [
+    "sales",
+    "employees",
+    "commission_categories"
+  ],
+  "sale_import_batches": [],
+  "sale_import_keys": [
+    "sales",
+    "sale_import_batches"
+  ],
+  "sale_payment_reversals": [
+    "sales",
+    "payments"
+  ],
+  "agency_revenue_settlement_settings": [],
+  "agency_revenue_batches": [],
+  "agency_revenue_batch_entries": [
+    "agency_revenue_batches",
+    "agency_revenue_entries"
+  ],
+  "agency_revenue_batch_receipts": [
+    "agency_revenue_batches"
+  ],
+  "agency_commission_engine_settings": [],
+  "sale_payment_condition_versions": [
+    "sales",
+    "payment_conditions"
+  ],
+  "sale_payment_requests": [
+    "sales",
+    "payments"
+  ],
+  "scheduled_departures": [
+    "transport_products",
+    "suppliers"
+  ],
+  "supplier_category_links": [
+    "suppliers"
+  ],
+  "support_cases": [],
+  "transport_operations": [
+    "scheduled_departures"
+  ],
+  "transport_products": [
+    "routes"
+  ],
+  "travel_products": [
+    "suppliers",
+    "commission_categories"
+  ],
+  "travel_requirements": [
+    "customers",
+    "customer_dependents",
+    "customer_documents"
+  ],
+  "trip_occurrences": [
+    "trips"
+  ],
+  "trip_photos": [
+    "trips"
+  ],
+  "trips": [
+    "customers",
+    "sales"
+  ],
+  "upsell_rules": [],
+  "upsell_suggestions": [
+    "upsell_rules",
+    "sales",
+    "proposals",
+    "sale_items",
+    "proposal_optional_items"
+  ],
+  "user_permission_overrides": [],
+  "wishes": [
+    "customers"
+  ]
+}

@@ -1,0 +1,209 @@
+{
+ "nodes": [
+  {
+   "id": "file:services/api/src/routes/publications.ts",
+   "type": "file",
+   "name": "publications.ts",
+   "filePath": "services/api/src/routes/publications.ts",
+   "summary": "Rotas de publicações: criação, snapshot, publicação via connector e transições de status, com verificação de entitlements.",
+   "tags": [
+    "api-handler",
+    "routes",
+    "publications",
+    "connectors"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/routes/publications.ts:registerPublicationsRoutes",
+   "type": "function",
+   "name": "registerPublicationsRoutes",
+   "filePath": "services/api/src/routes/publications.ts",
+   "lineRange": [
+    33,
+    114
+   ],
+   "summary": "Registra as rotas de publicações de conteúdo via connectors no Fastify, aplicando validação de entrada e autorização por papel ou entitlement antes de delegar à camada de serviço.",
+   "tags": [
+    "api-handler",
+    "route-registration",
+    "authorization",
+    "fastify"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/routes/publications.ts:parseCreatePublicationInput",
+   "type": "function",
+   "name": "parseCreatePublicationInput",
+   "filePath": "services/api/src/routes/publications.ts",
+   "lineRange": [
+    127,
+    139
+   ],
+   "summary": "Valida e normaliza o corpo da requisição para criação de Publication, verificando campos obrigatórios, tipos e valores permitidos.",
+   "tags": [
+    "validation",
+    "parsing",
+    "input-sanitization"
+   ],
+   "complexity": "simple"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:services/api/src/routes/publications.ts",
+   "target": "function:services/api/src/routes/publications.ts:registerPublicationsRoutes",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/publications.ts",
+   "target": "function:services/api/src/routes/publications.ts:registerPublicationsRoutes",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/publications.ts",
+   "target": "function:services/api/src/routes/publications.ts:parseCreatePublicationInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/publications.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/publications.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/publications.ts",
+   "target": "file:services/api/src/connectors/mock-connector.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/publications.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/publications.ts",
+   "target": "file:services/api/src/entitlements.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/publications.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/publications.ts",
+   "target": "file:services/api/src/publications.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/publications.ts",
+   "target": "file:services/api/src/request-parsing.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "function:services/api/src/routes/publications.ts:registerPublicationsRoutes",
+   "target": "function:services/api/src/entitlements.ts:requireEntitlement",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/publications.ts:registerPublicationsRoutes",
+   "target": "function:packages/domain/tenant-context.ts:requireRole",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/publications.ts:registerPublicationsRoutes",
+   "target": "function:services/api/src/publications.ts:listPublications",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/publications.ts:registerPublicationsRoutes",
+   "target": "function:services/api/src/publications.ts:getPublicationById",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/publications.ts:registerPublicationsRoutes",
+   "target": "function:services/api/src/publications.ts:createPublication",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/publications.ts:registerPublicationsRoutes",
+   "target": "function:services/api/src/publications.ts:generatePublicationSnapshot",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/publications.ts:registerPublicationsRoutes",
+   "target": "function:services/api/src/publications.ts:publishViaConnector",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/publications.ts:registerPublicationsRoutes",
+   "target": "function:services/api/src/publications.ts:transitionPublicationStatus",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/publications.ts:parseCreatePublicationInput",
+   "target": "function:services/api/src/request-parsing.ts:parseObjectBody",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/publications.ts:parseCreatePublicationInput",
+   "target": "function:services/api/src/request-parsing.ts:parseRequiredString",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/publications.ts:parseCreatePublicationInput",
+   "target": "function:services/api/src/request-parsing.ts:parseRequiredDate",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  }
+ ]
+}

@@ -19,6 +19,18 @@ export interface Sale {
   paidAt?: string;
   createdAt: string;
   updatedAt: string;
+  /** Civil sale date (YYYY-MM-DD). */
+  saleDate?: string;
+  categoryId?: string;
+  categoryName?: string | null;
+  /** Required profile fields still empty (sale "to complete"). */
+  missingRequiredFields?: string[];
+  travelStartDate?: string;
+  travelEndDate?: string;
+  originText?: string;
+  destinationText?: string;
+  passengerCount?: number;
+  modalityData?: Record<string, string>;
 }
 
 export interface CreateSaleInput {

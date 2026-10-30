@@ -1,0 +1,13 @@
+{
+  "id": "P004",
+  "buys": true,
+  "purchases_first_month": 1,
+  "reason_code": "need",
+  "reason": "Eu já perco venda de vez em quando porque a planilha vira bagunça e ninguém sabe em que etapa o cliente está. Dá pra testar antes de assinar e a migração é sem risco, então vale pagar um mês pra ver se minha equipe usa de verdade em vez de voltar pro WhatsApp em uma semana.",
+  "objection": "O financeiro e a emissão de nota fiscal ainda não existem, só estão em desenvolvimento. É justamente a parte que mais me dói hoje — cobrar e emitir nota por fora, na mão — e isso continua igual mesmo pagando o sistema.",
+  "would_change_my_mind": "Se a cobrança automática do cliente final e a emissão de nota fiscal saírem do papel e estiverem funcionando de verdade, eu assino o plano maior sem pensar duas vezes.",
+  "price_too_cheap": 20,
+  "price_cheap": 60,
+  "price_expensive": 130,
+  "price_too_expensive": 220
+}

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { CheckCircle2, Circle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { api } from '../lib/api';
+import { LogoFilePicker } from '../components/settings/LogoFilePicker';
 
 // Guided first-run flow for a brand-new agency: Profile -> Branding ->
 // Team -> Done. Progress is persisted server-side (agencies.onboarding_step)
@@ -249,15 +250,11 @@ export function OnboardingWizardPage() {
                 className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900"
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700">URL do logo</label>
-              <input
-                value={brandingForm.logoUrl}
-                onChange={(e) => setBrandingForm((f) => ({ ...f, logoUrl: e.target.value }))}
-                placeholder="https://…"
-                className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900"
-              />
-            </div>
+            <LogoFilePicker
+              id="onboarding-agency-logo"
+              value={brandingForm.logoUrl}
+              onChange={(logoUrl) => setBrandingForm((f) => ({ ...f, logoUrl }))}
+            />
             <div>
               <label className="block text-sm font-medium text-slate-700">Cor principal</label>
               <input

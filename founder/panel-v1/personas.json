@@ -1,0 +1,222 @@
+[
+ {
+  "id": "P001",
+  "name": "Julian",
+  "age": 26,
+  "segment": "Agência solo/micro (1-3 pessoas)",
+  "income": 25000,
+  "behaviour": "Early adopter de tecnologia",
+  "behaviour_how": "Gosta de testar ferramentas novas primeiro, posta no grupo de agentes de viagem que usa.",
+  "objection": "Não confio em colocar o CPF/cartão do meu cliente numa plataforma que nunca ouvi falar",
+  "habit": "fecha a maior parte das vendas pelo WhatsApp pessoal, não por um sistema"
+ },
+ {
+  "id": "P002",
+  "name": "Kofi",
+  "age": 57,
+  "segment": "Agência solo/micro (1-3 pessoas)",
+  "income": 11000,
+  "behaviour": "Já usa um concorrente e está insatisfeito",
+  "behaviour_how": "Testaria trocar, mas tem medo da migração de dados e de parar a operação no meio da alta temporada.",
+  "objection": "Já uso [Agendor/Omie/planilha] e trocar dá trabalho demais",
+  "habit": "participa de pelo menos um grupo de WhatsApp ou associação de agentes de viagem"
+ },
+ {
+  "id": "P003",
+  "name": "Ethan",
+  "age": 50,
+  "segment": "Agência solo/micro (1-3 pessoas)",
+  "income": 16000,
+  "behaviour": "Ainda usa planilha + WhatsApp",
+  "behaviour_how": "Nunca pagou por um sistema de gestão; decide pelo medo de continuar perdendo venda em planilha.",
+  "objection": "Já testei um sistema parecido e travou/perdeu dado na migração",
+  "habit": "fecha a maior parte das vendas pelo WhatsApp pessoal, não por um sistema"
+ },
+ {
+  "id": "P004",
+  "name": "Oscar",
+  "age": 42,
+  "segment": "Agência média (11-50 pessoas)",
+  "income": 232000,
+  "behaviour": "Ainda usa planilha + WhatsApp",
+  "behaviour_how": "Nunca pagou por um sistema de gestão; decide pelo medo de continuar perdendo venda em planilha.",
+  "objection": "O financeiro e a emissão de nota fiscal realmente funcionam, ou é só no papel? (achado da pesquisa de concorrentes e do board: hoje é só ADR, não está implementado)",
+  "habit": "participa de pelo menos um grupo de WhatsApp ou associação de agentes de viagem"
+ },
+ {
+  "id": "P005",
+  "name": "Iris",
+  "age": 39,
+  "segment": "Agência solo/micro (1-3 pessoas)",
+  "income": 19000,
+  "behaviour": "Decide pelo custo, não pelo recurso",
+  "behaviour_how": "Compara o preço mensal com o que já gasta hoje (contador, planilha, nada) antes de olhar funcionalidade.",
+  "objection": "Minha equipe não vai usar, vai voltar pro WhatsApp em uma semana",
+  "habit": "faz o financeiro da agência sozinho(a) ou com um contador terceirizado, no fim do mês"
+ },
+ {
+  "id": "P006",
+  "name": "Clara",
+  "age": 36,
+  "segment": "Agência pequena (4-10 pessoas)",
+  "income": 57000,
+  "behaviour": "Já usa um concorrente e está insatisfeito",
+  "behaviour_how": "Testaria trocar, mas tem medo da migração de dados e de parar a operação no meio da alta temporada.",
+  "objection": "Não tem nenhuma agência conhecida usando isso — quem já usa e recomenda?",
+  "habit": "a alta temporada (dezembro-janeiro e julho) é quando não pode se arriscar a trocar de sistema"
+ },
+ {
+  "id": "P007",
+  "name": "Yusuf",
+  "age": 34,
+  "segment": "Agência pequena (4-10 pessoas)",
+  "income": 50000,
+  "behaviour": "Ainda usa planilha + WhatsApp",
+  "behaviour_how": "Nunca pagou por um sistema de gestão; decide pelo medo de continuar perdendo venda em planilha.",
+  "objection": "R$ 99 ou R$ 299 por mês é caro para o que minha agência fatura hoje",
+  "habit": "a alta temporada (dezembro-janeiro e julho) é quando não pode se arriscar a trocar de sistema"
+ },
+ {
+  "id": "P008",
+  "name": "Kai",
+  "age": 54,
+  "segment": "Agência pequena (4-10 pessoas)",
+  "income": 104000,
+  "behaviour": "Early adopter de tecnologia",
+  "behaviour_how": "Gosta de testar ferramentas novas primeiro, posta no grupo de agentes de viagem que usa.",
+  "objection": "Não tem nenhuma agência conhecida usando isso — quem já usa e recomenda?",
+  "habit": "faz o financeiro da agência sozinho(a) ou com um contador terceirizado, no fim do mês"
+ },
+ {
+  "id": "P009",
+  "name": "Mei",
+  "age": 52,
+  "segment": "Agência solo/micro (1-3 pessoas)",
+  "income": 28000,
+  "behaviour": "Decide em grupo/associação",
+  "behaviour_how": "Só confia depois de ver outro dono de agência (do mesmo grupo/sindicato) recomendar.",
+  "objection": "R$ 99 ou R$ 299 por mês é caro para o que minha agência fatura hoje",
+  "habit": "a alta temporada (dezembro-janeiro e julho) é quando não pode se arriscar a trocar de sistema"
+ },
+ {
+  "id": "P010",
+  "name": "Sol",
+  "age": 52,
+  "segment": "Agência pequena (4-10 pessoas)",
+  "income": 84000,
+  "behaviour": "Já usa um concorrente e está insatisfeito",
+  "behaviour_how": "Testaria trocar, mas tem medo da migração de dados e de parar a operação no meio da alta temporada.",
+  "objection": "Não confio em colocar o CPF/cartão do meu cliente numa plataforma que nunca ouvi falar",
+  "habit": "fecha a maior parte das vendas pelo WhatsApp pessoal, não por um sistema"
+ },
+ {
+  "id": "P011",
+  "name": "Andre",
+  "age": 25,
+  "segment": "Agência pequena (4-10 pessoas)",
+  "income": 31000,
+  "behaviour": "Caçador de desconto/promoção",
+  "behaviour_how": "Só assina depois de negociar desconto ou esperar uma promoção/cupom.",
+  "objection": "Não confio em colocar o CPF/cartão do meu cliente numa plataforma que nunca ouvi falar",
+  "habit": "a alta temporada (dezembro-janeiro e julho) é quando não pode se arriscar a trocar de sistema"
+ },
+ {
+  "id": "P012",
+  "name": "Mira",
+  "age": 38,
+  "segment": "Agência média (11-50 pessoas)",
+  "income": 258000,
+  "behaviour": "Ainda usa planilha + WhatsApp",
+  "behaviour_how": "Nunca pagou por um sistema de gestão; decide pelo medo de continuar perdendo venda em planilha.",
+  "objection": "O financeiro e a emissão de nota fiscal realmente funcionam, ou é só no papel? (achado da pesquisa de concorrentes e do board: hoje é só ADR, não está implementado)",
+  "habit": "participa de pelo menos um grupo de WhatsApp ou associação de agentes de viagem"
+ },
+ {
+  "id": "P013",
+  "name": "Farah",
+  "age": 30,
+  "segment": "Agência média (11-50 pessoas)",
+  "income": 403000,
+  "behaviour": "Ainda usa planilha + WhatsApp",
+  "behaviour_how": "Nunca pagou por um sistema de gestão; decide pelo medo de continuar perdendo venda em planilha.",
+  "objection": "Minha equipe não vai usar, vai voltar pro WhatsApp em uma semana",
+  "habit": "a alta temporada (dezembro-janeiro e julho) é quando não pode se arriscar a trocar de sistema"
+ },
+ {
+  "id": "P014",
+  "name": "Nia",
+  "age": 50,
+  "segment": "Agência pequena (4-10 pessoas)",
+  "income": 106000,
+  "behaviour": "Decide pelo custo, não pelo recurso",
+  "behaviour_how": "Compara o preço mensal com o que já gasta hoje (contador, planilha, nada) antes de olhar funcionalidade.",
+  "objection": "Minha equipe não vai usar, vai voltar pro WhatsApp em uma semana",
+  "habit": "fecha a maior parte das vendas pelo WhatsApp pessoal, não por um sistema"
+ },
+ {
+  "id": "P015",
+  "name": "Alma",
+  "age": 55,
+  "segment": "Agência solo/micro (1-3 pessoas)",
+  "income": 12000,
+  "behaviour": "Decide em grupo/associação",
+  "behaviour_how": "Só confia depois de ver outro dono de agência (do mesmo grupo/sindicato) recomendar.",
+  "objection": "Minha equipe não vai usar, vai voltar pro WhatsApp em uma semana",
+  "habit": "participa de pelo menos um grupo de WhatsApp ou associação de agentes de viagem"
+ },
+ {
+  "id": "P016",
+  "name": "Lena",
+  "age": 52,
+  "segment": "Agência média (11-50 pessoas)",
+  "income": 280000,
+  "behaviour": "Caçador de desconto/promoção",
+  "behaviour_how": "Só assina depois de negociar desconto ou esperar uma promoção/cupom.",
+  "objection": "R$ 99 ou R$ 299 por mês é caro para o que minha agência fatura hoje",
+  "habit": "participa de pelo menos um grupo de WhatsApp ou associação de agentes de viagem"
+ },
+ {
+  "id": "P017",
+  "name": "Liam",
+  "age": 30,
+  "segment": "Agência solo/micro (1-3 pessoas)",
+  "income": 12000,
+  "behaviour": "Decide pelo custo, não pelo recurso",
+  "behaviour_how": "Compara o preço mensal com o que já gasta hoje (contador, planilha, nada) antes de olhar funcionalidade.",
+  "objection": "Minha equipe não vai usar, vai voltar pro WhatsApp em uma semana",
+  "habit": "participa de pelo menos um grupo de WhatsApp ou associação de agentes de viagem"
+ },
+ {
+  "id": "P018",
+  "name": "Grace",
+  "age": 25,
+  "segment": "Agência solo/micro (1-3 pessoas)",
+  "income": 12000,
+  "behaviour": "Ainda usa planilha + WhatsApp",
+  "behaviour_how": "Nunca pagou por um sistema de gestão; decide pelo medo de continuar perdendo venda em planilha.",
+  "objection": "Minha equipe não vai usar, vai voltar pro WhatsApp em uma semana",
+  "habit": "participa de pelo menos um grupo de WhatsApp ou associação de agentes de viagem"
+ },
+ {
+  "id": "P019",
+  "name": "Jonah",
+  "age": 58,
+  "segment": "Agência pequena (4-10 pessoas)",
+  "income": 76000,
+  "behaviour": "Já usa um concorrente e está insatisfeito",
+  "behaviour_how": "Testaria trocar, mas tem medo da migração de dados e de parar a operação no meio da alta temporada.",
+  "objection": "R$ 99 ou R$ 299 por mês é caro para o que minha agência fatura hoje",
+  "habit": "fecha a maior parte das vendas pelo WhatsApp pessoal, não por um sistema"
+ },
+ {
+  "id": "P020",
+  "name": "Talia",
+  "age": 54,
+  "segment": "Agência solo/micro (1-3 pessoas)",
+  "income": 15000,
+  "behaviour": "Caçador de desconto/promoção",
+  "behaviour_how": "Só assina depois de negociar desconto ou esperar uma promoção/cupom.",
+  "objection": "Não tem nenhuma agência conhecida usando isso — quem já usa e recomenda?",
+  "habit": "faz o financeiro da agência sozinho(a) ou com um contador terceirizado, no fim do mês"
+ }
+]

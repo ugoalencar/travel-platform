@@ -1,0 +1,915 @@
+{
+ "nodes": [
+  {
+   "id": "file:apps/customer/src/customer-portal/RequireCustomerAuth.tsx",
+   "type": "file",
+   "name": "RequireCustomerAuth.tsx",
+   "filePath": "apps/customer/src/customer-portal/RequireCustomerAuth.tsx",
+   "summary": "Guarda de rota que envia o cliente para o login quando não há sessão ativa.",
+   "tags": [
+    "auth",
+    "routing",
+    "guard"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/RequireCustomerAuth.tsx:RequireCustomerAuth",
+   "type": "function",
+   "name": "RequireCustomerAuth",
+   "filePath": "apps/customer/src/customer-portal/RequireCustomerAuth.tsx",
+   "lineRange": [
+    9,
+    17
+   ],
+   "summary": "Guarda de rota que redireciona para o login quando não há sessão de cliente, preservando a origem.",
+   "tags": [
+    "auth",
+    "routing",
+    "guard"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:apps/customer/src/customer-portal/Tabs.tsx",
+   "type": "file",
+   "name": "Tabs.tsx",
+   "filePath": "apps/customer/src/customer-portal/Tabs.tsx",
+   "summary": "Controle de abas com estado interno que renderiza o painel selecionado.",
+   "tags": [
+    "component",
+    "ui",
+    "navigation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/Tabs.tsx:Tabs",
+   "type": "function",
+   "name": "Tabs",
+   "filePath": "apps/customer/src/customer-portal/Tabs.tsx",
+   "lineRange": [
+    17,
+    44
+   ],
+   "summary": "Componente de abas com estado ativo que renderiza apenas o painel selecionado.",
+   "tags": [
+    "component",
+    "ui",
+    "navigation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:apps/customer/src/customer-portal/Timeline.tsx",
+   "type": "file",
+   "name": "Timeline.tsx",
+   "filePath": "apps/customer/src/customer-portal/Timeline.tsx",
+   "summary": "Linha do tempo vertical que renderiza passos com conector para acompanhar progresso.",
+   "tags": [
+    "component",
+    "ui",
+    "timeline"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/Timeline.tsx:Timeline",
+   "type": "function",
+   "name": "Timeline",
+   "filePath": "apps/customer/src/customer-portal/Timeline.tsx",
+   "lineRange": [
+    13,
+    56
+   ],
+   "summary": "Lista vertical de passos com conector, usada para acompanhar o progresso de viagens e reservas.",
+   "tags": [
+    "component",
+    "ui",
+    "timeline"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:apps/customer/src/customer-portal/pages/CustomerHomePage.test.tsx",
+   "type": "file",
+   "name": "CustomerHomePage.test.tsx",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerHomePage.test.tsx",
+   "summary": "Testes da home do portal do cliente cobrindo resumo, viagem próxima, ofertas e comunicações.",
+   "tags": [
+    "test",
+    "react",
+    "portal"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:apps/customer/src/customer-portal/pages/CustomerHomePage.tsx",
+   "type": "file",
+   "name": "CustomerHomePage.tsx",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerHomePage.tsx",
+   "summary": "Home do portal que agrega perfil, viagens, ofertas, reservas, propostas, documentos, pagamentos e comunicações em um dashboard personalizado.",
+   "tags": [
+    "page",
+    "dashboard",
+    "portal"
+   ],
+   "complexity": "complex",
+   "languageNotes": "Formatação monetária pt-BR/BRL com Intl.NumberFormat e helpers puros agrupados no fim do arquivo."
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/pages/CustomerHomePage.tsx:CustomerHomePage",
+   "type": "function",
+   "name": "CustomerHomePage",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerHomePage.tsx",
+   "lineRange": [
+    50,
+    177
+   ],
+   "summary": "Carrega em paralelo perfil, viagens, ofertas, reservas, propostas, documentos, pagamentos e comunicações para montar a home do cliente.",
+   "tags": [
+    "page",
+    "dashboard",
+    "data-fetching"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/pages/CustomerHomePage.tsx:CommunicationsBanner",
+   "type": "function",
+   "name": "CommunicationsBanner",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerHomePage.tsx",
+   "lineRange": [
+    179,
+    240
+   ],
+   "summary": "Banner de comunicações da agência que registra visualização e clique no CTA.",
+   "tags": [
+    "component",
+    "communications",
+    "tracking"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/pages/CustomerHomePage.tsx:AgencyOffersCarousel",
+   "type": "function",
+   "name": "AgencyOffersCarousel",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerHomePage.tsx",
+   "lineRange": [
+    242,
+    270
+   ],
+   "summary": "Carrossel com as seis primeiras ofertas, usando arte de destino e preço compacto.",
+   "tags": [
+    "component",
+    "offers",
+    "carousel"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/pages/CustomerHomePage.tsx:NextTripCard",
+   "type": "function",
+   "name": "NextTripCard",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerHomePage.tsx",
+   "lineRange": [
+    272,
+    330
+   ],
+   "summary": "Card da próxima viagem com contagem de dias, arte de destino e status amigável.",
+   "tags": [
+    "component",
+    "trips",
+    "ui"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/pages/CustomerHomePage.tsx:AgencyMessageCard",
+   "type": "function",
+   "name": "AgencyMessageCard",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerHomePage.tsx",
+   "lineRange": [
+    332,
+    346
+   ],
+   "summary": "Card de mensagem da agência derivado da próxima viagem do cliente.",
+   "tags": [
+    "component",
+    "communications",
+    "ui"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/pages/CustomerHomePage.tsx:agencyMessageFor",
+   "type": "function",
+   "name": "agencyMessageFor",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerHomePage.tsx",
+   "lineRange": [
+    348,
+    362
+   ],
+   "summary": "Seleciona a mensagem de acompanhamento adequada conforme o status da viagem.",
+   "tags": [
+    "utility",
+    "copywriting",
+    "mapping"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/pages/CustomerHomePage.tsx:friendlyTripStatus",
+   "type": "function",
+   "name": "friendlyTripStatus",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerHomePage.tsx",
+   "lineRange": [
+    364,
+    373
+   ],
+   "summary": "Converte o status técnico da viagem em rótulo amigável via tripStatusLabel.",
+   "tags": [
+    "utility",
+    "status",
+    "mapping"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/pages/CustomerHomePage.tsx:NextPaymentCard",
+   "type": "function",
+   "name": "NextPaymentCard",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerHomePage.tsx",
+   "lineRange": [
+    375,
+    397
+   ],
+   "summary": "Card do próximo pagamento com valor e vencimento formatados em BRL.",
+   "tags": [
+    "component",
+    "payments",
+    "ui"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/pages/CustomerHomePage.tsx:PendingDocumentsCard",
+   "type": "function",
+   "name": "PendingDocumentsCard",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerHomePage.tsx",
+   "lineRange": [
+    399,
+    415
+   ],
+   "summary": "Card de documentos pendentes de verificação com atalho para a página de documentos.",
+   "tags": [
+    "component",
+    "documents",
+    "ui"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/pages/CustomerHomePage.tsx:SummaryCard",
+   "type": "function",
+   "name": "SummaryCard",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerHomePage.tsx",
+   "lineRange": [
+    449,
+    465
+   ],
+   "summary": "Card genérico de resumo com ícone, cor e link para a seção correspondente.",
+   "tags": [
+    "component",
+    "ui",
+    "summary"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:apps/customer/src/customer-portal/pages/CustomerLoginPage.tsx",
+   "type": "file",
+   "name": "CustomerLoginPage.tsx",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerLoginPage.tsx",
+   "summary": "Tela de login do portal do cliente com slug da agência, e-mail e senha.",
+   "tags": [
+    "page",
+    "auth",
+    "login"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/pages/CustomerLoginPage.tsx:CustomerLoginPage",
+   "type": "function",
+   "name": "CustomerLoginPage",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerLoginPage.tsx",
+   "lineRange": [
+    5,
+    94
+   ],
+   "summary": "Tela de login do portal com slug da agência, e-mail e senha, redirecionando após autenticar.",
+   "tags": [
+    "page",
+    "auth",
+    "login"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:apps/customer/src/customer-portal/pages/CustomerOfferDetailsPage.test.tsx",
+   "type": "file",
+   "name": "CustomerOfferDetailsPage.test.tsx",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerOfferDetailsPage.test.tsx",
+   "summary": "Testes da página de detalhes de oferta, incluindo fluxo de registro de interesse.",
+   "tags": [
+    "test",
+    "react",
+    "offers"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:apps/customer/src/customer-portal/pages/CustomerOfferDetailsPage.tsx",
+   "type": "file",
+   "name": "CustomerOfferDetailsPage.tsx",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerOfferDetailsPage.tsx",
+   "summary": "Detalhe de oferta disponível com rastreamento de visualização e ação de interesse.",
+   "tags": [
+    "page",
+    "offers",
+    "portal"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/pages/CustomerOfferDetailsPage.tsx:CustomerOfferDetailsPage",
+   "type": "function",
+   "name": "CustomerOfferDetailsPage",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerOfferDetailsPage.tsx",
+   "lineRange": [
+    13,
+    52
+   ],
+   "summary": "Carrega a oferta disponível por id, registra a visualização e trata erros de carregamento.",
+   "tags": [
+    "page",
+    "offers",
+    "data-fetching"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/pages/CustomerOfferDetailsPage.tsx:OfferDetails",
+   "type": "function",
+   "name": "OfferDetails",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerOfferDetailsPage.tsx",
+   "lineRange": [
+    56,
+    133
+   ],
+   "summary": "Detalhe da oferta com preço, validade e ação de registro de interesse do cliente.",
+   "tags": [
+    "component",
+    "offers",
+    "form"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:apps/customer/src/customer-portal/pages/CustomerOffersPage.tsx",
+   "type": "file",
+   "name": "CustomerOffersPage.tsx",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerOffersPage.tsx",
+   "summary": "Lista de ofertas disponíveis do cliente com arte por destino e placeholder de imagem.",
+   "tags": [
+    "page",
+    "offers",
+    "portal"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/pages/CustomerOffersPage.tsx:CustomerOffersPage",
+   "type": "function",
+   "name": "CustomerOffersPage",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerOffersPage.tsx",
+   "lineRange": [
+    12,
+    88
+   ],
+   "summary": "Lista as ofertas disponíveis do cliente com arte de destino e datas de validade.",
+   "tags": [
+    "page",
+    "offers",
+    "list"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/pages/CustomerOffersPage.tsx:OfferImagePlaceholder",
+   "type": "function",
+   "name": "OfferImagePlaceholder",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerOffersPage.tsx",
+   "lineRange": [
+    93,
+    117
+   ],
+   "summary": "Placeholder de imagem de oferta derivado da inicial do nome com cor por hash.",
+   "tags": [
+    "component",
+    "ui",
+    "visual"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:apps/customer/src/customer-portal/pages/CustomerPaymentsPage.tsx",
+   "type": "file",
+   "name": "CustomerPaymentsPage.tsx",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerPaymentsPage.tsx",
+   "summary": "Cronograma de pagamentos do cliente com saldos, atraso e formatação monetária.",
+   "tags": [
+    "page",
+    "payments",
+    "portal"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/pages/CustomerPaymentsPage.tsx:CustomerPaymentsPage",
+   "type": "function",
+   "name": "CustomerPaymentsPage",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerPaymentsPage.tsx",
+   "lineRange": [
+    24,
+    123
+   ],
+   "summary": "Exibe o cronograma de pagamentos com saldos restantes, atraso calculado e valores formatados.",
+   "tags": [
+    "page",
+    "payments",
+    "list"
+   ],
+   "complexity": "moderate"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:apps/customer/src/customer-portal/RequireCustomerAuth.tsx",
+   "target": "file:apps/customer/src/lib/customerSession.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerHomePage.test.tsx",
+   "target": "file:apps/customer/src/customer-portal/pages/CustomerHomePage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerHomePage.test.tsx",
+   "target": "file:apps/customer/src/types/customer-portal.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerHomePage.test.tsx",
+   "target": "file:apps/customer/src/types/offer.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerHomePage.test.tsx",
+   "target": "file:apps/customer/src/types/trip.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerHomePage.tsx",
+   "target": "file:apps/customer/src/customer-portal/destinationArt.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerHomePage.tsx",
+   "target": "file:apps/customer/src/lib/customerApi.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerHomePage.tsx",
+   "target": "file:apps/customer/src/lib/statusLabels.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerHomePage.tsx",
+   "target": "file:apps/customer/src/types/communication.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerHomePage.tsx",
+   "target": "file:apps/customer/src/types/customer-portal.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerHomePage.tsx",
+   "target": "file:apps/customer/src/types/offer.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerHomePage.tsx",
+   "target": "file:apps/customer/src/types/trip.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerLoginPage.tsx",
+   "target": "file:apps/customer/src/lib/customerAuthApi.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerOfferDetailsPage.test.tsx",
+   "target": "file:apps/customer/src/customer-portal/pages/CustomerOfferDetailsPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerOfferDetailsPage.test.tsx",
+   "target": "file:apps/customer/src/types/offer.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerOfferDetailsPage.tsx",
+   "target": "file:apps/customer/src/customer-portal/BackLink.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerOfferDetailsPage.tsx",
+   "target": "file:apps/customer/src/customer-portal/pages/CustomerOffersPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerOfferDetailsPage.tsx",
+   "target": "file:apps/customer/src/lib/customerApi.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerOfferDetailsPage.tsx",
+   "target": "file:apps/customer/src/types/offer.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerOffersPage.tsx",
+   "target": "file:apps/customer/src/customer-portal/destinationArt.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerOffersPage.tsx",
+   "target": "file:apps/customer/src/lib/customerApi.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerOffersPage.tsx",
+   "target": "file:apps/customer/src/types/offer.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerPaymentsPage.tsx",
+   "target": "file:apps/customer/src/lib/customerApi.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerPaymentsPage.tsx",
+   "target": "file:apps/customer/src/types/customer-portal.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/RequireCustomerAuth.tsx",
+   "target": "function:apps/customer/src/customer-portal/RequireCustomerAuth.tsx:RequireCustomerAuth",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/RequireCustomerAuth.tsx",
+   "target": "function:apps/customer/src/customer-portal/RequireCustomerAuth.tsx:RequireCustomerAuth",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/Tabs.tsx",
+   "target": "function:apps/customer/src/customer-portal/Tabs.tsx:Tabs",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/Tabs.tsx",
+   "target": "function:apps/customer/src/customer-portal/Tabs.tsx:Tabs",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/Timeline.tsx",
+   "target": "function:apps/customer/src/customer-portal/Timeline.tsx:Timeline",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/Timeline.tsx",
+   "target": "function:apps/customer/src/customer-portal/Timeline.tsx:Timeline",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerHomePage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerHomePage.tsx:CustomerHomePage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerHomePage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerHomePage.tsx:CustomerHomePage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerHomePage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerHomePage.tsx:CommunicationsBanner",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerHomePage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerHomePage.tsx:AgencyOffersCarousel",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerHomePage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerHomePage.tsx:NextTripCard",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerHomePage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerHomePage.tsx:AgencyMessageCard",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerHomePage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerHomePage.tsx:agencyMessageFor",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerHomePage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerHomePage.tsx:friendlyTripStatus",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerHomePage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerHomePage.tsx:NextPaymentCard",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerHomePage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerHomePage.tsx:PendingDocumentsCard",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerHomePage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerHomePage.tsx:SummaryCard",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerLoginPage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerLoginPage.tsx:CustomerLoginPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerLoginPage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerLoginPage.tsx:CustomerLoginPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerOfferDetailsPage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerOfferDetailsPage.tsx:CustomerOfferDetailsPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerOfferDetailsPage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerOfferDetailsPage.tsx:CustomerOfferDetailsPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerOfferDetailsPage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerOfferDetailsPage.tsx:OfferDetails",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerOffersPage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerOffersPage.tsx:CustomerOffersPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerOffersPage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerOffersPage.tsx:CustomerOffersPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerOffersPage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerOffersPage.tsx:OfferImagePlaceholder",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerOffersPage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerOffersPage.tsx:OfferImagePlaceholder",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerPaymentsPage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerPaymentsPage.tsx:CustomerPaymentsPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerPaymentsPage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerPaymentsPage.tsx:CustomerPaymentsPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerHomePage.tsx",
+   "target": "file:apps/customer/src/customer-portal/pages/CustomerHomePage.test.tsx",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerOfferDetailsPage.tsx",
+   "target": "file:apps/customer/src/customer-portal/pages/CustomerOfferDetailsPage.test.tsx",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "function:apps/customer/src/customer-portal/RequireCustomerAuth.tsx:RequireCustomerAuth",
+   "target": "function:apps/customer/src/lib/customerSession.ts:hasSession",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/customer-portal/pages/CustomerLoginPage.tsx:CustomerLoginPage",
+   "target": "function:apps/customer/src/lib/customerAuthApi.ts:login",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/customer-portal/pages/CustomerHomePage.tsx:CustomerHomePage",
+   "target": "function:apps/customer/src/lib/customerApi.ts:getMyProfile",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/customer-portal/pages/CustomerHomePage.tsx:CustomerHomePage",
+   "target": "function:apps/customer/src/lib/customerApi.ts:listVisibleCommunications",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/customer-portal/pages/CustomerHomePage.tsx:friendlyTripStatus",
+   "target": "function:apps/customer/src/lib/statusLabels.ts:tripStatusLabel",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/customer-portal/pages/CustomerHomePage.tsx:AgencyOffersCarousel",
+   "target": "function:apps/customer/src/customer-portal/destinationArt.ts:destinationGradient",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/customer-portal/pages/CustomerHomePage.tsx:NextTripCard",
+   "target": "function:apps/customer/src/customer-portal/destinationArt.ts:destinationGradient",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/customer-portal/pages/CustomerOfferDetailsPage.tsx:CustomerOfferDetailsPage",
+   "target": "function:apps/customer/src/lib/customerApi.ts:getAvailableOffer",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/customer-portal/pages/CustomerOffersPage.tsx:CustomerOffersPage",
+   "target": "function:apps/customer/src/lib/customerApi.ts:listAvailableOffers",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/customer-portal/pages/CustomerOffersPage.tsx:CustomerOffersPage",
+   "target": "function:apps/customer/src/customer-portal/destinationArt.ts:destinationGradient",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:apps/customer/src/customer-portal/pages/CustomerPaymentsPage.tsx:CustomerPaymentsPage",
+   "target": "function:apps/customer/src/lib/customerApi.ts:listMyPaymentSchedule",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  }
+ ]
+}

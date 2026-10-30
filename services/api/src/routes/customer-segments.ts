@@ -44,8 +44,7 @@ export function registerCustomerSegmentRoutes(
     { preHandler: protectedHooks },
     async (request) => {
       requireRole(UserRole.VIEWER);
-      const body = request.body ?? {};
-      const filterDefinition = validateFilterDefinition(body.filterDefinition);
+      const filterDefinition = validateFilterDefinition(request.body?.filterDefinition);
       const pagination = parseSegmentPagination(
         (request.query as Record<string, unknown>) ?? {},
       );

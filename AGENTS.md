@@ -22,6 +22,36 @@ changes. Security and tenant isolation take priority over speed.
 - Domain: Wish is part of the domain
 - Security: PostgreSQL RLS is an additional tenant isolation layer
 
+## Full-First Product Rule (Mandatory)
+
+Travel Platform Full is the functional baseline. Travel Lite is a subset:
+every capability delivered in Lite must already exist and be validated in
+Full. Implement new functionality and functional enhancements in Full first,
+then adapt or expose the authorized subset in Lite. A menu entry, type, mock,
+or specification alone is not an implemented Full counterpart.
+
+Before Lite work, identify the Full implementation and relevant tests. If
+the counterpart is missing or incomplete, include Full implementation and
+validation before Lite delivery; do not silently create a Lite-only feature.
+Preserve authorization, tenant isolation, business rules and historical data.
+Inventory legacy discrepancies; do not remove working Lite features or data
+automatically. Exceptions require an explicit human-approved decision.
+
+This rule does not mandate identical interfaces, databases or deployments,
+and does not authorize migrations, production access or deployment.
+See `docs/decisions/DEC-007-full-first-lite-parity.md` and
+`docs/00-product/scope.md` for the decision and acceptance gate.
+
+### Client Migration Trigger
+
+When the user invokes `docs/travel-lite/MIGRACAO-LITE-PARA-FULL.md` with a
+client name, follow that runbook: identify the exact source/destination,
+prepare entity and record pairing, and complete the evidence-based checklist.
+The client name alone is not a tenant ID or authorization to mutate remote
+systems. Never mark migration complete from row counts alone, automatically
+delete source data, or claim the Super Admin migration action exists without
+verifying its implementation.
+
 ## Source Hierarchy
 
 - Human entry point: `README.md`

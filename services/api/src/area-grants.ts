@@ -13,6 +13,8 @@ import { ForbiddenError, getAgencyId, getUserId, requireRole } from '../../../pa
 import { UserRole } from '../../../packages/domain/types';
 import type { DatabaseRuntime } from './database';
 import { NotFoundError } from './errors';
+import { CATALOG } from './permissions/permission-catalog';
+import { decideForAreaGrant } from './user-permission-overrides';
 
 export const AREA_GRANT_VALUES = [
   'SALES_PROPOSALS',
@@ -118,6 +120,17 @@ export async function requireRoleOrAreaGrant(
   minRole: UserRole,
   module: AreaGrant,
 ): Promise<void> {
+  // SEC-01: per-user REVOKE / role restrictions deny first; a delegable GRANT
+  // or the role floor allows; otherwise the legacy area-grant rule below.
+  const entry = CATALOG.find((item) => item.areaGrant === module);
+  const verdict = entry ? await decideForAreaGrant(database, minRole, entry) : 'NO_OPINION';
+  if (verdict === 'DENY') {
+    throw new ForbiddenError(`Acesso a ${module} restringido para este usuário`);
+  }
+  if (verdict === 'ALLOW') {
+    return;
+  }
+
   try {
     requireRole(minRole);
     return;

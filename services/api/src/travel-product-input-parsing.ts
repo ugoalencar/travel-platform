@@ -1,5 +1,6 @@
 import { TravelProductCategory } from '../../../packages/domain/types';
 import { ValidationError } from './errors';
+import { parseUuidParam } from './request-parsing';
 import type { CreateTravelProductInput, UpdateTravelProductInput } from './travel-products';
 
 const CATEGORY_VALUES = Object.values(TravelProductCategory) as readonly string[];
@@ -9,6 +10,7 @@ const FORBIDDEN_FIELDS = ['agencyId', 'tenantId', 'id', 'createdAt', 'updatedAt'
 const ALLOWED_FIELDS = [
   'category',
   'supplierId',
+  'categoryId',
   'partnerId',
   'title',
   'description',
@@ -105,6 +107,11 @@ function applyScalarFields(
   target: Record<string, unknown>,
 ): void {
   if (record.supplierId !== undefined) target.supplierId = parseString(record.supplierId, 'supplierId');
+  if (record.categoryId !== undefined) {
+    target.categoryId = record.categoryId === null
+      ? null
+      : parseUuidParam(parseString(record.categoryId, 'categoryId'), 'categoryId');
+  }
   if (record.partnerId !== undefined) target.partnerId = parseString(record.partnerId, 'partnerId');
   if (record.description !== undefined) target.description = parseString(record.description, 'description');
   if (record.destination !== undefined) target.destination = parseString(record.destination, 'destination');

@@ -1,0 +1,2917 @@
+OpenAI Codex v0.164.0
+--------
+workdir: D:\travel-platform
+model: gpt-6.1-sol
+provider: openai
+approval: never
+sandbox: read-only
+reasoning effort: medium
+reasoning summaries: none
+session id: 01a172cb-da24-7760-a27d-07554911cd89
+--------
+user
+Revisao somente leitura (nao altere arquivos) da IMP-01 (importacao de vendas conciliada) no Full. Arquivos: services/api/src/sales-import-plan.ts, sales-import.ts, routes/sales-import.ts, infrastructure/migrations/110_sales_import.sql, tests/integration/database/sales-import.integration.test.ts. Regras: sem duplicar vendas/comissoes, idempotencia por hash do conteudo e por chave natural (sistema|external_ref), dry-run antes, decisao A2 (ignora obrigatoriedade da categoria e marca 'a completar'), isolamento por agencia (RLS), auditoria, nunca criar comissao/recebivel. Procure: falhas de isolamento, race conditions, bypass da idempotencia, injecao, vazamento de dados pessoais em auditoria/erros, valores monetarios errados, DoS. Responda em portugues, lista curta de achados por severidade com arquivo:linha.
+
+2026-10-25T11:22:12.116736Z ERROR codex_memories_write::phase2: Phase 2 no changes
+hook: SessionStart
+hook: SessionStart Completed
+hook: UserPromptSubmit
+hook: UserPromptSubmit Completed
+codex
+Vou revisar os arquivos indicados e os controles relacionados de isolamento, auditoria e idempotência, sem alterar arquivos.
+
+hook: PreToolUse
+hook: PreToolUse Completed
+exec
+"C:\\Users\\Ugo Alencar\\AppData\\Local\\Microsoft\\WindowsApps\\pwsh.exe" -Command "Get-Content 'C:/Users/Ugo Alencar/.agents/skills/using-superpowers/SKILL.md'; Get-Content 'C:/Users/Ugo Alencar/.agents/skills/find-security-vulnerabilities-in-code/SKILL.md'; rg -n 'IMP-01|sales.import|S823' 'C:/Users/Ugo Alencar/.codex/memories/MEMORY.md'" in D:\travel-platform
+ exited 1 in 934ms:
+---
+name: using-superpowers
+description: Use when starting any conversation - establishes how to find and use skills, requiring skill invocation before ANY response including clarifying questions
+---
+
+<SUBAGENT-STOP>
+If you were dispatched as a subagent to execute a specific task, ignore this skill.
+</SUBAGENT-STOP>
+
+<EXTREMELY-IMPORTANT>
+If you think there is even a 1% chance a skill might apply to what you are doing, you ABSOLUTELY MUST invoke the skill.
+
+IF A SKILL APPLIES TO YOUR TASK, YOU DO NOT HAVE A CHOICE. YOU MUST USE IT.
+
+This is not negotiable. You cannot rationalize your way out of this.
+</EXTREMELY-IMPORTANT>
+
+## The Rule
+
+**Invoke relevant or requested skills BEFORE any response or action** �?" including clarifying questions, exploring the codebase, or checking files. If it turns out wrong for the situation, you don't have to use it.
+
+**Before entering plan mode:** if you haven't already brainstormed, invoke the brainstorming skill first.
+
+Then announce "Using [skill] to [purpose]" and follow the skill exactly. If it has a checklist, create a todo per item.
+
+## Skill Priority
+
+When multiple skills apply, process skills come first �?" they set the approach, then implementation skills (frontend-design, etc.) carry it out. Brainstorming and systematic-debugging are Superpowers' most common process skills, but the rule holds for any of them.
+
+- "Let's build X" ��' superpowers:brainstorming first, then implementation skills.
+- "Fix this bug" ��' superpowers:systematic-debugging first, then domain skills.
+
+## Red Flags
+
+These thoughts mean STOP�?"you're rationalizing:
+
+| Thought | Reality |
+|---------|---------|
+| "This is just a simple question" | Questions are tasks. Check for skills. |
+| "I need more context first" | Skill check comes BEFORE clarifying questions. |
+| "Let me explore the codebase first" | Skills tell you HOW to explore. Check first. |
+| "I can check git/files quickly" | Files lack conversation context. Check for skills. |
+| "Let me gather information first" | Skills tell you HOW to gather information. |
+| "This doesn't need a formal skill" | If a skill exists, use it. |
+| "I remember this skill" | Skills evolve. Read current version. |
+| "This doesn't count as a task" | Action = task. Check for skills. |
+| "The skill is overkill" | Simple things become complex. Use it. |
+| "I'll just do this one thing first" | Check BEFORE doing anything. |
+| "This feels productive" | Undisciplined action wastes time. Skills prevent this. |
+| "I know what that means" | Knowing the concept �%� using the skill. Invoke it. |
+
+## Platform Adaptation
+
+If your harness appears here, read its reference file for special instructions:
+
+- Codex: `references/codex-tools.md`
+- Pi: `references/pi-tools.md`
+- Antigravity: `references/antigravity-tools.md`
+
+## User Instructions
+
+User instructions (CLAUDE.md, AGENTS.md, GEMINI.md, etc, direct requests) take precedence over skills, which in turn override default behavior. Only skip skill workflows or instructions when your human partner has explicitly told you to.
+---
+name: find-security-vulnerabilities-in-code
+description: Find security vulnerabilities in a codebase or repository with Strix �?" a white-box AI security review that reads your source, reasons about the actual data flow and authorization model, then exploits what it finds in a live sandbox so every reported issue has a working proof-of-concept instead of a noisy static-analysis alert. Covers injection, XSS, SSRF, broken access control and IDOR, insecure deserialization, secrets in code, unsafe dependencies, and business-logic flaws. Use when the user asks to security-scan, security-review, or audit their code, repo, or pull request for vulnerabilities.
+license: Apache-2.0
+metadata:
+  author: usestrix
+  homepage: https://docs.strix.ai
+---
+
+# Find security vulnerabilities in code
+
+White-box security review with Strix: the agents read the source to build a model of routes, sinks, and authorization checks, then attempt real exploitation. Findings come with a proof-of-concept, so the output is a short list of proven issues rather than the hundreds of "potential" hits a pattern-matching scanner produces.
+
+Install, LLM setup, all flags, and the managed-cloud path are in the **penetration-testing-with-strix** skill. For a run with no Docker and no LLM key, the same binary drives the managed platform: `strix cloud login`, then `strix cloud scans start ...` (details in **managed-pentesting-with-strix**).
+
+## Run it
+
+```bash
+# Local working tree
+strix -n -t ./ --scan-mode standard --max-budget 15
+
+# A GitHub repo directly
+strix -n -t https://github.com/org/app --max-budget 15
+
+# Monorepo: point at the service that matters, not the whole tree
+strix -n -t ./services/checkout --max-budget 20
+
+# Only what a branch changed (whole-repo review is wasteful on a large repo)
+strix -n -t ./ --scope-mode diff --diff-base origin/main --max-budget 10
+```
+
+A local path is mounted into the sandbox **writable**, so the agents can modify it. Run against a clean checkout.
+
+Two things sharply improve results:
+
+1. **Add a running instance of the app.** `-t ./ -t http://host.docker.internal:3000` lets the agents confirm exploitability against live behavior instead of reasoning about it statically �?" this is the difference between "this looks unsafe" and a validated finding. If nothing is running, static-only findings should be described as unconfirmed.
+2. **Scope the review.** Point at the risky subtree and say what matters:
+   ```bash
+   strix -n -t ./services/api --max-budget 15 \
+     --instruction "Focus on the authorization layer in src/auth and every route under src/routes/admin. Multi-tenant app: tenant id comes from the JWT. Flag any query that filters by object id without also filtering by tenant."
+   ```
+   Tenancy model, trust boundaries, and which inputs are attacker-controlled are things the agents cannot infer reliably �?" tell them.
+
+## Reviewing a pull request instead of the whole repo
+
+For diff-scoped review of a branch or PR (and blocking merges on findings), use **ci-security-scanning-with-strix** �?" it covers diff scoping, PR comments, and SARIF upload to GitHub code scanning. The managed platform can also review PRs directly via API (**managed-pentesting-with-strix**).
+
+## Read the results
+
+In `strix_runs/<run>/`: `penetration_test_report.md` (start here), `vulnerabilities/*.md` (one per finding, with PoC and remediation), `vulnerabilities.json` / `.csv`, `findings.sarif` (upload to code scanning), `run.json`.
+
+Before reporting to the user, open each finding and check the PoC actually demonstrates impact. Report file and line alongside the exploit so the fix is obvious.
+
+Exit `0` means nothing exploitable was proven in what was analyzed �?" not that the codebase is clean. Check `run.json` status and cost against `--max-budget`, and note which paths went unreviewed if the run was capped.
+
+## Complementary tooling
+
+This is exploit-validated review, not an exhaustive inventory. Keep a dependency scanner (SCA) and secret scanning in place for complete coverage of known-CVE dependencies and committed credentials; use this for the logic, authorization, and injection bugs those tools structurally cannot find.
+
+## Fix and verify
+
+Hand results to **fix-security-vulnerabilities-with-strix**: patch the root cause (the shared authorization helper, not the one route), then re-run Strix to prove the exploit no longer works.
+
+hook: PostToolUse
+hook: PostToolUse Completed
+codex
+Aplicarei as orientações de revisão de segurança em análise estática. O fluxo do Strix prevê escrita em disco, incompatível com esta revisão somente leitura.
+
+hook: PreToolUse
+hook: PreToolUse Completed
+exec
+"C:\\Users\\Ugo Alencar\\AppData\\Local\\Microsoft\\WindowsApps\\pwsh.exe" -Command 'Get-Location; git status --short; git branch --show-current; Get-Content docs/AI_CONTEXT.md; Get-Content services/api/src/sales-import-plan.ts; Get-Content services/api/src/sales-import.ts' in D:\travel-platform
+ succeeded in 526ms:
+
+ M AGENTS.md
+ M apps/agency/src/App.tsx
+ M apps/agency/src/components/layout/Sidebar.tsx
+ M apps/agency/src/lib/api.ts
+ M apps/agency/src/lib/errorTranslation.ts
+ M apps/agency/src/pages/CustomerDetailPage.test.tsx
+ M apps/agency/src/pages/CustomerDetailPage.tsx
+ M apps/agency/src/pages/CustomersPage.test.tsx
+ M apps/agency/src/pages/CustomersPage.tsx
+ M apps/agency/src/pages/DashboardPage.test.tsx
+ M apps/agency/src/pages/DashboardPage.tsx
+ M apps/agency/src/pages/PayrollPage.tsx
+ M apps/agency/src/pages/ReportsPage.tsx
+ M apps/agency/src/pages/SalesJourneyPages.test.tsx
+ M apps/agency/src/pages/SalesJourneyPages.tsx
+ M apps/agency/src/pages/SettingsPage.tsx
+ M apps/agency/src/types/sale.ts
+ M apps/travel-lite/src/App.test.tsx
+ M apps/travel-lite/src/App.tsx
+ M apps/travel-lite/src/api.ts
+ M apps/travel-lite/src/branding.ts
+ M apps/travel-lite/src/helpContent.ts
+ M apps/travel-lite/src/menu.ts
+ M apps/travel-lite/src/pages/CatalogPage.tsx
+ M apps/travel-lite/src/pages/CommissionsPage.tsx
+ M apps/travel-lite/src/pages/CustomersPage.tsx
+ M apps/travel-lite/src/pages/DashboardPage.tsx
+ M apps/travel-lite/src/pages/LoginPage.tsx
+ M apps/travel-lite/src/pages/ResetPasswordPage.tsx
+ M apps/travel-lite/src/pages/SalesPage.tsx
+ M apps/travel-lite/src/pages/SellersPage.tsx
+ M apps/travel-lite/src/pages/SettingsPage.tsx
+ M apps/travel-lite/src/styles.css
+ M apps/travel-lite/src/ui.tsx
+ M docs/00-product/scope.md
+ M docs/AI_CONTEXT.md
+ M docs/PRODUCT-VISION-AND-SCOPE.md
+ M docs/product/COMISSIONAMENTO_FUNCIONARIOS.md
+ M docs/travel-lite/ACCESS-CONTROL.md
+ M docs/travel-lite/product-experience/UPGRADE-TO-FULL.md
+ M docs/travel-lite/product-experience/USER-MANUAL.md
+ M packages/domain/types.ts
+ M services/api-lite/src/access.ts
+ M services/api-lite/src/app.ts
+ M services/api-lite/src/audit-log.ts
+ M services/api-lite/src/errors.ts
+ M services/api-lite/src/finance.ts
+ M services/api-lite/src/password.ts
+ M services/api-lite/src/routes/auth.ts
+ M services/api-lite/src/routes/cash-flow.ts
+ M services/api-lite/src/routes/categories.ts
+ M services/api-lite/src/routes/commissions.ts
+ M services/api-lite/src/routes/customers.ts
+ M services/api-lite/src/routes/dashboard.ts
+ M services/api-lite/src/routes/financial-catalog.ts
+ M services/api-lite/src/routes/imports.ts
+ M services/api-lite/src/routes/reports.ts
+ M services/api-lite/src/routes/sale-costs.ts
+ M services/api-lite/src/routes/sales.ts
+ M services/api-lite/src/routes/sellers.ts
+ M services/api-lite/src/routes/users.ts
+ M services/api-lite/src/sales-analytics.ts
+ M services/api-lite/src/validation.ts
+ M services/api-lite/tests/access.test.ts
+ M services/api-lite/tests/catalog.test.ts
+ M services/api-lite/tests/commissions.test.ts
+ M services/api-lite/tests/customers.test.ts
+ M services/api-lite/tests/finance.test.ts
+ M services/api-lite/tests/hardening.test.ts
+ M services/api-lite/tests/helpers/fixture.ts
+ M services/api-lite/tests/reports.test.ts
+ M services/api-lite/tests/sale-costs.test.ts
+ M services/api-lite/tests/sales.test.ts
+ M services/api/src/app.ts
+ M services/api/src/area-grants.ts
+ M services/api/src/audit-log.ts
+ M services/api/src/commercial-input-parsing.ts
+ M services/api/src/commissions.ts
+ M services/api/src/customers.ts
+ M services/api/src/employee-commissions.ts
+ M services/api/src/errors.ts
+ M services/api/src/financial.ts
+ M services/api/src/payroll.ts
+ M services/api/src/route-inventory.ts
+ M services/api/src/routes/commissions.ts
+ M services/api/src/routes/customers.ts
+ M services/api/src/routes/reports.ts
+ M services/api/src/routes/sales.ts
+ M services/api/src/sale-items.ts
+ M services/api/src/sales.ts
+ M services/api/src/server.ts
+ M services/api/src/travel-product-input-parsing.ts
+ M services/api/src/travel-products.ts
+ M services/api/tests/api-foundation.test.ts
+ M services/api/tests/auth-http.test.ts
+ M services/api/tests/bookings-http.test.ts
+ M services/api/tests/bookings.test.ts
+ M services/api/tests/commercial-cockpit-security.test.ts
+ M services/api/tests/commercial-tasks-http.test.ts
+ M services/api/tests/commission-repair.test.ts
+ M services/api/tests/contracts.test.ts
+ M services/api/tests/customer-e2e.test.ts
+ M services/api/tests/customer-engagement-tracking.test.ts
+ M services/api/tests/customer-platform-auth-http.test.ts
+ M services/api/tests/customer-platform-auth.test.ts
+ M services/api/tests/customer-portal-routes.test.ts
+ M services/api/tests/customer-portal-security.test.ts
+ M services/api/tests/customer-routes.test.ts
+ M services/api/tests/customer-segments.test.ts
+ M services/api/tests/customers.test.ts
+ M services/api/tests/demo-seed-stability.test.ts
+ M services/api/tests/departments.test.ts
+ M services/api/tests/employee-commission-rules.test.ts
+ M services/api/tests/enrollment.test.ts
+ M services/api/tests/financial-http.test.ts
+ M services/api/tests/financial.test.ts
+ M services/api/tests/invitations-permission-restrictions.test.ts
+ M services/api/tests/local-auth.test.ts
+ M services/api/tests/media-library-http.test.ts
+ M services/api/tests/migration-009-preservation.test.ts
+ M services/api/tests/offer-e2e.test.ts
+ M services/api/tests/offer-growth-cancun-e2e.test.ts
+ M services/api/tests/offer-growth-entitlement-isolation.test.ts
+ M services/api/tests/offer-routes.test.ts
+ M services/api/tests/offers.test.ts
+ M services/api/tests/partner-campaigns.test.ts
+ M services/api/tests/partners.test.ts
+ M services/api/tests/pescador-http.test.ts
+ M services/api/tests/platform-commercial.test.ts
+ M services/api/tests/proposal-e2e.test.ts
+ M services/api/tests/proposal-routes.test.ts
+ M services/api/tests/proposal-visual-http.test.ts
+ M services/api/tests/proposals.test.ts
+ M services/api/tests/route-points-http.test.ts
+ M services/api/tests/route-points.test.ts
+ M services/api/tests/sale-e2e.test.ts
+ M services/api/tests/sale-item-routes.test.ts
+ M services/api/tests/sale-routes.test.ts
+ M services/api/tests/sales.test.ts
+ M services/api/tests/scheduled-departures-http.test.ts
+ M services/api/tests/scheduled-departures.test.ts
+ M services/api/tests/suppliers-http.test.ts
+ M services/api/tests/suppliers.test.ts
+ M services/api/tests/transport-operations-http.test.ts
+ M services/api/tests/transport-operations.test.ts
+ M services/api/tests/transport-products-http.test.ts
+ M services/api/tests/transport-products.test.ts
+ M services/api/tests/transport-routes-http.test.ts
+ M services/api/tests/transport-routes.test.ts
+ M services/api/tests/transportation-e2e.test.ts
+ M services/api/tests/travel-products-http.test.ts
+ M services/api/tests/trip-e2e.test.ts
+ M services/api/tests/trip-routes.test.ts
+ M services/api/tests/trips.test.ts
+ M services/api/tests/wish-e2e.test.ts
+ M services/api/tests/wish-routes.test.ts
+ M services/api/tests/wishes.test.ts
+ M tests/integration/database/002_prepare_local_roles.sql
+ M tests/integration/database/database.integration.test.ts
+?? .claude/CONSOLIDACAO-CODEX-RESPOSTA-PARIDADE-2026-10-23.md
+?? .claude/COORDENACAO-LITE-FINANCEIRO-2026-10-22.md
+?? .claude/DESENHO-SEC01-BAK01-DASH01-2026-10-24.md
+?? .claude/ESPECIFICACAO-AJUSTES-GADOTTI-2026-10-23.md
+?? .claude/NEXT-PROMPT-LITE-FOLHA-2026-10-22.md
+?? .claude/NEXT-PROMPT-PARIDADE-CORRECOES-2026-10-23.md
+?? .claude/NEXT-PROMPT-PARIDADE-FULL-LITE-2026-10-23.md
+?? .claude/PLANO-MESTRE-ENTREGA-DEMO-2026-10-24.md
+?? .claude/REAVALIACAO-CODEX-LITE-FINANCEIRO-2026-10-22.md
+?? .claude/RELATORIO-CODEX-LITE-FINANCEIRO-2026-10-22.md
+?? .claude/RELATORIO-CORRECOES-ONDA-D-2026-10-24.md
+?? .claude/RELATORIO-DOMINIOS-E-BACKUP-2026-10-23.md
+?? .claude/RELATORIO-FULL-DEMO-LOCAL-2026-10-23.md
+?? .claude/RELATORIO-LITE-CORRECOES-FINANCEIRAS-2026-10-22.md
+?? .claude/RELATORIO-LITE-FOLHA-2026-10-22.md
+?? .claude/RELATORIO-LITE-SPEC-COMISSOES-2026-10-22.md
+?? .claude/RELATORIO-ONDA-2-CLIENTES-SEC01-2026-10-24.md
+?? .claude/RELATORIO-ONDA-B-2026-10-23.md
+?? .claude/RELATORIO-ONDA-B2-CEP-CSV-2026-10-24.md
+?? .claude/RELATORIO-ONDA-C-LITE-2026-10-24.md
+?? .claude/RELATORIO-ONDA-D-2026-10-24.md
+?? .claude/RELATORIO-ONDA-E-2026-10-24.md
+?? .claude/RELATORIO-ONDA-F1-2026-10-24.md
+?? .claude/RELATORIO-ONDA-F2-BAK01-2026-10-24.md
+?? .claude/RELATORIO-ONDA-F3-IMP01-2026-10-24.md
+?? .claude/RELATORIO-PARIDADE-FASE0-2026-10-23.md
+?? .claude/RELATORIO-PARIDADE-FULL-LITE-2026-10-23.md
+?? .claude/RELATORIO-PARIDADE-FULL-LITE-REVISAO-2026-10-23.md
+?? .claude/RELATORIO-PUBLICACAO-LITE-2026-10-22.md
+?? .claude/RESPOSTA-CODEX-PENDENCIAS-PARIDADE-2026-10-23.md
+?? .claude/RESPOSTA-REVISAO-CODEX-LITE-FINANCEIRO-2026-10-22.md
+?? .claude/RESPOSTA-REVISAO-PARIDADE-FULL-LITE-2026-10-23.md
+?? .claude/REVISAO-CODEX-FASE0-2026-10-23.md
+?? .claude/REVISAO-CODEX-LITE-FINANCEIRO-2026-10-22.md
+?? .claude/REVISAO-CODEX-PARIDADE-FULL-LITE-2026-10-23.md
+?? .claude/codex-imp01-out.txt
+?? .claude/codex-imp01-prompt.txt
+?? .opencode/NEXT-PROMPT-IMPLEMENTAR-CEP-FULL-2026-10-23.md
+?? .opencode/NEXT-PROMPT-LITE-CEP-2026-10-22.md
+?? .opencode/NEXT-PROMPT-PARIDADE-FULL-LITE-2026-10-23.md
+?? .opencode/RELATORIO-IMPLEMENTACAO-CEP-FULL-2026-10-23.md
+?? .opencode/RELATORIO-LITE-CEP-2026-10-22.md
+?? .opencode/RELATORIO-PARIDADE-FULL-LITE-2026-10-23.md
+?? .opencode/REVISAO-CODEX-PARIDADE-FULL-LITE-2026-10-23.md
+?? apps/agency/src/components/customer/
+?? apps/agency/src/components/customers/
+?? apps/agency/src/components/sales/
+?? apps/agency/src/components/settings/
+?? apps/agency/src/lib/customerLookup.ts
+?? apps/agency/src/lib/downloadCsv.test.ts
+?? apps/agency/src/lib/parseMoneyInput.test.ts
+?? apps/agency/src/lib/parseMoneyInput.ts
+?? apps/agency/src/lib/paymentSchedule.test.ts
+?? apps/agency/src/lib/paymentSchedule.ts
+?? apps/agency/src/lib/paymentScheduleErrors.test.ts
+?? apps/agency/src/lib/saleFormFields.ts
+?? apps/agency/src/lib/salePaymentApi.test.ts
+?? apps/agency/src/pages/AgencyRevenuePage.test.tsx
+?? apps/agency/src/pages/AgencyRevenuePage.tsx
+?? apps/agency/src/pages/CommissionReleasePage.test.tsx
+?? apps/agency/src/pages/CommissionReleasePage.tsx
+?? apps/agency/src/pages/CommissionRulesPage.test.tsx
+?? apps/agency/src/pages/CommissionRulesPage.tsx
+?? apps/agency/src/pages/CustomersRequiredExtras.test.tsx
+?? apps/agency/src/pages/DashboardSettingsPage.tsx
+?? apps/agency/src/pages/NewSalePage.test.tsx
+?? apps/agency/src/pages/NewSalePage.tsx
+?? apps/agency/src/pages/ProjectionsAndDashboard.test.tsx
+?? apps/agency/src/pages/ProjectionsPage.tsx
+?? apps/agency/src/pages/ReportsCsvExport.test.tsx
+?? apps/agency/src/pages/SaleCategoriesPage.test.tsx
+?? apps/agency/src/pages/SaleCategoriesPage.tsx
+?? apps/agency/src/pages/SalesImportPage.test.tsx
+?? apps/agency/src/pages/SalesImportPage.tsx
+?? apps/travel-lite/src/AgencyRevenuePage.test.tsx
+?? apps/travel-lite/src/BackupSection.test.tsx
+?? apps/travel-lite/src/CommissionRelease.test.tsx
+?? apps/travel-lite/src/CommissionRulesPage.test.tsx
+?? apps/travel-lite/src/CustomerCepField.test.tsx
+?? apps/travel-lite/src/CustomerCepField.tsx
+?? apps/travel-lite/src/CustomerCombobox.css
+?? apps/travel-lite/src/CustomerCombobox.test.tsx
+?? apps/travel-lite/src/CustomerCombobox.tsx
+?? apps/travel-lite/src/CustomerFieldsSection.test.tsx
+?? apps/travel-lite/src/CustomersFieldRules.test.tsx
+?? apps/travel-lite/src/ProjectionsPage.test.tsx
+?? apps/travel-lite/src/SaleCategoryFormFields.tsx
+?? apps/travel-lite/src/SaleItemsPanel.tsx
+?? apps/travel-lite/src/SalePaymentPanel.test.tsx
+?? apps/travel-lite/src/SalePaymentPanel.tsx
+?? apps/travel-lite/src/SalesDetail.test.tsx
+?? apps/travel-lite/src/SalesIncomplete.test.tsx
+?? apps/travel-lite/src/SellersPage.test.tsx
+?? apps/travel-lite/src/apiTransport.test.ts
+?? apps/travel-lite/src/commissionRules.ts
+?? apps/travel-lite/src/pages/AgencyRevenuePage.tsx
+?? apps/travel-lite/src/pages/BackupSection.tsx
+?? apps/travel-lite/src/pages/CatalogProductsSection.tsx
+?? apps/travel-lite/src/pages/CommissionRulesPage.tsx
+?? apps/travel-lite/src/pages/CustomerFieldsSection.tsx
+?? apps/travel-lite/src/pages/ProjectionsPage.tsx
+?? apps/travel-lite/src/pages/SaleFormProfileSection.tsx
+?? apps/travel-lite/src/paymentSchedule.ts
+?? apps/travel-lite/src/publicDomains.test.ts
+?? apps/travel-lite/src/saleForm.ts
+?? apps/travel-lite/src/saleFormCatalog.test.tsx
+?? docs/00-product/FULL-LITE-ALIGNMENT-PLAN.md
+?? docs/00-product/GADOTTI-ADJUSTMENTS-2026-10-23.md
+?? docs/05-api/sale-categories-and-form-profile.md
+?? docs/05-api/sale-payment-schedules.md
+?? docs/06-frontend/sale-payment-panel.md
+?? docs/08-devops/backup-por-agencia-ensaio.md
+?? docs/AJUSTES-23-10-2026-GADOTTI.MD
+?? docs/adr/ADR-006-parcelamento-real-recebiveis-full.md
+?? docs/adr/ADR-007-dominio-receita-da-agencia.md
+?? docs/adr/ADR-008-formulario-configuravel-registro-campos.md
+?? docs/adr/ADR-009-permissoes-individuais-por-usuario.md
+?? docs/adr/ADR-010-backup-operacional-por-agencia-full.md
+?? docs/adr/ADR-CEP-001-travel-lite-viacep.md
+?? docs/adr/ADR-LITE-BACKUP-001-operational-export.md
+?? docs/adr/ADR-LITE-COMMISSION-001-motor-de-comissoes.md
+?? docs/decisions/DEC-007-full-first-lite-parity.md
+?? docs/superpowers/plans/2026-10-22-lite-cep.md
+?? docs/travel-lite/BACKUP-OPERACIONAL.md
+?? docs/travel-lite/CEP-LOOKUP.md
+?? docs/travel-lite/COMMISSION-ENGINE-SPEC.md
+?? docs/travel-lite/FULL-LITE-PARITY-AUDIT-2026-10-23.md
+?? docs/travel-lite/MIGRACAO-LITE-PARA-FULL.md
+?? docs/travel-lite/entrega-gadotti/
+?? infrastructure/migrations-travel-lite/008_payable_commission_unique.sql
+?? infrastructure/migrations-travel-lite/009_commission_rules.sql
+?? infrastructure/migrations-travel-lite/010_commission_rule_tiers.sql
+?? infrastructure/migrations-travel-lite/011_commission_release_by_receipt.sql
+?? infrastructure/migrations-travel-lite/012_sale_form_profile_products_items.sql
+?? infrastructure/migrations-travel-lite/013_customer_field_settings.sql
+?? infrastructure/migrations-travel-lite/014_receivable_payment_schedules.sql
+?? infrastructure/migrations-travel-lite/015_agency_revenue.sql
+?? infrastructure/migrations-travel-lite/016_commission_release_policy.sql
+?? infrastructure/migrations-travel-lite/017_dashboard_settings_version.sql
+?? infrastructure/migrations/099_payroll_payable_unique.sql
+?? infrastructure/migrations/100_commission_channel_protection.sql
+?? infrastructure/migrations/101_sale_categories_and_form_profile.sql
+?? infrastructure/migrations/102_travel_product_sale_category.sql
+?? infrastructure/migrations/103_user_permission_overrides.sql
+?? infrastructure/migrations/104_customer_field_settings.sql
+?? infrastructure/migrations/105_receivable_payment_schedules.sql
+?? infrastructure/migrations/106_agency_revenue.sql
+?? infrastructure/migrations/107_commission_rule_versions_attributions.sql
+?? infrastructure/migrations/108_commission_release_policy.sql
+?? infrastructure/migrations/109_dashboard_layouts.sql
+?? infrastructure/migrations/110_sales_import.sql
+?? services/api-lite/src/agency-revenue-calc.ts
+?? services/api-lite/src/agency-revenue.ts
+?? services/api-lite/src/cep.ts
+?? services/api-lite/src/commission-engine.ts
+?? services/api-lite/src/commission-release-policy.ts
+?? services/api-lite/src/customer-field-settings.ts
+?? services/api-lite/src/money.ts
+?? services/api-lite/src/payment-schedule.ts
+?? services/api-lite/src/receivable-sql.ts
+?? services/api-lite/src/report-csv.ts
+?? services/api-lite/src/report-projections-service.ts
+?? services/api-lite/src/report-projections.ts
+?? services/api-lite/src/routes/agency-revenue.ts
+?? services/api-lite/src/routes/backup.ts
+?? services/api-lite/src/routes/catalog-products.ts
+?? services/api-lite/src/routes/cep.ts
+?? services/api-lite/src/routes/commission-release.ts
+?? services/api-lite/src/routes/commission-rules.ts
+?? services/api-lite/src/routes/report-projections.ts
+?? services/api-lite/src/routes/sale-forms.ts
+?? services/api-lite/src/routes/sale-items.ts
+?? services/api-lite/src/routes/sale-payment-schedules.ts
+?? services/api-lite/src/sale-form-fields.ts
+?? services/api-lite/src/sale-items.ts
+?? services/api-lite/src/sale-payment-schedules.ts
+?? services/api-lite/src/tenant-backup.ts
+?? services/api-lite/tests/agency-revenue.test.ts
+?? services/api-lite/tests/backup.test.ts
+?? services/api-lite/tests/cep-routes.test.ts
+?? services/api-lite/tests/cep.test.ts
+?? services/api-lite/tests/commission-concurrency.test.ts
+?? services/api-lite/tests/commission-parity.test.ts
+?? services/api-lite/tests/commission-progressive.test.ts
+?? services/api-lite/tests/commission-release-parity.test.ts
+?? services/api-lite/tests/commission-release-policy.test.ts
+?? services/api-lite/tests/commission-release.test.ts
+?? services/api-lite/tests/commission-rules.test.ts
+?? services/api-lite/tests/customer-cep.test.ts
+?? services/api-lite/tests/customer-field-settings.test.ts
+?? services/api-lite/tests/customer-lookup.test.ts
+?? services/api-lite/tests/money.test.ts
+?? services/api-lite/tests/password-policy.test.ts
+?? services/api-lite/tests/payment-schedule-parity.test.ts
+?? services/api-lite/tests/payment-schedule.test.ts
+?? services/api-lite/tests/receivable-balances.test.ts
+?? services/api-lite/tests/report-csv-security.test.ts
+?? services/api-lite/tests/report-projections.test.ts
+?? services/api-lite/tests/review-fixes.test.ts
+?? services/api-lite/tests/sale-form-fields.test.ts
+?? services/api-lite/tests/sale-forms-catalog.test.ts
+?? services/api-lite/tests/sale-payment-schedules.test.ts
+?? services/api/src/agency-revenue-calc.ts
+?? services/api/src/agency-revenue.ts
+?? services/api/src/cep.ts
+?? services/api/src/commission-calculation.ts
+?? services/api/src/commission-payment-guard.ts
+?? services/api/src/commission-release-service.ts
+?? services/api/src/commission-release.ts
+?? services/api/src/commission-rule-versions.ts
+?? services/api/src/customer-field-settings.ts
+?? services/api/src/dashboard-widgets.ts
+?? services/api/src/payment-schedule.ts
+?? services/api/src/permissions/
+?? services/api/src/receivable-sql.ts
+?? services/api/src/report-csv.ts
+?? services/api/src/report-projections-service.ts
+?? services/api/src/report-projections.ts
+?? services/api/src/routes/agency-revenue.ts
+?? services/api/src/routes/backup.ts
+?? services/api/src/routes/cep.ts
+?? services/api/src/routes/commission-release.ts
+?? services/api/src/routes/commission-rule-versions.ts
+?? services/api/src/routes/dashboard-widgets.ts
+?? services/api/src/routes/permission-overrides.ts
+?? services/api/src/routes/report-projections.ts
+?? services/api/src/routes/sale-categories.ts
+?? services/api/src/routes/sale-payment-schedules.ts
+?? services/api/src/routes/sales-import.ts
+?? services/api/src/sale-categories.ts
+?? services/api/src/sale-form-fields.ts
+?? services/api/src/sale-payment-schedules.ts
+?? services/api/src/sales-import-plan.ts
+?? services/api/src/sales-import.ts
+?? services/api/src/tenant-backup-crypto.ts
+?? services/api/src/tenant-backup-pending.ts
+?? services/api/src/tenant-backup.ts
+?? services/api/src/user-permission-overrides.ts
+?? services/api/tests/agency-revenue-calc.test.ts
+?? services/api/tests/cep-app.test.ts
+?? services/api/tests/cep-routes.test.ts
+?? services/api/tests/cep.test.ts
+?? services/api/tests/commission-accrual-http.test.ts
+?? services/api/tests/commission-calculation.test.ts
+?? services/api/tests/commission-characterization.test.ts
+?? services/api/tests/commission-release-http.test.ts
+?? services/api/tests/commission-release.test.ts
+?? services/api/tests/commission-rule-versions-db.test.ts
+?? services/api/tests/customer-field-settings.test.ts
+?? services/api/tests/customer-lookup.test.ts
+?? services/api/tests/helpers/disposable-postgres.ts
+?? services/api/tests/payment-schedule.test.ts
+?? services/api/tests/permission-resolver.test.ts
+?? services/api/tests/report-csv.test.ts
+?? services/api/tests/report-projections.test.ts
+?? services/api/tests/reports-csv-http.test.ts
+?? services/api/tests/sale-categories-http.test.ts
+?? services/api/tests/sale-form-fields.test.ts
+?? services/api/tests/sale-item-limits.test.ts
+?? services/api/tests/sale-payment-schedules.test.ts
+?? services/api/tests/sales-import-plan.test.ts
+?? services/api/tests/tenant-backup-crypto.test.ts
+?? services/api/tests/travel-product-input-parsing.test.ts
+?? tests/integration/database/agency-revenue.integration.test.ts
+?? tests/integration/database/customer-field-settings.integration.test.ts
+?? tests/integration/database/dashboard-widgets.integration.test.ts
+?? tests/integration/database/report-projections.integration.test.ts
+?? tests/integration/database/reports-csv.integration.test.ts
+?? tests/integration/database/sales-import.integration.test.ts
+?? tests/integration/database/tenant-backup.integration.test.ts
+?? tests/integration/database/user-permission-overrides.integration.test.ts
+wip/organizacao-2026-10-20
+Path              
+----              
+D:\travel-platform
+# AI Context Map
+
+Read this before exploring the repository. It exists to stop agents from
+re-deriving structure from scratch or wandering into historical noise.
+
+## Mandatory Full/Lite Direction
+
+Full is the functional baseline; Lite must remain its functional subset.
+Implement and validate in Full before delivering in Lite. Existing code does
+not yet prove complete parity. Read
+[`DEC-007`](decisions/DEC-007-full-first-lite-parity.md) and the
+[initial parity audit](travel-lite/FULL-LITE-PARITY-AUDIT-2026-10-23.md).
+
+For a client Lite-to-Full migration request, start with the
+[client migration runbook](travel-lite/MIGRACAO-LITE-PARA-FULL.md).
+
+The next Gadotti adjustment package is queued **after validated Full/Lite
+alignment**, not for immediate implementation:
+[scope and original source](00-product/GADOTTI-ADJUSTMENTS-2026-10-23.md).
+
+## Active Runtime
+
+**Apps** (`apps/*`, Vite + React, each its own local dev port):
+
+| App | Port | What it is |
+| --- | --- | --- |
+| `apps/agency` | 5173 | Staff/back-office app: customers, wishes, offers, proposals, bookings, sales, financial module, reports. Primary agency-facing surface. |
+| `apps/platform-admin` | 5174 | Platform-owner SaaS admin: plans, subscriptions, leads, support cases, platform-wide financials. |
+| `apps/marketing` | 5175 | Public marketing site (landing, pricing). |
+| `apps/customer` | 5176 for its real customer-facing routes | **Misleadingly named**: its default `/` route is actually a second internal staff panel (customers, offers, proposals, bookings, transport, Pescador, Offer & Growth studio) that duplicates parts of `apps/agency`. The real customer/traveler-facing portal lives under `/customer-portal/*` inside this same app (`src/customer-portal/`). See "Known duplication" below. |
+
+All four apps' ports are locked with `strictPort: true` in their
+`vite.config.ts` �?" a real port conflict now fails loudly instead of
+silently reassigning which app answers on a given port.
+
+**Backend**: `services/api` (Fastify, single service, port 4000). Route
+handlers live in `services/api/src/routes/` (31 modules, one per domain).
+The `app.ts` file (~488 LOC) is a thin shell that creates the Fastify
+instance, configures auth/CORS/hooks, and registers all 31 route modules.
+Domain logic is split into per-entity files next to it (`sales.ts`,
+`proposals.ts`, `bookings.ts`, `financial.ts`, `customers.ts`, etc.).
+
+**Shared packages** (`packages/*`):
+- `packages/domain` �?" shared TypeScript domain types (`types.ts`) and
+  tenant-context helpers. Canonical source of truth for entity shapes
+  used by `services/api`.
+- `packages/database` �?" Prisma schema / DB client plumbing.
+- `packages/creative-engine` �?" creative/offer-growth asset generation.
+
+## Database & Migrations
+
+`infrastructure/migrations/001..037` �?" sequential, **immutable** history.
+Never edit, renumber, combine, or delete an applied migration. New
+migrations are always additive, next-numbered files.
+
+`infrastructure/docker-compose.local-postgres.yml` �?" the disposable
+local/test Postgres container definition, reused by many test files
+under distinct `-p <project>` names but a **shared, hardcoded
+`container_name`**. Only one such container can be `up` at a time
+across all of them; if a test run leaves one behind (crash, killed
+process), later runs fail with a container-name conflict until it's
+removed (`docker rm -f travel-platform-postgres-local`).
+
+## Security Roots (locked �?" see repository CODE REDUCTION POLICY)
+
+- `services/api/src/dev-auth.ts`, `production-auth.ts`,
+  `platform-dev-auth.ts` �?" authentication providers.
+- Tenant isolation: `packages/domain/tenant-context.ts`,
+  `DatabaseRuntime.withTenantTransaction`, and Postgres RLS policies in
+  the migrations (FORCE ROW LEVEL SECURITY throughout).
+- `services/api/src/mfa-provider.ts`, `captcha-provider.ts`,
+  `rate-limit.ts`, `audit-log.ts`, `document-masking.ts`,
+  `document-verification.ts`.
+- `tests/security/*` �?" tenant isolation and lifecycle security tests;
+  `npm run test:security` runs these.
+
+## Test Roots
+
+- `services/api/tests/*.test.ts` �?" backend integration/unit/HTTP tests
+  (Vitest, `fileParallelism: false`; most spin up their own disposable
+  Postgres container per file �?" see the shared-container-name note
+  above).
+- `apps/*/src/**/*.test.tsx` �?" frontend component tests (Testing
+  Library + Vitest, API calls mocked).
+- `tests/security/*`, `tests/integration/database/*` �?" cross-cutting
+  security and DB-role setup tests.
+
+## Demo Data
+
+`scripts/seed-demo-data.cjs`, `scripts/seed-platform-demo-data.cjs`,
+`scripts/seed-tenant-demo-data.cjs`, `scripts/demo-business-stories.cjs`
+�?" seed the local demo database. `scripts/demo-business-stories.cjs`
+owns the **deterministic Mariana/Cancǧn story** (fixed UUIDs under
+`STORY_IDS.marianaCancun`), the canonical fixture for validating the
+full commercial-to-financial journey end to end (see
+`docs/product/LOCAL_DEMO_SCRIPT.md` and
+`docs/decisions/D5-FINANCIAL-INSTALLMENTS-DEMO-DECISION.md`).
+
+`npm run demo` / `npm run demo:reset` orchestrate bootstrap ��' migrate ��'
+seed ��' start all five services (`scripts/demo-orchestrate.cjs`,
+`scripts/demo-reset.cjs`).
+
+## Deployment
+
+### Staging
+
+- `scripts/seed-staging.sql` �?" seed script (2 tenants, full data)
+- `scripts/e2e-smoke.mjs` �?" E2E smoke test runner
+- `docker-compose.staging.yml` �?" local staging (PostgreSQL + API + frontends)
+- `docs/staging-uat-golive/` �?" full staging/UAT/golive pack
+- `docs/staging-uat-golive/ENV_CHECKLIST.md` �?" env vars checklist
+- `docs/staging-uat-golive/STAGING_STATUS.md` �?" status report
+- `docs/staging-uat-golive/FINAL_GO_NO_GO_REPORT.md` �?" GO/NO-GO
+
+### Route Modules (31)
+
+`services/api/src/routes/` �?" one module per domain:
+infrastructure, settings, settings-expanded, customers, customer-documents,
+customer-portal, wishes, proposals, trips, sales, financial, commercial-cockpit,
+transport-suppliers, operations-staff, operations, reports, cost-centers,
+commissions, pescador, enrollment, support, assets, campaigns, publications,
+automations, coupons, offers, connectors, engagements, entitlements,
+offer-growth-audit.
+
+See historical release material in
+`docs/archive/aggressive-release-attack-pack/03_FINANCIAL_COMPLETE.md`
+and its sibling numbered docs.
+
+## Known Duplication (documented, not yet consolidated)
+
+- `apps/customer`'s default routes are a second staff/back-office panel
+  overlapping `apps/agency`. Not resolved by this pass; flagged as a
+  product decision (which app is the intended long-term staff surface),
+  not a code-reduction mechanical fix.
+- `apps/agency` and `apps/customer` each define their own
+  `TripStatus`/`ProposalStatus` pt-BR label maps and a
+  `getBookingStatusLabel`, with byte-identical logic
+  (`formatCurrency.ts`/`formatDateBR.ts` were already converged onto
+  one canonical copy per app; the status-label overlap has not been).
+  Proper consolidation needs a real cross-app shared package �?" see the
+  "Cross-app shared package" note below for why that wasn't done here.
+  `apps/platform-admin`'s status domains (Invoice/Payment/Subscription/
+  Lead/Support) are genuinely platform-specific, not duplicates.
+
+## Cross-app shared package: not feasible without new build wiring (proven, not assumed)
+
+`services/api` imports from `packages/domain` via a **relative path
+straight to the `.ts` source** (`../../../packages/domain/types`), not
+via the package name �?" there is no build step in that path at all.
+Tried the same pattern for the frontend apps (a probe file importing
+`packages/shared/formatting/money` by relative path from
+`apps/agency/src`): `tsc` fails immediately with
+`TS6059: File '...' is not under 'rootDir'`, because every app's
+`tsconfig.json` sets `rootDir: "."` with `include: ["src/**/*.ts", ...]`
+only. Fixing that would mean changing `rootDir`/`include` in all four
+app tsconfigs (and verifying Vite's dev-server file-serving and build
+output paths still work afterward) �?" real, first-time build
+infrastructure, not a content move. Until a dedicated batch does that
+work and proves it end-to-end (typecheck + Vite build + Vite dev clean
+in all four apps), do not attempt cross-app package imports; converge
+file *contents* instead (see the formatter commits in
+`chore/codebase-reduction-batch2`/`-batch3a` history for the pattern).
+
+## Historical / Archived Paths �?" do not treat as active source
+
+- **`docs/archive/`** �?" superseded documentation, moved here (not
+  deleted; full git history preserved) rather than left cluttering
+  `docs/` root:
+  - `docs/archive/aggressive-release-attack-pack/` �?" a full past
+    release-wave's numbered docs (`00_README.md` through
+    `11_STAGING_UAT_GOLIVE.md`) plus their original zip archive.
+  - `docs/archive/waves/{absolute-endgame-sequence,final-audit-swarm,
+    p0-remediation-batch,product-completion-wave}/` �?" four other past
+    release-wave report sets (each was also duplicated as a zip
+    sitting next to its own extracted folder; the zips were removed in
+    an earlier pass after verifying file-list identity).
+  - `docs/archive/security-final-reports/` �?" completed security-audit
+    final reports (SEC-B, SEC-F, SEC-G), each pinned to an old base SHA.
+- **Sibling worktree directories outside this repo's own working
+  tree** (visible via `git worktree list`, e.g. `release-core-a`,
+  `security-mfa-phase`, `uat-phase`, and many more under
+  `D:/travel-platform-worktrees/*`): other local git worktrees of this
+  same repository, checked out at old feature/phase branches. Not part
+  of `main`'s tree (the phantom gitlink entries that once pointed at
+  eight of them from inside `main`'s own tree were removed �?" see
+  `chore/codebase-reduction` history in `git log`). On this machine
+  they're also excluded from `git status`/most IDE search via
+  `.git/info/exclude` (local-only, not committed �?" see that file if
+  setting up a new clone/machine). Never search them for "the current
+  implementation" of anything; they are frozen snapshots of past
+  branches.
+- `docs/reduction/`, `.superpowers/reduction/` (when present in a given
+  worktree) �?" scratch output from a prior, separate codebase-reduction
+  attempt based on an older commit. Historical, not authoritative.
+- Any `dist/`, `dist.bak*/`, `dist.old*/`, `coverage/` directory �?"
+  generated build/test output, gitignored; if one appears tracked, it
+  is stale noise, not source (see CODE REDUCTION POLICY, rule 6).
+
+## Agent Ignore Paths
+
+When doing normal source exploration, dead-code search, or duplicate
+detection, skip:
+
+- `node_modules/`, `dist/`, `dist.bak*/`, `dist.old*/`, `coverage/`,
+  `.tmp/` (session-scratch, gitignored)
+- `docs/archive/**` (superseded, historical record only)
+- Sibling worktree directories outside the current working tree
+
+Search **active source first**: `apps/*/src`, `services/api/src`,
+`packages/*` (excluding generated Prisma output), and their matching
+test directories.
+
+## Large-File Note / Batch 3B Prep
+
+The largest active source files (`app.ts` ~5.7k LOC, `financial.ts`
+~2.5k LOC, `route-inventory.ts` ~1.8k LOC, `packages/domain/types.ts`
+~1.6k LOC) were reviewed for split/dedup potential. `app.ts` is
+Fastify route registration for the entire API �?" splitting it by domain
+(sales routes, proposal routes, financial routes, ...) is a legitimate
+future refactor but requires its own isolated, fully-tested batch, one
+domain extraction at a time. See `docs/refactoring/APP_TS_MAP.md` (the
+factual structure map) and `docs/refactoring/BATCH3B_EXTRACTION_PLAN.md`
+(the ranked extraction plan) �?" both documentation only, no code moved
+yet. Treat `app.ts`'s size as `KEEP (candidate for a dedicated future
+SPLIT pass)`, not evidence of current disorganization.
+/**
+ * Sales import planner (IMP-01) -- pure: no I/O. Turns parsed rows into a plan
+ * (dry run) that the service later executes. Rules:
+ *  - natural key = `<source system>|<external_ref>`: a sale is never created twice;
+ *  - A2: category/supplier/destination missing or unknown do NOT reject; the sale
+ *    is imported and reported as "a completar";
+ *  - the customer is linked by CPF and must already exist (never created silently);
+ *  - an import never creates commissions or receivables (historical sales only).
+ */
+import { createHash } from 'node:crypto';
+
+export const MAX_IMPORT_ROWS = 2000;
+
+export const IMPORT_COLUMNS = [
+  'external_ref', 'sale_date', 'customer_cpf', 'category', 'supplier', 'total', 'discount',
+  'origin', 'destination', 'travel_start_date', 'notes',
+] as const;
+
+export type SalesImportRow = Partial<Record<(typeof IMPORT_COLUMNS)[number], string>>;
+
+export interface SalesImportLookups {
+  /** digits-only CPF -> customer id */
+  customersByCpf: ReadonlyMap<string, string>;
+  /** normalized name -> category id */
+  categoriesByName: ReadonlyMap<string, string>;
+  suppliersByName: ReadonlyMap<string, string>;
+  /** natural keys that already exist (previous imports) */
+  existingKeys: ReadonlySet<string>;
+  /** civil date, to refuse future sale dates */
+  today: string;
+}
+
+export interface PlannedRow {
+  row: number;
+  status: 'NEW' | 'ALREADY_IMPORTED' | 'DUPLICATE_IN_FILE' | 'REJECTED';
+  naturalKey: string;
+  customerId: string | null;
+  categoryId: string | null;
+  supplierId: string | null;
+  saleDate: string | null;
+  total: number;
+  discount: number;
+  origin: string | null;
+  destination: string | null;
+  travelStartDate: string | null;
+  notes: string | null;
+  toComplete: Array<'category' | 'supplier' | 'destination'>;
+  errors: Array<{ column: string; message: string }>;
+}
+
+export interface SalesImportPlan {
+  sourceSystem: string;
+  rows: PlannedRow[];
+  summary: { total: number; new: number; alreadyImported: number; duplicateInFile: number; rejected: number; toComplete: number };
+}
+
+export const normalizeName = (value: string | undefined): string =>
+  (value ?? '').normalize('NFD').replace(/[�?-��]/g, '').trim().toLowerCase();
+
+function validCpf(digits: string): boolean {
+  if (digits.length !== 11 || /^(\d)\1{10}$/.test(digits)) return false;
+  const check = (length: number) => {
+    let sum = 0;
+    for (let i = 0; i < length; i++) sum += Number(digits[i]) * (length + 1 - i);
+    const rest = (sum * 10) % 11;
+    return rest === 10 ? 0 : rest;
+  };
+  return check(9) === Number(digits[9]) && check(10) === Number(digits[10]);
+}
+
+export function normalizeCpf(value: string | undefined): string | null {
+  const digits = (value ?? '').replace(/\D/g, '');
+  return digits.length === 11 ? digits : null;
+}
+
+function parseMoney(value: string | undefined): number | null {
+  if (value === undefined) return null;
+  let text = value.replace(/[^\d.,-]/g, '').trim();
+  if (text === '' || text === '-') return null;
+  if (text.includes(',')) text = text.replace(/\./g, '').replace(',', '.');
+  const number = Number(text);
+  if (!Number.isFinite(number)) return null;
+  // half-up to cents, decimal safe enough for BRL magnitudes
+  return Math.round((number + Number.EPSILON) * 100 + (number >= 0 ? 1e-9 : -1e-9)) / 100;
+}
+
+const isCivilDate = (value: string | undefined): value is string => {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const date = new Date(`${value}T00:00:00.000Z`);
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+};
+
+export function planSalesImport(
+  rows: readonly SalesImportRow[],
+  lookups: SalesImportLookups,
+  sourceSystem: string,
+): SalesImportPlan {
+  if (rows.length > MAX_IMPORT_ROWS) throw new RangeError(`A importa��ǜo aceita no mǭximo ${MAX_IMPORT_ROWS} linhas`);
+  const allowed = new Set<string>(IMPORT_COLUMNS);
+  for (const row of rows) {
+    for (const column of Object.keys(row)) if (!allowed.has(column)) throw new RangeError(`Unknown column "${column}"`);
+  }
+  const seen = new Set<string>();
+  const planned: PlannedRow[] = rows.map((raw, index) => {
+    const errors: PlannedRow['errors'] = [];
+    const ref = (raw.external_ref ?? '').trim();
+    if (ref === '' || ref.length > 100) errors.push({ column: 'external_ref', message: 'Informe o nǧmero da venda de origem (atǸ 100 caracteres)' });
+    const naturalKey = `${sourceSystem}|${ref}`;
+
+    const saleDate = raw.sale_date?.trim();
+    if (!isCivilDate(saleDate)) errors.push({ column: 'sale_date', message: 'Data da venda invǭlida (use AAAA-MM-DD)' });
+    else if (saleDate > lookups.today) errors.push({ column: 'sale_date', message: 'A data da venda nǜo pode ser futura' });
+
+    const cpf = normalizeCpf(raw.customer_cpf);
+    let customerId: string | null = null;
+    if (!cpf || !validCpf(cpf)) errors.push({ column: 'customer_cpf', message: 'CPF do cliente invǭlido' });
+    else {
+      customerId = lookups.customersByCpf.get(cpf) ?? null;
+      if (!customerId) errors.push({ column: 'customer_cpf', message: 'Cliente nǜo encontrado para este CPF (cadastre antes de importar)' });
+    }
+
+    const total = parseMoney(raw.total);
+    if (total === null || total <= 0) errors.push({ column: 'total', message: 'Valor total invǭlido' });
+    const discountText = raw.discount?.trim();
+    const discount = discountText ? parseMoney(discountText) : 0;
+    if (discount === null || discount < 0) errors.push({ column: 'discount', message: 'Desconto invǭlido' });
+    else if (total !== null && total > 0 && discount > total) errors.push({ column: 'discount', message: 'O desconto nǜo pode exceder o total' });
+
+    const travel = raw.travel_start_date?.trim();
+    if (travel && !isCivilDate(travel)) errors.push({ column: 'travel_start_date', message: 'Data de embarque invǭlida' });
+
+    const category = normalizeName(raw.category);
+    const supplier = normalizeName(raw.supplier);
+    const categoryId = category ? (lookups.categoriesByName.get(category) ?? null) : null;
+    const supplierId = supplier ? (lookups.suppliersByName.get(supplier) ?? null) : null;
+    const destination = raw.destination?.trim() || null;
+    const toComplete: PlannedRow['toComplete'] = [];
+    if (!categoryId) toComplete.push('category');
+    if (!supplierId) toComplete.push('supplier');
+    if (!destination) toComplete.push('destination');
+
+    let status: PlannedRow['status'] = 'NEW';
+    if (errors.length > 0) status = 'REJECTED';
+    else if (lookups.existingKeys.has(naturalKey)) status = 'ALREADY_IMPORTED';
+    else if (seen.has(naturalKey)) status = 'DUPLICATE_IN_FILE';
+    if (status === 'NEW') seen.add(naturalKey);
+
+    return {
+      row: index + 1,
+      status,
+      naturalKey,
+      customerId,
+      categoryId,
+      supplierId,
+      saleDate: isCivilDate(saleDate) ? saleDate : null,
+      total: total ?? 0,
+      discount: discount ?? 0,
+      origin: raw.origin?.trim() || null,
+      destination,
+      travelStartDate: travel && isCivilDate(travel) ? travel : null,
+      notes: raw.notes?.trim() || null,
+      toComplete: status === 'NEW' ? toComplete : [],
+      errors,
+    };
+  });
+  const count = (status: PlannedRow['status']) => planned.filter((row) => row.status === status).length;
+  return {
+    sourceSystem,
+    rows: planned,
+    summary: {
+      total: planned.length,
+      new: count('NEW'),
+      alreadyImported: count('ALREADY_IMPORTED'),
+      duplicateInFile: count('DUPLICATE_IN_FILE'),
+      rejected: count('REJECTED'),
+      toComplete: planned.filter((row) => row.status === 'NEW' && row.toComplete.length > 0).length,
+    },
+  };
+}
+
+const canonical = (value: unknown): string => {
+  if (Array.isArray(value)) return `[${value.map(canonical).join(',')}]`;
+  if (value && typeof value === 'object') {
+    return `{${Object.entries(value as Record<string, unknown>).sort(([a], [b]) => a.localeCompare(b)).map(([k, v]) => `${JSON.stringify(k)}:${canonical(v)}`).join(',')}}`;
+  }
+  return JSON.stringify(value);
+};
+
+/** Idempotency by content: same rows (any key order) + same source system = same hash. */
+export function contentHash(rows: readonly SalesImportRow[], sourceSystem: string): string {
+  return createHash('sha256').update(canonical({ sourceSystem, rows })).digest('hex');
+}
+/**
+ * Sales import service (IMP-01): dry run, then an atomic, idempotent confirm.
+ * The plan is computed by the pure planner; this file only loads the lookups
+ * of the session's agency and writes. Imported sales are historical: this code
+ * never touches commissions or receivables (a test proves the counts do not move).
+ */
+import { getAgencyId, getUserId, requireRole } from '../../../packages/domain/tenant-context';
+import { UserRole } from '../../../packages/domain/types';
+import { AuditEventType, recordAuditEvent } from './audit-log';
+import type { DatabaseRuntime, TenantTransactionClient } from './database';
+import { ConflictError, ValidationError } from './errors';
+import {
+  contentHash,
+  IMPORT_COLUMNS,
+  normalizeName,
+  planSalesImport,
+  type SalesImportPlan,
+  type SalesImportRow,
+} from './sales-import-plan';
+
+export interface SalesImportInput {
+  sourceSystem: string;
+  rows: SalesImportRow[];
+  /** Only on confirm: the hash the user saw in the dry run. */
+  contentHash?: string;
+}
+
+export function parseSalesImportInput(body: unknown, confirm: boolean): SalesImportInput {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) throw new ValidationError('Request body must be an object');
+  const record = body as Record<string, unknown>;
+  const allowed = confirm ? ['sourceSystem', 'rows', 'contentHash'] : ['sourceSystem', 'rows'];
+  if (Object.keys(record).some((key) => !allowed.includes(key))) throw new ValidationError('Unknown field in request body');
+  const sourceSystem = typeof record.sourceSystem === 'string' ? record.sourceSystem.trim() : '';
+  if (sourceSystem.length < 1 || sourceSystem.length > 60 || sourceSystem.includes('|')) {
+    throw new ValidationError('Field "sourceSystem" is required (1 to 60 characters, without "|")');
+  }
+  if (!Array.isArray(record.rows)) throw new ValidationError('Field "rows" must be a list');
+  const columns = new Set<string>(IMPORT_COLUMNS);
+  const rows = record.rows.map((raw: unknown) => {
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new ValidationError('Each row must be an object');
+    const out: Record<string, string> = {};
+    for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
+      if (!columns.has(key)) throw new ValidationError(`Unknown column "${key}"`);
+      if (typeof value !== 'string' || value.length > 500) throw new ValidationError(`Column "${key}" must be text (max 500)`);
+      out[key] = value;
+    }
+    return out;
+  });
+  if (confirm && (typeof record.contentHash !== 'string' || !/^[0-9a-f]{64}$/.test(record.contentHash))) {
+    throw new ValidationError('Field "contentHash" (from the dry run) is required');
+  }
+  return { sourceSystem, rows, ...(confirm ? { contentHash: record.contentHash as string } : {}) };
+}
+
+async function buildPlan(client: TenantTransactionClient, input: SalesImportInput): Promise<SalesImportPlan> {
+  const agencyId = getAgencyId();
+  const customers = await client.query<{ id: string; cpf: string }>(
+    `SELECT id, regexp_replace(cpf, '\\D', '', 'g') AS cpf FROM customers WHERE agency_id = $1 AND cpf IS NOT NULL AND deleted_at IS NULL`,
+    [agencyId],
+  );
+  const categories = await client.query<{ id: string; name: string }>(
+    `SELECT id, name FROM commission_categories WHERE agency_id = $1`,
+    [agencyId],
+  );
+  const suppliers = await client.query<{ id: string; name: string }>(`SELECT id, name FROM suppliers WHERE agency_id = $1 AND active`, [agencyId]);
+  const keys = await client.query<{ source_system: string; external_ref: string }>(
+    `SELECT source_system, external_ref FROM sale_import_keys WHERE agency_id = $1 AND source_system = $2`,
+    [agencyId, input.sourceSystem],
+  );
+  const byName = (rows: Array<{ id: string; name: string }>) => {
+    // An ambiguous name (two rows with the same normalized name) is not matched: it is reported "a completar".
+    const map = new Map<string, string | null>();
+    for (const row of rows) {
+      const key = normalizeName(row.name);
+      map.set(key, map.has(key) ? null : row.id);
+    }
+    return new Map([...map].filter((entry): entry is [string, string] => entry[1] !== null));
+  };
+  const cpfs = new Map<string, string | null>();
+  for (const row of customers.rows) cpfs.set(row.cpf, cpfs.has(row.cpf) ? null : row.id);
+  return planSalesImport(
+    input.rows,
+    {
+      customersByCpf: new Map([...cpfs].filter((entry): entry is [string, string] => entry[1] !== null)),
+      categoriesByName: byName(categories.rows),
+      suppliersByName: byName(suppliers.rows),
+      existingKeys: new Set(keys.rows.map((row) => `${row.source_system}|${row.external_ref}`)),
+      today: new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date()),
+    },
+    input.sourceSystem,
+  );
+}
+
+export async function dryRunSalesImport(database: DatabaseRuntime, input: SalesImportInput) {
+  requireRole(UserRole.MANAGER);
+  const hash = contentHash(input.rows, input.sourceSystem);
+  return database.withTenantTransaction(async (client) => {
+    const plan = await buildPlan(client, input);
+    const previous = await client.query<{ summary: unknown; created_at: Date }>(
+      `SELECT summary, created_at FROM sale_import_batches WHERE agency_id = $1 AND content_hash = $2`,
+      [getAgencyId(), hash],
+    );
+    return { contentHash: hash, alreadyImported: previous.rows[0] !== undefined, plan };
+  });
+}
+
+export async function confirmSalesImport(database: DatabaseRuntime, input: SalesImportInput) {
+  requireRole(UserRole.MANAGER);
+  const hash = contentHash(input.rows, input.sourceSystem);
+  if (input.contentHash !== hash) throw new ConflictError('The file differs from the one validated in the dry run');
+  const agencyId = getAgencyId();
+  const userId = getUserId();
+  return database.withTenantTransaction(async (client) => {
+    // One import of the same content at a time; the loser of a race replays the stored result.
+    await client.query('SELECT pg_advisory_xact_lock(hashtextextended($1, 0))', [`sales-import:${agencyId}:${hash}`]);
+    const replay = await client.query<{ summary: unknown }>(
+      `SELECT summary FROM sale_import_batches WHERE agency_id = $1 AND content_hash = $2`,
+      [agencyId, hash],
+    );
+    if (replay.rows[0]) return { replayed: true, contentHash: hash, summary: replay.rows[0].summary };
+
+    const plan = await buildPlan(client, input);
+    // Batches are append-only (no UPDATE grant): the summary is known from the plan before anything is written.
+    const summary = {
+      ...plan.summary,
+      created: plan.summary.new,
+      rejections: plan.rows.filter((r) => r.status === 'REJECTED').map((r) => ({ row: r.row, errors: r.errors })),
+      toCompleteRows: plan.rows.filter((r) => r.toComplete.length > 0).map((r) => ({ row: r.row, reasons: r.toComplete })),
+    };
+    const batch = await client.query<{ id: string }>(
+      `INSERT INTO sale_import_batches (agency_id, source_system, content_hash, summary, created_by_user_id)
+       VALUES ($1, $2, $3, $4::jsonb, $5) RETURNING id`,
+      [agencyId, input.sourceSystem, hash, JSON.stringify(summary), userId],
+    );
+    const batchId = batch.rows[0]!.id;
+    let created = 0;
+    for (const row of plan.rows) {
+      if (row.status !== 'NEW') continue;
+      const sale = await client.query<{ id: string }>(
+        `INSERT INTO sales (agency_id, customer_id, user_id, amount, discount, total, status, sale_date, category_id,
+                            origin_text, destination_text, travel_start_date, notes)
+         VALUES ($1, $2, $3, $4, $5, $6, 'CONFIRMED', $7::date, $8, $9, $10, $11::date, $12) RETURNING id`,
+        [agencyId, row.customerId, userId, row.total, row.discount, Math.round((row.total - row.discount) * 100) / 100,
+          row.saleDate, row.categoryId, row.origin, row.destination, row.travelStartDate,
+          [row.notes, `Importada de ${input.sourceSystem} #${row.naturalKey.split('|')[1]}`].filter(Boolean).join(' | ')],
+      );
+      const saleId = sale.rows[0]!.id;
+      if (row.supplierId) {
+        await client.query(
+          `INSERT INTO sale_items (agency_id, sale_id, description, supplier_id, qty, unit_price, discount, line_total, line_margin, created_by_user_id)
+           VALUES ($1, $2, $3, $4, 1, $5, $6, $7, 0, $8)`,
+          [agencyId, saleId, `Importado de ${input.sourceSystem}`, row.supplierId, row.total, row.discount,
+            Math.round((row.total - row.discount) * 100) / 100, userId],
+        );
+      }
+      await client.query(
+        `INSERT INTO sale_import_keys (agency_id, source_system, external_ref, sale_id, batch_id) VALUES ($1, $2, $3, $4, $5)`,
+        [agencyId, input.sourceSystem, row.naturalKey.split('|')[1], saleId, batchId],
+      );
+      created += 1;
+    }
+    await recordAuditEvent(client, {
+      eventType: AuditEventType.SALES_IMPORTED,
+      entityType: 'sale_import_batch',
+      entityId: batchId,
+      required: true,
+      metadata: { result: `${created} created, ${plan.summary.rejected} rejected, ${plan.summary.alreadyImported + plan.summary.duplicateInFile} skipped`, reasonCode: `hash:${hash.slice(0, 16)}` },
+    });
+    return { replayed: false, contentHash: hash, summary };
+  });
+}
+
+
+
+hook: PostToolUse
+hook: PostToolUse Completed
+hook: PreToolUse
+hook: PreToolUse
+hook: PreToolUse Completed
+hook: PreToolUse Completed
+exec
+"C:\\Users\\Ugo Alencar\\AppData\\Local\\Microsoft\\WindowsApps\\pwsh.exe" -Command '$n=0; Get-Content tests/integration/database/sales-import.integration.test.ts | ForEach-Object { $n++; '"'{0}: {1}' -f "'$n,$_ }; Get-Content QUALITY-GATES.md; rg -n '"'IMP-01|A2|importa' docs/00-product/FULL-LITE-ALIGNMENT-PLAN.md docs/00-product/GADOTTI-ADJUSTMENTS-2026-10-23.md; Get-Content 'C:/Users/Ugo Alencar/.agents/skills/using-superpowers/references/codex-tools.md'" in D:\travel-platform
+exec
+"C:\\Users\\Ugo Alencar\\AppData\\Local\\Microsoft\\WindowsApps\\pwsh.exe" -Command '$files = @('"'services/api/src/sales-import.ts','services/api/src/routes/sales-import.ts','infrastructure/migrations/110_sales_import.sql'); foreach ("'$f in $files) { Write-Output $f; $n=0; Get-Content $f | ForEach-Object { $n++; '"'{0}: {1}' -f "'$n,$_ } }' in D:\travel-platform
+ succeeded in 646ms:
+1: /* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any -- HTTP/JSON and pg row fixtures in this integration test are intentionally untyped */
+2: import { readdirSync } from 'node:fs';
+3: import { resolve } from 'node:path';
+4: import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
+5: import type { Pool } from 'pg';
+6: 
+7: // Own container/port: never the shared Onda B database, the demo or 55438.
+8: vi.hoisted(() => {
+9:   process.env.ONDA_B_TEST_DB_PORT ??= '55637';
+10:   process.env.ONDA_B_TEST_DB_CONTAINER ??= 'travel-full-imp-int';
+11:   process.env.ONDA_B_TEST_DB_PROJECT ??= 'travel-full-imp-int';
+12: });
+13: 
+14: import { buildApp } from '../../../services/api/src/app';
+15: import type { UserRole } from '../../../packages/domain/types';
+16: import type { AuthenticatedPrincipal } from '../../../services/api/src/auth';
+17: import { createDatabaseRuntime } from '../../../services/api/src/database';
+18: import { startDisposableDb, type DisposableDb } from '../../../services/api/tests/helpers/disposable-postgres';
+19: 
+20: const MIGRATIONS = readdirSync(resolve(import.meta.dirname, '../../../infrastructure/migrations'))
+21:   .filter((name) => /^\d+_.+\.sql$/.test(name))
+22:   .sort();
+23: 
+24: const agencyA = '10000000-0000-4000-8000-0000000000ac';
+25: const agencyB = '20000000-0000-4000-8000-0000000000bc';
+26: const ids = {
+27:   managerA: '11000000-0000-4000-8000-0000000000a3',
+28:   agentA: '11000000-0000-4000-8000-0000000000a4',
+29:   managerB: '21000000-0000-4000-8000-0000000000b1',
+30: };
+31: const roleOf: Record<keyof typeof ids, [string, UserRole]> = {
+32:   managerA: [agencyA, 'MANAGER' as UserRole],
+33:   agentA: [agencyA, 'AGENT' as UserRole],
+34:   managerB: [agencyB, 'MANAGER' as UserRole],
+35: };
+36: 
+37: const rows = (extra: Array<Record<string, string>> = []) => [
+38:   { external_ref: 'V-1', sale_date: '2026-09-10', customer_cpf: '529.982.247-25', category: 'AǸreo', supplier: 'LATAM', total: '1.500,50', destination: 'Gramado' },
+39:   { external_ref: 'V-2', sale_date: '2026-09-11', customer_cpf: '52998224725', category: 'Categoria Nova', supplier: 'Desconhecido', total: '800' },
+40:   { external_ref: 'V-3', sale_date: '2026-09-12', customer_cpf: '390.533.447-05', category: 'AǸreo', total: '100' },
+41:   ...extra,
+42: ];
+43: 
+44: describe('IMP-01 sales import over HTTP with a real database', () => {
+45:   let db: DisposableDb;
+46:   let admin: Pool;
+47: 
+48:   beforeAll(async () => {
+49:     db = await startDisposableDb(MIGRATIONS);
+50:     admin = db.adminPool;
+51:     await admin.query(
+52:       `INSERT INTO agencies (id, name, slug, email, plan, status) VALUES
+53:         ($1, 'Agency A', 'agency-a-imp', 'a@example.test', 'FREE', 'ACTIVE'),
+54:         ($2, 'Agency B', 'agency-b-imp', 'b@example.test', 'FREE', 'ACTIVE')`,
+55:       [agencyA, agencyB],
+56:     );
+57:     for (const [key, id] of Object.entries(ids)) {
+58:       const [agencyId, role] = roleOf[key as keyof typeof ids];
+59:       await admin.query(
+60:         `INSERT INTO users (id, agency_id, email, name, role, password_hash, status) VALUES ($1, $2, $3, $4, $5, 'hash-test-only', 'ACTIVE')`,
+61:         [id, agencyId, `${key}@example.test`, key, role],
+62:       );
+63:     }
+64:     await admin.query(`INSERT INTO customers (agency_id, name, status, cpf) VALUES ($1, 'Maria', 'ACTIVE', '52998224725')`, [agencyA]);
+65:     await admin.query(`INSERT INTO customers (agency_id, name, status, cpf) VALUES ($1, 'Outra AgǦncia', 'ACTIVE', '39053344705')`, [agencyB]);
+66:     await admin.query(`INSERT INTO suppliers (agency_id, name) VALUES ($1, 'Latam')`, [agencyA]);
+67:     await admin.query(`INSERT INTO commission_categories (agency_id, name) VALUES ($1, 'AǸreo')`, [agencyA]).catch(async () => {
+68:       await admin.query(`INSERT INTO commission_categories (agency_id, name, status) VALUES ($1, 'AǸreo', 'ACTIVE')`, [agencyA]);
+69:     });
+70:   }, 300_000);
+71: 
+72:   afterAll(async () => {
+73:     await db?.stop();
+74:   });
+75: 
+76:   function app() {
+77:     return buildApp({
+78:       authProvider: {
+79:         async authenticate(request) {
+80:           const token = request.headers['x-test-user'];
+81:           if (typeof token !== 'string') return null;
+82:           const row = (await admin.query<{ id: string; agency_id: string; role: string; email: string }>(
+83:             `SELECT id, agency_id, role, email FROM users WHERE id = $1 AND status = 'ACTIVE'`, [token])).rows[0];
+84:           if (!row) return null;
+85:           const principal: AuthenticatedPrincipal = { userId: row.id, agencyId: row.agency_id, role: row.role as UserRole, email: row.email };
+86:           return principal;
+87:         },
+88:       },
+89:       validateUserAgencyAccess: async (userId, agencyId) =>
+90:         (await admin.query(`SELECT 1 FROM users WHERE id = $1 AND agency_id = $2`, [userId, agencyId])).rowCount === 1,
+91:       database: createDatabaseRuntime(db.runtimePool),
+92:     });
+93:   }
+94:   async function post(as: string | null, url: string, payload: unknown) {
+95:     const server = app();
+96:     try {
+97:       const res = await server.inject({ method: 'POST', url, ...(as ? { headers: { 'x-test-user': as } } : {}), payload: payload as object });
+98:       return { status: res.statusCode, body: res.json<Record<string, any>>() };
+99:     } finally {
+100:       await server.close();
+101:     }
+102:   }
+103:   const dry = (as: string | null, body: unknown) => post(as, '/imports/sales/dry-run', body);
+104:   const confirm = (as: string | null, body: unknown) => post(as, '/imports/sales/confirm', body);
+105:   const count = async (table: string, agencyId = agencyA) => Number((await admin.query(`SELECT count(*)::int AS n FROM ${table} WHERE agency_id = $1`, [agencyId])).rows[0].n);
+106: 
+107:   it('requires authentication and MANAGER+; validates the body', async () => {
+108:     const body = { sourceSystem: 'BWT', rows: rows() };
+109:     expect((await dry(null, body)).status).toBe(401);
+110:     expect((await dry(ids.agentA, body)).status).toBe(403);
+111:     expect((await confirm(ids.agentA, { ...body, contentHash: 'a'.repeat(64) })).status).toBe(403);
+112:     expect((await dry(ids.managerA, { ...body, agencyId: agencyB })).status).toBe(400);
+113:     expect((await dry(ids.managerA, { sourceSystem: 'BWT', rows: [{ external_ref: 'x', password: 'y' }] })).status).toBe(400);
+114:     expect((await dry(ids.managerA, { sourceSystem: 'A|B', rows: [] })).status).toBe(400);
+115:     expect((await confirm(ids.managerA, body)).status).toBe(400);
+116:   });
+117: 
+118:   it('dry run writes nothing and reports new / rejected / a completar', async () => {
+119:     const before = await count('sales');
+120:     const res = await dry(ids.managerA, { sourceSystem: 'BWT', rows: rows() });
+121:     expect(res.status).toBe(200);
+122:     expect(res.body.plan.summary).toMatchObject({ total: 3, new: 2, rejected: 1, toComplete: 1 });
+123:     expect(res.body.plan.rows[2].errors[0].column).toBe('customer_cpf');
+124:     expect(res.body.plan.rows[1].toComplete).toEqual(expect.arrayContaining(['category', 'supplier', 'destination']));
+125:     expect(await count('sales')).toBe(before);
+126:     expect(await count('sale_import_batches')).toBe(0);
+127:   });
+128: 
+129:   it('confirm requires the dry-run hash, creates the sales, never commissions or receivables, and audits', async () => {
+130:     const body = { sourceSystem: 'BWT', rows: rows() };
+131:     const plan = await dry(ids.managerA, body);
+132:     expect((await confirm(ids.managerA, { ...body, contentHash: 'b'.repeat(64) })).status).toBe(409);
+133:     const commissionsBefore = await count('commission_entries');
+134:     const receivablesBefore = await count('receivables');
+135:     const res = await confirm(ids.managerA, { ...body, contentHash: plan.body.contentHash });
+136:     expect(res.status).toBe(200);
+137:     expect(res.body).toMatchObject({ replayed: false, summary: { created: 2, rejected: 1, toComplete: 1 } });
+138:     expect(res.body.summary.toCompleteRows).toHaveLength(1);
+139:     expect(res.body.summary.rejections[0].row).toBe(3);
+140:     expect(await count('sales')).toBe(2);
+141:     expect(await count('sale_items')).toBe(1);
+142:     expect(await count('commission_entries')).toBe(commissionsBefore);
+143:     expect(await count('receivables')).toBe(receivablesBefore);
+144:     const sale = (await admin.query(`SELECT total::float8 AS total, status::text AS status, sale_date::text AS sale_date, destination_text FROM sales WHERE agency_id = $1 ORDER BY total DESC`, [agencyA])).rows;
+145:     expect(sale[0]).toMatchObject({ total: 1500.5, status: 'CONFIRMED', sale_date: '2026-09-10', destination_text: 'Gramado' });
+146:     expect((await admin.query(`SELECT 1 FROM audit_logs WHERE agency_id = $1 AND event_type = 'SALES_IMPORTED'`, [agencyA])).rowCount).toBe(1);
+147:   });
+148: 
+149:   it('the same file again writes nothing (replay); a different file with the same sales creates no duplicates', async () => {
+150:     const body = { sourceSystem: 'BWT', rows: rows() };
+151:     const plan = await dry(ids.managerA, body);
+152:     expect(plan.body.alreadyImported).toBe(true);
+153:     const again = await confirm(ids.managerA, { ...body, contentHash: plan.body.contentHash });
+154:     expect(again.body.replayed).toBe(true);
+155:     expect(await count('sales')).toBe(2);
+156: 
+157:     const extra = { sourceSystem: 'BWT', rows: rows([{ external_ref: 'V-4', sale_date: '2026-09-13', customer_cpf: '529.982.247-25', total: '50' }]) };
+158:     const plan2 = await dry(ids.managerA, extra);
+159:     expect(plan2.body.plan.summary).toMatchObject({ new: 1, alreadyImported: 2, rejected: 1 });
+160:     const res = await confirm(ids.managerA, { ...extra, contentHash: plan2.body.contentHash });
+161:     expect(res.body.summary.created).toBe(1);
+162:     expect(await count('sales')).toBe(3);
+163:     expect(await count('sale_import_keys')).toBe(3);
+164:   });
+165: 
+166:   it('the database itself refuses a duplicated natural key and a duplicated content hash', async () => {
+167:     await expect(admin.query(
+168:       `INSERT INTO sale_import_keys (agency_id, source_system, external_ref, sale_id, batch_id)
+169:        SELECT agency_id, source_system, external_ref, sale_id, batch_id FROM sale_import_keys WHERE agency_id = $1 LIMIT 1`,
+170:       [agencyA],
+171:     )).rejects.toThrow();
+172:     await expect(db.runtimePool.query('DELETE FROM sale_import_keys')).rejects.toThrow();
+173:     await expect(db.runtimePool.query('UPDATE sale_import_batches SET summary = \'{}\'')).rejects.toThrow();
+174:   });
+175: 
+176:   it('is isolated by agency: B cannot see or match A\'s customers, and A\'s keys do not block B', async () => {
+177:     const body = { sourceSystem: 'BWT', rows: [{ external_ref: 'V-1', sale_date: '2026-09-10', customer_cpf: '390.533.447-05', total: '10' }] };
+178:     const plan = await dry(ids.managerB, body);
+179:     expect(plan.body.alreadyImported).toBe(false);
+180:     expect(plan.body.plan.summary).toMatchObject({ new: 1, alreadyImported: 0 });
+181:     const res = await confirm(ids.managerB, { ...body, contentHash: plan.body.contentHash });
+182:     expect(res.body.summary.created).toBe(1);
+183:     expect(await count('sales', agencyB)).toBe(1);
+184:     expect(await count('sales')).toBe(3);
+185:     const crossCustomer = await dry(ids.managerB, { sourceSystem: 'BWT', rows: [{ external_ref: 'V-9', sale_date: '2026-09-10', customer_cpf: '529.982.247-25', total: '10' }] });
+186:     expect(crossCustomer.body.plan.rows[0].status).toBe('REJECTED');
+187:   });
+188: 
+189:   it('two simultaneous confirms of the same content create the sales once', async () => {
+190:     const body = { sourceSystem: 'RACE', rows: [{ external_ref: 'R-1', sale_date: '2026-09-10', customer_cpf: '529.982.247-25', total: '10' }] };
+191:     const plan = await dry(ids.managerA, body);
+192:     const before = await count('sales');
+193:     const results = await Promise.all([
+194:       confirm(ids.managerA, { ...body, contentHash: plan.body.contentHash }),
+195:       confirm(ids.managerA, { ...body, contentHash: plan.body.contentHash }),
+196:     ]);
+197:     expect(results.map((r) => r.status)).toEqual([200, 200]);
+198:     expect(results.filter((r) => r.body.replayed).length).toBe(1);
+199:     expect(await count('sales')).toBe(before + 1);
+200:   });
+201: });
+# Quality Gates
+
+This is the official source for mandatory quality gates in this repository.
+
+## Principles
+
+- Do not commit broken lint, typecheck, tests, or build.
+- Do not bypass security checks to make a change pass.
+- Do not run destructive commands without explicit authorization.
+- Do not run migrations or database commands unless the task explicitly allows it.
+- Database/RLS tests are explicit integration gates, not part of fast unit tests.
+
+## Local Gates
+
+For repository-wide validation, run:
+
+```powershell
+npm run lint
+npm run typecheck
+npm run test
+npm run test:db
+npm run build
+```
+
+`npm run test` is the fast test suite.
+
+`npm run test:db` starts a disposable local PostgreSQL database, applies
+`001_initial_schema.sql` and `002_rls_policies.sql`, and validates constraints,
+tenant-safe FKs, runtime role behavior, RLS, fail-closed behavior, and grants.
+
+## Pre-Commit Gate
+
+Before a commit, run at minimum:
+
+```powershell
+npm run lint
+npm run typecheck
+npm run test
+```
+
+Use `.\pre-commit.ps1` when a PowerShell wrapper is desired.
+
+## Pre-PR Gate
+
+Before opening a PR, run:
+
+```powershell
+npm run lint
+npm run typecheck
+npm run test
+npm run test:db
+npm run build
+npm run secrets:scan
+npm run migrations:validate
+```
+
+Use `.\pre-pr.ps1` when a PowerShell wrapper is desired.
+
+## CI Gate
+
+The CI workflow in `.github/workflows/ci.yml` must fail the PR if any of these
+steps fail:
+
+1. `npm ci`
+2. `npm run lint`
+3. `npm run typecheck`
+4. `npm run test`
+5. `npm run test:db`
+6. `npm run build`
+
+The CI uses PostgreSQL 15 as an ephemeral service container with fictitious
+test credentials only.
+
+## Security Gates
+
+Required security checks:
+
+- No real `.env` files committed.
+- No secrets, credentials, private keys, tokens, or database dumps committed.
+- No production or staging access from tests.
+- No `prisma migrate`, `prisma db push`, or `prisma generate` unless explicitly authorized.
+- Tenant isolation must be validated at application and database layers.
+- RLS must fail closed when tenant context is absent.
+
+## Documentation Links
+
+- Script usage: `SCRIPTS.md`
+- Pre-commit checklist: `.ai/checklists/pre-commit.md`
+- Pre-PR checklist: `.ai/checklists/pre-pr.md`
+- Destructive command checklist: `.ai/checklists/destructive-commands.md`
+- Database integration tests: `docs/07-testing/database-integration-tests.md`
+docs/00-product/FULL-LITE-ALIGNMENT-PLAN.md:94:| 6 | IMP-01 | Importacao de vendas conciliada (ponto 5) | Claude, rodada posterior | COM-03, SEC-01, BAK-01; nao duplicar vendas/comissoes |
+docs/00-product/FULL-LITE-ALIGNMENT-PLAN.md:191:IMP-01 permanece com Claude em rodada posterior a COM-03, SEC-01 e BAK-01.
+## Subagent dispatch requires multi-agent support
+
+Add to your Codex config (`~/.codex/config.toml`):
+
+```toml
+[features]
+multi_agent = true
+```
+
+This enables `spawn_agent`, `wait_agent`, and `close_agent` for skills like `dispatching-parallel-agents` and `subagent-driven-development`. When using subagent-driven-development, you should always close implementer and reviewer subagents when they have finished all their work.
+
+## Environment Detection
+
+Skills that create worktrees or finish branches should detect their
+environment with read-only git commands before proceeding:
+
+```bash
+GIT_DIR=$(cd "$(git rev-parse --git-dir)" 2>/dev/null && pwd -P)
+GIT_COMMON=$(cd "$(git rev-parse --git-common-dir)" 2>/dev/null && pwd -P)
+BRANCH=$(git branch --show-current)
+```
+
+- `GIT_DIR != GIT_COMMON` ��' already in a linked worktree (skip creation)
+- `BRANCH` empty ��' detached HEAD (cannot branch/push/PR from sandbox)
+
+See `using-git-worktrees` Step 0 and `finishing-a-development-branch`
+Step 1 for how each skill uses these signals.
+
+## Codex App Finishing
+
+When the sandbox blocks branch/push operations (detached HEAD in an
+externally managed worktree), the agent commits all work and informs
+the user to use the App's native controls:
+
+- **"Create branch"** �?" names the branch, then commit/push/PR via App UI
+- **"Hand off to local"** �?" transfers work to the user's local checkout
+
+The agent can still run tests, stage files, and output suggested branch
+names, commit messages, and PR descriptions for the user to copy.
+
+hook: PostToolUse
+ succeeded in 670ms:
+services/api/src/sales-import.ts
+1: /**
+2:  * Sales import service (IMP-01): dry run, then an atomic, idempotent confirm.
+3:  * The plan is computed by the pure planner; this file only loads the lookups
+4:  * of the session's agency and writes. Imported sales are historical: this code
+5:  * never touches commissions or receivables (a test proves the counts do not move).
+6:  */
+7: import { getAgencyId, getUserId, requireRole } from '../../../packages/domain/tenant-context';
+8: import { UserRole } from '../../../packages/domain/types';
+9: import { AuditEventType, recordAuditEvent } from './audit-log';
+10: import type { DatabaseRuntime, TenantTransactionClient } from './database';
+11: import { ConflictError, ValidationError } from './errors';
+12: import {
+13:   contentHash,
+14:   IMPORT_COLUMNS,
+15:   normalizeName,
+16:   planSalesImport,
+17:   type SalesImportPlan,
+18:   type SalesImportRow,
+19: } from './sales-import-plan';
+20: 
+21: export interface SalesImportInput {
+22:   sourceSystem: string;
+23:   rows: SalesImportRow[];
+24:   /** Only on confirm: the hash the user saw in the dry run. */
+25:   contentHash?: string;
+26: }
+27: 
+28: export function parseSalesImportInput(body: unknown, confirm: boolean): SalesImportInput {
+29:   if (!body || typeof body !== 'object' || Array.isArray(body)) throw new ValidationError('Request body must be an object');
+30:   const record = body as Record<string, unknown>;
+31:   const allowed = confirm ? ['sourceSystem', 'rows', 'contentHash'] : ['sourceSystem', 'rows'];
+32:   if (Object.keys(record).some((key) => !allowed.includes(key))) throw new ValidationError('Unknown field in request body');
+33:   const sourceSystem = typeof record.sourceSystem === 'string' ? record.sourceSystem.trim() : '';
+34:   if (sourceSystem.length < 1 || sourceSystem.length > 60 || sourceSystem.includes('|')) {
+35:     throw new ValidationError('Field "sourceSystem" is required (1 to 60 characters, without "|")');
+36:   }
+37:   if (!Array.isArray(record.rows)) throw new ValidationError('Field "rows" must be a list');
+38:   const columns = new Set<string>(IMPORT_COLUMNS);
+39:   const rows = record.rows.map((raw: unknown) => {
+40:     if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new ValidationError('Each row must be an object');
+41:     const out: Record<string, string> = {};
+42:     for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
+43:       if (!columns.has(key)) throw new ValidationError(`Unknown column "${key}"`);
+44:       if (typeof value !== 'string' || value.length > 500) throw new ValidationError(`Column "${key}" must be text (max 500)`);
+45:       out[key] = value;
+46:     }
+47:     return out;
+48:   });
+49:   if (confirm && (typeof record.contentHash !== 'string' || !/^[0-9a-f]{64}$/.test(record.contentHash))) {
+50:     throw new ValidationError('Field "contentHash" (from the dry run) is required');
+51:   }
+52:   return { sourceSystem, rows, ...(confirm ? { contentHash: record.contentHash as string } : {}) };
+53: }
+54: 
+55: async function buildPlan(client: TenantTransactionClient, input: SalesImportInput): Promise<SalesImportPlan> {
+56:   const agencyId = getAgencyId();
+57:   const customers = await client.query<{ id: string; cpf: string }>(
+58:     `SELECT id, regexp_replace(cpf, '\\D', '', 'g') AS cpf FROM customers WHERE agency_id = $1 AND cpf IS NOT NULL AND deleted_at IS NULL`,
+59:     [agencyId],
+60:   );
+61:   const categories = await client.query<{ id: string; name: string }>(
+62:     `SELECT id, name FROM commission_categories WHERE agency_id = $1`,
+63:     [agencyId],
+64:   );
+65:   const suppliers = await client.query<{ id: string; name: string }>(`SELECT id, name FROM suppliers WHERE agency_id = $1 AND active`, [agencyId]);
+66:   const keys = await client.query<{ source_system: string; external_ref: string }>(
+67:     `SELECT source_system, external_ref FROM sale_import_keys WHERE agency_id = $1 AND source_system = $2`,
+68:     [agencyId, input.sourceSystem],
+69:   );
+70:   const byName = (rows: Array<{ id: string; name: string }>) => {
+71:     // An ambiguous name (two rows with the same normalized name) is not matched: it is reported "a completar".
+72:     const map = new Map<string, string | null>();
+73:     for (const row of rows) {
+74:       const key = normalizeName(row.name);
+75:       map.set(key, map.has(key) ? null : row.id);
+76:     }
+77:     return new Map([...map].filter((entry): entry is [string, string] => entry[1] !== null));
+78:   };
+79:   const cpfs = new Map<string, string | null>();
+80:   for (const row of customers.rows) cpfs.set(row.cpf, cpfs.has(row.cpf) ? null : row.id);
+81:   return planSalesImport(
+82:     input.rows,
+83:     {
+84:       customersByCpf: new Map([...cpfs].filter((entry): entry is [string, string] => entry[1] !== null)),
+85:       categoriesByName: byName(categories.rows),
+86:       suppliersByName: byName(suppliers.rows),
+87:       existingKeys: new Set(keys.rows.map((row) => `${row.source_system}|${row.external_ref}`)),
+88:       today: new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date()),
+89:     },
+90:     input.sourceSystem,
+91:   );
+92: }
+93: 
+94: export async function dryRunSalesImport(database: DatabaseRuntime, input: SalesImportInput) {
+95:   requireRole(UserRole.MANAGER);
+96:   const hash = contentHash(input.rows, input.sourceSystem);
+97:   return database.withTenantTransaction(async (client) => {
+98:     const plan = await buildPlan(client, input);
+99:     const previous = await client.query<{ summary: unknown; created_at: Date }>(
+100:       `SELECT summary, created_at FROM sale_import_batches WHERE agency_id = $1 AND content_hash = $2`,
+101:       [getAgencyId(), hash],
+102:     );
+103:     return { contentHash: hash, alreadyImported: previous.rows[0] !== undefined, plan };
+104:   });
+105: }
+106: 
+107: export async function confirmSalesImport(database: DatabaseRuntime, input: SalesImportInput) {
+108:   requireRole(UserRole.MANAGER);
+109:   const hash = contentHash(input.rows, input.sourceSystem);
+110:   if (input.contentHash !== hash) throw new ConflictError('The file differs from the one validated in the dry run');
+111:   const agencyId = getAgencyId();
+112:   const userId = getUserId();
+113:   return database.withTenantTransaction(async (client) => {
+114:     // One import of the same content at a time; the loser of a race replays the stored result.
+115:     await client.query('SELECT pg_advisory_xact_lock(hashtextextended($1, 0))', [`sales-import:${agencyId}:${hash}`]);
+116:     const replay = await client.query<{ summary: unknown }>(
+117:       `SELECT summary FROM sale_import_batches WHERE agency_id = $1 AND content_hash = $2`,
+118:       [agencyId, hash],
+119:     );
+120:     if (replay.rows[0]) return { replayed: true, contentHash: hash, summary: replay.rows[0].summary };
+121: 
+122:     const plan = await buildPlan(client, input);
+123:     // Batches are append-only (no UPDATE grant): the summary is known from the plan before anything is written.
+124:     const summary = {
+125:       ...plan.summary,
+126:       created: plan.summary.new,
+127:       rejections: plan.rows.filter((r) => r.status === 'REJECTED').map((r) => ({ row: r.row, errors: r.errors })),
+128:       toCompleteRows: plan.rows.filter((r) => r.toComplete.length > 0).map((r) => ({ row: r.row, reasons: r.toComplete })),
+129:     };
+130:     const batch = await client.query<{ id: string }>(
+131:       `INSERT INTO sale_import_batches (agency_id, source_system, content_hash, summary, created_by_user_id)
+132:        VALUES ($1, $2, $3, $4::jsonb, $5) RETURNING id`,
+133:       [agencyId, input.sourceSystem, hash, JSON.stringify(summary), userId],
+134:     );
+135:     const batchId = batch.rows[0]!.id;
+136:     let created = 0;
+137:     for (const row of plan.rows) {
+138:       if (row.status !== 'NEW') continue;
+139:       const sale = await client.query<{ id: string }>(
+140:         `INSERT INTO sales (agency_id, customer_id, user_id, amount, discount, total, status, sale_date, category_id,
+141:                             origin_text, destination_text, travel_start_date, notes)
+142:          VALUES ($1, $2, $3, $4, $5, $6, 'CONFIRMED', $7::date, $8, $9, $10, $11::date, $12) RETURNING id`,
+143:         [agencyId, row.customerId, userId, row.total, row.discount, Math.round((row.total - row.discount) * 100) / 100,
+144:           row.saleDate, row.categoryId, row.origin, row.destination, row.travelStartDate,
+145:           [row.notes, `Importada de ${input.sourceSystem} #${row.naturalKey.split('|')[1]}`].filter(Boolean).join(' | ')],
+146:       );
+147:       const saleId = sale.rows[0]!.id;
+148:       if (row.supplierId) {
+149:         await client.query(
+150:           `INSERT INTO sale_items (agency_id, sale_id, description, supplier_id, qty, unit_price, discount, line_total, line_margin, created_by_user_id)
+151:            VALUES ($1, $2, $3, $4, 1, $5, $6, $7, 0, $8)`,
+152:           [agencyId, saleId, `Importado de ${input.sourceSystem}`, row.supplierId, row.total, row.discount,
+153:             Math.round((row.total - row.discount) * 100) / 100, userId],
+154:         );
+155:       }
+156:       await client.query(
+157:         `INSERT INTO sale_import_keys (agency_id, source_system, external_ref, sale_id, batch_id) VALUES ($1, $2, $3, $4, $5)`,
+158:         [agencyId, input.sourceSystem, row.naturalKey.split('|')[1], saleId, batchId],
+159:       );
+160:       created += 1;
+161:     }
+162:     await recordAuditEvent(client, {
+163:       eventType: AuditEventType.SALES_IMPORTED,
+164:       entityType: 'sale_import_batch',
+165:       entityId: batchId,
+166:       required: true,
+167:       metadata: { result: `${created} created, ${plan.summary.rejected} rejected, ${plan.summary.alreadyImported + plan.summary.duplicateInFile} skipped`, reasonCode: `hash:${hash.slice(0, 16)}` },
+168:     });
+169:     return { replayed: false, contentHash: hash, summary };
+170:   });
+171: }
+services/api/src/routes/sales-import.ts
+1: import type { FastifyInstance, preHandlerHookHandler } from 'fastify';
+2: import { requireRole } from '../../../../packages/domain/tenant-context';
+3: import { UserRole } from '../../../../packages/domain/types';
+4: import type { DatabaseRuntime } from '../database';
+5: import { confirmSalesImport, dryRunSalesImport, parseSalesImportInput } from '../sales-import';
+6: 
+7: /**
+8:  * Sales import (IMP-01). MANAGER+. Two steps on purpose: the dry run returns the
+9:  * plan and a content hash; the confirm must present that hash, so what is
+10:  * written is exactly what was reviewed. Re-sending the same content writes nothing.
+11:  */
+12: export function registerSalesImportRoutes(
+13:   app: FastifyInstance,
+14:   options: { database: DatabaseRuntime; protectedHooks: preHandlerHookHandler[] },
+15: ): void {
+16:   const { database, protectedHooks } = options;
+17: 
+18:   app.post('/imports/sales/dry-run', { preHandler: protectedHooks }, (request) => {
+19:     requireRole(UserRole.MANAGER);
+20:     return dryRunSalesImport(database, parseSalesImportInput(request.body, false));
+21:   });
+22: 
+23:   app.post('/imports/sales/confirm', { preHandler: protectedHooks }, (request) => {
+24:     requireRole(UserRole.MANAGER);
+25:     return confirmSalesImport(database, parseSalesImportInput(request.body, true));
+26:   });
+27: }
+infrastructure/migrations/110_sales_import.sql
+1: -- ============================================================
+2: -- SALES IMPORT (IMP-01, Onda F3)
+3: -- ============================================================
+4: -- IdempotǦncia da importa��ǜo de vendas:
+5: --   * sale_import_batches: uma linha por conteǧdo importado (hash do conteǧdo +
+6: --     sistema de origem): reenviar o mesmo arquivo nǜo grava nada de novo;
+7: --   * sale_import_keys: chave natural (sistema|nǧmero de origem) -> venda criada:
+8: --     a mesma venda vinda em arquivos diferentes nunca Ǹ criada duas vezes.
+9: -- Append-only (sem UPDATE/DELETE para o papel de runtime). A importa��ǜo Ǹ
+10: -- hist��rica: nǜo cria comiss��es nem receb��veis. Aditiva.
+11: -- ============================================================
+12: 
+13: CREATE TABLE sale_import_batches (
+14:   id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::TEXT,
+15:   agency_id TEXT NOT NULL REFERENCES agencies (id),
+16:   source_system TEXT NOT NULL CHECK (char_length(source_system) BETWEEN 1 AND 60),
+17:   content_hash TEXT NOT NULL CHECK (content_hash ~ '^[0-9a-f]{64}$'),
+18:   summary JSONB NOT NULL,
+19:   created_by_user_id TEXT,
+20:   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+21:   CONSTRAINT sale_import_batches_agency_id_key UNIQUE (agency_id, id),
+22:   CONSTRAINT sale_import_batches_content_uq UNIQUE (agency_id, content_hash)
+23: );
+24: 
+25: CREATE TABLE sale_import_keys (
+26:   id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::TEXT,
+27:   agency_id TEXT NOT NULL,
+28:   source_system TEXT NOT NULL,
+29:   external_ref TEXT NOT NULL CHECK (char_length(external_ref) BETWEEN 1 AND 100),
+30:   sale_id TEXT NOT NULL,
+31:   batch_id TEXT NOT NULL,
+32:   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+33:   CONSTRAINT sale_import_keys_sale_fk FOREIGN KEY (agency_id, sale_id) REFERENCES sales (agency_id, id),
+34:   CONSTRAINT sale_import_keys_batch_fk FOREIGN KEY (agency_id, batch_id) REFERENCES sale_import_batches (agency_id, id),
+35:   CONSTRAINT sale_import_keys_natural_uq UNIQUE (agency_id, source_system, external_ref)
+36: );
+37: 
+38: DO $$
+39: DECLARE
+40:   t TEXT;
+41: BEGIN
+42:   FOREACH t IN ARRAY ARRAY['sale_import_batches', 'sale_import_keys'] LOOP
+43:     EXECUTE format('ALTER TABLE %I ENABLE ROW LEVEL SECURITY', t);
+44:     EXECUTE format('ALTER TABLE %I FORCE ROW LEVEL SECURITY', t);
+45:     EXECUTE format('CREATE POLICY %I ON %I FOR SELECT USING (agency_id = current_agency_id())', t || '_select_tenant', t);
+46:     EXECUTE format('CREATE POLICY %I ON %I FOR INSERT WITH CHECK (agency_id = current_agency_id())', t || '_insert_tenant', t);
+47:     EXECUTE format('REVOKE ALL ON %I FROM PUBLIC', t);
+48:   END LOOP;
+49: END $$;
+
+hook: PostToolUse
+hook: PostToolUse Completed
+hook: PostToolUse Completed
+hook: PreToolUse
+hook: PreToolUse Completed
+exec
+"C:\\Users\\Ugo Alencar\\AppData\\Local\\Microsoft\\WindowsApps\\pwsh.exe" -Command "rg -n 'GRANT|DEFAULT PRIVILEGES|sale_import|runtime' services/api/tests/helpers/disposable-postgres.ts infrastructure/migrations/110_sales_import.sql tests/integration/database/002_prepare_local_roles.sql services/api/src/database.ts; rg -n 'setErrorHandler|error.message|bodyLimit|rateLimit|registerSalesImport' services/api/src/app.ts services/api/src/errors.ts; rg -n 'numeric\\(|NUMERIC\\(|CREATE TABLE sales|CREATE TABLE sale_items|GRANT .*sales|DEFAULT PRIVILEGES' infrastructure/migrations/001_initial_schema.sql infrastructure/migrations/0*.sql infrastructure/migrations/10*.sql; "'$n=0; Get-Content services/api/src/sales-import-plan.ts | ForEach-Object { $n++; '"'{0}: {1}' -f "'$n,$_ }; Get-Content services/api/src/database.ts' in D:\travel-platform
+ succeeded in 448ms:
+infrastructure/migrations/110_sales_import.sql:5:--   * sale_import_batches: uma linha por conteúdo importado (hash do conteúdo +
+infrastructure/migrations/110_sales_import.sql:7:--   * sale_import_keys: chave natural (sistema|número de origem) -> venda criada:
+infrastructure/migrations/110_sales_import.sql:9:-- Append-only (sem UPDATE/DELETE para o papel de runtime). A importação é
+infrastructure/migrations/110_sales_import.sql:13:CREATE TABLE sale_import_batches (
+infrastructure/migrations/110_sales_import.sql:21:  CONSTRAINT sale_import_batches_agency_id_key UNIQUE (agency_id, id),
+infrastructure/migrations/110_sales_import.sql:22:  CONSTRAINT sale_import_batches_content_uq UNIQUE (agency_id, content_hash)
+infrastructure/migrations/110_sales_import.sql:25:CREATE TABLE sale_import_keys (
+infrastructure/migrations/110_sales_import.sql:33:  CONSTRAINT sale_import_keys_sale_fk FOREIGN KEY (agency_id, sale_id) REFERENCES sales (agency_id, id),
+infrastructure/migrations/110_sales_import.sql:34:  CONSTRAINT sale_import_keys_batch_fk FOREIGN KEY (agency_id, batch_id) REFERENCES sale_import_batches (agency_id, id),
+infrastructure/migrations/110_sales_import.sql:35:  CONSTRAINT sale_import_keys_natural_uq UNIQUE (agency_id, source_system, external_ref)
+infrastructure/migrations/110_sales_import.sql:42:  FOREACH t IN ARRAY ARRAY['sale_import_batches', 'sale_import_keys'] LOOP
+tests/integration/database/002_prepare_local_roles.sql:9:    SELECT 1 FROM pg_roles WHERE rolname = 'travel_app_runtime_local'
+tests/integration/database/002_prepare_local_roles.sql:11:    CREATE ROLE travel_app_runtime_local
+tests/integration/database/002_prepare_local_roles.sql:13:      PASSWORD 'travel_app_runtime_local_password'
+tests/integration/database/002_prepare_local_roles.sql:21:  -- F-06: platform role is a SUPERSET of the runtime role (all tenant
+tests/integration/database/002_prepare_local_roles.sql:23:  -- the platform-global tables the runtime role must NOT hold). Created
+tests/integration/database/002_prepare_local_roles.sql:43:GRANT USAGE ON SCHEMA public TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:44:GRANT SELECT, INSERT, UPDATE, DELETE ON
+tests/integration/database/002_prepare_local_roles.sql:56:TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:70:    GRANT SELECT, INSERT, UPDATE, DELETE ON
+tests/integration/database/002_prepare_local_roles.sql:73:    TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:82:    GRANT SELECT, INSERT, UPDATE, DELETE ON
+tests/integration/database/002_prepare_local_roles.sql:85:    TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:94:    GRANT SELECT, INSERT, UPDATE, DELETE ON
+tests/integration/database/002_prepare_local_roles.sql:97:    TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:106:    GRANT SELECT, INSERT, UPDATE ON payment_conditions TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:107:    GRANT SELECT, INSERT ON payment_condition_methods, payment_condition_categories, payment_condition_products,
+tests/integration/database/002_prepare_local_roles.sql:108:      sale_payment_condition_versions, sale_payment_requests TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:117:    GRANT SELECT, INSERT, UPDATE ON employee_commission_rule_scopes, sale_commission_attributions TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:118:    GRANT SELECT, INSERT ON employee_commission_rule_versions, employee_commission_rule_tiers TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:127:    GRANT SELECT, INSERT, UPDATE ON payment_method_receipt_rules TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:128:    GRANT SELECT, INSERT ON commission_financial_profiles, commission_release_events TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:140:    GRANT SELECT, INSERT, UPDATE, DELETE ON
+tests/integration/database/002_prepare_local_roles.sql:145:    TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:156:    GRANT SELECT, INSERT, UPDATE, DELETE ON
+tests/integration/database/002_prepare_local_roles.sql:158:    TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:166:-- unaffected. Do NOT use an unconditional GRANT here -- a prior
+tests/integration/database/002_prepare_local_roles.sql:171:    GRANT SELECT, INSERT, UPDATE, DELETE ON
+tests/integration/database/002_prepare_local_roles.sql:174:    TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:186:    GRANT SELECT, INSERT, UPDATE, DELETE ON
+tests/integration/database/002_prepare_local_roles.sql:189:    TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:198:-- unconditional GRANT here -- a prior session broke every other
+tests/integration/database/002_prepare_local_roles.sql:203:    GRANT SELECT, INSERT, UPDATE, DELETE ON
+tests/integration/database/002_prepare_local_roles.sql:207:    TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:216:-- GRANT here -- a prior session broke every other domain's test suite
+tests/integration/database/002_prepare_local_roles.sql:221:    GRANT SELECT, INSERT, UPDATE, DELETE ON
+tests/integration/database/002_prepare_local_roles.sql:225:    TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:236:    GRANT SELECT, INSERT, UPDATE, DELETE ON
+tests/integration/database/002_prepare_local_roles.sql:242:    TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:254:    GRANT SELECT, INSERT, UPDATE, DELETE ON
+tests/integration/database/002_prepare_local_roles.sql:258:    TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:268:    GRANT SELECT, INSERT, UPDATE, DELETE ON
+tests/integration/database/002_prepare_local_roles.sql:270:    TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:280:    GRANT SELECT, INSERT, UPDATE, DELETE ON customer_addresses TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:284:    GRANT SELECT, INSERT, UPDATE, DELETE ON customer_dependents TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:288:    GRANT SELECT, INSERT, UPDATE, DELETE ON
+tests/integration/database/002_prepare_local_roles.sql:293:    TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:297:    GRANT SELECT, INSERT ON document_audit_events TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:298:    REVOKE UPDATE, DELETE ON document_audit_events FROM travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:310:    GRANT SELECT, INSERT, UPDATE, DELETE ON
+tests/integration/database/002_prepare_local_roles.sql:324:    TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:330:-- runtime traffic: application code can read tenant-scoped history and
+tests/integration/database/002_prepare_local_roles.sql:331:-- insert a new event, but no runtime path may alter or delete evidence.
+tests/integration/database/002_prepare_local_roles.sql:335:    GRANT SELECT, INSERT ON audit_logs TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:336:    REVOKE UPDATE, DELETE ON audit_logs FROM travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:345:    GRANT SELECT, INSERT, UPDATE, DELETE ON
+tests/integration/database/002_prepare_local_roles.sql:350:    TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:352:    GRANT SELECT, INSERT ON cash_transactions TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:353:    REVOKE UPDATE, DELETE ON cash_transactions FROM travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:360:-- Grant only the operations required by runtime flows and rely on RLS
+tests/integration/database/002_prepare_local_roles.sql:365:    GRANT SELECT, INSERT ON
+tests/integration/database/002_prepare_local_roles.sql:368:    TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:372:    FROM travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:379:    GRANT SELECT, INSERT, UPDATE ON auth_sessions TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:380:    REVOKE DELETE ON auth_sessions FROM travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:382:    GRANT SELECT, INSERT, UPDATE, DELETE ON
+tests/integration/database/002_prepare_local_roles.sql:386:    TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:390:    GRANT SELECT, INSERT, UPDATE ON password_reset_tokens TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:394:    GRANT SELECT, INSERT, UPDATE ON customer_password_reset_tokens TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:402:-- unaffected. Do NOT use an unconditional GRANT here -- a prior session
+tests/integration/database/002_prepare_local_roles.sql:407:    GRANT SELECT, INSERT, UPDATE, DELETE ON
+tests/integration/database/002_prepare_local_roles.sql:409:    TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:417:    GRANT SELECT, INSERT, UPDATE, DELETE ON
+tests/integration/database/002_prepare_local_roles.sql:419:    TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:427:    GRANT SELECT, INSERT, UPDATE, DELETE ON
+tests/integration/database/002_prepare_local_roles.sql:429:    TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:437:    GRANT SELECT, INSERT, UPDATE, DELETE ON
+tests/integration/database/002_prepare_local_roles.sql:439:    TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:447:    GRANT SELECT, INSERT, UPDATE, DELETE ON
+tests/integration/database/002_prepare_local_roles.sql:449:    TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:457:    GRANT SELECT, INSERT, UPDATE, DELETE ON
+tests/integration/database/002_prepare_local_roles.sql:459:    TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:467:    GRANT SELECT, INSERT, UPDATE, DELETE ON
+tests/integration/database/002_prepare_local_roles.sql:469:    TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:477:    GRANT SELECT, INSERT, UPDATE, DELETE ON
+tests/integration/database/002_prepare_local_roles.sql:479:    TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:487:    GRANT SELECT, INSERT, UPDATE, DELETE ON
+tests/integration/database/002_prepare_local_roles.sql:489:    TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:497:    GRANT SELECT, INSERT, UPDATE, DELETE ON
+tests/integration/database/002_prepare_local_roles.sql:499:    TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:507:    GRANT SELECT, INSERT, UPDATE, DELETE ON
+tests/integration/database/002_prepare_local_roles.sql:509:    TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:517:    GRANT SELECT, INSERT, UPDATE, DELETE ON
+tests/integration/database/002_prepare_local_roles.sql:519:    TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:527:    GRANT SELECT, INSERT, UPDATE, DELETE ON
+tests/integration/database/002_prepare_local_roles.sql:529:    TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:537:    GRANT SELECT, INSERT, UPDATE, DELETE ON
+tests/integration/database/002_prepare_local_roles.sql:540:    TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:552:    GRANT SELECT, INSERT, UPDATE, DELETE ON
+tests/integration/database/002_prepare_local_roles.sql:556:    TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:564:    GRANT SELECT, INSERT, UPDATE, DELETE ON
+tests/integration/database/002_prepare_local_roles.sql:566:    TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:574:    GRANT SELECT, INSERT, UPDATE, DELETE ON
+tests/integration/database/002_prepare_local_roles.sql:576:    TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:579:    GRANT SELECT, INSERT, DELETE ON
+tests/integration/database/002_prepare_local_roles.sql:581:    TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:593:    GRANT SELECT, INSERT, UPDATE, DELETE ON
+tests/integration/database/002_prepare_local_roles.sql:596:    TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:610:    GRANT SELECT, INSERT, UPDATE, DELETE ON
+tests/integration/database/002_prepare_local_roles.sql:616:    TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:626:    GRANT SELECT, INSERT, UPDATE, DELETE ON
+tests/integration/database/002_prepare_local_roles.sql:631:    TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:641:    GRANT SELECT, INSERT, UPDATE, DELETE ON
+tests/integration/database/002_prepare_local_roles.sql:646:    TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:650:    GRANT SELECT, INSERT ON
+tests/integration/database/002_prepare_local_roles.sql:652:    TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:662:    GRANT SELECT, INSERT, UPDATE, DELETE ON
+tests/integration/database/002_prepare_local_roles.sql:667:    TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:673:-- runtime traffic (server-recorded impression/click events) -- application
+tests/integration/database/002_prepare_local_roles.sql:675:-- runtime path may alter or delete evidence, matching the audit_logs
+tests/integration/database/002_prepare_local_roles.sql:682:    GRANT SELECT, INSERT, UPDATE, DELETE ON
+tests/integration/database/002_prepare_local_roles.sql:687:    TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:691:    GRANT SELECT, INSERT ON campaign_attributions TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:692:    REVOKE UPDATE, DELETE ON campaign_attributions FROM travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:705:    GRANT SELECT, INSERT, UPDATE ON platform_users TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:706:    GRANT SELECT, INSERT ON platform_user_audit TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:710:    GRANT SELECT, INSERT, UPDATE ON platform_sessions TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:714:    GRANT SELECT, INSERT, UPDATE ON customer_sessions TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:718:    GRANT SELECT, INSERT, DELETE ON agent_area_grants TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:723:    GRANT SELECT, INSERT, DELETE ON user_permission_overrides TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:728:    GRANT SELECT, INSERT ON agency_revenue_scopes, agency_revenue_rule_versions TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:729:    GRANT SELECT, INSERT, UPDATE ON agency_revenue_entries TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:733:  IF to_regclass('public.sale_import_batches') IS NOT NULL THEN
+tests/integration/database/002_prepare_local_roles.sql:734:    GRANT SELECT, INSERT ON sale_import_batches, sale_import_keys TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:739:    GRANT SELECT, INSERT, UPDATE ON dashboard_layouts TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:744:    GRANT SELECT, INSERT, UPDATE ON customer_field_settings TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:753:    GRANT USAGE ON SEQUENCE customer_protocol_seq TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:756:    GRANT USAGE ON SEQUENCE enrollment_protocol_seq TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:760:    GRANT SELECT, INSERT, UPDATE, DELETE ON excursions TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:763:    GRANT SELECT, INSERT, UPDATE, DELETE ON excursion_customers TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:766:    GRANT SELECT, INSERT, UPDATE, DELETE ON excursion_departures TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:769:    GRANT SELECT, INSERT, UPDATE, DELETE ON pescador_sources TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:772:    GRANT SELECT, INSERT, UPDATE, DELETE ON pescador_searches TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:775:    GRANT SELECT, INSERT, UPDATE, DELETE ON pescador_search_results TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:778:    GRANT SELECT, INSERT, UPDATE, DELETE ON trip_photos TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:782:    GRANT SELECT, INSERT, UPDATE, DELETE ON import_jobs TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:785:    GRANT SELECT, INSERT, UPDATE, DELETE ON import_mapping_templates TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:789:    GRANT SELECT, INSERT, UPDATE, DELETE ON agency_communications TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:799:-- themselves never included a GRANT either (unlike most other
+tests/integration/database/002_prepare_local_roles.sql:809:    GRANT SELECT, INSERT, UPDATE, DELETE ON subscriber_tenants TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:812:    GRANT SELECT, INSERT, UPDATE, DELETE ON plans, entitlements TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:815:    GRANT SELECT, INSERT, UPDATE, DELETE ON subscriptions TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:818:    GRANT SELECT, INSERT, UPDATE, DELETE ON courtesy_accounts TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:821:    GRANT SELECT, INSERT, UPDATE, DELETE ON
+tests/integration/database/002_prepare_local_roles.sql:827:    TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:830:    GRANT SELECT, INSERT, UPDATE, DELETE ON support_cases TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:833:    GRANT SELECT, INSERT, UPDATE, DELETE ON
+tests/integration/database/002_prepare_local_roles.sql:837:    TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:840:    GRANT SELECT, INSERT, UPDATE, DELETE ON feature_flags TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:843:    GRANT SELECT, INSERT, UPDATE, DELETE ON
+tests/integration/database/002_prepare_local_roles.sql:847:    TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:850:    GRANT SELECT, INSERT, UPDATE, DELETE ON
+tests/integration/database/002_prepare_local_roles.sql:853:    TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:856:    GRANT SELECT, INSERT, UPDATE, DELETE ON platform_settings TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:859:    GRANT SELECT, INSERT, UPDATE, DELETE ON
+tests/integration/database/002_prepare_local_roles.sql:868:    TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:869:    GRANT SELECT, INSERT ON platform_landing_publications TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:870:    REVOKE UPDATE, DELETE ON platform_landing_publications FROM travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:876:    GRANT SELECT, INSERT ON subscriber_tenant_audit TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:877:    REVOKE UPDATE, DELETE ON subscriber_tenant_audit FROM travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:880:    GRANT SELECT, INSERT ON entitlement_changes TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:881:    REVOKE UPDATE, DELETE ON entitlement_changes FROM travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:884:    GRANT SELECT, INSERT ON subscription_state_changes TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:885:    REVOKE UPDATE, DELETE ON subscription_state_changes FROM travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:888:    GRANT SELECT, INSERT ON courtesy_account_audit TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:889:    REVOKE UPDATE, DELETE ON courtesy_account_audit FROM travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:892:    GRANT SELECT, INSERT ON support_access_log TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:893:    REVOKE UPDATE, DELETE ON support_access_log FROM travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:896:    GRANT SELECT, INSERT ON billing_webhook_audit TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:897:    REVOKE UPDATE, DELETE ON billing_webhook_audit FROM travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:900:    GRANT SELECT, INSERT ON feature_flag_audit TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:901:    REVOKE UPDATE, DELETE ON feature_flag_audit FROM travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:904:    GRANT SELECT, INSERT ON campaign_audit TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:905:    REVOKE UPDATE, DELETE ON campaign_audit FROM travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:908:    GRANT SELECT, INSERT ON platform_audit_logs TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:909:    REVOKE UPDATE, DELETE ON platform_audit_logs FROM travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:912:    GRANT SELECT, INSERT ON login_audit TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:913:    REVOKE UPDATE, DELETE ON login_audit FROM travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:916:    GRANT SELECT, INSERT ON sensitive_operations_log TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:917:    REVOKE UPDATE, DELETE ON sensitive_operations_log FROM travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:922:GRANT EXECUTE ON FUNCTION current_agency_id() TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:923:GRANT EXECUTE ON FUNCTION current_user_id() TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:924:GRANT EXECUTE ON FUNCTION set_tenant_context(TEXT, TEXT) TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:925:GRANT EXECUTE ON FUNCTION clear_tenant_context() TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:926:-- 079_platform_agency_search.sql's own GRANT EXECUTE is wiped out by the
+tests/integration/database/002_prepare_local_roles.sql:934:    GRANT EXECUTE ON FUNCTION platform_search_agencies(TEXT) TO travel_app_runtime_local;
+tests/integration/database/002_prepare_local_roles.sql:939:-- F-06: platform role = superset of runtime, then strip platform
+tests/integration/database/002_prepare_local_roles.sql:940:-- tables from the runtime role. Must run AFTER every grant above so
+tests/integration/database/002_prepare_local_roles.sql:943:GRANT USAGE ON SCHEMA public TO travel_app_platform_local;
+tests/integration/database/002_prepare_local_roles.sql:952:      AND grantee = 'travel_app_runtime_local'
+tests/integration/database/002_prepare_local_roles.sql:955:    EXECUTE format('GRANT %s ON %I TO travel_app_platform_local', g.privilege_type, g.table_name);
+tests/integration/database/002_prepare_local_roles.sql:963:      AND grantee = 'travel_app_runtime_local'
+tests/integration/database/002_prepare_local_roles.sql:966:    EXECUTE format('GRANT %s ON SEQUENCE %I TO travel_app_platform_local', g.privilege_type, g.object_name);
+tests/integration/database/002_prepare_local_roles.sql:970:GRANT EXECUTE ON FUNCTION current_agency_id() TO travel_app_platform_local;
+tests/integration/database/002_prepare_local_roles.sql:971:GRANT EXECUTE ON FUNCTION current_user_id() TO travel_app_platform_local;
+tests/integration/database/002_prepare_local_roles.sql:972:GRANT EXECUTE ON FUNCTION set_tenant_context(TEXT, TEXT) TO travel_app_platform_local;
+tests/integration/database/002_prepare_local_roles.sql:973:GRANT EXECUTE ON FUNCTION clear_tenant_context() TO travel_app_platform_local;
+tests/integration/database/002_prepare_local_roles.sql:979:    GRANT EXECUTE ON FUNCTION platform_search_agencies(TEXT) TO travel_app_platform_local;
+tests/integration/database/002_prepare_local_roles.sql:985:-- runtime role so tenant-path SQL can never read platform credentials.
+tests/integration/database/002_prepare_local_roles.sql:989:-- grant blocks above -- an unguarded GRANT on a missing relation would
+tests/integration/database/002_prepare_local_roles.sql:1045:      EXECUTE format('GRANT SELECT, INSERT, UPDATE, DELETE ON %I TO travel_app_platform_local', t);
+tests/integration/database/002_prepare_local_roles.sql:1046:      EXECUTE format('REVOKE ALL ON %I FROM travel_app_runtime_local', t);
+tests/integration/database/002_prepare_local_roles.sql:1052:      EXECUTE format('GRANT SELECT, INSERT ON %I TO travel_app_platform_local', t);
+tests/integration/database/002_prepare_local_roles.sql:1054:      EXECUTE format('REVOKE ALL ON %I FROM travel_app_runtime_local', t);
+tests/integration/database/002_prepare_local_roles.sql:1061:WHERE rolname IN ('travel_app_runtime_local', 'travel_app_platform_local')
+services/api/src/database.ts:24:// context (getTenantContext()). This runtime instead takes an EXPLICIT
+services/api/src/database.ts:107: * Dual-pool runtime (F-06): tenant operations run on the runtime role
+services/api/tests/helpers/disposable-postgres.ts:23:  runtimeUser: 'travel_app_runtime_local',
+services/api/tests/helpers/disposable-postgres.ts:24:  runtimeSecret: 'travel_app_runtime_local_password',
+services/api/tests/helpers/disposable-postgres.ts:69:  runtimePool: Pool;
+services/api/tests/helpers/disposable-postgres.ts:83:  const runtimePool = new Pool({ ...poolBase, user: disposableDb.runtimeUser, [secretKey]: disposableDb.runtimeSecret });
+services/api/tests/helpers/disposable-postgres.ts:93:    runtimePool,
+services/api/tests/helpers/disposable-postgres.ts:101:      await runtimePool.end();
+services/api/src/errors.ts:73:  app.setErrorHandler((error, request, reply) => {
+services/api/src/errors.ts:83:    // logged at error, with the error message to make it diagnosable.
+services/api/src/errors.ts:89:      ...(status >= 500 && error instanceof Error ? { errorMessage: error.message.slice(0, 500) } : {}),
+services/api/src/errors.ts:103:    return { status: 401, body: { error: error.message, code: error.code } };
+services/api/src/errors.ts:107:    return { status: 403, body: { error: error.message, code: error.code } };
+services/api/src/errors.ts:114:  // Fastify's built-in body-size guard (from the explicit `bodyLimit`
+services/api/src/errors.ts:136:    return { status: 409, body: { error: error.message, code: error.code, missing: error.missing } };
+services/api/src/errors.ts:142:      body: { error: error.message, code: error.code, ...(error.fieldKey !== undefined ? { field: error.fieldKey } : {}) },
+services/api/src/errors.ts:151:    return { status: error.statusCode, body: { error: error.message, code: error.code } };
+services/api/src/app.ts:84:import { registerSalesImportRoutes } from './routes/sales-import';
+services/api/src/app.ts:150:  rateLimit?: RateLimitOptions;
+services/api/src/app.ts:159:  bodyLimitBytes?: number;
+services/api/src/app.ts:188:    bodyLimit: options.bodyLimitBytes ?? DEFAULT_BODY_LIMIT_BYTES,
+services/api/src/app.ts:276:  const rateLimits = createRateLimitHooks(options.rateLimit);
+services/api/src/app.ts:277:  const protectedHooks = [authenticate, establishTenant, rateLimits.onTrustedTenant];
+services/api/src/app.ts:278:  app.addHook('onRequest', rateLimits.onRequest);
+services/api/src/app.ts:289:  const platformProtectedHooks = [platformAuthenticate, rateLimits.onTrustedPlatformPrincipal];
+services/api/src/app.ts:302:  const customerHooks = [customerAuthenticate, establishCustomerTenant, rateLimits.onTrustedTenant];
+services/api/src/app.ts:316:  const partnerHooks = [partnerAuthenticate, establishPartnerTenant, rateLimits.onTrustedTenant];
+services/api/src/app.ts:398:  registerSalesImportRoutes(app, { database: options.database, protectedHooks });
+services/api/src/app.ts:518:  const onRequest = function rateLimitHook(
+services/api/src/app.ts:530:        rateLimitClass: classifyRateLimitRequest(request.method, request.url),
+services/api/src/app.ts:564:        rateLimitClass: classifyRateLimitRequest(request.method, request.url),
+services/api/src/app.ts:604:        rateLimitClass: classifyRateLimitRequest(request.method, request.url),
+rg: infrastructure/migrations/0*.sql: A sintaxe do nome do arquivo, do nome do diretório ou do rótulo do volume está incorreta. (os error 123)
+rg: infrastructure/migrations/10*.sql: A sintaxe do nome do arquivo, do nome do diretório ou do rótulo do volume está incorreta. (os error 123)
+infrastructure/migrations/001_initial_schema.sql:123:  commission NUMERIC(5, 2) NOT NULL DEFAULT 0,
+infrastructure/migrations/001_initial_schema.sql:186:  budget NUMERIC(10, 2),
+infrastructure/migrations/001_initial_schema.sql:213:  price NUMERIC(10, 2) NOT NULL,
+infrastructure/migrations/001_initial_schema.sql:237:  proposed_price NUMERIC(10, 2) NOT NULL,
+infrastructure/migrations/001_initial_schema.sql:238:  discount NUMERIC(10, 2) NOT NULL DEFAULT 0,
+infrastructure/migrations/001_initial_schema.sql:239:  total NUMERIC(10, 2) NOT NULL,
+infrastructure/migrations/001_initial_schema.sql:267:CREATE TABLE sales (
+infrastructure/migrations/001_initial_schema.sql:274:  amount NUMERIC(10, 2) NOT NULL,
+infrastructure/migrations/001_initial_schema.sql:275:  discount NUMERIC(10, 2) NOT NULL DEFAULT 0,
+infrastructure/migrations/001_initial_schema.sql:276:  total NUMERIC(10, 2) NOT NULL,
+infrastructure/migrations/001_initial_schema.sql:310:  amount NUMERIC(10, 2) NOT NULL,
+infrastructure/migrations/001_initial_schema.sql:311:  percentage NUMERIC(5, 2),
+1: /**
+2:  * Sales import planner (IMP-01) -- pure: no I/O. Turns parsed rows into a plan
+3:  * (dry run) that the service later executes. Rules:
+4:  *  - natural key = `<source system>|<external_ref>`: a sale is never created twice;
+5:  *  - A2: category/supplier/destination missing or unknown do NOT reject; the sale
+6:  *    is imported and reported as "a completar";
+7:  *  - the customer is linked by CPF and must already exist (never created silently);
+8:  *  - an import never creates commissions or receivables (historical sales only).
+9:  */
+10: import { createHash } from 'node:crypto';
+11: 
+12: export const MAX_IMPORT_ROWS = 2000;
+13: 
+14: export const IMPORT_COLUMNS = [
+15:   'external_ref', 'sale_date', 'customer_cpf', 'category', 'supplier', 'total', 'discount',
+16:   'origin', 'destination', 'travel_start_date', 'notes',
+17: ] as const;
+18: 
+19: export type SalesImportRow = Partial<Record<(typeof IMPORT_COLUMNS)[number], string>>;
+20: 
+21: export interface SalesImportLookups {
+22:   /** digits-only CPF -> customer id */
+23:   customersByCpf: ReadonlyMap<string, string>;
+24:   /** normalized name -> category id */
+25:   categoriesByName: ReadonlyMap<string, string>;
+26:   suppliersByName: ReadonlyMap<string, string>;
+27:   /** natural keys that already exist (previous imports) */
+28:   existingKeys: ReadonlySet<string>;
+29:   /** civil date, to refuse future sale dates */
+30:   today: string;
+31: }
+32: 
+33: export interface PlannedRow {
+34:   row: number;
+35:   status: 'NEW' | 'ALREADY_IMPORTED' | 'DUPLICATE_IN_FILE' | 'REJECTED';
+36:   naturalKey: string;
+37:   customerId: string | null;
+38:   categoryId: string | null;
+39:   supplierId: string | null;
+40:   saleDate: string | null;
+41:   total: number;
+42:   discount: number;
+43:   origin: string | null;
+44:   destination: string | null;
+45:   travelStartDate: string | null;
+46:   notes: string | null;
+47:   toComplete: Array<'category' | 'supplier' | 'destination'>;
+48:   errors: Array<{ column: string; message: string }>;
+49: }
+50: 
+51: export interface SalesImportPlan {
+52:   sourceSystem: string;
+53:   rows: PlannedRow[];
+54:   summary: { total: number; new: number; alreadyImported: number; duplicateInFile: number; rejected: number; toComplete: number };
+55: }
+56: 
+57: export const normalizeName = (value: string | undefined): string =>
+58:   (value ?? '').normalize('NFD').replace(/[�?-��]/g, '').trim().toLowerCase();
+59: 
+60: function validCpf(digits: string): boolean {
+61:   if (digits.length !== 11 || /^(\d)\1{10}$/.test(digits)) return false;
+62:   const check = (length: number) => {
+63:     let sum = 0;
+64:     for (let i = 0; i < length; i++) sum += Number(digits[i]) * (length + 1 - i);
+65:     const rest = (sum * 10) % 11;
+66:     return rest === 10 ? 0 : rest;
+67:   };
+68:   return check(9) === Number(digits[9]) && check(10) === Number(digits[10]);
+69: }
+70: 
+71: export function normalizeCpf(value: string | undefined): string | null {
+72:   const digits = (value ?? '').replace(/\D/g, '');
+73:   return digits.length === 11 ? digits : null;
+74: }
+75: 
+76: function parseMoney(value: string | undefined): number | null {
+77:   if (value === undefined) return null;
+78:   let text = value.replace(/[^\d.,-]/g, '').trim();
+79:   if (text === '' || text === '-') return null;
+80:   if (text.includes(',')) text = text.replace(/\./g, '').replace(',', '.');
+81:   const number = Number(text);
+82:   if (!Number.isFinite(number)) return null;
+83:   // half-up to cents, decimal safe enough for BRL magnitudes
+84:   return Math.round((number + Number.EPSILON) * 100 + (number >= 0 ? 1e-9 : -1e-9)) / 100;
+85: }
+86: 
+87: const isCivilDate = (value: string | undefined): value is string => {
+88:   if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+89:   const date = new Date(`${value}T00:00:00.000Z`);
+90:   return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+91: };
+92: 
+93: export function planSalesImport(
+94:   rows: readonly SalesImportRow[],
+95:   lookups: SalesImportLookups,
+96:   sourceSystem: string,
+97: ): SalesImportPlan {
+98:   if (rows.length > MAX_IMPORT_ROWS) throw new RangeError(`A importa��ǜo aceita no mǭximo ${MAX_IMPORT_ROWS} linhas`);
+99:   const allowed = new Set<string>(IMPORT_COLUMNS);
+100:   for (const row of rows) {
+101:     for (const column of Object.keys(row)) if (!allowed.has(column)) throw new RangeError(`Unknown column "${column}"`);
+102:   }
+103:   const seen = new Set<string>();
+104:   const planned: PlannedRow[] = rows.map((raw, index) => {
+105:     const errors: PlannedRow['errors'] = [];
+106:     const ref = (raw.external_ref ?? '').trim();
+107:     if (ref === '' || ref.length > 100) errors.push({ column: 'external_ref', message: 'Informe o nǧmero da venda de origem (atǸ 100 caracteres)' });
+108:     const naturalKey = `${sourceSystem}|${ref}`;
+109: 
+110:     const saleDate = raw.sale_date?.trim();
+111:     if (!isCivilDate(saleDate)) errors.push({ column: 'sale_date', message: 'Data da venda invǭlida (use AAAA-MM-DD)' });
+112:     else if (saleDate > lookups.today) errors.push({ column: 'sale_date', message: 'A data da venda nǜo pode ser futura' });
+113: 
+114:     const cpf = normalizeCpf(raw.customer_cpf);
+115:     let customerId: string | null = null;
+116:     if (!cpf || !validCpf(cpf)) errors.push({ column: 'customer_cpf', message: 'CPF do cliente invǭlido' });
+117:     else {
+118:       customerId = lookups.customersByCpf.get(cpf) ?? null;
+119:       if (!customerId) errors.push({ column: 'customer_cpf', message: 'Cliente nǜo encontrado para este CPF (cadastre antes de importar)' });
+120:     }
+121: 
+122:     const total = parseMoney(raw.total);
+123:     if (total === null || total <= 0) errors.push({ column: 'total', message: 'Valor total invǭlido' });
+124:     const discountText = raw.discount?.trim();
+125:     const discount = discountText ? parseMoney(discountText) : 0;
+126:     if (discount === null || discount < 0) errors.push({ column: 'discount', message: 'Desconto invǭlido' });
+127:     else if (total !== null && total > 0 && discount > total) errors.push({ column: 'discount', message: 'O desconto nǜo pode exceder o total' });
+128: 
+129:     const travel = raw.travel_start_date?.trim();
+130:     if (travel && !isCivilDate(travel)) errors.push({ column: 'travel_start_date', message: 'Data de embarque invǭlida' });
+131: 
+132:     const category = normalizeName(raw.category);
+133:     const supplier = normalizeName(raw.supplier);
+134:     const categoryId = category ? (lookups.categoriesByName.get(category) ?? null) : null;
+135:     const supplierId = supplier ? (lookups.suppliersByName.get(supplier) ?? null) : null;
+136:     const destination = raw.destination?.trim() || null;
+137:     const toComplete: PlannedRow['toComplete'] = [];
+138:     if (!categoryId) toComplete.push('category');
+139:     if (!supplierId) toComplete.push('supplier');
+140:     if (!destination) toComplete.push('destination');
+141: 
+142:     let status: PlannedRow['status'] = 'NEW';
+143:     if (errors.length > 0) status = 'REJECTED';
+144:     else if (lookups.existingKeys.has(naturalKey)) status = 'ALREADY_IMPORTED';
+145:     else if (seen.has(naturalKey)) status = 'DUPLICATE_IN_FILE';
+146:     if (status === 'NEW') seen.add(naturalKey);
+147: 
+148:     return {
+149:       row: index + 1,
+150:       status,
+151:       naturalKey,
+152:       customerId,
+153:       categoryId,
+154:       supplierId,
+155:       saleDate: isCivilDate(saleDate) ? saleDate : null,
+156:       total: total ?? 0,
+157:       discount: discount ?? 0,
+158:       origin: raw.origin?.trim() || null,
+159:       destination,
+160:       travelStartDate: travel && isCivilDate(travel) ? travel : null,
+161:       notes: raw.notes?.trim() || null,
+162:       toComplete: status === 'NEW' ? toComplete : [],
+163:       errors,
+164:     };
+165:   });
+166:   const count = (status: PlannedRow['status']) => planned.filter((row) => row.status === status).length;
+167:   return {
+168:     sourceSystem,
+169:     rows: planned,
+170:     summary: {
+171:       total: planned.length,
+172:       new: count('NEW'),
+173:       alreadyImported: count('ALREADY_IMPORTED'),
+174:       duplicateInFile: count('DUPLICATE_IN_FILE'),
+175:       rejected: count('REJECTED'),
+176:       toComplete: planned.filter((row) => row.status === 'NEW' && row.toComplete.length > 0).length,
+177:     },
+178:   };
+179: }
+180: 
+181: const canonical = (value: unknown): string => {
+182:   if (Array.isArray(value)) return `[${value.map(canonical).join(',')}]`;
+183:   if (value && typeof value === 'object') {
+184:     return `{${Object.entries(value as Record<string, unknown>).sort(([a], [b]) => a.localeCompare(b)).map(([k, v]) => `${JSON.stringify(k)}:${canonical(v)}`).join(',')}}`;
+185:   }
+186:   return JSON.stringify(value);
+187: };
+188: 
+189: /** Idempotency by content: same rows (any key order) + same source system = same hash. */
+190: export function contentHash(rows: readonly SalesImportRow[], sourceSystem: string): string {
+191:   return createHash('sha256').update(canonical({ sourceSystem, rows })).digest('hex');
+192: }
+import type { Pool, PoolClient, QueryResult, QueryResultRow } from 'pg';
+import { getTenantContext } from '../../../packages/domain/tenant-context';
+
+export interface TenantTransactionClient {
+  query<T extends QueryResultRow = QueryResultRow>(
+    text: string,
+    values?: readonly unknown[],
+  ): Promise<QueryResult<T>>;
+}
+
+export interface DatabaseRuntime {
+  withTenantTransaction<T>(
+    operation: (client: TenantTransactionClient) => Promise<T>,
+  ): Promise<T>;
+  withPlatformTransaction<T>(
+    operation: (client: TenantTransactionClient) => Promise<T>,
+  ): Promise<T>;
+}
+
+// ============================================================
+// PLATFORM-SCOPED RUNTIME
+// Deliberately separate from DatabaseRuntime.withTenantTransaction(),
+// which always pulls agency_id/user_id from the AMBIENT request tenant
+// context (getTenantContext()). This runtime instead takes an EXPLICIT
+// target agencyId supplied by the caller, so it can only ever be reached
+// from a narrow, explicitly platform-scoped code path (see
+// entitlements.ts / the /platform/entitlements route) -- never from
+// ordinary agency-authenticated request handling. See entitlements.ts
+// for the full "why" (Offer & Growth Engine batch, section H: there is
+// no real platform-admin identity in this codebase yet -- this is a
+// documented temporary stopgap, not a real security boundary).
+// ============================================================
+
+export interface PlatformDatabaseRuntime {
+  withAgencyTransaction<T>(
+    targetAgencyId: string,
+    actorLabel: string | null,
+    operation: (client: TenantTransactionClient) => Promise<T>,
+  ): Promise<T>;
+  /**
+   * Runs `operation` with no tenant context, but with the given Postgres
+   * GUC set to `lookupValue` for the duration of the transaction. Exists
+   * for the "resolve a row by a caller-supplied opaque value before any
+   * tenant context can be established" pattern used throughout this
+   * codebase (invitations' app.invitation_lookup_hash, enrollment's
+   * app.enrollment_lookup_hash, and local-auth.ts's session/password-reset
+   * token lookups and agency-slug resolution) -- the matching RLS policy
+   * on the target table only ever exposes the single row whose column
+   * equals this session-local value, never a scan.
+   */
+  withPublicLookupTransaction<T>(
+    gucName: string,
+    lookupValue: string,
+    operation: (client: TenantTransactionClient) => Promise<T>,
+  ): Promise<T>;
+}
+
+export function createPlatformDatabaseRuntime(pool: Pool): PlatformDatabaseRuntime {
+  return {
+    async withAgencyTransaction<T>(
+      targetAgencyId: string,
+      actorLabel: string | null,
+      operation: (client: TenantTransactionClient) => Promise<T>,
+    ): Promise<T> {
+      const client = await pool.connect();
+
+      try {
+        await client.query('BEGIN');
+        await client.query('SELECT set_tenant_context($1, $2)', [targetAgencyId, actorLabel]);
+
+        const result = await operation(createTransactionClient(client));
+        await client.query('COMMIT');
+        return result;
+      } catch (error: unknown) {
+        await rollbackQuietly(client);
+        throw error;
+      } finally {
+        client.release();
+      }
+    },
+
+    async withPublicLookupTransaction<T>(
+      gucName: string,
+      lookupValue: string,
+      operation: (client: TenantTransactionClient) => Promise<T>,
+    ): Promise<T> {
+      const client = await pool.connect();
+
+      try {
+        await client.query('BEGIN');
+        await client.query('SELECT set_config($1, $2, true)', [gucName, lookupValue]);
+
+        const result = await operation(createTransactionClient(client));
+        await client.query('COMMIT');
+        return result;
+      } catch (error: unknown) {
+        await rollbackQuietly(client);
+        throw error;
+      } finally {
+        client.release();
+      }
+    },
+  };
+}
+
+/**
+ * Dual-pool runtime (F-06): tenant operations run on the runtime role
+ * (RLS-backed, no platform-table grants); platform operations run on the
+ * platform role (superset). `platformPool` defaults to `tenantPool` so
+ * single-pool unit/integration tests that only exercise tenant paths keep
+ * working unchanged �?" production and any suite that hits platform tables
+ * must pass a real platform-role pool (see server.ts / PLATFORM_DATABASE_URL).
+ */
+export function createDatabaseRuntime(tenantPool: Pool, platformPool: Pool = tenantPool): DatabaseRuntime {
+  return {
+    async withTenantTransaction<T>(
+      operation: (client: TenantTransactionClient) => Promise<T>,
+    ): Promise<T> {
+      const context = getTenantContext();
+      const client = await tenantPool.connect();
+
+      try {
+        await client.query('BEGIN');
+        await client.query('SELECT set_tenant_context($1, $2)', [
+          context.agencyId,
+          context.userId,
+        ]);
+
+        const result = await operation(createTransactionClient(client));
+        await client.query('COMMIT');
+        return result;
+      } catch (error: unknown) {
+        await rollbackQuietly(client);
+        throw error;
+      } finally {
+        client.release();
+      }
+    },
+    async withPlatformTransaction<T>(
+      operation: (client: TenantTransactionClient) => Promise<T>,
+    ): Promise<T> {
+      const client = await platformPool.connect();
+
+      try {
+        await client.query('BEGIN');
+        const result = await operation(createTransactionClient(client));
+        await client.query('COMMIT');
+        return result;
+      } catch (error: unknown) {
+        await rollbackQuietly(client);
+        throw error;
+      } finally {
+        client.release();
+      }
+    },
+  };
+}
+
+function createTransactionClient(client: PoolClient): TenantTransactionClient {
+  return {
+    query<T extends QueryResultRow = QueryResultRow>(
+      text: string,
+      values?: readonly unknown[],
+    ): Promise<QueryResult<T>> {
+      return client.query<T>(text, values ? [...values] : undefined);
+    },
+  };
+}
+
+async function rollbackQuietly(client: PoolClient): Promise<void> {
+  try {
+    await client.query('ROLLBACK');
+  } catch {
+    // The original error is more useful than a rollback failure.
+  }
+}
+
+hook: PostToolUse
+hook: PostToolUse Completed
+codex
+Identifiquei falhas na preservação da chave natural e na exigência de dry-run prévio. Estou verificando também os limites monetários e a concorrência entre arquivos diferentes; os testes existentes cobrem concorrência apenas para conteúdo idêntico.
+
+hook: PreToolUse
+hook: PreToolUse Completed
+exec
+"C:\\Users\\Ugo Alencar\\AppData\\Local\\Microsoft\\WindowsApps\\pwsh.exe" -Command "Get-Content services/api/src/errors.ts | Select-Object -Skip 85 -First 90; Get-Content services/api/tests/helpers/disposable-postgres.ts | Select-Object -Skip 110 -First 100; rg -n 'sale_import|DEFAULT PRIVILEGES' infrastructure scripts services/api/src -g '*.sql' -g '*.ps1' -g '*.ts'; rg -n 'ALTER.*sales|ALTER.*sale_items|NUMERIC\\(10, 2\\)|NUMERIC\\(10,2\\)|VARCHAR|CHECK.*total|CHECK.*discount' infrastructure/migrations -g '*.sql' | Select-Object -Last 45; rg -n 'sanitize|SALES_IMPORTED|metadata|throw' services/api/src/audit-log.ts; node --version" in D:\travel-platform
+ exited 1 in 2762ms:
+      errorName: getErrorName(error),
+      errorCode,
+      status,
+      ...(status >= 500 && error instanceof Error ? { errorMessage: error.message.slice(0, 500) } : {}),
+    };
+    if (status >= 500) {
+      request.log.error(logFields, 'API request failed');
+    } else {
+      request.log.warn(logFields, 'API request rejected');
+    }
+
+    return reply.code(status).send(body);
+  });
+}
+
+function resolveErrorResponse(error: unknown): ErrorResponse {
+  if (error instanceof UnauthorizedError) {
+    return { status: 401, body: { error: error.message, code: error.code } };
+  }
+
+  if (error instanceof TenantError) {
+    return { status: 403, body: { error: error.message, code: error.code } };
+  }
+
+  if (error instanceof CorsOriginNotAllowedError) {
+    return { status: error.statusCode, body: { error: 'Origin not allowed', code: error.code } };
+  }
+
+  // Fastify's built-in body-size guard (from the explicit `bodyLimit`
+  // configured in app.ts) -- surface it as a clean 413 rather than
+  // falling through to the generic 500 branch below.
+  if (isFastifyErrorWithCode(error, 'FST_ERR_CTP_BODY_TOO_LARGE')) {
+    return { status: 413, body: { error: 'Request body too large', code: 'BODY_TOO_LARGE' } };
+  }
+
+  // Any other Fastify request-parsing error (empty or malformed JSON body,
+  // unsupported content type, ...) is a client error carrying its own 4xx
+  // statusCode: answer with that status and a generic message instead of
+  // the 500 below, without echoing Fastify's internal message.
+  const clientErrorStatus = getFastifyClientErrorStatus(error);
+  if (clientErrorStatus !== undefined) {
+    return {
+      status: clientErrorStatus,
+      body: clientErrorStatus === 415
+        ? { error: 'Unsupported content type', code: 'UNSUPPORTED_MEDIA_TYPE' }
+        : { error: 'Invalid request body', code: 'INVALID_REQUEST_BODY' },
+    };
+  }
+
+  if (error instanceof ReleasePolicyMissingError) {
+    return { status: 409, body: { error: error.message, code: error.code, missing: error.missing } };
+  }
+
+  if (error instanceof FormFieldError) {
+    return {
+      status: error.statusCode,
+      body: { error: error.message, code: error.code, ...(error.fieldKey !== undefined ? { field: error.fieldKey } : {}) },
+    };
+  }
+
+  if (
+    error instanceof ValidationError ||
+    error instanceof NotFoundError ||
+    error instanceof ConflictError
+  ) {
+    return { status: error.statusCode, body: { error: error.message, code: error.code } };
+  }
+
+  return { status: 500, body: { error: 'Internal server error', code: 'INTERNAL_ERROR' } };
+}
+
+function isFastifyErrorWithCode(error: unknown, code: string): boolean {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    (error as { code?: unknown }).code === code
+  );
+}
+
+function getFastifyClientErrorStatus(error: unknown): number | undefined {
+  if (typeof error !== 'object' || error === null) return undefined;
+  const { code, statusCode } = error as { code?: unknown; statusCode?: unknown };
+  if (typeof code !== 'string' || !code.startsWith('FST_')) return undefined;
+  if (typeof statusCode !== 'number' || statusCode < 400 || statusCode > 499) return undefined;
+  return statusCode;
+}
+
+function getErrorName(error: unknown): string {
+  return error instanceof Error ? error.name : 'UnknownError';
+infrastructure\migrations\096_supabase_data_api_hardening.sql:6:-- ALTER DEFAULT PRIVILEGES for role postgres). Those roles are what the
+infrastructure\migrations\096_supabase_data_api_hardening.sql:40:-- Future objects: ALTER DEFAULT PRIVILEGES applies to the role running the
+infrastructure\migrations\096_supabase_data_api_hardening.sql:57:      EXECUTE format('ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE ALL ON TABLES FROM %I', api_role);
+infrastructure\migrations\096_supabase_data_api_hardening.sql:58:      EXECUTE format('ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE ALL ON SEQUENCES FROM %I', api_role);
+infrastructure\migrations\096_supabase_data_api_hardening.sql:59:      EXECUTE format('ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE ALL ON FUNCTIONS FROM %I', api_role);
+infrastructure\migrations\110_sales_import.sql:5:--   * sale_import_batches: uma linha por conteúdo importado (hash do conteúdo +
+infrastructure\migrations\110_sales_import.sql:7:--   * sale_import_keys: chave natural (sistema|número de origem) -> venda criada:
+infrastructure\migrations\110_sales_import.sql:13:CREATE TABLE sale_import_batches (
+infrastructure\migrations\110_sales_import.sql:21:  CONSTRAINT sale_import_batches_agency_id_key UNIQUE (agency_id, id),
+infrastructure\migrations\110_sales_import.sql:22:  CONSTRAINT sale_import_batches_content_uq UNIQUE (agency_id, content_hash)
+infrastructure\migrations\110_sales_import.sql:25:CREATE TABLE sale_import_keys (
+infrastructure\migrations\110_sales_import.sql:33:  CONSTRAINT sale_import_keys_sale_fk FOREIGN KEY (agency_id, sale_id) REFERENCES sales (agency_id, id),
+infrastructure\migrations\110_sales_import.sql:34:  CONSTRAINT sale_import_keys_batch_fk FOREIGN KEY (agency_id, batch_id) REFERENCES sale_import_batches (agency_id, id),
+infrastructure\migrations\110_sales_import.sql:35:  CONSTRAINT sale_import_keys_natural_uq UNIQUE (agency_id, source_system, external_ref)
+infrastructure\migrations\110_sales_import.sql:42:  FOREACH t IN ARRAY ARRAY['sale_import_batches', 'sale_import_keys'] LOOP
+services/api/src\sales-import.ts:67:    `SELECT source_system, external_ref FROM sale_import_keys WHERE agency_id = $1 AND source_system = $2`,
+services/api/src\sales-import.ts:100:      `SELECT summary, created_at FROM sale_import_batches WHERE agency_id = $1 AND content_hash = $2`,
+services/api/src\sales-import.ts:117:      `SELECT summary FROM sale_import_batches WHERE agency_id = $1 AND content_hash = $2`,
+services/api/src\sales-import.ts:131:      `INSERT INTO sale_import_batches (agency_id, source_system, content_hash, summary, created_by_user_id)
+services/api/src\sales-import.ts:157:        `INSERT INTO sale_import_keys (agency_id, source_system, external_ref, sale_id, batch_id) VALUES ($1, $2, $3, $4, $5)`,
+services/api/src\sales-import.ts:164:      entityType: 'sale_import_batch',
+services/api/src\tenant-backup-pending.ts:122:  'sale_import_batches',
+services/api/src\tenant-backup-pending.ts:123:  'sale_import_keys',
+infrastructure/migrations\001_initial_schema.sql:213:  price NUMERIC(10, 2) NOT NULL,
+infrastructure/migrations\001_initial_schema.sql:237:  proposed_price NUMERIC(10, 2) NOT NULL,
+infrastructure/migrations\001_initial_schema.sql:238:  discount NUMERIC(10, 2) NOT NULL DEFAULT 0,
+infrastructure/migrations\001_initial_schema.sql:239:  total NUMERIC(10, 2) NOT NULL,
+infrastructure/migrations\001_initial_schema.sql:263:    CHECK (proposed_price >= 0 AND discount >= 0 AND total >= 0),
+infrastructure/migrations\001_initial_schema.sql:274:  amount NUMERIC(10, 2) NOT NULL,
+infrastructure/migrations\001_initial_schema.sql:275:  discount NUMERIC(10, 2) NOT NULL DEFAULT 0,
+infrastructure/migrations\001_initial_schema.sql:276:  total NUMERIC(10, 2) NOT NULL,
+infrastructure/migrations\001_initial_schema.sql:299:    CHECK (amount >= 0 AND discount >= 0 AND total >= 0),
+infrastructure/migrations\001_initial_schema.sql:310:  amount NUMERIC(10, 2) NOT NULL,
+infrastructure/migrations\003_transportation.sql:51:  distance NUMERIC(10, 2),
+infrastructure/migrations\003_transportation.sql:96:  price NUMERIC(10, 2) NOT NULL,
+infrastructure/migrations\008_commercial_cockpit.sql:65:  expected_value       NUMERIC(10, 2),
+infrastructure/migrations\013_pescador_foundation.sql:23:  found_price NUMERIC(10,2),
+infrastructure/migrations\014_offer_growth_foundation.sql:46:  meta_duration_seconds NUMERIC(10, 2),
+infrastructure/migrations\014_offer_growth_foundation.sql:506:  value NUMERIC(10, 2),
+infrastructure/migrations\014_offer_growth_foundation.sql:618:  amount_applied NUMERIC(10, 2),
+infrastructure/migrations\036_support_cases.sql:5:  title VARCHAR(255) NOT NULL,
+infrastructure/migrations\036_support_cases.sql:7:  status VARCHAR(50) DEFAULT 'OPEN', -- OPEN, IN_PROGRESS, RESOLVED, CLOSED
+infrastructure/migrations\036_support_cases.sql:8:  priority VARCHAR(50) DEFAULT 'MEDIUM', -- LOW, MEDIUM, HIGH, CRITICAL
+infrastructure/migrations\039_air_services.sql:63:  fare NUMERIC(10, 2) NOT NULL DEFAULT 0,
+infrastructure/migrations\039_air_services.sql:64:  taxes NUMERIC(10, 2) NOT NULL DEFAULT 0,
+infrastructure/migrations\039_air_services.sql:65:  fees NUMERIC(10, 2) NOT NULL DEFAULT 0,
+infrastructure/migrations\039_air_services.sql:66:  commission NUMERIC(10, 2),
+infrastructure/migrations\039_air_services.sql:67:  cost NUMERIC(10, 2) NOT NULL DEFAULT 0,
+infrastructure/migrations\039_air_services.sql:68:  sale_value NUMERIC(10, 2) NOT NULL DEFAULT 0,
+infrastructure/migrations\040_land_services.sql:35:  quantity NUMERIC(10, 2) NOT NULL DEFAULT 1,
+infrastructure/migrations\040_land_services.sql:37:  cost NUMERIC(10, 2) NOT NULL DEFAULT 0,
+infrastructure/migrations\040_land_services.sql:38:  sale_value NUMERIC(10, 2) NOT NULL DEFAULT 0,
+infrastructure/migrations\040_land_services.sql:39:  taxes NUMERIC(10, 2) NOT NULL DEFAULT 0,
+infrastructure/migrations\040_land_services.sql:40:  fees NUMERIC(10, 2) NOT NULL DEFAULT 0,
+infrastructure/migrations\040_land_services.sql:41:  commission NUMERIC(10, 2),
+infrastructure/migrations\048_support_ticket_capture_context.sql:30:ALTER TABLE support_cases ADD COLUMN IF NOT EXISTS source VARCHAR(20) NOT NULL DEFAULT 'PLATFORM';
+infrastructure/migrations\055_sale_items_upsell.sql:42:  qty NUMERIC(10,2) NOT NULL DEFAULT 1
+infrastructure/migrations\055_sale_items_upsell.sql:53:    CONSTRAINT sale_items_discount_nonneg_check CHECK (discount >= 0),
+infrastructure/migrations\055_sale_items_upsell.sql:83:ALTER TABLE sale_items ENABLE ROW LEVEL SECURITY;
+infrastructure/migrations\055_sale_items_upsell.sql:84:ALTER TABLE sale_items FORCE ROW LEVEL SECURITY;
+infrastructure/migrations\055_sale_items_upsell.sql:119:  qty NUMERIC(10,2) NOT NULL DEFAULT 1
+infrastructure/migrations\055_sale_items_upsell.sql:130:    CONSTRAINT proposal_optional_items_discount_nonneg_check CHECK (discount >= 0),
+infrastructure/migrations\080_employee_commission_rules.sql:167:  ADD COLUMN quantity NUMERIC(10, 2);
+infrastructure/migrations\090_proposal_items.sql:48:  price                 NUMERIC(10, 2),
+infrastructure/migrations\101_sale_categories_and_form_profile.sql:70:ALTER TABLE sales
+infrastructure/migrations\101_sale_categories_and_form_profile.sql:85:ALTER TABLE sales
+infrastructure/migrations\101_sale_categories_and_form_profile.sql:89:ALTER TABLE sales
+infrastructure/migrations\105_receivable_payment_schedules.sql:18:ALTER TABLE sales ADD COLUMN payment_condition_snapshot JSONB, ADD COLUMN settled_at TIMESTAMPTZ;
+35:  SALES_IMPORTED: 'SALES_IMPORTED',
+197:  metadata?: Record<string, unknown>;
+215:  metadata: unknown;
+228:  metadata: unknown;
+251:  // Media Library metadata (see MEDIA_ASSET_* events above).
+271:       (agency_id, actor_type, actor_id, event_type, entity_type, entity_id, outcome, metadata)
+281:      JSON.stringify(sanitizeAuditMetadata(input.metadata)),
+322:            entity_id, outcome, metadata
+340:export function sanitizeAuditMetadata(metadata: Record<string, unknown> | undefined): Record<string, unknown> {
+341:  if (!metadata) {
+345:  const sanitized: Record<string, unknown> = {};
+346:  for (const [key, value] of Object.entries(metadata)) {
+351:    const safeValue = sanitizeMetadataValue(key, value);
+353:      sanitized[key] = safeValue;
+357:  return sanitized;
+360:function sanitizeMetadataValue(key: string, value: unknown): string | number | boolean | string[] | undefined {
+370:    return sanitizeMetadataString(value);
+376:      .map(sanitizeMetadataString)
+385:function sanitizeMetadataString(value: string): string | undefined {
+409:    metadata: row.metadata,
+node : O termo 'node' n�o � reconhecido como nome de cmdlet, fun��o, arquivo de script ou programa oper�vel. Verifique 
+a grafia do nome ou, se um caminho tiver sido inclu�do, veja se o caminho est� correto e tente novamente.
+No linha:2 caractere:538
++ ... _IMPORTED|metadata|throw' services/api/src/audit-log.ts; node --versi ...
++                                                              ~~~~
+    + CategoryInfo          : ObjectNotFound: (node:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+
+hook: PostToolUse
+hook: PostToolUse Completed
+hook: PreToolUse
+hook: PreToolUse Completed
+exec
+"C:\\Users\\Ugo Alencar\\AppData\\Local\\Microsoft\\WindowsApps\\pwsh.exe" -Command "Get-Content services/api/tests/helpers/disposable-postgres.ts; Get-Content infrastructure/migrations/106_agency_revenue.sql | Select-Object -Last 36; Get-Content services/api/src/audit-log.ts | Select-Object -Skip 255 -First 45; Get-Content services/api/src/app.ts | Select-Object -Skip 170 -First 24; git branch --show-current; rg -n 'statement_timeout|lock_timeout|DEFAULT_BODY_LIMIT_BYTES' services/api/src/database.ts services/api/src/app.ts services/api/src/server.ts; Get-Content infrastructure/migrations/055_sale_items_upsell.sql | Select-Object -Skip 30 -First 30" in D:\travel-platform
+ succeeded in 737ms:
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { spawnSync } from 'node:child_process';
+import { Pool } from 'pg';
+
+/**
+ * Disposable local PostgreSQL for DB-backed Full API tests, with its own
+ * container name and port so it never touches another test run, demo or
+ * shared database. Names/ports come from env with safe defaults.
+ */
+const repoRoot = resolve(import.meta.dirname, '../../../..');
+const composeFile = resolve(repoRoot, 'infrastructure/docker-compose.local-postgres.yml');
+const prepareRolesSql = resolve(repoRoot, 'tests/integration/database/002_prepare_local_roles.sql');
+
+export const disposableDb = {
+  host: '127.0.0.1',
+  port: Number(process.env.ONDA_B_TEST_DB_PORT ?? '55610'),
+  container: process.env.ONDA_B_TEST_DB_CONTAINER ?? 'travel-full-ondab-test',
+  project: process.env.ONDA_B_TEST_DB_PROJECT ?? 'travel-full-ondab',
+  database: 'travel_platform_test',
+  adminUser: 'travel_test',
+  adminSecret: 'travel_test_password',
+  runtimeUser: 'travel_app_runtime_local',
+  runtimeSecret: 'travel_app_runtime_local_password',
+};
+
+const secretKey = 'pass' + 'word';
+
+function run(command: string, args: readonly string[], throwOnError = true): string {
+  const result = spawnSync(command, args, {
+    cwd: repoRoot,
+    encoding: 'utf8',
+    maxBuffer: 1024 * 1024 * 20,
+    env: {
+      ...process.env,
+      DATABASE_TEST_CONTAINER_NAME: disposableDb.container,
+      DATABASE_TEST_PORT: String(disposableDb.port),
+    },
+  });
+  if (throwOnError && result.status !== 0) {
+    throw new Error(`Command failed: ${command} ${args.join(' ')}\n${result.stdout}\n${result.stderr}`);
+  }
+  return result.stdout;
+}
+
+function compose(args: readonly string[]): void {
+  run('docker', ['compose', '-f', composeFile, '-p', disposableDb.project, ...args]);
+}
+
+async function waitHealthy(): Promise<void> {
+  const timeoutAt = Date.now() + 120_000;
+  while (Date.now() < timeoutAt) {
+    const out = run('docker', ['inspect', '-f', '{{.State.Health.Status}}', disposableDb.container], false);
+    if (out.trim() === 'healthy') return;
+    await new Promise((r) => setTimeout(r, 2_000));
+  }
+  throw new Error('Disposable PostgreSQL did not become healthy in time.');
+}
+
+function readSqlForPg(file: string): string {
+  return readFileSync(file, 'utf8')
+    .split(/\r?\n/)
+    .filter((line) => !line.trimStart().startsWith('\\'))
+    .join('\n');
+}
+
+export interface DisposableDb {
+  adminPool: Pool;
+  runtimePool: Pool;
+  /** Applies more migrations later (e.g. to test a migration over pre-existing rows) and refreshes role grants. */
+  applyMigrations(files: readonly string[]): Promise<void>;
+  stop(): Promise<void>;
+}
+
+/** Starts a fresh container, applies the given migration files in order, then the local roles. */
+export async function startDisposableDb(migrationFiles: readonly string[]): Promise<DisposableDb> {
+  compose(['down', '-v']);
+  compose(['up', '-d']);
+  await waitHealthy();
+
+  const poolBase = { host: disposableDb.host, port: disposableDb.port, database: disposableDb.database };
+  const adminPool = new Pool({ ...poolBase, user: disposableDb.adminUser, [secretKey]: disposableDb.adminSecret });
+  const runtimePool = new Pool({ ...poolBase, user: disposableDb.runtimeUser, [secretKey]: disposableDb.runtimeSecret });
+
+  await adminPool.query('DROP SCHEMA public CASCADE; CREATE SCHEMA public;');
+  for (const file of migrationFiles) {
+    await adminPool.query(readSqlForPg(resolve(repoRoot, 'infrastructure/migrations', file)));
+  }
+  await adminPool.query(readSqlForPg(prepareRolesSql));
+
+  return {
+    adminPool,
+    runtimePool,
+    async applyMigrations(files) {
+      for (const file of files) {
+        await adminPool.query(readSqlForPg(resolve(repoRoot, 'infrastructure/migrations', file)));
+      }
+      await adminPool.query(readSqlForPg(prepareRolesSql));
+    },
+    async stop() {
+      await runtimePool.end();
+      await adminPool.end();
+      compose(['down', '-v']);
+    },
+  };
+}
+);
+-- At most one live entry per item (cancelled history is kept).
+CREATE UNIQUE INDEX agency_revenue_entries_live_item_uidx
+  ON agency_revenue_entries (agency_id, sale_item_id) WHERE status <> 'CANCELLED';
+CREATE INDEX agency_revenue_entries_sale_idx ON agency_revenue_entries (agency_id, sale_id);
+
+ALTER TABLE commission_entries ADD COLUMN agency_revenue_entry_id TEXT;
+ALTER TABLE commission_entries ADD CONSTRAINT commission_entries_revenue_entry_fk
+  FOREIGN KEY (agency_id, agency_revenue_entry_id) REFERENCES agency_revenue_entries (agency_id, id);
+
+DO $$
+DECLARE
+  t TEXT;
+BEGIN
+  FOREACH t IN ARRAY ARRAY['agency_revenue_scopes', 'agency_revenue_rule_versions', 'agency_revenue_entries'] LOOP
+    EXECUTE format('ALTER TABLE %I ENABLE ROW LEVEL SECURITY', t);
+    EXECUTE format('ALTER TABLE %I FORCE ROW LEVEL SECURITY', t);
+    EXECUTE format('CREATE POLICY %I ON %I FOR SELECT USING (agency_id = current_agency_id())', t || '_select_tenant', t);
+    EXECUTE format('CREATE POLICY %I ON %I FOR INSERT WITH CHECK (agency_id = current_agency_id())', t || '_insert_tenant', t);
+    EXECUTE format('REVOKE ALL ON %I FROM PUBLIC', t);
+  END LOOP;
+END $$;
+-- Entries move through states: UPDATE only there. Scopes and rule versions are append-only.
+CREATE POLICY agency_revenue_entries_update_tenant ON agency_revenue_entries
+  FOR UPDATE USING (agency_id = current_agency_id()) WITH CHECK (agency_id = current_agency_id());
+
+DO $$
+DECLARE role_name TEXT;
+BEGIN
+  FOREACH role_name IN ARRAY ARRAY['travel_app_runtime', 'travel_app_runtime_local'] LOOP
+    IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = role_name) THEN
+      EXECUTE format('GRANT SELECT, INSERT ON agency_revenue_scopes, agency_revenue_rule_versions TO %I', role_name);
+      EXECUTE format('GRANT SELECT, INSERT, UPDATE ON agency_revenue_entries TO %I', role_name);
+    END IF;
+  END LOOP;
+END $$;
+  'linkId',
+  'title',
+  'fileName',
+  'mimeType',
+]);
+
+const maxMetadataStringLength = 128;
+
+async function insertAuditRow(
+  client: TenantTransactionClient,
+  context: ReturnType<typeof getTenantContext>,
+  input: RecordAuditEventInput,
+): Promise<void> {
+  await client.query(
+    `INSERT INTO audit_logs
+       (agency_id, actor_type, actor_id, event_type, entity_type, entity_id, outcome, metadata)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb)`,
+    [
+      context.agencyId,
+      'USER',
+      context.userId,
+      input.eventType,
+      input.entityType,
+      input.entityId ?? null,
+      input.outcome ?? 'SUCCESS',
+      JSON.stringify(sanitizeAuditMetadata(input.metadata)),
+    ],
+  );
+}
+
+export async function recordAuditEvent(
+  client: TenantTransactionClient,
+  input: RecordAuditEventInput,
+): Promise<void> {
+  const context = getTenantContext();
+
+  if (input.required) {
+    await insertAuditRow(client, context, input);
+    return;
+  }
+
+  await client.query('SAVEPOINT audit_insert');
+  try {
+    await insertAuditRow(client, context, input);
+    await client.query('RELEASE SAVEPOINT audit_insert');
+}
+
+export function buildApp(options: BuildAppOptions): FastifyInstance {
+  const app = Fastify({
+    logger: {
+      redact: [
+        'req.headers.authorization',
+        'req.headers.cookie',
+        'req.headers.x-platform-stopgap-key',
+        'req.headers.x-dev-user-id',
+        'req.headers.x-dev-agency-id',
+        'req.headers.x-dev-role',
+        'req.headers.x-dev-platform-user-id',
+        'req.headers.x-dev-platform-user-role',
+        'req.headers.x-dev-customer',
+      ],
+    },
+    bodyLimit: options.bodyLimitBytes ?? DEFAULT_BODY_LIMIT_BYTES,
+  });
+
+  const corsPolicy = options.corsPolicy ?? resolveCorsPolicy(process.env);
+
+  void app.register(cors, {
+    origin(origin, callback) {
+wip/organizacao-2026-10-20
+services/api/src/app.ts:99:  DEFAULT_BODY_LIMIT_BYTES,
+services/api/src/app.ts:188:    bodyLimit: options.bodyLimitBytes ?? DEFAULT_BODY_LIMIT_BYTES,
+  -- landing first or in any particular order.
+  product_id TEXT,
+  description TEXT NOT NULL,
+  supplier_id TEXT,
+  -- Free-form list of traveler references for this line item (customer
+  -- dependent ids or free-text names). JSONB, mirroring the
+  -- traveler-list convention already used elsewhere in this codebase
+  -- (e.g. booking passenger lists) rather than a rigid join table, since
+  -- a SaleItem traveler is a lightweight attribution, not a first-class
+  -- entity with its own lifecycle.
+  travelers JSONB NOT NULL DEFAULT '[]'::jsonb,
+  qty NUMERIC(10,2) NOT NULL DEFAULT 1
+    CONSTRAINT sale_items_qty_positive_check CHECK (qty > 0),
+  unit_cost NUMERIC(12,2) NOT NULL DEFAULT 0
+    CONSTRAINT sale_items_unit_cost_nonneg_check CHECK (unit_cost >= 0),
+  unit_price NUMERIC(12,2) NOT NULL
+    CONSTRAINT sale_items_unit_price_nonneg_check CHECK (unit_price >= 0),
+  taxes NUMERIC(12,2) NOT NULL DEFAULT 0
+    CONSTRAINT sale_items_taxes_nonneg_check CHECK (taxes >= 0),
+  fees NUMERIC(12,2) NOT NULL DEFAULT 0
+    CONSTRAINT sale_items_fees_nonneg_check CHECK (fees >= 0),
+  discount NUMERIC(12,2) NOT NULL DEFAULT 0
+    CONSTRAINT sale_items_discount_nonneg_check CHECK (discount >= 0),
+  commission NUMERIC(12,2) NOT NULL DEFAULT 0
+    CONSTRAINT sale_items_commission_nonneg_check CHECK (commission >= 0),
+  -- Line-level subtotal = qty*unit_price - discount + taxes + fees.
+  -- Own field of this new entity (not a duplicate of Sale.total).
+  line_total NUMERIC(12,2) NOT NULL,
+  -- Line-level margin = line_total - qty*unit_cost - commission.
+  -- Informational only; the Sale's authoritative margin continues to
+
+hook: PostToolUse
+hook: PostToolUse Completed
+codex
+- **Alta — conversão monetária altera valores silenciosamente.** [sales-import-plan.ts:78](/D:/travel-platform/services/api/src/sales-import-plan.ts:78): remove caracteres antes de validar; `1e3` vira `13` e `(100,00)` vira `100`. Também aceita `100000000`, acima do limite de `sales.NUMERIC(10,2)`: passa no dry-run e faz a confirmação inteira falhar.
+
+- **Alta — permissões ausentes na migração.** [110_sales_import.sql:42](/D:/travel-platform/infrastructure/migrations/110_sales_import.sql:42): configura RLS, mas não concede `SELECT/INSERT` ao runtime. Sem concessão externa, dry-run e confirmação falham. Os testes mascaram isso com grants adicionais em `tests/integration/database/002_prepare_local_roles.sql:734`.
+
+- **Média — confirmação permite pular o dry-run.** [sales-import.ts:109](/D:/travel-platform/services/api/src/sales-import.ts:109): compara apenas um SHA-256 calculável pelo cliente; não verifica execução anterior do dry-run. Além disso, recalcula os vínculos na confirmação, permitindo gravar um plano diferente do revisado caso os cadastros mudem.
+
+- **Média — chave natural é truncada.** [sales-import.ts:158](/D:/travel-platform/services/api/src/sales-import.ts:158): aceita `external_ref` contendo `|`, mas persiste somente `split('|')[1]`. `V|1` vira `V`; o planejamento posterior não reconhece a chave original e a confirmação colide com a restrição única. Referências distintas podem bloquear umas às outras.
+
+- **Média — concorrência entre conteúdos diferentes aborta lotes.** [sales-import.ts:115](/D:/travel-platform/services/api/src/sales-import.ts:115): o lock usa o hash do arquivo. Dois arquivos diferentes com uma chave natural comum podem planejar ambos como `NEW`; um falha no `INSERT` da chave e perde todo o lote. A restrição única impede duplicação, mas falta tratamento da corrida. [sales-import.integration.test.ts:189](/D:/travel-platform/tests/integration/database/sales-import.integration.test.ts:189) cobre somente hashes iguais.
+
+- **Média — custo de consulta sem limite pelo tamanho do arquivo.** [sales-import.ts:57](/D:/travel-platform/services/api/src/sales-import.ts:57): cada operação carrega todos os clientes, categorias, fornecedores e chaves da origem. Até um arquivo vazio provoca essas leituras; o limite de 2.000 linhas só é verificado depois. Há risco de exaustão de memória/conexões conforme o histórico cresce.
+
+Análise estática, sem alterações nem testes executados. Não identifiquei, nos caminhos revisados, quebra de isolamento entre agências, SQL injection, dados pessoais na auditoria ou criação de comissões/recebíveis. A2 está contemplada no planejamento.
+hook: Stop
+hook: Stop Completed
+tokens used
+63.851
+- **Alta — conversão monetária altera valores silenciosamente.** [sales-import-plan.ts:78](/D:/travel-platform/services/api/src/sales-import-plan.ts:78): remove caracteres antes de validar; `1e3` vira `13` e `(100,00)` vira `100`. Também aceita `100000000`, acima do limite de `sales.NUMERIC(10,2)`: passa no dry-run e faz a confirmação inteira falhar.
+
+- **Alta — permissões ausentes na migração.** [110_sales_import.sql:42](/D:/travel-platform/infrastructure/migrations/110_sales_import.sql:42): configura RLS, mas não concede `SELECT/INSERT` ao runtime. Sem concessão externa, dry-run e confirmação falham. Os testes mascaram isso com grants adicionais em `tests/integration/database/002_prepare_local_roles.sql:734`.
+
+- **Média — confirmação permite pular o dry-run.** [sales-import.ts:109](/D:/travel-platform/services/api/src/sales-import.ts:109): compara apenas um SHA-256 calculável pelo cliente; não verifica execução anterior do dry-run. Além disso, recalcula os vínculos na confirmação, permitindo gravar um plano diferente do revisado caso os cadastros mudem.
+
+- **Média — chave natural é truncada.** [sales-import.ts:158](/D:/travel-platform/services/api/src/sales-import.ts:158): aceita `external_ref` contendo `|`, mas persiste somente `split('|')[1]`. `V|1` vira `V`; o planejamento posterior não reconhece a chave original e a confirmação colide com a restrição única. Referências distintas podem bloquear umas às outras.
+
+- **Média — concorrência entre conteúdos diferentes aborta lotes.** [sales-import.ts:115](/D:/travel-platform/services/api/src/sales-import.ts:115): o lock usa o hash do arquivo. Dois arquivos diferentes com uma chave natural comum podem planejar ambos como `NEW`; um falha no `INSERT` da chave e perde todo o lote. A restrição única impede duplicação, mas falta tratamento da corrida. [sales-import.integration.test.ts:189](/D:/travel-platform/tests/integration/database/sales-import.integration.test.ts:189) cobre somente hashes iguais.
+
+- **Média — custo de consulta sem limite pelo tamanho do arquivo.** [sales-import.ts:57](/D:/travel-platform/services/api/src/sales-import.ts:57): cada operação carrega todos os clientes, categorias, fornecedores e chaves da origem. Até um arquivo vazio provoca essas leituras; o limite de 2.000 linhas só é verificado depois. Há risco de exaustão de memória/conexões conforme o histórico cresce.
+
+Análise estática, sem alterações nem testes executados. Não identifiquei, nos caminhos revisados, quebra de isolamento entre agências, SQL injection, dados pessoais na auditoria ou criação de comissões/recebíveis. A2 está contemplada no planejamento.
+exit=0

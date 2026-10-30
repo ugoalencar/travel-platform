@@ -3,13 +3,21 @@ import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import { createAuthenticateHook } from './auth';
 import type { LiteDatabase } from './database';
-import { HttpError } from './errors';
+import { FormFieldError, HttpError } from './errors';
 import { registerAuthRoutes } from './routes/auth';
 import { registerBrandingRoutes } from './routes/branding';
+import { registerBackupRoutes } from './routes/backup';
 import { registerCashFlowRoutes } from './routes/cash-flow';
 import { registerCategoryRoutes } from './routes/categories';
+import { registerCommissionReleaseRoutes } from './routes/commission-release';
+import { registerSaleFormRoutes } from './routes/sale-forms';
+import { registerCatalogProductRoutes } from './routes/catalog-products';
+import { registerSaleItemRoutes } from './routes/sale-items';
 import { registerCommissionRoutes } from './routes/commissions';
+import { registerCommissionRuleRoutes } from './routes/commission-rules';
 import { registerCustomerRoutes } from './routes/customers';
+import { registerAgencyRevenueRoutes } from './routes/agency-revenue';
+import { registerReportProjectionRoutes } from './routes/report-projections';
 import { registerFinancialCatalogRoutes } from './routes/financial-catalog';
 import { registerImportRoutes } from './routes/imports';
 import { registerDashboardRoutes } from './routes/dashboard';
@@ -18,6 +26,7 @@ import { registerPlanRoutes } from './routes/plan';
 import { registerReportRoutes } from './routes/reports';
 import { registerUserRoutes } from './routes/users';
 import { registerSaleRoutes } from './routes/sales';
+import { registerSalePaymentSchedulesRoutes } from './routes/sale-payment-schedules';
 import { registerSaleCostRoutes } from './routes/sale-costs';
 import { registerSellerRoutes } from './routes/sellers';
 import { createTenantContextHook } from './tenant-context';
@@ -25,11 +34,14 @@ import { createStaticHandler } from './static';
 import { buildVersionInfo } from './version';
 import { createLiteRequestRateLimitHook, LiteLoginAbuseProtector } from './rate-limit';
 import { isLiteOriginAllowed, resolveLiteCorsPolicy } from './security';
+import { CepLookup } from './cep';
+import { registerCepRoutes } from './routes/cep';
 
 export interface BuildAppOptions {
   logger?: boolean;
   database?: LiteDatabase;
   staticDir?: string | undefined;
+  cepLookup?: CepLookup;
 }
 
 /**
@@ -71,7 +83,10 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
 
   app.setErrorHandler((error: Error & { statusCode?: number; code?: string }, request, reply) => {
     if (error instanceof HttpError) {
-      reply.code(error.statusCode).send({ error: error.message, code: error.code });
+      const field = error instanceof FormFieldError ? error.fieldKey : undefined;
+      reply
+        .code(error.statusCode)
+        .send({ error: error.message, code: error.code, ...(field !== undefined ? { field } : {}) });
       return;
     }
     const status =
@@ -104,19 +119,31 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
     const establishTenant = createTenantContextHook();
     const protectedHooks: preHandlerHookHandler[] = [authenticate, establishTenant];
     const loginAbuseProtector = new LiteLoginAbuseProtector();
+    const cepLookup = options.cepLookup ?? new CepLookup({ enabled: process.env.TRAVEL_LITE_CEP_PROVIDER === 'viacep' ||
+      (process.env.TRAVEL_LITE_CEP_PROVIDER === undefined && process.env.NODE_ENV !== 'production') });
 
     const registrars: Array<(scope: FastifyInstance) => void> = [
       (scope) => registerAuthRoutes(scope, database, protectedHooks, loginAbuseProtector),
       (scope) => registerBrandingRoutes(scope, database, protectedHooks),
+      (scope) => registerBackupRoutes(scope, database, protectedHooks),
       (scope) => registerCustomerRoutes(scope, database, protectedHooks),
+      (scope) => registerAgencyRevenueRoutes(scope, database, protectedHooks),
+      (scope) => registerReportProjectionRoutes(scope, database, protectedHooks),
+      (scope) => registerCepRoutes(scope, cepLookup, protectedHooks),
       (scope) => registerSellerRoutes(scope, database, protectedHooks),
       (scope) => registerCategoryRoutes(scope, database, protectedHooks),
+      (scope) => registerCommissionReleaseRoutes(scope, database, protectedHooks),
+      (scope) => registerSaleFormRoutes(scope, database, protectedHooks),
+      (scope) => registerCatalogProductRoutes(scope, database, protectedHooks),
+      (scope) => registerSaleItemRoutes(scope, database, protectedHooks),
       (scope) => registerSaleRoutes(scope, database, protectedHooks),
+      (scope) => registerSalePaymentSchedulesRoutes(scope, database, protectedHooks),
       (scope) => registerSaleCostRoutes(scope, database, protectedHooks),
       (scope) => registerFinancialCatalogRoutes(scope, database, protectedHooks),
       (scope) => registerImportRoutes(scope, database, protectedHooks),
       (scope) => registerCashFlowRoutes(scope, database, protectedHooks),
       (scope) => registerCommissionRoutes(scope, database, protectedHooks),
+      (scope) => registerCommissionRuleRoutes(scope, database, protectedHooks),
       (scope) => registerReportRoutes(scope, database, protectedHooks),
       (scope) => registerDashboardRoutes(scope, database, protectedHooks),
       (scope) => registerMigrationRoutes(scope, database, protectedHooks),

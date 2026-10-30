@@ -1,0 +1,366 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/platform-admin/src/pages/HealthPage.tsx",
+      "type": "file",
+      "name": "HealthPage.tsx",
+      "filePath": "apps/platform-admin/src/pages/HealthPage.tsx",
+      "summary": "Painel de saúde da plataforma com endpoints de health, readiness e informações de versão.",
+      "tags": ["admin-page", "monitoring", "health-check"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/platform-admin/src/pages/HealthPage.tsx:HealthPage",
+      "type": "function",
+      "name": "HealthPage",
+      "filePath": "apps/platform-admin/src/pages/HealthPage.tsx",
+      "lineRange": [31, 134],
+      "summary": "Componente que consulta /api/health, /api/readiness e /api/version em paralelo e exibe o status dos serviços.",
+      "tags": ["admin-page", "monitoring", "health-check"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/platform-admin/src/pages/IncidentsPage.tsx",
+      "type": "file",
+      "name": "IncidentsPage.tsx",
+      "filePath": "apps/platform-admin/src/pages/IncidentsPage.tsx",
+      "summary": "Página de incidentes ainda em construção, exibindo apenas um estado placeholder.",
+      "tags": ["admin-page", "incidents", "placeholder"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/platform-admin/src/pages/IncidentsPage.tsx:IncidentsPage",
+      "type": "function",
+      "name": "IncidentsPage",
+      "filePath": "apps/platform-admin/src/pages/IncidentsPage.tsx",
+      "lineRange": [10, 30],
+      "summary": "Componente simples que renderiza o estado vazio da tela de incidentes.",
+      "tags": ["admin-page", "incidents", "placeholder"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/platform-admin/src/pages/LandingCMSPage.tsx",
+      "type": "file",
+      "name": "LandingCMSPage.tsx",
+      "filePath": "apps/platform-admin/src/pages/LandingCMSPage.tsx",
+      "summary": "CMS da landing page: edição de campos, gerenciamento de seções, publicações e pré-visualização.",
+      "tags": ["admin-page", "cms", "landing-page", "crud"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/platform-admin/src/pages/LandingCMSPage.tsx:LandingCMSPage",
+      "type": "function",
+      "name": "LandingCMSPage",
+      "filePath": "apps/platform-admin/src/pages/LandingCMSPage.tsx",
+      "lineRange": [40, 351],
+      "summary": "Componente que carrega a página e suas seções, permitindo salvar rascunhos, adicionar, reordenar, ativar e publicar seções.",
+      "tags": ["admin-page", "cms", "landing-page"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/platform-admin/src/pages/LandingCMSPage.tsx:FieldEditor",
+      "type": "function",
+      "name": "FieldEditor",
+      "filePath": "apps/platform-admin/src/pages/LandingCMSPage.tsx",
+      "lineRange": [353, 387],
+      "summary": "Editor de campo com rascunho local que salva alterações ao confirmar.",
+      "tags": ["component", "cms", "form"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/platform-admin/src/pages/LeadsPage.tsx",
+      "type": "file",
+      "name": "LeadsPage.tsx",
+      "filePath": "apps/platform-admin/src/pages/LeadsPage.tsx",
+      "summary": "Gestão de leads com filtros por status, busca textual e transições de status com notas.",
+      "tags": ["admin-page", "leads", "crm", "crud"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/platform-admin/src/pages/LeadsPage.tsx:LeadsPage",
+      "type": "function",
+      "name": "LeadsPage",
+      "filePath": "apps/platform-admin/src/pages/LeadsPage.tsx",
+      "lineRange": [45, 326],
+      "summary": "Componente que busca leads, calcula métricas por status e permite mudar o status com nota opcional.",
+      "tags": ["admin-page", "leads", "crm"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/platform-admin/src/pages/LoginPage.tsx",
+      "type": "file",
+      "name": "LoginPage.tsx",
+      "filePath": "apps/platform-admin/src/pages/LoginPage.tsx",
+      "summary": "Tela de login do platform-admin com fluxo de duas etapas: credenciais e verificação MFA.",
+      "tags": ["auth", "login", "mfa", "form"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/platform-admin/src/pages/LoginPage.tsx:LoginPage",
+      "type": "function",
+      "name": "LoginPage",
+      "filePath": "apps/platform-admin/src/pages/LoginPage.tsx",
+      "lineRange": [7, 134],
+      "summary": "Componente que orquestra o login por credenciais e o desafio MFA, redirecionando após autenticação bem-sucedida.",
+      "tags": ["auth", "login", "mfa"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/platform-admin/src/pages/MarketingPage.tsx",
+      "type": "file",
+      "name": "MarketingPage.tsx",
+      "filePath": "apps/platform-admin/src/pages/MarketingPage.tsx",
+      "summary": "Placeholder da seção de marketing do painel, ainda sem funcionalidade implementada.",
+      "tags": ["admin-page", "placeholder", "marketing"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/platform-admin/src/pages/MarketingPage.tsx:MarketingPage",
+      "type": "function",
+      "name": "MarketingPage",
+      "filePath": "apps/platform-admin/src/pages/MarketingPage.tsx",
+      "lineRange": [1, 10],
+      "summary": "Componente mínimo que renderiza o texto de em breve da página de marketing.",
+      "tags": ["admin-page", "placeholder"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/platform-admin/src/pages/NotFoundPage.tsx",
+      "type": "file",
+      "name": "NotFoundPage.tsx",
+      "filePath": "apps/platform-admin/src/pages/NotFoundPage.tsx",
+      "summary": "Página 404 exibida quando a rota do painel administrativo não é encontrada.",
+      "tags": ["admin-page", "error-page", "not-found"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/platform-admin/src/pages/NotFoundPage.tsx:NotFoundPage",
+      "type": "function",
+      "name": "NotFoundPage",
+      "filePath": "apps/platform-admin/src/pages/NotFoundPage.tsx",
+      "lineRange": [1, 8],
+      "summary": "Componente que renderiza a mensagem de página não encontrada com link de volta ao início.",
+      "tags": ["admin-page", "error-page"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/platform-admin/src/pages/PartnersPage.tsx",
+      "type": "file",
+      "name": "PartnersPage.tsx",
+      "filePath": "apps/platform-admin/src/pages/PartnersPage.tsx",
+      "summary": "CRUD de parceiros com categorias, contato e ativação/desativação via API admin.",
+      "tags": ["admin-page", "partners", "crud"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/platform-admin/src/pages/PartnersPage.tsx:PartnersPage",
+      "type": "function",
+      "name": "PartnersPage",
+      "filePath": "apps/platform-admin/src/pages/PartnersPage.tsx",
+      "lineRange": [40, 250],
+      "summary": "Componente com formulário de parceiro e lista que permite criar, editar campos e alternar status de parceiros.",
+      "tags": ["admin-page", "partners", "crud"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/platform-admin/src/pages/PlansPage.tsx",
+      "type": "file",
+      "name": "PlansPage.tsx",
+      "filePath": "apps/platform-admin/src/pages/PlansPage.tsx",
+      "summary": "CRUD de planos de assinatura com preços mensais, limites e exclusão de planos.",
+      "tags": ["admin-page", "plans", "billing", "crud"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/platform-admin/src/pages/PlansPage.tsx:PlansPage",
+      "type": "function",
+      "name": "PlansPage",
+      "filePath": "apps/platform-admin/src/pages/PlansPage.tsx",
+      "lineRange": [17, 259],
+      "summary": "Componente que lista planos, cria novos planos com conversão de preços e confirma exclusões.",
+      "tags": ["admin-page", "plans", "billing"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/platform-admin/src/pages/ReferralsPage.tsx",
+      "type": "file",
+      "name": "ReferralsPage.tsx",
+      "filePath": "apps/platform-admin/src/pages/ReferralsPage.tsx",
+      "summary": "Gestão de indicações (referrals) com métricas por status e aprovação ou rejeição de indicações.",
+      "tags": ["admin-page", "referrals", "crud"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/platform-admin/src/pages/ReferralsPage.tsx:ReferralsPage",
+      "type": "function",
+      "name": "ReferralsPage",
+      "filePath": "apps/platform-admin/src/pages/ReferralsPage.tsx",
+      "lineRange": [44, 225],
+      "summary": "Componente que carrega referrals, agrega contagens por status e permite criar, avançar ou rejeitar indicações.",
+      "tags": ["admin-page", "referrals", "crud"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/platform-admin/src/pages/ResetPasswordPage.tsx",
+      "type": "file",
+      "name": "ResetPasswordPage.tsx",
+      "filePath": "apps/platform-admin/src/pages/ResetPasswordPage.tsx",
+      "summary": "Formulário de redefinição de senha que valida o token recebido por e-mail e a confirmação.",
+      "tags": ["auth", "password-reset", "form"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/platform-admin/src/pages/ResetPasswordPage.tsx:ResetPasswordPage",
+      "type": "function",
+      "name": "ResetPasswordPage",
+      "filePath": "apps/platform-admin/src/pages/ResetPasswordPage.tsx",
+      "lineRange": [7, 104],
+      "summary": "Componente que lê o token da URL, valida os campos de senha e envia a redefinição para a API.",
+      "tags": ["auth", "password-reset", "form"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/platform-admin/src/pages/SecurityPage.tsx",
+      "type": "file",
+      "name": "SecurityPage.tsx",
+      "filePath": "apps/platform-admin/src/pages/SecurityPage.tsx",
+      "summary": "Configuração de segurança da conta: enrolment MFA com QR code, recovery codes e reset de MFA.",
+      "tags": ["admin-page", "security", "mfa", "auth"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/platform-admin/src/pages/SecurityPage.tsx:SecurityPage",
+      "type": "function",
+      "name": "SecurityPage",
+      "filePath": "apps/platform-admin/src/pages/SecurityPage.tsx",
+      "lineRange": [28, 260],
+      "summary": "Componente que gerencia o ciclo completo de MFA: status, enrolment, confirmação de código, cópia de recovery codes e reset.",
+      "tags": ["admin-page", "security", "mfa"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/platform-admin/src/pages/SettingsPage.tsx",
+      "type": "file",
+      "name": "SettingsPage.tsx",
+      "filePath": "apps/platform-admin/src/pages/SettingsPage.tsx",
+      "summary": "Configurações gerais da plataforma com criação de configurações padrão e edição de campos administrativos.",
+      "tags": ["admin-page", "settings", "configuration", "crud"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/platform-admin/src/pages/SettingsPage.tsx:SettingsPage",
+      "type": "function",
+      "name": "SettingsPage",
+      "filePath": "apps/platform-admin/src/pages/SettingsPage.tsx",
+      "lineRange": [16, 272],
+      "summary": "Componente que carrega ou cria as configurações, gerencia o formulário com conversões numéricas e salva alterações.",
+      "tags": ["admin-page", "settings", "crud"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/platform-admin/src/pages/SubscribersPage.tsx",
+      "type": "file",
+      "name": "SubscribersPage.tsx",
+      "filePath": "apps/platform-admin/src/pages/SubscribersPage.tsx",
+      "summary": "Lista de assinantes com busca por nome e e-mail e painel de detalhes do assinante.",
+      "tags": ["admin-page", "subscribers", "list"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/platform-admin/src/pages/SubscribersPage.tsx:SubscribersPage",
+      "type": "function",
+      "name": "SubscribersPage",
+      "filePath": "apps/platform-admin/src/pages/SubscribersPage.tsx",
+      "lineRange": [29, 192],
+      "summary": "Componente que busca assinantes, aplica filtro de busca e exibe detalhes em modal.",
+      "tags": ["admin-page", "subscribers", "list"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/platform-admin/src/pages/SubscriptionsPage.tsx",
+      "type": "file",
+      "name": "SubscriptionsPage.tsx",
+      "filePath": "apps/platform-admin/src/pages/SubscriptionsPage.tsx",
+      "summary": "Gestão de assinaturas com filtros por status e transições de status validadas por máquina de estados.",
+      "tags": ["admin-page", "subscriptions", "status-machine"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/platform-admin/src/pages/SubscriptionsPage.tsx:SubscriptionsPage",
+      "type": "function",
+      "name": "SubscriptionsPage",
+      "filePath": "apps/platform-admin/src/pages/SubscriptionsPage.tsx",
+      "lineRange": [32, 272],
+      "summary": "Componente que lista assinativas com contadores por status e aplica transições permitidas na tela de detalhes.",
+      "tags": ["admin-page", "subscriptions", "status-machine"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/platform-admin/src/pages/SupportPage.tsx",
+      "type": "file",
+      "name": "SupportPage.tsx",
+      "filePath": "apps/platform-admin/src/pages/SupportPage.tsx",
+      "summary": "Gestão de tickets de suporte com criação de casos e atualização de status.",
+      "tags": ["admin-page", "support", "crud", "tickets"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/platform-admin/src/pages/SupportPage.tsx:SupportPage",
+      "type": "function",
+      "name": "SupportPage",
+      "filePath": "apps/platform-admin/src/pages/SupportPage.tsx",
+      "lineRange": [33, 338],
+      "summary": "Componente que lista casos de suporte, cria novos tickets e altera o status de casos selecionados.",
+      "tags": ["admin-page", "support", "crud"],
+      "complexity": "complex"
+    }
+  ],
+  "edges": [
+    {"source": "file:apps/platform-admin/src/pages/HealthPage.tsx", "target": "function:apps/platform-admin/src/pages/HealthPage.tsx:HealthPage", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:apps/platform-admin/src/pages/IncidentsPage.tsx", "target": "function:apps/platform-admin/src/pages/IncidentsPage.tsx:IncidentsPage", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:apps/platform-admin/src/pages/LandingCMSPage.tsx", "target": "function:apps/platform-admin/src/pages/LandingCMSPage.tsx:LandingCMSPage", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:apps/platform-admin/src/pages/LandingCMSPage.tsx", "target": "function:apps/platform-admin/src/pages/LandingCMSPage.tsx:FieldEditor", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:apps/platform-admin/src/pages/LeadsPage.tsx", "target": "function:apps/platform-admin/src/pages/LeadsPage.tsx:LeadsPage", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:apps/platform-admin/src/pages/LoginPage.tsx", "target": "function:apps/platform-admin/src/pages/LoginPage.tsx:LoginPage", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:apps/platform-admin/src/pages/MarketingPage.tsx", "target": "function:apps/platform-admin/src/pages/MarketingPage.tsx:MarketingPage", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:apps/platform-admin/src/pages/NotFoundPage.tsx", "target": "function:apps/platform-admin/src/pages/NotFoundPage.tsx:NotFoundPage", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:apps/platform-admin/src/pages/PartnersPage.tsx", "target": "function:apps/platform-admin/src/pages/PartnersPage.tsx:PartnersPage", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:apps/platform-admin/src/pages/PlansPage.tsx", "target": "function:apps/platform-admin/src/pages/PlansPage.tsx:PlansPage", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:apps/platform-admin/src/pages/ReferralsPage.tsx", "target": "function:apps/platform-admin/src/pages/ReferralsPage.tsx:ReferralsPage", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:apps/platform-admin/src/pages/ResetPasswordPage.tsx", "target": "function:apps/platform-admin/src/pages/ResetPasswordPage.tsx:ResetPasswordPage", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:apps/platform-admin/src/pages/SecurityPage.tsx", "target": "function:apps/platform-admin/src/pages/SecurityPage.tsx:SecurityPage", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:apps/platform-admin/src/pages/SettingsPage.tsx", "target": "function:apps/platform-admin/src/pages/SettingsPage.tsx:SettingsPage", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:apps/platform-admin/src/pages/SubscribersPage.tsx", "target": "function:apps/platform-admin/src/pages/SubscribersPage.tsx:SubscribersPage", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:apps/platform-admin/src/pages/SubscriptionsPage.tsx", "target": "function:apps/platform-admin/src/pages/SubscriptionsPage.tsx:SubscriptionsPage", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:apps/platform-admin/src/pages/SupportPage.tsx", "target": "function:apps/platform-admin/src/pages/SupportPage.tsx:SupportPage", "type": "contains", "direction": "forward", "weight": 1.0},
+
+    {"source": "file:apps/platform-admin/src/pages/HealthPage.tsx", "target": "function:apps/platform-admin/src/pages/HealthPage.tsx:HealthPage", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:apps/platform-admin/src/pages/IncidentsPage.tsx", "target": "function:apps/platform-admin/src/pages/IncidentsPage.tsx:IncidentsPage", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:apps/platform-admin/src/pages/LandingCMSPage.tsx", "target": "function:apps/platform-admin/src/pages/LandingCMSPage.tsx:LandingCMSPage", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:apps/platform-admin/src/pages/LeadsPage.tsx", "target": "function:apps/platform-admin/src/pages/LeadsPage.tsx:LeadsPage", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:apps/platform-admin/src/pages/LoginPage.tsx", "target": "function:apps/platform-admin/src/pages/LoginPage.tsx:LoginPage", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:apps/platform-admin/src/pages/MarketingPage.tsx", "target": "function:apps/platform-admin/src/pages/MarketingPage.tsx:MarketingPage", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:apps/platform-admin/src/pages/NotFoundPage.tsx", "target": "function:apps/platform-admin/src/pages/NotFoundPage.tsx:NotFoundPage", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:apps/platform-admin/src/pages/PartnersPage.tsx", "target": "function:apps/platform-admin/src/pages/PartnersPage.tsx:PartnersPage", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:apps/platform-admin/src/pages/PlansPage.tsx", "target": "function:apps/platform-admin/src/pages/PlansPage.tsx:PlansPage", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:apps/platform-admin/src/pages/ReferralsPage.tsx", "target": "function:apps/platform-admin/src/pages/ReferralsPage.tsx:ReferralsPage", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:apps/platform-admin/src/pages/ResetPasswordPage.tsx", "target": "function:apps/platform-admin/src/pages/ResetPasswordPage.tsx:ResetPasswordPage", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:apps/platform-admin/src/pages/SecurityPage.tsx", "target": "function:apps/platform-admin/src/pages/SecurityPage.tsx:SecurityPage", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:apps/platform-admin/src/pages/SettingsPage.tsx", "target": "function:apps/platform-admin/src/pages/SettingsPage.tsx:SettingsPage", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:apps/platform-admin/src/pages/SubscribersPage.tsx", "target": "function:apps/platform-admin/src/pages/SubscribersPage.tsx:SubscribersPage", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:apps/platform-admin/src/pages/SubscriptionsPage.tsx", "target": "function:apps/platform-admin/src/pages/SubscriptionsPage.tsx:SubscriptionsPage", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:apps/platform-admin/src/pages/SupportPage.tsx", "target": "function:apps/platform-admin/src/pages/SupportPage.tsx:SupportPage", "type": "exports", "direction": "forward", "weight": 0.8},
+
+    {"source": "file:apps/platform-admin/src/pages/LoginPage.tsx", "target": "file:apps/platform-admin/src/lib/platformAuthApi.ts", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:apps/platform-admin/src/pages/ResetPasswordPage.tsx", "target": "file:apps/platform-admin/src/lib/platformAuthApi.ts", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:apps/platform-admin/src/pages/SecurityPage.tsx", "target": "file:apps/platform-admin/src/lib/platformAuthApi.ts", "type": "imports", "direction": "forward", "weight": 0.7},
+
+    {"source": "function:apps/platform-admin/src/pages/LoginPage.tsx:LoginPage", "target": "function:apps/platform-admin/src/lib/platformAuthApi.ts:login", "type": "calls", "direction": "forward", "weight": 0.8},
+    {"source": "function:apps/platform-admin/src/pages/LoginPage.tsx:LoginPage", "target": "function:apps/platform-admin/src/lib/platformAuthApi.ts:verifyMfa", "type": "calls", "direction": "forward", "weight": 0.8},
+    {"source": "function:apps/platform-admin/src/pages/ResetPasswordPage.tsx:ResetPasswordPage", "target": "function:apps/platform-admin/src/lib/platformAuthApi.ts:resetPasswordWithToken", "type": "calls", "direction": "forward", "weight": 0.8},
+    {"source": "function:apps/platform-admin/src/pages/SecurityPage.tsx:SecurityPage", "target": "function:apps/platform-admin/src/lib/platformAuthApi.ts:getMfaStatus", "type": "calls", "direction": "forward", "weight": 0.8},
+    {"source": "function:apps/platform-admin/src/pages/SecurityPage.tsx:SecurityPage", "target": "function:apps/platform-admin/src/lib/platformAuthApi.ts:startMfaEnrollment", "type": "calls", "direction": "forward", "weight": 0.8},
+    {"source": "function:apps/platform-admin/src/pages/SecurityPage.tsx:SecurityPage", "target": "function:apps/platform-admin/src/lib/platformAuthApi.ts:confirmMfaEnrollment", "type": "calls", "direction": "forward", "weight": 0.8},
+    {"source": "function:apps/platform-admin/src/pages/SecurityPage.tsx:SecurityPage", "target": "function:apps/platform-admin/src/lib/platformAuthApi.ts:resetMfa", "type": "calls", "direction": "forward", "weight": 0.8}
+  ]
+}

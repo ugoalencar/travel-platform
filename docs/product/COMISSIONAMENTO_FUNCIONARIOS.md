@@ -70,7 +70,26 @@ Alterar uma `employee_commission_rules` no futuro **nunca** recalcula comissões
 Gap auditado: `cancelSale()` nunca tocava em `commission_entries`. Política adotada (conservadora, documentada, não inventada como política financeira nova):
 
 - Comissões em `PENDING` ou `APPROVED` de uma venda cancelada são automaticamente movidas para `CANCELLED`.
-- Comissões já em `PAYABLE` ou `PAID` (dinheiro já enfileirado/pago) **não são tocadas** — reverter dinheiro já desembolsado é uma decisão financeira fora do escopo deste fechamento.
+- **Atualização 2026-10-23 (paridade Full/Lite, Fase 0):** se a venda tem comissão já em `PAYABLE` (conta a pagar avulsa), `PAID`, ou `APPROVED` reservada por uma folha, o cancelamento da venda é **recusado com 409** (nada é alterado). Antes, essas entradas ficavam intactas e o payable/folha continuava pagando uma comissão de venda cancelada. Reverter dinheiro já desembolsado continua sendo um ajuste financeiro explícito, ainda não implementado.
+
+## 7.1 Canal único de pagamento da comissão (Fase 0, 2026-10-23)
+
+Uma comissão é paga por **um** canal: conta a pagar avulsa **ou** folha de pagamento.
+
+- `payables` tem no máximo **um** payable vivo por entrada (`payables_agency_commission_entry_live_key`, migração 100); `approve` e `create-payable` travam a entrada (`FOR UPDATE`), então duas chamadas simultâneas não geram duas obrigações.
+- A folha **reserva** as entradas que soma (`commission_entries.payroll_entry_id`). Só entram na folha entradas `APPROVED` sem payable avulso e não reservadas por outra folha; entradas `PAYABLE`/`PAID` **não** entram mais (antes entravam, o que permitia pagar duas vezes). Gerar de novo uma folha `OPEN` libera e reserva novamente (sem duplicar).
+- Entrada reservada por folha: `create-payable` devolve 409. Entrada com payable avulso: não entra na folha.
+- A entrada vira `PAID` quando o payable avulso é quitado integralmente, ou quando o payable da folha que a reservou é quitado; folha **parcialmente** paga não quita comissão.
+- Na baixa, o servidor trava primeiro as folhas e comissoes envolvidas e
+  revalida estado, canal e valores antes de gravar alocacoes. Comissao cancelada,
+  valor divergente ou total reservado diferente do snapshot da folha resulta
+  em 409, sem baixa parcial silenciosa. Folhas legadas com total de comissoes
+  sem vinculos suficientes exigem conciliacao antes do pagamento; nenhum
+  vinculo historico e criado automaticamente.
+- Regenerar folha OPEN trava tambem a propria linha da folha: uma aprovacao
+  concorrente nao permite recalcular uma folha que acabou de ser aprovada.
+- Legado: folhas e payables criados antes da migração 100 **não** recebem vínculo retroativo. `GET /commissions/channel-conflicts` (MANAGER+, somente leitura) lista as comissões com payable avulso e folha do mesmo mês que contou comissões; a decisão sobre cada caso é humana.
+- Arredondamento do Full inalterado (`Math.round(x*100)/100`; 18,50 × 3% = 0,55; o `roundMoney` do Lite daria 0,56). Nenhum valor histórico é reprocessado.
 
 ## 8. Permissões
 
@@ -97,4 +116,4 @@ Nesta fase, assume-se **um único vendedor principal por venda** (o funcionário
 
 ## 12. Fora do escopo (não implementado nesta rodada, por instrução explícita)
 
-Marketplace, Amadeus, comissão de fornecedor externo, split entre múltiplos vendedores, folha de pagamento, billing SaaS, pagamento automático de comissão. Também não foi implementada a cadeia futura Fornecedor→comissão→Agência→comissão interna→Vendedor mencionada pelo usuário como visão de médio prazo.
+Marketplace, Amadeus, comissão de fornecedor externo, split entre múltiplos vendedores, billing SaaS, pagamento automático de comissão (a folha de pagamento existe em `payroll.ts`; ver 7.1). Também não foi implementada a cadeia futura Fornecedor→comissão→Agência→comissão interna→Vendedor mencionada pelo usuário como visão de médio prazo.

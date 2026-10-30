@@ -3,6 +3,21 @@
 Read this before exploring the repository. It exists to stop agents from
 re-deriving structure from scratch or wandering into historical noise.
 
+## Mandatory Full/Lite Direction
+
+Full is the functional baseline; Lite must remain its functional subset.
+Implement and validate in Full before delivering in Lite. Existing code does
+not yet prove complete parity. Read
+[`DEC-007`](decisions/DEC-007-full-first-lite-parity.md) and the
+[initial parity audit](travel-lite/FULL-LITE-PARITY-AUDIT-2026-10-23.md).
+
+For a client Lite-to-Full migration request, start with the
+[client migration runbook](travel-lite/MIGRACAO-LITE-PARA-FULL.md).
+
+The next Gadotti adjustment package is queued **after validated Full/Lite
+alignment**, not for immediate implementation:
+[scope and original source](00-product/GADOTTI-ADJUSTMENTS-2026-10-23.md).
+
 ## Active Runtime
 
 **Apps** (`apps/*`, Vite + React, each its own local dev port):

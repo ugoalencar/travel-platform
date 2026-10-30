@@ -5,9 +5,10 @@
 import type { FastifyInstance } from 'fastify';
 import type { preHandlerHookHandler } from 'fastify';
 import { requireRole } from '../../../../packages/domain/tenant-context';
-import { UserRole } from '../../../../packages/domain/types';
+import { SaleStatus, UserRole } from '../../../../packages/domain/types';
 import type { DatabaseRuntime } from '../database';
-import { NotFoundError } from '../errors';
+import { NotFoundError, ValidationError } from '../errors';
+import { parseUuidParam } from '../request-parsing';
 import {
   cancelSale,
   confirmSale,
@@ -17,6 +18,8 @@ import {
   markSalePaid,
   updateSale,
 } from '../sales';
+import { createSaleItemInTransaction } from '../sale-items';
+import { getCustomerSegmentById } from '../customer-segments';
 import {
   parseCreateSaleInput,
   parseUpdateSaleInput,
@@ -33,9 +36,34 @@ export function registerSalesRoutes(
 ): void {
   const { database, protectedHooks } = options;
 
-  app.get('/sales', { preHandler: protectedHooks }, async () => {
+  app.get('/sales', { preHandler: protectedHooks }, async (request) => {
     requireRole(UserRole.VIEWER);
-    const sales = await listSalesWithCustomer(database);
+    const query = request.query as Record<string, string | undefined>;
+    const dateFrom = parseSaleListDate(query.dateFrom, 'dateFrom');
+    const dateTo = parseSaleListDate(query.dateTo, 'dateTo');
+    if (dateFrom && dateTo && dateFrom > dateTo) {
+      throw new ValidationError('Query "dateFrom" must not be after "dateTo"');
+    }
+    const status = query.status;
+    if (status && !Object.values(SaleStatus).includes(status as SaleStatus)) {
+      throw new ValidationError('Query "status" is invalid');
+    }
+    const employeeId = query.employeeId ? parseUuidParam(query.employeeId, 'employeeId') : undefined;
+    const supplierId = query.supplierId ? parseUuidParam(query.supplierId, 'supplierId') : undefined;
+    const segmentId = query.segmentId ? parseUuidParam(query.segmentId, 'segmentId') : undefined;
+    const segment = segmentId ? await getCustomerSegmentById(database, segmentId) : null;
+    if (segmentId && !segment) throw new NotFoundError('Customer segment not found');
+
+    const all = await listSalesWithCustomer(database, {
+      ...(dateFrom ? { dateFrom } : {}),
+      ...(dateTo ? { dateTo } : {}),
+      ...(status ? { status: status as SaleStatus } : {}),
+      ...(employeeId ? { employeeId } : {}),
+      ...(supplierId ? { supplierId } : {}),
+      ...(segment ? { customerFilterDefinition: segment.filterDefinition } : {}),
+    });
+    const incomplete = query.incomplete === 'true';
+    const sales = incomplete ? all.filter((sale) => (sale.missingRequiredFields ?? []).length > 0) : all;
     return { sales };
   });
 
@@ -57,7 +85,15 @@ export function registerSalesRoutes(
   app.post('/sales', { preHandler: protectedHooks }, async (request, reply) => {
     requireRole(UserRole.AGENT);
     const data = parseCreateSaleInput(request.body);
-    const sale = await createSale(database, data);
+    const sale = data.items?.length
+      ? await database.withTenantTransaction(async (client) => {
+          const sale = await createSale(database, data, client);
+          for (const item of data.items ?? []) {
+            await createSaleItemInTransaction(database, client, { ...item, saleId: sale.id }, { updateSaleTotal: false });
+          }
+          return sale;
+        })
+      : await createSale(database, data);
 
     reply.code(201);
     return { sale };
@@ -111,4 +147,16 @@ export function registerSalesRoutes(
       return { sale };
     }
   );
+}
+
+function parseSaleListDate(value: string | undefined, field: string): string | undefined {
+  if (value === undefined || value === '') return undefined;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    throw new ValidationError(`Query "${field}" must use YYYY-MM-DD`);
+  }
+  const parsed = new Date(`${value}T00:00:00.000Z`);
+  if (Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== value) {
+    throw new ValidationError(`Query "${field}" must be a valid date`);
+  }
+  return value;
 }

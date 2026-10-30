@@ -109,6 +109,7 @@ export function isValidSlug(value: string): boolean {
 
 export function slugFromHostname(hostname: string): string {
   const normalized = hostname.trim().toLowerCase().replace(/\.$/, '');
+  if (normalized === 'travellite.travelplataforma.com.br') return 'demo';
   if (
     normalized === '' ||
     normalized === 'localhost' ||

@@ -11,7 +11,13 @@ import { EmptyState } from '../components/ui/empty-state';
 import { ErrorState } from '../components/ui/error-state';
 import { LoadingState } from '../components/ui/loading-state';
 import { Modal } from '../components/ui/modal';
-import { ApiError, createCustomer, listCustomers } from '../lib/api';
+import {
+  ApiError,
+  createCustomer,
+  getCustomerFieldSettings,
+  listCustomers,
+  type CustomerFieldSetting,
+} from '../lib/api';
 import { getCustomerStatusLabel } from '../lib/statusLabels';
 import { formatDateBR } from '../lib/formatDateBR';
 import type { Customer } from '../types/customer';
@@ -35,6 +41,11 @@ export function CustomersPage() {
   const [newCustomer, setNewCustomer] = useState(emptyNewCustomer);
   const [formError, setFormError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  // Registration-form configuration (Frente 2). The server enforces it; this
+  // only hides disabled fields and marks required ones. Defaults if unavailable.
+  const [fieldSettings, setFieldSettings] = useState<CustomerFieldSetting[]>([]);
+  const [extraValues, setExtraValues] = useState<Record<string, string>>({});
+  const [addressCity, setAddressCity] = useState('');
 
   const load = useCallback(() => {
     setError(null);
@@ -49,6 +60,12 @@ export function CustomersPage() {
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    getCustomerFieldSettings()
+      .then(setFieldSettings)
+      .catch(() => setFieldSettings([]));
+  }, []);
 
   if (error) {
     return <ErrorState description={error} onRetry={load} />;
@@ -67,19 +84,58 @@ export function CustomersPage() {
     return matchesSearch && matchesFilter;
   });
 
+  const fieldRule = (key: string) => {
+    const found = fieldSettings.find((field) => field.fieldKey === key);
+    return { enabled: found?.enabled ?? true, required: found?.required ?? false };
+  };
+  const emailRule = fieldRule('email');
+  const phoneRule = fieldRule('phone');
+  const notesRule = fieldRule('notes');
+  // Required fields this quick form has no dedicated input for still must be fillable here,
+  // otherwise an administrator's configuration would make every quick add fail with a 422.
+  const quickKeys = ['name', 'email', 'phone', 'notes', 'address'];
+  const extraRequired = fieldSettings.filter(
+    (field) => field.enabled && field.required && !field.locked && !quickKeys.includes(field.fieldKey),
+  );
+  const addressRequired = fieldRule('address').enabled && fieldRule('address').required;
+
   async function handleCreate() {
     if (!newCustomer.name.trim()) {
       setFormError('Informe o nome do cliente.');
       return;
     }
+    for (const field of extraRequired) {
+      if (!(extraValues[field.apiField] ?? '').trim()) {
+        setFormError(`Informe o campo obrigatório: ${field.label}.`);
+        return;
+      }
+    }
+    if (addressRequired && !addressCity.trim()) {
+      setFormError('Informe o campo obrigatório: Endereço (cidade).');
+      return;
+    }
+    for (const [rule, value, label] of [
+      [emailRule, newCustomer.email, 'E-mail'],
+      [phoneRule, newCustomer.phone, 'Telefone'],
+      [notesRule, newCustomer.notes, 'Observações'],
+    ] as const) {
+      if (rule.enabled && rule.required && !value.trim()) {
+        setFormError(`Informe o campo obrigatório: ${label}.`);
+        return;
+      }
+    }
     setSaving(true);
     setFormError(null);
     try {
+      const extras: Record<string, string> = {};
+      for (const field of extraRequired) extras[field.apiField] = (extraValues[field.apiField] ?? '').trim();
       const created = await createCustomer({
+        ...extras,
+        ...(addressRequired ? { address: { city: addressCity.trim() } } : {}),
         name: newCustomer.name.trim(),
-        email: newCustomer.email.trim() || undefined,
-        phone: newCustomer.phone.trim() || undefined,
-        notes: newCustomer.notes.trim() || undefined,
+        email: emailRule.enabled ? newCustomer.email.trim() || undefined : undefined,
+        phone: phoneRule.enabled ? newCustomer.phone.trim() || undefined : undefined,
+        notes: notesRule.enabled ? newCustomer.notes.trim() || undefined : undefined,
       });
       setShowNewCustomer(false);
       setNewCustomer(emptyNewCustomer);
@@ -242,8 +298,9 @@ export function CustomersPage() {
             />
           </div>
           <div className="grid grid-cols-2 gap-3">
+            {emailRule.enabled && (
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-700">E-mail</label>
+              <label className="mb-1 block text-xs font-medium text-slate-700">E-mail{emailRule.required ? ' *' : ''}</label>
               <Input
                 type="email"
                 placeholder="email@exemplo.com"
@@ -251,23 +308,43 @@ export function CustomersPage() {
                 onChange={(e) => setNewCustomer({ ...newCustomer, email: e.target.value })}
               />
             </div>
+            )}
+            {phoneRule.enabled && (
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-700">Telefone</label>
+              <label className="mb-1 block text-xs font-medium text-slate-700">Telefone{phoneRule.required ? ' *' : ''}</label>
               <Input
                 placeholder="(11) 99999-9999"
                 value={newCustomer.phone}
                 onChange={(e) => setNewCustomer({ ...newCustomer, phone: e.target.value })}
               />
             </div>
+            )}
           </div>
+          {extraRequired.map((field) => (
+            <div key={field.fieldKey}>
+              <label className="mb-1 block text-xs font-medium text-slate-700">{field.label} *</label>
+              <Input
+                value={extraValues[field.apiField] ?? ''}
+                onChange={(e) => setExtraValues({ ...extraValues, [field.apiField]: e.target.value })}
+              />
+            </div>
+          ))}
+          {addressRequired && (
+            <div>
+              <label className="mb-1 block text-xs font-medium text-slate-700">Endereço (cidade) *</label>
+              <Input value={addressCity} onChange={(e) => setAddressCity(e.target.value)} />
+            </div>
+          )}
+          {notesRule.enabled && (
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-700">Observações</label>
+            <label className="mb-1 block text-xs font-medium text-slate-700">Observações{notesRule.required ? ' *' : ''}</label>
             <Textarea
               placeholder="Preferências, restrições, detalhes…"
               value={newCustomer.notes}
               onChange={(e) => setNewCustomer({ ...newCustomer, notes: e.target.value })}
             />
           </div>
+          )}
         </div>
       </Modal>
     </div>

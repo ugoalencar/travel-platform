@@ -1,0 +1,13 @@
+{
+  "id": "P001",
+  "buys": true,
+  "purchases_first_month": 1,
+  "reason_code": "habit",
+  "reason": "Sou early adopter, gosto de testar ferramenta nova antes da galera do grupo, e como não tem contrato longo e dá pra testar antes de assinar, não perco nada em subir uns clientes de teste no plano de R$99 pra ver se funciona de verdade.",
+  "objection": "Não tem nenhuma agência rodando isso em produção pra eu ver funcionando na prática, e não confio em colocar documento e histórico de cliente numa plataforma que eu nunca ouvi falar, ainda mais sem cobrança e nota fiscal automáticas prontas.",
+  "would_change_my_mind": "Ver 2-3 agências do meu tamanho usando de verdade, com print ou depoimento real, não só a promessa do site.",
+  "price_too_cheap": 30,
+  "price_cheap": 60,
+  "price_expensive": 150,
+  "price_too_expensive": 250
+}

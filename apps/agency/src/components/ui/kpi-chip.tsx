@@ -17,11 +17,13 @@ export function KpiChip({
   value,
   icon,
   tone,
+  description,
 }: {
   label: string;
   value: string;
   icon: ReactNode;
   tone: 'green' | 'blue' | 'purple' | 'orange';
+  description?: string;
 }) {
   return (
     <Card className="flex items-center gap-4 p-5 transition-all duration-200 hover:shadow-md hover:border-slate-300">
@@ -31,6 +33,7 @@ export function KpiChip({
       <div className="min-w-0">
         <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{label}</p>
         <p className="text-xl font-bold text-slate-900">{value}</p>
+        {description && <p className="text-xs text-slate-500">{description}</p>}
       </div>
     </Card>
   );

@@ -1,0 +1,1630 @@
+{
+ "nodes": [
+  {
+   "id": "file:services/api/src/routes/entitlements.ts",
+   "type": "file",
+   "name": "entitlements.ts",
+   "filePath": "services/api/src/routes/entitlements.ts",
+   "summary": "Rota de listagem dos entitlements da agência autenticada.",
+   "tags": [
+    "api-handler",
+    "routes",
+    "entitlements"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/routes/entitlements.ts:registerEntitlementsRoutes",
+   "type": "function",
+   "name": "registerEntitlementsRoutes",
+   "filePath": "services/api/src/routes/entitlements.ts",
+   "lineRange": [
+    20,
+    31
+   ],
+   "summary": "Registra as rotas de entitlements da agência no Fastify, aplicando validação de entrada e autorização por papel ou entitlement antes de delegar à camada de serviço.",
+   "tags": [
+    "api-handler",
+    "route-registration",
+    "authorization",
+    "fastify"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:services/api/src/routes/excursions.ts",
+   "type": "file",
+   "name": "excursions.ts",
+   "filePath": "services/api/src/routes/excursions.ts",
+   "summary": "Rotas de excursões: CRUD de excursões e partidas, com vinculação e remoção de clientes.",
+   "tags": [
+    "api-handler",
+    "routes",
+    "excursions",
+    "operations"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/routes/excursions.ts:parseCreateExcursionInput",
+   "type": "function",
+   "name": "parseCreateExcursionInput",
+   "filePath": "services/api/src/routes/excursions.ts",
+   "lineRange": [
+    30,
+    66
+   ],
+   "summary": "Valida e normaliza o corpo da requisição para criação de Excursion, verificando campos obrigatórios, tipos e valores permitidos.",
+   "tags": [
+    "validation",
+    "parsing",
+    "input-sanitization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/routes/excursions.ts:parseCreateDepartureInput",
+   "type": "function",
+   "name": "parseCreateDepartureInput",
+   "filePath": "services/api/src/routes/excursions.ts",
+   "lineRange": [
+    68,
+    84
+   ],
+   "summary": "Valida e normaliza o corpo da requisição para criação de Departure, verificando campos obrigatórios, tipos e valores permitidos.",
+   "tags": [
+    "validation",
+    "parsing",
+    "input-sanitization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/routes/excursions.ts:registerExcursionRoutes",
+   "type": "function",
+   "name": "registerExcursionRoutes",
+   "filePath": "services/api/src/routes/excursions.ts",
+   "lineRange": [
+    86,
+    184
+   ],
+   "summary": "Registra as rotas de excursões e partidas no Fastify, aplicando validação de entrada e autorização por papel ou entitlement antes de delegar à camada de serviço.",
+   "tags": [
+    "api-handler",
+    "route-registration",
+    "authorization",
+    "fastify"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:services/api/src/routes/financial.ts",
+   "type": "file",
+   "name": "financial.ts",
+   "filePath": "services/api/src/routes/financial.ts",
+   "summary": "Rotas do módulo financeiro: recebíveis, pagamentos e alocações, custos operacionais, caixa, categorias, receitas, despesas, conciliações e relatórios de DRE, fluxo de caixa e margens.",
+   "tags": [
+    "api-handler",
+    "routes",
+    "finance",
+    "accounting",
+    "reports"
+   ],
+   "complexity": "complex",
+   "languageNotes": "Um único registro de rotas cobre dezenas de endpoints financeiros, com parsers de payload dedicados e autorização por papel ou area grant."
+  },
+  {
+   "id": "function:services/api/src/routes/financial.ts:registerFinancialRoutes",
+   "type": "function",
+   "name": "registerFinancialRoutes",
+   "filePath": "services/api/src/routes/financial.ts",
+   "lineRange": [
+    90,
+    553
+   ],
+   "summary": "Registra as rotas de módulo financeiro (recebíveis, pagamentos, caixa, DRE e conciliação) no Fastify, aplicando validação de entrada e autorização por papel ou entitlement antes de delegar à camada de serviço.",
+   "tags": [
+    "api-handler",
+    "route-registration",
+    "authorization",
+    "fastify"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/routes/financial.ts:parseCreateReceivableInput",
+   "type": "function",
+   "name": "parseCreateReceivableInput",
+   "filePath": "services/api/src/routes/financial.ts",
+   "lineRange": [
+    610,
+    623
+   ],
+   "summary": "Valida e normaliza o corpo da requisição para criação de Receivable, verificando campos obrigatórios, tipos e valores permitidos.",
+   "tags": [
+    "validation",
+    "parsing",
+    "input-sanitization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/routes/financial.ts:parseCreatePayableInput",
+   "type": "function",
+   "name": "parseCreatePayableInput",
+   "filePath": "services/api/src/routes/financial.ts",
+   "lineRange": [
+    625,
+    660
+   ],
+   "summary": "Valida e normaliza o corpo da requisição para criação de Payable, verificando campos obrigatórios, tipos e valores permitidos.",
+   "tags": [
+    "validation",
+    "parsing",
+    "input-sanitization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/routes/financial.ts:parseRecordPaymentInput",
+   "type": "function",
+   "name": "parseRecordPaymentInput",
+   "filePath": "services/api/src/routes/financial.ts",
+   "lineRange": [
+    662,
+    684
+   ],
+   "summary": "Valida o registro de um pagamento, incluindo valor, data e método.",
+   "tags": [
+    "validation",
+    "parsing",
+    "input-sanitization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/routes/financial.ts:parsePaymentAllocationsInput",
+   "type": "function",
+   "name": "parsePaymentAllocationsInput",
+   "filePath": "services/api/src/routes/financial.ts",
+   "lineRange": [
+    686,
+    709
+   ],
+   "summary": "Valida as alocações de pagamento contra títulos financeiros.",
+   "tags": [
+    "validation",
+    "parsing",
+    "input-sanitization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/routes/financial.ts:parseCreateOperationalCostInput",
+   "type": "function",
+   "name": "parseCreateOperationalCostInput",
+   "filePath": "services/api/src/routes/financial.ts",
+   "lineRange": [
+    711,
+    740
+   ],
+   "summary": "Valida e normaliza o corpo da requisição para criação de Operational Cost, verificando campos obrigatórios, tipos e valores permitidos.",
+   "tags": [
+    "validation",
+    "parsing",
+    "input-sanitization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/routes/financial.ts:parseCreateFinancialCategoryInput",
+   "type": "function",
+   "name": "parseCreateFinancialCategoryInput",
+   "filePath": "services/api/src/routes/financial.ts",
+   "lineRange": [
+    750,
+    773
+   ],
+   "summary": "Valida e normaliza o corpo da requisição para criação de Financial Category, verificando campos obrigatórios, tipos e valores permitidos.",
+   "tags": [
+    "validation",
+    "parsing",
+    "input-sanitization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/routes/financial.ts:parseCreateRevenueInput",
+   "type": "function",
+   "name": "parseCreateRevenueInput",
+   "filePath": "services/api/src/routes/financial.ts",
+   "lineRange": [
+    775,
+    810
+   ],
+   "summary": "Valida e normaliza o corpo da requisição para criação de Revenue, verificando campos obrigatórios, tipos e valores permitidos.",
+   "tags": [
+    "validation",
+    "parsing",
+    "input-sanitization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/routes/financial.ts:parseUpdateRevenueInput",
+   "type": "function",
+   "name": "parseUpdateRevenueInput",
+   "filePath": "services/api/src/routes/financial.ts",
+   "lineRange": [
+    812,
+    839
+   ],
+   "summary": "Valida e normaliza o corpo da requisição para atualização de Revenue, verificando campos obrigatórios, tipos e valores permitidos.",
+   "tags": [
+    "validation",
+    "parsing",
+    "input-sanitization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/routes/financial.ts:parseCreateExpenseInput",
+   "type": "function",
+   "name": "parseCreateExpenseInput",
+   "filePath": "services/api/src/routes/financial.ts",
+   "lineRange": [
+    841,
+    880
+   ],
+   "summary": "Valida e normaliza o corpo da requisição para criação de Expense, verificando campos obrigatórios, tipos e valores permitidos.",
+   "tags": [
+    "validation",
+    "parsing",
+    "input-sanitization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/routes/financial.ts:parseUpdateExpenseInput",
+   "type": "function",
+   "name": "parseUpdateExpenseInput",
+   "filePath": "services/api/src/routes/financial.ts",
+   "lineRange": [
+    882,
+    915
+   ],
+   "summary": "Valida e normaliza o corpo da requisição para atualização de Expense, verificando campos obrigatórios, tipos e valores permitidos.",
+   "tags": [
+    "validation",
+    "parsing",
+    "input-sanitization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/routes/financial.ts:parseCreateCashTransactionInput",
+   "type": "function",
+   "name": "parseCreateCashTransactionInput",
+   "filePath": "services/api/src/routes/financial.ts",
+   "lineRange": [
+    917,
+    945
+   ],
+   "summary": "Valida e normaliza o corpo da requisição para criação de Cash Transaction, verificando campos obrigatórios, tipos e valores permitidos.",
+   "tags": [
+    "validation",
+    "parsing",
+    "input-sanitization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/routes/financial.ts:parseCreateReconciliationInput",
+   "type": "function",
+   "name": "parseCreateReconciliationInput",
+   "filePath": "services/api/src/routes/financial.ts",
+   "lineRange": [
+    947,
+    969
+   ],
+   "summary": "Valida e normaliza o corpo da requisição para criação de Reconciliation, verificando campos obrigatórios, tipos e valores permitidos.",
+   "tags": [
+    "validation",
+    "parsing",
+    "input-sanitization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:services/api/src/routes/import.ts",
+   "type": "file",
+   "name": "import.ts",
+   "filePath": "services/api/src/routes/import.ts",
+   "summary": "Rotas de importação em lote: upload de arquivos por multipart ou base64, parsing, mapeamento de colunas, validação, execução e cancelamento de jobs.",
+   "tags": [
+    "api-handler",
+    "routes",
+    "data-pipeline",
+    "file-upload"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/routes/import.ts:parseFilename",
+   "type": "function",
+   "name": "parseFilename",
+   "filePath": "services/api/src/routes/import.ts",
+   "lineRange": [
+    95,
+    107
+   ],
+   "summary": "Valida o nome de arquivo enviado, rejeitando caracteres inseguros e extensões não permitidas.",
+   "tags": [
+    "validation",
+    "parsing",
+    "input-sanitization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/routes/import.ts:parseUploadFields",
+   "type": "function",
+   "name": "parseUploadFields",
+   "filePath": "services/api/src/routes/import.ts",
+   "lineRange": [
+    116,
+    129
+   ],
+   "summary": "Valida os campos de metadados do upload: sistema de origem, tipo de entidade, arquivo e storage key.",
+   "tags": [
+    "validation",
+    "parsing",
+    "input-sanitization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/routes/import.ts:parseParseBody",
+   "type": "function",
+   "name": "parseParseBody",
+   "filePath": "services/api/src/routes/import.ts",
+   "lineRange": [
+    131,
+    148
+   ],
+   "summary": "Valida o corpo do parsing, decodificando e verificando o conteúdo base64 do arquivo de importação.",
+   "tags": [
+    "validation",
+    "parsing",
+    "input-sanitization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/routes/import.ts:parseMapping",
+   "type": "function",
+   "name": "parseMapping",
+   "filePath": "services/api/src/routes/import.ts",
+   "lineRange": [
+    150,
+    170
+   ],
+   "summary": "Valida o mapeamento de colunas de origem para campos do domínio.",
+   "tags": [
+    "validation",
+    "parsing",
+    "input-sanitization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/routes/import.ts:parseRows",
+   "type": "function",
+   "name": "parseRows",
+   "filePath": "services/api/src/routes/import.ts",
+   "lineRange": [
+    172,
+    199
+   ],
+   "summary": "Valida e normaliza as linhas de dados que serão importadas.",
+   "tags": [
+    "validation",
+    "parsing",
+    "input-sanitization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/routes/import.ts:parseListQuery",
+   "type": "function",
+   "name": "parseListQuery",
+   "filePath": "services/api/src/routes/import.ts",
+   "lineRange": [
+    218,
+    233
+   ],
+   "summary": "Valida a query de listagem de jobs de importação, incluindo tipo de entidade e paginação.",
+   "tags": [
+    "validation",
+    "parsing",
+    "input-sanitization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/routes/import.ts:registerImportRoutes",
+   "type": "function",
+   "name": "registerImportRoutes",
+   "filePath": "services/api/src/routes/import.ts",
+   "lineRange": [
+    238,
+    387
+   ],
+   "summary": "Registra as rotas de importação de dados em lote no Fastify, aplicando validação de entrada e autorização por papel ou entitlement antes de delegar à camada de serviço.",
+   "tags": [
+    "api-handler",
+    "route-registration",
+    "authorization",
+    "fastify"
+   ],
+   "complexity": "moderate"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:services/api/src/routes/entitlements.ts",
+   "target": "function:services/api/src/routes/entitlements.ts:registerEntitlementsRoutes",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/entitlements.ts",
+   "target": "function:services/api/src/routes/entitlements.ts:registerEntitlementsRoutes",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/excursions.ts",
+   "target": "function:services/api/src/routes/excursions.ts:parseCreateExcursionInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/excursions.ts",
+   "target": "function:services/api/src/routes/excursions.ts:parseCreateDepartureInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/excursions.ts",
+   "target": "function:services/api/src/routes/excursions.ts:registerExcursionRoutes",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/excursions.ts",
+   "target": "function:services/api/src/routes/excursions.ts:registerExcursionRoutes",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/financial.ts",
+   "target": "function:services/api/src/routes/financial.ts:registerFinancialRoutes",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/financial.ts",
+   "target": "function:services/api/src/routes/financial.ts:registerFinancialRoutes",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/financial.ts",
+   "target": "function:services/api/src/routes/financial.ts:parseCreateReceivableInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/financial.ts",
+   "target": "function:services/api/src/routes/financial.ts:parseCreatePayableInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/financial.ts",
+   "target": "function:services/api/src/routes/financial.ts:parseRecordPaymentInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/financial.ts",
+   "target": "function:services/api/src/routes/financial.ts:parsePaymentAllocationsInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/financial.ts",
+   "target": "function:services/api/src/routes/financial.ts:parseCreateOperationalCostInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/financial.ts",
+   "target": "function:services/api/src/routes/financial.ts:parseCreateFinancialCategoryInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/financial.ts",
+   "target": "function:services/api/src/routes/financial.ts:parseCreateRevenueInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/financial.ts",
+   "target": "function:services/api/src/routes/financial.ts:parseUpdateRevenueInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/financial.ts",
+   "target": "function:services/api/src/routes/financial.ts:parseCreateExpenseInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/financial.ts",
+   "target": "function:services/api/src/routes/financial.ts:parseUpdateExpenseInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/financial.ts",
+   "target": "function:services/api/src/routes/financial.ts:parseCreateCashTransactionInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/financial.ts",
+   "target": "function:services/api/src/routes/financial.ts:parseCreateReconciliationInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/import.ts",
+   "target": "function:services/api/src/routes/import.ts:parseFilename",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/import.ts",
+   "target": "function:services/api/src/routes/import.ts:parseUploadFields",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/import.ts",
+   "target": "function:services/api/src/routes/import.ts:parseParseBody",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/import.ts",
+   "target": "function:services/api/src/routes/import.ts:parseMapping",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/import.ts",
+   "target": "function:services/api/src/routes/import.ts:parseRows",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/import.ts",
+   "target": "function:services/api/src/routes/import.ts:parseListQuery",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/import.ts",
+   "target": "function:services/api/src/routes/import.ts:registerImportRoutes",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/import.ts",
+   "target": "function:services/api/src/routes/import.ts:registerImportRoutes",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/entitlements.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/entitlements.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/entitlements.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/entitlements.ts",
+   "target": "file:services/api/src/entitlements.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/excursions.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/excursions.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/excursions.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/excursions.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/excursions.ts",
+   "target": "file:services/api/src/excursions.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/financial.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/financial.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/financial.ts",
+   "target": "file:services/api/src/area-grants.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/financial.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/financial.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/financial.ts",
+   "target": "file:services/api/src/financial.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/financial.ts",
+   "target": "file:services/api/src/permission-restrictions.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/financial.ts",
+   "target": "file:services/api/src/request-parsing.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/import.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/import.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/import.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/import.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/import.ts",
+   "target": "file:services/api/src/import/allowlist.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/import.ts",
+   "target": "file:services/api/src/import/parser.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/import.ts",
+   "target": "file:services/api/src/import/service.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/import.ts",
+   "target": "file:services/api/src/import/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "function:services/api/src/routes/entitlements.ts:registerEntitlementsRoutes",
+   "target": "function:packages/domain/tenant-context.ts:requireRole",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/entitlements.ts:registerEntitlementsRoutes",
+   "target": "function:services/api/src/entitlements.ts:listEntitlements",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/excursions.ts:registerExcursionRoutes",
+   "target": "function:packages/domain/tenant-context.ts:requireRole",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/excursions.ts:registerExcursionRoutes",
+   "target": "function:services/api/src/excursions.ts:listExcursions",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/excursions.ts:registerExcursionRoutes",
+   "target": "function:services/api/src/excursions.ts:getExcursionById",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/excursions.ts:registerExcursionRoutes",
+   "target": "function:services/api/src/excursions.ts:createExcursion",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/excursions.ts:registerExcursionRoutes",
+   "target": "function:services/api/src/excursions.ts:deleteExcursion",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/excursions.ts:registerExcursionRoutes",
+   "target": "function:services/api/src/excursions.ts:createDeparture",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/excursions.ts:registerExcursionRoutes",
+   "target": "function:services/api/src/excursions.ts:getDepartureById",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/excursions.ts:registerExcursionRoutes",
+   "target": "function:services/api/src/excursions.ts:addCustomersToDeparture",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/excursions.ts:registerExcursionRoutes",
+   "target": "function:services/api/src/excursions.ts:removeCustomerFromDeparture",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:registerFinancialRoutes",
+   "target": "function:services/api/src/area-grants.ts:requireRoleOrAreaGrant",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:registerFinancialRoutes",
+   "target": "function:services/api/src/financial.ts:listReceivables",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:registerFinancialRoutes",
+   "target": "function:packages/domain/tenant-context.ts:requireRole",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:registerFinancialRoutes",
+   "target": "function:services/api/src/financial.ts:createReceivable",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:registerFinancialRoutes",
+   "target": "function:services/api/src/financial.ts:listPayables",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:registerFinancialRoutes",
+   "target": "function:services/api/src/financial.ts:createPayable",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:registerFinancialRoutes",
+   "target": "function:services/api/src/financial.ts:listPayments",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:registerFinancialRoutes",
+   "target": "function:services/api/src/financial.ts:recordPayment",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:registerFinancialRoutes",
+   "target": "function:services/api/src/financial.ts:listPaymentAllocations",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:registerFinancialRoutes",
+   "target": "function:services/api/src/financial.ts:allocatePayment",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:registerFinancialRoutes",
+   "target": "function:services/api/src/financial.ts:listOperationalCosts",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:registerFinancialRoutes",
+   "target": "function:services/api/src/financial.ts:createOperationalCost",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:registerFinancialRoutes",
+   "target": "function:services/api/src/financial.ts:listAllocationsForTarget",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:registerFinancialRoutes",
+   "target": "function:services/api/src/financial.ts:getSaleMargin",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:registerFinancialRoutes",
+   "target": "function:services/api/src/request-parsing.ts:parseUuidParam",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:registerFinancialRoutes",
+   "target": "function:services/api/src/financial.ts:getSaleFinancialStory",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:registerFinancialRoutes",
+   "target": "function:packages/domain/tenant-context.ts:getTenantContext",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:registerFinancialRoutes",
+   "target": "function:services/api/src/permission-restrictions.ts:assertNotRestricted",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:registerFinancialRoutes",
+   "target": "function:services/api/src/financial.ts:getCashFlowSummary",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:registerFinancialRoutes",
+   "target": "function:services/api/src/financial.ts:getFinancialSummary",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:registerFinancialRoutes",
+   "target": "function:services/api/src/financial.ts:listFinancialCategories",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:registerFinancialRoutes",
+   "target": "function:services/api/src/financial.ts:createFinancialCategory",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:registerFinancialRoutes",
+   "target": "function:services/api/src/financial.ts:listRevenues",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:registerFinancialRoutes",
+   "target": "function:services/api/src/financial.ts:getRevenue",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:registerFinancialRoutes",
+   "target": "function:services/api/src/financial.ts:createRevenue",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:registerFinancialRoutes",
+   "target": "function:services/api/src/financial.ts:updateRevenue",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:registerFinancialRoutes",
+   "target": "function:services/api/src/financial.ts:markRevenueAsPaid",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:registerFinancialRoutes",
+   "target": "function:services/api/src/financial.ts:cancelRevenue",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:registerFinancialRoutes",
+   "target": "function:services/api/src/financial.ts:listExpenses",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:registerFinancialRoutes",
+   "target": "function:services/api/src/financial.ts:getExpense",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:registerFinancialRoutes",
+   "target": "function:services/api/src/financial.ts:createExpense",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:registerFinancialRoutes",
+   "target": "function:services/api/src/financial.ts:updateExpense",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:registerFinancialRoutes",
+   "target": "function:services/api/src/financial.ts:markExpenseAsPaid",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:registerFinancialRoutes",
+   "target": "function:services/api/src/financial.ts:cancelExpense",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:registerFinancialRoutes",
+   "target": "function:services/api/src/financial.ts:listCashTransactions",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:registerFinancialRoutes",
+   "target": "function:services/api/src/financial.ts:createCashTransaction",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:registerFinancialRoutes",
+   "target": "function:services/api/src/financial.ts:getCashBalance",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:registerFinancialRoutes",
+   "target": "function:services/api/src/financial.ts:listReconciliations",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:registerFinancialRoutes",
+   "target": "function:services/api/src/financial.ts:createReconciliation",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:registerFinancialRoutes",
+   "target": "function:services/api/src/financial.ts:markReconciliationAsReconciled",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:registerFinancialRoutes",
+   "target": "function:services/api/src/financial.ts:getManagementDre",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:registerFinancialRoutes",
+   "target": "function:services/api/src/financial.ts:getDREReport",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:registerFinancialRoutes",
+   "target": "function:services/api/src/financial.ts:getOverdueReport",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:registerFinancialRoutes",
+   "target": "function:services/api/src/financial.ts:getMarginReport",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:registerFinancialRoutes",
+   "target": "function:services/api/src/financial.ts:getCashFlowReport",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:parseCreateReceivableInput",
+   "target": "function:services/api/src/request-parsing.ts:parseObjectBody",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:parseCreateReceivableInput",
+   "target": "function:services/api/src/request-parsing.ts:assertAllowedFields",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:parseCreateReceivableInput",
+   "target": "function:services/api/src/request-parsing.ts:parseRequiredString",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:parseCreateReceivableInput",
+   "target": "function:services/api/src/request-parsing.ts:parsePositiveNumber",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:parseCreateReceivableInput",
+   "target": "function:services/api/src/request-parsing.ts:parseRequiredDate",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:parseCreatePayableInput",
+   "target": "function:services/api/src/request-parsing.ts:parseObjectBody",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:parseCreatePayableInput",
+   "target": "function:services/api/src/request-parsing.ts:assertAllowedFields",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:parseCreatePayableInput",
+   "target": "function:services/api/src/request-parsing.ts:parseRequiredString",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:parseCreatePayableInput",
+   "target": "function:services/api/src/request-parsing.ts:parsePositiveNumber",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:parseCreatePayableInput",
+   "target": "function:services/api/src/request-parsing.ts:parseRequiredDate",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:parseRecordPaymentInput",
+   "target": "function:services/api/src/request-parsing.ts:parseObjectBody",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:parseRecordPaymentInput",
+   "target": "function:services/api/src/request-parsing.ts:assertAllowedFields",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:parseRecordPaymentInput",
+   "target": "function:services/api/src/request-parsing.ts:parsePositiveNumber",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:parseRecordPaymentInput",
+   "target": "function:services/api/src/request-parsing.ts:parseRequiredDate",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:parseRecordPaymentInput",
+   "target": "function:services/api/src/request-parsing.ts:parseRequiredString",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:parsePaymentAllocationsInput",
+   "target": "function:services/api/src/request-parsing.ts:parseObjectBody",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:parsePaymentAllocationsInput",
+   "target": "function:services/api/src/request-parsing.ts:assertAllowedFields",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:parsePaymentAllocationsInput",
+   "target": "function:services/api/src/request-parsing.ts:parsePositiveNumber",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:parsePaymentAllocationsInput",
+   "target": "function:services/api/src/request-parsing.ts:parseRequiredString",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:parseCreateOperationalCostInput",
+   "target": "function:services/api/src/request-parsing.ts:parseObjectBody",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:parseCreateOperationalCostInput",
+   "target": "function:services/api/src/request-parsing.ts:assertAllowedFields",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:parseCreateOperationalCostInput",
+   "target": "function:services/api/src/request-parsing.ts:parseRequiredString",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:parseCreateOperationalCostInput",
+   "target": "function:services/api/src/request-parsing.ts:parseRequiredDate",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:parseCreateOperationalCostInput",
+   "target": "function:services/api/src/request-parsing.ts:parseNonNegativeNumber",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:parseCreateFinancialCategoryInput",
+   "target": "function:services/api/src/request-parsing.ts:parseObjectBody",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:parseCreateFinancialCategoryInput",
+   "target": "function:services/api/src/request-parsing.ts:parseRequiredString",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:parseCreateRevenueInput",
+   "target": "function:services/api/src/request-parsing.ts:parseObjectBody",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:parseCreateRevenueInput",
+   "target": "function:services/api/src/request-parsing.ts:parseRequiredString",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:parseCreateRevenueInput",
+   "target": "function:services/api/src/request-parsing.ts:parsePositiveNumber",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:parseCreateRevenueInput",
+   "target": "function:services/api/src/request-parsing.ts:parseRequiredDate",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:parseUpdateRevenueInput",
+   "target": "function:services/api/src/request-parsing.ts:parseObjectBody",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:parseUpdateRevenueInput",
+   "target": "function:services/api/src/request-parsing.ts:parseRequiredString",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:parseUpdateRevenueInput",
+   "target": "function:services/api/src/request-parsing.ts:parseRequiredDate",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:parseCreateExpenseInput",
+   "target": "function:services/api/src/request-parsing.ts:parseObjectBody",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:parseCreateExpenseInput",
+   "target": "function:services/api/src/request-parsing.ts:parseRequiredString",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:parseCreateExpenseInput",
+   "target": "function:services/api/src/request-parsing.ts:parsePositiveNumber",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:parseCreateExpenseInput",
+   "target": "function:services/api/src/request-parsing.ts:parseRequiredDate",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:parseUpdateExpenseInput",
+   "target": "function:services/api/src/request-parsing.ts:parseObjectBody",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:parseUpdateExpenseInput",
+   "target": "function:services/api/src/request-parsing.ts:parseRequiredString",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:parseUpdateExpenseInput",
+   "target": "function:services/api/src/request-parsing.ts:parseRequiredDate",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:parseCreateCashTransactionInput",
+   "target": "function:services/api/src/request-parsing.ts:parseObjectBody",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:parseCreateCashTransactionInput",
+   "target": "function:services/api/src/request-parsing.ts:parsePositiveNumber",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:parseCreateCashTransactionInput",
+   "target": "function:services/api/src/request-parsing.ts:parseRequiredDate",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:parseCreateCashTransactionInput",
+   "target": "function:services/api/src/request-parsing.ts:parseRequiredString",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:parseCreateReconciliationInput",
+   "target": "function:services/api/src/request-parsing.ts:parseObjectBody",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:parseCreateReconciliationInput",
+   "target": "function:services/api/src/request-parsing.ts:parseRequiredDate",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/financial.ts:parseCreateReconciliationInput",
+   "target": "function:services/api/src/request-parsing.ts:parseNonNegativeNumber",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/import.ts:registerImportRoutes",
+   "target": "function:packages/domain/tenant-context.ts:requireRole",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/import.ts:registerImportRoutes",
+   "target": "function:services/api/src/import/service.ts:createImportJob",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/import.ts:registerImportRoutes",
+   "target": "function:services/api/src/import/service.ts:parseImportFile",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/import.ts:registerImportRoutes",
+   "target": "function:services/api/src/import/allowlist.ts:assertMappingInUnion",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/import.ts:registerImportRoutes",
+   "target": "function:services/api/src/import/service.ts:dryRunImport",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/import.ts:registerImportRoutes",
+   "target": "function:services/api/src/import/service.ts:executeImport",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/import.ts:registerImportRoutes",
+   "target": "function:services/api/src/import/service.ts:cancelImport",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/import.ts:registerImportRoutes",
+   "target": "function:services/api/src/import/service.ts:listImportJobs",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/import.ts:registerImportRoutes",
+   "target": "function:services/api/src/import/service.ts:getImportJobById",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  }
+ ]
+}

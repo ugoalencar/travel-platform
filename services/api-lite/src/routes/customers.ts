@@ -14,8 +14,17 @@ import {
   requiredString,
 } from '../validation';
 import { isValidCpf, normalizeCpf } from '../validation/cpf';
+import { normalizeCustomerCep } from '../cep';
+import {
+  assertCustomerFieldRules,
+  listCustomerFieldSettings,
+  parseFieldSettingsInput,
+  saveCustomerFieldSettings,
+} from '../customer-field-settings';
 
 const MAX_PAGE_SIZE = 100;
+const LOOKUP_DEFAULT_LIMIT = 10;
+const LOOKUP_MAX_LIMIT = 20;
 
 interface CustomerRow {
   id: string;
@@ -65,9 +74,9 @@ async function lockCustomerInScope(
   tenantId: string,
   id: string,
   scope: Scope,
-): Promise<{ id: string; responsible_seller_id: string | null }> {
-  const result = await client.query<{ id: string; responsible_seller_id: string | null }>(
-    'SELECT id, responsible_seller_id FROM customers WHERE tenant_id = $1 AND id = $2 FOR UPDATE',
+): Promise<{ id: string; responsible_seller_id: string | null; zip_code: string | null }> {
+  const result = await client.query<{ id: string; responsible_seller_id: string | null; zip_code: string | null }>(
+    'SELECT id, responsible_seller_id, zip_code FROM customers WHERE tenant_id = $1 AND id = $2 FOR UPDATE',
     [tenantId, id],
   );
   const row = result.rows[0];
@@ -80,6 +89,60 @@ async function assertSellerExists(client: TenantClient, tenantId: string, seller
   if ((result.rowCount ?? 0) === 0) {
     throw new ValidationError('Field responsible_seller_id must reference an existing record of this tenant');
   }
+}
+
+/** Digits of a term typed as a CPF (dots, dashes and spaces allowed), else null. */
+function cpfDigitsOf(term: string): string | null {
+  if (!/^[\d\s.-]+$/.test(term)) return null;
+  const digits = normalizeCpf(term);
+  return digits.length > 0 ? digits : null;
+}
+
+function maskCpf(cpf: string | null): string | null {
+  const digits = cpf ? normalizeCpf(cpf) : '';
+  if (digits.length !== 11) return null;
+  return `***.${digits.slice(3, 6)}.${digits.slice(6, 9)}-**`;
+}
+
+const LOOKUP_MIN_TERM_LENGTH = 2;
+const LOOKUP_MIN_CPF_DIGITS = 4;
+
+function parseLookupQuery(query: Record<string, string | string[] | undefined>): { term: string; limit: number } {
+  if (query.q !== undefined && typeof query.q !== 'string') {
+    throw new ValidationError('Query "q" must be sent only once');
+  }
+  const term = query.q?.trim() ?? '';
+  if (term.length < LOOKUP_MIN_TERM_LENGTH) {
+    throw new ValidationError(`Query "q" must have at least ${LOOKUP_MIN_TERM_LENGTH} characters`);
+  }
+  let limit = LOOKUP_DEFAULT_LIMIT;
+  if (query.limit !== undefined) {
+    if (typeof query.limit !== 'string' || !/^\d+$/.test(query.limit)) {
+      throw new ValidationError('Query "limit" must be a positive integer');
+    }
+    limit = Math.min(LOOKUP_MAX_LIMIT, Math.max(1, Number(query.limit)));
+  }
+  return { term, limit };
+}
+
+/**
+ * Appends the match for a lookup term and returns its SQL fragment. A CPF
+ * (masked or not) matches by digits: exact for 11 digits, prefix for 4 to 10.
+ * Anything else matches the name as a contains pattern.
+ */
+function lookupMatch(term: string, params: unknown[]): string {
+  const digits = cpfDigitsOf(term);
+  if (digits && digits.length === 11) {
+    params.push(digits);
+    return `cpf = $${params.length}`;
+  }
+  if (digits && digits.length >= LOOKUP_MIN_CPF_DIGITS) {
+    params.push(`${digits}%`);
+    return `cpf LIKE $${params.length}`;
+  }
+  const escaped = term.replace(/[\\%_]/g, (char) => `\\${char}`);
+  params.push(`%${escaped}%`);
+  return `name ILIKE $${params.length}`;
 }
 
 function parseOptionalCpf(body: Record<string, unknown>): string | null {
@@ -124,9 +187,11 @@ export function registerCustomerRoutes(
       conditions.push(`responsible_seller_id = $${params.length}`);
     }
     if (search) {
-      params.push(`%${search}%`);
+      // The stored CPF has no mask: a CPF typed with dots or dashes is
+      // compared by its digits, as the lookup endpoint does.
+      params.push(`%${search}%`, `%${cpfDigitsOf(search) ?? search}%`);
       const p = params.length;
-      conditions.push(`(name ILIKE $${p} OR email ILIKE $${p} OR cpf LIKE $${p})`);
+      conditions.push(`(name ILIKE $${p - 1} OR email ILIKE $${p - 1} OR cpf LIKE $${p})`);
     }
     if (status) {
       params.push(status);
@@ -151,6 +216,59 @@ export function registerCustomerRoutes(
       page,
       pageSize,
       total: result.total,
+    };
+  });
+
+  // Search-as-you-type for the sale form: same data scope as the list, a
+  // fixed small limit, and a minimal shape (no contact or address fields).
+  // Registry + effective configuration of the registration form (any user; the server enforces it).
+  app.get('/customers/field-settings', { preHandler: protectedHooks }, async () => ({
+    fields: await listCustomerFieldSettings(database),
+  }));
+
+  app.put('/settings/customers/field-settings', { preHandler: protectedHooks }, async (request) => {
+    // Administrator only, never delegable (same as Full): the permission alone is not enough.
+    const context = getTenantContext();
+    requirePermission(context, 'customers.fields_manage');
+    if (!context.grantsAll && context.role !== 'ADMIN') {
+      throw new ForbiddenError('Somente administradores configuram o cadastro de cliente');
+    }
+    const inputs = parseFieldSettingsInput(request.body);
+    return { fields: await saveCustomerFieldSettings(database, inputs) };
+  });
+
+  app.get('/customers/lookup', { preHandler: protectedHooks }, async (request) => {
+    const context = getTenantContext();
+    const query = (request.query ?? {}) as Record<string, string | undefined>;
+    const scope = readScope();
+    const { term, limit } = parseLookupQuery(query);
+
+    const params: unknown[] = [context.tenantId];
+    const conditions = ['tenant_id = $1'];
+    const scoped = scopeCondition(scope, 'responsible_seller_id', params);
+    if (scoped) conditions.push(scoped);
+    conditions.push(lookupMatch(term, params));
+    params.push(limit);
+
+    const result = await database.withTenantTransaction((client) =>
+      client.query<{ id: string; name: string; cpf: string | null; birth_date: string | null; status: string }>(
+        `SELECT id, name, cpf, to_char(birth_date, 'YYYY-MM-DD') AS birth_date, status
+           FROM customers
+          WHERE ${conditions.join(' AND ')}
+          ORDER BY name
+          LIMIT $${params.length}`,
+        params,
+      ),
+    );
+
+    return {
+      items: result.rows.map((row) => ({
+        id: row.id,
+        name: row.name,
+        cpf_masked: maskCpf(row.cpf),
+        birth_date: row.birth_date,
+        status: row.status,
+      })),
     };
   });
 
@@ -193,6 +311,7 @@ export function registerCustomerRoutes(
     const email = optionalString(body, 'email', { max: 254 });
 
     const customer = await database.withTenantTransaction(async (client) => {
+      await assertCustomerFieldRules(client, context.tenantId, body, 'create');
       if (cpf) await assertCpfAvailable(client, context.tenantId, cpf);
       if (requestedResponsible) await assertSellerExists(client, context.tenantId, requestedResponsible);
       const result = await client.query<CustomerRow>(
@@ -209,7 +328,7 @@ export function registerCustomerRoutes(
           optionalString(body, 'phone', { max: 40 }),
           optionalString(body, 'whatsapp', { max: 40 }),
           email,
-          optionalString(body, 'zip_code', { max: 12 }),
+          normalizeCustomerCep(optionalString(body, 'zip_code', { max: 12 })),
           optionalString(body, 'street', { max: 200 }),
           optionalString(body, 'number', { max: 20 }),
           optionalString(body, 'complement', { max: 100 }),
@@ -263,7 +382,6 @@ export function registerCustomerRoutes(
       'phone',
       'whatsapp',
       'email',
-      'zip_code',
       'street',
       'number',
       'complement',
@@ -288,12 +406,14 @@ export function registerCustomerRoutes(
       set('responsible_seller_id', newResponsible);
     }
 
-    if (updates.length === 0) {
+    if (updates.length === 0 && !('zip_code' in body)) {
       throw new ValidationError('At least one field is required');
     }
 
     const customer = await database.withTenantTransaction(async (client) => {
       const current = await lockCustomerInScope(client, context.tenantId, id, scope);
+      await assertCustomerFieldRules(client, context.tenantId, body, 'update');
+      if ('zip_code' in body) set('zip_code', normalizeCustomerCep(optionalString(body, 'zip_code', { max: 254 }), current.zip_code));
       if (cpfProvided && cpfValue) await assertCpfAvailable(client, context.tenantId, cpfValue, id);
       if (newResponsible) await assertSellerExists(client, context.tenantId, newResponsible);
       updates.push('updated_at = now()');

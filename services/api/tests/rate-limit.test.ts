@@ -1,6 +1,32 @@
 import { describe, expect, it } from 'vitest';
+import type { PlatformDatabaseRuntime } from '../src/database';
 
 describe('SEC-B abuse-control policy', () => {
+  it('keeps the default MFA HTTP budget at five requests; the sixth is 429 before session lookup', async () => {
+    const { buildApp } = await import('../src/app');
+    let lookups = 0;
+    const app = buildApp({
+      authProvider: { authenticate: () => Promise.resolve(null) },
+      validateUserAgencyAccess: () => Promise.resolve(false),
+      database: {
+        withTenantTransaction: () => Promise.reject(new Error('not used')),
+        withPlatformTransaction: () => Promise.reject(new Error('not used')),
+      },
+      platformDatabase: {
+        withPublicLookupTransaction: () => { lookups++; return Promise.resolve(null); },
+      // This test returns a missing session and never uses other platform operations.
+      } as unknown as PlatformDatabaseRuntime,
+      rateLimit: { environment: { RATE_LIMIT_STORE: 'memory' } },
+    });
+    try {
+      for (let i = 0; i < 5; i++) {
+        expect((await app.inject({ method: 'POST', url: '/platform-auth/mfa/verify', payload: { sessionToken: 'missing-challenge', code: '123456' } })).statusCode).toBe(401);
+      }
+      const limited = await app.inject({ method: 'POST', url: '/platform-auth/mfa/verify', payload: { sessionToken: 'missing-challenge', code: '123456' } });
+      expect(limited.statusCode).toBe(429);
+      expect(lookups).toBe(5);
+    } finally { await app.close(); }
+  });
   it('classifies authentication, customer, sensitive, staff, and internal requests explicitly', async () => {
     const { RateLimitClass, classifyRateLimitRequest } = await import('../src/rate-limit');
 

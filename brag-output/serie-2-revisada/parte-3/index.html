@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=1920, height=1080">
+<title>Travel Plataforma - parte 3</title>
+<script src="assets/gsap.min.js"></script><script src="assets/audio-data.js"></script>
+<style>
+@font-face{font-family:'Fraunces';src:url(assets/fonts/Fraunces-400.woff2) format('woff2');font-weight:100 900;}
+@font-face{font-family:'Inter';src:url(assets/fonts/Inter-400.woff2) format('woff2');font-weight:100 900;}
+*{box-sizing:border-box}
+body{margin:0;background:#fff;color:#0f2a4a;font-family:'Inter',sans-serif}
+#root{position:relative;width:100%;height:100%;overflow:hidden}
+.clip{position:absolute;inset:0}
+.scene{position:absolute;inset:0;overflow:hidden}
+.paper{background:#fff}.deep{background:#f3f4f6}.navy{background:#0f2a4a}
+.abs{position:absolute}
+.serif{font-family:'Fraunces',serif;font-weight:400;letter-spacing:-0.02em;margin:0}
+.eyebrow{position:absolute;margin:0;font-weight:600;font-size:30px;line-height:1;letter-spacing:.18em;text-transform:uppercase;color:#1554d1}
+.eyebrow.c{color:#06b6d4}
+.glow{position:absolute;width:1200px;height:1200px;border-radius:50%;background:radial-gradient(circle,rgba(6,182,212,.45) 0%,rgba(6,182,212,0) 65%)}
+.card{position:absolute;background:#fff;border:2px solid #e2e6ea;border-radius:4px}
+.btn{position:absolute;background:#1554d1;color:#fff;font-weight:600;border-radius:4px;display:flex;align-items:center;justify-content:center}
+.num{font-family:'Fraunces',serif;color:#1554d1;margin:0}
+.wm{position:absolute;left:100px;top:80px;height:60px}
+.tr span,.th span{position:absolute;display:flex;align-items:center}
+.tr{position:absolute;border-top:2px solid #e2e6ea}
+.th{position:absolute}
+</style></head><body>
+<div id="root" data-composition-id="main" data-start="0" data-width="1920" data-height="1080" data-duration="30">
+<section id="s1" class="clip" data-start="0" data-duration="5.0" data-track-index="1"><div id="s1-scene" class="scene navy"><div id="s1glow" data-layout-allow-overflow class="glow" style="left:1100px;top:-500px"></div><img class="abs" src="assets/logo-completa-escura.svg" style="left:100px;top:80px;height:60px" alt="Travel Plataforma"><h2 id="s1a" class="serif abs" style="left:160px;right:160px;top:420px;text-align:center;font-size:100px;color:#fff;line-height:1.12;text-wrap:balance">E depois que o cliente <span style="color:#06b6d4">diz sim?</span></h2><div id="s1u" class="abs" style="left:760px;top:580px;width:400px;height:6px;background:#06b6d4"></div><p id="s1e" class="eyebrow c" style="left:160px;right:160px;top:330px;text-align:center">App do cliente</p><h2 id="s1b" class="serif abs" style="left:160px;right:160px;top:400px;text-align:center;font-size:104px;color:#fff;line-height:1.14;text-wrap:balance">Seu cliente acompanha tudo no celular.</h2></div></section>
+<section id="s2" class="clip" data-start="4.6" data-duration="12.8" data-track-index="2"><div id="s2-scene" class="scene paper"><img class="abs" src="assets/logo-completa.svg" style="left:100px;top:80px;height:60px" alt="Travel Plataforma"><p class="eyebrow" style="left:760px;top:230px">Na palma da mão</p><div id="phone" class="abs" style="left:140px;top:170px;width:400px;height:810px;background:#0f2a4a;border-radius:44px;padding:14px;box-shadow:0 30px 60px rgba(15,42,74,.3)">
+<div class="abs" style="left:14px;top:14px;right:14px;bottom:14px;background:#f3f4f6;border-radius:32px;overflow:hidden">
+<div class="abs" style="left:0;top:0;right:0;height:100px;background:linear-gradient(135deg,#0f2a4a,#1e3a5f 60%,#0e5b7a);padding:34px 22px 0"><div class="abs serif" style="left:22px;top:34px;font-size:36px;color:#fff;letter-spacing:-0.01em">Olá, Marina!</div></div>
+<div id="m1" class="abs" style="left:20px;top:114px;width:332px;height:104px"><div class="abs" style="left:0;top:0;width:158px;height:104px;background:#fff;border:2px solid #dbeafe;border-radius:10px"><div class="abs" style="left:14px;top:12px;font-size:18px;color:#5b6370;font-weight:700">Reservas ativas</div><div class="abs" style="left:14px;top:42px;font-size:48px;font-weight:800;color:#1554d1">1</div></div><div class="abs" style="left:174px;top:0;width:158px;height:104px;background:#fff;border:2px solid #dbeafe;border-radius:10px"><div class="abs" style="left:14px;top:12px;font-size:18px;color:#5b6370;font-weight:700">Propostas</div><div class="abs" style="left:14px;top:42px;font-size:48px;font-weight:800;color:#1554d1">2</div></div></div>
+<div id="m2" class="abs" style="left:20px;top:234px;width:332px;height:214px"><div class="abs" style="left:0;top:0;width:332px;height:214px;background:#fff;border:2px solid #dbeafe;border-radius:10px"><div class="abs" style="left:18px;top:14px;font-size:18px;color:#5b6370;font-weight:700">Próxima viagem</div><div class="abs serif" style="left:18px;top:40px;font-size:44px;color:#0f2a4a">Cancún</div><div class="abs" style="left:18px;top:98px;font-size:24px;font-weight:800;color:#157347">Viagem confirmada!</div><div class="abs" style="left:18px;top:146px;display:flex;gap:10px"><div style="padding:8px 12px;border:2px solid #1554d1;color:#1554d1;font-size:18px;font-weight:800;border-radius:6px">Documentos</div><div style="padding:8px 12px;border:2px solid #1554d1;color:#1554d1;font-size:18px;font-weight:800;border-radius:6px">Pagamentos</div></div></div></div>
+<div id="m3" class="abs" style="left:20px;top:464px;width:332px;height:228px"><div class="abs" style="left:0;top:0;width:332px;height:116px;background:#fff;border:2px solid #dbeafe;border-radius:10px"><div class="abs" style="left:18px;top:14px;font-size:22px;font-weight:800;color:#1a1d21">Comunicados da agência</div><div class="abs" style="left:18px;top:50px;width:296px;font-size:22px;line-height:1.3;color:#5b6370">Nenhum aviso no momento.</div></div><div class="abs" style="left:0;top:132px;width:332px;height:96px;background:#fff;border:2px solid #dbeafe;border-radius:10px"><div class="abs" style="left:18px;top:14px;font-size:22px;font-weight:800;color:#1a1d21">Ofertas da sua agência</div><div class="abs" style="left:18px;top:50px;font-size:20px;color:#5b6370">Pacotes selecionados para você</div></div></div>
+<div id="o1" class="abs" style="left:14px;top:108px;width:344px;height:116px;border:4px solid #1554d1;border-radius:14px"></div>
+<div id="o2" class="abs" style="left:14px;top:228px;width:344px;height:226px;border:4px solid #1554d1;border-radius:14px"></div>
+<div id="o3" class="abs" style="left:14px;top:458px;width:344px;height:240px;border:4px solid #1554d1;border-radius:14px"></div>
+<div class="abs" style="left:0;right:0;bottom:0;height:78px;background:#fff;border-top:2px solid #e2e6ea"><div class="abs" style="left:0px;bottom:16px;width:74px;text-align:center;font-size:17px;color:#1554d1;font-weight:800">Início</div><div class="abs" style="left:74px;bottom:16px;width:74px;text-align:center;font-size:17px;color:#5b6370;font-weight:600">Viagens</div><div class="abs" style="left:148px;bottom:16px;width:74px;text-align:center;font-size:17px;color:#5b6370;font-weight:600">Ofertas</div><div class="abs" style="left:222px;bottom:16px;width:74px;text-align:center;font-size:17px;color:#5b6370;font-weight:600">Suporte</div><div class="abs" style="left:296px;bottom:16px;width:74px;text-align:center;font-size:17px;color:#5b6370;font-weight:600">Perfil</div></div></div></div><div id="z1" class="abs" style="left:760px;top:330px;width:1060px;height:600px"><div class="num" style="font-size:44px">01</div><div class="serif" style="font-size:76px;line-height:1.05;margin-top:8px">Viagens e reservas</div><div class="abs" style="left:0;top:200px;width:664.0px;height:208.0px"><div class="abs" style="left:0;top:0;width:316.0px;height:208.0px;background:#fff;border:2px solid #dbeafe;border-radius:20.0px"><div class="abs" style="left:28.0px;top:24.0px;font-size:36.0px;color:#5b6370;font-weight:700">Reservas ativas</div><div class="abs" style="left:28.0px;top:84.0px;font-size:96.0px;font-weight:800;color:#1554d1">1</div></div><div class="abs" style="left:348.0px;top:0;width:316.0px;height:208.0px;background:#fff;border:2px solid #dbeafe;border-radius:20.0px"><div class="abs" style="left:28.0px;top:24.0px;font-size:36.0px;color:#5b6370;font-weight:700">Propostas</div><div class="abs" style="left:28.0px;top:84.0px;font-size:96.0px;font-weight:800;color:#1554d1">2</div></div></div></div><div id="z2" class="abs" style="left:760px;top:330px;width:1060px;height:600px"><div class="num" style="font-size:44px">02</div><div class="serif" style="font-size:76px;line-height:1.05;margin-top:8px">Documentos e pagamentos</div><div class="abs" style="left:0;top:200px;width:664.0px;height:428.0px"><div class="abs" style="left:0;top:0;width:664.0px;height:428.0px;background:#fff;border:2px solid #dbeafe;border-radius:20.0px"><div class="abs" style="left:36.0px;top:28.0px;font-size:36.0px;color:#5b6370;font-weight:700">Próxima viagem</div><div class="abs serif" style="left:36.0px;top:80.0px;font-size:88.0px;color:#0f2a4a">Cancún</div><div class="abs" style="left:36.0px;top:196.0px;font-size:48.0px;font-weight:800;color:#157347">Viagem confirmada!</div><div class="abs" style="left:36.0px;top:292.0px;display:flex;gap:20.0px"><div style="padding:16.0px 24.0px;border:2px solid #1554d1;color:#1554d1;font-size:36.0px;font-weight:800;border-radius:12.0px">Documentos</div><div style="padding:16.0px 24.0px;border:2px solid #1554d1;color:#1554d1;font-size:36.0px;font-weight:800;border-radius:12.0px">Pagamentos</div></div></div></div></div><div id="z3" class="abs" style="left:760px;top:330px;width:1060px;height:600px"><div class="num" style="font-size:44px">03</div><div class="serif" style="font-size:76px;line-height:1.05;margin-top:8px">Comunicados e ofertas</div><div class="abs" style="left:0;top:230px;width:597.6px;height:410.40000000000003px"><div class="abs" style="left:0;top:0;width:597.6px;height:208.8px;background:#fff;border:2px solid #dbeafe;border-radius:18.0px"><div class="abs" style="left:32.4px;top:25.2px;font-size:39.6px;font-weight:800;color:#1a1d21">Comunicados da agência</div><div class="abs" style="left:32.4px;top:90.0px;width:532.8000000000001px;font-size:39.6px;line-height:1.3;color:#5b6370">Nenhum aviso no momento.</div></div><div class="abs" style="left:0;top:237.6px;width:597.6px;height:172.8px;background:#fff;border:2px solid #dbeafe;border-radius:18.0px"><div class="abs" style="left:32.4px;top:25.2px;font-size:39.6px;font-weight:800;color:#1a1d21">Ofertas da sua agência</div><div class="abs" style="left:32.4px;top:90.0px;font-size:36.0px;color:#5b6370">Pacotes selecionados para você</div></div></div></div></div></section>
+<section id="s3" class="clip" data-start="16.6" data-duration="9.8" data-track-index="3"><div id="s3-scene" class="scene deep"><img class="abs" src="assets/logo-completa.svg" style="left:100px;top:80px;height:60px" alt="Travel Plataforma"><p class="eyebrow" style="left:100px;top:300px">Instalação</p>
+<h2 id="s3h" class="serif abs" style="left:100px;top:360px;width:900px;font-size:92px;line-height:1.1">Instala como app, direto do navegador.</h2>
+<div id="s3phone" class="abs" style="left:1280px;top:130px;width:400px;height:810px;background:#0f2a4a;border-radius:44px;padding:14px;box-shadow:0 30px 60px rgba(15,42,74,.3)">
+<div class="abs" style="left:14px;top:14px;right:14px;bottom:14px;border-radius:32px;overflow:hidden;background:#f3f4f6">
+<div id="pg" class="abs" style="inset:0;background:#f3f4f6">
+<div class="abs" style="left:0;top:0;right:0;height:112px;background:linear-gradient(135deg,#0f2a4a,#1e3a5f 60%,#0e5b7a)"><div class="abs serif" style="left:22px;top:44px;font-size:36px;color:#fff">Minha Viagem</div></div>
+<div class="abs" style="left:20px;top:140px;width:332px;height:110px;background:#fff;border:2px solid #dbeafe;border-radius:10px"></div>
+<div class="abs" style="left:20px;top:268px;width:332px;height:180px;background:#fff;border:2px solid #dbeafe;border-radius:10px"></div>
+<div id="banner" class="abs" style="left:14px;top:126px;width:344px;height:236px;background:#e6eeff;border:3px solid #1554d1;border-radius:12px;padding:22px 24px;box-shadow:0 14px 30px rgba(15,42,74,.25)"><div style="font-size:26px;line-height:1.32;color:#1a1d21;font-weight:600">Instale o app <b>Minha Viagem</b> na tela inicial para acesso rápido.</div><div id="instbtn" class="btn" style="left:24px;bottom:20px;width:170px;height:56px;font-size:26px;border-radius:8px">Instalar</div></div></div>
+<div id="home" class="abs" style="inset:0;background:linear-gradient(160deg,#0f2a4a,#0e5b7a)"><div class="abs" style="left:22px;top:360px;width:84px;height:84px;background:rgba(255,255,255,.18);border-radius:20px"></div><div class="abs" style="left:134px;top:360px;width:84px;height:84px;background:rgba(255,255,255,.18);border-radius:20px"></div><div class="abs" style="left:246px;top:360px;width:84px;height:84px;background:rgba(255,255,255,.18);border-radius:20px"></div><div class="abs" style="left:22px;top:492px;width:84px;height:84px;background:rgba(255,255,255,.18);border-radius:20px"></div><div class="abs" style="left:246px;top:492px;width:84px;height:84px;background:rgba(255,255,255,.18);border-radius:20px"></div><div class="abs" style="left:22px;top:624px;width:84px;height:84px;background:rgba(255,255,255,.18);border-radius:20px"></div><div class="abs" style="left:134px;top:624px;width:84px;height:84px;background:rgba(255,255,255,.18);border-radius:20px"></div><div class="abs" style="left:246px;top:624px;width:84px;height:84px;background:rgba(255,255,255,.18);border-radius:20px"></div>
+<img id="appicon" class="abs" src="assets/icone.svg" style="left:134px;top:492px;width:84px;height:84px;border-radius:20px" alt="">
+<div id="appname" class="abs" style="left:100px;top:588px;width:150px;text-align:center;font-size:20px;font-weight:700;color:#fff">Minha Viagem</div></div></div></div></div></section>
+<section id="s4" class="clip" data-start="26.2" data-duration="3.8" data-track-index="4"><div id="s4-scene" class="scene navy"><div id="s4glow" data-layout-allow-overflow class="glow" style="left:1100px;top:-500px"></div><img class="abs" src="assets/logo-completa-escura.svg" style="left:100px;top:80px;height:60px" alt="Travel Plataforma"><h2 id="s4h" class="serif abs" style="left:160px;right:160px;top:420px;text-align:center;font-size:100px;color:#fff;line-height:1.12;text-wrap:balance">E quem cuida de tudo <span style="color:#06b6d4">isso?</span></h2><div id="s4u" class="abs" style="left:760px;top:580px;width:400px;height:6px;background:#06b6d4"></div></div></section>
+<audio id="bgm" data-start="0" data-duration="30" data-media-start="60" data-track-index="10" data-volume="0.33" src="assets/music/music.mp3" data-automation='{"version":1,"lanes":[{"target":"volume","points":[{"t":0,"v":1}]}]}'></audio>
+<audio id="sx1" data-start="1.38" data-duration="0.18" data-track-index="11" data-volume="0.6" src="assets/sfx/impactSoft_medium_001.ogg"></audio>
+<audio id="sx2" data-start="4.88" data-duration="0.69" data-track-index="12" data-volume="0.6" src="assets/sfx/card-place-1.ogg"></audio>
+<audio id="sx3" data-start="6.38" data-duration="0.11" data-track-index="13" data-volume="0.45" src="assets/sfx/drop_001.ogg"></audio>
+<audio id="sx4" data-start="6.88" data-duration="0.11" data-track-index="14" data-volume="0.45" src="assets/sfx/drop_001.ogg"></audio>
+<audio id="sx5" data-start="7.38" data-duration="0.11" data-track-index="15" data-volume="0.45" src="assets/sfx/drop_001.ogg"></audio>
+<audio id="sx6" data-start="8.48" data-duration="0.69" data-track-index="16" data-volume="0.55" src="assets/sfx/card-place-1.ogg"></audio>
+<audio id="sx7" data-start="11.68" data-duration="0.69" data-track-index="17" data-volume="0.55" src="assets/sfx/card-place-1.ogg"></audio>
+<audio id="sx8" data-start="14.88" data-duration="0.69" data-track-index="18" data-volume="0.55" src="assets/sfx/card-place-1.ogg"></audio>
+<audio id="sx9" data-start="16.88" data-duration="0.11" data-track-index="19" data-volume="0.5" src="assets/sfx/drop_001.ogg"></audio>
+<audio id="sx10" data-start="18.48" data-duration="0.69" data-track-index="20" data-volume="0.6" src="assets/sfx/card-place-1.ogg"></audio>
+<audio id="sx11" data-start="21.48" data-duration="0.05" data-track-index="21" data-volume="0.8" src="assets/sfx/click_002.ogg"></audio>
+<audio id="sx12" data-start="22.68" data-duration="0.29" data-track-index="22" data-volume="0.7" src="assets/sfx/chips-stack-1.ogg"></audio>
+<audio id="sx13" data-start="26.48" data-duration="0.18" data-track-index="23" data-volume="0.7" src="assets/sfx/impactSoft_medium_001.ogg"></audio>
+</div>
+<script>
+var tl = gsap.timeline({ paused: true });
+var E = "power3.out";
+function show(sel, at, d, y) { tl.fromTo(sel, { y: y === undefined ? 40 : y, opacity: 0 }, { y: 0, opacity: 1, duration: d || 0.7, ease: E }, at); }
+function slide(sel, at, d, x) { tl.fromTo(sel, { x: x === undefined ? 50 : x, opacity: 0 }, { x: 0, opacity: 1, duration: d || 0.6, ease: E }, at); }
+/* corte por wipe horizontal: a cena nova revela da direita para a esquerda, sem dissolver (sem tela cinza) */
+function wipe(id, at, d) { tl.fromTo(id, { clipPath: "inset(0 0 0 100%)" }, { clipPath: "inset(0 0 0 0%)", duration: d || 0.8, ease: "power3.inOut" }, at); }
+
+tl.fromTo("#s1a", { scale: 1 }, { scale: 1.03, duration: 1.0, ease: "none" }, 0);
+tl.to(["#s1a", "#s1u"], { opacity: 0, y: -40, duration: 0.35, ease: "power2.in" }, 1.0);
+show("#s1e", 1.3, 0.7, 24);
+show("#s1b", 1.3599999999999999, 0.9, 40);
+
+wipe("#s2-scene", 4.6);
+tl.fromTo("#phone", { scale: 0.94, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.9, ease: E }, 4.9);
+tl.set(["#m1", "#m2", "#m3", "#o1", "#o2", "#o3", "#z1", "#z2", "#z3"], { opacity: 0 }, 0);
+tl.fromTo("#m1", { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: E }, 6.4);
+tl.fromTo("#m2", { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: E }, 6.9);
+tl.fromTo("#m3", { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: E }, 7.4);
+// zoom 1
+tl.to("#o1", { opacity: 1, duration: 0.3 }, 8.51);
+show("#z1", 8.51, 0.8, 30);
+tl.to("#z1", { opacity: 0, y: -30, duration: 0.5, ease: "power2.in" }, 11.2);
+tl.to("#o1", { opacity: 0, duration: 0.3 }, 11.2);
+// zoom 2
+tl.to("#o2", { opacity: 1, duration: 0.3 }, 11.52);
+show("#z2", 11.7, 0.8, 30);
+tl.to("#z2", { opacity: 0, y: -30, duration: 0.5, ease: "power2.in" }, 14.4);
+tl.to("#o2", { opacity: 0, duration: 0.3 }, 14.4);
+// zoom 3
+tl.to("#o3", { opacity: 1, duration: 0.3 }, 14.7);
+show("#z3", 15.01, 0.8, 30);
+wipe("#s3-scene", 16.6);
+show("#s3h", 16.9, 0.9);
+tl.fromTo("#s3phone", { scale: 0.94, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.8, ease: E }, 18.52);
+tl.fromTo("#banner", { y: -40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: E }, 20.02);
+tl.to("#instbtn", { scale: 0.92, duration: 0.12, yoyo: true, repeat: 1 }, 21.53);
+tl.set("#home", { opacity: 0 }, 0);
+tl.to("#home", { opacity: 1, duration: 0.6 }, 22.52);
+tl.fromTo("#appicon", { scale: 0.6 }, { scale: 1, duration: 0.7, ease: "back.out(1.7)" }, 22.7);
+wipe("#s4-scene", 26.2);
+show("#s4h", 26.5, 0.9);
+tl.fromTo("#s4u", { scaleX: 0 }, { scaleX: 1, duration: 0.9, ease: E }, 27.4);
+
+for (var f = 0; f < AUDIO_DATA.totalFrames; f++) {
+  tl.call((function (fr) { return function () {
+    gsap.set(".glow", { scale: 0.94 + fr.bands[0] * 0.14, opacity: 0.55 + fr.bands[1] * 0.35 });
+  }; })(AUDIO_DATA.frames[f]), [], f / AUDIO_DATA.fps);
+}
+window.__timelines["main"] = tl;
+</script></body></html>

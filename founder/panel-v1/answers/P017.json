@@ -1,0 +1,13 @@
+{
+  "id": "P017",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Não tem nenhuma agência usando isso de verdade pra eu ver que funciona, e cobrança e nota fiscal ainda não existem, então eu ia continuar fazendo isso por fora mesmo. Pelo preço eu até topava testar, mas assinar sem referência nenhuma é arriscado pro tamanho da minha operação.",
+  "objection": "Minha equipe não vai usar, vai voltar pro WhatsApp em uma semana, e ainda não tem nenhuma agência de referência mostrando que isso roda bem no dia a dia.",
+  "would_change_my_mind": "Ver pelo menos duas ou três agências parecidas com a minha usando de verdade, e a cobrança automática e a nota fiscal já funcionando, não 'em desenvolvimento'.",
+  "price_too_cheap": 29,
+  "price_cheap": 49,
+  "price_expensive": 99,
+  "price_too_expensive": 150
+}

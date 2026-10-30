@@ -23,24 +23,29 @@ import type { Sale, SaleStatus } from '../types/sale';
 
 import { clearSession, getSessionToken } from './session';
 import { translateApiErrorMessage } from './errorTranslation';
+import type { ApplySalePaymentScheduleInput, PaymentCondition, SaleBalance, SalePaymentInput } from './paymentSchedule';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
 
 export class ApiError extends Error {
   readonly code: string;
   readonly status: number;
+  /** Registry field_key named by a 422 form-rule error (sale form), when present. */
+  readonly field?: string;
 
-  constructor(message: string, code: string, status: number) {
+  constructor(message: string, code: string, status: number, field?: string) {
     super(message);
     this.name = 'ApiError';
     this.code = code;
     this.status = status;
+    if (field !== undefined) this.field = field;
   }
 }
 
 interface ApiErrorBody {
   error: string;
   code: string;
+  field?: string;
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -72,6 +77,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
       translateApiErrorMessage(body?.error ?? 'Request failed.'),
       body?.code ?? 'UNKNOWN_ERROR',
       response.status,
+      body?.field,
     );
   }
 
@@ -84,6 +90,62 @@ async function safeJson(response: Response): Promise<unknown> {
   } catch {
     return null;
   }
+}
+
+export async function listPaymentConditions(): Promise<PaymentCondition[]> {
+  const data = await request<{ conditions: PaymentCondition[] }>('/api/payment-conditions');
+  return data.conditions;
+}
+
+export async function listAllPaymentConditions(): Promise<PaymentCondition[]> {
+  const data = await request<{ conditions: PaymentCondition[] }>('/api/payment-conditions?includeInactive=true');
+  return data.conditions;
+}
+
+export async function createPaymentCondition(input: Omit<PaymentCondition, 'id' | 'version'>): Promise<PaymentCondition> {
+  const data = await request<{ condition: PaymentCondition }>('/api/payment-conditions', { method: 'POST', body: JSON.stringify(input) });
+  return data.condition;
+}
+
+export async function revisePaymentCondition(id: string, input: Omit<PaymentCondition, 'id' | 'version'>): Promise<PaymentCondition> {
+  const data = await request<{ condition: PaymentCondition }>(`/api/payment-conditions/${encodeURIComponent(id)}`, { method: 'PUT', body: JSON.stringify(input) });
+  return data.condition;
+}
+
+export async function deactivatePaymentCondition(id: string): Promise<void> {
+  await request(`/api/payment-conditions/${encodeURIComponent(id)}/deactivate`, { method: 'POST', body: '{}' });
+}
+
+export function getSaleBalance(id: string): Promise<SaleBalance> {
+  return request(`/api/sales/${encodeURIComponent(id)}/balance`);
+}
+
+export function getSalePaymentSchedule(id: string): Promise<Pick<SaleBalance, 'snapshot' | 'receivables'>> {
+  return request(`/api/sales/${encodeURIComponent(id)}/payment-schedule`);
+}
+
+export function applySalePaymentSchedule(id: string, input: ApplySalePaymentScheduleInput): Promise<SaleBalance> {
+  return request(`/api/sales/${encodeURIComponent(id)}/payment-schedule`, {
+    method: 'POST', body: JSON.stringify(input),
+  });
+}
+
+export function recordSalePayment(id: string, input: SalePaymentInput): Promise<{ paymentId: string; balance: SaleBalance }> {
+  return request(`/api/sales/${encodeURIComponent(id)}/payments`, {
+    method: 'POST', body: JSON.stringify(input),
+  });
+}
+
+export function reverseSalePayment(id: string, paymentId: string, reason: string): Promise<{ reversalPaymentId: string; balance: SaleBalance }> {
+  return request(`/api/sales/${encodeURIComponent(id)}/payments/${encodeURIComponent(paymentId)}/reverse`, {
+    method: 'POST', body: JSON.stringify({ reason }),
+  });
+}
+
+export function reviseSalePaymentSchedule(id: string, reason: string): Promise<SaleBalance> {
+  return request(`/api/sales/${encodeURIComponent(id)}/payment-schedule/revise`, {
+    method: 'POST', body: JSON.stringify({ reason }),
+  });
 }
 
 // ============================================================
@@ -836,6 +898,7 @@ export interface CreateCustomerInput {
   emergencyContactEmail?: string | undefined;
   emergencyContactNotes?: string | undefined;
   notes?: string | undefined;
+  address?: Record<string, unknown> | undefined;
 }
 
 export type UpdateCustomerInput = Partial<CreateCustomerInput> & {
@@ -845,6 +908,33 @@ export type UpdateCustomerInput = Partial<CreateCustomerInput> & {
 export async function listCustomers(): Promise<Customer[]> {
   const data = await request<{ customers: Customer[] }>('/api/customers');
   return data.customers;
+}
+
+export interface CustomerFieldSetting {
+  fieldKey: string;
+  /** Name used by the customers API for this field. */
+  apiField: string;
+  label: string;
+  group: string;
+  locked: boolean;
+  enabled: boolean;
+  required: boolean;
+}
+
+/** Registry + effective configuration of the customer registration form. */
+export async function getCustomerFieldSettings(): Promise<CustomerFieldSetting[]> {
+  const data = await request<{ fields: CustomerFieldSetting[] }>('/api/customers/field-settings');
+  return data.fields;
+}
+
+export async function saveCustomerFieldSettings(
+  fields: Array<Pick<CustomerFieldSetting, 'fieldKey' | 'enabled' | 'required'>>,
+): Promise<CustomerFieldSetting[]> {
+  const data = await request<{ fields: CustomerFieldSetting[] }>('/api/settings/customers/field-settings', {
+    method: 'PUT',
+    body: JSON.stringify({ fields }),
+  });
+  return data.fields;
 }
 
 export async function getCustomer(id: string): Promise<Customer> {
@@ -886,6 +976,26 @@ export interface CreateAddressInput {
 }
 
 export type UpdateAddressInput = Partial<CreateAddressInput>;
+
+export interface CepLookupResult {
+  status: 'ok' | 'generic';
+  street: string;
+  neighborhood: string;
+  city: string;
+  state: string;
+  source: 'viacep';
+}
+
+export async function lookupCep(
+  cep: string,
+  signal?: AbortSignal,
+): Promise<CepLookupResult> {
+  const query = new URLSearchParams({ cep }).toString();
+  return request<CepLookupResult>(
+    `/api/cep/lookup?${query}`,
+    signal ? { signal } : undefined,
+  );
+}
 
 export async function listCustomerAddresses(customerId: string): Promise<CustomerAddress[]> {
   const data = await request<{ addresses: CustomerAddress[] }>(
@@ -1346,6 +1456,7 @@ export async function updateWish(id: string, input: UpdateWishInput): Promise<Wi
 
 export interface CreateTripInput {
   customerId: string;
+  saleId?: string | undefined;
   name: string;
   destination: string;
   startDate: string;
@@ -1948,6 +2059,31 @@ export interface CreateSaleInput {
   amount: number;
   discount?: number;
   notes?: string;
+  categoryId?: string;
+  saleDate?: string;
+  travelStartDate?: string;
+  travelEndDate?: string;
+  originText?: string;
+  destinationText?: string;
+  passengerCount?: number;
+  modalityData?: Record<string, string>;
+  items?: CreateSaleLineItemInput[];
+}
+
+export interface CreateSaleLineItemInput {
+  productId?: string;
+  description: string;
+  supplierId?: string;
+  travelers?: unknown[];
+  qty?: number;
+  unitCost?: number;
+  unitPrice: number;
+  taxes?: number;
+  fees?: number;
+  discount?: number;
+  commission?: number;
+  currency?: string;
+  source?: 'MANUAL' | 'UPSELL_SUGGESTION';
 }
 
 export interface UpdateSaleInput {
@@ -1956,8 +2092,151 @@ export interface UpdateSaleInput {
   notes?: string;
 }
 
-export async function listSales(): Promise<Sale[]> {
-  const data = await request<{ sales: Sale[] }>('/api/sales');
+// Sale categories and their configurable form profile (ADR-008).
+export interface SaleCategory {
+  id: string;
+  name: string;
+  active: boolean;
+  sortOrder: number;
+  formRevision: number;
+}
+
+export interface SaleCategoryFormField {
+  fieldKey: string;
+  storage: 'column' | 'modality';
+  label: string;
+  type: 'text' | 'date' | 'integer' | 'money' | 'enum' | 'passenger_list' | 'price_components';
+  group: string;
+  locked: boolean;
+  enabled: boolean;
+  required: boolean;
+  sortOrder: number;
+}
+
+export interface SaleCategoryForm {
+  category: SaleCategory;
+  formRevision: number;
+  fields: SaleCategoryFormField[];
+}
+
+export async function listSaleCategories(includeInactive = false): Promise<SaleCategory[]> {
+  const query = includeInactive ? '?includeInactive=true' : '';
+  const data = await request<{ categories: SaleCategory[] }>(`/api/sale-categories${query}`);
+  return data.categories;
+}
+
+export async function createSaleCategory(input: { name: string; sortOrder?: number }): Promise<SaleCategory> {
+  const data = await request<{ category: SaleCategory }>('/api/sale-categories', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+  return data.category;
+}
+
+export async function updateSaleCategory(
+  id: string,
+  input: { name?: string; active?: boolean; sortOrder?: number },
+): Promise<SaleCategory> {
+  const data = await request<{ category: SaleCategory }>(`/api/sale-categories/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(input),
+  });
+  return data.category;
+}
+
+export async function getSaleCategoryForm(id: string): Promise<SaleCategoryForm> {
+  const data = await request<{ form: SaleCategoryForm }>(`/api/sale-categories/${encodeURIComponent(id)}/form`);
+  return data.form;
+}
+
+export interface CommissionRuleVersionInput {
+  effectiveFrom: string;
+  mode: 'PERCENTAGE' | 'FIXED' | 'NONE';
+  calculationMetric?: 'GROSS' | 'MARGIN' | 'SUPPLIER_SOLD_TOTAL';
+  value?: number;
+  applyOn?: 'TOTAL' | 'EXCESS';
+  excessThreshold?: number;
+  progressive?: boolean;
+  tierMode?: 'MARGINAL' | 'TOTAL';
+  tiers?: Array<{ fromAmount: number; toAmount: number | null; rate: number }>;
+  reason?: string;
+  releaseAfterSupplierPayment?: boolean;
+}
+
+export interface CommissionRuleScope {
+  id: string;
+  employeeId: string | null;
+  supplierId: string | null;
+  categoryId: string | null;
+  status: string;
+  versions: Array<{
+    id: string; versionNumber: number; effectiveFrom: string; mode: string; calculationMetric: string;
+    value: number | null; applyOn: string; excessThreshold: number | null; progressive: boolean; reason: string | null;
+    releaseAfterSupplierPayment: boolean;
+    tierMode: 'MARGINAL' | 'TOTAL';
+    tiers: Array<{ tier_number: number; from_amount: number; to_amount: number | null; rate: number }>;
+    state: 'EFFECTIVE' | 'SCHEDULED' | 'SUPERSEDED'; isEffective: boolean; supersededByVersionId: string | null; effectiveUntil: string | null;
+  }>;
+}
+
+export async function listCommissionRuleScopes(): Promise<CommissionRuleScope[]> {
+  const data = await request<{ scopes: CommissionRuleScope[] }>('/api/commission-rule-scopes');
+  return data.scopes;
+}
+
+export async function createCommissionRuleScope(input: {
+  employeeId: string | null;
+  supplierId?: string | null;
+  categoryId: string | null;
+  version: CommissionRuleVersionInput;
+}): Promise<{ scopeId: string; versionId: string }> {
+  return request<{ scopeId: string; versionId: string }>('/api/commission-rule-scopes', { method: 'POST', body: JSON.stringify(input) });
+}
+
+export async function reviseCommissionRuleScope(scopeId: string, version: CommissionRuleVersionInput): Promise<{ versionId: string }> {
+  return request<{ versionId: string }>(`/api/commission-rule-scopes/${encodeURIComponent(scopeId)}/versions`, { method: 'POST', body: JSON.stringify(version) });
+}
+
+export async function getCommissionEngineSettings(): Promise<{cutoverDate:string|null}> {
+  return request('/api/commission-engine-settings');
+}
+
+export async function saveCommissionEngineSettings(cutoverDate:string|null): Promise<void> {
+  await request('/api/commission-engine-settings',{method:'PUT',body:JSON.stringify({cutoverDate})});
+}
+
+export async function saveSaleCategoryForm(
+  id: string,
+  fields: Array<{ fieldKey: string; enabled: boolean; required: boolean }>,
+): Promise<SaleCategoryForm> {
+  const data = await request<{ form: SaleCategoryForm }>(`/api/sale-categories/${encodeURIComponent(id)}/form`, {
+    method: 'PUT',
+    body: JSON.stringify({ fields }),
+  });
+  return data.form;
+}
+
+export interface SalesListFilters {
+  dateFrom?: string | undefined;
+  dateTo?: string | undefined;
+  status?: string | undefined;
+  employeeId?: string | undefined;
+  supplierId?: string | undefined;
+  segmentId?: string | undefined;
+}
+
+function buildListFilterQuery(filters?: SalesListFilters): string {
+  const params = new URLSearchParams();
+  for (const key of ['dateFrom', 'dateTo', 'status', 'employeeId', 'supplierId', 'segmentId'] as const) {
+    const value = filters?.[key];
+    if (value) params.set(key, value);
+  }
+  const query = params.toString();
+  return query ? `?${query}` : '';
+}
+
+export async function listSales(filters?: SalesListFilters): Promise<Sale[]> {
+  const data = await request<{ sales: Sale[] }>(`/api/sales${buildListFilterQuery(filters)}`);
   return data.sales;
 }
 
@@ -2304,8 +2583,17 @@ export interface Receivable {
   updatedAt: string;
 }
 
-export async function listReceivables(): Promise<Receivable[]> {
-  const data = await request<{ receivables: Receivable[] }>('/api/financial/receivables');
+export interface FinancialObligationListFilters {
+  dateFrom?: string | undefined;
+  dateTo?: string | undefined;
+  status?: string | undefined;
+  supplierId?: string | undefined;
+  employeeId?: string | undefined;
+  segmentId?: string | undefined;
+}
+
+export async function listReceivables(filters?: FinancialObligationListFilters): Promise<Receivable[]> {
+  const data = await request<{ receivables: Receivable[] }>(`/api/financial/receivables${buildListFilterQuery(filters)}`);
   return data.receivables;
 }
 
@@ -2326,6 +2614,7 @@ export interface Payable {
   agencyId: string;
   saleId?: string;
   supplierId?: string;
+  agencyRevenueWarning?: boolean;
   commissionId?: string;
   transportOperationId?: string;
   operationalCostId?: string;
@@ -2348,8 +2637,8 @@ export interface CreatePayableInput {
   dueAt: string;
 }
 
-export async function listPayables(): Promise<Payable[]> {
-  const data = await request<{ payables: Payable[] }>('/api/financial/payables');
+export async function listPayables(filters?: FinancialObligationListFilters): Promise<Payable[]> {
+  const data = await request<{ payables: Payable[] }>(`/api/financial/payables${buildListFilterQuery(filters)}`);
   return data.payables;
 }
 
@@ -3026,13 +3315,15 @@ export async function deleteEmployee(id: string): Promise<void> {
 // COMMISSION ENTRIES (generated commissions)
 // ============================================================
 
-export type CommissionEntryStatus = 'PENDING' | 'APPROVED' | 'PAYABLE' | 'PAID' | 'CANCELLED';
+export type CommissionEntryStatus = 'PENDING' | 'PENDING_RULE' | 'APPROVED' | 'PAYABLE' | 'PAID' | 'CANCELLED';
 
 export interface CommissionEntry {
   id: string;
   agencyId: string;
   employeeId: string;
   saleId: string;
+  supplierId?: string;
+  agencyRevenueWarning?: boolean;
   tripId?: string;
   commissionPlanId?: string;
   commissionRuleId?: string;
@@ -3071,6 +3362,25 @@ export async function listCommissions(filters?: {
   const qs = params.toString() ? `?${params.toString()}` : '';
   const data = await request<{ commissions: CommissionEntry[] }>(`/api/commissions${qs}`);
   return data.commissions;
+}
+
+export interface CommissionEntryRelease {
+  entryId: string; recognized: number; received: number; saleTotal: number; released: number; paid: number; allocable: number;
+  expectedPayDate: string | null;
+  policy: { status: 'RESOLVED' | 'LEGACY_PRE_FEATURE' | 'BLOCKED'; requiresReceipt?: boolean; effect?: 'META_E_LIBERACAO' | 'SOMENTE_LIBERACAO'; missing?: string[] };
+  status: 'PAID' | 'PAYABLE' | 'APPROVED';
+}
+
+export function getCommissionEntryRelease(id: string): Promise<CommissionEntryRelease> {
+  return request(`/api/commission-entries/${encodeURIComponent(id)}/release`);
+}
+
+export function createCommissionAttribution(saleId: string, input: { employeeId: string; supplierId?: string | null; categoryId?: string | null; recognitionDate?: string }): Promise<{ id: string; seq: number }> {
+  return request(`/api/sales/${encodeURIComponent(saleId)}/commission-attributions`, { method: 'POST', body: JSON.stringify(input) });
+}
+
+export function generateVersionedCommission(saleId: string, employeeId: string, supplierId?: string | null): Promise<{ entryId: string; status: CommissionEntryStatus; amount: number }> {
+  return request(`/api/sales/${encodeURIComponent(saleId)}/commission-entries/versioned`, { method: 'POST', body: JSON.stringify({ employeeId, supplierId: supplierId ?? null }) });
 }
 
 export async function generateCommission(input: GenerateCommissionInput): Promise<CommissionEntry> {
@@ -3318,6 +3628,7 @@ export interface PayrollEntry {
   dueDate?: string;
   paidAt?: string;
   notes?: string;
+  payableId?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -4159,6 +4470,48 @@ export const api = {
     return { data };
   },
 
+  /**
+   * Downloads a report as CSV through the same authenticated path as `get`.
+   * `path` is the report path with its filters; `format=csv` is appended here
+   * so the export always matches the table the user is looking at.
+   */
+  downloadCsv: async (path: string): Promise<{ blob: Blob; filename: string }> => {
+    const separator = path.includes('?') ? '&' : '?';
+    const response = await fetch(`${API_BASE_URL}/api${path}${separator}format=csv`, {
+      headers: authHeaders(false),
+    });
+    handleAuthResponse(response);
+    if (!response.ok) {
+      const body = (await safeJson(response)) as Partial<ApiErrorBody> | null;
+      throw new ApiError(
+        translateApiErrorMessage(body?.error ?? 'Request failed.'),
+        body?.code ?? 'UNKNOWN_ERROR',
+        response.status,
+      );
+    }
+    if (!response.headers.get('content-type')?.toLowerCase().includes('text/csv')) {
+      throw new ApiError('A resposta não é um arquivo CSV.', 'INVALID_CSV_RESPONSE', response.status);
+    }
+    const named = /filename="([a-z0-9-]+\.csv)"/.exec(response.headers.get('content-disposition') ?? '');
+    return { blob: await response.blob(), filename: named?.[1] ?? 'relatorio.csv' };
+  },
+
+  downloadPostCsv: async (path: string, body: Record<string, unknown>): Promise<{ blob: Blob; filename: string; rows: number }> => {
+    const response = await fetch(`${API_BASE_URL}/api${path}`, {
+      method: 'POST', headers: authHeaders(true), body: JSON.stringify(body),
+    });
+    handleAuthResponse(response);
+    if (!response.ok) {
+      const respBody = (await safeJson(response)) as Partial<ApiErrorBody> | null;
+      throw new ApiError(translateApiErrorMessage(respBody?.error ?? 'Request failed.'), respBody?.code ?? 'UNKNOWN_ERROR', response.status);
+    }
+    if (!response.headers.get('content-type')?.toLowerCase().includes('text/csv')) {
+      throw new ApiError('A resposta não é um arquivo CSV.', 'INVALID_CSV_RESPONSE', response.status);
+    }
+    const named = /filename="([a-z0-9-]+\.csv)"/i.exec(response.headers.get('content-disposition') ?? '');
+    return { blob: await response.blob(), filename: named?.[1] ?? 'exportacao.csv', rows: Number(response.headers.get('x-export-row-count') ?? 0) };
+  },
+
   post: async <T>(path: string, body?: Record<string, unknown>): Promise<{ data: T }> => {
     // Fastify's JSON content-type parser rejects a request that declares
     // application/json but sends no body (FST_ERR_CTP_EMPTY_JSON_BODY) --
@@ -4187,6 +4540,25 @@ export const api = {
       method: 'PATCH',
       headers: authHeaders(body !== undefined),
       ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+    });
+    handleAuthResponse(response);
+    if (!response.ok) {
+      const respBody = (await safeJson(response)) as Partial<ApiErrorBody> | null;
+      throw new ApiError(
+        translateApiErrorMessage(respBody?.error ?? 'Request failed.'),
+        respBody?.code ?? 'UNKNOWN_ERROR',
+        response.status,
+      );
+    }
+    const data = (await response.json()) as T;
+    return { data };
+  },
+
+  put: async <T>(path: string, body: Record<string, unknown>): Promise<{ data: T }> => {
+    const response = await fetch(`${API_BASE_URL}/api${path}`, {
+      method: 'PUT',
+      headers: authHeaders(true),
+      body: JSON.stringify(body),
     });
     handleAuthResponse(response);
     if (!response.ok) {
@@ -4427,4 +4799,23 @@ export async function updateTask(id: string, input: UpdateTaskInput): Promise<Co
     body: JSON.stringify(input),
   });
   return data.task;
+}
+
+export interface CommissionReleaseConfig {
+  receiptRules: Array<{ method: string; requiresReceipt: boolean }>;
+  profiles: Array<{ id: string; effect: 'META_E_LIBERACAO' | 'SOMENTE_LIBERACAO'; effectiveFrom: string; reason: string | null; active: boolean }>;
+  blocked: boolean;
+  missing: string[];
+}
+
+export async function getCommissionReleaseConfig(): Promise<CommissionReleaseConfig> {
+  return request<CommissionReleaseConfig>('/api/commission-release/config');
+}
+
+export async function setReceiptRule(method: string, requiresReceipt: boolean): Promise<void> {
+  await request<unknown>('/api/commission-release/receipt-rules', { method: 'PUT', body: JSON.stringify({ method, requiresReceipt }) });
+}
+
+export async function createCommissionFinancialProfile(input: { effect: 'META_E_LIBERACAO' | 'SOMENTE_LIBERACAO'; effectiveFrom: string; reason?: string }): Promise<void> {
+  await request<unknown>('/api/commission-release/financial-profiles', { method: 'POST', body: JSON.stringify(input) });
 }

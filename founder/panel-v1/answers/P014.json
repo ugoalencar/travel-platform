@@ -1,0 +1,13 @@
+{
+  "id": "P014",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "habit",
+  "reason": "Hoje eu não gasto nada pra fechar venda, é tudo pelo meu WhatsApp. R$99 por mês não é o problema, o problema é minha equipe parar de usar depois de uma semana e eu ficar pagando por um sistema vazio.",
+  "objection": "Não tem nenhuma agência rodando isso de verdade pra eu ver que funciona, e cobrança e nota fiscal ainda nem existem - eu ia continuar fazendo isso tudo por fora do mesmo jeito que faço hoje.",
+  "would_change_my_mind": "Ver uma agência do meu tamanho usando de verdade, com a equipe migrando do WhatsApp pro sistema, e não só no teste grátis",
+  "price_too_cheap": 30,
+  "price_cheap": 79,
+  "price_expensive": 150,
+  "price_too_expensive": 250
+}

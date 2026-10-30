@@ -19,8 +19,8 @@ const migrationFiles = readdirSync(migrationsDir)
 const prepareRolesSql = resolve(repoRoot, 'tests/integration/database/002_prepare_local_roles.sql');
 const composeFile = resolve(repoRoot, 'infrastructure/docker-compose.local-postgres.yml');
 
-const projectName = 'travel-platform-customer-platform-auth-http-postgres';
-const containerName = 'travel-platform-postgres-local';
+const projectName = process.env.DATABASE_TEST_PROJECT_NAME ?? 'travel-platform-customer-platform-auth-http-postgres';
+const containerName = process.env.DATABASE_TEST_CONTAINER_NAME ?? 'travel-platform-postgres-local';
 const postgresImage = 'postgres:15';
 const databaseHost = process.env.DATABASE_TEST_HOST ?? '127.0.0.1';
 const databasePort = Number(process.env.DATABASE_TEST_PORT ?? '55432');
@@ -439,7 +439,8 @@ describe('Customer Portal + Platform Admin local auth HTTP routes', () => {
   });
 
   it('a pending MFA challenge is invalidated after 5 wrong codes', async () => {
-    const app = buildTestApp();
+    // Exercise the persistent challenge counter independently from the five-request HTTP budget.
+    const app = buildTestApp(10);
     const { secret } = await enrollAndConfirmMfa(app);
     const challenge = (await loginPlatform(app)).json<{ mfaChallengeToken: string }>().mfaChallengeToken;
     const wrong = generateInvalidTotpCode(secret);
@@ -520,7 +521,7 @@ describe('Customer Portal + Platform Admin local auth HTTP routes', () => {
     throw new Error('Unable to generate an invalid TOTP code');
   }
 
-  function buildTestApp() {
+  function buildTestApp(authRecoveryMax = 5) {
     return buildApp({
       authProvider: { authenticate: () => Promise.resolve(null) },
       validateUserAgencyAccess: () => Promise.resolve(false),
@@ -535,6 +536,7 @@ describe('Customer Portal + Platform Admin local auth HTTP routes', () => {
       // (/platform-auth/*) on the platform-role pool -- mirrors server.ts.
       database: createDatabaseRuntime(runtimePool, platformPool),
       platformDatabase: createPlatformDatabaseRuntime(platformPool),
+      rateLimit: { classLimits: { AUTH_RECOVERY: { max: authRecoveryMax, windowMs: 15 * 60_000 } } },
     });
   }
 

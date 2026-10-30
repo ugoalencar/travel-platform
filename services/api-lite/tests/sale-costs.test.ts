@@ -59,7 +59,7 @@ describe('Travel Lite sale costs and financial parties', () => {
     const saleCategory = await lite.app.inject({
       method: 'POST',
       url: '/categories',
-      headers: lite.headers(staffToken),
+      headers: lite.headers(adminToken),
       payload: { name: 'PACOTE COM CUSTO' },
     });
     saleCategoryId = saleCategory.json<{ category: { id: string } }>().category.id;

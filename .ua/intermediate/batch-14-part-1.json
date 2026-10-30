@@ -1,0 +1,1184 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/agency/src/App.test.tsx",
+      "type": "file",
+      "name": "App.test.tsx",
+      "filePath": "apps/agency/src/App.test.tsx",
+      "summary": "Suíte de testes do roteador principal: verifica dashboard padrão, navegação da sidebar em português e páginas de detalhe de clientes, desejos e viagens, com mocks da API.",
+      "tags": [
+        "test",
+        "routing",
+        "react-router",
+        "agency-app"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/agency/src/App.tsx",
+      "type": "file",
+      "name": "App.tsx",
+      "filePath": "apps/agency/src/App.tsx",
+      "summary": "Componente raiz que declara todas as rotas do app da agência: páginas públicas de autenticação, guarda RequireAuth e o shell autenticado com mais de 60 telas.",
+      "tags": [
+        "entry-point",
+        "routing",
+        "react-router",
+        "agency-app"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Tabela de rotas totalmente declarativa em JSX: cada página é importada estaticamente e montada como <Route> aninhado."
+    },
+    {
+      "id": "file:apps/agency/src/components/auth/RequireAuth.tsx",
+      "type": "file",
+      "name": "RequireAuth.tsx",
+      "filePath": "apps/agency/src/components/auth/RequireAuth.tsx",
+      "summary": "Guarda de rotas que redireciona para /login quando não há sessão válida e renderiza as rotas filhas via Outlet; não é fronteira de segurança real.",
+      "tags": [
+        "routing",
+        "auth",
+        "guard",
+        "react-router"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/agency/src/components/layout/AppShell.tsx",
+      "type": "file",
+      "name": "AppShell.tsx",
+      "filePath": "apps/agency/src/components/layout/AppShell.tsx",
+      "summary": "Layout autenticado que combina Sidebar, Topbar e área de conteúdo, redireciona OWNER/ADMIN ao onboarding na primeira carga e volta ao login quando a sessão expira.",
+      "tags": [
+        "layout",
+        "shell",
+        "onboarding",
+        "react-component"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/agency/src/components/layout/PageHeader.tsx",
+      "type": "file",
+      "name": "PageHeader.tsx",
+      "filePath": "apps/agency/src/components/layout/PageHeader.tsx",
+      "summary": "Cabeçalho de página reutilizável com título, descrição, breadcrumbs e ações, mapeando rotas para rótulos exibidos.",
+      "tags": [
+        "component",
+        "ui",
+        "navigation",
+        "react-component"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/agency/src/App.tsx:App",
+      "type": "function",
+      "name": "App",
+      "filePath": "apps/agency/src/App.tsx",
+      "lineRange": [
+        69,
+        147
+      ],
+      "summary": "Componente raiz que monta o React Router com rotas públicas, a guarda RequireAuth e o AppShell do app da agência.",
+      "tags": [
+        "entry-point",
+        "routing",
+        "react-component"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/agency/src/components/auth/RequireAuth.tsx:RequireAuth",
+      "type": "function",
+      "name": "RequireAuth",
+      "filePath": "apps/agency/src/components/auth/RequireAuth.tsx",
+      "lineRange": [
+        12,
+        20
+      ],
+      "summary": "Verifica a sessão com hasSession e redireciona para /login ou renderiza o Outlet das rotas filhas.",
+      "tags": [
+        "routing",
+        "auth",
+        "guard"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/agency/src/components/layout/AppShell.tsx:useOnboardingRedirect",
+      "type": "function",
+      "name": "useOnboardingRedirect",
+      "filePath": "apps/agency/src/components/layout/AppShell.tsx",
+      "lineRange": [
+        15,
+        34
+      ],
+      "summary": "Consulta /settings/agency e envia OWNER/ADMIN ao onboarding quando o perfil ainda não foi concluído.",
+      "tags": [
+        "hook",
+        "onboarding",
+        "navigation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/agency/src/components/layout/AppShell.tsx:AppShell",
+      "type": "function",
+      "name": "AppShell",
+      "filePath": "apps/agency/src/components/layout/AppShell.tsx",
+      "lineRange": [
+        36,
+        71
+      ],
+      "summary": "Composição do layout autenticado: Sidebar, Topbar, área de conteúdo via Outlet e redirect para /login quando /me não retorna usuário.",
+      "tags": [
+        "layout",
+        "shell",
+        "react-component"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/agency/src/components/layout/PageHeader.tsx:PageHeader",
+      "type": "function",
+      "name": "PageHeader",
+      "filePath": "apps/agency/src/components/layout/PageHeader.tsx",
+      "lineRange": [
+        17,
+        46
+      ],
+      "summary": "Renderiza título, descrição, breadcrumbs e ações no topo de cada tela.",
+      "tags": [
+        "component",
+        "ui",
+        "header"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "function:apps/agency/src/App.tsx:App",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "function:apps/agency/src/App.tsx:App",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/components/auth/RequireAuth.tsx",
+      "target": "function:apps/agency/src/components/auth/RequireAuth.tsx:RequireAuth",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/components/auth/RequireAuth.tsx",
+      "target": "function:apps/agency/src/components/auth/RequireAuth.tsx:RequireAuth",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/components/layout/AppShell.tsx",
+      "target": "function:apps/agency/src/components/layout/AppShell.tsx:useOnboardingRedirect",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/components/layout/AppShell.tsx",
+      "target": "function:apps/agency/src/components/layout/AppShell.tsx:AppShell",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/components/layout/AppShell.tsx",
+      "target": "function:apps/agency/src/components/layout/AppShell.tsx:AppShell",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/components/layout/PageHeader.tsx",
+      "target": "function:apps/agency/src/components/layout/PageHeader.tsx:PageHeader",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:apps/agency/src/components/layout/PageHeader.tsx",
+      "target": "function:apps/agency/src/components/layout/PageHeader.tsx:PageHeader",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/App.test.tsx",
+      "target": "file:apps/agency/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.test.tsx",
+      "target": "file:apps/agency/src/test/render.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.test.tsx",
+      "target": "file:apps/agency/src/types/customer.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.test.tsx",
+      "target": "file:apps/agency/src/types/trip.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.test.tsx",
+      "target": "file:apps/agency/src/types/wish.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "file:apps/agency/src/components/auth/RequireAuth.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "file:apps/agency/src/components/layout/AppShell.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "file:apps/agency/src/pages/AirServicesPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "file:apps/agency/src/pages/CampaignsPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "file:apps/agency/src/pages/CashTransactionsPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "file:apps/agency/src/pages/CategoriesPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "file:apps/agency/src/pages/CommissionPlansPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "file:apps/agency/src/pages/CommunicationFormPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "file:apps/agency/src/pages/CommunicationPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "file:apps/agency/src/pages/CostCentersPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "file:apps/agency/src/pages/CouponsPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "file:apps/agency/src/pages/CustomerDetailPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "file:apps/agency/src/pages/CustomersPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "file:apps/agency/src/pages/DashboardPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "file:apps/agency/src/pages/DetailedReportsPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "file:apps/agency/src/pages/DrePage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "file:apps/agency/src/pages/EmployeeDetailPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "file:apps/agency/src/pages/EmployeesPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "file:apps/agency/src/pages/EnrollmentLinksPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "file:apps/agency/src/pages/ExcursionsPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "file:apps/agency/src/pages/ExpensesPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "file:apps/agency/src/pages/FinancialPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "file:apps/agency/src/pages/ForgotPasswordPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "file:apps/agency/src/pages/InsurancePage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "file:apps/agency/src/pages/LandServicesPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "file:apps/agency/src/pages/LoginPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "file:apps/agency/src/pages/MediaLibraryPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "file:apps/agency/src/pages/NotFoundPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "file:apps/agency/src/pages/OfferDetailPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "file:apps/agency/src/pages/OffersPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "file:apps/agency/src/pages/OnboardingWizardPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "file:apps/agency/src/pages/PayablesPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "file:apps/agency/src/pages/PayrollPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "file:apps/agency/src/pages/PescadorPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "file:apps/agency/src/pages/PipelinePage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "file:apps/agency/src/pages/ReceivablesPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "file:apps/agency/src/pages/ReconciliationPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "file:apps/agency/src/pages/ReportsPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "file:apps/agency/src/pages/ResetPasswordPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "file:apps/agency/src/pages/RevenuesPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "file:apps/agency/src/pages/SaleFinancialStoryPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "file:apps/agency/src/pages/SalesJourneyPages.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "file:apps/agency/src/pages/SegmentsPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "file:apps/agency/src/pages/SettingsPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "file:apps/agency/src/pages/SignupPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "file:apps/agency/src/pages/SuppliersPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "file:apps/agency/src/pages/TaskFormPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "file:apps/agency/src/pages/TasksPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "file:apps/agency/src/pages/TripDetailPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "file:apps/agency/src/pages/TripsPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "file:apps/agency/src/pages/WishDetailPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "file:apps/agency/src/pages/WishesPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "file:apps/agency/src/pages/operations/DocumentAlertsPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "file:apps/agency/src/pages/operations/OccurrencesPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "file:apps/agency/src/pages/operations/PassengersPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "file:apps/agency/src/pages/operations/PostTripPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "file:apps/agency/src/pages/proposals/ProposalEditorPage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/components/auth/RequireAuth.tsx",
+      "target": "file:apps/agency/src/lib/session.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/components/layout/AppShell.tsx",
+      "target": "file:apps/agency/src/components/layout/Sidebar.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/components/layout/AppShell.tsx",
+      "target": "file:apps/agency/src/components/layout/Topbar.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/components/layout/AppShell.tsx",
+      "target": "file:apps/agency/src/hooks/useCurrentUser.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/agency/src/components/layout/AppShell.tsx",
+      "target": "file:apps/agency/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/components/auth/RequireAuth.tsx:RequireAuth",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/components/layout/AppShell.tsx:AppShell",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/AirServicesPage.tsx:AirServicesPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/CampaignsPage.tsx:CampaignsPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/CashTransactionsPage.tsx:CashTransactionsPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/CategoriesPage.tsx:CategoriesPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/CommissionPlansPage.tsx:CommissionPlansPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/CommunicationFormPage.tsx:CommunicationFormPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/CommunicationPage.tsx:CommunicationPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/CostCentersPage.tsx:CostCentersPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/CouponsPage.tsx:CouponsPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/CustomerDetailPage.tsx:CustomerDetailPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/CustomersPage.tsx:CustomersPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/DashboardPage.tsx:DashboardPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/DetailedReportsPage.tsx:DetailedReportsPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/DrePage.tsx:DrePage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/EmployeeDetailPage.tsx:EmployeeDetailPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/EmployeesPage.tsx:EmployeesPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/EnrollmentLinksPage.tsx:EnrollmentLinksPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/ExcursionsPage.tsx:ExcursionsPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/ExpensesPage.tsx:ExpensesPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/FinancialPage.tsx:FinancialPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/ForgotPasswordPage.tsx:ForgotPasswordPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/InsurancePage.tsx:InsurancePage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/LandServicesPage.tsx:LandServicesPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/LoginPage.tsx:LoginPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/MediaLibraryPage.tsx:MediaLibraryPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/NotFoundPage.tsx:NotFoundPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/OfferDetailPage.tsx:OfferDetailPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/OffersPage.tsx:OffersPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/OnboardingWizardPage.tsx:OnboardingWizardPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/PayablesPage.tsx:PayablesPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/PayrollPage.tsx:PayrollPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/PescadorPage.tsx:PescadorPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/PipelinePage.tsx:PipelinePage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/ReceivablesPage.tsx:ReceivablesPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/ReconciliationPage.tsx:ReconciliationPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/ReportsPage.tsx:ReportsPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/ResetPasswordPage.tsx:ResetPasswordPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/RevenuesPage.tsx:RevenuesPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/SaleFinancialStoryPage.tsx:SaleFinancialStoryPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/SalesJourneyPages.tsx:BookingDetailPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/SalesJourneyPages.tsx:BookingListPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/SalesJourneyPages.tsx:ProposalBuilderPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/SalesJourneyPages.tsx:ProposalDetailPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/SalesJourneyPages.tsx:ProposalListPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/SalesJourneyPages.tsx:ProposalPreviewPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/SalesJourneyPages.tsx:SaleSummaryPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/SalesJourneyPages.tsx:SalesListPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/SegmentsPage.tsx:SegmentsPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/SettingsPage.tsx:SettingsPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/SignupPage.tsx:SignupPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/SuppliersPage.tsx:SuppliersPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/TaskFormPage.tsx:TaskFormPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/TasksPage.tsx:TasksPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/TripDetailPage.tsx:TripDetailPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/TripsPage.tsx:TripsPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/WishDetailPage.tsx:WishDetailPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/WishesPage.tsx:WishesPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/operations/DocumentAlertsPage.tsx:DocumentAlertsPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/operations/OccurrencesPage.tsx:OccurrencesPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/operations/PassengersPage.tsx:PassengersPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/operations/PostTripPage.tsx:PostTripPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/App.tsx:App",
+      "target": "function:apps/agency/src/pages/proposals/ProposalEditorPage.tsx:ProposalEditorPage",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/components/layout/AppShell.tsx:AppShell",
+      "target": "function:apps/agency/src/components/layout/Sidebar.tsx:Sidebar",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/components/layout/AppShell.tsx:AppShell",
+      "target": "function:apps/agency/src/components/layout/Topbar.tsx:Topbar",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/components/layout/AppShell.tsx:AppShell",
+      "target": "function:apps/agency/src/hooks/useCurrentUser.ts:useCurrentUser",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/components/layout/AppShell.tsx:AppShell",
+      "target": "function:apps/agency/src/components/layout/AppShell.tsx:useOnboardingRedirect",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/agency/src/components/auth/RequireAuth.tsx:RequireAuth",
+      "target": "function:apps/agency/src/lib/session.ts:hasSession",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/agency/src/App.tsx",
+      "target": "file:apps/agency/src/App.test.tsx",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    }
+  ]
+}

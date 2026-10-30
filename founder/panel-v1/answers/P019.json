@@ -1,0 +1,13 @@
+{
+  "id": "P019",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Já fico de olho em trocar porque meu sistema atual me deixa na mão, mas vocês não têm nenhuma agência rodando isso de verdade pra eu olhar e dizer 'olha, funcionou pra fulano'. Migrar dados no meio da alta temporada sem ninguém pra mostrar que deu certo é risco demais pro tamanho da minha operação.",
+  "objection": "Medo de parar de vender no WhatsApp e no sistema velho ao mesmo tempo durante a alta temporada e descobrir no meio da migração que falta alguma coisa, sem ter nenhuma agência parecida com a minha pra perguntar como foi.",
+  "would_change_my_mind": "Ver pelo menos duas ou três agências do meu tamanho usando em produção há alguns meses, e ter cobrança automática e nota fiscal prontas (hoje eu já faço isso por fora, não preciso de um sistema a mais pra isso).",
+  "price_too_cheap": 29,
+  "price_cheap": 49,
+  "price_expensive": 99,
+  "price_too_expensive": 199
+}

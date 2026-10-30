@@ -13,6 +13,8 @@ vi.mock('../lib/api', async () => {
     recordPayment: vi.fn(),
     allocatePayment: vi.fn(),
     listSuppliers: vi.fn(),
+    listEmployees: vi.fn(),
+    listCustomerSegments: vi.fn(),
   };
 });
 
@@ -41,6 +43,8 @@ const openPayable = {
 
 beforeEach(() => {
   vi.mocked(api.listSuppliers).mockResolvedValue([supplier]);
+  vi.mocked(api.listEmployees).mockResolvedValue([]);
+  vi.mocked(api.listCustomerSegments).mockResolvedValue([]);
   vi.mocked(api.listPayables).mockResolvedValue([openPayable]);
   vi.mocked(api.createPayable).mockResolvedValue(openPayable);
   vi.mocked(api.recordPayment).mockResolvedValue({
@@ -74,9 +78,25 @@ describe('PayablesPage', () => {
 
     expect(await screen.findByRole('heading', { name: 'Contas a Pagar' })).toBeInTheDocument();
     expect(await screen.findByText('Comissão do hotel')).toBeInTheDocument();
-    expect(screen.getByText('Hotel Atlântico')).toBeInTheDocument();
+    expect(screen.getByRole('cell', { name: 'Hotel Atlântico' })).toBeInTheDocument();
     expect(screen.getAllByText('Aberto').length).toBeGreaterThan(0);
     expect(api.listPayables).toHaveBeenCalledTimes(1);
+  });
+
+  it('applies due date, supplier and employee filters through the payables API', async () => {
+    renderPage();
+    await screen.findByText('Comissão do hotel');
+
+    fireEvent.change(screen.getByLabelText('Data inicial'), { target: { value: '2026-09-01' } });
+    fireEvent.change(screen.getByLabelText('Data final'), { target: { value: '2026-09-30' } });
+    fireEvent.change(screen.getByLabelText('Filtrar por fornecedor'), { target: { value: 'supplier-1' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Aplicar filtros' }));
+
+    await waitFor(() => expect(api.listPayables).toHaveBeenLastCalledWith({
+      dateFrom: '2026-09-01',
+      dateTo: '2026-09-30',
+      supplierId: 'supplier-1',
+    }));
   });
 
   it('creates a payable with supplier, due date, amount, method and notes', async () => {

@@ -1,0 +1,1448 @@
+{
+ "nodes": [
+  {
+   "id": "file:services/api/src/transport-routes.ts",
+   "type": "file",
+   "name": "transport-routes.ts",
+   "filePath": "services/api/src/transport-routes.ts",
+   "summary": "CRUD de rotas de transporte com validação de entrada e mapeamento para o domínio, sob escopo de tenant.",
+   "tags": [
+    "service",
+    "transport",
+    "crud"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/transport-routes.ts:listRoutes",
+   "type": "function",
+   "name": "listRoutes",
+   "filePath": "services/api/src/transport-routes.ts",
+   "lineRange": [
+    40,
+    50
+   ],
+   "summary": "Lista as rotas de transporte do tenant.",
+   "tags": [
+    "crud",
+    "transport",
+    "query"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/transport-routes.ts:getRouteById",
+   "type": "function",
+   "name": "getRouteById",
+   "filePath": "services/api/src/transport-routes.ts",
+   "lineRange": [
+    52,
+    63
+   ],
+   "summary": "Recupera uma rota de transporte pelo id.",
+   "tags": [
+    "crud",
+    "transport",
+    "query"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/transport-routes.ts:createRoute",
+   "type": "function",
+   "name": "createRoute",
+   "filePath": "services/api/src/transport-routes.ts",
+   "lineRange": [
+    65,
+    106
+   ],
+   "summary": "Cria rota de transporte validando origem, destino e distância.",
+   "tags": [
+    "crud",
+    "transport",
+    "validation"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/transport-routes.ts:updateRoute",
+   "type": "function",
+   "name": "updateRoute",
+   "filePath": "services/api/src/transport-routes.ts",
+   "lineRange": [
+    108,
+    172
+   ],
+   "summary": "Atualiza uma rota de transporte existente.",
+   "tags": [
+    "crud",
+    "transport",
+    "persistence"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/transport-routes.ts:toRoute",
+   "type": "function",
+   "name": "toRoute",
+   "filePath": "services/api/src/transport-routes.ts",
+   "lineRange": [
+    174,
+    187
+   ],
+   "summary": "Converte a linha do banco no objeto de rota de transporte.",
+   "tags": [
+    "serialization",
+    "mapping",
+    "transport"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:services/api/src/travel-product-input-parsing.ts",
+   "type": "file",
+   "name": "travel-product-input-parsing.ts",
+   "filePath": "services/api/src/travel-product-input-parsing.ts",
+   "summary": "Parsers de entrada para produtos de viagem: validação de datas, strings, números e booleanos com aplicação condicional de campos escalares.",
+   "tags": [
+    "validation",
+    "input-parsing",
+    "parsing"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/travel-product-input-parsing.ts:parseIsoDateString",
+   "type": "function",
+   "name": "parseIsoDateString",
+   "filePath": "services/api/src/travel-product-input-parsing.ts",
+   "lineRange": [
+    45,
+    59
+   ],
+   "summary": "Converte string em data ISO validando formato e valor plausível.",
+   "tags": [
+    "validation",
+    "date-parsing",
+    "parsing"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/travel-product-input-parsing.ts:assertShape",
+   "type": "function",
+   "name": "assertShape",
+   "filePath": "services/api/src/travel-product-input-parsing.ts",
+   "lineRange": [
+    82,
+    99
+   ],
+   "summary": "Garante que o corpo da requisição tem a forma esperada antes do parsing.",
+   "tags": [
+    "validation",
+    "input-parsing",
+    "parsing"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/travel-product-input-parsing.ts:applyScalarFields",
+   "type": "function",
+   "name": "applyScalarFields",
+   "filePath": "services/api/src/travel-product-input-parsing.ts",
+   "lineRange": [
+    103,
+    139
+   ],
+   "summary": "Copia para o registro apenas os campos escalares presentes e válidos no input.",
+   "tags": [
+    "parsing",
+    "serialization",
+    "input-parsing"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/travel-product-input-parsing.ts:parseCreateTravelProductInput",
+   "type": "function",
+   "name": "parseCreateTravelProductInput",
+   "filePath": "services/api/src/travel-product-input-parsing.ts",
+   "lineRange": [
+    141,
+    158
+   ],
+   "summary": "Valida e converte o corpo completo para criação de produto de viagem.",
+   "tags": [
+    "validation",
+    "input-parsing",
+    "travel-products"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/travel-product-input-parsing.ts:parseUpdateTravelProductInput",
+   "type": "function",
+   "name": "parseUpdateTravelProductInput",
+   "filePath": "services/api/src/travel-product-input-parsing.ts",
+   "lineRange": [
+    160,
+    184
+   ],
+   "summary": "Valida os campos parciais enviados na atualização de produto de viagem.",
+   "tags": [
+    "validation",
+    "input-parsing",
+    "travel-products"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:services/api/src/travel-products.ts",
+   "type": "file",
+   "name": "travel-products.ts",
+   "filePath": "services/api/src/travel-products.ts",
+   "summary": "Camada de serviço de produtos de viagem com validação de negócio, CRUD, assets vinculados e auditoria de crescimento de ofertas.",
+   "tags": [
+    "service",
+    "travel-products",
+    "crud",
+    "audit"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/travel-products.ts:assertValid",
+   "type": "function",
+   "name": "assertValid",
+   "filePath": "services/api/src/travel-products.ts",
+   "lineRange": [
+    108,
+    141
+   ],
+   "summary": "Valida regras de negócio do produto de viagem (datas, preço e capacidade).",
+   "tags": [
+    "validation",
+    "travel-products",
+    "business-rules"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/travel-products.ts:listTravelProducts",
+   "type": "function",
+   "name": "listTravelProducts",
+   "filePath": "services/api/src/travel-products.ts",
+   "lineRange": [
+    143,
+    165
+   ],
+   "summary": "Lista produtos de viagem com filtros de busca e publicação.",
+   "tags": [
+    "crud",
+    "travel-products",
+    "query"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/travel-products.ts:getTravelProductById",
+   "type": "function",
+   "name": "getTravelProductById",
+   "filePath": "services/api/src/travel-products.ts",
+   "lineRange": [
+    167,
+    180
+   ],
+   "summary": "Recupera um produto de viagem pelo id.",
+   "tags": [
+    "crud",
+    "travel-products",
+    "query"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/travel-products.ts:createTravelProduct",
+   "type": "function",
+   "name": "createTravelProduct",
+   "filePath": "services/api/src/travel-products.ts",
+   "lineRange": [
+    182,
+    253
+   ],
+   "summary": "Cria produto de viagem validando dados e registrando auditoria de crescimento.",
+   "tags": [
+    "crud",
+    "travel-products",
+    "audit"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/travel-products.ts:updateTravelProduct",
+   "type": "function",
+   "name": "updateTravelProduct",
+   "filePath": "services/api/src/travel-products.ts",
+   "lineRange": [
+    284,
+    329
+   ],
+   "summary": "Atualiza produto de viagem com validação de datas e preço.",
+   "tags": [
+    "crud",
+    "travel-products",
+    "validation"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/travel-products.ts:deleteTravelProduct",
+   "type": "function",
+   "name": "deleteTravelProduct",
+   "filePath": "services/api/src/travel-products.ts",
+   "lineRange": [
+    331,
+    334
+   ],
+   "summary": "Remove um produto de viagem pelo id.",
+   "tags": [
+    "crud",
+    "travel-products",
+    "persistence"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/travel-products.ts:attachAssetToProduct",
+   "type": "function",
+   "name": "attachAssetToProduct",
+   "filePath": "services/api/src/travel-products.ts",
+   "lineRange": [
+    336,
+    364
+   ],
+   "summary": "Vincula um asset de mídia a um produto de viagem com ordem de exibição.",
+   "tags": [
+    "crud",
+    "travel-products",
+    "assets"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/travel-products.ts:listProductAssets",
+   "type": "function",
+   "name": "listProductAssets",
+   "filePath": "services/api/src/travel-products.ts",
+   "lineRange": [
+    366,
+    380
+   ],
+   "summary": "Lista os assets vinculados a um produto de viagem.",
+   "tags": [
+    "query",
+    "travel-products",
+    "assets"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/travel-products.ts:toTravelProduct",
+   "type": "function",
+   "name": "toTravelProduct",
+   "filePath": "services/api/src/travel-products.ts",
+   "lineRange": [
+    382,
+    419
+   ],
+   "summary": "Converte a linha do banco no objeto de produto de viagem.",
+   "tags": [
+    "serialization",
+    "mapping",
+    "travel-products"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/travel-products.ts:toProductAsset",
+   "type": "function",
+   "name": "toProductAsset",
+   "filePath": "services/api/src/travel-products.ts",
+   "lineRange": [
+    421,
+    430
+   ],
+   "summary": "Converte uma linha de asset vinculado em objeto de domínio.",
+   "tags": [
+    "serialization",
+    "mapping",
+    "assets"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:services/api/src/travel-requirements.ts",
+   "type": "file",
+   "name": "travel-requirements.ts",
+   "filePath": "services/api/src/travel-requirements.ts",
+   "summary": "CRUD de requisitos de viagem por cliente (documentos, vacinas, vistos) com validação de tipo e registro de auditoria.",
+   "tags": [
+    "service",
+    "requirements",
+    "crud",
+    "audit"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/travel-requirements.ts:listTravelRequirements",
+   "type": "function",
+   "name": "listTravelRequirements",
+   "filePath": "services/api/src/travel-requirements.ts",
+   "lineRange": [
+    64,
+    81
+   ],
+   "summary": "Lista os requisitos de viagem de um cliente.",
+   "tags": [
+    "crud",
+    "requirements",
+    "query"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/travel-requirements.ts:getTravelRequirementById",
+   "type": "function",
+   "name": "getTravelRequirementById",
+   "filePath": "services/api/src/travel-requirements.ts",
+   "lineRange": [
+    83,
+    100
+   ],
+   "summary": "Recupera um requisito de viagem pelo id.",
+   "tags": [
+    "crud",
+    "requirements",
+    "query"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/travel-requirements.ts:createTravelRequirement",
+   "type": "function",
+   "name": "createTravelRequirement",
+   "filePath": "services/api/src/travel-requirements.ts",
+   "lineRange": [
+    102,
+    157
+   ],
+   "summary": "Cria requisito de viagem validando o tipo e gravando evento de auditoria.",
+   "tags": [
+    "crud",
+    "requirements",
+    "audit"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/travel-requirements.ts:updateTravelRequirement",
+   "type": "function",
+   "name": "updateTravelRequirement",
+   "filePath": "services/api/src/travel-requirements.ts",
+   "lineRange": [
+    159,
+    210
+   ],
+   "summary": "Atualiza requisito de viagem existente com registro de auditoria.",
+   "tags": [
+    "crud",
+    "requirements",
+    "audit"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/travel-requirements.ts:deleteTravelRequirement",
+   "type": "function",
+   "name": "deleteTravelRequirement",
+   "filePath": "services/api/src/travel-requirements.ts",
+   "lineRange": [
+    212,
+    242
+   ],
+   "summary": "Remove um requisito de viagem pelo id.",
+   "tags": [
+    "crud",
+    "requirements",
+    "persistence"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/travel-requirements.ts:toTravelRequirement",
+   "type": "function",
+   "name": "toTravelRequirement",
+   "filePath": "services/api/src/travel-requirements.ts",
+   "lineRange": [
+    257,
+    276
+   ],
+   "summary": "Converte a linha do banco no objeto de requisito de viagem.",
+   "tags": [
+    "serialization",
+    "mapping",
+    "requirements"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:services/api/src/trip-occurrences.ts",
+   "type": "file",
+   "name": "trip-occurrences.ts",
+   "filePath": "services/api/src/trip-occurrences.ts",
+   "summary": "CRUD de ocorrências de viagem (incidentes e atualizações) registradas pela equipe durante as operações, sob escopo de tenant.",
+   "tags": [
+    "service",
+    "trips",
+    "incidents",
+    "crud"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/trip-occurrences.ts:listTripOccurrences",
+   "type": "function",
+   "name": "listTripOccurrences",
+   "filePath": "services/api/src/trip-occurrences.ts",
+   "lineRange": [
+    82,
+    93
+   ],
+   "summary": "Lista as ocorrências registradas nas viagens do tenant.",
+   "tags": [
+    "crud",
+    "trips",
+    "query"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/trip-occurrences.ts:getTripOccurrenceById",
+   "type": "function",
+   "name": "getTripOccurrenceById",
+   "filePath": "services/api/src/trip-occurrences.ts",
+   "lineRange": [
+    95,
+    109
+   ],
+   "summary": "Recupera uma ocorrência de viagem pelo id.",
+   "tags": [
+    "crud",
+    "trips",
+    "query"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/trip-occurrences.ts:createTripOccurrence",
+   "type": "function",
+   "name": "createTripOccurrence",
+   "filePath": "services/api/src/trip-occurrences.ts",
+   "lineRange": [
+    111,
+    158
+   ],
+   "summary": "Registra nova ocorrência de viagem validando tipo e dados.",
+   "tags": [
+    "crud",
+    "trips",
+    "validation"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/trip-occurrences.ts:updateTripOccurrence",
+   "type": "function",
+   "name": "updateTripOccurrence",
+   "filePath": "services/api/src/trip-occurrences.ts",
+   "lineRange": [
+    160,
+    213
+   ],
+   "summary": "Atualiza uma ocorrência de viagem existente.",
+   "tags": [
+    "crud",
+    "trips",
+    "persistence"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/trip-occurrences.ts:toTripOccurrence",
+   "type": "function",
+   "name": "toTripOccurrence",
+   "filePath": "services/api/src/trip-occurrences.ts",
+   "lineRange": [
+    215,
+    234
+   ],
+   "summary": "Converte a linha do banco no objeto de ocorrência de viagem.",
+   "tags": [
+    "serialization",
+    "mapping",
+    "trips"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:services/api/src/trip-photos.ts",
+   "type": "file",
+   "name": "trip-photos.ts",
+   "filePath": "services/api/src/trip-photos.ts",
+   "summary": "Gestão de fotos de viagem com validação de tipo de arquivo, chaves seguras de armazenamento e vínculo com anexos de documentos.",
+   "tags": [
+    "service",
+    "trips",
+    "file-upload",
+    "photos"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/trip-photos.ts:validatePhotoFileType",
+   "type": "function",
+   "name": "validatePhotoFileType",
+   "filePath": "services/api/src/trip-photos.ts",
+   "lineRange": [
+    52,
+    56
+   ],
+   "summary": "Valida se o MIME type recebido é uma imagem permitida.",
+   "tags": [
+    "validation",
+    "file-upload",
+    "photos"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/trip-photos.ts:generateTripPhotoSecureFileKey",
+   "type": "function",
+   "name": "generateTripPhotoSecureFileKey",
+   "filePath": "services/api/src/trip-photos.ts",
+   "lineRange": [
+    58,
+    63
+   ],
+   "summary": "Gera chave segura e única de armazenamento para foto de viagem.",
+   "tags": [
+    "storage",
+    "security",
+    "photos"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/trip-photos.ts:createTripPhoto",
+   "type": "function",
+   "name": "createTripPhoto",
+   "filePath": "services/api/src/trip-photos.ts",
+   "lineRange": [
+    74,
+    118
+   ],
+   "summary": "Registra foto de viagem validando o anexo e persistindo metadados.",
+   "tags": [
+    "crud",
+    "photos",
+    "file-upload"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/trip-photos.ts:listTripPhotos",
+   "type": "function",
+   "name": "listTripPhotos",
+   "filePath": "services/api/src/trip-photos.ts",
+   "lineRange": [
+    120,
+    131
+   ],
+   "summary": "Lista as fotos vinculadas a uma viagem.",
+   "tags": [
+    "crud",
+    "photos",
+    "query"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/trip-photos.ts:getTripPhotoById",
+   "type": "function",
+   "name": "getTripPhotoById",
+   "filePath": "services/api/src/trip-photos.ts",
+   "lineRange": [
+    133,
+    144
+   ],
+   "summary": "Recupera uma foto de viagem pelo id.",
+   "tags": [
+    "crud",
+    "photos",
+    "query"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/trip-photos.ts:deleteTripPhoto",
+   "type": "function",
+   "name": "deleteTripPhoto",
+   "filePath": "services/api/src/trip-photos.ts",
+   "lineRange": [
+    150,
+    163
+   ],
+   "summary": "Remove foto de viagem validando posse (tripId) e anexo associado.",
+   "tags": [
+    "crud",
+    "photos",
+    "authorization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/trip-photos.ts:toTripPhoto",
+   "type": "function",
+   "name": "toTripPhoto",
+   "filePath": "services/api/src/trip-photos.ts",
+   "lineRange": [
+    165,
+    178
+   ],
+   "summary": "Converte a linha do banco no objeto de foto de viagem.",
+   "tags": [
+    "serialization",
+    "mapping",
+    "photos"
+   ],
+   "complexity": "simple"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:services/api/src/transport-routes.ts",
+   "target": "function:services/api/src/transport-routes.ts:listRoutes",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/transport-routes.ts",
+   "target": "function:services/api/src/transport-routes.ts:listRoutes",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/transport-routes.ts",
+   "target": "function:services/api/src/transport-routes.ts:getRouteById",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/transport-routes.ts",
+   "target": "function:services/api/src/transport-routes.ts:getRouteById",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/transport-routes.ts",
+   "target": "function:services/api/src/transport-routes.ts:createRoute",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/transport-routes.ts",
+   "target": "function:services/api/src/transport-routes.ts:createRoute",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/transport-routes.ts",
+   "target": "function:services/api/src/transport-routes.ts:updateRoute",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/transport-routes.ts",
+   "target": "function:services/api/src/transport-routes.ts:updateRoute",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/transport-routes.ts",
+   "target": "function:services/api/src/transport-routes.ts:toRoute",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/travel-product-input-parsing.ts",
+   "target": "function:services/api/src/travel-product-input-parsing.ts:parseIsoDateString",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/travel-product-input-parsing.ts",
+   "target": "function:services/api/src/travel-product-input-parsing.ts:assertShape",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/travel-product-input-parsing.ts",
+   "target": "function:services/api/src/travel-product-input-parsing.ts:applyScalarFields",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/travel-product-input-parsing.ts",
+   "target": "function:services/api/src/travel-product-input-parsing.ts:parseCreateTravelProductInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/travel-product-input-parsing.ts",
+   "target": "function:services/api/src/travel-product-input-parsing.ts:parseCreateTravelProductInput",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/travel-product-input-parsing.ts",
+   "target": "function:services/api/src/travel-product-input-parsing.ts:parseUpdateTravelProductInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/travel-product-input-parsing.ts",
+   "target": "function:services/api/src/travel-product-input-parsing.ts:parseUpdateTravelProductInput",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/travel-products.ts",
+   "target": "function:services/api/src/travel-products.ts:assertValid",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/travel-products.ts",
+   "target": "function:services/api/src/travel-products.ts:listTravelProducts",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/travel-products.ts",
+   "target": "function:services/api/src/travel-products.ts:listTravelProducts",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/travel-products.ts",
+   "target": "function:services/api/src/travel-products.ts:getTravelProductById",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/travel-products.ts",
+   "target": "function:services/api/src/travel-products.ts:getTravelProductById",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/travel-products.ts",
+   "target": "function:services/api/src/travel-products.ts:createTravelProduct",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/travel-products.ts",
+   "target": "function:services/api/src/travel-products.ts:createTravelProduct",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/travel-products.ts",
+   "target": "function:services/api/src/travel-products.ts:updateTravelProduct",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/travel-products.ts",
+   "target": "function:services/api/src/travel-products.ts:updateTravelProduct",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/travel-products.ts",
+   "target": "function:services/api/src/travel-products.ts:deleteTravelProduct",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/travel-products.ts",
+   "target": "function:services/api/src/travel-products.ts:deleteTravelProduct",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/travel-products.ts",
+   "target": "function:services/api/src/travel-products.ts:attachAssetToProduct",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/travel-products.ts",
+   "target": "function:services/api/src/travel-products.ts:attachAssetToProduct",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/travel-products.ts",
+   "target": "function:services/api/src/travel-products.ts:listProductAssets",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/travel-products.ts",
+   "target": "function:services/api/src/travel-products.ts:listProductAssets",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/travel-products.ts",
+   "target": "function:services/api/src/travel-products.ts:toTravelProduct",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/travel-products.ts",
+   "target": "function:services/api/src/travel-products.ts:toProductAsset",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/travel-requirements.ts",
+   "target": "function:services/api/src/travel-requirements.ts:listTravelRequirements",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/travel-requirements.ts",
+   "target": "function:services/api/src/travel-requirements.ts:listTravelRequirements",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/travel-requirements.ts",
+   "target": "function:services/api/src/travel-requirements.ts:getTravelRequirementById",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/travel-requirements.ts",
+   "target": "function:services/api/src/travel-requirements.ts:getTravelRequirementById",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/travel-requirements.ts",
+   "target": "function:services/api/src/travel-requirements.ts:createTravelRequirement",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/travel-requirements.ts",
+   "target": "function:services/api/src/travel-requirements.ts:createTravelRequirement",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/travel-requirements.ts",
+   "target": "function:services/api/src/travel-requirements.ts:updateTravelRequirement",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/travel-requirements.ts",
+   "target": "function:services/api/src/travel-requirements.ts:updateTravelRequirement",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/travel-requirements.ts",
+   "target": "function:services/api/src/travel-requirements.ts:deleteTravelRequirement",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/travel-requirements.ts",
+   "target": "function:services/api/src/travel-requirements.ts:deleteTravelRequirement",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/travel-requirements.ts",
+   "target": "function:services/api/src/travel-requirements.ts:toTravelRequirement",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/trip-occurrences.ts",
+   "target": "function:services/api/src/trip-occurrences.ts:listTripOccurrences",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/trip-occurrences.ts",
+   "target": "function:services/api/src/trip-occurrences.ts:listTripOccurrences",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/trip-occurrences.ts",
+   "target": "function:services/api/src/trip-occurrences.ts:getTripOccurrenceById",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/trip-occurrences.ts",
+   "target": "function:services/api/src/trip-occurrences.ts:getTripOccurrenceById",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/trip-occurrences.ts",
+   "target": "function:services/api/src/trip-occurrences.ts:createTripOccurrence",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/trip-occurrences.ts",
+   "target": "function:services/api/src/trip-occurrences.ts:createTripOccurrence",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/trip-occurrences.ts",
+   "target": "function:services/api/src/trip-occurrences.ts:updateTripOccurrence",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/trip-occurrences.ts",
+   "target": "function:services/api/src/trip-occurrences.ts:updateTripOccurrence",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/trip-occurrences.ts",
+   "target": "function:services/api/src/trip-occurrences.ts:toTripOccurrence",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/trip-photos.ts",
+   "target": "function:services/api/src/trip-photos.ts:validatePhotoFileType",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/trip-photos.ts",
+   "target": "function:services/api/src/trip-photos.ts:validatePhotoFileType",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/trip-photos.ts",
+   "target": "function:services/api/src/trip-photos.ts:generateTripPhotoSecureFileKey",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/trip-photos.ts",
+   "target": "function:services/api/src/trip-photos.ts:generateTripPhotoSecureFileKey",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/trip-photos.ts",
+   "target": "function:services/api/src/trip-photos.ts:createTripPhoto",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/trip-photos.ts",
+   "target": "function:services/api/src/trip-photos.ts:createTripPhoto",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/trip-photos.ts",
+   "target": "function:services/api/src/trip-photos.ts:listTripPhotos",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/trip-photos.ts",
+   "target": "function:services/api/src/trip-photos.ts:listTripPhotos",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/trip-photos.ts",
+   "target": "function:services/api/src/trip-photos.ts:getTripPhotoById",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/trip-photos.ts",
+   "target": "function:services/api/src/trip-photos.ts:getTripPhotoById",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/trip-photos.ts",
+   "target": "function:services/api/src/trip-photos.ts:deleteTripPhoto",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/trip-photos.ts",
+   "target": "function:services/api/src/trip-photos.ts:deleteTripPhoto",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/trip-photos.ts",
+   "target": "function:services/api/src/trip-photos.ts:toTripPhoto",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/transport-routes.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/transport-routes.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/transport-routes.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/transport-routes.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/travel-product-input-parsing.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/travel-product-input-parsing.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/travel-product-input-parsing.ts",
+   "target": "file:services/api/src/travel-products.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/travel-products.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/travel-products.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/travel-products.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/travel-products.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/travel-products.ts",
+   "target": "file:services/api/src/offer-growth-audit.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/travel-requirements.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/travel-requirements.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/travel-requirements.ts",
+   "target": "file:services/api/src/audit-log.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/travel-requirements.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/travel-requirements.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/trip-occurrences.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/trip-occurrences.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/trip-occurrences.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/trip-photos.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/trip-photos.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/trip-photos.ts",
+   "target": "file:services/api/src/document-attachments.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/trip-photos.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/transport-routes.ts",
+   "target": "function:packages/domain/tenant-context.ts:getAgencyId",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/travel-products.ts",
+   "target": "function:packages/domain/tenant-context.ts:getAgencyId",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/travel-products.ts",
+   "target": "function:packages/domain/tenant-context.ts:getUserId",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/travel-products.ts",
+   "target": "function:services/api/src/offer-growth-audit.ts:recordAuditLog",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/travel-requirements.ts",
+   "target": "function:packages/domain/tenant-context.ts:getAgencyId",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/travel-requirements.ts",
+   "target": "function:services/api/src/audit-log.ts:recordAuditEvent",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/trip-occurrences.ts",
+   "target": "function:packages/domain/tenant-context.ts:getAgencyId",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/trip-photos.ts",
+   "target": "function:packages/domain/tenant-context.ts:getAgencyId",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/trip-photos.ts",
+   "target": "function:services/api/src/document-attachments.ts:validateFileType",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/trip-photos.ts",
+   "target": "function:services/api/src/document-attachments.ts:isBlockedFileName",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/trip-photos.ts",
+   "target": "function:services/api/src/document-attachments.ts:validateFileSize",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/transport-routes.ts",
+   "target": "file:services/api/tests/transport-routes.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  }
+ ]
+}

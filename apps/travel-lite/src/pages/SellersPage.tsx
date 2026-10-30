@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api';
 import { useCan } from '../auth';
+import { rulesForSeller, ruleSummary, type RuleJson } from '../commissionRules';
 import { sellerReportQuery, sellerSalesLink, type SellerReport } from '../sellerReport';
 import { EmptyState, ErrorNote, Pager, StatusBadge, SuccessNote, formatBRL } from '../ui';
 
@@ -29,9 +30,6 @@ interface FormState {
   email: string;
   phone: string;
   cpf: string;
-  ruleType: string;
-  rate: string;
-  fixedAmount: string;
 }
 
 const EMPTY_FORM: FormState = {
@@ -39,13 +37,13 @@ const EMPTY_FORM: FormState = {
   email: '',
   phone: '',
   cpf: '',
-  ruleType: 'UNDEFINED',
-  rate: '',
-  fixedAmount: '',
 };
 
 export function SellersPage() {
   const canManage = useCan('sellers.manage');
+  const canSeeRules = useCan('commissions.rules_manage', 'commissions.read_all', 'commissions.read_own');
+  const canManageRules = useCan('commissions.rules_manage');
+  const [rules, setRules] = useState<RuleJson[] | null>(null);
   const [items, setItems] = useState<Seller[]>([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
@@ -76,6 +74,13 @@ export function SellersPage() {
     void load();
   }, [load]);
 
+  useEffect(() => {
+    if (!canSeeRules) return;
+    api<{ items: RuleJson[] }>('/commission-rules')
+      .then((response) => setRules(response.items))
+      .catch(() => setRules(null));
+  }, [canSeeRules]);
+
   function startCreate() {
     setEditingId(null);
     setForm(EMPTY_FORM);
@@ -90,10 +95,6 @@ export function SellersPage() {
       email: seller.email ?? '',
       phone: seller.phone ?? '',
       cpf: seller.cpf ?? '',
-      ruleType: seller.commission_rule_type,
-      rate: seller.commission_rate !== null ? String(seller.commission_rate) : '',
-      fixedAmount:
-        seller.commission_fixed_amount !== null ? String(seller.commission_fixed_amount) : '',
     });
     setNotice(null);
     setFormOpen(true);
@@ -103,17 +104,10 @@ export function SellersPage() {
     event.preventDefault();
     const payload: Record<string, unknown> = {
       name: form.name.trim(),
-      commission_rule_type: form.ruleType,
     };
     if (form.email.trim()) payload.email = form.email.trim();
     if (form.phone.trim()) payload.phone = form.phone.trim();
     if (form.cpf.trim()) payload.cpf = form.cpf.trim();
-    if (form.ruleType === 'PERCENTAGE_ON_GROSS' || form.ruleType === 'PERCENTAGE_ON_MARGIN') {
-      payload.commission_rate = Number(form.rate);
-    }
-    if (form.ruleType === 'FIXED') {
-      payload.commission_fixed_amount = Number(form.fixedAmount);
-    }
     try {
       if (editingId) {
         await api(`/sellers/${editingId}`, { method: 'PATCH', body: payload });
@@ -147,6 +141,13 @@ export function SellersPage() {
   }
 
   function ruleDescription(seller: Seller): string {
+    if (rules !== null) {
+      const applicable = rulesForSeller(rules, seller.id);
+      if (applicable.length === 0) return 'Sem regra';
+      const first = ruleSummary(applicable[0]!);
+      const prefix = applicable[0]!.seller_id === null ? 'Padrão da agência: ' : '';
+      return applicable.length > 1 ? `${prefix}${first} (+${applicable.length - 1})` : `${prefix}${first}`;
+    }
     if (seller.commission_rule_type === 'PERCENTAGE_ON_GROSS') {
       return `${seller.commission_rate}% bruto`;
     }
@@ -223,44 +224,33 @@ export function SellersPage() {
               onChange={(event) => setForm({ ...form, cpf: event.target.value })}
             />
           </label>
-          <label className="field">
-            <span>Regra de comissão</span>
-            <select
-              value={form.ruleType}
-              onChange={(event) => setForm({ ...form, ruleType: event.target.value })}
-            >
-              <option value="UNDEFINED">Sem regra</option>
-              <option value="PERCENTAGE_ON_GROSS">% sobre bruto</option>
-              <option value="PERCENTAGE_ON_MARGIN">% sobre margem</option>
-              <option value="FIXED">Valor fixo</option>
-            </select>
-          </label>
-          {form.ruleType === 'PERCENTAGE_ON_GROSS' || form.ruleType === 'PERCENTAGE_ON_MARGIN' ? (
-            <label className="field">
-              <span>Percentual (%) *</span>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                value={form.rate}
-                onChange={(event) => setForm({ ...form, rate: event.target.value })}
-                required
-              />
-            </label>
-          ) : null}
-          {form.ruleType === 'FIXED' ? (
-            <label className="field">
-              <span>Valor fixo (R$) *</span>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                value={form.fixedAmount}
-                onChange={(event) => setForm({ ...form, fixedAmount: event.target.value })}
-                required
-              />
-            </label>
-          ) : null}
+          <div className="field field-wide commission-pointer">
+            <span>Comissão</span>
+            {editingId ? (
+              <>
+                {rules !== null ? (
+                  <ul className="commission-pointer-list">
+                    {rulesForSeller(rules, editingId).length === 0 ? (
+                      <li>Sem regra de comissão definida.</li>
+                    ) : (
+                      rulesForSeller(rules, editingId).map((rule) => (
+                        <li key={rule.id}>
+                          {rule.seller_id === null ? 'Padrão da agência' : rule.name}: {ruleSummary(rule)}
+                        </li>
+                      ))
+                    )}
+                  </ul>
+                ) : null}
+                {canManageRules ? (
+                  <Link className="btn btn-small" to={`/regras-comissao?vendedor=${editingId}`}>
+                    Definir ou revisar a regra deste vendedor
+                  </Link>
+                ) : null}
+              </>
+            ) : (
+              <p className="lite-muted">A comissão é definida em Regras de comissão, depois de salvar o vendedor.</p>
+            )}
+          </div>
           <div className="form-actions">
             <button
               type="button"

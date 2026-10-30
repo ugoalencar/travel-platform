@@ -1,0 +1,1228 @@
+{
+ "nodes": [
+  {
+   "id": "file:apps/customer/src/lib/formatCurrency.ts",
+   "type": "file",
+   "name": "formatCurrency.ts",
+   "filePath": "apps/customer/src/lib/formatCurrency.ts",
+   "summary": "Formatador compartilhado de valores em Real brasileiro com placeholder para valores nulos ou inválidos.",
+   "tags": [
+    "utility",
+    "formatting",
+    "currency"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/formatCurrency.ts:formatBRL",
+   "type": "function",
+   "name": "formatBRL",
+   "filePath": "apps/customer/src/lib/formatCurrency.ts",
+   "lineRange": [
+    16,
+    21
+   ],
+   "summary": "Formata um número em Real brasileiro, retornando placeholder para valores nulos ou inválidos.",
+   "tags": [
+    "utility",
+    "formatting",
+    "currency"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:apps/customer/src/lib/formatDateBR.test.ts",
+   "type": "file",
+   "name": "formatDateBR.test.ts",
+   "filePath": "apps/customer/src/lib/formatDateBR.test.ts",
+   "summary": "Testes do formatador de datas pt-BR cobrindo datas puras, timestamps e placeholders.",
+   "tags": [
+    "test",
+    "utility",
+    "date"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:apps/customer/src/lib/formatDateBR.ts",
+   "type": "file",
+   "name": "formatDateBR.ts",
+   "filePath": "apps/customer/src/lib/formatDateBR.ts",
+   "summary": "Formatador compartilhado de datas em pt-BR que força a escolha explícita entre data de calendário (lida em UTC) e ponto no tempo (fuso local).",
+   "tags": [
+    "utility",
+    "formatting",
+    "date",
+    "timezone"
+   ],
+   "complexity": "moderate",
+   "languageNotes": "A opção assumeDateOnly evita o deslocamento de um dia para o espectador brasileiro ao formatar meia-noite UTC."
+  },
+  {
+   "id": "function:apps/customer/src/lib/formatDateBR.ts:formatDateBR",
+   "type": "function",
+   "name": "formatDateBR",
+   "filePath": "apps/customer/src/lib/formatDateBR.ts",
+   "lineRange": [
+    46,
+    73
+   ],
+   "summary": "Formata datas em pt-BR com escolha explícita entre data de calendário em UTC e ponto no tempo no fuso local.",
+   "tags": [
+    "utility",
+    "formatting",
+    "date",
+    "timezone"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:apps/customer/src/lib/localTemplateStore.ts",
+   "type": "file",
+   "name": "localTemplateStore.ts",
+   "filePath": "apps/customer/src/lib/localTemplateStore.ts",
+   "summary": "Persistência local (localStorage) da biblioteca de templates do Offer & Growth, com template padrão e operações CRUD de templates.",
+   "tags": [
+    "storage",
+    "local-storage",
+    "offer-growth",
+    "utility"
+   ],
+   "complexity": "moderate",
+   "languageNotes": "Não existe backend de templates: a persistência é apenas no navegador, decisão documentada no cabeçalho do arquivo."
+  },
+  {
+   "id": "function:apps/customer/src/lib/localTemplateStore.ts:buildDefaultTemplate",
+   "type": "function",
+   "name": "buildDefaultTemplate",
+   "filePath": "apps/customer/src/lib/localTemplateStore.ts",
+   "lineRange": [
+    38,
+    87
+   ],
+   "summary": "Monta o template criativo padrão com hero, blocos e bindings derivados da oferta e dos assets disponíveis.",
+   "tags": [
+    "factory",
+    "offer-growth",
+    "template"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/lib/localTemplateStore.ts:listTemplates",
+   "type": "function",
+   "name": "listTemplates",
+   "filePath": "apps/customer/src/lib/localTemplateStore.ts",
+   "lineRange": [
+    89,
+    95
+   ],
+   "summary": "Lista os templates salvos no localStorage, com fallback para o template padrão.",
+   "tags": [
+    "storage",
+    "offer-growth",
+    "template"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/localTemplateStore.ts:saveTemplate",
+   "type": "function",
+   "name": "saveTemplate",
+   "filePath": "apps/customer/src/lib/localTemplateStore.ts",
+   "lineRange": [
+    101,
+    110
+   ],
+   "summary": "Salva ou substitui um template no localStorage.",
+   "tags": [
+    "storage",
+    "offer-growth",
+    "crud"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/localTemplateStore.ts:duplicateTemplate",
+   "type": "function",
+   "name": "duplicateTemplate",
+   "filePath": "apps/customer/src/lib/localTemplateStore.ts",
+   "lineRange": [
+    116,
+    127
+   ],
+   "summary": "Duplica um template existente com novo id e nome.",
+   "tags": [
+    "offer-growth",
+    "template",
+    "utility"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/localTemplateStore.ts:createBlankTemplate",
+   "type": "function",
+   "name": "createBlankTemplate",
+   "filePath": "apps/customer/src/lib/localTemplateStore.ts",
+   "lineRange": [
+    129,
+    140
+   ],
+   "summary": "Cria um template em branco com uma página vazia.",
+   "tags": [
+    "factory",
+    "offer-growth",
+    "template"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/localTemplateStore.ts:safeGet",
+   "type": "function",
+   "name": "safeGet",
+   "filePath": "apps/customer/src/lib/localTemplateStore.ts",
+   "lineRange": [
+    142,
+    151
+   ],
+   "summary": "Leitura segura do localStorage com try/catch e valor padrão.",
+   "tags": [
+    "storage",
+    "utility",
+    "local-storage"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:apps/customer/src/lib/offerGrowthApi.test.ts",
+   "type": "file",
+   "name": "offerGrowthApi.test.ts",
+   "filePath": "apps/customer/src/lib/offerGrowthApi.test.ts",
+   "summary": "Testes do cliente Offer & Growth cobrindo assets, campanhas, publicações, automações e cupons.",
+   "tags": [
+    "test",
+    "api-client",
+    "offer-growth"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:apps/customer/src/lib/offerGrowthApi.ts",
+   "type": "file",
+   "name": "offerGrowthApi.ts",
+   "filePath": "apps/customer/src/lib/offerGrowthApi.ts",
+   "summary": "Cliente HTTP do vertical Offer & Growth: assets, campanhas, publicações, automações, cupons e entitlements.",
+   "tags": [
+    "api-client",
+    "offer-growth",
+    "http-client",
+    "marketing"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:apps/customer/src/lib/offerGrowthApi.ts:request",
+   "type": "function",
+   "name": "request",
+   "filePath": "apps/customer/src/lib/offerGrowthApi.ts",
+   "lineRange": [
+    26,
+    45
+   ],
+   "summary": "Helper de fetch do cliente Offer & Growth com headers JSON e conversão de erros em ApiError.",
+   "tags": [
+    "http-client",
+    "api-client",
+    "offer-growth"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/lib/offerGrowthApi.ts:listAssets",
+   "type": "function",
+   "name": "listAssets",
+   "filePath": "apps/customer/src/lib/offerGrowthApi.ts",
+   "lineRange": [
+    59,
+    62
+   ],
+   "summary": "Lista os assets (arquivos) do Offer & Growth.",
+   "tags": [
+    "api-client",
+    "offer-growth",
+    "assets"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/offerGrowthApi.ts:createAsset",
+   "type": "function",
+   "name": "createAsset",
+   "filePath": "apps/customer/src/lib/offerGrowthApi.ts",
+   "lineRange": [
+    64,
+    70
+   ],
+   "summary": "Cria um asset no Offer & Growth.",
+   "tags": [
+    "api-client",
+    "offer-growth",
+    "assets"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/offerGrowthApi.ts:listCampaigns",
+   "type": "function",
+   "name": "listCampaigns",
+   "filePath": "apps/customer/src/lib/offerGrowthApi.ts",
+   "lineRange": [
+    72,
+    75
+   ],
+   "summary": "Lista campanhas.",
+   "tags": [
+    "api-client",
+    "offer-growth",
+    "campaigns"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/offerGrowthApi.ts:createCampaign",
+   "type": "function",
+   "name": "createCampaign",
+   "filePath": "apps/customer/src/lib/offerGrowthApi.ts",
+   "lineRange": [
+    77,
+    83
+   ],
+   "summary": "Cria uma campanha.",
+   "tags": [
+    "api-client",
+    "offer-growth",
+    "campaigns"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/offerGrowthApi.ts:transitionCampaignStatus",
+   "type": "function",
+   "name": "transitionCampaignStatus",
+   "filePath": "apps/customer/src/lib/offerGrowthApi.ts",
+   "lineRange": [
+    85,
+    91
+   ],
+   "summary": "Transiciona o status de uma campanha.",
+   "tags": [
+    "api-client",
+    "campaigns",
+    "state-transition"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/offerGrowthApi.ts:getCampaignById",
+   "type": "function",
+   "name": "getCampaignById",
+   "filePath": "apps/customer/src/lib/offerGrowthApi.ts",
+   "lineRange": [
+    93,
+    96
+   ],
+   "summary": "Recupera uma campanha pelo id.",
+   "tags": [
+    "api-client",
+    "campaigns",
+    "read"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/offerGrowthApi.ts:linkOfferToCampaign",
+   "type": "function",
+   "name": "linkOfferToCampaign",
+   "filePath": "apps/customer/src/lib/offerGrowthApi.ts",
+   "lineRange": [
+    98,
+    103
+   ],
+   "summary": "Vincula uma oferta a uma campanha.",
+   "tags": [
+    "api-client",
+    "campaigns",
+    "offers"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/offerGrowthApi.ts:listPublications",
+   "type": "function",
+   "name": "listPublications",
+   "filePath": "apps/customer/src/lib/offerGrowthApi.ts",
+   "lineRange": [
+    105,
+    108
+   ],
+   "summary": "Lista publicações.",
+   "tags": [
+    "api-client",
+    "offer-growth",
+    "publications"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/offerGrowthApi.ts:getPublicationById",
+   "type": "function",
+   "name": "getPublicationById",
+   "filePath": "apps/customer/src/lib/offerGrowthApi.ts",
+   "lineRange": [
+    110,
+    113
+   ],
+   "summary": "Recupera uma publicação pelo id.",
+   "tags": [
+    "api-client",
+    "publications",
+    "read"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/offerGrowthApi.ts:transitionPublicationStatus",
+   "type": "function",
+   "name": "transitionPublicationStatus",
+   "filePath": "apps/customer/src/lib/offerGrowthApi.ts",
+   "lineRange": [
+    115,
+    124
+   ],
+   "summary": "Transiciona o status de uma publicação.",
+   "tags": [
+    "api-client",
+    "publications",
+    "state-transition"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/offerGrowthApi.ts:createPublication",
+   "type": "function",
+   "name": "createPublication",
+   "filePath": "apps/customer/src/lib/offerGrowthApi.ts",
+   "lineRange": [
+    126,
+    132
+   ],
+   "summary": "Cria uma publicação.",
+   "tags": [
+    "api-client",
+    "publications",
+    "create"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/offerGrowthApi.ts:generatePublicationSnapshot",
+   "type": "function",
+   "name": "generatePublicationSnapshot",
+   "filePath": "apps/customer/src/lib/offerGrowthApi.ts",
+   "lineRange": [
+    134,
+    143
+   ],
+   "summary": "Gera o snapshot de conteúdo de uma publicação antes da publicação.",
+   "tags": [
+    "api-client",
+    "publications",
+    "snapshot"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/offerGrowthApi.ts:publishPublication",
+   "type": "function",
+   "name": "publishPublication",
+   "filePath": "apps/customer/src/lib/offerGrowthApi.ts",
+   "lineRange": [
+    145,
+    151
+   ],
+   "summary": "Publica uma publicação em um canal.",
+   "tags": [
+    "api-client",
+    "publications",
+    "publish"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/offerGrowthApi.ts:listAutomations",
+   "type": "function",
+   "name": "listAutomations",
+   "filePath": "apps/customer/src/lib/offerGrowthApi.ts",
+   "lineRange": [
+    153,
+    156
+   ],
+   "summary": "Lista automações.",
+   "tags": [
+    "api-client",
+    "offer-growth",
+    "automations"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/offerGrowthApi.ts:createAutomation",
+   "type": "function",
+   "name": "createAutomation",
+   "filePath": "apps/customer/src/lib/offerGrowthApi.ts",
+   "lineRange": [
+    158,
+    164
+   ],
+   "summary": "Cria uma automação.",
+   "tags": [
+    "api-client",
+    "automations",
+    "create"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/offerGrowthApi.ts:activateAutomation",
+   "type": "function",
+   "name": "activateAutomation",
+   "filePath": "apps/customer/src/lib/offerGrowthApi.ts",
+   "lineRange": [
+    166,
+    172
+   ],
+   "summary": "Ativa uma automação.",
+   "tags": [
+    "api-client",
+    "automations",
+    "state-transition"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/offerGrowthApi.ts:pauseAutomation",
+   "type": "function",
+   "name": "pauseAutomation",
+   "filePath": "apps/customer/src/lib/offerGrowthApi.ts",
+   "lineRange": [
+    174,
+    180
+   ],
+   "summary": "Pausa uma automação.",
+   "tags": [
+    "api-client",
+    "automations",
+    "state-transition"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/offerGrowthApi.ts:getAutomationById",
+   "type": "function",
+   "name": "getAutomationById",
+   "filePath": "apps/customer/src/lib/offerGrowthApi.ts",
+   "lineRange": [
+    182,
+    185
+   ],
+   "summary": "Recupera uma automação pelo id.",
+   "tags": [
+    "api-client",
+    "automations",
+    "read"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/offerGrowthApi.ts:listCoupons",
+   "type": "function",
+   "name": "listCoupons",
+   "filePath": "apps/customer/src/lib/offerGrowthApi.ts",
+   "lineRange": [
+    187,
+    190
+   ],
+   "summary": "Lista cupons.",
+   "tags": [
+    "api-client",
+    "offer-growth",
+    "coupons"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/offerGrowthApi.ts:createCoupon",
+   "type": "function",
+   "name": "createCoupon",
+   "filePath": "apps/customer/src/lib/offerGrowthApi.ts",
+   "lineRange": [
+    192,
+    198
+   ],
+   "summary": "Cria um cupom.",
+   "tags": [
+    "api-client",
+    "coupons",
+    "create"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/offerGrowthApi.ts:listEntitlements",
+   "type": "function",
+   "name": "listEntitlements",
+   "filePath": "apps/customer/src/lib/offerGrowthApi.ts",
+   "lineRange": [
+    200,
+    203
+   ],
+   "summary": "Lista os entitlements (direitos de uso) disponíveis.",
+   "tags": [
+    "api-client",
+    "offer-growth",
+    "entitlements"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/offerGrowthApi.ts:simulateInternalComment",
+   "type": "function",
+   "name": "simulateInternalComment",
+   "filePath": "apps/customer/src/lib/offerGrowthApi.ts",
+   "lineRange": [
+    205,
+    224
+   ],
+   "summary": "Simula o comentário interno de uma publicação em canal de teste.",
+   "tags": [
+    "api-client",
+    "publications",
+    "simulation"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:apps/customer/src/lib/offerGrowthLabels.ts",
+   "type": "file",
+   "name": "offerGrowthLabels.ts",
+   "filePath": "apps/customer/src/lib/offerGrowthLabels.ts",
+   "summary": "Mapas de rótulos em português para os enums do Offer & Growth: blocos criativos, fontes de binding, assets, campanhas, publicações, automações e cupons.",
+   "tags": [
+    "i18n",
+    "labels",
+    "offer-growth",
+    "type-definition"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:apps/customer/src/lib/statusLabels.test.ts",
+   "type": "file",
+   "name": "statusLabels.test.ts",
+   "filePath": "apps/customer/src/lib/statusLabels.test.ts",
+   "summary": "Testes dos rótulos de status em português do arquivo statusLabels.",
+   "tags": [
+    "test",
+    "labels",
+    "i18n"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:apps/customer/src/lib/statusLabels.ts",
+   "type": "file",
+   "name": "statusLabels.ts",
+   "filePath": "apps/customer/src/lib/statusLabels.ts",
+   "summary": "Rótulos em português para enums de status de propostas, vendas, viagens, financeiro, ofertas e reservas, em lookups tipados por entidade.",
+   "tags": [
+    "i18n",
+    "labels",
+    "status",
+    "type-definition"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/lib/statusLabels.ts:bookingStatusLabel",
+   "type": "function",
+   "name": "bookingStatusLabel",
+   "filePath": "apps/customer/src/lib/statusLabels.ts",
+   "lineRange": [
+    100,
+    104
+   ],
+   "summary": "Retorna o rótulo em português para o status de reserva, com fallback ao valor cru.",
+   "tags": [
+    "i18n",
+    "labels",
+    "booking"
+   ],
+   "complexity": "simple"
+  }
+ ],
+ "edges": [
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/formatCurrency.ts",
+   "target": "function:apps/customer/src/lib/formatCurrency.ts:formatBRL",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/formatCurrency.ts",
+   "target": "function:apps/customer/src/lib/formatCurrency.ts:formatBRL",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/formatDateBR.test.ts",
+   "target": "file:apps/customer/src/lib/formatDateBR.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/formatDateBR.ts",
+   "target": "function:apps/customer/src/lib/formatDateBR.ts:formatDateBR",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/formatDateBR.ts",
+   "target": "function:apps/customer/src/lib/formatDateBR.ts:formatDateBR",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/localTemplateStore.ts",
+   "target": "function:apps/customer/src/lib/localTemplateStore.ts:buildDefaultTemplate",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/localTemplateStore.ts",
+   "target": "function:apps/customer/src/lib/localTemplateStore.ts:buildDefaultTemplate",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/localTemplateStore.ts",
+   "target": "function:apps/customer/src/lib/localTemplateStore.ts:listTemplates",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/localTemplateStore.ts",
+   "target": "function:apps/customer/src/lib/localTemplateStore.ts:listTemplates",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/localTemplateStore.ts",
+   "target": "function:apps/customer/src/lib/localTemplateStore.ts:saveTemplate",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/localTemplateStore.ts",
+   "target": "function:apps/customer/src/lib/localTemplateStore.ts:saveTemplate",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/localTemplateStore.ts",
+   "target": "function:apps/customer/src/lib/localTemplateStore.ts:duplicateTemplate",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/localTemplateStore.ts",
+   "target": "function:apps/customer/src/lib/localTemplateStore.ts:duplicateTemplate",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/localTemplateStore.ts",
+   "target": "function:apps/customer/src/lib/localTemplateStore.ts:createBlankTemplate",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/localTemplateStore.ts",
+   "target": "function:apps/customer/src/lib/localTemplateStore.ts:createBlankTemplate",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/localTemplateStore.ts",
+   "target": "function:apps/customer/src/lib/localTemplateStore.ts:safeGet",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/localTemplateStore.ts",
+   "target": "file:apps/customer/src/types/offer.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/localTemplateStore.ts",
+   "target": "file:apps/customer/src/types/offerGrowth.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/offerGrowthApi.test.ts",
+   "target": "file:apps/customer/src/lib/offerGrowthApi.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/offerGrowthApi.ts",
+   "target": "function:apps/customer/src/lib/offerGrowthApi.ts:request",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/offerGrowthApi.ts",
+   "target": "function:apps/customer/src/lib/offerGrowthApi.ts:listAssets",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/offerGrowthApi.ts",
+   "target": "function:apps/customer/src/lib/offerGrowthApi.ts:listAssets",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/offerGrowthApi.ts",
+   "target": "function:apps/customer/src/lib/offerGrowthApi.ts:createAsset",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/offerGrowthApi.ts",
+   "target": "function:apps/customer/src/lib/offerGrowthApi.ts:createAsset",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/offerGrowthApi.ts",
+   "target": "function:apps/customer/src/lib/offerGrowthApi.ts:listCampaigns",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/offerGrowthApi.ts",
+   "target": "function:apps/customer/src/lib/offerGrowthApi.ts:listCampaigns",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/offerGrowthApi.ts",
+   "target": "function:apps/customer/src/lib/offerGrowthApi.ts:createCampaign",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/offerGrowthApi.ts",
+   "target": "function:apps/customer/src/lib/offerGrowthApi.ts:createCampaign",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/offerGrowthApi.ts",
+   "target": "function:apps/customer/src/lib/offerGrowthApi.ts:transitionCampaignStatus",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/offerGrowthApi.ts",
+   "target": "function:apps/customer/src/lib/offerGrowthApi.ts:transitionCampaignStatus",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/offerGrowthApi.ts",
+   "target": "function:apps/customer/src/lib/offerGrowthApi.ts:getCampaignById",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/offerGrowthApi.ts",
+   "target": "function:apps/customer/src/lib/offerGrowthApi.ts:getCampaignById",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/offerGrowthApi.ts",
+   "target": "function:apps/customer/src/lib/offerGrowthApi.ts:linkOfferToCampaign",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/offerGrowthApi.ts",
+   "target": "function:apps/customer/src/lib/offerGrowthApi.ts:linkOfferToCampaign",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/offerGrowthApi.ts",
+   "target": "function:apps/customer/src/lib/offerGrowthApi.ts:listPublications",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/offerGrowthApi.ts",
+   "target": "function:apps/customer/src/lib/offerGrowthApi.ts:listPublications",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/offerGrowthApi.ts",
+   "target": "function:apps/customer/src/lib/offerGrowthApi.ts:getPublicationById",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/offerGrowthApi.ts",
+   "target": "function:apps/customer/src/lib/offerGrowthApi.ts:getPublicationById",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/offerGrowthApi.ts",
+   "target": "function:apps/customer/src/lib/offerGrowthApi.ts:transitionPublicationStatus",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/offerGrowthApi.ts",
+   "target": "function:apps/customer/src/lib/offerGrowthApi.ts:transitionPublicationStatus",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/offerGrowthApi.ts",
+   "target": "function:apps/customer/src/lib/offerGrowthApi.ts:createPublication",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/offerGrowthApi.ts",
+   "target": "function:apps/customer/src/lib/offerGrowthApi.ts:createPublication",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/offerGrowthApi.ts",
+   "target": "function:apps/customer/src/lib/offerGrowthApi.ts:generatePublicationSnapshot",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/offerGrowthApi.ts",
+   "target": "function:apps/customer/src/lib/offerGrowthApi.ts:generatePublicationSnapshot",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/offerGrowthApi.ts",
+   "target": "function:apps/customer/src/lib/offerGrowthApi.ts:publishPublication",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/offerGrowthApi.ts",
+   "target": "function:apps/customer/src/lib/offerGrowthApi.ts:publishPublication",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/offerGrowthApi.ts",
+   "target": "function:apps/customer/src/lib/offerGrowthApi.ts:listAutomations",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/offerGrowthApi.ts",
+   "target": "function:apps/customer/src/lib/offerGrowthApi.ts:listAutomations",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/offerGrowthApi.ts",
+   "target": "function:apps/customer/src/lib/offerGrowthApi.ts:createAutomation",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/offerGrowthApi.ts",
+   "target": "function:apps/customer/src/lib/offerGrowthApi.ts:createAutomation",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/offerGrowthApi.ts",
+   "target": "function:apps/customer/src/lib/offerGrowthApi.ts:activateAutomation",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/offerGrowthApi.ts",
+   "target": "function:apps/customer/src/lib/offerGrowthApi.ts:activateAutomation",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/offerGrowthApi.ts",
+   "target": "function:apps/customer/src/lib/offerGrowthApi.ts:pauseAutomation",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/offerGrowthApi.ts",
+   "target": "function:apps/customer/src/lib/offerGrowthApi.ts:pauseAutomation",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/offerGrowthApi.ts",
+   "target": "function:apps/customer/src/lib/offerGrowthApi.ts:getAutomationById",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/offerGrowthApi.ts",
+   "target": "function:apps/customer/src/lib/offerGrowthApi.ts:getAutomationById",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/offerGrowthApi.ts",
+   "target": "function:apps/customer/src/lib/offerGrowthApi.ts:listCoupons",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/offerGrowthApi.ts",
+   "target": "function:apps/customer/src/lib/offerGrowthApi.ts:listCoupons",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/offerGrowthApi.ts",
+   "target": "function:apps/customer/src/lib/offerGrowthApi.ts:createCoupon",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/offerGrowthApi.ts",
+   "target": "function:apps/customer/src/lib/offerGrowthApi.ts:createCoupon",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/offerGrowthApi.ts",
+   "target": "function:apps/customer/src/lib/offerGrowthApi.ts:listEntitlements",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/offerGrowthApi.ts",
+   "target": "function:apps/customer/src/lib/offerGrowthApi.ts:listEntitlements",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/offerGrowthApi.ts",
+   "target": "function:apps/customer/src/lib/offerGrowthApi.ts:simulateInternalComment",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/offerGrowthApi.ts",
+   "target": "function:apps/customer/src/lib/offerGrowthApi.ts:simulateInternalComment",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/offerGrowthApi.ts",
+   "target": "file:apps/customer/src/lib/api.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/offerGrowthApi.ts",
+   "target": "file:apps/customer/src/types/offer.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/offerGrowthApi.ts",
+   "target": "file:apps/customer/src/types/offerGrowth.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/offerGrowthLabels.ts",
+   "target": "file:apps/customer/src/types/offerGrowth.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/statusLabels.test.ts",
+   "target": "file:apps/customer/src/lib/statusLabels.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/statusLabels.ts",
+   "target": "function:apps/customer/src/lib/statusLabels.ts:bookingStatusLabel",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/statusLabels.ts",
+   "target": "function:apps/customer/src/lib/statusLabels.ts:bookingStatusLabel",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/statusLabels.ts",
+   "target": "file:apps/customer/src/types/financial.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/statusLabels.ts",
+   "target": "file:apps/customer/src/types/offer.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/statusLabels.ts",
+   "target": "file:apps/customer/src/types/proposal.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/statusLabels.ts",
+   "target": "file:apps/customer/src/types/sale.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/formatCurrency.ts",
+   "target": "file:apps/customer/src/lib/formatCurrency.test.ts",
+   "type": "tested_by",
+   "weight": 0.5
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/formatDateBR.ts",
+   "target": "file:apps/customer/src/lib/formatDateBR.test.ts",
+   "type": "tested_by",
+   "weight": 0.5
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/offerGrowthApi.ts",
+   "target": "file:apps/customer/src/lib/offerGrowthApi.test.ts",
+   "type": "tested_by",
+   "weight": 0.5
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/statusLabels.ts",
+   "target": "file:apps/customer/src/lib/statusLabels.test.ts",
+   "type": "tested_by",
+   "weight": 0.5
+  }
+ ]
+}

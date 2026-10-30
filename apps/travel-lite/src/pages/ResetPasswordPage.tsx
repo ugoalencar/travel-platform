@@ -23,8 +23,8 @@ export function ResetPasswordPage() {
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
     setError(null);
-    if (newPassword.length < 8) {
-      setError('A nova senha deve ter no mínimo 8 caracteres.');
+    if (newPassword.length < 12) {
+      setError('A nova senha deve ter no mínimo 12 caracteres.');
       return;
     }
     if (newPassword !== confirmPassword) {
@@ -78,7 +78,7 @@ export function ResetPasswordPage() {
               <span>Nova senha</span>
               <input
                 type="password"
-                minLength={8}
+                minLength={12}
                 value={newPassword}
                 onChange={(event) => setNewPassword(event.target.value)}
                 autoComplete="new-password"
@@ -89,7 +89,7 @@ export function ResetPasswordPage() {
               <span>Confirmar nova senha</span>
               <input
                 type="password"
-                minLength={8}
+                minLength={12}
                 value={confirmPassword}
                 onChange={(event) => setConfirmPassword(event.target.value)}
                 autoComplete="new-password"

@@ -1,0 +1,139 @@
+{
+  "nodes": [
+    {
+      "id": "config:.dockerignore",
+      "type": "config",
+      "name": ".dockerignore",
+      "filePath": ".dockerignore",
+      "summary": "Lista de exclusões do build context do Docker: ignora .git, node_modules, dist, coverage, arquivos .env (mantendo os exemplos), logs e artefatos de teste/backups.",
+      "tags": ["configuration", "containerization", "build-context"],
+      "complexity": "simple"
+    },
+    {
+      "id": "service:Dockerfile",
+      "type": "service",
+      "name": "Dockerfile",
+      "filePath": "Dockerfile",
+      "summary": "Build multi-stage (base → production) em node:24-alpine que compila packages/domain e services/api com TypeScript e gera a imagem de produção da API expondo a porta 3000.",
+      "tags": ["containerization", "infrastructure", "deployment", "multi-stage"],
+      "complexity": "moderate",
+      "languageNotes": "Build multi-stage: dependências de build e compilação tsc ficam no stage base; o stage production instala apenas dependências de produção (npm install --omit=dev) e copia os artefatos dist/."
+    },
+    {
+      "id": "service:Dockerfile:base",
+      "type": "service",
+      "name": "base",
+      "filePath": "Dockerfile",
+      "lineRange": [1, 25],
+      "summary": "Stage base do Dockerfile: instala todas as dependências e compila packages/domain e services/api com npx tsc -p tsconfig.build.json.",
+      "tags": ["containerization", "build-stage", "typescript"],
+      "complexity": "simple"
+    },
+    {
+      "id": "service:Dockerfile:production",
+      "type": "service",
+      "name": "production",
+      "filePath": "Dockerfile",
+      "lineRange": [26, 44],
+      "summary": "Stage final da imagem: instala dependências de produção, copia os dist/ compilados do stage base, expõe a porta 3000 e inicia o servidor da API com node.",
+      "tags": ["containerization", "production", "deployment"],
+      "complexity": "simple"
+    },
+    {
+      "id": "service:docker-compose.staging.yml",
+      "type": "service",
+      "name": "docker-compose.staging.yml",
+      "filePath": "docker-compose.staging.yml",
+      "summary": "Stack de staging local com PostgreSQL 16, API construída a partir do Dockerfile da API e frontends agency/customer em modo dev, com healthchecks e dependências ordenadas.",
+      "tags": ["orchestration", "infrastructure", "staging", "docker-compose"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "service:docker-compose.staging.yml:db",
+      "type": "service",
+      "name": "db",
+      "filePath": "docker-compose.staging.yml",
+      "lineRange": [18, 33],
+      "summary": "PostgreSQL 16-alpine de staging com volume persistente, montagem das migrations como init e healthcheck via pg_isready.",
+      "tags": ["database", "postgres", "staging"],
+      "complexity": "simple"
+    },
+    {
+      "id": "service:docker-compose.staging.yml:api",
+      "type": "service",
+      "name": "api",
+      "filePath": "docker-compose.staging.yml",
+      "lineRange": [38, 61],
+      "summary": "Serviço da API de staging (porta 3001→3000) com variáveis de ambiente de staging, CORS para os dev servers e healthcheck de /health, dependente do banco saudável.",
+      "tags": ["api", "staging", "healthcheck"],
+      "complexity": "simple"
+    },
+    {
+      "id": "service:docker-compose.staging.yml:agency-frontend",
+      "type": "service",
+      "name": "agency-frontend",
+      "filePath": "docker-compose.staging.yml",
+      "lineRange": [66, 78],
+      "summary": "Dev server Vite do app de agências (porta 5173) espelhando ./apps/agency, apontando VITE_API_URL para a API de staging.",
+      "tags": ["frontend", "vite", "staging"],
+      "complexity": "simple"
+    },
+    {
+      "id": "service:docker-compose.staging.yml:customer-frontend",
+      "type": "service",
+      "name": "customer-frontend",
+      "filePath": "docker-compose.staging.yml",
+      "lineRange": [83, 96],
+      "summary": "Dev server Vite do portal do cliente (porta 5174) espelhando ./apps/customer, com VITE_API_URL e VITE_PORTAL_URL da stack de staging.",
+      "tags": ["frontend", "vite", "staging"],
+      "complexity": "simple"
+    },
+    {
+      "id": "service:docker-compose.travel-lite.yml",
+      "type": "service",
+      "name": "docker-compose.travel-lite.yml",
+      "filePath": "docker-compose.travel-lite.yml",
+      "summary": "Stack enxuta do Travel Lite para a agência piloto: PostgreSQL dedicado + API que serve o frontend já buildado, escutando apenas em localhost.",
+      "tags": ["orchestration", "infrastructure", "travel-lite", "docker-compose"],
+      "complexity": "moderate",
+      "languageNotes": "Banco dedicado do Travel Lite com portas restritas a 127.0.0.1; senhas aceitas por variáveis de ambiente com defaults de desenvolvimento."
+    },
+    {
+      "id": "service:docker-compose.travel-lite.yml:postgres",
+      "type": "service",
+      "name": "postgres",
+      "filePath": "docker-compose.travel-lite.yml",
+      "lineRange": [10, 26],
+      "summary": "PostgreSQL 17 dedicado do Travel Lite na porta local 55436, com volume próprio e healthcheck via pg_isready.",
+      "tags": ["database", "postgres", "travel-lite"],
+      "complexity": "simple"
+    },
+    {
+      "id": "service:docker-compose.travel-lite.yml:api",
+      "type": "service",
+      "name": "api",
+      "filePath": "docker-compose.travel-lite.yml",
+      "lineRange": [28, 50],
+      "summary": "API do Travel Lite em modo production (porta local 4010) construída a partir do Dockerfile.travel-lite, servindo o dist do frontend travel-lite e com healthcheck de /health.",
+      "tags": ["api", "travel-lite", "healthcheck"],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {"source": "config:.dockerignore", "target": "service:Dockerfile", "type": "configures", "direction": "forward", "weight": 0.6},
+
+    {"source": "service:Dockerfile", "target": "service:Dockerfile:base", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "service:Dockerfile", "target": "service:Dockerfile:production", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "service:docker-compose.staging.yml", "target": "service:docker-compose.staging.yml:db", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "service:docker-compose.staging.yml", "target": "service:docker-compose.staging.yml:api", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "service:docker-compose.staging.yml", "target": "service:docker-compose.staging.yml:agency-frontend", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "service:docker-compose.staging.yml", "target": "service:docker-compose.staging.yml:customer-frontend", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "service:docker-compose.travel-lite.yml", "target": "service:docker-compose.travel-lite.yml:postgres", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "service:docker-compose.travel-lite.yml", "target": "service:docker-compose.travel-lite.yml:api", "type": "contains", "direction": "forward", "weight": 1.0},
+
+    {"source": "service:Dockerfile", "target": "file:services/api/src/server.ts", "type": "deploys", "direction": "forward", "weight": 0.7},
+    {"source": "service:docker-compose.staging.yml", "target": "file:services/api/src/server.ts", "type": "deploys", "direction": "forward", "weight": 0.7},
+    {"source": "service:docker-compose.travel-lite.yml", "target": "file:services/api/src/server.ts", "type": "deploys", "direction": "forward", "weight": 0.7},
+    {"source": "service:docker-compose.travel-lite.yml", "target": "service:Dockerfile.travel-lite", "type": "depends_on", "direction": "forward", "weight": 0.6}
+  ]
+}

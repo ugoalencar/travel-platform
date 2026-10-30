@@ -82,6 +82,7 @@ export interface ApiOptions {
   method?: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
   body?: unknown;
   token?: string | null;
+  signal?: AbortSignal;
 }
 
 export async function api<T>(path: string, options: ApiOptions = {}): Promise<T> {
@@ -89,11 +90,14 @@ export async function api<T>(path: string, options: ApiOptions = {}): Promise<T>
   const init: RequestInit = {
     method: options.method ?? 'GET',
     headers: {
-      'content-type': 'application/json',
       ...authHeaders(token),
     },
   };
+  if (options.signal) init.signal = options.signal;
   if (options.body !== undefined) {
+    // Content-Type only together with a body: Fastify answers 400 (FST_ERR_CTP_EMPTY_JSON_BODY) to an
+    // application/json request with an empty body (e.g. POST /sales/:id/confirm).
+    init.headers = { ...init.headers, 'content-type': 'application/json' };
     init.body = JSON.stringify(options.body);
   }
   const response = await fetch(`/api${path}`, init);

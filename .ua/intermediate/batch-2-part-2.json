@@ -1,0 +1,4471 @@
+{
+ "nodes": [
+  {
+   "id": "file:apps/customer/src/customer-portal/pages/CustomerTripsPage.tsx",
+   "type": "file",
+   "name": "CustomerTripsPage.tsx",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerTripsPage.tsx",
+   "summary": "Listagem das viagens do cliente no portal, com cartões, arte do destino e cores de status por viagem.",
+   "tags": [
+    "component",
+    "page",
+    "customer-portal",
+    "trip",
+    "list"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/pages/CustomerTripsPage.tsx:CustomerTripsPage",
+   "type": "function",
+   "name": "CustomerTripsPage",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerTripsPage.tsx",
+   "lineRange": [
+    15,
+    125
+   ],
+   "summary": "Listagem das viagens do cliente com cartões, arte do destino e status.",
+   "tags": [
+    "component",
+    "page",
+    "trip",
+    "list"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/pages/CustomerTripsPage.tsx:TripCard",
+   "type": "function",
+   "name": "TripCard",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerTripsPage.tsx",
+   "lineRange": [
+    127,
+    164
+   ],
+   "summary": "Cartão de viagem com imagem de destino, datas e status.",
+   "tags": [
+    "component",
+    "card",
+    "trip"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/customer-portal/pages/CustomerTripsPage.tsx:getStatusColor",
+   "type": "function",
+   "name": "getStatusColor",
+   "filePath": "apps/customer/src/customer-portal/pages/CustomerTripsPage.tsx",
+   "lineRange": [
+    166,
+    175
+   ],
+   "summary": "Mapeia o status da viagem para classes de cor do Tailwind.",
+   "tags": [
+    "utility",
+    "status",
+    "styling"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:apps/customer/src/lib/api.test.ts",
+   "type": "file",
+   "name": "api.test.ts",
+   "filePath": "apps/customer/src/lib/api.test.ts",
+   "summary": "Bateria de testes do cliente HTTP principal (api.ts) cobrindo as entidades, o helper request e o tratamento de ApiError.",
+   "tags": [
+    "test",
+    "api-client",
+    "vitest"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:apps/customer/src/lib/api.ts",
+   "type": "file",
+   "name": "api.ts",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "summary": "Cliente HTTP central da aplicação staff com funções CRUD para todas as entidades sob /api/*, um helper request genérico, a classe ApiError e tradução de mensagens de erro.",
+   "tags": [
+    "api-client",
+    "http-client",
+    "crud",
+    "service"
+   ],
+   "complexity": "complex",
+   "languageNotes": "Padrão de wrapper CRUD por entidade sobre um único helper request<T>; erros padronizados em ApiError."
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:request",
+   "type": "function",
+   "name": "request",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    77,
+    96
+   ],
+   "summary": "Helper central de fetch que monta headers JSON, valida a resposta e lança ApiError com a mensagem traduzida para pt-BR.",
+   "tags": [
+    "http-client",
+    "utility",
+    "error-handling"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:listCustomers",
+   "type": "function",
+   "name": "listCustomers",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    106,
+    109
+   ],
+   "summary": "Recupera a lista de clientes para as telas do módulo comercial.",
+   "tags": [
+    "api-client",
+    "customers",
+    "list"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:getCustomer",
+   "type": "function",
+   "name": "getCustomer",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    111,
+    116
+   ],
+   "summary": "Recupera um cliente pelo id.",
+   "tags": [
+    "api-client",
+    "customers",
+    "read"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:createCustomer",
+   "type": "function",
+   "name": "createCustomer",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    118,
+    124
+   ],
+   "summary": "Cria um cliente a partir de CreateCustomerInput.",
+   "tags": [
+    "api-client",
+    "customers",
+    "create"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:updateCustomer",
+   "type": "function",
+   "name": "updateCustomer",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    126,
+    138
+   ],
+   "summary": "Atualiza um cliente existente via PATCH e retorna o registro atualizado.",
+   "tags": [
+    "api-client",
+    "customers",
+    "update"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:listWishes",
+   "type": "function",
+   "name": "listWishes",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    140,
+    143
+   ],
+   "summary": "Recupera a lista de desejos (wishes).",
+   "tags": [
+    "api-client",
+    "wishes",
+    "list"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:getWish",
+   "type": "function",
+   "name": "getWish",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    145,
+    150
+   ],
+   "summary": "Recupera um desejo pelo id.",
+   "tags": [
+    "api-client",
+    "wishes",
+    "read"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:createWish",
+   "type": "function",
+   "name": "createWish",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    152,
+    158
+   ],
+   "summary": "Cria um desejo.",
+   "tags": [
+    "api-client",
+    "wishes",
+    "create"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:updateWish",
+   "type": "function",
+   "name": "updateWish",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    160,
+    172
+   ],
+   "summary": "Atualiza um desejo existente.",
+   "tags": [
+    "api-client",
+    "wishes",
+    "update"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:listTrips",
+   "type": "function",
+   "name": "listTrips",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    174,
+    177
+   ],
+   "summary": "Recupera a lista de viagens.",
+   "tags": [
+    "api-client",
+    "trips",
+    "list"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:getTrip",
+   "type": "function",
+   "name": "getTrip",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    179,
+    184
+   ],
+   "summary": "Recupera uma viagem pelo id.",
+   "tags": [
+    "api-client",
+    "trips",
+    "read"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:createTrip",
+   "type": "function",
+   "name": "createTrip",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    186,
+    192
+   ],
+   "summary": "Cria uma viagem.",
+   "tags": [
+    "api-client",
+    "trips",
+    "create"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:updateTrip",
+   "type": "function",
+   "name": "updateTrip",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    194,
+    206
+   ],
+   "summary": "Atualiza uma viagem existente.",
+   "tags": [
+    "api-client",
+    "trips",
+    "update"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:listOffers",
+   "type": "function",
+   "name": "listOffers",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    208,
+    211
+   ],
+   "summary": "Recupera a lista de ofertas.",
+   "tags": [
+    "api-client",
+    "offers",
+    "list"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:getOffer",
+   "type": "function",
+   "name": "getOffer",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    213,
+    218
+   ],
+   "summary": "Recupera uma oferta pelo id.",
+   "tags": [
+    "api-client",
+    "offers",
+    "read"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:createOffer",
+   "type": "function",
+   "name": "createOffer",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    220,
+    226
+   ],
+   "summary": "Cria uma oferta.",
+   "tags": [
+    "api-client",
+    "offers",
+    "create"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:updateOffer",
+   "type": "function",
+   "name": "updateOffer",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    228,
+    240
+   ],
+   "summary": "Atualiza uma oferta existente.",
+   "tags": [
+    "api-client",
+    "offers",
+    "update"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:listProposals",
+   "type": "function",
+   "name": "listProposals",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    242,
+    245
+   ],
+   "summary": "Recupera a lista de propostas.",
+   "tags": [
+    "api-client",
+    "proposals",
+    "list"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:getProposal",
+   "type": "function",
+   "name": "getProposal",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    247,
+    252
+   ],
+   "summary": "Recupera uma proposta pelo id.",
+   "tags": [
+    "api-client",
+    "proposals",
+    "read"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:createProposal",
+   "type": "function",
+   "name": "createProposal",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    254,
+    260
+   ],
+   "summary": "Cria uma proposta.",
+   "tags": [
+    "api-client",
+    "proposals",
+    "create"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:updateProposal",
+   "type": "function",
+   "name": "updateProposal",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    262,
+    274
+   ],
+   "summary": "Atualiza uma proposta existente.",
+   "tags": [
+    "api-client",
+    "proposals",
+    "update"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:listSales",
+   "type": "function",
+   "name": "listSales",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    300,
+    303
+   ],
+   "summary": "Recupera a lista de vendas.",
+   "tags": [
+    "api-client",
+    "sales",
+    "list"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:getSale",
+   "type": "function",
+   "name": "getSale",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    305,
+    310
+   ],
+   "summary": "Recupera uma venda pelo id.",
+   "tags": [
+    "api-client",
+    "sales",
+    "read"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:createSale",
+   "type": "function",
+   "name": "createSale",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    312,
+    318
+   ],
+   "summary": "Cria uma venda.",
+   "tags": [
+    "api-client",
+    "sales",
+    "create"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:updateSale",
+   "type": "function",
+   "name": "updateSale",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    320,
+    329
+   ],
+   "summary": "Atualiza uma venda existente.",
+   "tags": [
+    "api-client",
+    "sales",
+    "update"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:listReceivables",
+   "type": "function",
+   "name": "listReceivables",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    351,
+    354
+   ],
+   "summary": "Recupera as contas a receber do financeiro.",
+   "tags": [
+    "api-client",
+    "financial",
+    "list"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:listPayables",
+   "type": "function",
+   "name": "listPayables",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    356,
+    359
+   ],
+   "summary": "Recupera as contas a pagar do financeiro.",
+   "tags": [
+    "api-client",
+    "financial",
+    "list"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:listPayments",
+   "type": "function",
+   "name": "listPayments",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    361,
+    364
+   ],
+   "summary": "Recupera os pagamentos registrados.",
+   "tags": [
+    "api-client",
+    "financial",
+    "list"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:listPaymentAllocations",
+   "type": "function",
+   "name": "listPaymentAllocations",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    366,
+    371
+   ],
+   "summary": "Recupera as alocações de pagamento de um pagamento.",
+   "tags": [
+    "api-client",
+    "financial",
+    "allocations"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:listAllocationsForTarget",
+   "type": "function",
+   "name": "listAllocationsForTarget",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    373,
+    384
+   ],
+   "summary": "Consulta alocações de pagamento por conta a receber ou a pagar, montando a query string dos filtros.",
+   "tags": [
+    "api-client",
+    "financial",
+    "query"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:listOperationalCosts",
+   "type": "function",
+   "name": "listOperationalCosts",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    386,
+    391
+   ],
+   "summary": "Recupera os custos operacionais.",
+   "tags": [
+    "api-client",
+    "financial",
+    "list"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:getSaleMargin",
+   "type": "function",
+   "name": "getSaleMargin",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    393,
+    398
+   ],
+   "summary": "Recupera a margem calculada de uma venda.",
+   "tags": [
+    "api-client",
+    "financial",
+    "margin"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:listExternalOfferCaptures",
+   "type": "function",
+   "name": "listExternalOfferCaptures",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    400,
+    403
+   ],
+   "summary": "Recupera as capturas externas de ofertas (Pescador).",
+   "tags": [
+    "api-client",
+    "pescador",
+    "list"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:createExternalOfferCapture",
+   "type": "function",
+   "name": "createExternalOfferCapture",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    405,
+    413
+   ],
+   "summary": "Cria uma captura externa de oferta.",
+   "tags": [
+    "api-client",
+    "pescador",
+    "create"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:reviewExternalOfferCapture",
+   "type": "function",
+   "name": "reviewExternalOfferCapture",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    415,
+    423
+   ],
+   "summary": "Envia uma captura externa de oferta para revisão.",
+   "tags": [
+    "api-client",
+    "pescador",
+    "workflow"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:approveExternalOfferCapture",
+   "type": "function",
+   "name": "approveExternalOfferCapture",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    425,
+    433
+   ],
+   "summary": "Aprova uma captura externa de oferta.",
+   "tags": [
+    "api-client",
+    "pescador",
+    "workflow"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:rejectExternalOfferCapture",
+   "type": "function",
+   "name": "rejectExternalOfferCapture",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    435,
+    443
+   ],
+   "summary": "Rejeita uma captura externa de oferta.",
+   "tags": [
+    "api-client",
+    "pescador",
+    "workflow"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:publishExternalOfferCapture",
+   "type": "function",
+   "name": "publishExternalOfferCapture",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    445,
+    453
+   ],
+   "summary": "Publica uma captura externa de oferta aprovada.",
+   "tags": [
+    "api-client",
+    "pescador",
+    "workflow"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:getFinancialDashboard",
+   "type": "function",
+   "name": "getFinancialDashboard",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    455,
+    463
+   ],
+   "summary": "Recupera o resumo de fluxo de caixa do painel financeiro, usando o período do mês corrente como padrão.",
+   "tags": [
+    "api-client",
+    "financial",
+    "dashboard"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:getCurrentMonthPeriod",
+   "type": "function",
+   "name": "getCurrentMonthPeriod",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    465,
+    474
+   ],
+   "summary": "Calcula o período do mês corrente em UTC para consultas do painel financeiro.",
+   "tags": [
+    "utility",
+    "financial",
+    "date"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:listRoutes",
+   "type": "function",
+   "name": "listRoutes",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    480,
+    483
+   ],
+   "summary": "Recupera as rotas de transporte.",
+   "tags": [
+    "api-client",
+    "transport",
+    "list"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:getRoute",
+   "type": "function",
+   "name": "getRoute",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    485,
+    490
+   ],
+   "summary": "Recupera uma rota de transporte pelo id.",
+   "tags": [
+    "api-client",
+    "transport",
+    "read"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:createRoute",
+   "type": "function",
+   "name": "createRoute",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    492,
+    498
+   ],
+   "summary": "Cria uma rota de transporte.",
+   "tags": [
+    "api-client",
+    "transport",
+    "create"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:updateRoute",
+   "type": "function",
+   "name": "updateRoute",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    500,
+    509
+   ],
+   "summary": "Atualiza uma rota de transporte existente.",
+   "tags": [
+    "api-client",
+    "transport",
+    "update"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:listRoutePoints",
+   "type": "function",
+   "name": "listRoutePoints",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    511,
+    516
+   ],
+   "summary": "Recupera os pontos de uma rota.",
+   "tags": [
+    "api-client",
+    "transport",
+    "list"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:createRoutePoint",
+   "type": "function",
+   "name": "createRoutePoint",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    518,
+    530
+   ],
+   "summary": "Adiciona um ponto a uma rota de transporte.",
+   "tags": [
+    "api-client",
+    "transport",
+    "create"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:updateRoutePoint",
+   "type": "function",
+   "name": "updateRoutePoint",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    532,
+    545
+   ],
+   "summary": "Atualiza um ponto de rota, incluindo posição e dados do ponto.",
+   "tags": [
+    "api-client",
+    "transport",
+    "update"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:reorderRoutePoints",
+   "type": "function",
+   "name": "reorderRoutePoints",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    547,
+    559
+   ],
+   "summary": "Reordena os pontos de uma rota de transporte.",
+   "tags": [
+    "api-client",
+    "transport",
+    "reorder"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:listSuppliers",
+   "type": "function",
+   "name": "listSuppliers",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    561,
+    564
+   ],
+   "summary": "Recupera os fornecedores.",
+   "tags": [
+    "api-client",
+    "suppliers",
+    "list"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:getSupplier",
+   "type": "function",
+   "name": "getSupplier",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    566,
+    571
+   ],
+   "summary": "Recupera um fornecedor pelo id.",
+   "tags": [
+    "api-client",
+    "suppliers",
+    "read"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:createSupplier",
+   "type": "function",
+   "name": "createSupplier",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    573,
+    579
+   ],
+   "summary": "Cria um fornecedor.",
+   "tags": [
+    "api-client",
+    "suppliers",
+    "create"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:updateSupplier",
+   "type": "function",
+   "name": "updateSupplier",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    581,
+    593
+   ],
+   "summary": "Atualiza um fornecedor existente.",
+   "tags": [
+    "api-client",
+    "suppliers",
+    "update"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:listTransportProducts",
+   "type": "function",
+   "name": "listTransportProducts",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    595,
+    598
+   ],
+   "summary": "Recupera os produtos de transporte.",
+   "tags": [
+    "api-client",
+    "transport",
+    "list"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:getTransportProduct",
+   "type": "function",
+   "name": "getTransportProduct",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    600,
+    605
+   ],
+   "summary": "Recupera um produto de transporte pelo id.",
+   "tags": [
+    "api-client",
+    "transport",
+    "read"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:createTransportProduct",
+   "type": "function",
+   "name": "createTransportProduct",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    607,
+    615
+   ],
+   "summary": "Cria um produto de transporte.",
+   "tags": [
+    "api-client",
+    "transport",
+    "create"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:updateTransportProduct",
+   "type": "function",
+   "name": "updateTransportProduct",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    617,
+    629
+   ],
+   "summary": "Atualiza um produto de transporte existente.",
+   "tags": [
+    "api-client",
+    "transport",
+    "update"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:listDepartures",
+   "type": "function",
+   "name": "listDepartures",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    631,
+    634
+   ],
+   "summary": "Recupera as partidas programadas.",
+   "tags": [
+    "api-client",
+    "transport",
+    "list"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:getDeparture",
+   "type": "function",
+   "name": "getDeparture",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    636,
+    641
+   ],
+   "summary": "Recupera uma partida programada pelo id.",
+   "tags": [
+    "api-client",
+    "transport",
+    "read"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:createDeparture",
+   "type": "function",
+   "name": "createDeparture",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    643,
+    651
+   ],
+   "summary": "Cria uma partida programada.",
+   "tags": [
+    "api-client",
+    "transport",
+    "create"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:updateDeparture",
+   "type": "function",
+   "name": "updateDeparture",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    653,
+    665
+   ],
+   "summary": "Atualiza uma partida programada existente.",
+   "tags": [
+    "api-client",
+    "transport",
+    "update"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:getAgenda",
+   "type": "function",
+   "name": "getAgenda",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    667,
+    670
+   ],
+   "summary": "Recupera a agenda operacional de transportes.",
+   "tags": [
+    "api-client",
+    "transport",
+    "agenda"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:listBookings",
+   "type": "function",
+   "name": "listBookings",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    672,
+    675
+   ],
+   "summary": "Recupera as reservas.",
+   "tags": [
+    "api-client",
+    "bookings",
+    "list"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:getBooking",
+   "type": "function",
+   "name": "getBooking",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    677,
+    683
+   ],
+   "summary": "Recupera uma reserva pelo id junto com seus passageiros.",
+   "tags": [
+    "api-client",
+    "bookings",
+    "read"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:createBooking",
+   "type": "function",
+   "name": "createBooking",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    685,
+    692
+   ],
+   "summary": "Cria uma reserva com seus passageiros.",
+   "tags": [
+    "api-client",
+    "bookings",
+    "create"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:cancelBooking",
+   "type": "function",
+   "name": "cancelBooking",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    694,
+    701
+   ],
+   "summary": "Cancela uma reserva existente.",
+   "tags": [
+    "api-client",
+    "bookings",
+    "cancel"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:listOperations",
+   "type": "function",
+   "name": "listOperations",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    711,
+    714
+   ],
+   "summary": "Recupera as operações de campo (TransportOperation).",
+   "tags": [
+    "api-client",
+    "operations",
+    "list"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:createOperation",
+   "type": "function",
+   "name": "createOperation",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    720,
+    727
+   ],
+   "summary": "Cria uma operação de campo com seus checkpoints.",
+   "tags": [
+    "api-client",
+    "operations",
+    "create"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:confirmArrival",
+   "type": "function",
+   "name": "confirmArrival",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    732,
+    741
+   ],
+   "summary": "Confirma a chegada em um checkpoint da operação; o servidor carimba o horário.",
+   "tags": [
+    "api-client",
+    "operations",
+    "checkpoint"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/api.ts:confirmDeparture",
+   "type": "function",
+   "name": "confirmDeparture",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    743,
+    752
+   ],
+   "summary": "Confirma a saída em um checkpoint da operação; o servidor carimba o horário.",
+   "tags": [
+    "api-client",
+    "operations",
+    "checkpoint"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "class:apps/customer/src/lib/api.ts:ApiError",
+   "type": "class",
+   "name": "ApiError",
+   "filePath": "apps/customer/src/lib/api.ts",
+   "lineRange": [
+    60,
+    70
+   ],
+   "summary": "Erro tipado do cliente API com código e status HTTP para tratamento nas camadas de UI.",
+   "tags": [
+    "error-handling",
+    "class",
+    "api-client"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:apps/customer/src/lib/commercialApi.ts",
+   "type": "file",
+   "name": "commercialApi.ts",
+   "filePath": "apps/customer/src/lib/commercialApi.ts",
+   "summary": "Cliente HTTP do módulo comercial cobrindo oportunidades, tarefas, interações, busca de clientes, pipelines e etapas de vendas.",
+   "tags": [
+    "api-client",
+    "crm",
+    "sales-pipeline",
+    "http-client"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:apps/customer/src/lib/commercialApi.ts:request",
+   "type": "function",
+   "name": "request",
+   "filePath": "apps/customer/src/lib/commercialApi.ts",
+   "lineRange": [
+    34,
+    53
+   ],
+   "summary": "Helper de fetch do cliente comercial com headers JSON e conversão de erros em ApiError.",
+   "tags": [
+    "http-client",
+    "api-client",
+    "error-handling"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/lib/commercialApi.ts:toQueryString",
+   "type": "function",
+   "name": "toQueryString",
+   "filePath": "apps/customer/src/lib/commercialApi.ts",
+   "lineRange": [
+    63,
+    72
+   ],
+   "summary": "Converte um objeto de parâmetros em query string para chamadas GET.",
+   "tags": [
+    "utility",
+    "query-string",
+    "serialization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/commercialApi.ts:listOpportunities",
+   "type": "function",
+   "name": "listOpportunities",
+   "filePath": "apps/customer/src/lib/commercialApi.ts",
+   "lineRange": [
+    74,
+    79
+   ],
+   "summary": "Lista oportunidades do funil comercial.",
+   "tags": [
+    "api-client",
+    "crm",
+    "opportunities"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/commercialApi.ts:getOpportunity",
+   "type": "function",
+   "name": "getOpportunity",
+   "filePath": "apps/customer/src/lib/commercialApi.ts",
+   "lineRange": [
+    81,
+    86
+   ],
+   "summary": "Recupera uma oportunidade pelo id.",
+   "tags": [
+    "api-client",
+    "crm",
+    "opportunities"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/commercialApi.ts:createOpportunity",
+   "type": "function",
+   "name": "createOpportunity",
+   "filePath": "apps/customer/src/lib/commercialApi.ts",
+   "lineRange": [
+    88,
+    96
+   ],
+   "summary": "Cria uma oportunidade no funil comercial.",
+   "tags": [
+    "api-client",
+    "crm",
+    "create"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/commercialApi.ts:updateOpportunity",
+   "type": "function",
+   "name": "updateOpportunity",
+   "filePath": "apps/customer/src/lib/commercialApi.ts",
+   "lineRange": [
+    98,
+    107
+   ],
+   "summary": "Atualiza uma oportunidade existente.",
+   "tags": [
+    "api-client",
+    "crm",
+    "update"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/commercialApi.ts:listTasks",
+   "type": "function",
+   "name": "listTasks",
+   "filePath": "apps/customer/src/lib/commercialApi.ts",
+   "lineRange": [
+    109,
+    114
+   ],
+   "summary": "Lista tarefas comerciais.",
+   "tags": [
+    "api-client",
+    "crm",
+    "tasks"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/commercialApi.ts:createTask",
+   "type": "function",
+   "name": "createTask",
+   "filePath": "apps/customer/src/lib/commercialApi.ts",
+   "lineRange": [
+    116,
+    122
+   ],
+   "summary": "Cria uma tarefa comercial.",
+   "tags": [
+    "api-client",
+    "crm",
+    "tasks"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/commercialApi.ts:updateTask",
+   "type": "function",
+   "name": "updateTask",
+   "filePath": "apps/customer/src/lib/commercialApi.ts",
+   "lineRange": [
+    124,
+    130
+   ],
+   "summary": "Atualiza uma tarefa comercial existente.",
+   "tags": [
+    "api-client",
+    "crm",
+    "tasks"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/commercialApi.ts:listInteractions",
+   "type": "function",
+   "name": "listInteractions",
+   "filePath": "apps/customer/src/lib/commercialApi.ts",
+   "lineRange": [
+    132,
+    137
+   ],
+   "summary": "Lista interações (atendimentos) registradas com o cliente.",
+   "tags": [
+    "api-client",
+    "crm",
+    "interactions"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/commercialApi.ts:createInteraction",
+   "type": "function",
+   "name": "createInteraction",
+   "filePath": "apps/customer/src/lib/commercialApi.ts",
+   "lineRange": [
+    139,
+    147
+   ],
+   "summary": "Registra uma interação com o cliente.",
+   "tags": [
+    "api-client",
+    "crm",
+    "interactions"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/commercialApi.ts:searchCustomers",
+   "type": "function",
+   "name": "searchCustomers",
+   "filePath": "apps/customer/src/lib/commercialApi.ts",
+   "lineRange": [
+    149,
+    154
+   ],
+   "summary": "Busca clientes para o quick search do módulo comercial.",
+   "tags": [
+    "api-client",
+    "crm",
+    "search"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/commercialApi.ts:travelSearch",
+   "type": "function",
+   "name": "travelSearch",
+   "filePath": "apps/customer/src/lib/commercialApi.ts",
+   "lineRange": [
+    156,
+    161
+   ],
+   "summary": "Executa busca de produtos de viagem para alimentar oportunidades.",
+   "tags": [
+    "api-client",
+    "search",
+    "travel"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/commercialApi.ts:listPipelines",
+   "type": "function",
+   "name": "listPipelines",
+   "filePath": "apps/customer/src/lib/commercialApi.ts",
+   "lineRange": [
+    174,
+    177
+   ],
+   "summary": "Lista pipelines de vendas.",
+   "tags": [
+    "api-client",
+    "sales-pipeline",
+    "list"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/commercialApi.ts:getPipeline",
+   "type": "function",
+   "name": "getPipeline",
+   "filePath": "apps/customer/src/lib/commercialApi.ts",
+   "lineRange": [
+    179,
+    182
+   ],
+   "summary": "Recupera um pipeline de vendas pelo id.",
+   "tags": [
+    "api-client",
+    "sales-pipeline",
+    "read"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/commercialApi.ts:createPipeline",
+   "type": "function",
+   "name": "createPipeline",
+   "filePath": "apps/customer/src/lib/commercialApi.ts",
+   "lineRange": [
+    184,
+    190
+   ],
+   "summary": "Cria um pipeline de vendas.",
+   "tags": [
+    "api-client",
+    "sales-pipeline",
+    "create"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/commercialApi.ts:updatePipeline",
+   "type": "function",
+   "name": "updatePipeline",
+   "filePath": "apps/customer/src/lib/commercialApi.ts",
+   "lineRange": [
+    192,
+    198
+   ],
+   "summary": "Atualiza um pipeline de vendas existente.",
+   "tags": [
+    "api-client",
+    "sales-pipeline",
+    "update"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/commercialApi.ts:listStages",
+   "type": "function",
+   "name": "listStages",
+   "filePath": "apps/customer/src/lib/commercialApi.ts",
+   "lineRange": [
+    200,
+    205
+   ],
+   "summary": "Lista as etapas de um pipeline.",
+   "tags": [
+    "api-client",
+    "sales-pipeline",
+    "stages"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/commercialApi.ts:createStage",
+   "type": "function",
+   "name": "createStage",
+   "filePath": "apps/customer/src/lib/commercialApi.ts",
+   "lineRange": [
+    207,
+    213
+   ],
+   "summary": "Cria uma etapa de pipeline.",
+   "tags": [
+    "api-client",
+    "sales-pipeline",
+    "stages"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/commercialApi.ts:updateStage",
+   "type": "function",
+   "name": "updateStage",
+   "filePath": "apps/customer/src/lib/commercialApi.ts",
+   "lineRange": [
+    215,
+    225
+   ],
+   "summary": "Atualiza uma etapa de pipeline existente.",
+   "tags": [
+    "api-client",
+    "sales-pipeline",
+    "stages"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/commercialApi.ts:listPipelineAccess",
+   "type": "function",
+   "name": "listPipelineAccess",
+   "filePath": "apps/customer/src/lib/commercialApi.ts",
+   "lineRange": [
+    227,
+    232
+   ],
+   "summary": "Lista o acesso de usuários aos pipelines.",
+   "tags": [
+    "api-client",
+    "sales-pipeline",
+    "access"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/commercialApi.ts:grantPipelineAccess",
+   "type": "function",
+   "name": "grantPipelineAccess",
+   "filePath": "apps/customer/src/lib/commercialApi.ts",
+   "lineRange": [
+    234,
+    240
+   ],
+   "summary": "Concede a um usuário acesso a um pipeline.",
+   "tags": [
+    "api-client",
+    "sales-pipeline",
+    "access"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/commercialApi.ts:revokePipelineAccess",
+   "type": "function",
+   "name": "revokePipelineAccess",
+   "filePath": "apps/customer/src/lib/commercialApi.ts",
+   "lineRange": [
+    243,
+    252
+   ],
+   "summary": "Revoga o acesso de um usuário a um pipeline.",
+   "tags": [
+    "api-client",
+    "sales-pipeline",
+    "access"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/commercialApi.ts:getProposalsWaiting",
+   "type": "function",
+   "name": "getProposalsWaiting",
+   "filePath": "apps/customer/src/lib/commercialApi.ts",
+   "lineRange": [
+    262,
+    265
+   ],
+   "summary": "Recupera propostas aguardando ação na etapa pós-venda.",
+   "tags": [
+    "api-client",
+    "sales-pipeline",
+    "proposals"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/commercialApi.ts:getPostSaleCandidates",
+   "type": "function",
+   "name": "getPostSaleCandidates",
+   "filePath": "apps/customer/src/lib/commercialApi.ts",
+   "lineRange": [
+    274,
+    279
+   ],
+   "summary": "Recupera candidatos a pós-venda a partir de vendas confirmadas.",
+   "tags": [
+    "api-client",
+    "sales-pipeline",
+    "post-sale"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:apps/customer/src/lib/customerApi.ts",
+   "type": "file",
+   "name": "customerApi.ts",
+   "filePath": "apps/customer/src/lib/customerApi.ts",
+   "summary": "Cliente HTTP do portal do cliente (/customer-api/*) com autenticação Bearer de sessão, limpeza automática da sessão em 401 e reexportação de ApiError.",
+   "tags": [
+    "api-client",
+    "customer-portal",
+    "auth",
+    "http-client"
+   ],
+   "complexity": "complex",
+   "languageNotes": "Mantido separado de api.ts por base path e esquema de autenticação distintos; não chama funções de api.ts além de ApiError."
+  },
+  {
+   "id": "function:apps/customer/src/lib/customerApi.ts:request",
+   "type": "function",
+   "name": "request",
+   "filePath": "apps/customer/src/lib/customerApi.ts",
+   "lineRange": [
+    32,
+    59
+   ],
+   "summary": "Helper de fetch do portal do cliente: injeta o Bearer token da sessão, limpa a sessão em 401 e lança ApiError em respostas de erro.",
+   "tags": [
+    "http-client",
+    "customer-portal",
+    "auth"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/lib/customerApi.ts:getMyProfile",
+   "type": "function",
+   "name": "getMyProfile",
+   "filePath": "apps/customer/src/lib/customerApi.ts",
+   "lineRange": [
+    69,
+    72
+   ],
+   "summary": "Recupera o perfil do cliente autenticado.",
+   "tags": [
+    "api-client",
+    "customer-portal",
+    "profile"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/customerApi.ts:listMyTrips",
+   "type": "function",
+   "name": "listMyTrips",
+   "filePath": "apps/customer/src/lib/customerApi.ts",
+   "lineRange": [
+    74,
+    77
+   ],
+   "summary": "Lista as viagens do cliente autenticado.",
+   "tags": [
+    "api-client",
+    "customer-portal",
+    "trips"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/customerApi.ts:getMyTrip",
+   "type": "function",
+   "name": "getMyTrip",
+   "filePath": "apps/customer/src/lib/customerApi.ts",
+   "lineRange": [
+    79,
+    82
+   ],
+   "summary": "Recupera o detalhe de uma viagem do cliente.",
+   "tags": [
+    "api-client",
+    "customer-portal",
+    "trips"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/customerApi.ts:listMyTripPhotos",
+   "type": "function",
+   "name": "listMyTripPhotos",
+   "filePath": "apps/customer/src/lib/customerApi.ts",
+   "lineRange": [
+    93,
+    98
+   ],
+   "summary": "Lista as fotos de uma viagem do cliente.",
+   "tags": [
+    "api-client",
+    "customer-portal",
+    "media"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/customerApi.ts:loadMyTripPhotoBlobUrl",
+   "type": "function",
+   "name": "loadMyTripPhotoBlobUrl",
+   "filePath": "apps/customer/src/lib/customerApi.ts",
+   "lineRange": [
+    105,
+    116
+   ],
+   "summary": "Carrega o blob de uma foto de viagem e devolve uma object URL local para exibição.",
+   "tags": [
+    "api-client",
+    "media",
+    "blob"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/customerApi.ts:listAvailableOffers",
+   "type": "function",
+   "name": "listAvailableOffers",
+   "filePath": "apps/customer/src/lib/customerApi.ts",
+   "lineRange": [
+    118,
+    121
+   ],
+   "summary": "Lista as ofertas disponíveis para o cliente.",
+   "tags": [
+    "api-client",
+    "customer-portal",
+    "offers"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/customerApi.ts:getAvailableOffer",
+   "type": "function",
+   "name": "getAvailableOffer",
+   "filePath": "apps/customer/src/lib/customerApi.ts",
+   "lineRange": [
+    123,
+    126
+   ],
+   "summary": "Recupera o detalhe de uma oferta disponível para o cliente.",
+   "tags": [
+    "api-client",
+    "customer-portal",
+    "offers"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/customerApi.ts:listMyProposals",
+   "type": "function",
+   "name": "listMyProposals",
+   "filePath": "apps/customer/src/lib/customerApi.ts",
+   "lineRange": [
+    128,
+    131
+   ],
+   "summary": "Lista as propostas do cliente autenticado.",
+   "tags": [
+    "api-client",
+    "customer-portal",
+    "proposals"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/customerApi.ts:getMyProposal",
+   "type": "function",
+   "name": "getMyProposal",
+   "filePath": "apps/customer/src/lib/customerApi.ts",
+   "lineRange": [
+    133,
+    138
+   ],
+   "summary": "Recupera o detalhe de uma proposta do cliente.",
+   "tags": [
+    "api-client",
+    "customer-portal",
+    "proposals"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/customerApi.ts:loadProposalMediaBlobUrl",
+   "type": "function",
+   "name": "loadProposalMediaBlobUrl",
+   "filePath": "apps/customer/src/lib/customerApi.ts",
+   "lineRange": [
+    143,
+    154
+   ],
+   "summary": "Carrega o blob de uma mídia de proposta e devolve uma object URL local.",
+   "tags": [
+    "api-client",
+    "media",
+    "blob"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/customerApi.ts:listMyBookings",
+   "type": "function",
+   "name": "listMyBookings",
+   "filePath": "apps/customer/src/lib/customerApi.ts",
+   "lineRange": [
+    156,
+    159
+   ],
+   "summary": "Lista as reservas do cliente autenticado.",
+   "tags": [
+    "api-client",
+    "customer-portal",
+    "bookings"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/customerApi.ts:getMyBooking",
+   "type": "function",
+   "name": "getMyBooking",
+   "filePath": "apps/customer/src/lib/customerApi.ts",
+   "lineRange": [
+    161,
+    167
+   ],
+   "summary": "Recupera o detalhe de uma reserva do cliente com seus passageiros.",
+   "tags": [
+    "api-client",
+    "customer-portal",
+    "bookings"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/customerApi.ts:getMyAgencyContact",
+   "type": "function",
+   "name": "getMyAgencyContact",
+   "filePath": "apps/customer/src/lib/customerApi.ts",
+   "lineRange": [
+    169,
+    172
+   ],
+   "summary": "Recupera os dados de contato da agência para o cliente.",
+   "tags": [
+    "api-client",
+    "customer-portal",
+    "contact"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/customerApi.ts:listMyTripAirSegments",
+   "type": "function",
+   "name": "listMyTripAirSegments",
+   "filePath": "apps/customer/src/lib/customerApi.ts",
+   "lineRange": [
+    174,
+    179
+   ],
+   "summary": "Lista os trechos aéreos das viagens do cliente.",
+   "tags": [
+    "api-client",
+    "customer-portal",
+    "transport"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/customerApi.ts:listMyTripLandServices",
+   "type": "function",
+   "name": "listMyTripLandServices",
+   "filePath": "apps/customer/src/lib/customerApi.ts",
+   "lineRange": [
+    181,
+    186
+   ],
+   "summary": "Lista os serviços terrestres das viagens do cliente.",
+   "tags": [
+    "api-client",
+    "customer-portal",
+    "transport"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/customerApi.ts:listMyTripRequirements",
+   "type": "function",
+   "name": "listMyTripRequirements",
+   "filePath": "apps/customer/src/lib/customerApi.ts",
+   "lineRange": [
+    188,
+    195
+   ],
+   "summary": "Lista as exigências de viagem (documentos e requisitos) do cliente.",
+   "tags": [
+    "api-client",
+    "customer-portal",
+    "requirements"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/customerApi.ts:recordOfferInterest",
+   "type": "function",
+   "name": "recordOfferInterest",
+   "filePath": "apps/customer/src/lib/customerApi.ts",
+   "lineRange": [
+    197,
+    202
+   ],
+   "summary": "Registra o interesse do cliente em uma oferta.",
+   "tags": [
+    "api-client",
+    "customer-portal",
+    "offers"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/customerApi.ts:listMyDocuments",
+   "type": "function",
+   "name": "listMyDocuments",
+   "filePath": "apps/customer/src/lib/customerApi.ts",
+   "lineRange": [
+    204,
+    207
+   ],
+   "summary": "Lista os documentos do cliente.",
+   "tags": [
+    "api-client",
+    "customer-portal",
+    "documents"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/customerApi.ts:listMyPaymentSchedule",
+   "type": "function",
+   "name": "listMyPaymentSchedule",
+   "filePath": "apps/customer/src/lib/customerApi.ts",
+   "lineRange": [
+    209,
+    214
+   ],
+   "summary": "Lista o cronograma de pagamentos do cliente.",
+   "tags": [
+    "api-client",
+    "customer-portal",
+    "payments"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/customerApi.ts:listVisibleCommunications",
+   "type": "function",
+   "name": "listVisibleCommunications",
+   "filePath": "apps/customer/src/lib/customerApi.ts",
+   "lineRange": [
+    216,
+    226
+   ],
+   "summary": "Lista as comunicações visíveis para o cliente.",
+   "tags": [
+    "api-client",
+    "customer-portal",
+    "communications"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/customerApi.ts:trackOfferViewed",
+   "type": "function",
+   "name": "trackOfferViewed",
+   "filePath": "apps/customer/src/lib/customerApi.ts",
+   "lineRange": [
+    234,
+    239
+   ],
+   "summary": "Registra a visualização de uma oferta para analytics (fire-and-forget).",
+   "tags": [
+    "analytics",
+    "api-client",
+    "tracking"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/customerApi.ts:trackProposalViewed",
+   "type": "function",
+   "name": "trackProposalViewed",
+   "filePath": "apps/customer/src/lib/customerApi.ts",
+   "lineRange": [
+    241,
+    246
+   ],
+   "summary": "Registra a visualização de uma proposta para analytics.",
+   "tags": [
+    "analytics",
+    "api-client",
+    "tracking"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/customerApi.ts:trackTripViewed",
+   "type": "function",
+   "name": "trackTripViewed",
+   "filePath": "apps/customer/src/lib/customerApi.ts",
+   "lineRange": [
+    248,
+    253
+   ],
+   "summary": "Registra a visualização de uma viagem para analytics.",
+   "tags": [
+    "analytics",
+    "api-client",
+    "tracking"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/customerApi.ts:trackCommunicationViewed",
+   "type": "function",
+   "name": "trackCommunicationViewed",
+   "filePath": "apps/customer/src/lib/customerApi.ts",
+   "lineRange": [
+    255,
+    260
+   ],
+   "summary": "Registra a visualização de uma comunicação para analytics.",
+   "tags": [
+    "analytics",
+    "api-client",
+    "tracking"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/customerApi.ts:trackCommunicationCtaClicked",
+   "type": "function",
+   "name": "trackCommunicationCtaClicked",
+   "filePath": "apps/customer/src/lib/customerApi.ts",
+   "lineRange": [
+    262,
+    267
+   ],
+   "summary": "Registra o clique em um CTA de comunicação para analytics.",
+   "tags": [
+    "analytics",
+    "api-client",
+    "tracking"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:apps/customer/src/lib/customerAuthApi.ts",
+   "type": "file",
+   "name": "customerAuthApi.ts",
+   "filePath": "apps/customer/src/lib/customerAuthApi.ts",
+   "summary": "Cliente de autenticação do portal do cliente: login, recuperação e redefinição de senha e logout com revogação best-effort no servidor.",
+   "tags": [
+    "api-client",
+    "auth",
+    "customer-portal"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/lib/customerAuthApi.ts:postJson",
+   "type": "function",
+   "name": "postJson",
+   "filePath": "apps/customer/src/lib/customerAuthApi.ts",
+   "lineRange": [
+    18,
+    33
+   ],
+   "summary": "Helper POST JSON do cliente de autenticação que lança CustomerAuthApiError com mensagem traduzida e flag de captcha.",
+   "tags": [
+    "http-client",
+    "auth",
+    "error-handling"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/lib/customerAuthApi.ts:login",
+   "type": "function",
+   "name": "login",
+   "filePath": "apps/customer/src/lib/customerAuthApi.ts",
+   "lineRange": [
+    43,
+    47
+   ],
+   "summary": "Autentica o cliente na agência (slug, e-mail, senha) e persiste a sessão.",
+   "tags": [
+    "auth",
+    "login",
+    "api-client"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/customerAuthApi.ts:logout",
+   "type": "function",
+   "name": "logout",
+   "filePath": "apps/customer/src/lib/customerAuthApi.ts",
+   "lineRange": [
+    57,
+    70
+   ],
+   "summary": "Limpa a sessão local e revoga o token no servidor de forma best-effort.",
+   "tags": [
+    "auth",
+    "logout",
+    "session"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "class:apps/customer/src/lib/customerAuthApi.ts:CustomerAuthApiError",
+   "type": "class",
+   "name": "CustomerAuthApiError",
+   "filePath": "apps/customer/src/lib/customerAuthApi.ts",
+   "lineRange": [
+    6,
+    16
+   ],
+   "summary": "Erro do cliente de autenticação com status HTTP e indicação de captcha exigido.",
+   "tags": [
+    "error-handling",
+    "auth",
+    "class"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:apps/customer/src/lib/customerSession.ts",
+   "type": "file",
+   "name": "customerSession.ts",
+   "filePath": "apps/customer/src/lib/customerSession.ts",
+   "summary": "Sessão do portal do cliente: token opaco persistido em sessionStorage com expiração, acesso, atualização e limpeza.",
+   "tags": [
+    "auth",
+    "session",
+    "storage"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/lib/customerSession.ts:loadFromStorage",
+   "type": "function",
+   "name": "loadFromStorage",
+   "filePath": "apps/customer/src/lib/customerSession.ts",
+   "lineRange": [
+    23,
+    38
+   ],
+   "summary": "Restaura a sessão do sessionStorage, descartando tokens expirados ou corrompidos.",
+   "tags": [
+    "session",
+    "storage",
+    "auth"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/customerSession.ts:getSessionToken",
+   "type": "function",
+   "name": "getSessionToken",
+   "filePath": "apps/customer/src/lib/customerSession.ts",
+   "lineRange": [
+    42,
+    48
+   ],
+   "summary": "Retorna o token da sessão atual, limpando a sessão se o token estiver expirado.",
+   "tags": [
+    "session",
+    "auth",
+    "utility"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/customerSession.ts:setSession",
+   "type": "function",
+   "name": "setSession",
+   "filePath": "apps/customer/src/lib/customerSession.ts",
+   "lineRange": [
+    50,
+    58
+   ],
+   "summary": "Persiste token e expiração da sessão em memória e no sessionStorage.",
+   "tags": [
+    "session",
+    "auth",
+    "storage"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:apps/customer/src/lib/customerSession.ts:clearSession",
+   "type": "function",
+   "name": "clearSession",
+   "filePath": "apps/customer/src/lib/customerSession.ts",
+   "lineRange": [
+    60,
+    68
+   ],
+   "summary": "Remove a sessão da memória e do armazenamento.",
+   "tags": [
+    "session",
+    "auth",
+    "storage"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:apps/customer/src/lib/errorTranslation.ts",
+   "type": "file",
+   "name": "errorTranslation.ts",
+   "filePath": "apps/customer/src/lib/errorTranslation.ts",
+   "summary": "Tradução das mensagens de erro do backend para pt-BR por correspondência de padrões recorrentes, com fallback para a mensagem original.",
+   "tags": [
+    "i18n",
+    "error-handling",
+    "utility"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:apps/customer/src/lib/errorTranslation.ts:translateApiErrorMessage",
+   "type": "function",
+   "name": "translateApiErrorMessage",
+   "filePath": "apps/customer/src/lib/errorTranslation.ts",
+   "lineRange": [
+    81,
+    116
+   ],
+   "summary": "Traduz mensagens de erro do backend para pt-BR via correspondência de padrões, com fallback para a mensagem original.",
+   "tags": [
+    "i18n",
+    "error-handling",
+    "translation"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:apps/customer/src/lib/formatCurrency.test.ts",
+   "type": "file",
+   "name": "formatCurrency.test.ts",
+   "filePath": "apps/customer/src/lib/formatCurrency.test.ts",
+   "summary": "Testes do formatador de moeda BRL (formatBRL) incluindo valores nulos e inválidos.",
+   "tags": [
+    "test",
+    "utility",
+    "currency"
+   ],
+   "complexity": "simple"
+  }
+ ],
+ "edges": [
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerTripsPage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerTripsPage.tsx:CustomerTripsPage",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerTripsPage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerTripsPage.tsx:CustomerTripsPage",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerTripsPage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerTripsPage.tsx:TripCard",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerTripsPage.tsx",
+   "target": "function:apps/customer/src/customer-portal/pages/CustomerTripsPage.tsx:getStatusColor",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerTripsPage.tsx",
+   "target": "file:apps/customer/src/customer-portal/destinationArt.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerTripsPage.tsx",
+   "target": "file:apps/customer/src/lib/customerApi.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerTripsPage.tsx",
+   "target": "file:apps/customer/src/lib/statusLabels.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerTripsPage.tsx",
+   "target": "file:apps/customer/src/types/trip.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.test.ts",
+   "target": "file:apps/customer/src/lib/api.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:request",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:listCustomers",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:listCustomers",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:getCustomer",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:getCustomer",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:createCustomer",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:createCustomer",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:updateCustomer",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:updateCustomer",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:listWishes",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:listWishes",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:getWish",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:getWish",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:createWish",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:createWish",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:updateWish",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:updateWish",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:listTrips",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:listTrips",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:getTrip",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:getTrip",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:createTrip",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:createTrip",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:updateTrip",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:updateTrip",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:listOffers",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:listOffers",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:getOffer",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:getOffer",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:createOffer",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:createOffer",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:updateOffer",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:updateOffer",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:listProposals",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:listProposals",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:getProposal",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:getProposal",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:createProposal",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:createProposal",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:updateProposal",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:updateProposal",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:listSales",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:listSales",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:getSale",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:getSale",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:createSale",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:createSale",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:updateSale",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:updateSale",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:listReceivables",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:listReceivables",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:listPayables",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:listPayables",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:listPayments",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:listPayments",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:listPaymentAllocations",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:listPaymentAllocations",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:listAllocationsForTarget",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:listAllocationsForTarget",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:listOperationalCosts",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:listOperationalCosts",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:getSaleMargin",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:getSaleMargin",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:listExternalOfferCaptures",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:listExternalOfferCaptures",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:createExternalOfferCapture",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:createExternalOfferCapture",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:reviewExternalOfferCapture",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:reviewExternalOfferCapture",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:approveExternalOfferCapture",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:approveExternalOfferCapture",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:rejectExternalOfferCapture",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:rejectExternalOfferCapture",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:publishExternalOfferCapture",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:publishExternalOfferCapture",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:getFinancialDashboard",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:getFinancialDashboard",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:getCurrentMonthPeriod",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:listRoutes",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:listRoutes",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:getRoute",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:getRoute",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:createRoute",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:createRoute",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:updateRoute",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:updateRoute",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:listRoutePoints",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:listRoutePoints",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:createRoutePoint",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:createRoutePoint",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:updateRoutePoint",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:updateRoutePoint",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:reorderRoutePoints",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:reorderRoutePoints",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:listSuppliers",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:listSuppliers",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:getSupplier",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:getSupplier",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:createSupplier",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:createSupplier",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:updateSupplier",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:updateSupplier",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:listTransportProducts",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:listTransportProducts",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:getTransportProduct",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:getTransportProduct",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:createTransportProduct",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:createTransportProduct",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:updateTransportProduct",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:updateTransportProduct",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:listDepartures",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:listDepartures",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:getDeparture",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:getDeparture",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:createDeparture",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:createDeparture",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:updateDeparture",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:updateDeparture",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:getAgenda",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:getAgenda",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:listBookings",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:listBookings",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:getBooking",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:getBooking",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:createBooking",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:createBooking",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:cancelBooking",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:cancelBooking",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:listOperations",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:listOperations",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:createOperation",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:createOperation",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:confirmArrival",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:confirmArrival",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:confirmDeparture",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "function:apps/customer/src/lib/api.ts:confirmDeparture",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "class:apps/customer/src/lib/api.ts:ApiError",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "class:apps/customer/src/lib/api.ts:ApiError",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "file:apps/customer/src/lib/errorTranslation.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "file:apps/customer/src/types/booking.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "file:apps/customer/src/types/customer.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "file:apps/customer/src/types/financial.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "file:apps/customer/src/types/offer.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "file:apps/customer/src/types/operations.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "file:apps/customer/src/types/pescador.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "file:apps/customer/src/types/proposal.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "file:apps/customer/src/types/sale.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "file:apps/customer/src/types/transport.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "file:apps/customer/src/types/trip.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "file:apps/customer/src/types/wish.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/commercialApi.ts",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:request",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/commercialApi.ts",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:toQueryString",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/commercialApi.ts",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:listOpportunities",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/commercialApi.ts",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:listOpportunities",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/commercialApi.ts",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:getOpportunity",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/commercialApi.ts",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:getOpportunity",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/commercialApi.ts",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:createOpportunity",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/commercialApi.ts",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:createOpportunity",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/commercialApi.ts",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:updateOpportunity",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/commercialApi.ts",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:updateOpportunity",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/commercialApi.ts",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:listTasks",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/commercialApi.ts",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:listTasks",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/commercialApi.ts",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:createTask",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/commercialApi.ts",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:createTask",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/commercialApi.ts",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:updateTask",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/commercialApi.ts",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:updateTask",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/commercialApi.ts",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:listInteractions",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/commercialApi.ts",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:listInteractions",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/commercialApi.ts",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:createInteraction",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/commercialApi.ts",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:createInteraction",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/commercialApi.ts",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:searchCustomers",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/commercialApi.ts",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:searchCustomers",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/commercialApi.ts",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:travelSearch",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/commercialApi.ts",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:travelSearch",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/commercialApi.ts",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:listPipelines",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/commercialApi.ts",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:listPipelines",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/commercialApi.ts",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:getPipeline",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/commercialApi.ts",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:getPipeline",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/commercialApi.ts",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:createPipeline",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/commercialApi.ts",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:createPipeline",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/commercialApi.ts",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:updatePipeline",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/commercialApi.ts",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:updatePipeline",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/commercialApi.ts",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:listStages",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/commercialApi.ts",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:listStages",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/commercialApi.ts",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:createStage",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/commercialApi.ts",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:createStage",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/commercialApi.ts",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:updateStage",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/commercialApi.ts",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:updateStage",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/commercialApi.ts",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:listPipelineAccess",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/commercialApi.ts",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:listPipelineAccess",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/commercialApi.ts",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:grantPipelineAccess",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/commercialApi.ts",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:grantPipelineAccess",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/commercialApi.ts",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:revokePipelineAccess",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/commercialApi.ts",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:revokePipelineAccess",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/commercialApi.ts",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:getProposalsWaiting",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/commercialApi.ts",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:getProposalsWaiting",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/commercialApi.ts",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:getPostSaleCandidates",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/commercialApi.ts",
+   "target": "function:apps/customer/src/lib/commercialApi.ts:getPostSaleCandidates",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/commercialApi.ts",
+   "target": "file:apps/customer/src/lib/api.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/commercialApi.ts",
+   "target": "file:apps/customer/src/types/commercial.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "function:apps/customer/src/lib/customerApi.ts:request",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "function:apps/customer/src/lib/customerApi.ts:getMyProfile",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "function:apps/customer/src/lib/customerApi.ts:getMyProfile",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "function:apps/customer/src/lib/customerApi.ts:listMyTrips",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "function:apps/customer/src/lib/customerApi.ts:listMyTrips",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "function:apps/customer/src/lib/customerApi.ts:getMyTrip",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "function:apps/customer/src/lib/customerApi.ts:getMyTrip",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "function:apps/customer/src/lib/customerApi.ts:listMyTripPhotos",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "function:apps/customer/src/lib/customerApi.ts:listMyTripPhotos",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "function:apps/customer/src/lib/customerApi.ts:loadMyTripPhotoBlobUrl",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "function:apps/customer/src/lib/customerApi.ts:loadMyTripPhotoBlobUrl",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "function:apps/customer/src/lib/customerApi.ts:listAvailableOffers",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "function:apps/customer/src/lib/customerApi.ts:listAvailableOffers",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "function:apps/customer/src/lib/customerApi.ts:getAvailableOffer",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "function:apps/customer/src/lib/customerApi.ts:getAvailableOffer",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "function:apps/customer/src/lib/customerApi.ts:listMyProposals",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "function:apps/customer/src/lib/customerApi.ts:listMyProposals",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "function:apps/customer/src/lib/customerApi.ts:getMyProposal",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "function:apps/customer/src/lib/customerApi.ts:getMyProposal",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "function:apps/customer/src/lib/customerApi.ts:loadProposalMediaBlobUrl",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "function:apps/customer/src/lib/customerApi.ts:loadProposalMediaBlobUrl",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "function:apps/customer/src/lib/customerApi.ts:listMyBookings",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "function:apps/customer/src/lib/customerApi.ts:listMyBookings",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "function:apps/customer/src/lib/customerApi.ts:getMyBooking",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "function:apps/customer/src/lib/customerApi.ts:getMyBooking",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "function:apps/customer/src/lib/customerApi.ts:getMyAgencyContact",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "function:apps/customer/src/lib/customerApi.ts:getMyAgencyContact",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "function:apps/customer/src/lib/customerApi.ts:listMyTripAirSegments",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "function:apps/customer/src/lib/customerApi.ts:listMyTripAirSegments",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "function:apps/customer/src/lib/customerApi.ts:listMyTripLandServices",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "function:apps/customer/src/lib/customerApi.ts:listMyTripLandServices",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "function:apps/customer/src/lib/customerApi.ts:listMyTripRequirements",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "function:apps/customer/src/lib/customerApi.ts:listMyTripRequirements",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "function:apps/customer/src/lib/customerApi.ts:recordOfferInterest",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "function:apps/customer/src/lib/customerApi.ts:recordOfferInterest",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "function:apps/customer/src/lib/customerApi.ts:listMyDocuments",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "function:apps/customer/src/lib/customerApi.ts:listMyDocuments",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "function:apps/customer/src/lib/customerApi.ts:listMyPaymentSchedule",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "function:apps/customer/src/lib/customerApi.ts:listMyPaymentSchedule",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "function:apps/customer/src/lib/customerApi.ts:listVisibleCommunications",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "function:apps/customer/src/lib/customerApi.ts:listVisibleCommunications",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "function:apps/customer/src/lib/customerApi.ts:trackOfferViewed",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "function:apps/customer/src/lib/customerApi.ts:trackOfferViewed",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "function:apps/customer/src/lib/customerApi.ts:trackProposalViewed",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "function:apps/customer/src/lib/customerApi.ts:trackProposalViewed",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "function:apps/customer/src/lib/customerApi.ts:trackTripViewed",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "function:apps/customer/src/lib/customerApi.ts:trackTripViewed",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "function:apps/customer/src/lib/customerApi.ts:trackCommunicationViewed",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "function:apps/customer/src/lib/customerApi.ts:trackCommunicationViewed",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "function:apps/customer/src/lib/customerApi.ts:trackCommunicationCtaClicked",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "function:apps/customer/src/lib/customerApi.ts:trackCommunicationCtaClicked",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "file:apps/customer/src/lib/api.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "file:apps/customer/src/lib/customerSession.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "file:apps/customer/src/types/booking.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "file:apps/customer/src/types/communication.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "file:apps/customer/src/types/customer-portal.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "file:apps/customer/src/types/offer.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "file:apps/customer/src/types/travelRequirement.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerApi.ts",
+   "target": "file:apps/customer/src/types/trip.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerAuthApi.ts",
+   "target": "function:apps/customer/src/lib/customerAuthApi.ts:postJson",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerAuthApi.ts",
+   "target": "function:apps/customer/src/lib/customerAuthApi.ts:login",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerAuthApi.ts",
+   "target": "function:apps/customer/src/lib/customerAuthApi.ts:login",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerAuthApi.ts",
+   "target": "function:apps/customer/src/lib/customerAuthApi.ts:logout",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerAuthApi.ts",
+   "target": "function:apps/customer/src/lib/customerAuthApi.ts:logout",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerAuthApi.ts",
+   "target": "class:apps/customer/src/lib/customerAuthApi.ts:CustomerAuthApiError",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerAuthApi.ts",
+   "target": "class:apps/customer/src/lib/customerAuthApi.ts:CustomerAuthApiError",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerAuthApi.ts",
+   "target": "file:apps/customer/src/lib/customerSession.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerAuthApi.ts",
+   "target": "file:apps/customer/src/lib/errorTranslation.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerSession.ts",
+   "target": "function:apps/customer/src/lib/customerSession.ts:loadFromStorage",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerSession.ts",
+   "target": "function:apps/customer/src/lib/customerSession.ts:getSessionToken",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerSession.ts",
+   "target": "function:apps/customer/src/lib/customerSession.ts:getSessionToken",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerSession.ts",
+   "target": "function:apps/customer/src/lib/customerSession.ts:setSession",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerSession.ts",
+   "target": "function:apps/customer/src/lib/customerSession.ts:setSession",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerSession.ts",
+   "target": "function:apps/customer/src/lib/customerSession.ts:clearSession",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/customerSession.ts",
+   "target": "function:apps/customer/src/lib/customerSession.ts:clearSession",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/errorTranslation.ts",
+   "target": "function:apps/customer/src/lib/errorTranslation.ts:translateApiErrorMessage",
+   "type": "contains",
+   "weight": 1
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/errorTranslation.ts",
+   "target": "function:apps/customer/src/lib/errorTranslation.ts:translateApiErrorMessage",
+   "type": "exports",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/formatCurrency.test.ts",
+   "target": "file:apps/customer/src/lib/formatCurrency.ts",
+   "type": "imports",
+   "weight": 0.7
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/customer-portal/pages/CustomerTripsPage.tsx",
+   "target": "file:apps/customer/src/customer-portal/pages/CustomerTripsPage.test.tsx",
+   "type": "tested_by",
+   "weight": 0.5
+  },
+  {
+   "direction": "forward",
+   "source": "file:apps/customer/src/lib/api.ts",
+   "target": "file:apps/customer/src/lib/api.test.ts",
+   "type": "tested_by",
+   "weight": 0.5
+  },
+  {
+   "direction": "forward",
+   "source": "function:apps/customer/src/lib/api.ts:request",
+   "target": "function:apps/customer/src/lib/errorTranslation.ts:translateApiErrorMessage",
+   "type": "calls",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "function:apps/customer/src/lib/customerApi.ts:request",
+   "target": "function:apps/customer/src/lib/customerSession.ts:getSessionToken",
+   "type": "calls",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "function:apps/customer/src/lib/customerApi.ts:request",
+   "target": "function:apps/customer/src/lib/customerSession.ts:clearSession",
+   "type": "calls",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "function:apps/customer/src/lib/customerApi.ts:request",
+   "target": "class:apps/customer/src/lib/api.ts:ApiError",
+   "type": "calls",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "function:apps/customer/src/lib/customerAuthApi.ts:postJson",
+   "target": "function:apps/customer/src/lib/errorTranslation.ts:translateApiErrorMessage",
+   "type": "calls",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "function:apps/customer/src/lib/customerAuthApi.ts:login",
+   "target": "function:apps/customer/src/lib/customerSession.ts:setSession",
+   "type": "calls",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "function:apps/customer/src/lib/customerAuthApi.ts:logout",
+   "target": "function:apps/customer/src/lib/customerSession.ts:getSessionToken",
+   "type": "calls",
+   "weight": 0.8
+  },
+  {
+   "direction": "forward",
+   "source": "function:apps/customer/src/lib/customerAuthApi.ts:logout",
+   "target": "function:apps/customer/src/lib/customerSession.ts:clearSession",
+   "type": "calls",
+   "weight": 0.8
+  }
+ ]
+}

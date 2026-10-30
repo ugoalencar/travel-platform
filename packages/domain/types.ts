@@ -315,6 +315,27 @@ export interface Sale {
   paidAt?: Date;
   createdAt: Date;
   updatedAt: Date;
+  /** Civil date of the sale (YYYY-MM-DD), distinct from createdAt. */
+  saleDate: string;
+  /** Sale category (shared catalog with commission categories, ADR-008). */
+  categoryId?: string;
+  travelStartDate?: string;
+  travelEndDate?: string;
+  originText?: string;
+  destinationText?: string;
+  passengerCount?: number;
+  /** Required profile fields still empty (derived); non-empty means the sale is "to complete". */
+  missingRequiredFields?: string[];
+  /** Modality-specific form values keyed by registry field_key. */
+  modalityData: Record<string, string>;
+  /** Profile applied when the sale was made; later profile edits never change it. */
+  formSnapshot?: {
+    categoryId: string;
+    categoryName: string;
+    formRevision: number;
+    capturedAt: string;
+    fields: Array<{ fieldKey: string; label: string; enabled: boolean; required: boolean }>;
+  };
 }
 
 // ============================================================
@@ -516,6 +537,7 @@ export enum ProposalStatus {
 
 export enum SaleStatus {
   PENDING = 'PENDING',
+  PENDING_RULE = 'PENDING_RULE',
   CONFIRMED = 'CONFIRMED',
   PAID = 'PAID',
   CANCELLED = 'CANCELLED',
@@ -737,6 +759,9 @@ export interface CommissionEntry {
   agencyId: string;
   employeeId: string;
   saleId: string;
+  supplierId?: string;
+  /** Manager-only warning; employee self-view never receives this property. */
+  agencyRevenueWarning?: boolean;
   tripId: string | undefined;
   // Exactly one of commissionPlanId (legacy, global-plan path) or
   // commissionRuleId+productType (per-employee-per-product path) is set
@@ -886,6 +911,8 @@ export interface PayrollEntry {
   dueDate: Date | undefined;
   paidAt: Date | undefined;
   notes: string | undefined;
+  /** Live payment obligation (payable) of this entry, if one was created. */
+  payableId: string | undefined;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -1121,6 +1148,8 @@ export interface TravelProduct {
   createdAt: Date;
   updatedAt: Date;
   supplierId?: string;
+  /** Configurable sale category (commission_categories); the enum `category` stays as product type. */
+  categoryId?: string;
   /** Future FK to CommercialPartner (Agent 04, not yet landed in this worktree). */
   partnerId?: string;
   description?: string;

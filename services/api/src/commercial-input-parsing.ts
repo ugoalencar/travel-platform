@@ -1,7 +1,9 @@
-import { ValidationError } from './errors';
+import { FormFieldError, ValidationError } from './errors';
+import { SALE_RULE_KEYS, getSaleFormField } from './sale-form-fields';
 import type { CreateOfferInput, UpdateOfferInput } from './offers';
 import type { CreateProposalInput, UpdateProposalInput } from './proposals';
 import type { CreateSaleInput, UpdateSaleInput } from './sales';
+import { computeLineTotal, parseCreateSaleItemInput, saleItemAmountsError } from './sale-items';
 
 // Offer, Proposal, and Sale input-parsing/validation helpers. Extracted
 // verbatim (no logic change) from app.ts as part of the app.ts
@@ -493,6 +495,47 @@ export function parseUpdateProposalInput(body: unknown): UpdateProposalInput {
   return data;
 }
 
+// Sale form fields (ADR-008): camelCase body property -> registry field_key. Modality
+// fields travel inside `modalityData`, keyed by field_key.
+const SALE_FORM_COLUMN_PROPS: Record<string, string> = {
+  saleDate: 'sale_date',
+  travelStartDate: 'travel_start_date',
+  travelEndDate: 'travel_end_date',
+  originText: 'origin_text',
+  destinationText: 'destination_text',
+  passengerCount: 'passenger_count',
+};
+const SALE_FORM_BODY_FIELDS = [...Object.keys(SALE_FORM_COLUMN_PROPS), 'modalityData'] as const;
+
+/**
+ * Collects the configurable form values of a sale body into a field_key map.
+ * Rule data (rate/base/deadline/commission) is never a form value -> 422.
+ */
+function parseSaleFormValues(record: Record<string, unknown>): Record<string, unknown> | undefined {
+  for (const key of SALE_RULE_KEYS) {
+    if (key in record) {
+      throw new FormFieldError('FIELD_NOT_ALLOWED', key, `Field "${key}" cannot be set on a sale`);
+    }
+  }
+
+  const values: Record<string, unknown> = {};
+  for (const [prop, fieldKey] of Object.entries(SALE_FORM_COLUMN_PROPS)) {
+    if (record[prop] !== undefined) values[fieldKey] = record[prop];
+  }
+  if (record.modalityData !== undefined) {
+    if (typeof record.modalityData !== 'object' || record.modalityData === null || Array.isArray(record.modalityData)) {
+      throw new ValidationError('Field "modalityData" must be an object');
+    }
+    for (const [key, value] of Object.entries(record.modalityData as Record<string, unknown>)) {
+      if (getSaleFormField(key)?.storage !== 'modality') {
+        throw new FormFieldError('FIELD_UNKNOWN', key, `Unknown modality field "${key}"`);
+      }
+      values[key] = value;
+    }
+  }
+  return Object.keys(values).length > 0 ? values : undefined;
+}
+
 const FORBIDDEN_SALE_CREATE_FIELDS = [
   'agencyId',
   'tenantId',
@@ -512,6 +555,9 @@ const ALLOWED_SALE_CREATE_FIELDS = [
   'amount',
   'discount',
   'notes',
+  'categoryId',
+  'items',
+  ...SALE_FORM_BODY_FIELDS,
 ] as const;
 
 const FORBIDDEN_SALE_UPDATE_FIELDS = [
@@ -529,7 +575,7 @@ const FORBIDDEN_SALE_UPDATE_FIELDS = [
   'brokerId',
 ] as const;
 
-const ALLOWED_SALE_UPDATE_FIELDS = ['amount', 'discount', 'notes'] as const;
+const ALLOWED_SALE_UPDATE_FIELDS = ['amount', 'discount', 'notes', 'categoryId', ...SALE_FORM_BODY_FIELDS] as const;
 
 export function parseSaleMoney(value: unknown, field: string): number {
   if (typeof value !== 'number' || Number.isNaN(value)) {
@@ -554,6 +600,8 @@ export function parseCreateSaleInput(body: unknown): CreateSaleInput {
     }
   }
 
+  const formValues = parseSaleFormValues(record);
+
   for (const key of Object.keys(record)) {
     if (!(ALLOWED_SALE_CREATE_FIELDS as readonly string[]).includes(key)) {
       throw new ValidationError(`Unknown field "${key}" in request body`);
@@ -563,13 +611,45 @@ export function parseCreateSaleInput(body: unknown): CreateSaleInput {
   if (typeof record.customerId !== 'string' || record.customerId.trim().length === 0) {
     throw new ValidationError('Field "customerId" is required and must be a non-empty string');
   }
-  if (record.amount === undefined) {
-    throw new ValidationError('Field "amount" is required');
+  let items: CreateSaleInput['items'];
+  let itemTotal: number | undefined;
+  if (record.items !== undefined) {
+    if (!Array.isArray(record.items) || record.items.length === 0) {
+      throw new ValidationError('Field "items" must contain at least one item');
+    }
+    items = record.items.map((item, index) => {
+      const parsed = parseCreateSaleItemInput('', item);
+      const amountError = saleItemAmountsError({
+        qty: parsed.qty ?? 1,
+        unitPrice: parsed.unitPrice,
+        ...(parsed.unitCost !== undefined ? { unitCost: parsed.unitCost } : {}),
+        taxes: parsed.taxes ?? 0,
+        fees: parsed.fees ?? 0,
+        discount: parsed.discount ?? 0,
+        ...(parsed.commission !== undefined ? { commission: parsed.commission } : {}),
+      });
+      if (amountError) throw new ValidationError(`Field "items[${index}]": ${amountError}`);
+      return parsed;
+    });
+    itemTotal = Math.round(items.reduce((sum, item) => sum + computeLineTotal(
+      item.qty ?? 1,
+      item.unitPrice,
+      item.discount ?? 0,
+      item.taxes ?? 0,
+      item.fees ?? 0,
+    ), 0) * 100) / 100;
+  }
+  if (record.amount === undefined && itemTotal === undefined) {
+    throw new ValidationError('Field "amount" is required when no items are provided');
+  }
+  if (record.amount !== undefined && itemTotal !== undefined && parseSaleMoney(record.amount, 'amount') !== itemTotal) {
+    throw new ValidationError('Field "amount" must equal the sum of item totals');
   }
 
   const data: CreateSaleInput = {
     customerId: record.customerId,
-    amount: parseSaleMoney(record.amount, 'amount'),
+    amount: itemTotal ?? parseSaleMoney(record.amount, 'amount'),
+    ...(items ? { items } : {}),
   };
 
   if (record.proposalId !== undefined) {
@@ -593,6 +673,13 @@ export function parseCreateSaleInput(body: unknown): CreateSaleInput {
     }
     data.notes = record.notes;
   }
+  if (record.categoryId !== undefined) {
+    if (typeof record.categoryId !== 'string' || record.categoryId.trim().length === 0) {
+      throw new ValidationError('Field "categoryId" must be a non-empty string');
+    }
+    data.categoryId = record.categoryId;
+  }
+  if (formValues !== undefined) data.formValues = formValues;
 
   return data;
 }
@@ -609,6 +696,8 @@ export function parseUpdateSaleInput(body: unknown): UpdateSaleInput {
       throw new ValidationError(`Field "${field}" is not allowed in the request body`);
     }
   }
+
+  const formValues = parseSaleFormValues(record);
 
   for (const key of Object.keys(record)) {
     if (!(ALLOWED_SALE_UPDATE_FIELDS as readonly string[]).includes(key)) {
@@ -630,6 +719,13 @@ export function parseUpdateSaleInput(body: unknown): UpdateSaleInput {
     }
     data.notes = record.notes;
   }
+  if (record.categoryId !== undefined) {
+    if (typeof record.categoryId !== 'string' || record.categoryId.trim().length === 0) {
+      throw new ValidationError('Field "categoryId" must be a non-empty string');
+    }
+    data.categoryId = record.categoryId;
+  }
+  if (formValues !== undefined) data.formValues = formValues;
 
   if (Object.keys(data).length === 0) {
     throw new ValidationError('At least one field must be provided');

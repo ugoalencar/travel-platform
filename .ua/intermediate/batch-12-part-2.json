@@ -1,0 +1,1707 @@
+{
+ "nodes": [
+  {
+   "id": "file:services/api/tests/customer-documents-routes.test.ts",
+   "type": "file",
+   "name": "customer-documents-routes.test.ts",
+   "filePath": "services/api/tests/customer-documents-routes.test.ts",
+   "summary": "Testes HTTP das rotas Customer 360: autenticação, endereços, dependentes, documentos, anexos, extração/verificação, auditoria e parsers de entrada.",
+   "tags": [
+    "test",
+    "http",
+    "customer-360",
+    "routes",
+    "validation"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/tests/customer-documents-routes.test.ts:defaultResponder",
+   "type": "function",
+   "name": "defaultResponder",
+   "filePath": "services/api/tests/customer-documents-routes.test.ts",
+   "lineRange": [
+    94,
+    107
+   ],
+   "summary": "Fornece respostas HTTP padrão simuladas usado como transport de queries nos testes de rotas.",
+   "tags": [
+    "test",
+    "mock",
+    "http",
+    "fixtures"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/customer-documents-routes.test.ts:buildTestApp",
+   "type": "function",
+   "name": "buildTestApp",
+   "filePath": "services/api/tests/customer-documents-routes.test.ts",
+   "lineRange": [
+    109,
+    129
+   ],
+   "summary": "Constrói a instância Fastify de teste com rotas, autenticação e handlers de erro registrados.",
+   "tags": [
+    "test",
+    "factory",
+    "fastify",
+    "http"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/tests/customer-documents-routes.test.ts:buildAttachmentMultipart",
+   "type": "function",
+   "name": "buildAttachmentMultipart",
+   "filePath": "services/api/tests/customer-documents-routes.test.ts",
+   "lineRange": [
+    151,
+    172
+   ],
+   "summary": "Monta payloads multipart com arquivo e metadados para testar upload de anexos.",
+   "tags": [
+    "test",
+    "factory",
+    "multipart",
+    "fixtures"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:services/api/tests/customer-documents.test.ts",
+   "type": "file",
+   "name": "customer-documents.test.ts",
+   "filePath": "services/api/tests/customer-documents.test.ts",
+   "summary": "Testes do serviço de documentos do cliente: escopo por tenant, CRUD por tipo, fluxo de status de verificação, soft delete, validação e mascaramento na auditoria.",
+   "tags": [
+    "test",
+    "customer",
+    "documents",
+    "tenant-isolation",
+    "masking"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:services/api/tests/customer-e2e.test.ts",
+   "type": "file",
+   "name": "customer-e2e.test.ts",
+   "filePath": "services/api/tests/customer-e2e.test.ts",
+   "summary": "Validação end-to-end do ciclo do cliente (Task 3) sobre Postgres real, do cadastro ao fluxo comercial completo.",
+   "tags": [
+    "test",
+    "e2e",
+    "customer",
+    "integration"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/tests/customer-e2e.test.ts:assertSafeTestDatabase",
+   "type": "function",
+   "name": "assertSafeTestDatabase",
+   "filePath": "services/api/tests/customer-e2e.test.ts",
+   "lineRange": [
+    615,
+    638
+   ],
+   "summary": "Valida que a conexão de teste aponta para um database descartável, evitando executar contra dados reais.",
+   "tags": [
+    "test",
+    "safety-check",
+    "database",
+    "guardrail"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/tests/customer-e2e.test.ts:waitForHealthyContainer",
+   "type": "function",
+   "name": "waitForHealthyContainer",
+   "filePath": "services/api/tests/customer-e2e.test.ts",
+   "lineRange": [
+    650,
+    671
+   ],
+   "summary": "Aguarda o container local do Postgres ficar healthy antes de executar os testes.",
+   "tags": [
+    "test",
+    "docker",
+    "health-check",
+    "bootstrap"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/tests/customer-e2e.test.ts:assertContainerIsLocal",
+   "type": "function",
+   "name": "assertContainerIsLocal",
+   "filePath": "services/api/tests/customer-e2e.test.ts",
+   "lineRange": [
+    673,
+    686
+   ],
+   "summary": "Garante que o container de Postgres de teste roda apenas em máquina local.",
+   "tags": [
+    "test",
+    "safety-check",
+    "docker",
+    "guardrail"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/customer-e2e.test.ts:resetDatabase",
+   "type": "function",
+   "name": "resetDatabase",
+   "filePath": "services/api/tests/customer-e2e.test.ts",
+   "lineRange": [
+    688,
+    700
+   ],
+   "summary": "Recria o schema do banco de teste aplicando as migrações SQL antes de cada suíte.",
+   "tags": [
+    "test",
+    "database",
+    "schema-reset",
+    "migrations"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/customer-e2e.test.ts:seedAgenciesAndUsers",
+   "type": "function",
+   "name": "seedAgenciesAndUsers",
+   "filePath": "services/api/tests/customer-e2e.test.ts",
+   "lineRange": [
+    709,
+    728
+   ],
+   "summary": "Insere agências e usuários base necessários aos cenários de teste.",
+   "tags": [
+    "test",
+    "seed-data",
+    "fixtures",
+    "database"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/tests/customer-e2e.test.ts:run",
+   "type": "function",
+   "name": "run",
+   "filePath": "services/api/tests/customer-e2e.test.ts",
+   "lineRange": [
+    735,
+    763
+   ],
+   "summary": "Executa comandos externos síncronos (docker compose, psql) com captura de stdout/stderr para o harness de testes.",
+   "tags": [
+    "test",
+    "utility",
+    "spawnSync",
+    "docker"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:services/api/tests/customer-engagement-tracking.test.ts",
+   "type": "file",
+   "name": "customer-engagement-tracking.test.ts",
+   "filePath": "services/api/tests/customer-engagement-tracking.test.ts",
+   "summary": "Testes de rastreamento de engajamento do cliente no portal: registro de interações e consultas de acompanhamento via rotas HTTP.",
+   "tags": [
+    "test",
+    "http",
+    "customer-portal",
+    "engagement-tracking"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/tests/customer-engagement-tracking.test.ts:assertSafeTestDatabase",
+   "type": "function",
+   "name": "assertSafeTestDatabase",
+   "filePath": "services/api/tests/customer-engagement-tracking.test.ts",
+   "lineRange": [
+    512,
+    531
+   ],
+   "summary": "Valida que a conexão de teste aponta para um database descartável, evitando executar contra dados reais.",
+   "tags": [
+    "test",
+    "safety-check",
+    "database",
+    "guardrail"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/tests/customer-engagement-tracking.test.ts:waitForHealthyContainer",
+   "type": "function",
+   "name": "waitForHealthyContainer",
+   "filePath": "services/api/tests/customer-engagement-tracking.test.ts",
+   "lineRange": [
+    543,
+    556
+   ],
+   "summary": "Aguarda o container local do Postgres ficar healthy antes de executar os testes.",
+   "tags": [
+    "test",
+    "docker",
+    "health-check",
+    "bootstrap"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/customer-engagement-tracking.test.ts:assertContainerIsLocal",
+   "type": "function",
+   "name": "assertContainerIsLocal",
+   "filePath": "services/api/tests/customer-engagement-tracking.test.ts",
+   "lineRange": [
+    558,
+    570
+   ],
+   "summary": "Garante que o container de Postgres de teste roda apenas em máquina local.",
+   "tags": [
+    "test",
+    "safety-check",
+    "docker",
+    "guardrail"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/customer-engagement-tracking.test.ts:run",
+   "type": "function",
+   "name": "run",
+   "filePath": "services/api/tests/customer-engagement-tracking.test.ts",
+   "lineRange": [
+    577,
+    593
+   ],
+   "summary": "Executa comandos externos síncronos (docker compose, psql) com captura de stdout/stderr para o harness de testes.",
+   "tags": [
+    "test",
+    "utility",
+    "spawnSync",
+    "docker"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:services/api/tests/customer-portal-routes.test.ts",
+   "type": "file",
+   "name": "customer-portal-routes.test.ts",
+   "filePath": "services/api/tests/customer-portal-routes.test.ts",
+   "summary": "Testes do caminho feliz das rotas HTTP do portal do cliente: perfil, viagens, ofertas, propostas, reservas, documentos e cronograma de pagamentos.",
+   "tags": [
+    "test",
+    "http",
+    "customer-portal",
+    "happy-path"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/tests/customer-portal-routes.test.ts:assertSafeTestDatabase",
+   "type": "function",
+   "name": "assertSafeTestDatabase",
+   "filePath": "services/api/tests/customer-portal-routes.test.ts",
+   "lineRange": [
+    367,
+    386
+   ],
+   "summary": "Valida que a conexão de teste aponta para um database descartável, evitando executar contra dados reais.",
+   "tags": [
+    "test",
+    "safety-check",
+    "database",
+    "guardrail"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/tests/customer-portal-routes.test.ts:waitForHealthyContainer",
+   "type": "function",
+   "name": "waitForHealthyContainer",
+   "filePath": "services/api/tests/customer-portal-routes.test.ts",
+   "lineRange": [
+    398,
+    415
+   ],
+   "summary": "Aguarda o container local do Postgres ficar healthy antes de executar os testes.",
+   "tags": [
+    "test",
+    "docker",
+    "health-check",
+    "bootstrap"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/tests/customer-portal-routes.test.ts:assertContainerIsLocal",
+   "type": "function",
+   "name": "assertContainerIsLocal",
+   "filePath": "services/api/tests/customer-portal-routes.test.ts",
+   "lineRange": [
+    417,
+    430
+   ],
+   "summary": "Garante que o container de Postgres de teste roda apenas em máquina local.",
+   "tags": [
+    "test",
+    "safety-check",
+    "docker",
+    "guardrail"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/customer-portal-routes.test.ts:resetDatabase",
+   "type": "function",
+   "name": "resetDatabase",
+   "filePath": "services/api/tests/customer-portal-routes.test.ts",
+   "lineRange": [
+    432,
+    448
+   ],
+   "summary": "Recria o schema do banco de teste aplicando as migrações SQL antes de cada suíte.",
+   "tags": [
+    "test",
+    "database",
+    "schema-reset",
+    "migrations"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/tests/customer-portal-routes.test.ts:run",
+   "type": "function",
+   "name": "run",
+   "filePath": "services/api/tests/customer-portal-routes.test.ts",
+   "lineRange": [
+    462,
+    478
+   ],
+   "summary": "Executa comandos externos síncronos (docker compose, psql) com captura de stdout/stderr para o harness de testes.",
+   "tags": [
+    "test",
+    "utility",
+    "spawnSync",
+    "docker"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:services/api/tests/customer-portal-security.test.ts",
+   "type": "file",
+   "name": "customer-portal-security.test.ts",
+   "filePath": "services/api/tests/customer-portal-security.test.ts",
+   "summary": "Testes de segurança do portal do cliente: falha fechada sem identidade, IDOR, isolamento entre agências, gating de dev-auth e validação real de acesso no banco.",
+   "tags": [
+    "test",
+    "security",
+    "customer-portal",
+    "idor",
+    "tenant-isolation"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/tests/customer-portal-security.test.ts:assertSafeTestDatabase",
+   "type": "function",
+   "name": "assertSafeTestDatabase",
+   "filePath": "services/api/tests/customer-portal-security.test.ts",
+   "lineRange": [
+    521,
+    544
+   ],
+   "summary": "Valida que a conexão de teste aponta para um database descartável, evitando executar contra dados reais.",
+   "tags": [
+    "test",
+    "safety-check",
+    "database",
+    "guardrail"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/tests/customer-portal-security.test.ts:waitForHealthyContainer",
+   "type": "function",
+   "name": "waitForHealthyContainer",
+   "filePath": "services/api/tests/customer-portal-security.test.ts",
+   "lineRange": [
+    556,
+    577
+   ],
+   "summary": "Aguarda o container local do Postgres ficar healthy antes de executar os testes.",
+   "tags": [
+    "test",
+    "docker",
+    "health-check",
+    "bootstrap"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/tests/customer-portal-security.test.ts:assertContainerIsLocal",
+   "type": "function",
+   "name": "assertContainerIsLocal",
+   "filePath": "services/api/tests/customer-portal-security.test.ts",
+   "lineRange": [
+    579,
+    593
+   ],
+   "summary": "Garante que o container de Postgres de teste roda apenas em máquina local.",
+   "tags": [
+    "test",
+    "safety-check",
+    "docker",
+    "guardrail"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/customer-portal-security.test.ts:seedAgencies",
+   "type": "function",
+   "name": "seedAgencies",
+   "filePath": "services/api/tests/customer-portal-security.test.ts",
+   "lineRange": [
+    611,
+    621
+   ],
+   "summary": "Insere a agência base usada nos testes de segurança do portal do cliente.",
+   "tags": [
+    "test",
+    "seed-data",
+    "fixtures"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/customer-portal-security.test.ts:run",
+   "type": "function",
+   "name": "run",
+   "filePath": "services/api/tests/customer-portal-security.test.ts",
+   "lineRange": [
+    628,
+    647
+   ],
+   "summary": "Executa comandos externos síncronos (docker compose, psql) com captura de stdout/stderr para o harness de testes.",
+   "tags": [
+    "test",
+    "utility",
+    "spawnSync",
+    "docker"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:services/api/tests/customer-routes.test.ts",
+   "type": "file",
+   "name": "customer-routes.test.ts",
+   "filePath": "services/api/tests/customer-routes.test.ts",
+   "summary": "Testes das rotas HTTP de clientes (Task 2): listagem, criação, atualização, resistência a spoof de tenant e RBAC.",
+   "tags": [
+    "test",
+    "http",
+    "customers",
+    "rbac",
+    "tenant-isolation"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/tests/customer-routes.test.ts:assertSafeTestDatabase",
+   "type": "function",
+   "name": "assertSafeTestDatabase",
+   "filePath": "services/api/tests/customer-routes.test.ts",
+   "lineRange": [
+    752,
+    775
+   ],
+   "summary": "Valida que a conexão de teste aponta para um database descartável, evitando executar contra dados reais.",
+   "tags": [
+    "test",
+    "safety-check",
+    "database",
+    "guardrail"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/tests/customer-routes.test.ts:waitForHealthyContainer",
+   "type": "function",
+   "name": "waitForHealthyContainer",
+   "filePath": "services/api/tests/customer-routes.test.ts",
+   "lineRange": [
+    787,
+    808
+   ],
+   "summary": "Aguarda o container local do Postgres ficar healthy antes de executar os testes.",
+   "tags": [
+    "test",
+    "docker",
+    "health-check",
+    "bootstrap"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/tests/customer-routes.test.ts:assertContainerIsLocal",
+   "type": "function",
+   "name": "assertContainerIsLocal",
+   "filePath": "services/api/tests/customer-routes.test.ts",
+   "lineRange": [
+    810,
+    823
+   ],
+   "summary": "Garante que o container de Postgres de teste roda apenas em máquina local.",
+   "tags": [
+    "test",
+    "safety-check",
+    "docker",
+    "guardrail"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/customer-routes.test.ts:resetDatabase",
+   "type": "function",
+   "name": "resetDatabase",
+   "filePath": "services/api/tests/customer-routes.test.ts",
+   "lineRange": [
+    825,
+    837
+   ],
+   "summary": "Recria o schema do banco de teste aplicando as migrações SQL antes de cada suíte.",
+   "tags": [
+    "test",
+    "database",
+    "schema-reset",
+    "migrations"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/customer-routes.test.ts:seedAgenciesAndUsers",
+   "type": "function",
+   "name": "seedAgenciesAndUsers",
+   "filePath": "services/api/tests/customer-routes.test.ts",
+   "lineRange": [
+    846,
+    865
+   ],
+   "summary": "Insere agências e usuários base necessários aos cenários de teste.",
+   "tags": [
+    "test",
+    "seed-data",
+    "fixtures",
+    "database"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/tests/customer-routes.test.ts:run",
+   "type": "function",
+   "name": "run",
+   "filePath": "services/api/tests/customer-routes.test.ts",
+   "lineRange": [
+    872,
+    900
+   ],
+   "summary": "Executa comandos externos síncronos (docker compose, psql) com captura de stdout/stderr para o harness de testes.",
+   "tags": [
+    "test",
+    "utility",
+    "spawnSync",
+    "docker"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:services/api/tests/customer-segments.test.ts",
+   "type": "file",
+   "name": "customer-segments.test.ts",
+   "filePath": "services/api/tests/customer-segments.test.ts",
+   "summary": "Testes de segmentação avançada de clientes: criação de segmentos, prévia com filtros, validação de definições e isolamento por tenant.",
+   "tags": [
+    "test",
+    "segmentation",
+    "customers",
+    "validation",
+    "tenant-isolation"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/tests/customer-segments.test.ts:assertSafeTestDatabase",
+   "type": "function",
+   "name": "assertSafeTestDatabase",
+   "filePath": "services/api/tests/customer-segments.test.ts",
+   "lineRange": [
+    673,
+    692
+   ],
+   "summary": "Valida que a conexão de teste aponta para um database descartável, evitando executar contra dados reais.",
+   "tags": [
+    "test",
+    "safety-check",
+    "database",
+    "guardrail"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/tests/customer-segments.test.ts:waitForHealthyContainer",
+   "type": "function",
+   "name": "waitForHealthyContainer",
+   "filePath": "services/api/tests/customer-segments.test.ts",
+   "lineRange": [
+    704,
+    717
+   ],
+   "summary": "Aguarda o container local do Postgres ficar healthy antes de executar os testes.",
+   "tags": [
+    "test",
+    "docker",
+    "health-check",
+    "bootstrap"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/customer-segments.test.ts:assertContainerIsLocal",
+   "type": "function",
+   "name": "assertContainerIsLocal",
+   "filePath": "services/api/tests/customer-segments.test.ts",
+   "lineRange": [
+    719,
+    731
+   ],
+   "summary": "Garante que o container de Postgres de teste roda apenas em máquina local.",
+   "tags": [
+    "test",
+    "safety-check",
+    "docker",
+    "guardrail"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/customer-segments.test.ts:run",
+   "type": "function",
+   "name": "run",
+   "filePath": "services/api/tests/customer-segments.test.ts",
+   "lineRange": [
+    738,
+    754
+   ],
+   "summary": "Executa comandos externos síncronos (docker compose, psql) com captura de stdout/stderr para o harness de testes.",
+   "tags": [
+    "test",
+    "utility",
+    "spawnSync",
+    "docker"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:services/api/tests/customers.test.ts",
+   "type": "file",
+   "name": "customers.test.ts",
+   "filePath": "services/api/tests/customers.test.ts",
+   "summary": "Testes da camada de dados de clientes (Task 1): CRUD, escopo por tenant e regras de acesso direto ao banco.",
+   "tags": [
+    "test",
+    "data-access",
+    "customers",
+    "crud",
+    "tenant-isolation"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/tests/customers.test.ts:assertSafeTestDatabase",
+   "type": "function",
+   "name": "assertSafeTestDatabase",
+   "filePath": "services/api/tests/customers.test.ts",
+   "lineRange": [
+    226,
+    249
+   ],
+   "summary": "Valida que a conexão de teste aponta para um database descartável, evitando executar contra dados reais.",
+   "tags": [
+    "test",
+    "safety-check",
+    "database",
+    "guardrail"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/tests/customers.test.ts:waitForHealthyContainer",
+   "type": "function",
+   "name": "waitForHealthyContainer",
+   "filePath": "services/api/tests/customers.test.ts",
+   "lineRange": [
+    261,
+    282
+   ],
+   "summary": "Aguarda o container local do Postgres ficar healthy antes de executar os testes.",
+   "tags": [
+    "test",
+    "docker",
+    "health-check",
+    "bootstrap"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/tests/customers.test.ts:assertContainerIsLocal",
+   "type": "function",
+   "name": "assertContainerIsLocal",
+   "filePath": "services/api/tests/customers.test.ts",
+   "lineRange": [
+    284,
+    297
+   ],
+   "summary": "Garante que o container de Postgres de teste roda apenas em máquina local.",
+   "tags": [
+    "test",
+    "safety-check",
+    "docker",
+    "guardrail"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/customers.test.ts:resetDatabase",
+   "type": "function",
+   "name": "resetDatabase",
+   "filePath": "services/api/tests/customers.test.ts",
+   "lineRange": [
+    299,
+    311
+   ],
+   "summary": "Recria o schema do banco de teste aplicando as migrações SQL antes de cada suíte.",
+   "tags": [
+    "test",
+    "database",
+    "schema-reset",
+    "migrations"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/customers.test.ts:seedAgenciesAndUsers",
+   "type": "function",
+   "name": "seedAgenciesAndUsers",
+   "filePath": "services/api/tests/customers.test.ts",
+   "lineRange": [
+    320,
+    339
+   ],
+   "summary": "Insere agências e usuários base necessários aos cenários de teste.",
+   "tags": [
+    "test",
+    "seed-data",
+    "fixtures",
+    "database"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/tests/customers.test.ts:run",
+   "type": "function",
+   "name": "run",
+   "filePath": "services/api/tests/customers.test.ts",
+   "lineRange": [
+    346,
+    374
+   ],
+   "summary": "Executa comandos externos síncronos (docker compose, psql) com captura de stdout/stderr para o harness de testes.",
+   "tags": [
+    "test",
+    "utility",
+    "spawnSync",
+    "docker"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:services/api/tests/departments.test.ts",
+   "type": "file",
+   "name": "departments.test.ts",
+   "filePath": "services/api/tests/departments.test.ts",
+   "summary": "Testes da camada de dados de departamentos e branding da agência: CRUD de departamentos, membros da equipe e configurações de notificação.",
+   "tags": [
+    "test",
+    "data-access",
+    "departments",
+    "settings",
+    "crud"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/tests/departments.test.ts:assertSafeTestDatabase",
+   "type": "function",
+   "name": "assertSafeTestDatabase",
+   "filePath": "services/api/tests/departments.test.ts",
+   "lineRange": [
+    265,
+    288
+   ],
+   "summary": "Valida que a conexão de teste aponta para um database descartável, evitando executar contra dados reais.",
+   "tags": [
+    "test",
+    "safety-check",
+    "database",
+    "guardrail"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/tests/departments.test.ts:waitForHealthyContainer",
+   "type": "function",
+   "name": "waitForHealthyContainer",
+   "filePath": "services/api/tests/departments.test.ts",
+   "lineRange": [
+    300,
+    317
+   ],
+   "summary": "Aguarda o container local do Postgres ficar healthy antes de executar os testes.",
+   "tags": [
+    "test",
+    "docker",
+    "health-check",
+    "bootstrap"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/tests/departments.test.ts:assertContainerIsLocal",
+   "type": "function",
+   "name": "assertContainerIsLocal",
+   "filePath": "services/api/tests/departments.test.ts",
+   "lineRange": [
+    319,
+    332
+   ],
+   "summary": "Garante que o container de Postgres de teste roda apenas em máquina local.",
+   "tags": [
+    "test",
+    "safety-check",
+    "docker",
+    "guardrail"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/tests/departments.test.ts:seedAgenciesAndUsers",
+   "type": "function",
+   "name": "seedAgenciesAndUsers",
+   "filePath": "services/api/tests/departments.test.ts",
+   "lineRange": [
+    350,
+    369
+   ],
+   "summary": "Insere agências e usuários base necessários aos cenários de teste.",
+   "tags": [
+    "test",
+    "seed-data",
+    "fixtures",
+    "database"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/tests/departments.test.ts:run",
+   "type": "function",
+   "name": "run",
+   "filePath": "services/api/tests/departments.test.ts",
+   "lineRange": [
+    376,
+    395
+   ],
+   "summary": "Executa comandos externos síncronos (docker compose, psql) com captura de stdout/stderr para o harness de testes.",
+   "tags": [
+    "test",
+    "utility",
+    "spawnSync",
+    "docker"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:services/api/tests/dev-auth.test.ts",
+   "type": "file",
+   "name": "dev-auth.test.ts",
+   "filePath": "services/api/tests/dev-auth.test.ts",
+   "summary": "Testes da autenticação manual de desenvolvimento: providers, validadores de acesso staff/customer e gating por ambiente.",
+   "tags": [
+    "test",
+    "dev-auth",
+    "auth",
+    "security"
+   ],
+   "complexity": "complex"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:services/api/tests/customer-documents-routes.test.ts",
+   "target": "function:services/api/tests/customer-documents-routes.test.ts:defaultResponder",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/customer-documents-routes.test.ts",
+   "target": "function:services/api/tests/customer-documents-routes.test.ts:buildTestApp",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/customer-documents-routes.test.ts",
+   "target": "function:services/api/tests/customer-documents-routes.test.ts:buildAttachmentMultipart",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/customer-e2e.test.ts",
+   "target": "function:services/api/tests/customer-e2e.test.ts:assertSafeTestDatabase",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/customer-e2e.test.ts",
+   "target": "function:services/api/tests/customer-e2e.test.ts:waitForHealthyContainer",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/customer-e2e.test.ts",
+   "target": "function:services/api/tests/customer-e2e.test.ts:assertContainerIsLocal",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/customer-e2e.test.ts",
+   "target": "function:services/api/tests/customer-e2e.test.ts:resetDatabase",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/customer-e2e.test.ts",
+   "target": "function:services/api/tests/customer-e2e.test.ts:seedAgenciesAndUsers",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/customer-e2e.test.ts",
+   "target": "function:services/api/tests/customer-e2e.test.ts:run",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/customer-engagement-tracking.test.ts",
+   "target": "function:services/api/tests/customer-engagement-tracking.test.ts:assertSafeTestDatabase",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/customer-engagement-tracking.test.ts",
+   "target": "function:services/api/tests/customer-engagement-tracking.test.ts:waitForHealthyContainer",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/customer-engagement-tracking.test.ts",
+   "target": "function:services/api/tests/customer-engagement-tracking.test.ts:assertContainerIsLocal",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/customer-engagement-tracking.test.ts",
+   "target": "function:services/api/tests/customer-engagement-tracking.test.ts:run",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/customer-portal-routes.test.ts",
+   "target": "function:services/api/tests/customer-portal-routes.test.ts:assertSafeTestDatabase",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/customer-portal-routes.test.ts",
+   "target": "function:services/api/tests/customer-portal-routes.test.ts:waitForHealthyContainer",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/customer-portal-routes.test.ts",
+   "target": "function:services/api/tests/customer-portal-routes.test.ts:assertContainerIsLocal",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/customer-portal-routes.test.ts",
+   "target": "function:services/api/tests/customer-portal-routes.test.ts:resetDatabase",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/customer-portal-routes.test.ts",
+   "target": "function:services/api/tests/customer-portal-routes.test.ts:run",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/customer-portal-security.test.ts",
+   "target": "function:services/api/tests/customer-portal-security.test.ts:assertSafeTestDatabase",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/customer-portal-security.test.ts",
+   "target": "function:services/api/tests/customer-portal-security.test.ts:waitForHealthyContainer",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/customer-portal-security.test.ts",
+   "target": "function:services/api/tests/customer-portal-security.test.ts:assertContainerIsLocal",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/customer-portal-security.test.ts",
+   "target": "function:services/api/tests/customer-portal-security.test.ts:seedAgencies",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/customer-portal-security.test.ts",
+   "target": "function:services/api/tests/customer-portal-security.test.ts:run",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/customer-routes.test.ts",
+   "target": "function:services/api/tests/customer-routes.test.ts:assertSafeTestDatabase",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/customer-routes.test.ts",
+   "target": "function:services/api/tests/customer-routes.test.ts:waitForHealthyContainer",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/customer-routes.test.ts",
+   "target": "function:services/api/tests/customer-routes.test.ts:assertContainerIsLocal",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/customer-routes.test.ts",
+   "target": "function:services/api/tests/customer-routes.test.ts:resetDatabase",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/customer-routes.test.ts",
+   "target": "function:services/api/tests/customer-routes.test.ts:seedAgenciesAndUsers",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/customer-routes.test.ts",
+   "target": "function:services/api/tests/customer-routes.test.ts:run",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/customer-segments.test.ts",
+   "target": "function:services/api/tests/customer-segments.test.ts:assertSafeTestDatabase",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/customer-segments.test.ts",
+   "target": "function:services/api/tests/customer-segments.test.ts:waitForHealthyContainer",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/customer-segments.test.ts",
+   "target": "function:services/api/tests/customer-segments.test.ts:assertContainerIsLocal",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/customer-segments.test.ts",
+   "target": "function:services/api/tests/customer-segments.test.ts:run",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/customers.test.ts",
+   "target": "function:services/api/tests/customers.test.ts:assertSafeTestDatabase",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/customers.test.ts",
+   "target": "function:services/api/tests/customers.test.ts:waitForHealthyContainer",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/customers.test.ts",
+   "target": "function:services/api/tests/customers.test.ts:assertContainerIsLocal",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/customers.test.ts",
+   "target": "function:services/api/tests/customers.test.ts:resetDatabase",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/customers.test.ts",
+   "target": "function:services/api/tests/customers.test.ts:seedAgenciesAndUsers",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/customers.test.ts",
+   "target": "function:services/api/tests/customers.test.ts:run",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/departments.test.ts",
+   "target": "function:services/api/tests/departments.test.ts:assertSafeTestDatabase",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/departments.test.ts",
+   "target": "function:services/api/tests/departments.test.ts:waitForHealthyContainer",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/departments.test.ts",
+   "target": "function:services/api/tests/departments.test.ts:assertContainerIsLocal",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/departments.test.ts",
+   "target": "function:services/api/tests/departments.test.ts:seedAgenciesAndUsers",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/departments.test.ts",
+   "target": "function:services/api/tests/departments.test.ts:run",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/tests/customer-documents-routes.test.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/customer-documents-routes.test.ts",
+   "target": "file:services/api/src/app.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/customer-documents-routes.test.ts",
+   "target": "file:services/api/src/auth.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/customer-documents-routes.test.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/customer-documents-routes.test.ts",
+   "target": "file:services/api/src/ocr-provider.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/customer-documents-routes.test.ts",
+   "target": "file:services/api/src/routes/customer-documents.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/customer-documents-routes.test.ts",
+   "target": "file:services/api/tests/helpers/fake-database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/customer-documents.test.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/customer-documents.test.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/customer-documents.test.ts",
+   "target": "file:services/api/src/customer-documents.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/customer-documents.test.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/customer-documents.test.ts",
+   "target": "file:services/api/tests/helpers/fake-database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/customer-e2e.test.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/customer-e2e.test.ts",
+   "target": "file:services/api/src/app.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/customer-e2e.test.ts",
+   "target": "file:services/api/src/auth.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/customer-e2e.test.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/customer-engagement-tracking.test.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/customer-engagement-tracking.test.ts",
+   "target": "file:services/api/src/app.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/customer-engagement-tracking.test.ts",
+   "target": "file:services/api/src/customer-auth.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/customer-engagement-tracking.test.ts",
+   "target": "file:services/api/src/customer-portal.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/customer-engagement-tracking.test.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/customer-portal-routes.test.ts",
+   "target": "file:services/api/src/app.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/customer-portal-routes.test.ts",
+   "target": "file:services/api/src/customer-auth.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/customer-portal-routes.test.ts",
+   "target": "file:services/api/src/customer-portal.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/customer-portal-routes.test.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/customer-portal-security.test.ts",
+   "target": "file:services/api/src/app.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/customer-portal-security.test.ts",
+   "target": "file:services/api/src/customer-auth.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/customer-portal-security.test.ts",
+   "target": "file:services/api/src/customer-portal.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/customer-portal-security.test.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/customer-portal-security.test.ts",
+   "target": "file:services/api/src/dev-auth.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/customer-routes.test.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/customer-routes.test.ts",
+   "target": "file:services/api/src/app.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/customer-routes.test.ts",
+   "target": "file:services/api/src/auth.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/customer-routes.test.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/customer-segments.test.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/customer-segments.test.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/customer-segments.test.ts",
+   "target": "file:services/api/src/app.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/customer-segments.test.ts",
+   "target": "file:services/api/src/customer-segmentation.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/customer-segments.test.ts",
+   "target": "file:services/api/src/customer-segments.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/customer-segments.test.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/customer-segments.test.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/customers.test.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/customers.test.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/customers.test.ts",
+   "target": "file:services/api/src/customers.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/customers.test.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/departments.test.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/departments.test.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/departments.test.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/departments.test.ts",
+   "target": "file:services/api/src/settings-queries.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/dev-auth.test.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/tests/dev-auth.test.ts",
+   "target": "file:services/api/src/dev-auth.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/customer-documents.ts",
+   "target": "file:services/api/tests/customer-documents-routes.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/customer-documents.ts",
+   "target": "file:services/api/tests/customer-documents.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/app.ts",
+   "target": "file:services/api/tests/customer-e2e.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/customer-portal.ts",
+   "target": "file:services/api/tests/customer-engagement-tracking.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/customer-portal.ts",
+   "target": "file:services/api/tests/customer-portal-routes.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/customer-portal.ts",
+   "target": "file:services/api/tests/customer-portal-security.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/app.ts",
+   "target": "file:services/api/tests/customer-routes.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/customer-segments.ts",
+   "target": "file:services/api/tests/customer-segments.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/customers.ts",
+   "target": "file:services/api/tests/customers.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/settings-queries.ts",
+   "target": "file:services/api/tests/departments.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/dev-auth.ts",
+   "target": "file:services/api/tests/dev-auth.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "function:services/api/tests/customer-documents-routes.test.ts:buildTestApp",
+   "target": "function:services/api/src/app.ts:buildApp",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  }
+ ]
+}

@@ -1,0 +1,1860 @@
+{
+ "nodes": [
+  {
+   "id": "file:services/api/src/email/types.ts",
+   "type": "file",
+   "name": "types.ts",
+   "filePath": "services/api/src/email/types.ts",
+   "summary": "Define a interface EmailProvider e as exceções tipadas de configuração e falha de envio do subsistema de e-mail.",
+   "tags": [
+    "type-definition",
+    "email",
+    "error-handling",
+    "service"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:services/api/src/email/unconfigured-provider.ts",
+   "type": "file",
+   "name": "unconfigured-provider.ts",
+   "filePath": "services/api/src/email/unconfigured-provider.ts",
+   "summary": "Provider que falha em qualquer envio quando não há configuração de e-mail, garantindo comportamento fail-closed.",
+   "tags": [
+    "email",
+    "provider",
+    "fail-closed",
+    "security"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:services/api/src/local-auth.ts",
+   "type": "file",
+   "name": "local-auth.ts",
+   "filePath": "services/api/src/local-auth.ts",
+   "summary": "Núcleo da autenticação local de colaboradores: login com MFA TOTP, sessões, revogação, reset de senha e ciclo completo de enrollment de MFA.",
+   "tags": [
+    "authentication",
+    "mfa",
+    "session-management",
+    "multi-tenant",
+    "security"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:services/api/src/mfa-encryption.ts",
+   "type": "file",
+   "name": "mfa-encryption.ts",
+   "filePath": "services/api/src/mfa-encryption.ts",
+   "summary": "Cifra e decifra segredos MFA com AES-256-GCM usando chave mestra derivada por PBKDF2 a partir do ambiente.",
+   "tags": [
+    "cryptography",
+    "mfa",
+    "security",
+    "utility"
+   ],
+   "complexity": "moderate",
+   "languageNotes": "AES-256-GCM com IV e auth tag por mensagem; chave derivada via PBKDF2 a partir de MFA_ENCRYPTION_KEY."
+  },
+  {
+   "id": "file:services/api/src/mfa-provider.ts",
+   "type": "file",
+   "name": "mfa-provider.ts",
+   "filePath": "services/api/src/mfa-provider.ts",
+   "summary": "Implementação TOTP/HOTP completa para MFA: segredos base32, verificação com janela de tolerância, recovery codes e factory por env.",
+   "tags": [
+    "mfa",
+    "totp",
+    "security",
+    "cryptography"
+   ],
+   "complexity": "complex",
+   "languageNotes": "TOTP/HOTP implementados manualmente sobre crypto nativo, sem dependência externa de bibliotecas OTP."
+  },
+  {
+   "id": "file:services/api/src/password-hashing.ts",
+   "type": "file",
+   "name": "password-hashing.ts",
+   "filePath": "services/api/src/password-hashing.ts",
+   "summary": "Hash de senhas com scrypt e salt aleatório, verificação em tempo constante e hash inutilizável para contas bloqueadas.",
+   "tags": [
+    "security",
+    "cryptography",
+    "authentication",
+    "utility"
+   ],
+   "complexity": "moderate",
+   "languageNotes": "O hash embute os parâmetros scrypt (N, r, p), permitindo ajustar o custo sem migração de dados."
+  },
+  {
+   "id": "file:services/api/src/platform-local-auth.ts",
+   "type": "file",
+   "name": "platform-local-auth.ts",
+   "filePath": "services/api/src/platform-local-auth.ts",
+   "summary": "Autenticação local da plataforma: login, MFA com códigos de recuperação, sessões, reset de senha e auditoria própria.",
+   "tags": [
+    "authentication",
+    "mfa",
+    "platform-admin",
+    "security"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/local-auth.ts:createTotpProviderFromEnv",
+   "type": "function",
+   "name": "createTotpProviderFromEnv",
+   "filePath": "services/api/src/local-auth.ts",
+   "lineRange": [
+    810,
+    812
+   ],
+   "summary": "Cria o TotpProvider de MFA a partir do objeto de ambiente recebido.",
+   "tags": [
+    "mfa",
+    "factory",
+    "configuration"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/password-hashing.ts:unusablePasswordHash",
+   "type": "function",
+   "name": "unusablePasswordHash",
+   "filePath": "services/api/src/password-hashing.ts",
+   "lineRange": [
+    91,
+    93
+   ],
+   "summary": "Hash inválida usada para usuários bloqueados ou inexistentes, garantindo falha de login sem vazar existência.",
+   "tags": [
+    "security",
+    "authentication",
+    "utility"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "class:services/api/src/email/types.ts:EmailProviderNotConfiguredError",
+   "type": "class",
+   "name": "EmailProviderNotConfiguredError",
+   "filePath": "services/api/src/email/types.ts",
+   "lineRange": [
+    31,
+    37
+   ],
+   "summary": "Erro lançado quando nenhum provedor de e-mail está configurado, sinalizando configuração ausente.",
+   "tags": [
+    "email",
+    "error-handling",
+    "configuration"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "class:services/api/src/email/types.ts:EmailProviderSendError",
+   "type": "class",
+   "name": "EmailProviderSendError",
+   "filePath": "services/api/src/email/types.ts",
+   "lineRange": [
+    40,
+    49
+   ],
+   "summary": "Erro lançado quando o provedor falha ao enviar, preservando o status HTTP retornado.",
+   "tags": [
+    "email",
+    "error-handling",
+    "provider"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "class:services/api/src/email/unconfigured-provider.ts:UnconfiguredEmailProvider",
+   "type": "class",
+   "name": "UnconfiguredEmailProvider",
+   "filePath": "services/api/src/email/unconfigured-provider.ts",
+   "lineRange": [
+    11,
+    16
+   ],
+   "summary": "Implementação de EmailProvider que lança EmailProviderNotConfiguredError em todo envio.",
+   "tags": [
+    "email",
+    "provider",
+    "fail-closed"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/local-auth.ts:withAgencyAudit",
+   "type": "function",
+   "name": "withAgencyAudit",
+   "filePath": "services/api/src/local-auth.ts",
+   "lineRange": [
+    71,
+    81
+   ],
+   "summary": "Executa operações auditadas dentro do contexto de tenant e da transação da agência.",
+   "tags": [
+    "audit",
+    "multi-tenant",
+    "utility"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/local-auth.ts:resolveAgencyIdBySlug",
+   "type": "function",
+   "name": "resolveAgencyIdBySlug",
+   "filePath": "services/api/src/local-auth.ts",
+   "lineRange": [
+    87,
+    103
+   ],
+   "summary": "Resolve o id da agência a partir do slug em lookup público, sem vazamento entre tenants.",
+   "tags": [
+    "lookup",
+    "multi-tenant",
+    "utility"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/local-auth.ts:login",
+   "type": "function",
+   "name": "login",
+   "filePath": "services/api/src/local-auth.ts",
+   "lineRange": [
+    141,
+    237
+   ],
+   "summary": "Autentica colaborador por slug, e-mail e senha, avalia exigência de MFA por papel e cria sessão opaca com auditoria.",
+   "tags": [
+    "authentication",
+    "mfa",
+    "session-management",
+    "security"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/local-auth.ts:isMfaRequiredForRole",
+   "type": "function",
+   "name": "isMfaRequiredForRole",
+   "filePath": "services/api/src/local-auth.ts",
+   "lineRange": [
+    239,
+    249
+   ],
+   "summary": "Consulta se o papel da agência exige MFA conforme a configuração de segurança.",
+   "tags": [
+    "mfa",
+    "authorization",
+    "utility"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/local-auth.ts:getActiveMfaSecret",
+   "type": "function",
+   "name": "getActiveMfaSecret",
+   "filePath": "services/api/src/local-auth.ts",
+   "lineRange": [
+    259,
+    277
+   ],
+   "summary": "Recupera o segredo TOTP ativo do usuário, descriptografando quando armazenado cifrado.",
+   "tags": [
+    "mfa",
+    "cryptography",
+    "security"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/local-auth.ts:verifyMfaAndCompleteLogin",
+   "type": "function",
+   "name": "verifyMfaAndCompleteLogin",
+   "filePath": "services/api/src/local-auth.ts",
+   "lineRange": [
+    289,
+    415
+   ],
+   "summary": "Valida TOTP ou código de recuperação na segunda etapa do login e completa a criação da sessão com auditoria.",
+   "tags": [
+    "mfa",
+    "authentication",
+    "security"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/local-auth.ts:resolveSessionByToken",
+   "type": "function",
+   "name": "resolveSessionByToken",
+   "filePath": "services/api/src/local-auth.ts",
+   "lineRange": [
+    429,
+    480
+   ],
+   "summary": "Resolve sessão ativa a partir do token branco com expiração rolante e registro de auditoria.",
+   "tags": [
+    "session-management",
+    "authentication",
+    "security"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/local-auth.ts:revokeSession",
+   "type": "function",
+   "name": "revokeSession",
+   "filePath": "services/api/src/local-auth.ts",
+   "lineRange": [
+    486,
+    508
+   ],
+   "summary": "Revoga uma sessão específica dentro da transação do tenant e audita o motivo.",
+   "tags": [
+    "session-management",
+    "security",
+    "authentication"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/local-auth.ts:revokeAllSessionsForUser",
+   "type": "function",
+   "name": "revokeAllSessionsForUser",
+   "filePath": "services/api/src/local-auth.ts",
+   "lineRange": [
+    510,
+    530
+   ],
+   "summary": "Revoga todas as sessões ativas de um usuário, usado em reset de senha e mudança de status.",
+   "tags": [
+    "session-management",
+    "security",
+    "authentication"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/local-auth.ts:listMySessions",
+   "type": "function",
+   "name": "listMySessions",
+   "filePath": "services/api/src/local-auth.ts",
+   "lineRange": [
+    539,
+    557
+   ],
+   "summary": "Lista as sessões ativas do usuário atual dentro do contexto de tenant.",
+   "tags": [
+    "session-management",
+    "utility",
+    "authentication"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/local-auth.ts:forgotPassword",
+   "type": "function",
+   "name": "forgotPassword",
+   "filePath": "services/api/src/local-auth.ts",
+   "lineRange": [
+    565,
+    621
+   ],
+   "summary": "Cria token opaco de reset com hash e expiração e envia o e-mail de redefinição.",
+   "tags": [
+    "password-reset",
+    "authentication",
+    "security"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/local-auth.ts:resetPassword",
+   "type": "function",
+   "name": "resetPassword",
+   "filePath": "services/api/src/local-auth.ts",
+   "lineRange": [
+    623,
+    676
+   ],
+   "summary": "Valida o token de reset, grava a nova senha hashada, revoga sessões e audita.",
+   "tags": [
+    "password-reset",
+    "authentication",
+    "security"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/local-auth.ts:startMfaEnrollment",
+   "type": "function",
+   "name": "startMfaEnrollment",
+   "filePath": "services/api/src/local-auth.ts",
+   "lineRange": [
+    688,
+    728
+   ],
+   "summary": "Inicia o enrollment de MFA gerando segredo TOTP cifrado e códigos de recuperação.",
+   "tags": [
+    "mfa",
+    "enrollment",
+    "security"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/local-auth.ts:confirmMfaEnrollment",
+   "type": "function",
+   "name": "confirmMfaEnrollment",
+   "filePath": "services/api/src/local-auth.ts",
+   "lineRange": [
+    730,
+    765
+   ],
+   "summary": "Confirma o enrollment validando o primeiro código TOTP e ativando o MFA.",
+   "tags": [
+    "mfa",
+    "enrollment",
+    "security"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/local-auth.ts:disableMfa",
+   "type": "function",
+   "name": "disableMfa",
+   "filePath": "services/api/src/local-auth.ts",
+   "lineRange": [
+    767,
+    782
+   ],
+   "summary": "Desativa o MFA do usuário invalidando o segredo ativo e auditando a ação.",
+   "tags": [
+    "mfa",
+    "security",
+    "authentication"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/local-auth.ts:setUserStatus",
+   "type": "function",
+   "name": "setUserStatus",
+   "filePath": "services/api/src/local-auth.ts",
+   "lineRange": [
+    790,
+    808
+   ],
+   "summary": "Altera o status da conta (ativo/suspenso) e revoga sessões conforme necessário.",
+   "tags": [
+    "account-management",
+    "security",
+    "authorization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/mfa-encryption.ts:getMasterKey",
+   "type": "function",
+   "name": "getMasterKey",
+   "filePath": "services/api/src/mfa-encryption.ts",
+   "lineRange": [
+    35,
+    49
+   ],
+   "summary": "Lê e valida a chave mestra de criptografia MFA a partir de MFA_ENCRYPTION_KEY.",
+   "tags": [
+    "cryptography",
+    "configuration",
+    "security"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/mfa-encryption.ts:encryptMfaSecret",
+   "type": "function",
+   "name": "encryptMfaSecret",
+   "filePath": "services/api/src/mfa-encryption.ts",
+   "lineRange": [
+    64,
+    77
+   ],
+   "summary": "Cifra o segredo TOTP com IV e auth tag aleatórios e devolve o payload em base64.",
+   "tags": [
+    "cryptography",
+    "mfa",
+    "security"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/mfa-encryption.ts:decryptMfaSecret",
+   "type": "function",
+   "name": "decryptMfaSecret",
+   "filePath": "services/api/src/mfa-encryption.ts",
+   "lineRange": [
+    85,
+    105
+   ],
+   "summary": "Decifra o payload AES-GCM do segredo MFA validando a integridade via auth tag.",
+   "tags": [
+    "cryptography",
+    "mfa",
+    "security"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/mfa-encryption.ts:isMfaSecretEncrypted",
+   "type": "function",
+   "name": "isMfaSecretEncrypted",
+   "filePath": "services/api/src/mfa-encryption.ts",
+   "lineRange": [
+    112,
+    123
+   ],
+   "summary": "Detecta se o valor armazenado está no formato cifrado (prefixo v1) ou é segredo legado.",
+   "tags": [
+    "cryptography",
+    "mfa",
+    "utility"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "class:services/api/src/mfa-provider.ts:HotpProvider",
+   "type": "class",
+   "name": "HotpProvider",
+   "filePath": "services/api/src/mfa-provider.ts",
+   "lineRange": [
+    67,
+    136
+   ],
+   "summary": "Gera códigos HOTP com HMAC configurável (SHA1/256/512) e truncamento dinâmico conforme RFC 4226.",
+   "tags": [
+    "mfa",
+    "hotp",
+    "cryptography"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "class:services/api/src/mfa-provider.ts:TotpProvider",
+   "type": "class",
+   "name": "TotpProvider",
+   "filePath": "services/api/src/mfa-provider.ts",
+   "lineRange": [
+    143,
+    339
+   ],
+   "summary": "Provider TOTP com geração de segredo base32, provisioning URI, verificação com janela ±1 e códigos de recuperação.",
+   "tags": [
+    "mfa",
+    "totp",
+    "security"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/mfa-provider.ts:createTotpProvider",
+   "type": "function",
+   "name": "createTotpProvider",
+   "filePath": "services/api/src/mfa-provider.ts",
+   "lineRange": [
+    344,
+    350
+   ],
+   "summary": "Instancia o TotpProvider a partir das configurações de ambiente (dígitos, período, algoritmo).",
+   "tags": [
+    "mfa",
+    "factory",
+    "configuration"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/mfa-provider.ts:hashRecoveryCode",
+   "type": "function",
+   "name": "hashRecoveryCode",
+   "filePath": "services/api/src/mfa-provider.ts",
+   "lineRange": [
+    362,
+    364
+   ],
+   "summary": "Gera hash SHA-256 de um código de recuperação para armazenamento seguro.",
+   "tags": [
+    "mfa",
+    "cryptography",
+    "security"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/mfa-provider.ts:verifyRecoveryCode",
+   "type": "function",
+   "name": "verifyRecoveryCode",
+   "filePath": "services/api/src/mfa-provider.ts",
+   "lineRange": [
+    370,
+    373
+   ],
+   "summary": "Compara o código de recuperação informado com o hash armazenado em tempo constante.",
+   "tags": [
+    "mfa",
+    "security",
+    "cryptography"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/mfa-provider.ts:constantTimeEquals",
+   "type": "function",
+   "name": "constantTimeEquals",
+   "filePath": "services/api/src/mfa-provider.ts",
+   "lineRange": [
+    378,
+    387
+   ],
+   "summary": "Compara duas strings em tempo constante para evitar timing attacks.",
+   "tags": [
+    "security",
+    "cryptography",
+    "utility"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/password-hashing.ts:scrypt",
+   "type": "function",
+   "name": "scrypt",
+   "filePath": "services/api/src/password-hashing.ts",
+   "lineRange": [
+    22,
+    32
+   ],
+   "summary": "Promessa que envolve o scrypt assíncrono do Node com parâmetros de custo configuráveis.",
+   "tags": [
+    "security",
+    "cryptography",
+    "utility"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/password-hashing.ts:hashPassword",
+   "type": "function",
+   "name": "hashPassword",
+   "filePath": "services/api/src/password-hashing.ts",
+   "lineRange": [
+    34,
+    46
+   ],
+   "summary": "Gera hash scrypt da senha com salt aleatório no formato scrypt$N$r$p$salt$hash.",
+   "tags": [
+    "security",
+    "cryptography",
+    "authentication"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/password-hashing.ts:verifyPassword",
+   "type": "function",
+   "name": "verifyPassword",
+   "filePath": "services/api/src/password-hashing.ts",
+   "lineRange": [
+    48,
+    84
+   ],
+   "summary": "Verifica a senha contra o hash armazenado com timingSafeEqual e parâmetros validados.",
+   "tags": [
+    "security",
+    "cryptography",
+    "authentication"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/platform-local-auth.ts:recordPlatformAudit",
+   "type": "function",
+   "name": "recordPlatformAudit",
+   "filePath": "services/api/src/platform-local-auth.ts",
+   "lineRange": [
+    55,
+    67
+   ],
+   "summary": "Grava eventos de auditoria dos usuários da plataforma de forma assíncrona e não bloqueante.",
+   "tags": [
+    "audit",
+    "logging",
+    "security"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/platform-local-auth.ts:platformLogin",
+   "type": "function",
+   "name": "platformLogin",
+   "filePath": "services/api/src/platform-local-auth.ts",
+   "lineRange": [
+    107,
+    165
+   ],
+   "summary": "Autentica usuário da plataforma por e-mail e senha e cria sessão opaca com auditoria.",
+   "tags": [
+    "authentication",
+    "platform-admin",
+    "security"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/platform-local-auth.ts:verifyPlatformMfaAndCompleteLogin",
+   "type": "function",
+   "name": "verifyPlatformMfaAndCompleteLogin",
+   "filePath": "services/api/src/platform-local-auth.ts",
+   "lineRange": [
+    172,
+    290
+   ],
+   "summary": "Valida o segundo fator TOTP ou código de recuperação e completa o login da plataforma.",
+   "tags": [
+    "mfa",
+    "authentication",
+    "platform-admin"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/platform-local-auth.ts:startPlatformMfaEnrollment",
+   "type": "function",
+   "name": "startPlatformMfaEnrollment",
+   "filePath": "services/api/src/platform-local-auth.ts",
+   "lineRange": [
+    310,
+    347
+   ],
+   "summary": "Inicia o enrollment de MFA da plataforma com segredo cifrado e códigos de recuperação.",
+   "tags": [
+    "mfa",
+    "enrollment",
+    "platform-admin"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/platform-local-auth.ts:confirmPlatformMfaEnrollment",
+   "type": "function",
+   "name": "confirmPlatformMfaEnrollment",
+   "filePath": "services/api/src/platform-local-auth.ts",
+   "lineRange": [
+    355,
+    394
+   ],
+   "summary": "Confirma o MFA da plataforma validando o primeiro TOTP e migrando o segredo para formato cifrado.",
+   "tags": [
+    "mfa",
+    "enrollment",
+    "platform-admin"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/platform-local-auth.ts:resolvePlatformSessionByToken",
+   "type": "function",
+   "name": "resolvePlatformSessionByToken",
+   "filePath": "services/api/src/platform-local-auth.ts",
+   "lineRange": [
+    403,
+    453
+   ],
+   "summary": "Resolve a sessão da plataforma pelo token branco com expiração rolante.",
+   "tags": [
+    "session-management",
+    "platform-admin",
+    "authentication"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/platform-local-auth.ts:platformLogout",
+   "type": "function",
+   "name": "platformLogout",
+   "filePath": "services/api/src/platform-local-auth.ts",
+   "lineRange": [
+    455,
+    471
+   ],
+   "summary": "Revoga a sessão da plataforma e audita o logout.",
+   "tags": [
+    "session-management",
+    "authentication",
+    "platform-admin"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/platform-local-auth.ts:setPlatformUserStatus",
+   "type": "function",
+   "name": "setPlatformUserStatus",
+   "filePath": "services/api/src/platform-local-auth.ts",
+   "lineRange": [
+    473,
+    499
+   ],
+   "summary": "Ativa ou suspende conta da plataforma, revogando sessões ativas.",
+   "tags": [
+    "account-management",
+    "platform-admin",
+    "security"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/platform-local-auth.ts:findUnusedRecoveryCode",
+   "type": "function",
+   "name": "findUnusedRecoveryCode",
+   "filePath": "services/api/src/platform-local-auth.ts",
+   "lineRange": [
+    505,
+    516
+   ],
+   "summary": "Localiza o código de recuperação não utilizado correspondente ao informado.",
+   "tags": [
+    "mfa",
+    "security",
+    "authentication"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/platform-local-auth.ts:getPlatformMfaStatus",
+   "type": "function",
+   "name": "getPlatformMfaStatus",
+   "filePath": "services/api/src/platform-local-auth.ts",
+   "lineRange": [
+    531,
+    547
+   ],
+   "summary": "Consulta o status do MFA e a quantidade de códigos de recuperação restantes.",
+   "tags": [
+    "mfa",
+    "utility",
+    "platform-admin"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/platform-local-auth.ts:resetPlatformMfa",
+   "type": "function",
+   "name": "resetPlatformMfa",
+   "filePath": "services/api/src/platform-local-auth.ts",
+   "lineRange": [
+    556,
+    601
+   ],
+   "summary": "Reseta o MFA da plataforma exigindo senha e segundo fator, limpando segredos e revogando sessões.",
+   "tags": [
+    "mfa",
+    "security",
+    "platform-admin"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/platform-local-auth.ts:platformForgotPassword",
+   "type": "function",
+   "name": "platformForgotPassword",
+   "filePath": "services/api/src/platform-local-auth.ts",
+   "lineRange": [
+    608,
+    646
+   ],
+   "summary": "Cria token de reset da plataforma com hash e envia o e-mail de redefinição.",
+   "tags": [
+    "password-reset",
+    "platform-admin",
+    "security"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/platform-local-auth.ts:platformResetPassword",
+   "type": "function",
+   "name": "platformResetPassword",
+   "filePath": "services/api/src/platform-local-auth.ts",
+   "lineRange": [
+    653,
+    696
+   ],
+   "summary": "Valida o token de reset da plataforma, grava a nova senha e audita a operação.",
+   "tags": [
+    "password-reset",
+    "platform-admin",
+    "security"
+   ],
+   "complexity": "moderate"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:services/api/src/mfa-encryption.ts",
+   "target": "function:services/api/src/mfa-encryption.ts:encryptMfaSecret",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/mfa-encryption.ts",
+   "target": "function:services/api/src/mfa-encryption.ts:decryptMfaSecret",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/mfa-encryption.ts",
+   "target": "function:services/api/src/mfa-encryption.ts:isMfaSecretEncrypted",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/mfa-provider.ts",
+   "target": "class:services/api/src/mfa-provider.ts:HotpProvider",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/mfa-provider.ts",
+   "target": "class:services/api/src/mfa-provider.ts:TotpProvider",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/mfa-provider.ts",
+   "target": "function:services/api/src/mfa-provider.ts:createTotpProvider",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/mfa-provider.ts",
+   "target": "function:services/api/src/mfa-provider.ts:hashRecoveryCode",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/mfa-provider.ts",
+   "target": "function:services/api/src/mfa-provider.ts:verifyRecoveryCode",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/password-hashing.ts",
+   "target": "function:services/api/src/password-hashing.ts:hashPassword",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/password-hashing.ts",
+   "target": "function:services/api/src/password-hashing.ts:verifyPassword",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/platform-local-auth.ts",
+   "target": "function:services/api/src/platform-local-auth.ts:platformLogin",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/platform-local-auth.ts",
+   "target": "function:services/api/src/platform-local-auth.ts:verifyPlatformMfaAndCompleteLogin",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/platform-local-auth.ts",
+   "target": "function:services/api/src/platform-local-auth.ts:startPlatformMfaEnrollment",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/platform-local-auth.ts",
+   "target": "function:services/api/src/platform-local-auth.ts:confirmPlatformMfaEnrollment",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/platform-local-auth.ts",
+   "target": "function:services/api/src/platform-local-auth.ts:resolvePlatformSessionByToken",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/platform-local-auth.ts",
+   "target": "function:services/api/src/platform-local-auth.ts:platformLogout",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/platform-local-auth.ts",
+   "target": "function:services/api/src/platform-local-auth.ts:setPlatformUserStatus",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/platform-local-auth.ts",
+   "target": "function:services/api/src/platform-local-auth.ts:getPlatformMfaStatus",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/platform-local-auth.ts",
+   "target": "function:services/api/src/platform-local-auth.ts:resetPlatformMfa",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/platform-local-auth.ts",
+   "target": "function:services/api/src/platform-local-auth.ts:platformForgotPassword",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/platform-local-auth.ts",
+   "target": "function:services/api/src/platform-local-auth.ts:platformResetPassword",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/email/unconfigured-provider.ts",
+   "target": "file:services/api/src/email/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/local-auth.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/local-auth.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/local-auth.ts",
+   "target": "file:services/api/src/audit-log.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/local-auth.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/local-auth.ts",
+   "target": "file:services/api/src/email/index.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/local-auth.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/local-auth.ts",
+   "target": "file:services/api/src/mfa-encryption.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/local-auth.ts",
+   "target": "file:services/api/src/mfa-provider.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/local-auth.ts",
+   "target": "file:services/api/src/password-hashing.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/platform-local-auth.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/platform-local-auth.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/platform-local-auth.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/platform-local-auth.ts",
+   "target": "file:services/api/src/email/index.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/platform-local-auth.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/platform-local-auth.ts",
+   "target": "file:services/api/src/mfa-encryption.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/platform-local-auth.ts",
+   "target": "file:services/api/src/mfa-provider.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/platform-local-auth.ts",
+   "target": "file:services/api/src/password-hashing.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/local-auth.ts",
+   "target": "function:services/api/src/password-hashing.ts:verifyPassword",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/local-auth.ts",
+   "target": "function:services/api/src/password-hashing.ts:hashPassword",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/local-auth.ts",
+   "target": "function:services/api/src/mfa-encryption.ts:encryptMfaSecret",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/local-auth.ts",
+   "target": "function:services/api/src/mfa-encryption.ts:decryptMfaSecret",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/local-auth.ts",
+   "target": "function:services/api/src/mfa-encryption.ts:isMfaSecretEncrypted",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/local-auth.ts",
+   "target": "function:services/api/src/mfa-provider.ts:hashRecoveryCode",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/local-auth.ts",
+   "target": "function:services/api/src/mfa-provider.ts:verifyRecoveryCode",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/local-auth.ts",
+   "target": "function:services/api/src/mfa-provider.ts:createTotpProvider",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/local-auth.ts",
+   "target": "function:services/api/src/audit-log.ts:recordAuditEvent",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/local-auth.ts",
+   "target": "function:packages/domain/tenant-context.ts:runWithTenantContext",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/platform-local-auth.ts",
+   "target": "function:services/api/src/password-hashing.ts:verifyPassword",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/platform-local-auth.ts",
+   "target": "function:services/api/src/password-hashing.ts:hashPassword",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/platform-local-auth.ts",
+   "target": "function:services/api/src/mfa-encryption.ts:encryptMfaSecret",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/platform-local-auth.ts",
+   "target": "function:services/api/src/mfa-encryption.ts:decryptMfaSecret",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/platform-local-auth.ts",
+   "target": "function:services/api/src/mfa-encryption.ts:isMfaSecretEncrypted",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/platform-local-auth.ts",
+   "target": "function:services/api/src/mfa-provider.ts:hashRecoveryCode",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/platform-local-auth.ts",
+   "target": "function:services/api/src/mfa-provider.ts:verifyRecoveryCode",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/local-auth.ts",
+   "target": "file:services/api/tests/local-auth.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/mfa-provider.ts",
+   "target": "file:services/api/tests/mfa-provider.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/mfa-provider.ts",
+   "target": "file:services/api/tests/local-auth.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/password-hashing.ts",
+   "target": "file:services/api/tests/local-auth.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/platform-local-auth.ts",
+   "target": "file:services/api/tests/customer-platform-auth.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/mfa-encryption.ts",
+   "target": "file:services/api/tests/customer-platform-auth.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/password-hashing.ts",
+   "target": "file:services/api/tests/customer-platform-auth.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/password-hashing.ts",
+   "target": "file:services/api/tests/auth-http.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/password-hashing.ts",
+   "target": "file:services/api/tests/customer-platform-auth-http.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/mfa-provider.ts",
+   "target": "file:services/api/tests/customer-platform-auth-http.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/mfa-encryption.ts",
+   "target": "file:services/api/tests/customer-platform-auth-http.test.ts",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:services/api/src/local-auth.ts",
+   "target": "function:services/api/src/local-auth.ts:createTotpProviderFromEnv",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/password-hashing.ts",
+   "target": "function:services/api/src/password-hashing.ts:unusablePasswordHash",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/password-hashing.ts",
+   "target": "function:services/api/src/password-hashing.ts:unusablePasswordHash",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/local-auth.ts",
+   "target": "function:services/api/src/email/index.ts:sendStaffPasswordResetEmail",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/platform-local-auth.ts",
+   "target": "function:services/api/src/email/index.ts:sendPlatformPasswordResetEmail",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/local-auth.ts",
+   "target": "function:packages/domain/tenant-context.ts:getAgencyId",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/local-auth.ts",
+   "target": "function:packages/domain/tenant-context.ts:getUserId",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/email/types.ts",
+   "target": "class:services/api/src/email/types.ts:EmailProviderNotConfiguredError",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/email/types.ts",
+   "target": "class:services/api/src/email/types.ts:EmailProviderSendError",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/email/unconfigured-provider.ts",
+   "target": "class:services/api/src/email/unconfigured-provider.ts:UnconfiguredEmailProvider",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/local-auth.ts",
+   "target": "function:services/api/src/local-auth.ts:withAgencyAudit",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/local-auth.ts",
+   "target": "function:services/api/src/local-auth.ts:resolveAgencyIdBySlug",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/local-auth.ts",
+   "target": "function:services/api/src/local-auth.ts:login",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/local-auth.ts",
+   "target": "function:services/api/src/local-auth.ts:isMfaRequiredForRole",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/local-auth.ts",
+   "target": "function:services/api/src/local-auth.ts:getActiveMfaSecret",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/local-auth.ts",
+   "target": "function:services/api/src/local-auth.ts:verifyMfaAndCompleteLogin",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/local-auth.ts",
+   "target": "function:services/api/src/local-auth.ts:resolveSessionByToken",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/local-auth.ts",
+   "target": "function:services/api/src/local-auth.ts:revokeSession",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/local-auth.ts",
+   "target": "function:services/api/src/local-auth.ts:revokeAllSessionsForUser",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/local-auth.ts",
+   "target": "function:services/api/src/local-auth.ts:listMySessions",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/local-auth.ts",
+   "target": "function:services/api/src/local-auth.ts:forgotPassword",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/local-auth.ts",
+   "target": "function:services/api/src/local-auth.ts:resetPassword",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/local-auth.ts",
+   "target": "function:services/api/src/local-auth.ts:startMfaEnrollment",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/local-auth.ts",
+   "target": "function:services/api/src/local-auth.ts:confirmMfaEnrollment",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/local-auth.ts",
+   "target": "function:services/api/src/local-auth.ts:disableMfa",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/local-auth.ts",
+   "target": "function:services/api/src/local-auth.ts:setUserStatus",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/mfa-encryption.ts",
+   "target": "function:services/api/src/mfa-encryption.ts:getMasterKey",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/mfa-encryption.ts",
+   "target": "function:services/api/src/mfa-encryption.ts:encryptMfaSecret",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/mfa-encryption.ts",
+   "target": "function:services/api/src/mfa-encryption.ts:decryptMfaSecret",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/mfa-encryption.ts",
+   "target": "function:services/api/src/mfa-encryption.ts:isMfaSecretEncrypted",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/mfa-provider.ts",
+   "target": "class:services/api/src/mfa-provider.ts:HotpProvider",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/mfa-provider.ts",
+   "target": "class:services/api/src/mfa-provider.ts:TotpProvider",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/mfa-provider.ts",
+   "target": "function:services/api/src/mfa-provider.ts:createTotpProvider",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/mfa-provider.ts",
+   "target": "function:services/api/src/mfa-provider.ts:hashRecoveryCode",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/mfa-provider.ts",
+   "target": "function:services/api/src/mfa-provider.ts:verifyRecoveryCode",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/mfa-provider.ts",
+   "target": "function:services/api/src/mfa-provider.ts:constantTimeEquals",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/password-hashing.ts",
+   "target": "function:services/api/src/password-hashing.ts:scrypt",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/password-hashing.ts",
+   "target": "function:services/api/src/password-hashing.ts:hashPassword",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/password-hashing.ts",
+   "target": "function:services/api/src/password-hashing.ts:verifyPassword",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/platform-local-auth.ts",
+   "target": "function:services/api/src/platform-local-auth.ts:recordPlatformAudit",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/platform-local-auth.ts",
+   "target": "function:services/api/src/platform-local-auth.ts:platformLogin",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/platform-local-auth.ts",
+   "target": "function:services/api/src/platform-local-auth.ts:verifyPlatformMfaAndCompleteLogin",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/platform-local-auth.ts",
+   "target": "function:services/api/src/platform-local-auth.ts:startPlatformMfaEnrollment",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/platform-local-auth.ts",
+   "target": "function:services/api/src/platform-local-auth.ts:confirmPlatformMfaEnrollment",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/platform-local-auth.ts",
+   "target": "function:services/api/src/platform-local-auth.ts:resolvePlatformSessionByToken",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/platform-local-auth.ts",
+   "target": "function:services/api/src/platform-local-auth.ts:platformLogout",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/platform-local-auth.ts",
+   "target": "function:services/api/src/platform-local-auth.ts:setPlatformUserStatus",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/platform-local-auth.ts",
+   "target": "function:services/api/src/platform-local-auth.ts:findUnusedRecoveryCode",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/platform-local-auth.ts",
+   "target": "function:services/api/src/platform-local-auth.ts:getPlatformMfaStatus",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/platform-local-auth.ts",
+   "target": "function:services/api/src/platform-local-auth.ts:resetPlatformMfa",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/platform-local-auth.ts",
+   "target": "function:services/api/src/platform-local-auth.ts:platformForgotPassword",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/platform-local-auth.ts",
+   "target": "function:services/api/src/platform-local-auth.ts:platformResetPassword",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/email/types.ts",
+   "target": "class:services/api/src/email/types.ts:EmailProviderNotConfiguredError",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/email/types.ts",
+   "target": "class:services/api/src/email/types.ts:EmailProviderSendError",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/email/unconfigured-provider.ts",
+   "target": "class:services/api/src/email/unconfigured-provider.ts:UnconfiguredEmailProvider",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/local-auth.ts",
+   "target": "function:services/api/src/local-auth.ts:resolveAgencyIdBySlug",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/local-auth.ts",
+   "target": "function:services/api/src/local-auth.ts:login",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/local-auth.ts",
+   "target": "function:services/api/src/local-auth.ts:verifyMfaAndCompleteLogin",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/local-auth.ts",
+   "target": "function:services/api/src/local-auth.ts:resolveSessionByToken",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/local-auth.ts",
+   "target": "function:services/api/src/local-auth.ts:revokeSession",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/local-auth.ts",
+   "target": "function:services/api/src/local-auth.ts:revokeAllSessionsForUser",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/local-auth.ts",
+   "target": "function:services/api/src/local-auth.ts:listMySessions",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/local-auth.ts",
+   "target": "function:services/api/src/local-auth.ts:forgotPassword",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/local-auth.ts",
+   "target": "function:services/api/src/local-auth.ts:resetPassword",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/local-auth.ts",
+   "target": "function:services/api/src/local-auth.ts:startMfaEnrollment",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/local-auth.ts",
+   "target": "function:services/api/src/local-auth.ts:confirmMfaEnrollment",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/local-auth.ts",
+   "target": "function:services/api/src/local-auth.ts:disableMfa",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/local-auth.ts",
+   "target": "function:services/api/src/local-auth.ts:setUserStatus",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/local-auth.ts",
+   "target": "function:services/api/src/local-auth.ts:createTotpProviderFromEnv",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  }
+ ]
+}

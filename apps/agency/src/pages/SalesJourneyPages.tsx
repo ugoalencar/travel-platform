@@ -22,6 +22,10 @@ import {
   listOffers,
   createProposal,
   listSales,
+  listEmployees,
+  listSuppliers,
+  listCustomerSegments,
+  createTrip,
   getSale,
   getSaleFinancialStory,
   duplicateProposal,
@@ -35,10 +39,15 @@ import {
   type ProposalSection,
   type ProposalItem,
   type EntityMediaItem,
+  type Employee,
+  type Supplier,
+  type CustomerSegment,
+  type SalesListFilters,
 } from '../lib/api';
 import type { Booking } from '../types/booking';
 import type { Sale, SaleStatus } from '../types/sale';
 import { ProposalVisualPreview } from './proposals/ProposalVisualPreview';
+import { SalePaymentPanel } from '../components/sales/SalePaymentPanel';
 
 type LoadState<T> =
   | { status: 'loading' }
@@ -807,19 +816,32 @@ function saleStatusLabel(status: SaleStatus): string {
 }
 
 export function SalesListPage() {
-  const [state, setState] = useState<LoadState<Sale[]>>({ status: 'loading' });
+  const [state, setState] = useState<LoadState<{
+    sales: Sale[];
+    employees: Employee[];
+    suppliers: Supplier[];
+    segments: CustomerSegment[];
+  }>>({ status: 'loading' });
+  const [onlyIncomplete, setOnlyIncomplete] = useState(false);
+  const [draftFilters, setDraftFilters] = useState<SalesListFilters>({});
+  const [appliedFilters, setAppliedFilters] = useState<SalesListFilters>({});
 
   const load = useCallback(() => {
     setState({ status: 'loading' });
-    listSales()
-      .then((sales) => {
-        setState({ status: 'success', data: sales });
+    Promise.all([
+      listSales(appliedFilters),
+      listEmployees().catch(() => []),
+      listSuppliers().catch(() => []),
+      listCustomerSegments().catch(() => []),
+    ])
+      .then(([sales, employees, suppliers, segments]) => {
+        setState({ status: 'success', data: { sales, employees, suppliers, segments } });
       })
       .catch((error: unknown) => {
         const message = error instanceof ApiError ? error.message : 'Não foi possível carregar as vendas.';
         setState({ status: 'error', message });
       });
-  }, []);
+  }, [appliedFilters]);
 
   useEffect(() => {
     load();
@@ -834,7 +856,9 @@ export function SalesListPage() {
       return <ErrorState description={state.message} onRetry={load} />;
     }
 
-    const sales = state.data || [];
+    const sales = (state.data?.sales || []).filter(
+      (sale) => !onlyIncomplete || (sale.missingRequiredFields ?? []).length > 0,
+    );
     if (sales.length === 0) {
       return (
         <EmptyState
@@ -859,8 +883,17 @@ export function SalesListPage() {
           <tbody>
             {sales.map((sale) => (
               <tr key={sale.id} className="border-b border-slate-100 last:border-0">
-                <td className="px-4 py-4 font-medium text-slate-950">{sale.customerName || sale.customerId}</td>
-                <td className="px-4 py-4 text-slate-600">{formatDateBR(sale.createdAt)}</td>
+                <td className="px-4 py-4 font-medium text-slate-950">
+                  {sale.customerName || sale.customerId}
+                  {(sale.missingRequiredFields ?? []).length > 0 && (
+                    <span className="ml-2">
+                      <StatusBadge tone="attention">A completar</StatusBadge>
+                    </span>
+                  )}
+                </td>
+                <td className="px-4 py-4 text-slate-600">
+                  {sale.saleDate ? formatDateBR(sale.saleDate, { assumeDateOnly: true }) : formatDateBR(sale.createdAt)}
+                </td>
                 <td className="px-4 py-4 font-semibold text-slate-950">{formatBRL(sale.total)}</td>
                 <td className="px-4 py-4">
                   <StatusBadge tone={saleStatusTone(sale.status)}>
@@ -889,6 +922,65 @@ export function SalesListPage() {
         title="Vendas realizadas"
         description="Histórico de todas as vendas fechadas, pagamentos e comissões."
       />
+      <div className="flex flex-wrap items-center gap-4">
+        <Link to="/sales/new">
+          <Button size="sm">Nova venda</Button>
+        </Link>
+        <label className="flex items-center gap-2 text-sm text-slate-700">
+          <input type="checkbox" checked={onlyIncomplete} onChange={(e) => setOnlyIncomplete(e.target.checked)} />
+          Só vendas a completar
+        </label>
+      </div>
+      <fieldset className="grid gap-3 rounded-lg border border-slate-200 bg-white p-4 sm:grid-cols-2 xl:grid-cols-4">
+        <legend className="px-1 text-sm font-semibold text-slate-800">Filtrar vendas</legend>
+        <label className="flex flex-col gap-1 text-sm text-slate-700" htmlFor="sales-date-from">
+          Data inicial
+          <Input id="sales-date-from" type="date" value={draftFilters.dateFrom ?? ''} onChange={(event) => setDraftFilters({ ...draftFilters, dateFrom: event.target.value || undefined })} />
+        </label>
+        <label className="flex flex-col gap-1 text-sm text-slate-700" htmlFor="sales-date-to">
+          Data final
+          <Input id="sales-date-to" type="date" value={draftFilters.dateTo ?? ''} onChange={(event) => setDraftFilters({ ...draftFilters, dateTo: event.target.value || undefined })} />
+        </label>
+        <label className="flex flex-col gap-1 text-sm text-slate-700" htmlFor="sales-status">
+          Status da venda
+          <Select id="sales-status" value={draftFilters.status ?? ''} onChange={(event) => setDraftFilters({ ...draftFilters, status: event.target.value || undefined })}>
+            <option value="">Todos os status</option>
+            <option value="PENDING">Pendente</option>
+            <option value="PENDING_RULE">Aguardando regra</option>
+            <option value="CONFIRMED">Confirmada</option>
+            <option value="PAID">Paga</option>
+            <option value="CANCELLED">Cancelada</option>
+            <option value="REFUNDED">Estornada</option>
+          </Select>
+        </label>
+        {state.status === 'success' && <>
+          <label className="flex flex-col gap-1 text-sm text-slate-700" htmlFor="sales-supplier">
+            Fornecedor
+            <Select id="sales-supplier" value={draftFilters.supplierId ?? ''} onChange={(event) => setDraftFilters({ ...draftFilters, supplierId: event.target.value || undefined })}>
+              <option value="">Todos os fornecedores</option>
+              {(state.data?.suppliers ?? []).map((supplier) => <option key={supplier.id} value={supplier.id}>{supplier.name}</option>)}
+            </Select>
+          </label>
+          <label className="flex flex-col gap-1 text-sm text-slate-700" htmlFor="sales-employee">
+            Funcionário
+            <Select id="sales-employee" value={draftFilters.employeeId ?? ''} onChange={(event) => setDraftFilters({ ...draftFilters, employeeId: event.target.value || undefined })}>
+              <option value="">Todos os funcionários</option>
+              {(state.data?.employees ?? []).filter((employee) => employee.userId).map((employee) => <option key={employee.id} value={employee.userId}>{employee.name}</option>)}
+            </Select>
+          </label>
+          <label className="flex flex-col gap-1 text-sm text-slate-700" htmlFor="sales-segment">
+            Segmentação
+            <Select id="sales-segment" value={draftFilters.segmentId ?? ''} onChange={(event) => setDraftFilters({ ...draftFilters, segmentId: event.target.value || undefined })}>
+              <option value="">Todos os clientes</option>
+              {(state.data?.segments ?? []).map((segment) => <option key={segment.id} value={segment.id}>{segment.name}</option>)}
+            </Select>
+          </label>
+        </>}
+        <div className="flex flex-wrap items-end gap-2 sm:col-span-2 xl:col-span-4">
+          <Button type="button" size="sm" onClick={() => setAppliedFilters(draftFilters)}>Aplicar filtros</Button>
+          <Button type="button" size="sm" variant="outline" onClick={() => { setDraftFilters({}); setAppliedFilters({}); }}>Limpar filtros</Button>
+        </div>
+      </fieldset>
       <JourneyRail active="Sale" />
       <Card>
         <CardHeader>
@@ -908,6 +1000,17 @@ interface SaleDetail {
 export function SaleSummaryPage() {
   const { id } = useParams();
   const [state, setState] = useState<LoadState<SaleDetail>>({ status: 'loading' });
+  const [tripFormOpen, setTripFormOpen] = useState(false);
+  const [tripForm, setTripForm] = useState({ name: '', destination: '', startDate: '', endDate: '' });
+  const [tripError, setTripError] = useState<string | null>(null);
+
+  const refreshFinancialStory = useCallback(() => {
+    if (!id) return;
+    void getSaleFinancialStory(id).catch(() => null).then((story) => {
+      setState((current) => current.status === 'success' && current.data?.sale.id === id
+        ? { status: 'success', data: { ...current.data, story } } : current);
+    });
+  }, [id]);
 
   const load = useCallback(() => {
     if (!id) return;
@@ -969,6 +1072,26 @@ export function SaleSummaryPage() {
 
   const { sale, story } = state.data;
 
+  async function handleCreateLinkedTrip(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setTripError(null);
+    try {
+      await createTrip({
+        customerId: sale.customerId,
+        saleId: sale.id,
+        name: tripForm.name.trim(),
+        destination: tripForm.destination.trim(),
+        startDate: tripForm.startDate,
+        endDate: tripForm.endDate || tripForm.startDate,
+        notes: 'Viagem vinculada à venda; comprador registrado como cliente principal.',
+      });
+      setTripFormOpen(false);
+      load();
+    } catch (error) {
+      setTripError(error instanceof Error ? error.message : 'Não foi possível vincular a viagem.');
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -985,6 +1108,15 @@ export function SaleSummaryPage() {
               <Button size="sm" variant="outline">Abrir viagem</Button>
             </Link>
           )}
+          {!sale.tripId && <Button size="sm" variant="outline" onClick={() => {
+            setTripForm({
+              name: `Viagem - ${sale.categoryName || 'venda'}`,
+              destination: sale.destinationText || '',
+              startDate: sale.travelStartDate || '',
+              endDate: sale.travelEndDate || sale.travelStartDate || '',
+            });
+            setTripFormOpen((open) => !open);
+          }}>{tripFormOpen ? 'Cancelar vínculo' : 'Vincular viagem'}</Button>}
           <Link to={`/financial/sales/${sale.id}/story`}>
             <Button size="sm" variant="outline">Historia financeira</Button>
           </Link>
@@ -992,12 +1124,43 @@ export function SaleSummaryPage() {
       </div>
       <JourneyRail active="Sale" />
 
+      {tripFormOpen && !sale.tripId && <Card>
+        <CardHeader><CardTitle>Vincular viagem a esta venda</CardTitle></CardHeader>
+        <CardContent>
+          <form onSubmit={(event) => void handleCreateLinkedTrip(event)} className="grid gap-3 md:grid-cols-2">
+            <label className="flex flex-col gap-1 text-sm">Nome da viagem<Input required value={tripForm.name} onChange={(event) => setTripForm({ ...tripForm, name: event.target.value })} /></label>
+            <label className="flex flex-col gap-1 text-sm">Destino<Input required value={tripForm.destination} onChange={(event) => setTripForm({ ...tripForm, destination: event.target.value })} /></label>
+            <label className="flex flex-col gap-1 text-sm">Data de ida<Input required type="date" value={tripForm.startDate} onChange={(event) => setTripForm({ ...tripForm, startDate: event.target.value })} /></label>
+            <label className="flex flex-col gap-1 text-sm">Data de retorno<Input type="date" min={tripForm.startDate} value={tripForm.endDate} onChange={(event) => setTripForm({ ...tripForm, endDate: event.target.value })} /></label>
+            {tripError && <p role="alert" className="text-sm text-red-700 md:col-span-2">{tripError}</p>}
+            <Button type="submit" className="md:col-span-2">Criar vínculo de viagem</Button>
+          </form>
+          <p className="mt-3 text-xs text-slate-600">O comprador da venda será o cliente principal da viagem. Passageiros adicionais podem ser cadastrados na reserva operacional.</p>
+        </CardContent>
+      </Card>}
+
       <Card>
         <CardHeader>
           <CardTitle>Informacoes da venda</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-5 md:grid-cols-2">
-          <Field label="Data da venda" value={formatDateBR(sale.createdAt)} />
+          <Field
+            label="Data da venda"
+            value={sale.saleDate ? formatDateBR(sale.saleDate, { assumeDateOnly: true }) : formatDateBR(sale.createdAt)}
+          />
+          {sale.categoryName && <Field label="Categoria" value={sale.categoryName} />}
+          {sale.originText && <Field label="Origem" value={sale.originText} />}
+          {sale.destinationText && <Field label="Destino" value={sale.destinationText} />}
+          {sale.travelStartDate && (
+            <Field label="Embarque / ida" value={formatDateBR(sale.travelStartDate, { assumeDateOnly: true })} />
+          )}
+          {sale.travelEndDate && (
+            <Field label="Retorno / fim" value={formatDateBR(sale.travelEndDate, { assumeDateOnly: true })} />
+          )}
+          {sale.passengerCount !== undefined && <Field label="Passageiros" value={String(sale.passengerCount)} />}
+          {Object.entries(sale.modalityData ?? {}).map(([key, value]) => (
+            <Field key={key} label={key} value={value} />
+          ))}
           <Field label="Cliente" value={sale.customerName || sale.customerId} />
           <Field label="Vendedor" value={sale.salespersonName || '—'} />
           <Field label="Viagem" value={sale.tripName || '—'} />
@@ -1008,6 +1171,8 @@ export function SaleSummaryPage() {
           {sale.notes && <Field label="Observacoes" value={sale.notes} />}
         </CardContent>
       </Card>
+
+      <SalePaymentPanel sale={sale} onChange={refreshFinancialStory} />
 
       {story ? (
         <>

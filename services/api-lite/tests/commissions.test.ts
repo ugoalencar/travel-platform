@@ -37,6 +37,7 @@ interface SaleDetailJson {
 
 describe('Travel Lite commissions', () => {
   let lite: LiteFixture;
+  let cashMethodId = '';
   let staffToken: string;
   let sellerToken: string;
   let managerToken: string;
@@ -58,6 +59,9 @@ describe('Travel Lite commissions', () => {
     sellerToken = await lite.login('tenant-a', 'seller1@a.test');
     viewerToken = await lite.login('tenant-a', 'viewer@a.test');
     managerToken = await lite.login('tenant-a', 'admin@a.test');
+
+    // COM-03: a sale needs a payment method whose receipt rule was decided, otherwise the commission is BLOCKED.
+    cashMethodId = (await lite.app.inject({ method: 'POST', url: '/payment-methods', headers: lite.headers(managerToken), payload: { name: 'Dinheiro', requires_receipt: false } })).json<{ paymentMethod: { id: string } }>().paymentMethod.id;
     foreignToken = await lite.login('tenant-b', 'staff@b.test');
 
     const customer = await lite.app.inject({
@@ -99,7 +103,7 @@ describe('Travel Lite commissions', () => {
     const category = await lite.app.inject({
       method: 'POST',
       url: '/categories',
-      headers: lite.headers(staffToken),
+      headers: lite.headers(managerToken),
       payload: { name: 'TRANSF' },
     });
     categoryId = category.json<{ category: { id: string } }>().category.id;
@@ -116,6 +120,7 @@ describe('Travel Lite commissions', () => {
         cost_amount: 800,
         due_date: '2026-10-15',
         installment_count: 1,
+        payment_method_id: cashMethodId,
       },
     });
     approvedSaleId = created.json<{ sale: { id: string } }>().sale.id;
@@ -137,6 +142,7 @@ describe('Travel Lite commissions', () => {
         cost_amount: 1500,
         due_date: '2026-10-15',
         installment_count: 1,
+        payment_method_id: cashMethodId,
       },
     });
     rulelessSaleId = createdRuleless.json<{ sale: { id: string } }>().sale.id;
@@ -278,6 +284,57 @@ describe('Travel Lite commissions', () => {
     expect(audit.rows[0]?.total).toBe(1);
   });
 
+  it('prevents a second payable for the same commission', async () => {
+    const manual = await lite.app.inject({
+      method: 'POST',
+      url: '/payables',
+      headers: lite.headers(managerToken),
+      payload: {
+        description: 'Comissao duplicada',
+        amount: 10,
+        due_at: '2026-10-20',
+        commission_id: approvedCommissionId,
+      },
+    });
+    expect(manual.statusCode).toBe(400);
+
+    await expect(
+      lite.adminPool.query(
+        `INSERT INTO payables (tenant_id, commission_id, description, amount, due_at)
+         SELECT tenant_id, commission_id, 'dup', 10, '2026-10-20'
+           FROM payables WHERE commission_id = $1 AND status <> 'CANCELLED' LIMIT 1`,
+        [approvedCommissionId],
+      ),
+    ).rejects.toMatchObject({ code: '23505' });
+  });
+
+  it('rolls back a financial operation when its required audit row cannot be written', async () => {
+    await lite.adminPool.query(`
+      CREATE FUNCTION test_block_expense_audit() RETURNS trigger AS $$
+      BEGIN
+        IF NEW.event_type = 'EXPENSE_CREATED' THEN RAISE EXCEPTION 'audit blocked'; END IF;
+        RETURN NEW;
+      END $$ LANGUAGE plpgsql`);
+    await lite.adminPool.query(
+      `CREATE TRIGGER test_block_expense_audit BEFORE INSERT ON audit_logs
+         FOR EACH ROW EXECUTE FUNCTION test_block_expense_audit()`,
+    );
+    try {
+      const blocked = await lite.app.inject({
+        method: 'POST',
+        url: '/payables',
+        headers: lite.headers(managerToken),
+        payload: { description: 'Sem auditoria', amount: 10, due_at: '2026-10-20' },
+      });
+      expect(blocked.statusCode).toBe(500);
+      const rows = await lite.adminPool.query(`SELECT 1 FROM payables WHERE description = 'Sem auditoria'`);
+      expect(rows.rowCount).toBe(0);
+    } finally {
+      await lite.adminPool.query('DROP TRIGGER test_block_expense_audit ON audit_logs');
+      await lite.adminPool.query('DROP FUNCTION test_block_expense_audit()');
+    }
+  });
+
   it('refuses to approve a commission without a rule', async () => {
     const approve = await lite.app.inject({
       method: 'POST',
@@ -340,6 +397,28 @@ describe('Travel Lite commissions', () => {
       .items.find((p) => p.commission_id === approvedCommissionId);
     expect(payable).toBeDefined();
 
+    // A partial payment keeps the commission APPROVED with the balance open.
+    const partial = await lite.app.inject({
+      method: 'POST',
+      url: `/payables/${payable!.id}/pay`,
+      headers: lite.headers(managerToken),
+      payload: { account_id: accountId, amount: 1 },
+    });
+    expect(partial.statusCode).toBe(200);
+    const afterPartial = await lite.app.inject({
+      method: 'GET',
+      url: `/commissions?seller_id=${percentageSellerId}`,
+      headers: lite.headers(staffToken),
+    });
+    const partialItem = afterPartial.json<PageJson<CommissionJson>>().items[0];
+    expect(partialItem?.status).toBe('APPROVED');
+    expect(partialItem?.paid_at).toBeNull();
+    expect(partialItem?.payable_status).toBe('PARTIALLY_PAID');
+    const earlyAudit = await lite.adminPool.query<{ total: number }>(
+      `SELECT count(*)::int AS total FROM audit_logs WHERE event_type = 'COMMISSION_PAID'`,
+    );
+    expect(earlyAudit.rows[0]?.total).toBe(0);
+
     const pay = await lite.app.inject({
       method: 'POST',
       url: `/payables/${payable!.id}/pay`,
@@ -385,6 +464,7 @@ describe('Travel Lite commissions', () => {
         cost_amount: 300,
         due_date: '2026-10-15',
         installment_count: 1,
+        payment_method_id: cashMethodId,
       },
     });
     expect(sale.statusCode).toBe(201);

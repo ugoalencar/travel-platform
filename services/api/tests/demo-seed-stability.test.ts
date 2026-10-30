@@ -54,7 +54,7 @@ const seedScript = resolve(repoRoot, 'scripts/seed-demo-data.cjs');
 const composeFile = resolve(repoRoot, 'infrastructure/docker-compose.local-postgres.yml');
 
 const projectName = 'travel-platform-demo-seed-stability-postgres';
-const containerName = 'travel-platform-postgres-local';
+const containerName = process.env.DATABASE_TEST_CONTAINER_NAME ?? 'travel-platform-postgres-local';
 const databaseHost = process.env.DATABASE_TEST_HOST ?? '127.0.0.1';
 const databasePort = Number(process.env.DATABASE_TEST_PORT ?? '55432');
 const databaseName = process.env.DATABASE_TEST_NAME ?? 'travel_platform_test';

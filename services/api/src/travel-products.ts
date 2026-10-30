@@ -4,7 +4,7 @@ import {
   type TravelProduct,
 } from '../../../packages/domain/types';
 import { getAgencyId, getUserId } from '../../../packages/domain/tenant-context';
-import type { DatabaseRuntime } from './database';
+import type { DatabaseRuntime, TenantTransactionClient } from './database';
 import { NotFoundError, ValidationError } from './errors';
 import { recordAuditLog } from './offer-growth-audit';
 
@@ -13,6 +13,7 @@ interface TravelProductRow {
   agency_id: string;
   category: TravelProductCategory;
   supplier_id: string | null;
+  category_id: string | null;
   partner_id: string | null;
   title: string;
   description: string | null;
@@ -54,6 +55,8 @@ export interface TravelProductInput {
   category: TravelProductCategory;
   title: string;
   supplierId?: string;
+  /** Configurable sale category (commission_categories, ADR-008). Legacy `category` enum is untouched. */
+  categoryId?: string | null;
   partnerId?: string;
   description?: string;
   destination?: string;
@@ -96,7 +99,7 @@ const CATEGORY_VALUES = Object.values(TravelProductCategory);
 // no JS Date is ever constructed from a DATE column, so there is no
 // timezone conversion for a value that was never timezone-aware to begin
 // with.
-const COLUMNS = `id, agency_id, category, supplier_id, partner_id, title, description,
+const COLUMNS = `id, agency_id, category, supplier_id, category_id, partner_id, title, description,
   destination, duration_text, rules, inclusions, exclusions, min_age, max_age, capacity,
   booking_deadline_days, cancellation_policy, cost, price, currency, markup_percent,
   commission_percent, to_char(valid_from, 'YYYY-MM-DD') AS valid_from,
@@ -179,6 +182,17 @@ export async function getTravelProductById(
   });
 }
 
+/** The category must belong to the session agency (the composite FK is the second line of defense). */
+async function assertSaleCategory(
+  client: TenantTransactionClient,
+  agencyId: string,
+  categoryId: string | null | undefined,
+): Promise<void> {
+  if (categoryId === undefined || categoryId === null) return;
+  const found = await client.query(`SELECT 1 FROM commission_categories WHERE agency_id = $1 AND id = $2`, [agencyId, categoryId]);
+  if (found.rows.length === 0) throw new NotFoundError('Category not found');
+}
+
 export async function createTravelProduct(
   database: DatabaseRuntime,
   data: CreateTravelProductInput,
@@ -195,16 +209,17 @@ export async function createTravelProduct(
   assertValid(data);
 
   return database.withTenantTransaction(async (client) => {
+    await assertSaleCategory(client, agencyId, data.categoryId);
     const result = await client.query<TravelProductRow>(
       `INSERT INTO travel_products (
          agency_id, category, supplier_id, partner_id, title, description, destination,
          duration_text, rules, inclusions, exclusions, min_age, max_age, capacity,
          booking_deadline_days, cancellation_policy, cost, price, currency, markup_percent,
          commission_percent, valid_from, valid_until, active, standalone, proposal_eligible,
-         portal_visible
+         portal_visible, category_id
        )
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18,
-         $19, $20, $21, $22, $23, $24, $25, $26, $27)
+         $19, $20, $21, $22, $23, $24, $25, $26, $27, $28)
        RETURNING ${COLUMNS}`,
       [
         agencyId,
@@ -234,6 +249,7 @@ export async function createTravelProduct(
         data.standalone ?? true,
         data.proposalEligible ?? true,
         data.portalVisible ?? false,
+        data.categoryId ?? null,
       ],
     );
 
@@ -255,6 +271,7 @@ export async function createTravelProduct(
 const UPDATE_COLUMN_MAP: Array<[keyof UpdateTravelProductInput, string]> = [
   ['category', 'category'],
   ['supplierId', 'supplier_id'],
+  ['categoryId', 'category_id'],
   ['partnerId', 'partner_id'],
   ['title', 'title'],
   ['description', 'description'],
@@ -306,6 +323,7 @@ export async function updateTravelProduct(
   }
 
   return database.withTenantTransaction(async (client) => {
+    await assertSaleCategory(client, agencyId, data.categoryId);
     const result = await client.query<TravelProductRow>(
       `UPDATE travel_products SET ${fields.join(', ')}, updated_at = now()
        WHERE agency_id = $1 AND id = $${index + 1}
@@ -395,6 +413,7 @@ function toTravelProduct(row: TravelProductRow): TravelProduct {
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
     ...(row.supplier_id !== null ? { supplierId: row.supplier_id } : {}),
+    ...(row.category_id !== null ? { categoryId: row.category_id } : {}),
     ...(row.partner_id !== null ? { partnerId: row.partner_id } : {}),
     ...(row.description !== null ? { description: row.description } : {}),
     ...(row.destination !== null ? { destination: row.destination } : {}),

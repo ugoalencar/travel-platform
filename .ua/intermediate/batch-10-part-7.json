@@ -1,0 +1,789 @@
+{
+ "nodes": [
+  {
+   "id": "file:services/api/src/routes/offers.ts",
+   "type": "file",
+   "name": "offers.ts",
+   "filePath": "services/api/src/routes/offers.ts",
+   "summary": "Rotas de ofertas: listagem, detalhe, criação e atualização usando parsers de input comercial.",
+   "tags": [
+    "api-handler",
+    "routes",
+    "offers",
+    "sales"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/routes/offers.ts:registerOffersRoutes",
+   "type": "function",
+   "name": "registerOffersRoutes",
+   "filePath": "services/api/src/routes/offers.ts",
+   "lineRange": [
+    25,
+    76
+   ],
+   "summary": "Registra as rotas de ofertas comerciais no Fastify, aplicando validação de entrada e autorização por papel ou entitlement antes de delegar à camada de serviço.",
+   "tags": [
+    "api-handler",
+    "route-registration",
+    "authorization",
+    "fastify"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:services/api/src/routes/operations-staff.ts",
+   "type": "file",
+   "name": "operations-staff.ts",
+   "filePath": "services/api/src/routes/operations-staff.ts",
+   "summary": "Rotas operacionais de transporte: listagem de operações, criação de equipe operacional e atribuições, confirmação de chegada e partida.",
+   "tags": [
+    "api-handler",
+    "routes",
+    "operations",
+    "staff"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/routes/operations-staff.ts:registerOperationsStaffRoutes",
+   "type": "function",
+   "name": "registerOperationsStaffRoutes",
+   "filePath": "services/api/src/routes/operations-staff.ts",
+   "lineRange": [
+    34,
+    117
+   ],
+   "summary": "Registra as rotas de operações de transporte e equipe operacional no Fastify, aplicando validação de entrada e autorização por papel ou entitlement antes de delegar à camada de serviço.",
+   "tags": [
+    "api-handler",
+    "route-registration",
+    "authorization",
+    "fastify"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/routes/operations-staff.ts:parseCreateOperationInput",
+   "type": "function",
+   "name": "parseCreateOperationInput",
+   "filePath": "services/api/src/routes/operations-staff.ts",
+   "lineRange": [
+    123,
+    145
+   ],
+   "summary": "Valida e normaliza o corpo da requisição para criação de Operation, verificando campos obrigatórios, tipos e valores permitidos.",
+   "tags": [
+    "validation",
+    "parsing",
+    "input-sanitization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/routes/operations-staff.ts:parseCreateOperationalStaffInput",
+   "type": "function",
+   "name": "parseCreateOperationalStaffInput",
+   "filePath": "services/api/src/routes/operations-staff.ts",
+   "lineRange": [
+    147,
+    206
+   ],
+   "summary": "Valida e normaliza o corpo da requisição para criação de Operational Staff, verificando campos obrigatórios, tipos e valores permitidos.",
+   "tags": [
+    "validation",
+    "parsing",
+    "input-sanitization"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/routes/operations-staff.ts:parseCreateOperationAssignmentInput",
+   "type": "function",
+   "name": "parseCreateOperationAssignmentInput",
+   "filePath": "services/api/src/routes/operations-staff.ts",
+   "lineRange": [
+    208,
+    255
+   ],
+   "summary": "Valida e normaliza o corpo da requisição para criação de Operation Assignment, verificando campos obrigatórios, tipos e valores permitidos.",
+   "tags": [
+    "validation",
+    "parsing",
+    "input-sanitization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:services/api/src/routes/operations.ts",
+   "type": "file",
+   "name": "operations.ts",
+   "filePath": "services/api/src/routes/operations.ts",
+   "summary": "Rotas de ocorrências de viagem e checklist pós-viagem: passageiros operacionais, alertas de documentos, CRUD de ocorrências e atualização de itens de checklist.",
+   "tags": [
+    "api-handler",
+    "routes",
+    "operations",
+    "incidents"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:services/api/src/routes/operations.ts:registerOperationsRoutes",
+   "type": "function",
+   "name": "registerOperationsRoutes",
+   "filePath": "services/api/src/routes/operations.ts",
+   "lineRange": [
+    54,
+    150
+   ],
+   "summary": "Registra as rotas de ocorrências de viagem e checklist pós-viagem no Fastify, aplicando validação de entrada e autorização por papel ou entitlement antes de delegar à camada de serviço.",
+   "tags": [
+    "api-handler",
+    "route-registration",
+    "authorization",
+    "fastify"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/routes/operations.ts:requireEnum",
+   "type": "function",
+   "name": "requireEnum",
+   "filePath": "services/api/src/routes/operations.ts",
+   "lineRange": [
+    184,
+    194
+   ],
+   "summary": "Exige um campo presente restrito a um conjunto fixo de valores, com mensagem de erro listando as opções.",
+   "tags": [
+    "validation",
+    "utility",
+    "input-sanitization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/routes/operations.ts:parseCreateOccurrenceInput",
+   "type": "function",
+   "name": "parseCreateOccurrenceInput",
+   "filePath": "services/api/src/routes/operations.ts",
+   "lineRange": [
+    206,
+    221
+   ],
+   "summary": "Valida e normaliza o corpo da requisição para criação de Occurrence, verificando campos obrigatórios, tipos e valores permitidos.",
+   "tags": [
+    "validation",
+    "parsing",
+    "input-sanitization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:services/api/src/routes/operations.ts:parseUpdateOccurrenceInput",
+   "type": "function",
+   "name": "parseUpdateOccurrenceInput",
+   "filePath": "services/api/src/routes/operations.ts",
+   "lineRange": [
+    223,
+    235
+   ],
+   "summary": "Valida e normaliza o corpo da requisição para atualização de Occurrence, verificando campos obrigatórios, tipos e valores permitidos.",
+   "tags": [
+    "validation",
+    "parsing",
+    "input-sanitization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:services/api/src/routes/partner-campaigns.ts",
+   "type": "file",
+   "name": "partner-campaigns.ts",
+   "filePath": "services/api/src/routes/partner-campaigns.ts",
+   "summary": "Rotas de campanhas de parceiros: stubs de campanha, campanhas ativas por localização, placements, produtos e atribuições de conversão.",
+   "tags": [
+    "api-handler",
+    "routes",
+    "partners",
+    "campaign"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:services/api/src/routes/partner-campaigns.ts:registerPartnerCampaignsRoutes",
+   "type": "function",
+   "name": "registerPartnerCampaignsRoutes",
+   "filePath": "services/api/src/routes/partner-campaigns.ts",
+   "lineRange": [
+    43,
+    201
+   ],
+   "summary": "Registra as rotas de campanhas e atribuições de parceiros no Fastify, aplicando validação de entrada e autorização por papel ou entitlement antes de delegar à camada de serviço.",
+   "tags": [
+    "api-handler",
+    "route-registration",
+    "authorization",
+    "fastify"
+   ],
+   "complexity": "moderate"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:services/api/src/routes/offers.ts",
+   "target": "function:services/api/src/routes/offers.ts:registerOffersRoutes",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/offers.ts",
+   "target": "function:services/api/src/routes/offers.ts:registerOffersRoutes",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/operations-staff.ts",
+   "target": "function:services/api/src/routes/operations-staff.ts:registerOperationsStaffRoutes",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/operations-staff.ts",
+   "target": "function:services/api/src/routes/operations-staff.ts:registerOperationsStaffRoutes",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/operations-staff.ts",
+   "target": "function:services/api/src/routes/operations-staff.ts:parseCreateOperationInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/operations-staff.ts",
+   "target": "function:services/api/src/routes/operations-staff.ts:parseCreateOperationalStaffInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/operations-staff.ts",
+   "target": "function:services/api/src/routes/operations-staff.ts:parseCreateOperationAssignmentInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/operations.ts",
+   "target": "function:services/api/src/routes/operations.ts:registerOperationsRoutes",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/operations.ts",
+   "target": "function:services/api/src/routes/operations.ts:registerOperationsRoutes",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/operations.ts",
+   "target": "function:services/api/src/routes/operations.ts:requireEnum",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/operations.ts",
+   "target": "function:services/api/src/routes/operations.ts:parseCreateOccurrenceInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/operations.ts",
+   "target": "function:services/api/src/routes/operations.ts:parseUpdateOccurrenceInput",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/partner-campaigns.ts",
+   "target": "function:services/api/src/routes/partner-campaigns.ts:registerPartnerCampaignsRoutes",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:services/api/src/routes/partner-campaigns.ts",
+   "target": "function:services/api/src/routes/partner-campaigns.ts:registerPartnerCampaignsRoutes",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:services/api/src/routes/offers.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/offers.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/offers.ts",
+   "target": "file:services/api/src/commercial-input-parsing.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/offers.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/offers.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/offers.ts",
+   "target": "file:services/api/src/offers.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/operations-staff.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/operations-staff.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/operations-staff.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/operations-staff.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/operations-staff.ts",
+   "target": "file:services/api/src/transport-operations.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/operations.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/operations.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/operations.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/operations.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/operations.ts",
+   "target": "file:services/api/src/operations-queries.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/operations.ts",
+   "target": "file:services/api/src/post-trip-checklist.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/operations.ts",
+   "target": "file:services/api/src/trip-occurrences.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/partner-campaigns.ts",
+   "target": "file:packages/domain/tenant-context.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/partner-campaigns.ts",
+   "target": "file:packages/domain/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/partner-campaigns.ts",
+   "target": "file:services/api/src/database.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/partner-campaigns.ts",
+   "target": "file:services/api/src/errors.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/partner-campaigns.ts",
+   "target": "file:services/api/src/partner-campaigns.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:services/api/src/routes/partner-campaigns.ts",
+   "target": "file:services/api/src/request-parsing.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "function:services/api/src/routes/offers.ts:registerOffersRoutes",
+   "target": "function:packages/domain/tenant-context.ts:requireRole",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/offers.ts:registerOffersRoutes",
+   "target": "function:services/api/src/offers.ts:listOffers",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/offers.ts:registerOffersRoutes",
+   "target": "function:services/api/src/offers.ts:getOfferById",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/offers.ts:registerOffersRoutes",
+   "target": "function:services/api/src/commercial-input-parsing.ts:parseCreateOfferInput",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/offers.ts:registerOffersRoutes",
+   "target": "function:services/api/src/offers.ts:createOffer",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/offers.ts:registerOffersRoutes",
+   "target": "function:services/api/src/commercial-input-parsing.ts:parseUpdateOfferInput",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/offers.ts:registerOffersRoutes",
+   "target": "function:services/api/src/offers.ts:updateOffer",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/operations-staff.ts:registerOperationsStaffRoutes",
+   "target": "function:packages/domain/tenant-context.ts:requireRole",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/operations-staff.ts:registerOperationsStaffRoutes",
+   "target": "function:services/api/src/transport-operations.ts:listOperations",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/operations-staff.ts:registerOperationsStaffRoutes",
+   "target": "function:services/api/src/transport-operations.ts:createOperationalStaff",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/operations-staff.ts:registerOperationsStaffRoutes",
+   "target": "function:services/api/src/transport-operations.ts:getOperationById",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/operations-staff.ts:registerOperationsStaffRoutes",
+   "target": "function:services/api/src/transport-operations.ts:createOperation",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/operations-staff.ts:registerOperationsStaffRoutes",
+   "target": "function:services/api/src/transport-operations.ts:createOperationAssignment",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/operations-staff.ts:registerOperationsStaffRoutes",
+   "target": "function:packages/domain/tenant-context.ts:getUserId",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/operations-staff.ts:registerOperationsStaffRoutes",
+   "target": "function:services/api/src/transport-operations.ts:confirmArrival",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/operations-staff.ts:registerOperationsStaffRoutes",
+   "target": "function:services/api/src/transport-operations.ts:confirmDeparture",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/operations.ts:registerOperationsRoutes",
+   "target": "function:packages/domain/tenant-context.ts:requireRole",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/operations.ts:registerOperationsRoutes",
+   "target": "function:services/api/src/operations-queries.ts:listOperationalPassengers",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/operations.ts:registerOperationsRoutes",
+   "target": "function:services/api/src/operations-queries.ts:listDocumentAlerts",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/operations.ts:registerOperationsRoutes",
+   "target": "function:services/api/src/trip-occurrences.ts:listTripOccurrences",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/operations.ts:registerOperationsRoutes",
+   "target": "function:packages/domain/tenant-context.ts:getUserId",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/operations.ts:registerOperationsRoutes",
+   "target": "function:services/api/src/trip-occurrences.ts:createTripOccurrence",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/operations.ts:registerOperationsRoutes",
+   "target": "function:services/api/src/trip-occurrences.ts:getTripOccurrenceById",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/operations.ts:registerOperationsRoutes",
+   "target": "function:services/api/src/trip-occurrences.ts:updateTripOccurrence",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/operations.ts:registerOperationsRoutes",
+   "target": "function:services/api/src/post-trip-checklist.ts:listCompletedTripsWithChecklist",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/operations.ts:registerOperationsRoutes",
+   "target": "function:services/api/src/post-trip-checklist.ts:setPostTripChecklistItem",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/partner-campaigns.ts:registerPartnerCampaignsRoutes",
+   "target": "function:packages/domain/tenant-context.ts:requireRole",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/partner-campaigns.ts:registerPartnerCampaignsRoutes",
+   "target": "function:services/api/src/partner-campaigns.ts:listCampaignPartnerStubs",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/partner-campaigns.ts:registerPartnerCampaignsRoutes",
+   "target": "function:services/api/src/request-parsing.ts:requireStringField",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/partner-campaigns.ts:registerPartnerCampaignsRoutes",
+   "target": "function:services/api/src/partner-campaigns.ts:createCampaignPartnerStub",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/partner-campaigns.ts:registerPartnerCampaignsRoutes",
+   "target": "function:services/api/src/partner-campaigns.ts:listPartnerCampaigns",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/partner-campaigns.ts:registerPartnerCampaignsRoutes",
+   "target": "function:services/api/src/partner-campaigns.ts:listActiveCampaignsForLocation",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/partner-campaigns.ts:registerPartnerCampaignsRoutes",
+   "target": "function:services/api/src/partner-campaigns.ts:getPartnerCampaignById",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/partner-campaigns.ts:registerPartnerCampaignsRoutes",
+   "target": "function:services/api/src/partner-campaigns.ts:createPartnerCampaign",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/partner-campaigns.ts:registerPartnerCampaignsRoutes",
+   "target": "function:services/api/src/partner-campaigns.ts:transitionPartnerCampaignStatus",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/partner-campaigns.ts:registerPartnerCampaignsRoutes",
+   "target": "function:services/api/src/partner-campaigns.ts:listCampaignProducts",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/partner-campaigns.ts:registerPartnerCampaignsRoutes",
+   "target": "function:services/api/src/partner-campaigns.ts:listCampaignPlacements",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/partner-campaigns.ts:registerPartnerCampaignsRoutes",
+   "target": "function:services/api/src/partner-campaigns.ts:createCampaignPlacement",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/partner-campaigns.ts:registerPartnerCampaignsRoutes",
+   "target": "function:packages/domain/tenant-context.ts:getTenantContext",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/partner-campaigns.ts:registerPartnerCampaignsRoutes",
+   "target": "function:services/api/src/partner-campaigns.ts:recordCampaignAttribution",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:services/api/src/routes/partner-campaigns.ts:registerPartnerCampaignsRoutes",
+   "target": "function:services/api/src/partner-campaigns.ts:getCampaignAttributionSummary",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  }
+ ]
+}
